@@ -1479,30 +1479,26 @@ ui.App = $hxClasses["ui.App"] = function() { }
 ui.App.__name__ = ["ui","App"];
 ui.App.LOGGER = null;
 ui.App.CONNECTIONS = null;
+ui.App.LABELS = null;
 ui.App.main = function() {
 	ui.App.LOGGER = new ui.log.Logga(ui.log.LogLevel.DEBUG);
 	ui.App.CONNECTIONS = new ui.observable.ObservableSet(function(conn) {
 		return conn.uid;
 	});
+	ui.App.LABELS = new ui.observable.ObservableSet(function(label) {
+		return label.uid;
+	});
 }
 ui.App.start = function() {
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
 	new ui.widget.ConnectionsComp("#connections").connectionsComp({ connections : ui.App.CONNECTIONS});
-	new ui.jq.JQDraggable(".label").draggable({ revert : function(dropTarget) {
-		return dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".labelDT");
-	}, distance : 10, scroll : false, stop : function(event,ui1) {
-		ui.App.LOGGER.debug("draggable stop");
-	}});
+	new ui.widget.LabelTree("#labels").labelTree({ labels : ui.App.LABELS});
 	new ui.jq.JQDroppable("#filter").droppable({ accept : function(d) {
 		return d["is"](".filterable");
 	}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
 		ui.App.LOGGER.debug("droppable drop");
 	}});
-	new ui.jq.JQDroppable("#labels").droppable({ accept : function(d) {
-		return d["is"](".label");
-	}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
-		ui.App.LOGGER.debug("droppable drop");
-	}});
+	new ui.jq.JQDroppable("#labels");
 	ui.App.demo();
 }
 ui.App.demo = function() {
@@ -1963,11 +1959,15 @@ ui.model.User.__super__ = ui.model.ModelObj;
 ui.model.User.prototype = $extend(ui.model.ModelObj.prototype,{
 	__class__: ui.model.User
 });
-ui.model.Label = $hxClasses["ui.model.Label"] = function() { }
+ui.model.Label = $hxClasses["ui.model.Label"] = function(text) {
+	this.text = text;
+};
 ui.model.Label.__name__ = ["ui","model","Label"];
 ui.model.Label.__super__ = ui.model.ModelObj;
 ui.model.Label.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.Label
+	text: null
+	,uid: null
+	,__class__: ui.model.Label
 });
 ui.model.Connection = $hxClasses["ui.model.Connection"] = function(fname,lname,imgSrc) {
 	this.fname = fname;
@@ -2541,10 +2541,61 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.connectionsComp",defineWidget());
+ui.widget.LabelComp = window.jQuery;
+var defineWidget = function() {
+	return { options : { label : null, classes : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.addClass("label filterable");
+		selfElement.append("<div class='labelTail'></div>");
+		var labelBox = new ui.jq.JQ("<div class='labelBox'></div>");
+		var labelBody = new ui.jq.JQ("<div class='labelBody'></div>");
+		labelBox.append(labelBody);
+		selfElement.append(labelBox).append("<div class='clear'></div>");
+		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ revert : function(dropTarget) {
+			return dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".labelDT");
+		}, distance : 10, scroll : false, stop : function(event,ui1) {
+			ui.App.LOGGER.debug("draggable stop");
+		}});
+		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+			return d["is"](".connection") || d["is"](".label");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
+		}});
+	}, update : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.find(".labelBody").text(self.options.label.text);
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.labelComp",defineWidget());
+ui.widget.LabelTree = window.jQuery;
+var defineWidget = function() {
+	return { options : { labels : null, itemsClass : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+			return d["is"](".label");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
+			ui.App.LOGGER.debug("droppable drop");
+		}});
+		var spacer = selfElement.children("#sideLeftSpacer");
+		self.labels = new ui.observable.MappedSet(self.options.labels,function(label) {
+			return new ui.widget.LabelComp("<div></div>").labelComp({ label : label});
+		});
+		self.labels.listen(function(labelComp,evt) {
+			if(evt.isAdd()) spacer.before(labelComp); else if(evt.isUpdate()) labelComp.labelComp("update"); else if(evt.isDelete()) labelComp.remove();
+		});
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.labelTree",defineWidget());
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\"><implements path=\"haxe.rtti.Infos\"/></class>";
 ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\"><extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends></class>";
-ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\"><extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends></class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"26\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);
 ui.observable.EventType.Update = new ui.observable.EventType("Update",false,true);
 ui.observable.EventType.Delete = new ui.observable.EventType("Delete",false,false);

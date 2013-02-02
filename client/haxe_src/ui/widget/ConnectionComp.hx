@@ -44,7 +44,7 @@ extern class ConnectionComp extends JQ {
 
 				    			return (dropTarget == null || !cast(dropTarget, JQ).is(".connectionDT")) && JQ.cur.addClass("ui-drop-reverted") != null;
 				    		},
-				    		// helper: "clone",
+				    		// helper: ,
 				    		distance: 10,
 				    		// grid: [5,5],
 				    		scroll: false, 

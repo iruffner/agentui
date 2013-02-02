@@ -9,7 +9,12 @@ class User extends ModelObj<User> {
 }
 
 class Label extends ModelObj<Label> {
+	public var uid: String;
+	public var text: String;
 
+	public function new(?text: String) {
+		this.text = text;
+	}
 }
 
 class Connection extends ModelObj<Connection> {
