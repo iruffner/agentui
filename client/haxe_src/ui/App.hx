@@ -9,6 +9,8 @@ import ui.model.ModelObj;
 
 import ui.observable.OSet;
 
+import ui.util.UidGenerator;
+
 using ui.helper.ArrayHelper;
 using ui.helper.StringHelper;
 using Lambda;
@@ -23,7 +25,9 @@ class App {
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
-        CONNECTIONS = new ObservableSet<Connection>();
+        CONNECTIONS = new ObservableSet<Connection>(function(conn: Connection): String {
+                return conn.uid;
+            });
     }
 
     public static function start(): Void {
@@ -118,18 +122,23 @@ class App {
     private static function demo(): Void {
         //connections
         var c: Connection = new Connection("George", "Costanza", "media/test/george.jpg");
+        c.uid = UidGenerator.create(20);
         App.CONNECTIONS.add(c);
 
         c = new Connection("Elaine", "Benes", "media/test/elaine.jpg");
+        c.uid = UidGenerator.create(20);
         App.CONNECTIONS.add(c);
 
         c = new Connection("Cosmo", "Kramer", "media/test/kramer.jpg");
+        c.uid = UidGenerator.create(20);
         App.CONNECTIONS.add(c);
 
         c = new Connection("Tom's", "Restaurant", "media/test/toms.jpg");
+        c.uid = UidGenerator.create(20);
         App.CONNECTIONS.add(c);
 
         c = new Connection("Newman", "", "media/test/newman.jpg");
+        c.uid = UidGenerator.create(20);
         App.CONNECTIONS.add(c);
     }
 

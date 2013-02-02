@@ -1,4 +1,4 @@
-package embi.mobidash;
+package ui.util;
 
 import haxe.Int64;
 

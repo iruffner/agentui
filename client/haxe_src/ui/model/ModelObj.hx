@@ -13,6 +13,7 @@ class Label extends ModelObj<Label> {
 }
 
 class Connection extends ModelObj<Connection> {
+	public var uid: String;
 	public var fname: String;
 	public var lname: String;
 	public var imgSrc: String;

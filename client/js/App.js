@@ -827,6 +827,238 @@ Type.allEnums = function(e) {
 	return all;
 }
 var haxe = haxe || {}
+haxe.Int32 = $hxClasses["haxe.Int32"] = function() { }
+haxe.Int32.__name__ = ["haxe","Int32"];
+haxe.Int32.make = function(a,b) {
+	return a << 16 | b;
+}
+haxe.Int32.ofInt = function(x) {
+	return x | 0;
+}
+haxe.Int32.clamp = function(x) {
+	return x | 0;
+}
+haxe.Int32.toInt = function(x) {
+	if((x >> 30 & 1) != x >>> 31) throw "Overflow " + Std.string(x);
+	return x;
+}
+haxe.Int32.toNativeInt = function(x) {
+	return x;
+}
+haxe.Int32.add = function(a,b) {
+	return a + b | 0;
+}
+haxe.Int32.sub = function(a,b) {
+	return a - b | 0;
+}
+haxe.Int32.mul = function(a,b) {
+	return a * (b & 65535) + (a * (b >>> 16) << 16 | 0) | 0;
+}
+haxe.Int32.div = function(a,b) {
+	return a / b | 0;
+}
+haxe.Int32.mod = function(a,b) {
+	return a % b;
+}
+haxe.Int32.shl = function(a,b) {
+	return a << b;
+}
+haxe.Int32.shr = function(a,b) {
+	return a >> b;
+}
+haxe.Int32.ushr = function(a,b) {
+	return a >>> b;
+}
+haxe.Int32.and = function(a,b) {
+	return a & b;
+}
+haxe.Int32.or = function(a,b) {
+	return a | b;
+}
+haxe.Int32.xor = function(a,b) {
+	return a ^ b;
+}
+haxe.Int32.neg = function(a) {
+	return -a;
+}
+haxe.Int32.isNeg = function(a) {
+	return a < 0;
+}
+haxe.Int32.isZero = function(a) {
+	return a == 0;
+}
+haxe.Int32.complement = function(a) {
+	return ~a;
+}
+haxe.Int32.compare = function(a,b) {
+	return a - b;
+}
+haxe.Int32.ucompare = function(a,b) {
+	if(a < 0) return b < 0?~b - ~a:1;
+	return b < 0?-1:a - b;
+}
+haxe.Int64 = $hxClasses["haxe.Int64"] = function(high,low) {
+	this.high = high;
+	this.low = low;
+};
+haxe.Int64.__name__ = ["haxe","Int64"];
+haxe.Int64.make = function(high,low) {
+	return new haxe.Int64(high,low);
+}
+haxe.Int64.ofInt = function(x) {
+	return new haxe.Int64(x >> 31 | 0,x | 0);
+}
+haxe.Int64.ofInt32 = function(x) {
+	return new haxe.Int64(x >> 31,x);
+}
+haxe.Int64.toInt = function(x) {
+	if(haxe.Int32.toInt(x.high) != 0) {
+		if(x.high < 0) return -haxe.Int64.toInt(haxe.Int64.neg(x));
+		throw "Overflow";
+	}
+	return haxe.Int32.toInt(x.low);
+}
+haxe.Int64.getLow = function(x) {
+	return x.low;
+}
+haxe.Int64.getHigh = function(x) {
+	return x.high;
+}
+haxe.Int64.add = function(a,b) {
+	var high = a.high + b.high | 0;
+	var low = a.low + b.low | 0;
+	if(haxe.Int32.ucompare(low,a.low) < 0) high = high + (1 | 0) | 0;
+	return new haxe.Int64(high,low);
+}
+haxe.Int64.sub = function(a,b) {
+	var high = a.high - b.high | 0;
+	var low = a.low - b.low | 0;
+	if(haxe.Int32.ucompare(a.low,b.low) < 0) high = high - (1 | 0) | 0;
+	return new haxe.Int64(high,low);
+}
+haxe.Int64.mul = function(a,b) {
+	var mask = 65535 | 0;
+	var al = a.low & mask, ah = a.low >>> 16;
+	var bl = b.low & mask, bh = b.low >>> 16;
+	var p00 = al * (bl & 65535) + (al * (bl >>> 16) << 16 | 0) | 0;
+	var p10 = ah * (bl & 65535) + (ah * (bl >>> 16) << 16 | 0) | 0;
+	var p01 = al * (bh & 65535) + (al * (bh >>> 16) << 16 | 0) | 0;
+	var p11 = ah * (bh & 65535) + (ah * (bh >>> 16) << 16 | 0) | 0;
+	var low = p00;
+	var high = (p11 + (p01 >>> 16) | 0) + (p10 >>> 16) | 0;
+	p01 = p01 << 16;
+	low = low + p01 | 0;
+	if(haxe.Int32.ucompare(low,p01) < 0) high = high + (1 | 0) | 0;
+	p10 = p10 << 16;
+	low = low + p10 | 0;
+	if(haxe.Int32.ucompare(low,p10) < 0) high = high + (1 | 0) | 0;
+	high = high + haxe.Int32.mul(a.low,b.high) | 0;
+	high = high + haxe.Int32.mul(a.high,b.low) | 0;
+	return new haxe.Int64(high,low);
+}
+haxe.Int64.divMod = function(modulus,divisor) {
+	var quotient = new haxe.Int64(0 | 0,0 | 0);
+	var mask = new haxe.Int64(0 | 0,1 | 0);
+	divisor = new haxe.Int64(divisor.high,divisor.low);
+	while(!(divisor.high < 0)) {
+		var cmp = haxe.Int64.ucompare(divisor,modulus);
+		divisor.high = divisor.high << 1 | divisor.low >>> 31;
+		divisor.low = divisor.low << 1;
+		mask.high = mask.high << 1 | mask.low >>> 31;
+		mask.low = mask.low << 1;
+		if(cmp >= 0) break;
+	}
+	while(!((mask.low | mask.high) == 0)) {
+		if(haxe.Int64.ucompare(modulus,divisor) >= 0) {
+			quotient.high = quotient.high | mask.high;
+			quotient.low = quotient.low | mask.low;
+			modulus = haxe.Int64.sub(modulus,divisor);
+		}
+		mask.low = mask.low >>> 1 | mask.high << 31;
+		mask.high = mask.high >>> 1;
+		divisor.low = divisor.low >>> 1 | divisor.high << 31;
+		divisor.high = divisor.high >>> 1;
+	}
+	return { quotient : quotient, modulus : modulus};
+}
+haxe.Int64.div = function(a,b) {
+	var sign = (a.high | b.high) < 0;
+	if(a.high < 0) a = haxe.Int64.neg(a);
+	if(b.high < 0) b = haxe.Int64.neg(b);
+	var q = haxe.Int64.divMod(a,b).quotient;
+	return sign?haxe.Int64.neg(q):q;
+}
+haxe.Int64.mod = function(a,b) {
+	var sign = (a.high | b.high) < 0;
+	if(a.high < 0) a = haxe.Int64.neg(a);
+	if(b.high < 0) b = haxe.Int64.neg(b);
+	var m = haxe.Int64.divMod(a,b).modulus;
+	return sign?haxe.Int64.neg(m):m;
+}
+haxe.Int64.shl = function(a,b) {
+	return (b & 63) == 0?a:(b & 63) < 32?new haxe.Int64(a.high << b | a.low >>> 32 - (b & 63),a.low << b):new haxe.Int64(a.low << b - 32,0 | 0);
+}
+haxe.Int64.shr = function(a,b) {
+	return (b & 63) == 0?a:(b & 63) < 32?new haxe.Int64(a.high >> b,a.low >>> b | a.high << 32 - (b & 63)):new haxe.Int64(a.high >> 31,a.high >> b - 32);
+}
+haxe.Int64.ushr = function(a,b) {
+	return (b & 63) == 0?a:(b & 63) < 32?new haxe.Int64(a.high >>> b,a.low >>> b | a.high << 32 - (b & 63)):new haxe.Int64(0 | 0,a.high >>> b - 32);
+}
+haxe.Int64.and = function(a,b) {
+	return new haxe.Int64(a.high & b.high,a.low & b.low);
+}
+haxe.Int64.or = function(a,b) {
+	return new haxe.Int64(a.high | b.high,a.low | b.low);
+}
+haxe.Int64.xor = function(a,b) {
+	return new haxe.Int64(a.high ^ b.high,a.low ^ b.low);
+}
+haxe.Int64.neg = function(a) {
+	var high = ~a.high;
+	var low = -a.low;
+	if(low == 0) high = high + (1 | 0) | 0;
+	return new haxe.Int64(high,low);
+}
+haxe.Int64.isNeg = function(a) {
+	return a.high < 0;
+}
+haxe.Int64.isZero = function(a) {
+	return (a.high | a.low) == 0;
+}
+haxe.Int64.compare = function(a,b) {
+	var v = a.high - b.high;
+	return v != 0?v:haxe.Int32.ucompare(a.low,b.low);
+}
+haxe.Int64.ucompare = function(a,b) {
+	var v = haxe.Int32.ucompare(a.high,b.high);
+	return v != 0?v:haxe.Int32.ucompare(a.low,b.low);
+}
+haxe.Int64.toStr = function(a) {
+	return a.toString();
+}
+haxe.Int64.prototype = {
+	toString: function() {
+		if(this.high == 0 && this.low == 0) return "0";
+		var str = "";
+		var neg = false;
+		var i = this;
+		if(i.high < 0) {
+			neg = true;
+			i = haxe.Int64.neg(i);
+		}
+		var ten = new haxe.Int64(0 | 0,10 | 0);
+		while(!((i.high | i.low) == 0)) {
+			var r = haxe.Int64.divMod(i,ten);
+			str = haxe.Int32.toInt(r.modulus.low) + str;
+			i = r.quotient;
+		}
+		if(neg) str = "-" + str;
+		return str;
+	}
+	,low: null
+	,high: null
+	,__class__: haxe.Int64
+}
 haxe.StackItem = $hxClasses["haxe.StackItem"] = { __ename__ : ["haxe","StackItem"], __constructs__ : ["CFunction","Module","FilePos","Method","Lambda"] }
 haxe.StackItem.CFunction = ["CFunction",0];
 haxe.StackItem.CFunction.toString = $estr;
@@ -1249,6 +1481,9 @@ ui.App.LOGGER = null;
 ui.App.CONNECTIONS = null;
 ui.App.main = function() {
 	ui.App.LOGGER = new ui.log.Logga(ui.log.LogLevel.DEBUG);
+	ui.App.CONNECTIONS = new ui.observable.ObservableSet(function(conn) {
+		return conn.uid;
+	});
 }
 ui.App.start = function() {
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
@@ -1282,9 +1517,23 @@ ui.App.start = function() {
 	}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
 		ui.App.LOGGER.debug("droppable drop");
 	}});
+	ui.App.demo();
 }
 ui.App.demo = function() {
 	var c = new ui.model.Connection("George","Costanza","media/test/george.jpg");
+	c.uid = ui.util.UidGenerator.create(20);
+	ui.App.CONNECTIONS.add(c);
+	c = new ui.model.Connection("Elaine","Benes","media/test/elaine.jpg");
+	c.uid = ui.util.UidGenerator.create(20);
+	ui.App.CONNECTIONS.add(c);
+	c = new ui.model.Connection("Cosmo","Kramer","media/test/kramer.jpg");
+	c.uid = ui.util.UidGenerator.create(20);
+	ui.App.CONNECTIONS.add(c);
+	c = new ui.model.Connection("Tom's","Restaurant","media/test/toms.jpg");
+	c.uid = ui.util.UidGenerator.create(20);
+	ui.App.CONNECTIONS.add(c);
+	c = new ui.model.Connection("Newman","","media/test/newman.jpg");
+	c.uid = ui.util.UidGenerator.create(20);
 	ui.App.CONNECTIONS.add(c);
 }
 ui.CrossMojo = $hxClasses["ui.CrossMojo"] = function() { }
@@ -1745,6 +1994,7 @@ ui.model.Connection.prototype = $extend(ui.model.ModelObj.prototype,{
 	imgSrc: null
 	,lname: null
 	,fname: null
+	,uid: null
 	,__class__: ui.model.Connection
 });
 if(!ui.observable) ui.observable = {}
@@ -2162,6 +2412,39 @@ ui.util.M.exprs = function(exprDefs,pos) {
 	});
 	return arr;
 }
+ui.util.UidGenerator = $hxClasses["ui.util.UidGenerator"] = function() { }
+ui.util.UidGenerator.__name__ = ["ui","util","UidGenerator"];
+ui.util.UidGenerator.create = function(length) {
+	if(length == null) length = 20;
+	var str = new Array();
+	var charsLength = ui.util.UidGenerator.chars.length;
+	while(str.length == 0) {
+		var i = ui.util.UidGenerator.randomNum();
+		if(i >= charsLength) continue;
+		var ch = ui.util.UidGenerator.chars.charAt(i);
+		if(ui.util.UidGenerator.isLetter(ch)) str.push(ch);
+	}
+	while(str.length < length) {
+		var i = ui.util.UidGenerator.randomNum();
+		if(i >= charsLength) continue;
+		var ch = ui.util.UidGenerator.chars.charAt(i);
+		str.push(ch);
+	}
+	return str.join("");
+}
+ui.util.UidGenerator.isLetter = function($char) {
+	var _g1 = 0, _g = ui.util.UidGenerator.chars.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(ui.util.UidGenerator.chars.charAt(i) == $char) return true;
+	}
+	return false;
+}
+ui.util.UidGenerator.randomNum = function() {
+	var max = ui.util.UidGenerator.chars.length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
+}
 if(!ui.widget) ui.widget = {}
 ui.widget.Widgets = $hxClasses["ui.widget.Widgets"] = function() { }
 ui.widget.Widgets.__name__ = ["ui","widget","Widgets"];
@@ -2244,11 +2527,12 @@ var defineWidget = function() {
 	return { options : { connections : null, itemsClass : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
+		var spacer = selfElement.children("#sideRightSpacer");
 		self.connections = new ui.observable.MappedSet(self.options.connections,function(conn) {
 			return new ui.widget.ConnectionComp("<div></div>").connectionComp({ connection : conn});
 		});
 		self.connections.listen(function(connComp,evt) {
-			if(evt.isAdd()) selfElement.append(connComp); else if(evt.isUpdate()) connComp.connectionComp("update"); else if(evt.isDelete()) connComp.remove();
+			if(evt.isAdd()) spacer.before(connComp); else if(evt.isUpdate()) connComp.connectionComp("update"); else if(evt.isDelete()) connComp.remove();
 		});
 	}, destroy : function() {
 		var self = this;
@@ -2259,10 +2543,11 @@ ui.jq.JQ.widget("ui.connectionsComp",defineWidget());
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\"><implements path=\"haxe.rtti.Infos\"/></class>";
 ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\"><extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends></class>";
 ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\"><extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends></class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);
 ui.observable.EventType.Update = new ui.observable.EventType("Update",false,true);
 ui.observable.EventType.Delete = new ui.observable.EventType("Delete",false,false);
+ui.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 ui.App.main();
 
 //@ sourceMappingURL=App.js.map

@@ -30,16 +30,16 @@ extern class ConnectionsComp extends JQ {
 		            itemsClass: null
 		        },
 
-		        
 		        _create: function(): Void {
 		        	var self: ConnectionsCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+					var spacer: JQ = selfElement.children("#sideRightSpacer");
 		        	self.connections = new MappedSet<Connection, ConnectionComp>(self.options.connections, function(conn: Connection): ConnectionComp {
 		        			return new ConnectionComp("<div></div>").connectionComp({connection: conn});
 		        		});
 		        	self.connections.listen(function(connComp: ConnectionComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {
-		            			selfElement.append(connComp);
+		            			spacer.before(connComp);
 		            		} else if (evt.isUpdate()) {
 		            			connComp.connectionComp("update");
 		            		} else if (evt.isDelete()) {
