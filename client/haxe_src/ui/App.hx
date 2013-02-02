@@ -23,6 +23,7 @@ class App {
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
+        CONNECTIONS = new ObservableSet<Connection>();
     }
 
     public static function start(): Void {
@@ -110,12 +111,25 @@ class App {
 	        	// $( this ).addClass( "ui-state-highlight" );
 	      	}
 	    });
+
+        demo();
     }
 
     private static function demo(): Void {
         //connections
         var c: Connection = new Connection("George", "Costanza", "media/test/george.jpg");
+        App.CONNECTIONS.add(c);
 
+        c = new Connection("Elaine", "Benes", "media/test/elaine.jpg");
+        App.CONNECTIONS.add(c);
+
+        c = new Connection("Cosmo", "Kramer", "media/test/kramer.jpg");
+        App.CONNECTIONS.add(c);
+
+        c = new Connection("Tom's", "Restaurant", "media/test/toms.jpg");
+        App.CONNECTIONS.add(c);
+
+        c = new Connection("Newman", "", "media/test/newman.jpg");
         App.CONNECTIONS.add(c);
     }
 
