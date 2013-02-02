@@ -1488,15 +1488,6 @@ ui.App.main = function() {
 ui.App.start = function() {
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
 	new ui.widget.ConnectionsComp("#connections").connectionsComp({ connections : ui.App.CONNECTIONS});
-	(js.Boot.__cast(new ui.jq.JQDraggable(".connection").draggable({ revert : function(dropTarget) {
-		return (dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".connectionDT")) && $(this).addClass("ui-drop-reverted") != null;
-	}, distance : 10, scroll : false, stop : function(event,ui1) {
-		var clone = ui1.helper.clone();
-		ui.App.LOGGER.debug("true");
-	}}) , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-		return d["is"](".connection") || d["is"](".label");
-	}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
-	}});
 	new ui.jq.JQDraggable(".label").draggable({ revert : function(dropTarget) {
 		return dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".labelDT");
 	}, distance : 10, scroll : false, stop : function(event,ui1) {
@@ -1504,11 +1495,6 @@ ui.App.start = function() {
 	}});
 	new ui.jq.JQDroppable("#filter").droppable({ accept : function(d) {
 		return d["is"](".filterable");
-	}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
-		ui.App.LOGGER.debug("droppable drop");
-	}});
-	new ui.jq.JQDroppable("#connections").droppable({ accept : function(d) {
-		return d["is"](".connection");
 	}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
 		ui.App.LOGGER.debug("droppable drop");
 	}});
@@ -2512,6 +2498,16 @@ var defineWidget = function() {
 		selfElement.addClass("connection filterable odd container boxsizingBorder");
 		selfElement.append("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		selfElement.append("<div>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
+		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ revert : function(dropTarget) {
+			return (dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".connectionDT")) && $(this).addClass("ui-drop-reverted") != null;
+		}, distance : 10, scroll : false, stop : function(event,ui1) {
+			var clone = ui1.helper.clone();
+			ui.App.LOGGER.debug("true");
+		}});
+		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+			return d["is"](".connection") || d["is"](".label");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
+		}});
 	}, update : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -2527,6 +2523,11 @@ var defineWidget = function() {
 	return { options : { connections : null, itemsClass : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
+		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+			return d["is"](".connection");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
+			ui.App.LOGGER.debug("droppable drop");
+		}});
 		var spacer = selfElement.children("#sideRightSpacer");
 		self.connections = new ui.observable.MappedSet(self.options.connections,function(conn) {
 			return new ui.widget.ConnectionComp("<div></div>").connectionComp({ connection : conn});

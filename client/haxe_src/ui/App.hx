@@ -37,35 +37,6 @@ class App {
                 connections: App.CONNECTIONS
             });
 
-    	cast(new JQDraggable('.connection').draggable({ 
-    		// containment: "#connections", 
-    		revert: function(dropTarget: Dynamic) {
-
-    			return (dropTarget == null || !cast(dropTarget, JQ).is(".connectionDT")) && JQ.cur.addClass("ui-drop-reverted") != null;
-    		},
-    		// helper: "clone",
-    		distance: 10,
-    		// grid: [5,5],
-    		scroll: false, 
-    		stop: function(event, ui) {
-    			var clone = ui.helper.clone();
-    			if(true) {
-    				LOGGER.debug("true");
-
-    			}
-    		}
-    	}), JQDroppable).droppable({
-    		accept: function(d) {
-    			return d.is(".connection") || d.is(".label");
-    		},
-			activeClass: "ui-state-hover",
-	      	hoverClass: "ui-state-active",
-	      	drop: function( event, ui ) {
-	      		
-	        	
-	      	}
-    	});
-
     	new JQDraggable('.label').draggable({ 
     		// containment: "#connections", 
     		revert: function(dropTarget: Dynamic) {
@@ -92,17 +63,7 @@ class App {
 	      	}
 	    });
 
-	    new JQDroppable( "#connections" ).droppable({
-    		accept: function(d) {
-    			return d.is(".connection");
-    		},
-			activeClass: "ui-state-hover",
-	      	hoverClass: "ui-state-active",
-	      	drop: function( event, ui ) {
-	      		LOGGER.debug("droppable drop");	
-	        	// $( this ).addClass( "ui-state-highlight" );
-	      	}
-	    });
+	    
 
 	    new JQDroppable( "#labels" ).droppable({
     		accept: function(d) {

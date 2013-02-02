@@ -33,6 +33,19 @@ extern class ConnectionsComp extends JQ {
 		        _create: function(): Void {
 		        	var self: ConnectionsCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+
+					cast(selfElement, JQDroppable).droppable({
+			    		accept: function(d) {
+			    			return d.is(".connection");
+			    		},
+						activeClass: "ui-state-hover",
+				      	hoverClass: "ui-state-active",
+				      	drop: function( event, ui ) {
+				      		App.LOGGER.debug("droppable drop");	
+				        	// $( this ).addClass( "ui-state-highlight" );
+				      	}
+				    });
+
 					var spacer: JQ = selfElement.children("#sideRightSpacer");
 		        	self.connections = new MappedSet<Connection, ConnectionComp>(self.options.connections, function(conn: Connection): ConnectionComp {
 		        			return new ConnectionComp("<div></div>").connectionComp({connection: conn});

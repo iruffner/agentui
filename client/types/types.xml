@@ -6147,7 +6147,7 @@
 		<CONNECTIONS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></CONNECTIONS>
 		<main public="1" set="method" line="26" static="1"><f a=""><e path="Void"/></f></main>
 		<start public="1" set="method" line="33" static="1"><f a=""><e path="Void"/></f></start>
-		<demo set="method" line="122" static="1"><f a=""><e path="Void"/></f></demo>
+		<demo set="method" line="83" static="1"><f a=""><e path="Void"/></f></demo>
 	</class>
 	<class path="ui.CrossMojo" params="" file="haxe_src/ui/CrossMojo.hx">
 		<jq public="1" set="method" line="7" static="1"><f a="selector:?arg2">
