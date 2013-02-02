@@ -175,7 +175,7 @@ body {
 		float: left; 
 		margin-left: 5px; 
 		margin-top: -15px; 
-		border-radius: 55px;
+		border-radius: 50%;
 		width: 100px;
 		border: 1px solid #5c9ccc;
 	}
@@ -294,7 +294,7 @@ body {
 			min-height: 40px; 
 			max-width: 40px; 
 			min-width: 40px;
-			border-radius: 40px;
+			border-radius: 50%;
 			float: left;
 			margin-left: 5px;
 		}
@@ -327,7 +327,7 @@ body {
 		}
 
 			#connections .connection img {
-				border-radius: 40px; 
+				border-radius: 50%; 
 				max-width: 60px;
 				margin-top: -10px;
 				border: 1px solid #5c9ccc;
