@@ -283,6 +283,61 @@
 	See [Type] for the haXe Reflection API.</haxe_doc></class>
 	<class path="EnumValue" params="" file="Z:\3Work\Haxe-2.10\Haxe/std/EnumValue.hx" extern="1"><haxe_doc>An abstract type that represents any enum value.
 	See [Type] for the haXe Reflection API.</haxe_doc></class>
+	<class path="Hash" params="T" file="Z:\3Work\Haxe-2.10\Haxe/std/js/_std/Hash.hx">
+		<toString public="1" set="method" line="73">
+			<f a=""><c path="String"/></f>
+			<haxe_doc>Returns an displayable representation of the hashtable content.</haxe_doc>
+		</toString>
+		<iterator public="1" set="method" line="64">
+			<f a=""><t path="Iterator"><c path="Hash.T"/></t></f>
+			<haxe_doc>Returns an iterator of all values in the hashtable.</haxe_doc>
+		</iterator>
+		<keys public="1" set="method" line="53">
+			<f a=""><t path="Iterator"><c path="String"/></t></f>
+			<haxe_doc>Returns an iterator of all keys in the hashtable.</haxe_doc>
+		</keys>
+		<remove public="1" set="method" line="46">
+			<f a="key">
+				<c path="String"/>
+				<e path="Bool"/>
+			</f>
+			<haxe_doc>Removes a hashtable entry. Returns [true] if
+		there was such entry.</haxe_doc>
+		</remove>
+		<exists public="1" set="method" line="42">
+			<f a="key">
+				<c path="String"/>
+				<e path="Bool"/>
+			</f>
+			<haxe_doc>Tells if a value exists for the given key.
+		In particular, it's useful to tells if a key has
+		a [null] value versus no value.</haxe_doc>
+		</exists>
+		<get public="1" set="method" line="38">
+			<f a="key">
+				<c path="String"/>
+				<t path="Null"><c path="Hash.T"/></t>
+			</f>
+			<haxe_doc>Get a value for the given key.</haxe_doc>
+		</get>
+		<set public="1" set="method" line="34">
+			<f a="key:value">
+				<c path="String"/>
+				<c path="Hash.T"/>
+				<e path="Void"/>
+			</f>
+			<haxe_doc>Set a value for the given key.</haxe_doc>
+		</set>
+		<h><d/></h>
+		<new public="1" set="method" line="30">
+			<f a=""><e path="Void"/></f>
+			<haxe_doc>Creates a new empty hashtable.</haxe_doc>
+		</new>
+		<haxe_doc>Hashtable over a set of elements, using [String] as keys.
+	Other kind of keys are not possible on all platforms since they
+	can't always be implemented efficiently.</haxe_doc>
+		<meta><m n=":core_api"/></meta>
+	</class>
 	<class path="IntIter" params="" file="Z:\3Work\Haxe-2.10\Haxe/std/IntIter.hx">
 		<next public="1" set="method" line="53">
 			<f a=""><c path="Int"/></f>
@@ -5855,8 +5910,10 @@
 	</class>
 	<class path="ui.App" params="" file="haxe_src/ui/App.hx">
 		<LOGGER public="1" static="1"><c path="ui.log.Logga"/></LOGGER>
-		<main public="1" set="method" line="20" static="1"><f a=""><e path="Void"/></f></main>
-		<start public="1" set="method" line="24" static="1"><f a=""><e path="Void"/></f></start>
+		<CONNECTIONS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></CONNECTIONS>
+		<main public="1" set="method" line="24" static="1"><f a=""><e path="Void"/></f></main>
+		<start public="1" set="method" line="28" static="1"><f a=""><e path="Void"/></f></start>
+		<demo set="method" line="115" static="1"><f a=""><e path="Void"/></f></demo>
 	</class>
 	<class path="ui.CrossMojo" params="" file="haxe_src/ui/CrossMojo.hx">
 		<jq public="1" set="method" line="7" static="1"><f a="selector:?arg2">
@@ -6471,6 +6528,295 @@
 	<class path="ui.model.Connection" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Connection"/></extends>
 		<__rtti public="1" line="15" static="1"><c path="String"/></__rtti>
+		<imgSrc public="1"><c path="String"/></imgSrc>
+		<lname public="1"><c path="String"/></lname>
+		<fname public="1"><c path="String"/></fname>
+		<new public="1" set="method" line="20"><f a="?fname:?lname:?imgSrc">
+	<c path="String"/>
+	<c path="String"/>
+	<c path="String"/>
+	<e path="Void"/>
+</f></new>
+	</class>
+	<class path="ui.observable.OSet" params="T" file="haxe_src/ui/observable/OSet.hx" interface="1">
+		<delegate public="1" set="method"><f a=""><c path="Hash"><c path="ui.observable.OSet.T"/></c></f></delegate>
+		<iterator public="1" set="method"><f a=""><t path="Iterator"><c path="ui.observable.OSet.T"/></t></f></iterator>
+		<listen public="1" set="method"><f a="l">
+	<f a=":">
+		<c path="ui.observable.OSet.T"/>
+		<c path="ui.observable.EventType"/>
+		<e path="Void"/>
+	</f>
+	<e path="Void"/>
+</f></listen>
+		<identifier public="1" set="method"><f a=""><f a="">
+	<c path="ui.observable.OSet.T"/>
+	<c path="String"/>
+</f></f></identifier>
+	</class>
+	<class path="ui.observable.EventManager" params="T" file="haxe_src/ui/observable/OSet.hx" module="ui.observable.OSet">
+		<fire public="1" set="method" line="49"><f a="t:type">
+	<c path="ui.observable.EventManager.T"/>
+	<c path="ui.observable.EventType"/>
+	<e path="Void"/>
+</f></fire>
+		<add public="1" set="method" line="41"><f a="l">
+	<f a=":">
+		<c path="ui.observable.EventManager.T"/>
+		<c path="ui.observable.EventType"/>
+		<e path="Void"/>
+	</f>
+	<e path="Void"/>
+</f></add>
+		<_set><c path="ui.observable.OSet"><c path="ui.observable.EventManager.T"/></c></_set>
+		<_listeners><c path="Array"><f a=":">
+	<c path="ui.observable.EventManager.T"/>
+	<c path="ui.observable.EventType"/>
+	<e path="Void"/>
+</f></c></_listeners>
+		<new public="1" set="method" line="37"><f a="set">
+	<c path="ui.observable.OSet"><c path="ui.observable.EventManager.T"/></c>
+	<e path="Void"/>
+</f></new>
+	</class>
+	<class path="ui.observable.EventType" params="" file="haxe_src/ui/observable/OSet.hx" module="ui.observable.OSet">
+		<Add public="1" line="61" static="1"><c path="ui.observable.EventType"/></Add>
+		<Update public="1" line="62" static="1"><c path="ui.observable.EventType"/></Update>
+		<Delete public="1" line="63" static="1"><c path="ui.observable.EventType"/></Delete>
+		<isDelete public="1" set="method" line="91"><f a=""><e path="Bool"/></f></isDelete>
+		<isAddOrUpdate public="1" set="method" line="87"><f a=""><e path="Bool"/></f></isAddOrUpdate>
+		<isUpdate public="1" set="method" line="83"><f a=""><e path="Bool"/></f></isUpdate>
+		<isAdd public="1" set="method" line="79"><f a=""><e path="Bool"/></f></isAdd>
+		<name public="1" set="method" line="75"><f a=""><c path="String"/></f></name>
+		<_update><e path="Bool"/></_update>
+		<_add><e path="Bool"/></_add>
+		<_name><c path="String"/></_name>
+		<new set="method" line="69"><f a="name:add:update">
+	<c path="String"/>
+	<e path="Bool"/>
+	<e path="Bool"/>
+	<e path="Void"/>
+</f></new>
+	</class>
+	<class path="ui.observable.AbstractSet" params="T" file="haxe_src/ui/observable/OSet.hx" module="ui.observable.OSet">
+		<implements path="ui.observable.OSet"><c path="ui.observable.AbstractSet.T"/></implements>
+		<delegate public="1" set="method" line="187"><f a=""><c path="Hash"><c path="ui.observable.AbstractSet.T"/></c></f></delegate>
+		<iterator public="1" set="method" line="183"><f a=""><t path="Iterator"><c path="ui.observable.AbstractSet.T"/></t></f></iterator>
+		<identifier public="1" set="method" line="179"><f a=""><f a="">
+	<c path="ui.observable.AbstractSet.T"/>
+	<c path="String"/>
+</f></f></identifier>
+		<fire set="method" line="175"><f a="t:type">
+	<c path="ui.observable.AbstractSet.T"/>
+	<c path="ui.observable.EventType"/>
+	<e path="Void"/>
+</f></fire>
+		<map public="1" params="U" set="method" line="171"><f a="f">
+	<f a="">
+		<c path="ui.observable.AbstractSet.T"/>
+		<c path="map.U"/>
+	</f>
+	<c path="ui.observable.OSet"><c path="map.U"/></c>
+</f></map>
+		<filter public="1" set="method" line="167"><f a="f">
+	<f a="">
+		<c path="ui.observable.AbstractSet.T"/>
+		<e path="Bool"/>
+	</f>
+	<c path="ui.observable.OSet"><c path="ui.observable.AbstractSet.T"/></c>
+</f></filter>
+		<listen public="1" set="method" line="163"><f a="l">
+	<f a=":">
+		<c path="ui.observable.AbstractSet.T"/>
+		<c path="ui.observable.EventType"/>
+		<e path="Void"/>
+	</f>
+	<e path="Void"/>
+</f></listen>
+		<_eventManager><c path="ui.observable.EventManager"><c path="ui.observable.AbstractSet.T"/></c></_eventManager>
+		<new public="1" set="method" line="159"><f a=""><e path="Void"/></f></new>
+	</class>
+	<class path="ui.observable.ObservableSet" params="T" file="haxe_src/ui/observable/OSet.hx" module="ui.observable.OSet">
+		<extends path="ui.observable.AbstractSet"><c path="ui.observable.ObservableSet.T"/></extends>
+		<identifier public="1" set="method" line="149" override="1"><f a=""><f a="">
+	<c path="ui.observable.ObservableSet.T"/>
+	<c path="String"/>
+</f></f></identifier>
+		<delete public="1" set="method" line="141"><f a="t">
+	<c path="ui.observable.ObservableSet.T"/>
+	<e path="Void"/>
+</f></delete>
+		<update public="1" set="method" line="137"><f a="t">
+	<c path="ui.observable.ObservableSet.T"/>
+	<e path="Void"/>
+</f></update>
+		<delegate public="1" set="method" line="133" override="1"><f a=""><c path="Hash"><c path="ui.observable.ObservableSet.T"/></c></f></delegate>
+		<addOrUpdate public="1" set="method" line="121"><f a="t">
+	<c path="ui.observable.ObservableSet.T"/>
+	<e path="Void"/>
+</f></addOrUpdate>
+		<isEmpty public="1" set="method" line="117"><f a=""><e path="Bool"/></f></isEmpty>
+		<iterator public="1" set="method" line="113" override="1"><f a=""><t path="Iterator"><c path="ui.observable.ObservableSet.T"/></t></f></iterator>
+		<add public="1" set="method" line="109"><f a="t">
+	<c path="ui.observable.ObservableSet.T"/>
+	<e path="Void"/>
+</f></add>
+		<_identifier><f a="">
+	<c path="ui.observable.ObservableSet.T"/>
+	<c path="String"/>
+</f></_identifier>
+		<_delegate><c path="Hash"><c path="ui.observable.ObservableSet.T"/></c></_delegate>
+		<new public="1" set="method" line="103"><f a="identifier">
+	<f a="">
+		<c path="ui.observable.ObservableSet.T"/>
+		<c path="String"/>
+	</f>
+	<e path="Void"/>
+</f></new>
+	</class>
+	<class path="ui.observable.MappedSet" params="T:U" file="haxe_src/ui/observable/OSet.hx" module="ui.observable.OSet">
+		<extends path="ui.observable.AbstractSet"><c path="ui.observable.MappedSet.U"/></extends>
+		<iterator public="1" set="method" line="237" override="1"><f a=""><t path="Iterator"><c path="ui.observable.MappedSet.U"/></t></f></iterator>
+		<identify set="method" line="226"><f a="u">
+	<c path="ui.observable.MappedSet.U"/>
+	<c path="String"/>
+</f></identify>
+		<delegate public="1" set="method" line="222" override="1"><f a=""><c path="Hash"><c path="ui.observable.MappedSet.U"/></c></f></delegate>
+		<identifier public="1" set="method" line="218" override="1"><f a=""><f a="">
+	<c path="ui.observable.MappedSet.U"/>
+	<c path="String"/>
+</f></f></identifier>
+		<_mappedSet><c path="Hash"><c path="ui.observable.MappedSet.U"/></c></_mappedSet>
+		<_mapper><f a="">
+	<c path="ui.observable.MappedSet.T"/>
+	<c path="ui.observable.MappedSet.U"/>
+</f></_mapper>
+		<_source><c path="ui.observable.OSet"><c path="ui.observable.MappedSet.T"/></c></_source>
+		<new public="1" set="method" line="200"><f a="source:mapper">
+	<c path="ui.observable.OSet"><c path="ui.observable.MappedSet.T"/></c>
+	<f a="">
+		<c path="ui.observable.MappedSet.T"/>
+		<c path="ui.observable.MappedSet.U"/>
+	</f>
+	<e path="Void"/>
+</f></new>
+	</class>
+	<class path="ui.observable.FilteredSet" params="T" file="haxe_src/ui/observable/OSet.hx" module="ui.observable.OSet">
+		<extends path="ui.observable.AbstractSet"><c path="ui.observable.FilteredSet.T"/></extends>
+		<iterator public="1" set="method" line="301" override="1"><f a=""><t path="Iterator"><c path="ui.observable.FilteredSet.T"/></t></f></iterator>
+		<identifier public="1" set="method" line="297" override="1"><f a=""><f a="">
+	<c path="ui.observable.FilteredSet.T"/>
+	<c path="String"/>
+</f></f></identifier>
+		<refilter public="1" set="method" line="293"><f a=""><e path="Void"/></f></refilter>
+		<apply set="method" line="276"><f a="t">
+	<c path="ui.observable.FilteredSet.T"/>
+	<e path="Void"/>
+</f></apply>
+		<delegate public="1" set="method" line="272" override="1"><f a=""><c path="Hash"><c path="ui.observable.FilteredSet.T"/></c></f></delegate>
+		<_identifier><f a="">
+	<c path="ui.observable.FilteredSet.T"/>
+	<c path="String"/>
+</f></_identifier>
+		<_filter><f a="">
+	<c path="ui.observable.FilteredSet.T"/>
+	<e path="Bool"/>
+</f></_filter>
+		<_source><c path="ui.observable.OSet"><c path="ui.observable.FilteredSet.T"/></c></_source>
+		<_filteredSet><c path="Hash"><c path="ui.observable.FilteredSet.T"/></c></_filteredSet>
+		<new public="1" set="method" line="251"><f a="source:filter">
+	<c path="ui.observable.OSet"><c path="ui.observable.FilteredSet.T"/></c>
+	<f a="">
+		<c path="ui.observable.FilteredSet.T"/>
+		<e path="Bool"/>
+	</f>
+	<e path="Void"/>
+</f></new>
+	</class>
+	<class path="ui.observable.GroupedSet" params="T" file="haxe_src/ui/observable/OSet.hx" module="ui.observable.OSet">
+		<extends path="ui.observable.AbstractSet"><c path="ui.observable.OSet"><c path="ui.observable.GroupedSet.T"/></c></extends>
+		<delegate public="1" set="method" line="396" override="1"><f a=""><c path="Hash"><c path="ui.observable.OSet"><c path="ui.observable.GroupedSet.T"/></c></c></f></delegate>
+		<iterator public="1" set="method" line="392" override="1"><f a=""><t path="Iterator"><c path="ui.observable.OSet"><c path="ui.observable.GroupedSet.T"/></c></t></f></iterator>
+		<identify set="method" line="381"><f a="set">
+	<c path="ui.observable.OSet"><c path="ui.observable.GroupedSet.T"/></c>
+	<c path="String"/>
+</f></identify>
+		<identifier public="1" set="method" line="377" override="1"><f a=""><f a="">
+	<c path="ui.observable.OSet"><c path="ui.observable.GroupedSet.T"/></c>
+	<c path="String"/>
+</f></f></identifier>
+		<add set="method" line="357"><f a="t">
+	<c path="ui.observable.GroupedSet.T"/>
+	<e path="Void"/>
+</f></add>
+		<delete set="method" line="335"><f a="t">
+	<c path="ui.observable.GroupedSet.T"/>
+	<e path="Void"/>
+</f></delete>
+		<_identityToGrouping><c path="Hash"><c path="String"/></c></_identityToGrouping>
+		<_groupedSets><c path="Hash"><c path="ui.observable.ObservableSet"><c path="ui.observable.GroupedSet.T"/></c></c></_groupedSets>
+		<_groupingFn><f a="">
+	<c path="ui.observable.GroupedSet.T"/>
+	<c path="String"/>
+</f></_groupingFn>
+		<_source><c path="ui.observable.OSet"><c path="ui.observable.GroupedSet.T"/></c></_source>
+		<new public="1" set="method" line="314"><f a="source:groupingFn">
+	<c path="ui.observable.OSet"><c path="ui.observable.GroupedSet.T"/></c>
+	<f a="">
+		<c path="ui.observable.GroupedSet.T"/>
+		<c path="String"/>
+	</f>
+	<e path="Void"/>
+</f></new>
+	</class>
+	<class path="ui.observable.SortedSet" params="T" file="haxe_src/ui/observable/OSet.hx" module="ui.observable.OSet">
+		<extends path="ui.observable.AbstractSet"><c path="ui.observable.SortedSet.T"/></extends>
+		<delegate public="1" set="method" line="499" override="1"><f a=""><c path="Hash"><c path="ui.observable.SortedSet.T"/></c></f></delegate>
+		<iterator public="1" set="method" line="495" override="1"><f a=""><t path="Iterator"><c path="ui.observable.SortedSet.T"/></t></f></iterator>
+		<identifier public="1" set="method" line="491" override="1"><f a=""><f a="">
+	<c path="ui.observable.SortedSet.T"/>
+	<c path="String"/>
+</f></f></identifier>
+		<add set="method" line="485"><f a="t">
+	<c path="ui.observable.SortedSet.T"/>
+	<e path="Void"/>
+</f></add>
+		<delete set="method" line="481"><f a="t">
+	<c path="ui.observable.SortedSet.T"/>
+	<e path="Void"/>
+</f></delete>
+		<binarySearch set="method" line="463"><f a="value:sortBy:startIndex:endIndex">
+	<c path="ui.observable.SortedSet.T"/>
+	<c path="String"/>
+	<c path="Int"/>
+	<c path="Int"/>
+	<c path="Int"/>
+</f></binarySearch>
+		<indexOf set="method" line="458"><f a="t">
+	<c path="ui.observable.SortedSet.T"/>
+	<c path="Int"/>
+</f></indexOf>
+		<sorted set="method" line="450"><f a=""><c path="Array"><c path="ui.observable.SortedSet.T"/></c></f></sorted>
+		<_comparisonFn><f a=":">
+	<c path="ui.observable.SortedSet.T"/>
+	<c path="ui.observable.SortedSet.T"/>
+	<c path="Int"/>
+</f></_comparisonFn>
+		<_dirty><e path="Bool"/></_dirty>
+		<_sorted><c path="Array"><c path="ui.observable.SortedSet.T"/></c></_sorted>
+		<_sortByFn><f a="">
+	<c path="ui.observable.SortedSet.T"/>
+	<c path="String"/>
+</f></_sortByFn>
+		<_source><c path="ui.observable.OSet"><c path="ui.observable.SortedSet.T"/></c></_source>
+		<new public="1" set="method" line="411"><f a="source:?sortByFn">
+	<c path="ui.observable.OSet"><c path="ui.observable.SortedSet.T"/></c>
+	<f a="">
+		<c path="ui.observable.SortedSet.T"/>
+		<c path="String"/>
+	</f>
+	<e path="Void"/>
+</f></new>
 	</class>
 	<class path="ui.util.M" params="" file="haxe_src/ui/util/M.hx">
 		<makeSafeGetExpression params="T" set="method" line="28" static="1">
@@ -6503,5 +6849,55 @@
 	<t path="haxe.macro.Position"/>
 	<c path="Array"><t path="haxe.macro.Expr"/></c>
 </f></exprs>
+	</class>
+	<typedef path="ui.widget.ConnectionCompOptions" params="" file="haxe_src/ui/widget/ConnectionComp.hx" module="ui.widget.ConnectionComp"><a>
+	<connection><c path="ui.model.Connection"/></connection>
+	<classes>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</classes>
+</a></typedef>
+	<typedef path="ui.widget.ConnectionCompWidgetDef" params="" file="haxe_src/ui/widget/ConnectionComp.hx" module="ui.widget.ConnectionComp"><a>
+	<update><f a=""><e path="Void"/></f></update>
+	<options><t path="ui.widget.ConnectionCompOptions"/></options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
+	<class path="ui.widget.ConnectionComp" params="" file="haxe_src/ui/widget/ConnectionComp.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<connectionComp public="1" set="method"><f a="opts">
+	<t path="ui.widget.ConnectionCompOptions"/>
+	<c path="ui.widget.ConnectionComp"/>
+</f></connectionComp>
+	</class>
+	<typedef path="ui.widget.ConnectionsCompOptions" params="" file="haxe_src/ui/widget/ConnectionsComp.hx" module="ui.widget.ConnectionsComp"><a>
+	<itemsClass>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</itemsClass>
+	<connections><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></connections>
+</a></typedef>
+	<typedef path="ui.widget.ConnectionsCompWidgetDef" params="" file="haxe_src/ui/widget/ConnectionsComp.hx" module="ui.widget.ConnectionsComp"><a>
+	<options><t path="ui.widget.ConnectionsCompOptions"/></options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<connections>
+		<c path="ui.observable.MappedSet">
+			<c path="ui.model.Connection"/>
+			<c path="ui.widget.ConnectionComp"/>
+		</c>
+		<meta><m n=":optional"/></meta>
+	</connections>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
+	<class path="ui.widget.ConnectionsComp" params="" file="haxe_src/ui/widget/ConnectionsComp.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<connectionsComp public="1" set="method"><f a="opts">
+	<t path="ui.widget.ConnectionsCompOptions"/>
+	<c path="ui.widget.ConnectionsComp"/>
+</f></connectionsComp>
+	</class>
+	<class path="ui.widget.Widgets" params="" file="haxe_src/ui/widget/Widgets.hx">
+		<getSelf public="1" params="T" get="inline" set="null" line="7" static="1"><f a=""><c path="getSelf.T"/></f></getSelf>
+		<getSelfElement public="1" params="T" get="inline" set="null" line="11" static="1"><f a=""><c path="getSelfElement.T"/></f></getSelfElement>
 	</class>
 </haxe>

@@ -7,6 +7,8 @@ import ui.log.LogLevel;
 
 import ui.model.ModelObj;
 
+import ui.observable.OSet;
+
 using ui.helper.ArrayHelper;
 using ui.helper.StringHelper;
 using Lambda;
@@ -15,6 +17,8 @@ using Lambda;
 class App {
     
 	public static var LOGGER: Logga;
+
+    public static var CONNECTIONS: ObservableSet<Connection>;
 	
 
 	public static function main() {
@@ -24,7 +28,9 @@ class App {
     public static function start(): Void {
     	new JQ("#middleContainer #content #tabs").tabs();
 
-        new ui.widget.ConnectionsComp("#connections");
+        new ui.widget.ConnectionsComp("#connections").connectionsComp({
+                connections: App.CONNECTIONS
+            });
 
     	cast(new JQDraggable('.connection').draggable({ 
     		// containment: "#connections", 
@@ -104,6 +110,13 @@ class App {
 	        	// $( this ).addClass( "ui-state-highlight" );
 	      	}
 	    });
+    }
+
+    private static function demo(): Void {
+        //connections
+        var c: Connection = new Connection("George", "Costanza", "media/test/george.jpg");
+
+        App.CONNECTIONS.add(c);
     }
 
 }

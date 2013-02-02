@@ -1,0 +1,57 @@
+package ui.widget;
+
+import ui.jq.JQ;
+import ui.model.ModelObj;
+import ui.observable.OSet.ObservableSet;
+
+typedef ConnectionCompOptions = {
+	var connection: Connection;
+	@:optional var classes: String;
+}
+
+typedef ConnectionCompWidgetDef = {
+	var options: ConnectionCompOptions;
+	var _create: Void->Void;
+	var update: Void->Void;
+	var destroy: Void->Void;
+}
+
+extern class ConnectionComp extends JQ {
+	@:overload(function(cmd : String):Bool{})
+	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
+	function connectionComp(opts: ConnectionCompOptions): ConnectionComp;
+
+	private static function __init__(): Void {
+		untyped ConnectionComp = window.jQuery;
+		var defineWidget: Void->ConnectionCompWidgetDef = function(): ConnectionCompWidgetDef {
+			return {
+		        options: {
+		            connection: null,
+		            classes: null
+		        },
+		        
+		        _create: function(): Void {
+		        	var self: ConnectionCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+		            selfElement.addClass("connection filterable odd container boxsizingBorder");
+		            selfElement.append("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
+		            selfElement.append("<div>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
+		        },
+
+		        update: function(): Void {
+		        	var self: ConnectionCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+					
+		        	selfElement.children("img").attr("src", self.options.connection.imgSrc);
+		            selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+	        	},
+		        
+		        destroy: function() {
+		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
+		        }
+		    };
+		}
+		JQ.widget( "ui.connectionComp", defineWidget());
+	}	
+}

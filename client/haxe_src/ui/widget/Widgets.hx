@@ -1,4 +1,4 @@
-package ui.widgets;
+package ui.widget;
 
 import ui.jq.JQ;
 
