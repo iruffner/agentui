@@ -1,0 +1,8 @@
+
+
+-main ui.App
+-cp haxe_src
+-js js/App.js
+-xml types/types.xml
+-debug
+-D noEmbedJS

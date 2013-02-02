@@ -1,0 +1,319 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+        <title>Agent UI</title>
+        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+        <style type="text/css" media="all">
+            @import url("css/biosim-style.css");
+        </style>
+        <style type="text/css" media="all">
+            @import url("css/jquery-ui-1.10.0.custom/redmond/jquery-ui-1.10.0.custom.min.css");
+        </style>
+        <script type="text/javascript" src="js/jquery-1.9.0.js"></script>
+        <script type="text/javascript" src="js/jquery-ui-1.10.0.custom.min.js"></script>
+        <script type="text/javascript" src="js/App.js"></script>
+		<script type="text/javascript">
+            $(document).ready(function() {
+            	agentui.App.start();
+
+            	window.onload = fitWindow;
+                $(window).resize(fitWindow);
+                fitWindow();
+            });
+
+        	function fitWindow() {
+			    $('.spacer').height(0).css("max-height", "0").css("min-height", "0");
+			    
+			    var middleContainer = $('#middleContainer');
+			    var leftContainer = $('#sideLeft');
+			    var rightContainer = $('#sideRight');
+
+
+			    fixHeight($('#middleContainer'), $('#middleContainerSpacer'));
+			    fixHeight($('#sideLeft'), $('#sideLeftSpacer'));
+			    fixHeight($('#sideRight'), $('#sideRightSpacer'));
+			}
+			
+		    function fixHeight(container, spacer) {
+		    	var header = $("header");
+		    	var contentHeight = $(window).height() - header.height() - 45/*header.css("margin-bottom")*/;
+		    	var containerHeight = container.height();
+				if(containerHeight < contentHeight) {
+			        var newHeight = contentHeight - containerHeight;
+			        spacer.css({"height": newHeight, "max-height": newHeight, "min-height": newHeight});
+			    }
+		    }
+        </script>
+    </head>
+    <body>
+    	<div id="wrap">
+    		<header id="header" class="ui-widget-header ui-corner-top">
+    			<div style="margin-top: 10px;"><strong style='font-size: xx-large;'>The Agency</strong></div>
+    		</header>
+    		<section id="middle">
+
+				<div id="middleContainer">
+					<div id="content">
+						<div id="tabs" class="shadow">
+							<ul>
+							    <li><a href="#tabs-feed">Feed</a></li>
+							    <li><a href="#tabs-score">Score</a></li>
+							</ul>
+							<div id="tabs-feed">
+								<div id="filter" class="container connectionDT labelDT" style="min-height: 150px;">
+									
+								</div>
+								<div id="feed" class="container" style="padding: 10px;">
+									<div id="postInput" class="container shadow">
+										<section id="postInputWr">
+											<textarea class="boxsizingBorder"></textarea>
+											<aside>Post:</aside>
+										</section>
+									</div>
+									<div class="post container shadow">
+										<section class="postWr">
+											<div class="postContentWr">
+												<div class="postContent" style="margin: 20px;">
+													Hello Newman Compilation
+													<br/>
+													<audio controls>
+													  <source src="media/test/hello_newman.mp3" type="audio/mpeg">
+														Your browser does not support the audio element.
+													</audio>
+												</div>
+											</div>
+											<aside class="postConnections">
+												<img src="media/test/kramer.jpg" class="shadow"/>
+												<img src="media/test/george.jpg" class="shadow"/>
+												<img src="media/test/newman.jpg" class="shadow"/>
+												<img src="media/test/elaine.jpg" class="shadow"/>
+											</aside>
+											<aside class="postLabels">
+												<div class="label labelBlue">
+													<div class="labelTail"></div>
+													<div class="labelBox">
+														<div class="labelBody"></div>
+													</div>
+													<div class="clear"></div>
+												</div>
+												<div class="label labelOrange">
+													<div class="labelTail"></div>
+													<div class="labelBox">
+														<div class="labelBody"></div>
+													</div>
+													<div class="clear"></div>
+												</div>
+											</aside>
+										</section>
+									</div>
+									<div class="post container shadow">
+										<section class="postWr">
+											<div class="postContentWr">
+												<div class="postContent">
+													<img alt="image" src="media/test/soupkitchen.jpg"/>
+												</div>
+											</div>
+											<aside class="postConnections">
+												<img src="media/test/jerry.jpg" class="shadow"/>
+												<img src="media/test/george.jpg" class="shadow"/>
+												<img src="media/test/elaine.jpg" class="shadow"/>
+											</aside>
+											<aside class="postLabels">
+												<div class="label labelRed">
+													<div class="labelTail"></div>
+													<div class="labelBox">
+														<div class="labelBody"></div>
+													</div>
+													<div class="clear"></div>
+												</div>
+											</aside>
+										</section>
+									</div>
+									<div class="post container shadow">
+										<section class="postWr">
+											<div class="postContentWr">
+												<div class="postContent">
+													<img alt="image" src="media/test/apt.jpg"/>
+												</div>
+											</div>
+											<aside class="postConnections">
+												<img src="media/test/jerry.jpg" class="shadow"/>
+												<img src="media/test/kramer.jpg" class="shadow"/>
+												<img src="media/test/newman.jpg" class="shadow"/>
+											</aside>
+											<aside class="postLabels">
+												<div class="label labelGreen">
+													<div class="labelTail"></div>
+													<div class="labelBox">
+														<div class="labelBody"></div>
+													</div>
+													<div class="clear"></div>
+												</div>
+												<div class="label labelOrange">
+													<div class="labelTail"></div>
+													<div class="labelBox">
+														<div class="labelBody"></div>
+													</div>
+													<div class="clear"></div>
+												</div>
+											</aside>
+										</section>
+									</div>
+									<div class="post container shadow">
+										<section class="postWr">
+											<div class="postContentWr">
+												<div class="postContent">
+													<img alt="image" src="media/test/jrmint.jpg"/>
+												</div>
+											</div>
+											<aside class="postConnections">
+												<img src="media/test/kramer.jpg" class="shadow"/>
+											</aside>
+											<aside class="postLabels">
+												<div class="label labelRed">
+													<div class="labelTail"></div>
+													<div class="labelBox">
+														<div class="labelBody"></div>
+													</div>
+													<div class="clear"></div>
+												</div>
+												<div class="label labelBlue">
+													<div class="labelTail"></div>
+													<div class="labelBox">
+														<div class="labelBody"></div>
+													</div>
+													<div class="clear"></div>
+												</div>
+											</aside>
+										</section>
+									</div>
+									<div id="middleContainerSpacer" class="spacer"></div>
+								</div>
+							</div><!-- #tabs-feed-->
+							<div id="tabs-score">
+								<div id="">
+
+								</div>
+							</div><!-- #tabs-score-->
+						</div>
+						
+					</div><!-- #content-->
+				</div><!-- #container-->
+
+				<aside id="sideLeft">
+					<div id="userId" class="ocontainer shadow">
+						<div class="container">
+							<img alt="user" src="media/test/jerry.jpg" class="shadow"/>
+							<div class="userIdTxt">
+								<strong>Jerry Seinfield</strong>
+								<font style="font-size: 12px">Comedian</font>
+							</div>
+							
+							<div class="clear"></div>
+						</div>
+					</div>
+
+					<div id="labelc" class="ocontainer shadow">
+						<div class="container">
+							<div id="labels" class="icontainer labelDT">
+								<div class="label filterable labelRed">
+									<div class="labelTail"></div>
+									<div class="labelBox">
+										<div class="labelBody"></div>
+									</div>
+									<div class="clear"></div>
+								</div>
+								<div class="label filterable labelRed">
+									<div class="labelTail"></div>
+									<div class="labelBox">
+										<div class="labelBody"></div>
+									</div>
+									<div class="clear"></div>
+								</div>
+								<div class="label filterable labelOrange" style=" margin-left: 50px;">
+									<div class="labelTail"></div>
+									<div class="labelBox">
+										<div class="labelBody"></div>
+									</div>
+									<div class="clear"></div>
+								</div>
+								<div class="label filterable labelBlue" style=" margin-left: 50px;">
+									<div class="labelTail"></div>
+									<div class="labelBox">
+										<div class="labelBody"></div>
+									</div>
+									<div class="clear"></div>
+								</div>
+								<div class="label filterable labelGreen" style=" margin-left: 50px;">
+									<div class="labelTail"></div>
+									<div class="labelBox">
+										<div class="labelBody"></div>
+									</div>
+									<div class="clear"></div>
+								</div>
+
+
+								<div id="sideLeftSpacer" class="spacer"></div>
+							</div>
+							<div id="help" class="icontainer" style="min-height: 90px; margin-top: 15px;">
+								<p> 
+									Tip: try picking up a label and dropping it into the filter box at the 
+									top of the central content pane 
+								</p>
+							</div>
+						</div>
+					</div>
+				</aside><!-- #sideLeft -->
+				<aside id="sideRight">
+					<div id="" class="ocontainer shadow">
+						<div class="container">
+							<div id="sideRightSearch">
+								<div id="sideRightAddWrapper" class="shadow">
+									<div id="sideRightAdd">+</div>
+								</div>
+								<input id="sideRightSearchInput" class="ui-widget-content shadow" />
+							</div>
+							<div id="connections" class="icontainer connectionDT">
+								<div class="connection filterable odd container boxsizingBorder">
+									<img src="media/test/george.jpg" class="shadow"/>
+									<div>
+										George Costanza
+									</div>
+								</div>
+								<div class="connection filterable even container boxsizingBorder">
+									<img src="media/test/elaine.jpg" class="shadow"/>
+									<div>
+										Elaine Benes
+									</div>
+								</div>
+								<div class="connection filterable odd container boxsizingBorder">
+									<img src="media/test/kramer.jpg" class="shadow"/>
+									<div>
+										Cosmo Kramer
+									</div>
+								</div>
+								<div class="connection filterable even container boxsizingBorder">
+									<img src="media/test/toms.jpg" class="shadow"/>
+									<div>
+										Tom's Restaurant
+									</div>
+								</div>
+								<div class="connection filterable odd container boxsizingBorder">
+									<img src="media/test/newman.jpg" class="shadow"/>
+									<div>
+										Newman
+									</div>
+								</div>
+								<div id="sideRightSpacer" class="spacer clear"></div>
+							</div>
+							<div id="chat" class="icontainer" style="min-height: 205px; margin-top: 15px;">
+							</div>
+						</div>
+					</div>
+
+				</aside><!-- #sideRight -->
+
+			</section><!-- #middle-->
+    	</div>
+    </body>
+</html>

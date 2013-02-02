@@ -1,0 +1,363 @@
+body {
+	text-align: center;
+	margin-left: 5px;
+	margin-right: 5px;
+	min-width: 800px;
+}
+
+/*#wrap {
+	width: 100%;
+	border: 1px solid green;
+	min-height: 650px;
+}
+
+#header {
+	border: 1px solid red;
+	min-height: 60px;
+	background-color: red;
+}
+
+#content {
+	background-color: blue;
+}*/
+
+#spacer {
+	min-height: 10px;
+}
+
+/* Header
+-----------------------------------------------------------------------------*/
+#header {
+	height: 60px;
+	/*background: #FFE680;*/
+	margin-bottom: 25px;
+}
+
+/* Containers
+-----------------------------------------------------------------------------*/
+.ocontainer {
+	background: #5c9ccc;
+	border-radius: 9px;
+	padding: 5px;
+}
+
+.container {
+	background: white;
+	border-radius: 9px;
+	border: 1px solid #5c9ccc;
+	padding: 5px;
+}
+
+.icontainer {
+	background: #E6E6E6;
+	border-radius: 9px;
+	border: 1px solid #5c9ccc;
+}
+
+/* Middle
+-----------------------------------------------------------------------------*/
+#middle {
+	margin-left: 250px;
+	margin-right: 250px;
+	height: 1%;
+	position: relative;
+}
+#middle:after {
+	content: '';
+	clear: both;
+	display: table;
+}
+#middleContainer {
+	width: 100%;
+	float: left;
+	overflow: hidden;
+	margin-right: -100%;
+}
+#content {
+	padding: 0 20px;
+}
+
+	/* Feed
+	-----------------------------------------------------------------------------*/
+	#feed {
+		margin-top: 25px;
+	}
+
+		/* Post
+		-----------------------------------------------------------------------------*/
+		#feed #postInput {
+			margin-top: -25px !important; 
+			box-shadow: 0px 3px 10px 2px gray;
+		}
+
+			#feed #postInputWr {
+				margin-left: 50px;
+			}
+
+				#feed #postInputWr aside {
+					float: left;
+					width: 50px;
+					position: relative;
+					left: -50px;
+					margin-top: -38px;
+				}
+
+				#feed #postInputWr textarea {
+					 width: 100%; 
+				}
+
+		#feed .post {
+			margin-top: 10px;
+			height: 100px;
+		}
+
+			#feed .postWr {
+				height: 100%;
+				max-height: 100%;
+				margin-left: 100px;
+				margin-right: 70px;
+				position: relative;
+			}
+
+				#feed .postWr img {
+					max-height: 100%;
+				}
+
+				#feed .postWr .postContentWr {
+					width: 100%;
+					float: left;
+					overflow: hidden;
+					margin-right: -100%;
+				}
+
+					#feed .postWr .postContentWr .postContent {
+						padding: 0 20px;
+					}
+
+				#feed .postWr .postConnections {
+					float: left;
+					width: 100px;
+					position: relative;
+					left: -100px;
+				}
+
+					#feed .postWr .postConnections img {
+						max-height: 45px;
+						max-width: 45px;
+						margin-right: 5px;
+						border-radius: 20px;
+						border: 1px solid #5c9ccc;
+					}
+
+				#feed .postWr .postLabels {
+					float: right;
+					margin-right: -70px;
+					right: -20px;
+					width: 105px;
+					position: relative;
+				}
+
+
+
+/* Sidebar Left
+-----------------------------------------------------------------------------*/
+#sideLeft {
+	float: left;
+	width: 250px;
+	position: relative;
+	/*background: #B5E3FF;*/
+	left: -250px;
+}
+
+	/* UserId
+	-----------------------------------------------------------------------------*/
+	#userId img {
+		float: left; 
+		margin-left: 5px; 
+		margin-top: -15px; 
+		border-radius: 55px;
+		width: 100px;
+		border: 1px solid #5c9ccc;
+	}
+
+	#userId .userIdTxt {
+		padding-top: 15px;
+	}
+
+	/* Labels
+	-----------------------------------------------------------------------------*/
+	#labelc {
+		margin-top: 15px;
+	}
+
+	#labels {
+		/*overflow: auto; */
+		padding: 5px;
+	}
+
+	.label {
+		min-height: 46px; 
+		min-width: 100px; 
+		padding: 0;
+		margin-bottom: 5px;
+	}
+
+		.labelTail {
+			border-bottom-left-radius: 25px; 
+			border-top-left-radius: 25px; 
+			float: left; 
+			min-width: 25px; 
+			max-width: 25px; 
+			min-height: 46px; 
+			max-height: 46px;
+		}
+
+		.labelBox {
+			border-bottom-right-radius: 5px; 
+			border-top-right-radius: 5px; 
+			float: left; 
+			min-width: 75px; 
+			min-height: 46px; 
+			max-height: 46px;
+		}
+
+		.labelBody {
+			margin: 3px;
+			border-radius: 2px;
+			background: white;
+			min-height: 35px;
+			min-width: 70px;
+			border: 2px solid black;
+		}
+
+	.labelRed .labelTail, .labelRed .labelBox {
+		background: #D06C72;
+	}
+
+	.labelBlue .labelTail, .labelBlue .labelBox {
+		background: #3D88C2;
+	}
+
+	.labelGreen .labelTail, .labelGreen .labelBox {
+		background: #72D06C;
+	}
+
+	.labelOrange .labelTail, .labelOrange .labelBox {
+		background: #D0976C;
+	}
+
+	.labelBrown .labelTail, .labelBrown .labelBox {
+		background: #935A2F;
+	}
+
+	.labelPurple .labelTail, .labelPurple .labelBox {
+		background: #976CD0;
+	}
+
+/* Sidebar Right
+-----------------------------------------------------------------------------*/
+#sideRight {
+	float: right;
+	margin-right: -250px;
+	width: 250px;
+	position: relative;
+}
+
+	/* .sideRightSearch
+	-----------------------------------------------------------------------------*/
+	#sideRightSearch {
+		min-height: 50px;
+	}
+
+		#sideRightAddWrapper {
+			background: green; 
+			border: 4px solid #5c9ccc; 
+			min-height: 40px; 
+			max-width: 40px; 
+			min-width: 40px;
+			border-radius: 40px;
+			float: left;
+			margin-left: 5px;
+		}
+
+		#sideRightAdd {
+			font-size: 22px; 
+			font-weight: bolder; 
+			margin-top: 7px;
+		}
+
+		#sideRightSearchInput {
+			float: left;
+			margin-top: 9px; 
+			padding: 3px; 
+			background: black;
+			border: 2px solid #5c9ccc;
+			border-radius: 12px;
+		}
+
+	#connections {
+		margin-top: 10px;
+		padding: 3px;
+	}
+
+		#connections .connection {
+			float: left;
+			margin: 3px auto;
+			width: 100%;
+			padding: 5px;
+		}
+
+			#connections .connection img {
+				border-radius: 40px; 
+				max-width: 60px;
+				margin-top: -10px;
+				border: 1px solid #5c9ccc;
+			}
+
+			#connections .connection div {
+				margin-top: 20px;
+			}
+
+			#connections .connection.odd img {
+				float: left;
+			}
+
+			#connections .connection.even img {
+				float: right;
+			}
+
+			#connections .connection.odd div {
+				float: right;
+			}
+
+			#connections .connection.even div {
+				float: left;
+			}
+
+
+/* Other
+-----------------------------------------------------------------------------*/
+.clear {
+	clear: both;
+}
+
+.fleft {
+	float: left;
+}
+
+.boxsizingBorder {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+.shadow {
+	box-shadow: 0px 3px 10px 2px gray;
+}
+
+
+/* jquery ui overrides
+-----------------------------------------------------------------------------*/
+.ui-draggable-dragging {
+	z-index: 500;
+}
