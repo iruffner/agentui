@@ -33,6 +33,9 @@ extern class LabelTree extends JQ {
 		        _create: function(): Void {
 		        	var self: LabelTreeWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+		        	if(!selfElement.is("div")) {
+		        		throw new ui.exception.Exception("Root of LabelTree must be a div element");
+		        	}
 
 					cast(selfElement, JQDroppable).droppable({
 			    		accept: function(d: JQ) {

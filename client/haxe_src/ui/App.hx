@@ -37,7 +37,7 @@ class App {
     public static function start(): Void {
     	new JQ("#middleContainer #content #tabs").tabs();
 
-        new ui.widget.ConnectionsComp("#connections").connectionsComp({
+        new ui.widget.ConnectionsList("#connections").connectionsList({
                 connections: App.CONNECTIONS
             });
         new ui.widget.LabelTree("#labels").labelTree({
@@ -55,8 +55,6 @@ class App {
 	        	// $( this ).addClass( "ui-state-highlight" );
 	      	}
 	    });
-
-	    new JQDroppable( "#labels" )
 
         demo();
     }

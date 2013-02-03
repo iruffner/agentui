@@ -231,6 +231,10 @@ body {
 			border: 2px solid black;
 		}
 
+		.labelChildren {
+			margin-left: 50px;
+		}
+
 	.labelRed .labelBox {
 		background: #D06C72;
 	}

@@ -6,6 +6,7 @@ import ui.observable.OSet.ObservableSet;
 
 typedef LabelCompOptions = {
 	var label: Label;
+	@:optional var children: ObservableSet<Label>;
 	@:optional var classes: String;
 }
 
@@ -33,15 +34,23 @@ extern class LabelComp extends JQ {
 		        _create: function(): Void {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+					if(!selfElement.is("div")) {
+		        		throw new ui.exception.Exception("Root of LabelComp must be a div element");
+		        	}
 
-		            selfElement.addClass("label filterable");
-		            selfElement.append("<div class='labelTail'></div>");
+		        	selfElement.addClass("labelWrapper");
+		        	
+		        	var label: JQ = new JQ("<div class='label filterable'></div>");
+		            label.append("<div class='labelTail'></div>");
 		            var labelBox: JQ = new JQ("<div class='labelBox'></div>");
 		            var labelBody: JQ = new JQ("<div class='labelBody'></div>");
 		            labelBox.append(labelBody);
-		            selfElement.append(labelBox).append("<div class='clear'></div>");
+		            label.append(labelBox).append("<div class='clear'></div>");
 
-		            cast(selfElement, JQDraggable).draggable({ 
+		            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren'></div>");
+		            labelChildren.labelTree();
+
+		            cast(label, JQDraggable).draggable({ 
 			    		// containment: "#connections", 
 			    		revert: function(dropTarget: Dynamic) {
 			    			return (dropTarget == null || !cast(dropTarget, JQ).is(".labelDT"));
