@@ -145,7 +145,7 @@ body {
 						max-height: 45px;
 						max-width: 45px;
 						margin-right: 5px;
-						border-radius: 20px;
+						border-radius: 50%;
 						border: 1px solid #5c9ccc;
 					}
 
@@ -175,7 +175,7 @@ body {
 		float: left; 
 		margin-left: 5px; 
 		margin-top: -15px; 
-		border-radius: 55px;
+		border-radius: 50%;
 		width: 100px;
 		border: 1px solid #5c9ccc;
 	}
@@ -203,13 +203,14 @@ body {
 	}
 
 		.labelTail {
-			border-bottom-left-radius: 25px; 
-			border-top-left-radius: 25px; 
+			width: 0;
+			height: 0;
+			border-top: 23px solid transparent;
+			border-bottom: 23px solid transparent;
+			border-right-width: 25px;
+			border-right-style: solid;
+			background: none; 
 			float: left; 
-			min-width: 25px; 
-			max-width: 25px; 
-			min-height: 46px; 
-			max-height: 46px;
 		}
 
 		.labelBox {
@@ -230,28 +231,50 @@ body {
 			border: 2px solid black;
 		}
 
-	.labelRed .labelTail, .labelRed .labelBox {
+		.labelChildren {
+			margin-left: 50px;
+		}
+
+	.labelRed .labelBox {
 		background: #D06C72;
 	}
+	.labelRed .labelTail {
+		border-right-color: #D06C72;
+	}
 
-	.labelBlue .labelTail, .labelBlue .labelBox {
+	.labelBlue .labelBox {
 		background: #3D88C2;
 	}
+	.labelBlue .labelTail {
+		border-right-color: #3D88C2;
+	}
 
-	.labelGreen .labelTail, .labelGreen .labelBox {
+	.labelGreen .labelBox {
 		background: #72D06C;
 	}
+	.labelGreen .labelTail {
+		border-right-color: #72D06C;
+	}
 
-	.labelOrange .labelTail, .labelOrange .labelBox {
+	.labelOrange .labelBox {
 		background: #D0976C;
 	}
-
-	.labelBrown .labelTail, .labelBrown .labelBox {
-		background: #935A2F;
+	.labelOrange .labelTail {
+		border-right-color: #D0976C;
 	}
 
-	.labelPurple .labelTail, .labelPurple .labelBox {
+	.labelBrown .labelBox {
+		background: #935A2F;
+	}
+	.labelBrown .labelTail {
+		border-right-color: #935A2F;
+	}
+
+	.labelPurple .labelBox {
 		background: #976CD0;
+	}
+	.labelPurple .labelTail {
+		border-right-color: #976CD0;
 	}
 
 /* Sidebar Right
@@ -275,7 +298,7 @@ body {
 			min-height: 40px; 
 			max-width: 40px; 
 			min-width: 40px;
-			border-radius: 40px;
+			border-radius: 50%;
 			float: left;
 			margin-left: 5px;
 		}
@@ -308,7 +331,7 @@ body {
 		}
 
 			#connections .connection img {
-				border-radius: 40px; 
+				border-radius: 50%; 
 				max-width: 60px;
 				margin-top: -10px;
 				border: 1px solid #5c9ccc;
@@ -318,20 +341,12 @@ body {
 				margin-top: 20px;
 			}
 
-			#connections .connection.odd img {
+			#connections .connection:nth-child(odd) img, #connections .connection:nth-child(even) div {
 				float: left;
 			}
 
-			#connections .connection.even img {
+			#connections .connection:nth-child(even) img, #connections .connection:nth-child(odd) div {
 				float: right;
-			}
-
-			#connections .connection.odd div {
-				float: right;
-			}
-
-			#connections .connection.even div {
-				float: left;
 			}
 
 

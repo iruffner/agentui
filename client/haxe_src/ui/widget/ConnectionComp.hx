@@ -33,6 +33,9 @@ extern class ConnectionComp extends JQ {
 		        _create: function(): Void {
 		        	var self: ConnectionCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+					if(!selfElement.is("div")) {
+		        		throw new ui.exception.Exception("Root of ConnectionComp must be a div element");
+		        	}
 
 		            selfElement.addClass("connection filterable odd container boxsizingBorder");
 		            selfElement.append("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
@@ -44,7 +47,7 @@ extern class ConnectionComp extends JQ {
 
 				    			return (dropTarget == null || !cast(dropTarget, JQ).is(".connectionDT")) && JQ.cur.addClass("ui-drop-reverted") != null;
 				    		},
-				    		// helper: "clone",
+				    		// helper: ,
 				    		distance: 10,
 				    		// grid: [5,5],
 				    		scroll: false, 

@@ -6145,9 +6145,10 @@
 	<class path="ui.App" params="" file="haxe_src/ui/App.hx">
 		<LOGGER public="1" static="1"><c path="ui.log.Logga"/></LOGGER>
 		<CONNECTIONS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></CONNECTIONS>
-		<main public="1" set="method" line="26" static="1"><f a=""><e path="Void"/></f></main>
-		<start public="1" set="method" line="33" static="1"><f a=""><e path="Void"/></f></start>
-		<demo set="method" line="83" static="1"><f a=""><e path="Void"/></f></demo>
+		<LABELS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></LABELS>
+		<main public="1" set="method" line="27" static="1"><f a=""><e path="Void"/></f></main>
+		<start public="1" set="method" line="37" static="1"><f a=""><e path="Void"/></f></start>
+		<demo set="method" line="62" static="1"><f a=""><e path="Void"/></f></demo>
 	</class>
 	<class path="ui.CrossMojo" params="" file="haxe_src/ui/CrossMojo.hx">
 		<jq public="1" set="method" line="7" static="1"><f a="selector:?arg2">
@@ -6758,15 +6759,21 @@
 	<class path="ui.model.Label" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Label"/></extends>
 		<__rtti public="1" line="11" static="1"><c path="String"/></__rtti>
+		<text public="1"><c path="String"/></text>
+		<uid public="1"><c path="String"/></uid>
+		<new public="1" set="method" line="15"><f a="?text">
+	<c path="String"/>
+	<e path="Void"/>
+</f></new>
 	</class>
 	<class path="ui.model.Connection" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Connection"/></extends>
-		<__rtti public="1" line="15" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="20" static="1"><c path="String"/></__rtti>
 		<imgSrc public="1"><c path="String"/></imgSrc>
 		<lname public="1"><c path="String"/></lname>
 		<fname public="1"><c path="String"/></fname>
 		<uid public="1"><c path="String"/></uid>
-		<new public="1" set="method" line="21"><f a="?fname:?lname:?imgSrc">
+		<new public="1" set="method" line="26"><f a="?fname:?lname:?imgSrc">
 	<c path="String"/>
 	<c path="String"/>
 	<c path="String"/>
@@ -7117,15 +7124,15 @@
 	<c path="ui.widget.ConnectionComp"/>
 </f></connectionComp>
 	</class>
-	<typedef path="ui.widget.ConnectionsCompOptions" params="" file="haxe_src/ui/widget/ConnectionsComp.hx" module="ui.widget.ConnectionsComp"><a>
+	<typedef path="ui.widget.ConnectionsListOptions" params="" file="haxe_src/ui/widget/ConnectionsList.hx" module="ui.widget.ConnectionsList"><a>
 	<itemsClass>
 		<c path="String"/>
 		<meta><m n=":optional"/></meta>
 	</itemsClass>
 	<connections><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></connections>
 </a></typedef>
-	<typedef path="ui.widget.ConnectionsCompWidgetDef" params="" file="haxe_src/ui/widget/ConnectionsComp.hx" module="ui.widget.ConnectionsComp"><a>
-	<options><t path="ui.widget.ConnectionsCompOptions"/></options>
+	<typedef path="ui.widget.ConnectionsListWidgetDef" params="" file="haxe_src/ui/widget/ConnectionsList.hx" module="ui.widget.ConnectionsList"><a>
+	<options><t path="ui.widget.ConnectionsListOptions"/></options>
 	<destroy><f a=""><e path="Void"/></f></destroy>
 	<connections>
 		<c path="ui.observable.MappedSet">
@@ -7136,13 +7143,63 @@
 	</connections>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
-	<class path="ui.widget.ConnectionsComp" params="" file="haxe_src/ui/widget/ConnectionsComp.hx" extern="1">
+	<class path="ui.widget.ConnectionsList" params="" file="haxe_src/ui/widget/ConnectionsList.hx" extern="1">
 		<extends path="ui.jq.JQ"/>
-		<connectionsComp public="1" set="method"><f a="opts">
-	<t path="ui.widget.ConnectionsCompOptions"/>
-	<c path="ui.widget.ConnectionsComp"/>
-</f></connectionsComp>
+		<connectionsList public="1" set="method"><f a="opts">
+	<t path="ui.widget.ConnectionsListOptions"/>
+	<c path="ui.widget.ConnectionsList"/>
+</f></connectionsList>
 	</class>
+	<typedef path="ui.widget.LabelCompOptions" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
+	<label><c path="ui.model.Label"/></label>
+	<classes>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</classes>
+	<children>
+		<c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c>
+		<meta><m n=":optional"/></meta>
+	</children>
+</a></typedef>
+	<typedef path="ui.widget.LabelCompWidgetDef" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
+	<update><f a=""><e path="Void"/></f></update>
+	<options><t path="ui.widget.LabelCompOptions"/></options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
+	<class path="ui.widget.LabelTree" params="" file="haxe_src/ui/widget/LabelTree.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<labelTree public="1" set="method"><f a="opts">
+	<t path="ui.widget.LabelTreeOptions"/>
+	<c path="ui.widget.LabelTree"/>
+</f></labelTree>
+	</class>
+	<class path="ui.widget.LabelComp" params="" file="haxe_src/ui/widget/LabelComp.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<labelComp public="1" set="method"><f a="opts">
+	<t path="ui.widget.LabelCompOptions"/>
+	<c path="ui.widget.LabelComp"/>
+</f></labelComp>
+	</class>
+	<typedef path="ui.widget.LabelTreeOptions" params="" file="haxe_src/ui/widget/LabelTree.hx" module="ui.widget.LabelTree"><a>
+	<labels><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></labels>
+	<itemsClass>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</itemsClass>
+</a></typedef>
+	<typedef path="ui.widget.LabelTreeWidgetDef" params="" file="haxe_src/ui/widget/LabelTree.hx" module="ui.widget.LabelTree"><a>
+	<options><t path="ui.widget.LabelTreeOptions"/></options>
+	<labels>
+		<c path="ui.observable.MappedSet">
+			<c path="ui.model.Label"/>
+			<c path="ui.widget.LabelComp"/>
+		</c>
+		<meta><m n=":optional"/></meta>
+	</labels>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
 	<class path="ui.widget.Widgets" params="" file="haxe_src/ui/widget/Widgets.hx">
 		<getSelf public="1" params="T" get="inline" set="null" line="7" static="1"><f a=""><c path="getSelf.T"/></f></getSelf>
 		<getSelfElement public="1" params="T" get="inline" set="null" line="11" static="1"><f a=""><c path="getSelfElement.T"/></f></getSelfElement>

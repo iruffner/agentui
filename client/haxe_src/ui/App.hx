@@ -21,6 +21,7 @@ class App {
 	public static var LOGGER: Logga;
 
     public static var CONNECTIONS: ObservableSet<Connection>;
+    public static var LABELS: ObservableSet<Label>;
 	
 
 	public static function main() {
@@ -28,46 +29,24 @@ class App {
         CONNECTIONS = new ObservableSet<Connection>(function(conn: Connection): String {
                 return conn.uid;
             });
+        LABELS = new ObservableSet<Label>(function(label: Label): String {
+                return label.uid;
+            });
     }
 
     public static function start(): Void {
     	new JQ("#middleContainer #content #tabs").tabs();
 
-        new ui.widget.ConnectionsComp("#connections").connectionsComp({
+        new ui.widget.ConnectionsList("#connections").connectionsList({
                 connections: App.CONNECTIONS
             });
-
-    	new JQDraggable('.label').draggable({ 
-    		// containment: "#connections", 
-    		revert: function(dropTarget: Dynamic) {
-    			return (dropTarget == null || !cast(dropTarget, JQ).is(".labelDT"));
-    		},
-    		// helper: "clone",
-    		distance: 10,
-    		// grid: [5,5],
-    		scroll: false, 
-    		stop: function(event, ui) {
-    			LOGGER.debug("draggable stop");
-    		}
-    	});
+        new ui.widget.LabelTree("#labels").labelTree({
+                labels: App.LABELS
+            });
 
     	new JQDroppable( "#filter" ).droppable({
     		accept: function(d) {
     			return d.is(".filterable");
-    		},
-			activeClass: "ui-state-hover",
-	      	hoverClass: "ui-state-active",
-	      	drop: function( event, ui ) {
-	      		LOGGER.debug("droppable drop");	
-	        	// $( this ).addClass( "ui-state-highlight" );
-	      	}
-	    });
-
-	    
-
-	    new JQDroppable( "#labels" ).droppable({
-    		accept: function(d) {
-    			return d.is(".label");
     		},
 			activeClass: "ui-state-hover",
 	      	hoverClass: "ui-state-active",
