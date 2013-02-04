@@ -50,11 +50,12 @@ extern class LabelTree extends JQ {
 				      	}
 				    });
 
-					var spacer: JQ = selfElement.children("#sideLeftSpacer");
+					// var spacer: JQ = selfElement.children("#sideLeftSpacer");
 		        	self.labels = new MappedSet<Label, LabelComp>(self.options.labels, function(label: Label): LabelComp {
 		        			var opts: LabelCompOptions = {
 		        				label: label,
 	        					children: new FilteredSet<Label>(App.LABELS, function(child: Label): Bool{
+	        							if(child.parentUid == label.uid) App.LOGGER.debug(label.text + " keep " + child.text);
 		        						return child.parentUid == label.uid;
 		        					})
 		        			};
@@ -62,7 +63,8 @@ extern class LabelTree extends JQ {
 		        		});
 		        	self.labels.listen(function(labelComp: LabelComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {
-		            			spacer.before(labelComp);
+		            			App.LOGGER.debug("Add " + evt.name());
+		            			selfElement.append(labelComp);
 		            		} else if (evt.isUpdate()) {
 		            			labelComp.labelComp("update");
 		            		} else if (evt.isDelete()) {

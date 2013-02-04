@@ -95,6 +95,7 @@ extern class LabelComp extends JQ {
 		            labelChildren.labelTree({
 		            		labels: self.options.children
 		            	});
+		            label.append(labelChildren);
 
 		            cast(label, JQDraggable).draggable({ 
 			    		// containment: "#connections", 

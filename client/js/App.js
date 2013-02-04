@@ -2428,6 +2428,10 @@ ui.util.ColorProvider.__name__ = ["ui","util","ColorProvider"];
 ui.util.ColorProvider._COLORS = null;
 ui.util.ColorProvider._LAST_COLORS_USED = null;
 ui.util.ColorProvider.getNextColor = function() {
+	if(ui.util.ColorProvider._INDEX >= ui.util.ColorProvider._COLORS.length) ui.util.ColorProvider._INDEX = 0;
+	return ui.util.ColorProvider._COLORS[ui.util.ColorProvider._INDEX++];
+}
+ui.util.ColorProvider.getRandomColor = function() {
 	var index;
 	do index = Std.random(ui.util.ColorProvider._COLORS.length); while(ui.util.ColorProvider._LAST_COLORS_USED.contains(index));
 	ui.App.LOGGER.debug("index " + index);
@@ -2556,6 +2560,8 @@ ui.jq.JQDraggable = window.jQuery;
 ui.jq.JQDroppable = window.jQuery;
 ui.util.ColorProvider._COLORS = new Array();
 ui.util.ColorProvider._COLORS.push("#5C9BCC");
+ui.util.ColorProvider._COLORS.push("#CC5C64");
+ui.util.ColorProvider._COLORS.push("#5CCC8C");
 ui.util.ColorProvider._COLORS.push("#5C64CC");
 ui.util.ColorProvider._COLORS.push("#8C5CCC");
 ui.util.ColorProvider._COLORS.push("#C45CCC");
@@ -2563,10 +2569,8 @@ ui.util.ColorProvider._COLORS.push("#5CCCC4");
 ui.util.ColorProvider._COLORS.push("#8BB8DA");
 ui.util.ColorProvider._COLORS.push("#B9D4E9");
 ui.util.ColorProvider._COLORS.push("#CC5C9B");
-ui.util.ColorProvider._COLORS.push("#5CCC8C");
 ui.util.ColorProvider._COLORS.push("#E9CEB9");
 ui.util.ColorProvider._COLORS.push("#DAAD8B");
-ui.util.ColorProvider._COLORS.push("#CC5C64");
 ui.util.ColorProvider._COLORS.push("#64CC5C");
 ui.util.ColorProvider._COLORS.push("#9BCC5C");
 ui.util.ColorProvider._COLORS.push("#CCC45C");
@@ -2635,15 +2639,18 @@ var defineWidget = function() {
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
 			ui.App.LOGGER.debug("droppable drop");
 		}});
-		var spacer = selfElement.children("#sideLeftSpacer");
 		self.labels = new ui.observable.MappedSet(self.options.labels,function(label) {
 			var opts = { label : label, children : new ui.observable.FilteredSet(ui.App.LABELS,function(child) {
+				if(child.parentUid == label.uid) ui.App.LOGGER.debug(label.text + " keep " + child.text);
 				return child.parentUid == label.uid;
 			})};
 			return new ui.widget.LabelComp("<div></div>").labelComp(opts);
 		});
 		self.labels.listen(function(labelComp,evt) {
-			if(evt.isAdd()) spacer.before(labelComp); else if(evt.isUpdate()) labelComp.labelComp("update"); else if(evt.isDelete()) labelComp.remove();
+			if(evt.isAdd()) {
+				ui.App.LOGGER.debug("Add " + evt.name());
+				selfElement.append(labelComp);
+			} else if(evt.isUpdate()) labelComp.labelComp("update"); else if(evt.isDelete()) labelComp.remove();
 		});
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
@@ -2671,6 +2678,7 @@ var defineWidget = function() {
 		selfElement.append(label);
 		var labelChildren = new ui.widget.LabelTree("<div class='labelChildren'></div>");
 		labelChildren.labelTree({ labels : self.options.children});
+		label.append(labelChildren);
 		(js.Boot.__cast(label , ui.jq.JQDraggable)).draggable({ revert : function(dropTarget) {
 			return dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".labelDT");
 		}, distance : 10, scroll : false, stop : function(event,ui1) {
@@ -2696,6 +2704,7 @@ ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" mo
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);
 ui.observable.EventType.Update = new ui.observable.EventType("Update",false,true);
 ui.observable.EventType.Delete = new ui.observable.EventType("Delete",false,false);
+ui.util.ColorProvider._INDEX = 0;
 ui.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 ui.util.UidGenerator.nums = "0123456789";
 ui.App.main();

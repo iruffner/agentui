@@ -7084,7 +7084,9 @@
 	<class path="ui.util.ColorProvider" params="" file="haxe_src/ui/util/ColorProvider.hx">
 		<_COLORS static="1"><c path="Array"><c path="String"/></c></_COLORS>
 		<_LAST_COLORS_USED static="1"><c path="ui.util.FixedSizeArray"><c path="Int"/></c></_LAST_COLORS_USED>
-		<getNextColor public="1" set="method" line="29" static="1"><f a=""><c path="String"/></f></getNextColor>
+		<_INDEX line="7" static="1"><c path="Int"/></_INDEX>
+		<getNextColor public="1" set="method" line="30" static="1"><f a=""><c path="String"/></f></getNextColor>
+		<getRandomColor public="1" set="method" line="35" static="1"><f a=""><c path="String"/></f></getRandomColor>
 	</class>
 	<class path="ui.util.M" params="" file="haxe_src/ui/util/M.hx">
 		<makeSafeGetExpression params="T" set="method" line="28" static="1">
