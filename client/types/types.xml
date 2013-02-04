@@ -6148,7 +6148,7 @@
 		<LABELS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></LABELS>
 		<main public="1" set="method" line="27" static="1"><f a=""><e path="Void"/></f></main>
 		<start public="1" set="method" line="37" static="1"><f a=""><e path="Void"/></f></start>
-		<demo set="method" line="62" static="1"><f a=""><e path="Void"/></f></demo>
+		<demo set="method" line="64" static="1"><f a=""><e path="Void"/></f></demo>
 	</class>
 	<class path="ui.CrossMojo" params="" file="haxe_src/ui/CrossMojo.hx">
 		<jq public="1" set="method" line="7" static="1"><f a="selector:?arg2">
@@ -6750,30 +6750,35 @@
 	</class>
 	<class path="ui.model.ModelObj" params="T" file="haxe_src/ui/model/ModelObj.hx">
 		<implements path="haxe.rtti.Infos"/>
-		<__rtti public="1" line="3" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="5" static="1"><c path="String"/></__rtti>
 	</class>
 	<class path="ui.model.User" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.User"/></extends>
-		<__rtti public="1" line="7" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="9" static="1"><c path="String"/></__rtti>
 	</class>
 	<class path="ui.model.Label" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Label"/></extends>
-		<__rtti public="1" line="11" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="13" static="1"><c path="String"/></__rtti>
+		<color public="1">
+			<c path="String"/>
+			<meta><m n=":transient"/></meta>
+		</color>
+		<parentUid public="1"><c path="String"/></parentUid>
 		<text public="1"><c path="String"/></text>
 		<uid public="1"><c path="String"/></uid>
-		<new public="1" set="method" line="15"><f a="?text">
+		<new public="1" set="method" line="20"><f a="?text">
 	<c path="String"/>
 	<e path="Void"/>
 </f></new>
 	</class>
 	<class path="ui.model.Connection" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Connection"/></extends>
-		<__rtti public="1" line="20" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="27" static="1"><c path="String"/></__rtti>
 		<imgSrc public="1"><c path="String"/></imgSrc>
 		<lname public="1"><c path="String"/></lname>
 		<fname public="1"><c path="String"/></fname>
 		<uid public="1"><c path="String"/></uid>
-		<new public="1" set="method" line="26"><f a="?fname:?lname:?imgSrc">
+		<new public="1" set="method" line="33"><f a="?fname:?lname:?imgSrc">
 	<c path="String"/>
 	<c path="String"/>
 	<c path="String"/>
@@ -7060,6 +7065,27 @@
 	<e path="Void"/>
 </f></new>
 	</class>
+	<class path="ui.util.FixedSizeArray" params="T" file="haxe_src/ui/util/FixedSizeArray.hx">
+		<contains public="1" set="method" line="22"><f a="t">
+	<c path="ui.util.FixedSizeArray.T"/>
+	<e path="Bool"/>
+</f></contains>
+		<push public="1" set="method" line="15"><f a="t">
+	<c path="ui.util.FixedSizeArray.T"/>
+	<e path="Void"/>
+</f></push>
+		<_maxSize><c path="Int"/></_maxSize>
+		<_delegate><c path="Array"><c path="ui.util.FixedSizeArray.T"/></c></_delegate>
+		<new public="1" set="method" line="10"><f a="maxSize">
+	<c path="Int"/>
+	<e path="Void"/>
+</f></new>
+	</class>
+	<class path="ui.util.ColorProvider" params="" file="haxe_src/ui/util/ColorProvider.hx">
+		<_COLORS static="1"><c path="Array"><c path="String"/></c></_COLORS>
+		<_LAST_COLORS_USED static="1"><c path="ui.util.FixedSizeArray"><c path="Int"/></c></_LAST_COLORS_USED>
+		<getNextColor public="1" set="method" line="29" static="1"><f a=""><c path="String"/></f></getNextColor>
+	</class>
 	<class path="ui.util.M" params="" file="haxe_src/ui/util/M.hx">
 		<makeSafeGetExpression params="T" set="method" line="28" static="1">
 			<f a="e:?default0:pos">
@@ -7094,15 +7120,21 @@
 	</class>
 	<class path="ui.util.UidGenerator" params="" file="haxe_src/ui/util/UidGenerator.hx">
 		<chars line="7" static="1"><c path="String"/></chars>
-		<create public="1" set="method" line="9" static="1"><f a="?length">
+		<nums line="8" static="1"><c path="String"/></nums>
+		<create public="1" set="method" line="10" static="1"><f a="?length">
 	<c path="Int"/>
 	<c path="String"/>
 </f></create>
-		<isLetter public="1" set="method" line="33" static="1"><f a="char">
+		<isLetter public="1" set="method" line="26" static="1"><f a="char">
 	<c path="String"/>
 	<e path="Bool"/>
 </f></isLetter>
-		<randomNum public="1" set="method" line="42" static="1"><f a=""><c path="Int"/></f></randomNum>
+		<randomIndex set="method" line="35" static="1"><f a="str">
+	<c path="String"/>
+	<c path="Int"/>
+</f></randomIndex>
+		<randomChar public="1" set="method" line="41" static="1"><f a=""><c path="String"/></f></randomChar>
+		<randomNumChar public="1" set="method" line="49" static="1"><f a=""><c path="Int"/></f></randomNumChar>
 	</class>
 	<typedef path="ui.widget.ConnectionCompOptions" params="" file="haxe_src/ui/widget/ConnectionComp.hx" module="ui.widget.ConnectionComp"><a>
 	<connection><c path="ui.model.Connection"/></connection>
@@ -7156,10 +7188,7 @@
 		<c path="String"/>
 		<meta><m n=":optional"/></meta>
 	</classes>
-	<children>
-		<c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c>
-		<meta><m n=":optional"/></meta>
-	</children>
+	<children><c path="ui.observable.OSet"><c path="ui.model.Label"/></c></children>
 </a></typedef>
 	<typedef path="ui.widget.LabelCompWidgetDef" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
 	<update><f a=""><e path="Void"/></f></update>
@@ -7176,13 +7205,15 @@
 	</class>
 	<class path="ui.widget.LabelComp" params="" file="haxe_src/ui/widget/LabelComp.hx" extern="1">
 		<extends path="ui.jq.JQ"/>
+		<COLORS public="1" static="1"><c path="Array"><c path="Array"><c path="String"/></c></c></COLORS>
+		<_initColors set="method" static="1"><f a=""><e path="Void"/></f></_initColors>
 		<labelComp public="1" set="method"><f a="opts">
 	<t path="ui.widget.LabelCompOptions"/>
 	<c path="ui.widget.LabelComp"/>
 </f></labelComp>
 	</class>
 	<typedef path="ui.widget.LabelTreeOptions" params="" file="haxe_src/ui/widget/LabelTree.hx" module="ui.widget.LabelTree"><a>
-	<labels><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></labels>
+	<labels><c path="ui.observable.OSet"><c path="ui.model.Label"/></c></labels>
 	<itemsClass>
 		<c path="String"/>
 		<meta><m n=":optional"/></meta>

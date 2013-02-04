@@ -2,11 +2,11 @@ package ui.widget;
 
 import ui.jq.JQ;
 import ui.model.ModelObj;
-import ui.observable.OSet.ObservableSet;
+import ui.observable.OSet;
 
 typedef LabelCompOptions = {
 	var label: Label;
-	@:optional var children: ObservableSet<Label>;
+	var children: OSet<Label>;
 	@:optional var classes: String;
 }
 
@@ -18,16 +18,53 @@ typedef LabelCompWidgetDef = {
 }
 
 extern class LabelComp extends JQ {
+	public static var COLORS: Array<Array<String>>;
+
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function labelComp(opts: LabelCompOptions): LabelComp;
 
+	private static function _initColors(): Void {
+		COLORS = new Array<Array<String>>();
+		var reds = new Array<String>();
+		reds.push("#D06C72");
+		reds.push("#C23D46");
+		reds.push("#932F35");
+		colors.push(reds);
+		
+		var blues = new Array<String>();
+		blues.push("#3D88C2");
+		blues.push("#9AC1DF");
+		blues.push("#3D46C2");
+		colors.push(blues);
+
+		var greens = new Array<String>();
+		greens.push("#72D06C");
+		greens.push("#A5D06C");
+		greens.push("#35932F");
+		colors.push(greens);
+
+		var browns = new Array<String>();
+		browns.push("#935A2F");
+		browns.push("#D0976C");
+		browns.push("#C2773D");
+		colors.push(browns);
+
+		var purples = new Array<String>();
+		purples.push("#935A2F");
+		purples.push("#CA6CD0");
+		purples.push("#5A2F93");
+		colors.push(purples);
+	}
+
 	private static function __init__(): Void {
 		untyped LabelComp = window.jQuery;
+		// _initColors();
 		var defineWidget: Void->LabelCompWidgetDef = function(): LabelCompWidgetDef {
 			return {
 		        options: {
 		            label: null,
+		            children: null,
 		            classes: null
 		        },
 		        
@@ -41,14 +78,23 @@ extern class LabelComp extends JQ {
 		        	selfElement.addClass("labelWrapper");
 		        	
 		        	var label: JQ = new JQ("<div class='label filterable'></div>");
-		            label.append("<div class='labelTail'></div>");
+		            var labelTail: JQ = new JQ("<div class='labelTail'></div>");
+		            labelTail.css("border-right-color", self.options.label.color);
+		            label.append(labelTail);
 		            var labelBox: JQ = new JQ("<div class='labelBox'></div>");
+		            labelBox.css("background", self.options.label.color);
 		            var labelBody: JQ = new JQ("<div class='labelBody'></div>");
+		            var labelText: JQ = new JQ("<div>" + self.options.label.text + "</div>");
+		            labelBody.append(labelText);
 		            labelBox.append(labelBody);
 		            label.append(labelBox).append("<div class='clear'></div>");
 
+		            selfElement.append(label);
+
 		            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren'></div>");
-		            labelChildren.labelTree();
+		            labelChildren.labelTree({
+		            		labels: self.options.children
+		            	});
 
 		            cast(label, JQDraggable).draggable({ 
 			    		// containment: "#connections", 

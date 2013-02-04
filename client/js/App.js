@@ -1491,32 +1491,58 @@ ui.App.main = function() {
 }
 ui.App.start = function() {
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
-	new ui.widget.ConnectionsComp("#connections").connectionsComp({ connections : ui.App.CONNECTIONS});
-	new ui.widget.LabelTree("#labels").labelTree({ labels : ui.App.LABELS});
+	new ui.widget.ConnectionsList("#connections").connectionsList({ connections : ui.App.CONNECTIONS});
+	new ui.widget.LabelTree("#labels").labelTree({ labels : new ui.observable.FilteredSet(ui.App.LABELS,function(label) {
+		return ui.helper.StringHelper.isBlank(label.parentUid);
+	})});
 	new ui.jq.JQDroppable("#filter").droppable({ accept : function(d) {
 		return d["is"](".filterable");
 	}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
 		ui.App.LOGGER.debug("droppable drop");
 	}});
-	new ui.jq.JQDroppable("#labels");
 	ui.App.demo();
 }
 ui.App.demo = function() {
 	var c = new ui.model.Connection("George","Costanza","media/test/george.jpg");
-	c.uid = ui.util.UidGenerator.create(20);
+	c.uid = ui.util.UidGenerator.create();
 	ui.App.CONNECTIONS.add(c);
 	c = new ui.model.Connection("Elaine","Benes","media/test/elaine.jpg");
-	c.uid = ui.util.UidGenerator.create(20);
+	c.uid = ui.util.UidGenerator.create();
 	ui.App.CONNECTIONS.add(c);
 	c = new ui.model.Connection("Cosmo","Kramer","media/test/kramer.jpg");
-	c.uid = ui.util.UidGenerator.create(20);
+	c.uid = ui.util.UidGenerator.create();
 	ui.App.CONNECTIONS.add(c);
 	c = new ui.model.Connection("Tom's","Restaurant","media/test/toms.jpg");
-	c.uid = ui.util.UidGenerator.create(20);
+	c.uid = ui.util.UidGenerator.create();
 	ui.App.CONNECTIONS.add(c);
 	c = new ui.model.Connection("Newman","","media/test/newman.jpg");
-	c.uid = ui.util.UidGenerator.create(20);
+	c.uid = ui.util.UidGenerator.create();
 	ui.App.CONNECTIONS.add(c);
+	var par = new ui.model.Label("Locations");
+	par.uid = ui.util.UidGenerator.create();
+	ui.App.LABELS.add(par);
+	var ch = new ui.model.Label("Personal");
+	ch.uid = ui.util.UidGenerator.create();
+	ch.parentUid = par.uid;
+	ui.App.LABELS.add(ch);
+	ch = new ui.model.Label("Work");
+	ch.uid = ui.util.UidGenerator.create();
+	ch.parentUid = par.uid;
+	ui.App.LABELS.add(ch);
+	par = new ui.model.Label("Media");
+	par.uid = ui.util.UidGenerator.create();
+	ui.App.LABELS.add(par);
+	ch = new ui.model.Label("Personal");
+	ch.uid = ui.util.UidGenerator.create();
+	ch.parentUid = par.uid;
+	ui.App.LABELS.add(ch);
+	ch = new ui.model.Label("Work");
+	ch.uid = ui.util.UidGenerator.create();
+	ch.parentUid = par.uid;
+	ui.App.LABELS.add(ch);
+	var par1 = new ui.model.Label("Interests");
+	par1.uid = ui.util.UidGenerator.create();
+	ui.App.LABELS.add(par1);
 }
 ui.CrossMojo = $hxClasses["ui.CrossMojo"] = function() { }
 ui.CrossMojo.__name__ = ["ui","CrossMojo"];
@@ -1961,11 +1987,15 @@ ui.model.User.prototype = $extend(ui.model.ModelObj.prototype,{
 });
 ui.model.Label = $hxClasses["ui.model.Label"] = function(text) {
 	this.text = text;
+	this.color = ui.util.ColorProvider.getNextColor();
+	ui.App.LOGGER.debug("Color for " + text + " is " + this.color);
 };
 ui.model.Label.__name__ = ["ui","model","Label"];
 ui.model.Label.__super__ = ui.model.ModelObj;
 ui.model.Label.prototype = $extend(ui.model.ModelObj.prototype,{
-	text: null
+	color: null
+	,parentUid: null
+	,text: null
 	,uid: null
 	,__class__: ui.model.Label
 });
@@ -2376,6 +2406,34 @@ ui.observable.SortedSet.prototype = $extend(ui.observable.AbstractSet.prototype,
 	,__class__: ui.observable.SortedSet
 });
 if(!ui.util) ui.util = {}
+ui.util.FixedSizeArray = $hxClasses["ui.util.FixedSizeArray"] = function(maxSize) {
+	this._maxSize = maxSize;
+	this._delegate = new Array();
+};
+ui.util.FixedSizeArray.__name__ = ["ui","util","FixedSizeArray"];
+ui.util.FixedSizeArray.prototype = {
+	contains: function(t) {
+		return ui.helper.ArrayHelper.contains(this._delegate,t);
+	}
+	,push: function(t) {
+		if(this._delegate.length >= this._maxSize) this._delegate.shift();
+		this._delegate.push(t);
+	}
+	,_maxSize: null
+	,_delegate: null
+	,__class__: ui.util.FixedSizeArray
+}
+ui.util.ColorProvider = $hxClasses["ui.util.ColorProvider"] = function() { }
+ui.util.ColorProvider.__name__ = ["ui","util","ColorProvider"];
+ui.util.ColorProvider._COLORS = null;
+ui.util.ColorProvider._LAST_COLORS_USED = null;
+ui.util.ColorProvider.getNextColor = function() {
+	var index;
+	do index = Std.random(ui.util.ColorProvider._COLORS.length); while(ui.util.ColorProvider._LAST_COLORS_USED.contains(index));
+	ui.App.LOGGER.debug("index " + index);
+	ui.util.ColorProvider._LAST_COLORS_USED.push(index);
+	return ui.util.ColorProvider._COLORS[index];
+}
 ui.util.M = $hxClasses["ui.util.M"] = function() { }
 ui.util.M.__name__ = ["ui","util","M"];
 ui.util.M.makeSafeGetExpression = function(e,default0,pos) {
@@ -2405,15 +2463,11 @@ ui.util.UidGenerator.create = function(length) {
 	var str = new Array();
 	var charsLength = ui.util.UidGenerator.chars.length;
 	while(str.length == 0) {
-		var i = ui.util.UidGenerator.randomNum();
-		if(i >= charsLength) continue;
-		var ch = ui.util.UidGenerator.chars.charAt(i);
+		var ch = ui.util.UidGenerator.randomChar();
 		if(ui.util.UidGenerator.isLetter(ch)) str.push(ch);
 	}
 	while(str.length < length) {
-		var i = ui.util.UidGenerator.randomNum();
-		if(i >= charsLength) continue;
-		var ch = ui.util.UidGenerator.chars.charAt(i);
+		var ch = ui.util.UidGenerator.randomChar();
 		str.push(ch);
 	}
 	return str.join("");
@@ -2426,10 +2480,20 @@ ui.util.UidGenerator.isLetter = function($char) {
 	}
 	return false;
 }
-ui.util.UidGenerator.randomNum = function() {
-	var max = ui.util.UidGenerator.chars.length - 1;
+ui.util.UidGenerator.randomIndex = function(str) {
+	var max = str.length - 1;
 	var min = 0;
 	return min + Math.round(Math.random() * (max - min) + 1);
+}
+ui.util.UidGenerator.randomChar = function() {
+	var i = 0;
+	while((i = ui.util.UidGenerator.randomIndex(ui.util.UidGenerator.chars)) >= ui.util.UidGenerator.chars.length) continue;
+	return ui.util.UidGenerator.chars.charAt(i);
+}
+ui.util.UidGenerator.randomNumChar = function() {
+	var i = 0;
+	while((i = ui.util.UidGenerator.randomIndex(ui.util.UidGenerator.nums)) >= ui.util.UidGenerator.nums.length) continue;
+	return Std.parseInt(ui.util.UidGenerator.nums.charAt(i));
 }
 if(!ui.widget) ui.widget = {}
 ui.widget.Widgets = $hxClasses["ui.widget.Widgets"] = function() { }
@@ -2490,11 +2554,30 @@ ui.jq.JQSortable = window.jQuery;
 ui.jq.JDialog = window.jQuery;
 ui.jq.JQDraggable = window.jQuery;
 ui.jq.JQDroppable = window.jQuery;
+ui.util.ColorProvider._COLORS = new Array();
+ui.util.ColorProvider._COLORS.push("#5C9BCC");
+ui.util.ColorProvider._COLORS.push("#5C64CC");
+ui.util.ColorProvider._COLORS.push("#8C5CCC");
+ui.util.ColorProvider._COLORS.push("#C45CCC");
+ui.util.ColorProvider._COLORS.push("#5CCCC4");
+ui.util.ColorProvider._COLORS.push("#8BB8DA");
+ui.util.ColorProvider._COLORS.push("#B9D4E9");
+ui.util.ColorProvider._COLORS.push("#CC5C9B");
+ui.util.ColorProvider._COLORS.push("#5CCC8C");
+ui.util.ColorProvider._COLORS.push("#E9CEB9");
+ui.util.ColorProvider._COLORS.push("#DAAD8B");
+ui.util.ColorProvider._COLORS.push("#CC5C64");
+ui.util.ColorProvider._COLORS.push("#64CC5C");
+ui.util.ColorProvider._COLORS.push("#9BCC5C");
+ui.util.ColorProvider._COLORS.push("#CCC45C");
+ui.util.ColorProvider._COLORS.push("#CC8C5C");
+ui.util.ColorProvider._LAST_COLORS_USED = new ui.util.FixedSizeArray(10);
 ui.widget.ConnectionComp = window.jQuery;
 var defineWidget = function() {
 	return { options : { connection : null, classes : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionComp must be a div element");
 		selfElement.addClass("connection filterable odd container boxsizingBorder");
 		selfElement.append("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		selfElement.append("<div>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
@@ -2518,11 +2601,12 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.connectionComp",defineWidget());
-ui.widget.ConnectionsComp = window.jQuery;
+ui.widget.ConnectionsList = window.jQuery;
 var defineWidget = function() {
 	return { options : { connections : null, itemsClass : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionsList must be a div element");
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".connection");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
@@ -2536,23 +2620,58 @@ var defineWidget = function() {
 			if(evt.isAdd()) spacer.before(connComp); else if(evt.isUpdate()) connComp.connectionComp("update"); else if(evt.isDelete()) connComp.remove();
 		});
 	}, destroy : function() {
-		var self = this;
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.connectionsComp",defineWidget());
-ui.widget.LabelComp = window.jQuery;
+ui.jq.JQ.widget("ui.connectionsList",defineWidget());
+ui.widget.LabelTree = window.jQuery;
 var defineWidget = function() {
-	return { options : { label : null, classes : null}, _create : function() {
+	return { options : { labels : null, itemsClass : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		selfElement.addClass("label filterable");
-		selfElement.append("<div class='labelTail'></div>");
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTree must be a div element");
+		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+			return d["is"](".label");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
+			ui.App.LOGGER.debug("droppable drop");
+		}});
+		var spacer = selfElement.children("#sideLeftSpacer");
+		self.labels = new ui.observable.MappedSet(self.options.labels,function(label) {
+			var opts = { label : label, children : new ui.observable.FilteredSet(ui.App.LABELS,function(child) {
+				return child.parentUid == label.uid;
+			})};
+			return new ui.widget.LabelComp("<div></div>").labelComp(opts);
+		});
+		self.labels.listen(function(labelComp,evt) {
+			if(evt.isAdd()) spacer.before(labelComp); else if(evt.isUpdate()) labelComp.labelComp("update"); else if(evt.isDelete()) labelComp.remove();
+		});
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.labelTree",defineWidget());
+ui.widget.LabelComp = window.jQuery;
+var defineWidget = function() {
+	return { options : { label : null, children : null, classes : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelComp must be a div element");
+		selfElement.addClass("labelWrapper");
+		var label = new ui.jq.JQ("<div class='label filterable'></div>");
+		var labelTail = new ui.jq.JQ("<div class='labelTail'></div>");
+		labelTail.css("border-right-color",self.options.label.color);
+		label.append(labelTail);
 		var labelBox = new ui.jq.JQ("<div class='labelBox'></div>");
+		labelBox.css("background",self.options.label.color);
 		var labelBody = new ui.jq.JQ("<div class='labelBody'></div>");
+		var labelText = new ui.jq.JQ("<div>" + self.options.label.text + "</div>");
+		labelBody.append(labelText);
 		labelBox.append(labelBody);
-		selfElement.append(labelBox).append("<div class='clear'></div>");
-		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ revert : function(dropTarget) {
+		label.append(labelBox).append("<div class='clear'></div>");
+		selfElement.append(label);
+		var labelChildren = new ui.widget.LabelTree("<div class='labelChildren'></div>");
+		labelChildren.labelTree({ labels : self.options.children});
+		(js.Boot.__cast(label , ui.jq.JQDraggable)).draggable({ revert : function(dropTarget) {
 			return dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".labelDT");
 		}, distance : 10, scroll : false, stop : function(event,ui1) {
 			ui.App.LOGGER.debug("draggable stop");
@@ -2570,36 +2689,15 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.labelComp",defineWidget());
-ui.widget.LabelTree = window.jQuery;
-var defineWidget = function() {
-	return { options : { labels : null, itemsClass : null}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-			return d["is"](".label");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
-			ui.App.LOGGER.debug("droppable drop");
-		}});
-		var spacer = selfElement.children("#sideLeftSpacer");
-		self.labels = new ui.observable.MappedSet(self.options.labels,function(label) {
-			return new ui.widget.LabelComp("<div></div>").labelComp({ label : label});
-		});
-		self.labels.listen(function(labelComp,evt) {
-			if(evt.isAdd()) spacer.before(labelComp); else if(evt.isUpdate()) labelComp.labelComp("update"); else if(evt.isDelete()) labelComp.remove();
-		});
-	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
-	}};
-};
-ui.jq.JQ.widget("ui.labelTree",defineWidget());
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\"><implements path=\"haxe.rtti.Infos\"/></class>";
 ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\"><extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends></class>";
-ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"26\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\"><c path=\"String\"/></parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"33\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);
 ui.observable.EventType.Update = new ui.observable.EventType("Update",false,true);
 ui.observable.EventType.Delete = new ui.observable.EventType("Delete",false,false);
 ui.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
+ui.util.UidGenerator.nums = "0123456789";
 ui.App.main();
 
 //@ sourceMappingURL=App.js.map

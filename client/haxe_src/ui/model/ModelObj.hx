@@ -1,5 +1,7 @@
 package ui.model;
 
+import ui.util.ColorProvider;
+
 class ModelObj<T> implements haxe.rtti.Infos {
 
 }
@@ -11,9 +13,14 @@ class User extends ModelObj<User> {
 class Label extends ModelObj<Label> {
 	public var uid: String;
 	public var text: String;
+	public var parentUid: String;
+
+	@:transient public var color: String;
 
 	public function new(?text: String) {
 		this.text = text;
+		color = ColorProvider.getNextColor();
+		App.LOGGER.debug("Color for " + text + " is " + color);
 	}
 }
 

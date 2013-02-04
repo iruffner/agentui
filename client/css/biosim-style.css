@@ -224,12 +224,16 @@ body {
 
 		.labelBody {
 			margin: 3px;
-			border-radius: 2px;
+			border-radius: 4px;
 			background: white;
 			min-height: 35px;
 			min-width: 70px;
 			border: 2px solid black;
 		}
+
+			.labelBody div {
+				margin-top: 6px;
+			}
 
 		.labelChildren {
 			margin-left: 50px;

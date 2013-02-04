@@ -3,9 +3,10 @@ package ui.widget;
 import ui.jq.JQ;
 import ui.model.ModelObj;
 import ui.observable.OSet;
+import ui.widget.LabelComp;
 
 typedef LabelTreeOptions = {
-	var labels: ObservableSet<Label>;
+	var labels: OSet<Label>;
 	@:optional var itemsClass: String;
 }
 
@@ -51,7 +52,13 @@ extern class LabelTree extends JQ {
 
 					var spacer: JQ = selfElement.children("#sideLeftSpacer");
 		        	self.labels = new MappedSet<Label, LabelComp>(self.options.labels, function(label: Label): LabelComp {
-		        			return new LabelComp("<div></div>").labelComp({label: label});
+		        			var opts: LabelCompOptions = {
+		        				label: label,
+	        					children: new FilteredSet<Label>(App.LABELS, function(child: Label): Bool{
+		        						return child.parentUid == label.uid;
+		        					})
+		        			};
+		        			return new LabelComp("<div></div>").labelComp(opts);
 		        		});
 		        	self.labels.listen(function(labelComp: LabelComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {

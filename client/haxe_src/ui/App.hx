@@ -41,7 +41,9 @@ class App {
                 connections: App.CONNECTIONS
             });
         new ui.widget.LabelTree("#labels").labelTree({
-                labels: App.LABELS
+                labels: new FilteredSet(App.LABELS, function(label: Label): Bool { 
+                        return label.parentUid.isBlank();
+                    })
             });
 
     	new JQDroppable( "#filter" ).droppable({
@@ -62,24 +64,57 @@ class App {
     private static function demo(): Void {
         //connections
         var c: Connection = new Connection("George", "Costanza", "media/test/george.jpg");
-        c.uid = UidGenerator.create(20);
+        c.uid = UidGenerator.create();
         App.CONNECTIONS.add(c);
 
         c = new Connection("Elaine", "Benes", "media/test/elaine.jpg");
-        c.uid = UidGenerator.create(20);
+        c.uid = UidGenerator.create();
         App.CONNECTIONS.add(c);
 
         c = new Connection("Cosmo", "Kramer", "media/test/kramer.jpg");
-        c.uid = UidGenerator.create(20);
+        c.uid = UidGenerator.create();
         App.CONNECTIONS.add(c);
 
         c = new Connection("Tom's", "Restaurant", "media/test/toms.jpg");
-        c.uid = UidGenerator.create(20);
+        c.uid = UidGenerator.create();
         App.CONNECTIONS.add(c);
 
         c = new Connection("Newman", "", "media/test/newman.jpg");
-        c.uid = UidGenerator.create(20);
+        c.uid = UidGenerator.create();
         App.CONNECTIONS.add(c);
+
+        //labels
+        var par: Label = new Label("Locations");
+        par.uid = UidGenerator.create();
+        App.LABELS.add(par);
+
+        var ch: Label = new Label("Personal");
+        ch.uid = UidGenerator.create();
+        ch.parentUid = par.uid;
+        App.LABELS.add(ch);
+
+        ch = new Label("Work");
+        ch.uid = UidGenerator.create();
+        ch.parentUid = par.uid;
+        App.LABELS.add(ch);
+
+        par = new Label("Media");
+        par.uid = UidGenerator.create();
+        App.LABELS.add(par);
+
+        ch = new Label("Personal");
+        ch.uid = UidGenerator.create();
+        ch.parentUid = par.uid;
+        App.LABELS.add(ch);
+
+        ch = new Label("Work");
+        ch.uid = UidGenerator.create();
+        ch.parentUid = par.uid;
+        App.LABELS.add(ch);
+
+        var par = new Label("Interests");
+        par.uid = UidGenerator.create();
+        App.LABELS.add(par);
     }
 
 }
