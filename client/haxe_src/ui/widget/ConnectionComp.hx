@@ -37,7 +37,7 @@ extern class ConnectionComp extends JQ {
 		        		throw new ui.exception.Exception("Root of ConnectionComp must be a div element");
 		        	}
 
-		            selfElement.addClass("connection filterable odd container boxsizingBorder");
+		        	selfElement.addClass(Widgets.getWidgetClasses() + " connection filterable odd container boxsizingBorder");
 		            selfElement.append("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		            selfElement.append("<div>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
 

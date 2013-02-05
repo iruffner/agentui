@@ -37,6 +37,8 @@ extern class ConnectionsList extends JQ {
 		        		throw new ui.exception.Exception("Root of ConnectionsList must be a div element");
 		        	}
 
+		        	selfElement.addClass(Widgets.getWidgetClasses());
+
 					cast(selfElement, JQDroppable).droppable({
 			    		accept: function(d) {
 			    			return d.is(".connection");

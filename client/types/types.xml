@@ -6146,9 +6146,9 @@
 		<LOGGER public="1" static="1"><c path="ui.log.Logga"/></LOGGER>
 		<CONNECTIONS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></CONNECTIONS>
 		<LABELS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></LABELS>
-		<main public="1" set="method" line="27" static="1"><f a=""><e path="Void"/></f></main>
-		<start public="1" set="method" line="37" static="1"><f a=""><e path="Void"/></f></start>
-		<demo set="method" line="64" static="1"><f a=""><e path="Void"/></f></demo>
+		<main public="1" set="method" line="31" static="1"><f a=""><e path="Void"/></f></main>
+		<start public="1" set="method" line="41" static="1"><f a=""><e path="Void"/></f></start>
+		<demo set="method" line="58" static="1"><f a=""><e path="Void"/></f></demo>
 	</class>
 	<class path="ui.CrossMojo" params="" file="haxe_src/ui/CrossMojo.hx">
 		<jq public="1" set="method" line="7" static="1"><f a="selector:?arg2">
@@ -6442,8 +6442,8 @@
 			<haxe_doc>Return the current JQuery element (in a callback), similar to $(this) in JS.</haxe_doc>
 		</cur>
 		<curNoWrap public="1" get="getCurrent2" set="null" static="1"><t path="js.HtmlDom"/></curNoWrap>
-		<getCurrent get="inline" set="null" line="178" static="1"><f a=""><c path="ui.jq.JQ"/></f></getCurrent>
-		<getCurrent2 get="inline" set="null" line="181" static="1"><f a=""><t path="js.HtmlDom"/></f></getCurrent2>
+		<getCurrent get="inline" set="null" line="179" static="1"><f a=""><c path="ui.jq.JQ"/></f></getCurrent>
+		<getCurrent2 get="inline" set="null" line="182" static="1"><f a=""><t path="js.HtmlDom"/></f></getCurrent2>
 		<map public="1" set="method"><f a="fcn">
 	<f a=":">
 		<c path="ui.jq.JQ"/>
@@ -6556,6 +6556,10 @@
 	</f>
 	<c path="ui.jq.JQ"/>
 </f></bind>
+		<clone public="1" set="method" override="1"><f a="?withDataAndEvents">
+	<e path="Bool"/>
+	<c path="ui.jq.JQ"/>
+</f></clone>
 		<next public="1" set="method" override="1"><f a="?selector">
 	<c path="String"/>
 	<c path="ui.jq.JQ"/>
@@ -7151,6 +7155,11 @@
 	<destroy><f a=""><e path="Void"/></f></destroy>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
+	<class path="ui.widget.Widgets" params="" file="haxe_src/ui/widget/Widgets.hx">
+		<getSelf public="1" params="T" get="inline" set="null" line="7" static="1"><f a=""><c path="getSelf.T"/></f></getSelf>
+		<getSelfElement public="1" params="T" get="inline" set="null" line="11" static="1"><f a=""><c path="getSelfElement.T"/></f></getSelfElement>
+		<getWidgetClasses public="1" set="method" line="15" static="1"><f a=""><c path="String"/></f></getWidgetClasses>
+	</class>
 	<class path="ui.widget.ConnectionComp" params="" file="haxe_src/ui/widget/ConnectionComp.hx" extern="1">
 		<extends path="ui.jq.JQ"/>
 		<connectionComp public="1" set="method"><f a="opts">
@@ -7184,13 +7193,28 @@
 	<c path="ui.widget.ConnectionsList"/>
 </f></connectionsList>
 	</class>
+	<typedef path="ui.widget.FilterCompOptions" params="" file="haxe_src/ui/widget/FilterComp.hx" module="ui.widget.FilterComp"><a/></typedef>
+	<typedef path="ui.widget.FilterCompWidgetDef" params="" file="haxe_src/ui/widget/FilterComp.hx" module="ui.widget.FilterComp"><a>
+	<options>
+		<t path="ui.widget.FilterCompOptions"/>
+		<meta><m n=":optional"/></meta>
+	</options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
+	<class path="ui.widget.FilterComp" params="" file="haxe_src/ui/widget/FilterComp.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<filterComp public="1" set="method"><f a="?opts">
+	<t path="ui.widget.FilterCompOptions"/>
+	<c path="ui.widget.FilterComp"/>
+</f></filterComp>
+	</class>
 	<typedef path="ui.widget.LabelCompOptions" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
 	<label><c path="ui.model.Label"/></label>
 	<classes>
 		<c path="String"/>
 		<meta><m n=":optional"/></meta>
 	</classes>
-	<children><c path="ui.observable.OSet"><c path="ui.model.Label"/></c></children>
 </a></typedef>
 	<typedef path="ui.widget.LabelCompWidgetDef" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
 	<update><f a=""><e path="Void"/></f></update>
@@ -7198,13 +7222,6 @@
 	<destroy><f a=""><e path="Void"/></f></destroy>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
-	<class path="ui.widget.LabelTree" params="" file="haxe_src/ui/widget/LabelTree.hx" extern="1">
-		<extends path="ui.jq.JQ"/>
-		<labelTree public="1" set="method"><f a="opts">
-	<t path="ui.widget.LabelTreeOptions"/>
-	<c path="ui.widget.LabelTree"/>
-</f></labelTree>
-	</class>
 	<class path="ui.widget.LabelComp" params="" file="haxe_src/ui/widget/LabelComp.hx" extern="1">
 		<extends path="ui.jq.JQ"/>
 		<COLORS public="1" static="1"><c path="Array"><c path="Array"><c path="String"/></c></c></COLORS>
@@ -7226,15 +7243,40 @@
 	<labels>
 		<c path="ui.observable.MappedSet">
 			<c path="ui.model.Label"/>
-			<c path="ui.widget.LabelComp"/>
+			<c path="ui.widget.LabelTreeBranch"/>
 		</c>
 		<meta><m n=":optional"/></meta>
 	</labels>
 	<destroy><f a=""><e path="Void"/></f></destroy>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
-	<class path="ui.widget.Widgets" params="" file="haxe_src/ui/widget/Widgets.hx">
-		<getSelf public="1" params="T" get="inline" set="null" line="7" static="1"><f a=""><c path="getSelf.T"/></f></getSelf>
-		<getSelfElement public="1" params="T" get="inline" set="null" line="11" static="1"><f a=""><c path="getSelfElement.T"/></f></getSelfElement>
+	<class path="ui.widget.LabelTreeBranch" params="" file="haxe_src/ui/widget/LabelTreeBranch.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<_initColors set="method" static="1"><f a=""><e path="Void"/></f></_initColors>
+		<labelTreeBranch public="1" set="method"><f a="opts">
+	<t path="ui.widget.LabelTreeBranchOptions"/>
+	<c path="ui.widget.LabelTreeBranch"/>
+</f></labelTreeBranch>
 	</class>
+	<class path="ui.widget.LabelTree" params="" file="haxe_src/ui/widget/LabelTree.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<labelTree public="1" set="method"><f a="opts">
+	<t path="ui.widget.LabelTreeOptions"/>
+	<c path="ui.widget.LabelTree"/>
+</f></labelTree>
+	</class>
+	<typedef path="ui.widget.LabelTreeBranchOptions" params="" file="haxe_src/ui/widget/LabelTreeBranch.hx" module="ui.widget.LabelTreeBranch"><a>
+	<label><c path="ui.model.Label"/></label>
+	<classes>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</classes>
+	<children><c path="ui.observable.OSet"><c path="ui.model.Label"/></c></children>
+</a></typedef>
+	<typedef path="ui.widget.LabelTreeBranchWidgetDef" params="" file="haxe_src/ui/widget/LabelTreeBranch.hx" module="ui.widget.LabelTreeBranch"><a>
+	<update><f a=""><e path="Void"/></f></update>
+	<options><t path="ui.widget.LabelTreeBranchOptions"/></options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
 </haxe>

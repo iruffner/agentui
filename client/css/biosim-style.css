@@ -76,6 +76,24 @@ body {
 #content {
 	padding: 0 20px;
 }
+	/* Filter
+	-----------------------------------------------------------------------------*/
+	#filter {
+		min-height: 150px;
+	}
+		
+		#filter #filterTrash {
+			float: right;
+			margin-right: -10px;
+			margin-top: 80px;
+			max-width: 150px;
+			background-image: url(../media/trash.png);
+			min-height: 100px;
+			min-width: 150px;
+			background-size: 50px;
+			background-repeat: no-repeat;
+			background-position: 100px;
+		}
 
 	/* Feed
 	-----------------------------------------------------------------------------*/
@@ -210,13 +228,15 @@ body {
 			border-right-width: 25px;
 			border-right-style: solid;
 			background: none; 
-			float: left; 
+			display: table-cell;
+			/*float: left; */
 		}
 
 		.labelBox {
 			border-bottom-right-radius: 5px; 
 			border-top-right-radius: 5px; 
-			float: left; 
+			display: table-cell;
+			/*float: left; */
 			min-width: 75px; 
 			min-height: 46px; 
 			max-height: 46px;
@@ -229,6 +249,7 @@ body {
 			min-height: 35px;
 			min-width: 70px;
 			border: 2px solid black;
+			padding: 3px 4px;
 		}
 
 			.labelBody div {
@@ -379,5 +400,5 @@ body {
 /* jquery ui overrides
 -----------------------------------------------------------------------------*/
 .ui-draggable-dragging {
-	z-index: 500;
+	z-index: 5000;
 }

@@ -91,6 +91,7 @@ extern class JQ extends js.JQuery {
 	override function children( ?selector : String ) : JQ;
 	override function siblings( ?selector : String ) : JQ;
 	override function next( ?selector : String ) : JQ;
+	override function clone( ?withDataAndEvents : Bool ) : JQ;
 
 	@:overload(function(events : String, callb : js.JQuery.JqEvent -> Bool):JQ { } )
 	@:overload(function(events : String, callb : Void -> Bool):JQ { } )

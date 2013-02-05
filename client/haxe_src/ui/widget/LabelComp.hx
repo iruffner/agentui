@@ -6,7 +6,6 @@ import ui.observable.OSet;
 
 typedef LabelCompOptions = {
 	var label: Label;
-	var children: OSet<Label>;
 	@:optional var classes: String;
 }
 
@@ -21,6 +20,7 @@ extern class LabelComp extends JQ {
 	public static var COLORS: Array<Array<String>>;
 
 	@:overload(function(cmd : String):Bool{})
+	@:overload(function(cmd:String, opt:String):Dynamic{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function labelComp(opts: LabelCompOptions): LabelComp;
 
@@ -64,7 +64,6 @@ extern class LabelComp extends JQ {
 			return {
 		        options: {
 		            label: null,
-		            children: null,
 		            classes: null
 		        },
 		        
@@ -75,49 +74,75 @@ extern class LabelComp extends JQ {
 		        		throw new ui.exception.Exception("Root of LabelComp must be a div element");
 		        	}
 
-		        	selfElement.addClass("labelWrapper");
+		        	// selfElement.addClass(Widgets.getWidgetClasses());
+
+		        	selfElement.addClass("label filterable");
 		        	
-		        	var label: JQ = new JQ("<div class='label filterable'></div>");
 		            var labelTail: JQ = new JQ("<div class='labelTail'></div>");
 		            labelTail.css("border-right-color", self.options.label.color);
-		            label.append(labelTail);
+		            selfElement.append(labelTail);
 		            var labelBox: JQ = new JQ("<div class='labelBox'></div>");
 		            labelBox.css("background", self.options.label.color);
 		            var labelBody: JQ = new JQ("<div class='labelBody'></div>");
 		            var labelText: JQ = new JQ("<div>" + self.options.label.text + "</div>");
 		            labelBody.append(labelText);
 		            labelBox.append(labelBody);
-		            label.append(labelBox).append("<div class='clear'></div>");
+		            selfElement.append(labelBox).append("<div class='clear'></div>");
 
-		            selfElement.append(label);
+		            var helper: String = "clone";
+		            var containment: Dynamic = false;
+		            if(selfElement.parent().is(".nohelper")) {
+		            	helper = "original";
+		            	// containment = "parent";
+		            }
 
-		            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren'></div>");
-		            labelChildren.labelTree({
-		            		labels: self.options.children
-		            	});
-		            label.append(labelChildren);
-
-		            cast(label, JQDraggable).draggable({ 
-			    		// containment: "#connections", 
+		            cast(selfElement, JQDraggable).draggable({ 
+			    		containment: containment, 
 			    		revert: function(dropTarget: Dynamic) {
-			    			return (dropTarget == null || !cast(dropTarget, JQ).is(".labelDT"));
+			    			var revert: Bool = false;
+			    			if(dropTarget == null || (Std.is(dropTarget, Bool) && dropTarget == false) || !dropTarget.is(".labelDT")) {
+			    				revert = true;
+			    			} else {
+			    				JQ.cur.data("dropTarget", dropTarget);
+			    			}
+			    			return ;
 			    		},
-			    		// helper: "clone",
+			    		helper: helper,
 			    		distance: 10,
 			    		// grid: [5,5],
 			    		scroll: false, 
-			    		stop: function(event, ui) {
+			    		stop: function(event: js.JQuery.JqEvent, _ui: Dynamic): Void {
+			    			var dropTarget: JQ = JQ.cur.data("dropTarget");
+			    			JQ.cur.data("dropTarget", null);
+			    			if(dropTarget != null && dropTarget.is("#filter") && !JQ.cur.hasClass("cloned")) {
+			    				var clone: LabelComp = new LabelComp("<div></div>");
+				                clone.appendTo(dropTarget);
+				                clone.labelComp({
+				                        label: cast(JQ.cur, LabelComp).labelComp("option", "label"),
+				                        classes: cast(JQ.cur, LabelComp).labelComp("option", "classes")
+				                    })
+				                	.css({
+				                        "position": "absolute",
+				                        "left": _ui.position.left,
+				                        "top": _ui.position.top
+				                    })
+				                    .addClass("cloned filterTrashable");
+			    				// dropTarget.append(clone);
+			    			}
 			    			App.LOGGER.debug("draggable stop");
 			    		}
 			    	});
 		            cast(selfElement, JQDroppable).droppable({
 			    		accept: function(d) {
-			    			return d.is(".connection") || d.is(".label");
+			    			return JQ.cur.parent().is(".dropCombiner") && (d.is(".connection") || d.is(".label"));
 			    		},
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",
-				      	drop: function( event, ui ) {
-				      		
+				      	drop: function( event, _ui ) {
+				      		var filterCombiner: JQ = new JQ("<div class='ui-state-highlight filterCombo' style='padding: 10px;'></div>");
+				      		filterCombiner.appendTo(JQ.cur.parent());
+				      		JQ.cur.appendTo(filterCombiner);
+				      		App.LOGGER.debug("droppable drop");
 				        	
 				      	}
 			    	});

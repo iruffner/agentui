@@ -1,5 +1,7 @@
 package ui;
 
+import js.JQuery;
+
 import ui.jq.JQ;
 
 import ui.log.Logga;
@@ -10,6 +12,8 @@ import ui.model.ModelObj;
 import ui.observable.OSet;
 
 import ui.util.UidGenerator;
+
+import ui.widget.LabelComp;
 
 using ui.helper.ArrayHelper;
 using ui.helper.StringHelper;
@@ -46,17 +50,7 @@ class App {
                     })
             });
 
-    	new JQDroppable( "#filter" ).droppable({
-    		accept: function(d) {
-    			return d.is(".filterable");
-    		},
-			activeClass: "ui-state-hover",
-	      	hoverClass: "ui-state-active",
-	      	drop: function( event, ui ) {
-	      		LOGGER.debug("droppable drop");	
-	        	// $( this ).addClass( "ui-state-highlight" );
-	      	}
-	    });
+        new ui.widget.FilterComp("#filter").filterComp(null);
 
         demo();
     }

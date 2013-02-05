@@ -1495,11 +1495,7 @@ ui.App.start = function() {
 	new ui.widget.LabelTree("#labels").labelTree({ labels : new ui.observable.FilteredSet(ui.App.LABELS,function(label) {
 		return ui.helper.StringHelper.isBlank(label.parentUid);
 	})});
-	new ui.jq.JQDroppable("#filter").droppable({ accept : function(d) {
-		return d["is"](".filterable");
-	}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
-		ui.App.LOGGER.debug("droppable drop");
-	}});
+	new ui.widget.FilterComp("#filter").filterComp(null);
 	ui.App.demo();
 }
 ui.App.demo = function() {
@@ -2508,6 +2504,9 @@ ui.widget.Widgets.getSelf = function() {
 ui.widget.Widgets.getSelfElement = function() {
 	return this.element;
 }
+ui.widget.Widgets.getWidgetClasses = function() {
+	return "ui-widget";
+}
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_;
 function $bind(o,m) { var f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; return f; };
@@ -2582,7 +2581,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionComp must be a div element");
-		selfElement.addClass("connection filterable odd container boxsizingBorder");
+		selfElement.addClass(ui.widget.Widgets.getWidgetClasses() + " connection filterable odd container boxsizingBorder");
 		selfElement.append("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		selfElement.append("<div>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
 		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ revert : function(dropTarget) {
@@ -2611,6 +2610,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionsList must be a div element");
+		selfElement.addClass(ui.widget.Widgets.getWidgetClasses());
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".connection");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
@@ -2628,65 +2628,68 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.connectionsList",defineWidget());
-ui.widget.LabelTree = window.jQuery;
+ui.widget.FilterComp = window.jQuery;
 var defineWidget = function() {
-	return { options : { labels : null, itemsClass : null}, _create : function() {
+	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTree must be a div element");
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of FilterComp must be a div element");
+		selfElement.addClass("connectionDT labelDT nohelper dropCombiner " + ui.widget.Widgets.getWidgetClasses());
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-			return d["is"](".label");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
-			ui.App.LOGGER.debug("droppable drop");
+			return d["is"](".filterable");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
 		}});
-		self.labels = new ui.observable.MappedSet(self.options.labels,function(label) {
-			var opts = { label : label, children : new ui.observable.FilteredSet(ui.App.LABELS,function(child) {
-				if(child.parentUid == label.uid) ui.App.LOGGER.debug(label.text + " keep " + child.text);
-				return child.parentUid == label.uid;
-			})};
-			return new ui.widget.LabelComp("<div></div>").labelComp(opts);
-		});
-		self.labels.listen(function(labelComp,evt) {
-			if(evt.isAdd()) {
-				ui.App.LOGGER.debug("Add " + evt.name());
-				selfElement.append(labelComp);
-			} else if(evt.isUpdate()) labelComp.labelComp("update"); else if(evt.isDelete()) labelComp.remove();
-		});
+		(js.Boot.__cast(selfElement.children("#filterTrash") , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+			return d["is"](".filterTrashable");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
+			_ui.draggable.remove();
+		}});
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.labelTree",defineWidget());
+ui.jq.JQ.widget("ui.filterComp",defineWidget());
 ui.widget.LabelComp = window.jQuery;
 var defineWidget = function() {
-	return { options : { label : null, children : null, classes : null}, _create : function() {
+	return { options : { label : null, classes : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelComp must be a div element");
-		selfElement.addClass("labelWrapper");
-		var label = new ui.jq.JQ("<div class='label filterable'></div>");
+		selfElement.addClass("label filterable");
 		var labelTail = new ui.jq.JQ("<div class='labelTail'></div>");
 		labelTail.css("border-right-color",self.options.label.color);
-		label.append(labelTail);
+		selfElement.append(labelTail);
 		var labelBox = new ui.jq.JQ("<div class='labelBox'></div>");
 		labelBox.css("background",self.options.label.color);
 		var labelBody = new ui.jq.JQ("<div class='labelBody'></div>");
 		var labelText = new ui.jq.JQ("<div>" + self.options.label.text + "</div>");
 		labelBody.append(labelText);
 		labelBox.append(labelBody);
-		label.append(labelBox).append("<div class='clear'></div>");
-		selfElement.append(label);
-		var labelChildren = new ui.widget.LabelTree("<div class='labelChildren'></div>");
-		labelChildren.labelTree({ labels : self.options.children});
-		label.append(labelChildren);
-		(js.Boot.__cast(label , ui.jq.JQDraggable)).draggable({ revert : function(dropTarget) {
-			return dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".labelDT");
-		}, distance : 10, scroll : false, stop : function(event,ui1) {
+		selfElement.append(labelBox).append("<div class='clear'></div>");
+		var helper = "clone";
+		var containment = false;
+		if(selfElement.parent()["is"](".nohelper")) helper = "original";
+		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : containment, revert : function(dropTarget) {
+			var revert = false;
+			if(dropTarget == null || js.Boot.__instanceof(dropTarget,Bool) && dropTarget == false || !dropTarget["is"](".labelDT")) revert = true; else $(this).data("dropTarget",dropTarget);
+			return;
+		}, helper : helper, distance : 10, scroll : false, stop : function(event,_ui) {
+			var dropTarget = $(this).data("dropTarget");
+			$(this).data("dropTarget",null);
+			if(dropTarget != null && dropTarget["is"]("#filter") && !$(this).hasClass("cloned")) {
+				var clone = new ui.widget.LabelComp("<div></div>");
+				clone.appendTo(dropTarget);
+				clone.labelComp({ label : (js.Boot.__cast($(this) , ui.widget.LabelComp)).labelComp("option","label"), classes : (js.Boot.__cast($(this) , ui.widget.LabelComp)).labelComp("option","classes")}).css({ position : "absolute", left : _ui.position.left, top : _ui.position.top}).addClass("cloned filterTrashable");
+			}
 			ui.App.LOGGER.debug("draggable stop");
 		}});
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-			return d["is"](".connection") || d["is"](".label");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
+			return $(this).parent()["is"](".dropCombiner") && (d["is"](".connection") || d["is"](".label"));
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+			var filterCombiner = new ui.jq.JQ("<div class='ui-state-highlight filterCombo' style='padding: 10px;'></div>");
+			filterCombiner.appendTo($(this).parent());
+			$(this).appendTo(filterCombiner);
+			ui.App.LOGGER.debug("droppable drop");
 		}});
 	}, update : function() {
 		var self = this;
@@ -2697,6 +2700,53 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.labelComp",defineWidget());
+ui.widget.LabelTreeBranch = window.jQuery;
+var defineWidget = function() {
+	return { options : { label : null, children : null, classes : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTreeBranch must be a div element");
+		selfElement.addClass("labelWrapper");
+		var label = new ui.widget.LabelComp("<div></div>").labelComp({ label : self.options.label});
+		selfElement.append(label);
+		if(self.options.children != null) {
+			var labelChildren = new ui.widget.LabelTree("<div class='labelChildren'></div>");
+			labelChildren.labelTree({ labels : self.options.children});
+			selfElement.append(labelChildren);
+		}
+	}, update : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.find(".labelBody").text(self.options.label.text);
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.labelTreeBranch",defineWidget());
+ui.widget.LabelTree = window.jQuery;
+var defineWidget = function() {
+	return { options : { labels : null, itemsClass : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTree must be a div element");
+		selfElement.addClass(ui.widget.Widgets.getWidgetClasses());
+		self.labels = new ui.observable.MappedSet(self.options.labels,function(label) {
+			return new ui.widget.LabelTreeBranch("<div></div>").labelTreeBranch({ label : label, children : new ui.observable.FilteredSet(ui.App.LABELS,function(child) {
+				if(child.parentUid == label.uid) ui.App.LOGGER.debug(label.text + " keep " + child.text);
+				return child.parentUid == label.uid;
+			})});
+		});
+		self.labels.listen(function(labelTreeBranch,evt) {
+			if(evt.isAdd()) {
+				ui.App.LOGGER.debug("Add " + evt.name());
+				selfElement.append(labelTreeBranch);
+			} else if(evt.isUpdate()) labelTreeBranch.labelTreeBranch("update"); else if(evt.isDelete()) labelTreeBranch.remove();
+		});
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.labelTree",defineWidget());
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\"><implements path=\"haxe.rtti.Infos\"/></class>";
 ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\"><extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends></class>";
 ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\"><c path=\"String\"/></parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";

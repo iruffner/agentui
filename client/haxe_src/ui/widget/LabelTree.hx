@@ -12,7 +12,7 @@ typedef LabelTreeOptions = {
 
 typedef LabelTreeWidgetDef = {
 	var options: LabelTreeOptions;
-	@:optional var labels: MappedSet<Label, LabelComp>;
+	@:optional var labels: MappedSet<Label, LabelTreeBranch>;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -38,37 +38,38 @@ extern class LabelTree extends JQ {
 		        		throw new ui.exception.Exception("Root of LabelTree must be a div element");
 		        	}
 
-					cast(selfElement, JQDroppable).droppable({
-			    		accept: function(d: JQ) {
-			    			return d.is(".label");
-			    		},
-						activeClass: "ui-state-hover",
-				      	hoverClass: "ui-state-active",
-				      	drop: function( event, ui ) {
-				      		App.LOGGER.debug("droppable drop");	
-				        	// $( this ).addClass( "ui-state-highlight" );
-				      	}
-				    });
+		        	selfElement.addClass(Widgets.getWidgetClasses());
+
+					// cast(selfElement, JQDroppable).droppable({
+			  //   		accept: function(d: JQ) {
+			  //   			return d.is(".label");
+			  //   		},
+					// 	activeClass: "ui-state-hover",
+				 //      	hoverClass: "ui-state-active",
+				 //      	drop: function( event, ui ) {
+				 //      		App.LOGGER.debug("droppable drop");	
+				 //        	// $( this ).addClass( "ui-state-highlight" );
+				 //      	}
+				 //    });
 
 					// var spacer: JQ = selfElement.children("#sideLeftSpacer");
-		        	self.labels = new MappedSet<Label, LabelComp>(self.options.labels, function(label: Label): LabelComp {
-		        			var opts: LabelCompOptions = {
+		        	self.labels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
+		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				label: label,
 	        					children: new FilteredSet<Label>(App.LABELS, function(child: Label): Bool{
 	        							if(child.parentUid == label.uid) App.LOGGER.debug(label.text + " keep " + child.text);
 		        						return child.parentUid == label.uid;
 		        					})
-		        			};
-		        			return new LabelComp("<div></div>").labelComp(opts);
+		        			});
 		        		});
-		        	self.labels.listen(function(labelComp: LabelComp, evt: EventType): Void {
+		        	self.labels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
 		            		if(evt.isAdd()) {
 		            			App.LOGGER.debug("Add " + evt.name());
-		            			selfElement.append(labelComp);
+		            			selfElement.append(labelTreeBranch);
 		            		} else if (evt.isUpdate()) {
-		            			labelComp.labelComp("update");
+		            			labelTreeBranch.labelTreeBranch("update");
 		            		} else if (evt.isDelete()) {
-		            			labelComp.remove();
+		            			labelTreeBranch.remove();
 		            		}
 		            	});
 		        },

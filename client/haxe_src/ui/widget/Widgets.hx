@@ -11,5 +11,9 @@ class Widgets {
 	public static inline function getSelfElement<T>(): T {
 		return untyped __js__("this.element");
 	}
+
+	public static function getWidgetClasses(): String {
+		return "ui-widget";
+	}
 	
 }
