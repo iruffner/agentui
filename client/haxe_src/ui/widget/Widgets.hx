@@ -13,7 +13,7 @@ class Widgets {
 	}
 
 	public static function getWidgetClasses(): String {
-		return "ui-widget";
+		return " ui-widget";
 	}
 	
 }

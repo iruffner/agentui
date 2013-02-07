@@ -1,6 +1,7 @@
 package ui.model;
 
 import ui.util.ColorProvider;
+import ui.observable.OSet;
 
 class ModelObj<T> implements haxe.rtti.Infos {
 
@@ -10,7 +11,9 @@ class User extends ModelObj<User> {
 
 }
 
-class Label extends ModelObj<Label> {
+interface Filterable {}
+
+class Label extends ModelObj<Label>, implements Filterable {
 	public var uid: String;
 	public var text: String;
 	public var parentUid: String;
@@ -20,11 +23,14 @@ class Label extends ModelObj<Label> {
 	public function new(?text: String) {
 		this.text = text;
 		color = ColorProvider.getNextColor();
-		App.LOGGER.debug("Color for " + text + " is " + color);
+	}
+
+	public static function identifier(label: Label): String {
+		return label.uid;
 	}
 }
 
-class Connection extends ModelObj<Connection> {
+class Connection extends ModelObj<Connection>, implements Filterable {
 	public var uid: String;
 	public var fname: String;
 	public var lname: String;
@@ -35,4 +41,34 @@ class Connection extends ModelObj<Connection> {
 		this.lname = lname;
 		this.imgSrc = imgSrc;
 	}
+
+	public static function identifier(conn: Connection): String {
+		return conn.uid;
+	}
+}
+
+class Content extends ModelObj<Content> {
+	public var uid: String;
+	public var type: String;
+	public var labels: ObservableSet<Label>;
+	public var connections: ObservableSet<Connection>;
+
+	public static function identifier(cont: Content): String {
+		return cont.uid;
+	}
+}
+
+class ImageContent extends Content {
+	public var imgSrc: String;
+	public var caption: String;
+
+	public function new () {}
+}
+
+class AudioContent extends Content {
+	public var audioSrc: String;
+	public var audioType: String;
+	public var title: String;
+
+	public function new () {}
 }

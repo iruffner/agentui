@@ -6146,9 +6146,10 @@
 		<LOGGER public="1" static="1"><c path="ui.log.Logga"/></LOGGER>
 		<CONNECTIONS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></CONNECTIONS>
 		<LABELS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></LABELS>
-		<main public="1" set="method" line="31" static="1"><f a=""><e path="Void"/></f></main>
-		<start public="1" set="method" line="41" static="1"><f a=""><e path="Void"/></f></start>
-		<demo set="method" line="58" static="1"><f a=""><e path="Void"/></f></demo>
+		<CONTENT public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Content"/></c></CONTENT>
+		<main public="1" set="method" line="32" static="1"><f a=""><e path="Void"/></f></main>
+		<start public="1" set="method" line="39" static="1"><f a=""><e path="Void"/></f></start>
+		<demo set="method" line="60" static="1"><f a=""><e path="Void"/></f></demo>
 	</class>
 	<class path="ui.CrossMojo" params="" file="haxe_src/ui/CrossMojo.hx">
 		<jq public="1" set="method" line="7" static="1"><f a="selector:?arg2">
@@ -6398,6 +6399,32 @@
 		<meta><m n=":optional"/></meta>
 	</async>
 </a></typedef>
+	<typedef path="ui.jq.PositionOpts" params="" file="haxe_src/ui/jq/JQ.hx" module="ui.jq.JQ"><a>
+	<within>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</within>
+	<of>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</of>
+	<my>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</my>
+	<collision>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</collision>
+	<at>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</at>
+</a></typedef>
+	<typedef path="ui.jq.UIPosition" params="" file="haxe_src/ui/jq/JQ.hx" module="ui.jq.JQ"><a>
+	<top><c path="Int"/></top>
+	<left><c path="Int"/></left>
+</a></typedef>
 	<class path="ui.jq.JQ" params="" file="haxe_src/ui/jq/JQ.hx" extern="1">
 		<extends path="js.JQuery"/>
 		<ui public="1" static="1"><d/></ui>
@@ -6442,8 +6469,12 @@
 			<haxe_doc>Return the current JQuery element (in a callback), similar to $(this) in JS.</haxe_doc>
 		</cur>
 		<curNoWrap public="1" get="getCurrent2" set="null" static="1"><t path="js.HtmlDom"/></curNoWrap>
-		<getCurrent get="inline" set="null" line="179" static="1"><f a=""><c path="ui.jq.JQ"/></f></getCurrent>
-		<getCurrent2 get="inline" set="null" line="182" static="1"><f a=""><t path="js.HtmlDom"/></f></getCurrent2>
+		<getCurrent get="inline" set="null" line="196" static="1"><f a=""><c path="ui.jq.JQ"/></f></getCurrent>
+		<getCurrent2 get="inline" set="null" line="199" static="1"><f a=""><t path="js.HtmlDom"/></f></getCurrent2>
+		<position public="1" set="method" override="1"><f a=""><a>
+	<top><c path="Int"/></top>
+	<left><c path="Int"/></left>
+</a></f></position>
 		<map public="1" set="method"><f a="fcn">
 	<f a=":">
 		<c path="ui.jq.JQ"/>
@@ -6520,6 +6551,10 @@
 	<c path="String"/>
 	<c path="ui.jq.JQ"/>
 </f></appendTo>
+		<append public="1" set="method" override="1"><f a="html">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></append>
 		<addClass public="1" set="method" override="1"><f a="clazz">
 	<c path="String"/>
 	<c path="ui.jq.JQ"/>
@@ -6661,11 +6696,6 @@
 		<isVisible public="1" set="method"><f a=""><e path="Bool"/></f></isVisible>
 		<fnDestroy public="1" set="method"><f a=""><e path="Void"/></f></fnDestroy>
 		<destroy public="1" set="method"><f a=""><e path="Void"/></f></destroy>
-		<hasAttr public="1" set="method"><f a="attr">
-	<c path="String"/>
-	<e path="Bool"/>
-</f></hasAttr>
-		<exists public="1" set="method"><f a=""><e path="Bool"/></f></exists>
 	</class>
 	<class path="ui.jq.JQSortable" params="" file="haxe_src/ui/jq/JQ.hx" module="ui.jq.JQ" extern="1">
 		<extends path="ui.jq.JQ"/>
@@ -6678,19 +6708,291 @@
 	<e path="Void"/>
 </f></dialog>
 	</class>
-	<class path="ui.jq.JQDraggable" params="" file="haxe_src/ui/jq/JQ.hx" module="ui.jq.JQ" extern="1">
+	<typedef path="ui.jq.UIDraggable" params="" file="haxe_src/ui/jq/JQDraggable.hx" module="ui.jq.JQDraggable"><a>
+	<position><t path="ui.jq.UIPosition"/></position>
+	<offset><t path="ui.jq.UIPosition"/></offset>
+	<helper><c path="ui.jq.JQ"/></helper>
+</a></typedef>
+	<typedef path="ui.jq.JQDraggableOpts" params="" file="haxe_src/ui/jq/JQDraggable.hx" module="ui.jq.JQDraggable"><a>
+	<zIndex>
+		<c path="Int"/>
+		<meta><m n=":optional"/></meta>
+	</zIndex>
+	<stop>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<t path="ui.jq.UIDraggable"/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</stop>
+	<start>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<t path="ui.jq.UIDraggable"/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</start>
+	<stack>
+		<c path="ui.jq.JQ"/>
+		<meta><m n=":optional"/></meta>
+	</stack>
+	<snapTolerance>
+		<c path="Int"/>
+		<meta><m n=":optional"/></meta>
+	</snapTolerance>
+	<snapMode>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</snapMode>
+	<snap>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</snap>
+	<scrollSpeed>
+		<c path="Int"/>
+		<meta><m n=":optional"/></meta>
+	</scrollSpeed>
+	<scrollSensitivity>
+		<c path="Int"/>
+		<meta><m n=":optional"/></meta>
+	</scrollSensitivity>
+	<scroll>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</scroll>
+	<scope>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</scope>
+	<revertDuration>
+		<c path="Int"/>
+		<meta><m n=":optional"/></meta>
+	</revertDuration>
+	<revert>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</revert>
+	<refreshPositions>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</refreshPositions>
+	<opacity>
+		<c path="Int"/>
+		<meta><m n=":optional"/></meta>
+	</opacity>
+	<iframeFix>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</iframeFix>
+	<helper>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</helper>
+	<handle>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</handle>
+	<grid>
+		<c path="Array"><c path="Int"/></c>
+		<meta><m n=":optional"/></meta>
+	</grid>
+	<drag>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<t path="ui.jq.UIDraggable"/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</drag>
+	<distance>
+		<c path="Int"/>
+		<meta><m n=":optional"/></meta>
+	</distance>
+	<disabled>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</disabled>
+	<delay>
+		<c path="Int"/>
+		<meta><m n=":optional"/></meta>
+	</delay>
+	<cursorAt>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</cursorAt>
+	<cursor>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</cursor>
+	<containment>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</containment>
+	<connectToSortable>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</connectToSortable>
+	<cancel>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</cancel>
+	<axis>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</axis>
+	<appendTo>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</appendTo>
+	<addClasses>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</addClasses>
+</a></typedef>
+	<class path="ui.jq.JQDraggable" params="" file="haxe_src/ui/jq/JQDraggable.hx" extern="1">
 		<extends path="ui.jq.JQ"/>
 		<draggable public="1" set="method"><f a="opts">
-	<d/>
+	<t path="ui.jq.JQDraggableOpts"/>
 	<c path="ui.jq.JQDraggable"/>
 </f></draggable>
 	</class>
-	<class path="ui.jq.JQDroppable" params="" file="haxe_src/ui/jq/JQ.hx" module="ui.jq.JQ" extern="1">
+	<typedef path="ui.jq.UIDroppable" params="" file="haxe_src/ui/jq/JQDroppable.hx" module="ui.jq.JQDroppable"><a>
+	<position><t path="ui.jq.UIPosition"/></position>
+	<offset><t path="ui.jq.UIPosition"/></offset>
+	<helper><c path="ui.jq.JQ"/></helper>
+	<draggable><c path="ui.jq.JQDraggable"/></draggable>
+</a></typedef>
+	<typedef path="ui.jq.JQDroppableOpts" params="" file="haxe_src/ui/jq/JQDroppable.hx" module="ui.jq.JQDroppable"><a>
+	<tolerance>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</tolerance>
+	<scope>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</scope>
+	<over>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<t path="ui.jq.UIDroppable"/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</over>
+	<out>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<t path="ui.jq.UIDroppable"/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</out>
+	<hoverClass>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</hoverClass>
+	<greedy>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</greedy>
+	<drop>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<t path="ui.jq.UIDroppable"/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</drop>
+	<deactivate>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<t path="ui.jq.UIDroppable"/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</deactivate>
+	<addClasses>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</addClasses>
+	<activeClass>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</activeClass>
+	<activate>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<t path="ui.jq.UIDroppable"/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</activate>
+	<accept>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</accept>
+</a></typedef>
+	<class path="ui.jq.JQDroppable" params="" file="haxe_src/ui/jq/JQDroppable.hx" extern="1">
 		<extends path="ui.jq.JQ"/>
 		<droppable public="1" set="method"><f a="opts">
-	<d/>
+	<t path="ui.jq.JQDroppableOpts"/>
 	<c path="ui.jq.JQDroppable"/>
 </f></droppable>
+	</class>
+	<typedef path="ui.jq.JQTooltipOps" params="" file="haxe_src/ui/jq/JQTooltip.hx" module="ui.jq.JQTooltip"><a>
+	<track>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</track>
+	<tooltipClass>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</tooltipClass>
+	<show>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</show>
+	<position>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</position>
+	<open>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<d/>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</open>
+	<items>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</items>
+	<hide>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</hide>
+	<content>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</content>
+	<close>
+		<f a=":">
+			<t path="js.JqEvent"/>
+			<a><tooltip><c path="ui.jq.JQ"/></tooltip></a>
+			<e path="Void"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</close>
+</a></typedef>
+	<class path="ui.jq.JQTooltip" params="" file="haxe_src/ui/jq/JQTooltip.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<draggable public="1" set="method"><f a="opts">
+	<t path="ui.jq.JQTooltipOps"/>
+	<c path="ui.jq.JQTooltip"/>
+</f></draggable>
 	</class>
 	<enum path="ui.log.LogLevel" params="" file="haxe_src/ui/log/LogLevel.hx">
 		<WARN/>
@@ -6754,15 +7056,21 @@
 	</class>
 	<class path="ui.model.ModelObj" params="T" file="haxe_src/ui/model/ModelObj.hx">
 		<implements path="haxe.rtti.Infos"/>
-		<__rtti public="1" line="5" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="6" static="1"><c path="String"/></__rtti>
 	</class>
 	<class path="ui.model.User" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.User"/></extends>
-		<__rtti public="1" line="9" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="10" static="1"><c path="String"/></__rtti>
 	</class>
+	<class path="ui.model.Filterable" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj" interface="1"/>
 	<class path="ui.model.Label" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Label"/></extends>
-		<__rtti public="1" line="13" static="1"><c path="String"/></__rtti>
+		<implements path="ui.model.Filterable"/>
+		<__rtti public="1" line="16" static="1"><c path="String"/></__rtti>
+		<identifier public="1" set="method" line="28" static="1"><f a="label">
+	<c path="ui.model.Label"/>
+	<c path="String"/>
+</f></identifier>
 		<color public="1">
 			<c path="String"/>
 			<meta><m n=":transient"/></meta>
@@ -6770,24 +7078,56 @@
 		<parentUid public="1"><c path="String"/></parentUid>
 		<text public="1"><c path="String"/></text>
 		<uid public="1"><c path="String"/></uid>
-		<new public="1" set="method" line="20"><f a="?text">
+		<new public="1" set="method" line="23"><f a="?text">
 	<c path="String"/>
 	<e path="Void"/>
 </f></new>
 	</class>
 	<class path="ui.model.Connection" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Connection"/></extends>
-		<__rtti public="1" line="27" static="1"><c path="String"/></__rtti>
+		<implements path="ui.model.Filterable"/>
+		<__rtti public="1" line="33" static="1"><c path="String"/></__rtti>
+		<identifier public="1" set="method" line="45" static="1"><f a="conn">
+	<c path="ui.model.Connection"/>
+	<c path="String"/>
+</f></identifier>
 		<imgSrc public="1"><c path="String"/></imgSrc>
 		<lname public="1"><c path="String"/></lname>
 		<fname public="1"><c path="String"/></fname>
 		<uid public="1"><c path="String"/></uid>
-		<new public="1" set="method" line="33"><f a="?fname:?lname:?imgSrc">
+		<new public="1" set="method" line="39"><f a="?fname:?lname:?imgSrc">
 	<c path="String"/>
 	<c path="String"/>
 	<c path="String"/>
 	<e path="Void"/>
 </f></new>
+	</class>
+	<class path="ui.model.Content" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
+		<extends path="ui.model.ModelObj"><c path="ui.model.Content"/></extends>
+		<__rtti public="1" line="50" static="1"><c path="String"/></__rtti>
+		<identifier public="1" set="method" line="56" static="1"><f a="cont">
+	<c path="ui.model.Content"/>
+	<c path="String"/>
+</f></identifier>
+		<connections public="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></connections>
+		<labels public="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></labels>
+		<type public="1"><c path="String"/></type>
+		<uid public="1"><c path="String"/></uid>
+	</class>
+	<class path="ui.model.ImageContent" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
+		<extends path="ui.model.Content"/>
+		<__rtti public="1" line="61" static="1"><c path="String"/></__rtti>
+		<caption public="1"><c path="String"/></caption>
+		<imgSrc public="1"><c path="String"/></imgSrc>
+		<new public="1" set="method" line="65"><f a=""><e path="Void"/></f></new>
+	</class>
+	<class path="ui.model.AudioContent" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
+		<extends path="ui.model.Content"/>
+		<__rtti public="1" line="68" static="1"><c path="String"/></__rtti>
+		<title public="1"><c path="String"/></title>
+		<audioType public="1"><c path="String"/></audioType>
+		<audioSrc public="1"><c path="String"/></audioSrc>
+		<new public="1" set="method" line="73"><f a=""><e path="Void"/></f></new>
 	</class>
 	<class path="ui.observable.OSet" params="T" file="haxe_src/ui/observable/OSet.hx" interface="1">
 		<delegate public="1" set="method"><f a=""><c path="Hash"><c path="ui.observable.OSet.T"/></c></f></delegate>
@@ -7142,6 +7482,52 @@
 		<randomChar public="1" set="method" line="41" static="1"><f a=""><c path="String"/></f></randomChar>
 		<randomNumChar public="1" set="method" line="49" static="1"><f a=""><c path="Int"/></f></randomNumChar>
 	</class>
+	<typedef path="ui.widget.ConnectionAvatarOptions" params="" file="haxe_src/ui/widget/ConnectionAvatar.hx" module="ui.widget.ConnectionAvatar"><a>
+	<isDragByHelper>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</isDragByHelper>
+	<dndEnabled>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</dndEnabled>
+	<containment>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</containment>
+	<connection><c path="ui.model.Connection"/></connection>
+	<classes>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</classes>
+</a></typedef>
+	<typedef path="ui.widget.ConnectionAvatarWidgetDef" params="" file="haxe_src/ui/widget/ConnectionAvatar.hx" module="ui.widget.ConnectionAvatar"><a>
+	<update><f a=""><e path="Void"/></f></update>
+	<options><t path="ui.widget.ConnectionAvatarOptions"/></options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
+	<class path="ui.widget.FilterableComponent" params="" file="haxe_src/ui/widget/FilterableComponent.hx" interface="1"/>
+	<class path="ui.widget.Widgets" params="" file="haxe_src/ui/widget/Widgets.hx">
+		<getSelf public="1" params="T" get="inline" set="null" line="7" static="1"><f a=""><c path="getSelf.T"/></f></getSelf>
+		<getSelfElement public="1" params="T" get="inline" set="null" line="11" static="1"><f a=""><c path="getSelfElement.T"/></f></getSelfElement>
+		<getWidgetClasses public="1" set="method" line="15" static="1"><f a=""><c path="String"/></f></getWidgetClasses>
+	</class>
+	<class path="ui.widget.FilterCombination" params="" file="haxe_src/ui/widget/FilterCombination.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<filterCombination public="1" set="method"><f a="?opts">
+	<t path="ui.widget.FilterCombinationOptions"/>
+	<c path="ui.widget.FilterCombination"/>
+</f></filterCombination>
+	</class>
+	<class path="ui.widget.ConnectionAvatar" params="" file="haxe_src/ui/widget/ConnectionAvatar.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<implements path="ui.widget.FilterableComponent"/>
+		<connectionAvatar public="1" set="method"><f a="opts">
+	<t path="ui.widget.ConnectionAvatarOptions"/>
+	<c path="ui.widget.ConnectionAvatar"/>
+</f></connectionAvatar>
+	</class>
 	<typedef path="ui.widget.ConnectionCompOptions" params="" file="haxe_src/ui/widget/ConnectionComp.hx" module="ui.widget.ConnectionComp"><a>
 	<connection><c path="ui.model.Connection"/></connection>
 	<classes>
@@ -7154,12 +7540,11 @@
 	<options><t path="ui.widget.ConnectionCompOptions"/></options>
 	<destroy><f a=""><e path="Void"/></f></destroy>
 	<_create><f a=""><e path="Void"/></f></_create>
+	<_avatar>
+		<c path="ui.widget.ConnectionAvatar"/>
+		<meta><m n=":optional"/></meta>
+	</_avatar>
 </a></typedef>
-	<class path="ui.widget.Widgets" params="" file="haxe_src/ui/widget/Widgets.hx">
-		<getSelf public="1" params="T" get="inline" set="null" line="7" static="1"><f a=""><c path="getSelf.T"/></f></getSelf>
-		<getSelfElement public="1" params="T" get="inline" set="null" line="11" static="1"><f a=""><c path="getSelfElement.T"/></f></getSelfElement>
-		<getWidgetClasses public="1" set="method" line="15" static="1"><f a=""><c path="String"/></f></getWidgetClasses>
-	</class>
 	<class path="ui.widget.ConnectionComp" params="" file="haxe_src/ui/widget/ConnectionComp.hx" extern="1">
 		<extends path="ui.jq.JQ"/>
 		<connectionComp public="1" set="method"><f a="opts">
@@ -7193,6 +7578,86 @@
 	<c path="ui.widget.ConnectionsList"/>
 </f></connectionsList>
 	</class>
+	<typedef path="ui.widget.ContentCompOptions" params="" file="haxe_src/ui/widget/ContentComp.hx" module="ui.widget.ContentComp"><a><content><c path="ui.model.Content"/></content></a></typedef>
+	<typedef path="ui.widget.ContentCompWidgetDef" params="" file="haxe_src/ui/widget/ContentComp.hx" module="ui.widget.ContentComp"><a>
+	<options>
+		<t path="ui.widget.ContentCompOptions"/>
+		<meta><m n=":optional"/></meta>
+	</options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
+	<class path="ui.widget.LabelComp" params="" file="haxe_src/ui/widget/LabelComp.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<implements path="ui.widget.FilterableComponent"/>
+		<COLORS public="1" static="1"><c path="Array"><c path="Array"><c path="String"/></c></c></COLORS>
+		<_initColors set="method" static="1"><f a=""><e path="Void"/></f></_initColors>
+		<labelComp public="1" set="method"><f a="opts">
+	<t path="ui.widget.LabelCompOptions"/>
+	<c path="ui.widget.LabelComp"/>
+</f></labelComp>
+	</class>
+	<class path="ui.widget.ContentComp" params="" file="haxe_src/ui/widget/ContentComp.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<contentComp public="1" set="method"><f a="?opts">
+	<t path="ui.widget.ContentCompOptions"/>
+	<c path="ui.widget.ContentComp"/>
+</f></contentComp>
+	</class>
+	<typedef path="ui.widget.ContentFeedOptions" params="" file="haxe_src/ui/widget/ContentFeed.hx" module="ui.widget.ContentFeed"><a><content><c path="ui.observable.OSet"><c path="ui.model.Content"/></c></content></a></typedef>
+	<typedef path="ui.widget.ContentFeedWidgetDef" params="" file="haxe_src/ui/widget/ContentFeed.hx" module="ui.widget.ContentFeed"><a>
+	<options>
+		<t path="ui.widget.ContentFeedOptions"/>
+		<meta><m n=":optional"/></meta>
+	</options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<content>
+		<c path="ui.observable.MappedSet">
+			<c path="ui.model.Content"/>
+			<c path="ui.widget.ContentComp"/>
+		</c>
+		<meta><m n=":optional"/></meta>
+	</content>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
+	<class path="ui.widget.ContentFeed" params="" file="haxe_src/ui/widget/ContentFeed.hx" extern="1">
+		<extends path="ui.jq.JQ"/>
+		<contentFeed public="1" set="method"><f a="?opts">
+	<t path="ui.widget.ContentFeedOptions"/>
+	<c path="ui.widget.ContentFeed"/>
+</f></contentFeed>
+	</class>
+	<typedef path="ui.widget.FilterCombinationOptions" params="" file="haxe_src/ui/widget/FilterCombination.hx" module="ui.widget.FilterCombination"><a>
+	<position>
+		<a>
+			<top><c path="Int"/></top>
+			<left><c path="Int"/></left>
+		</a>
+		<meta><m n=":optional"/></meta>
+	</position>
+	<event>
+		<t path="js.JqEvent"/>
+		<meta><m n=":optional"/></meta>
+	</event>
+</a></typedef>
+	<typedef path="ui.widget.FilterCombinationWidgetDef" params="" file="haxe_src/ui/widget/FilterCombination.hx" module="ui.widget.FilterCombination"><a>
+	<removeFilterable><f a="">
+	<c path="ui.jq.JQ"/>
+	<e path="Void"/>
+</f></removeFilterable>
+	<position><f a=""><e path="Void"/></f></position>
+	<options>
+		<t path="ui.widget.FilterCombinationOptions"/>
+		<meta><m n=":optional"/></meta>
+	</options>
+	<destroy><f a=""><e path="Void"/></f></destroy>
+	<addFilterable><f a="">
+	<c path="ui.jq.JQ"/>
+	<e path="Void"/>
+</f></addFilterable>
+	<_filterables><c path="Array"><c path="ui.jq.JQ"/></c></_filterables>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
 	<typedef path="ui.widget.FilterCompOptions" params="" file="haxe_src/ui/widget/FilterComp.hx" module="ui.widget.FilterComp"><a/></typedef>
 	<typedef path="ui.widget.FilterCompWidgetDef" params="" file="haxe_src/ui/widget/FilterComp.hx" module="ui.widget.FilterComp"><a>
 	<options>
@@ -7211,6 +7676,18 @@
 	</class>
 	<typedef path="ui.widget.LabelCompOptions" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
 	<label><c path="ui.model.Label"/></label>
+	<isDragByHelper>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</isDragByHelper>
+	<dndEnabled>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</dndEnabled>
+	<containment>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</containment>
 	<classes>
 		<c path="String"/>
 		<meta><m n=":optional"/></meta>
@@ -7222,15 +7699,6 @@
 	<destroy><f a=""><e path="Void"/></f></destroy>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
-	<class path="ui.widget.LabelComp" params="" file="haxe_src/ui/widget/LabelComp.hx" extern="1">
-		<extends path="ui.jq.JQ"/>
-		<COLORS public="1" static="1"><c path="Array"><c path="Array"><c path="String"/></c></c></COLORS>
-		<_initColors set="method" static="1"><f a=""><e path="Void"/></f></_initColors>
-		<labelComp public="1" set="method"><f a="opts">
-	<t path="ui.widget.LabelCompOptions"/>
-	<c path="ui.widget.LabelComp"/>
-</f></labelComp>
-	</class>
 	<typedef path="ui.widget.LabelTreeOptions" params="" file="haxe_src/ui/widget/LabelTree.hx" module="ui.widget.LabelTree"><a>
 	<labels><c path="ui.observable.OSet"><c path="ui.model.Label"/></c></labels>
 	<itemsClass>

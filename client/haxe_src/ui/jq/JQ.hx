@@ -21,6 +21,18 @@ typedef AjaxOptions = {
 	@:optional var data:Dynamic;
 }
 
+typedef PositionOpts = {
+	@:optional var of: Dynamic;
+	@:optional var my: String;
+	@:optional var at: String;
+	@:optional var within: Dynamic;
+	@:optional var collision: String;
+}
+typedef UIPosition = {
+	top: Int,
+	left: Int
+}
+
 extern class JQ extends js.JQuery {
 
 	static var ui: Dynamic;
@@ -28,9 +40,6 @@ extern class JQ extends js.JQuery {
 	static var browser: Dynamic;
 	static var noop: Void->Void;
 
-	function exists():Bool;
-	function hasAttr(attr:String):Bool;
-	
 	function destroy():Void;
 	function fnDestroy():Void;
 	function isVisible():Bool;
@@ -113,6 +122,10 @@ extern class JQ extends js.JQuery {
 	override function hover( onOver : js.JQuery.JqEvent -> Void, ?onOut : Void -> Void ) : JQ;
 	override function addClass( clazz: String ): JQ;
 
+	@:overload(function(value:js.JQuery):JQ{})
+	@:overload(function(value:js.Dom.HtmlDom):JQ{})
+	override function append( html : String ) : JQ;
+
 	@:overload(function( selector: js.JQuery ) : JQ{})
 	@:overload(function( selector: js.Dom.HtmlDom ) : JQ{})
 	override function appendTo( selector: String ): JQ;
@@ -157,6 +170,10 @@ extern class JQ extends js.JQuery {
 	function menu(opts: Dynamic): JQ;
 
 	function map(fcn: JQ->Int->Dynamic): Void;
+
+	@:overload(function(args: PositionOpts): Void{})
+	@:overload(function(value: { left : Int, top : Int }):js.JQuery{})
+	override function position() : { left : Int, top : Int };
 
 	public static function isNumeric(val:Dynamic):Bool;
 	public static function trim(str:String):String;
@@ -205,18 +222,3 @@ extern class JDialog extends JQ {
 	}	
 }
 
-extern class JQDraggable extends JQ {
-	function draggable(opts: Dynamic): JQDraggable;
-
-	private static function __init__() : Void untyped {
-		JQDraggable = window.jQuery;
-	}	
-}
-
-extern class JQDroppable extends JQ {
-	function droppable(opts: Dynamic): JQDroppable;
-
-	private static function __init__() : Void untyped {
-		JQDroppable = window.jQuery;
-	}	
-}

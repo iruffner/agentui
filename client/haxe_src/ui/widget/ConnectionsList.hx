@@ -1,6 +1,7 @@
 package ui.widget;
 
 import ui.jq.JQ;
+import ui.jq.JQDroppable;
 import ui.model.ModelObj;
 import ui.observable.OSet;
 
@@ -39,17 +40,17 @@ extern class ConnectionsList extends JQ {
 
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
-					cast(selfElement, JQDroppable).droppable({
-			    		accept: function(d) {
-			    			return d.is(".connection");
-			    		},
-						activeClass: "ui-state-hover",
-				      	hoverClass: "ui-state-active",
-				      	drop: function( event, ui ) {
-				      		App.LOGGER.debug("droppable drop");	
-				        	// $( this ).addClass( "ui-state-highlight" );
-				      	}
-				    });
+					// cast(selfElement, JQDroppable).droppable({
+			  //   		accept: function(d) {
+			  //   			return d.is(".connection");
+			  //   		},
+					// 	activeClass: "ui-state-hover",
+				 //      	hoverClass: "ui-state-active",
+				 //      	drop: function( event, ui ) {
+				 //      		App.LOGGER.debug("droppable drop");	
+				 //        	// $( this ).addClass( "ui-state-highlight" );
+				 //      	}
+				 //    });
 
 					var spacer: JQ = selfElement.children("#sideRightSpacer");
 		        	self.connections = new MappedSet<Connection, ConnectionComp>(self.options.connections, function(conn: Connection): ConnectionComp {

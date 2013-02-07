@@ -1480,14 +1480,12 @@ ui.App.__name__ = ["ui","App"];
 ui.App.LOGGER = null;
 ui.App.CONNECTIONS = null;
 ui.App.LABELS = null;
+ui.App.CONTENT = null;
 ui.App.main = function() {
 	ui.App.LOGGER = new ui.log.Logga(ui.log.LogLevel.DEBUG);
-	ui.App.CONNECTIONS = new ui.observable.ObservableSet(function(conn) {
-		return conn.uid;
-	});
-	ui.App.LABELS = new ui.observable.ObservableSet(function(label) {
-		return label.uid;
-	});
+	ui.App.CONNECTIONS = new ui.observable.ObservableSet(ui.model.Connection.identifier);
+	ui.App.LABELS = new ui.observable.ObservableSet(ui.model.Label.identifier);
+	ui.App.CONTENT = new ui.observable.ObservableSet(ui.model.Content.identifier);
 }
 ui.App.start = function() {
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
@@ -1496,49 +1494,99 @@ ui.App.start = function() {
 		return ui.helper.StringHelper.isBlank(label.parentUid);
 	})});
 	new ui.widget.FilterComp("#filter").filterComp(null);
+	new ui.widget.ContentFeed("#feed").contentFeed({ content : ui.App.CONTENT});
 	ui.App.demo();
 }
 ui.App.demo = function() {
-	var c = new ui.model.Connection("George","Costanza","media/test/george.jpg");
-	c.uid = ui.util.UidGenerator.create();
-	ui.App.CONNECTIONS.add(c);
-	c = new ui.model.Connection("Elaine","Benes","media/test/elaine.jpg");
-	c.uid = ui.util.UidGenerator.create();
-	ui.App.CONNECTIONS.add(c);
-	c = new ui.model.Connection("Cosmo","Kramer","media/test/kramer.jpg");
-	c.uid = ui.util.UidGenerator.create();
-	ui.App.CONNECTIONS.add(c);
-	c = new ui.model.Connection("Tom's","Restaurant","media/test/toms.jpg");
-	c.uid = ui.util.UidGenerator.create();
-	ui.App.CONNECTIONS.add(c);
-	c = new ui.model.Connection("Newman","","media/test/newman.jpg");
-	c.uid = ui.util.UidGenerator.create();
-	ui.App.CONNECTIONS.add(c);
-	var par = new ui.model.Label("Locations");
-	par.uid = ui.util.UidGenerator.create();
-	ui.App.LABELS.add(par);
-	var ch = new ui.model.Label("Personal");
-	ch.uid = ui.util.UidGenerator.create();
-	ch.parentUid = par.uid;
-	ui.App.LABELS.add(ch);
-	ch = new ui.model.Label("Work");
-	ch.uid = ui.util.UidGenerator.create();
-	ch.parentUid = par.uid;
-	ui.App.LABELS.add(ch);
-	par = new ui.model.Label("Media");
-	par.uid = ui.util.UidGenerator.create();
-	ui.App.LABELS.add(par);
-	ch = new ui.model.Label("Personal");
-	ch.uid = ui.util.UidGenerator.create();
-	ch.parentUid = par.uid;
-	ui.App.LABELS.add(ch);
-	ch = new ui.model.Label("Work");
-	ch.uid = ui.util.UidGenerator.create();
-	ch.parentUid = par.uid;
-	ui.App.LABELS.add(ch);
-	var par1 = new ui.model.Label("Interests");
-	par1.uid = ui.util.UidGenerator.create();
-	ui.App.LABELS.add(par1);
+	var george = new ui.model.Connection("George","Costanza","media/test/george.jpg");
+	george.uid = ui.util.UidGenerator.create();
+	ui.App.CONNECTIONS.add(george);
+	var elaine = new ui.model.Connection("Elaine","Benes","media/test/elaine.jpg");
+	elaine.uid = ui.util.UidGenerator.create();
+	ui.App.CONNECTIONS.add(elaine);
+	var kramer = new ui.model.Connection("Cosmo","Kramer","media/test/kramer.jpg");
+	kramer.uid = ui.util.UidGenerator.create();
+	ui.App.CONNECTIONS.add(kramer);
+	var toms = new ui.model.Connection("Tom's","Restaurant","media/test/toms.jpg");
+	toms.uid = ui.util.UidGenerator.create();
+	ui.App.CONNECTIONS.add(toms);
+	var newman = new ui.model.Connection("Newman","","media/test/newman.jpg");
+	newman.uid = ui.util.UidGenerator.create();
+	ui.App.CONNECTIONS.add(newman);
+	var locations = new ui.model.Label("Locations");
+	locations.uid = ui.util.UidGenerator.create();
+	ui.App.LABELS.add(locations);
+	var home = new ui.model.Label("Home");
+	home.uid = ui.util.UidGenerator.create();
+	home.parentUid = locations.uid;
+	ui.App.LABELS.add(home);
+	var city = new ui.model.Label("City");
+	city.uid = ui.util.UidGenerator.create();
+	city.parentUid = locations.uid;
+	ui.App.LABELS.add(city);
+	var media = new ui.model.Label("Media");
+	media.uid = ui.util.UidGenerator.create();
+	ui.App.LABELS.add(media);
+	var personal = new ui.model.Label("Personal");
+	personal.uid = ui.util.UidGenerator.create();
+	personal.parentUid = media.uid;
+	ui.App.LABELS.add(personal);
+	var work = new ui.model.Label("Work");
+	work.uid = ui.util.UidGenerator.create();
+	work.parentUid = media.uid;
+	ui.App.LABELS.add(work);
+	var interests = new ui.model.Label("Interests");
+	interests.uid = ui.util.UidGenerator.create();
+	ui.App.LABELS.add(interests);
+	var audioContent = new ui.model.AudioContent();
+	audioContent.uid = ui.util.UidGenerator.create();
+	audioContent.type = "AUDIO";
+	audioContent.audioSrc = "media/test/hello_newman.mp3";
+	audioContent.audioType = "audio/mpeg";
+	audioContent.connections = new ui.observable.ObservableSet(ui.model.Connection.identifier);
+	audioContent.connections.add(kramer);
+	audioContent.connections.add(george);
+	audioContent.connections.add(newman);
+	audioContent.connections.add(elaine);
+	audioContent.labels = new ui.observable.ObservableSet(ui.model.Label.identifier);
+	audioContent.labels.add(media);
+	audioContent.labels.add(personal);
+	audioContent.title = "Hello Newman Compilation";
+	ui.App.CONTENT.add(audioContent);
+	var img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/soupkitchen.jpg";
+	img.caption = "Soup Kitchen";
+	img.connections = new ui.observable.ObservableSet(ui.model.Connection.identifier);
+	img.connections.add(george);
+	img.connections.add(elaine);
+	img.labels = new ui.observable.ObservableSet(ui.model.Label.identifier);
+	img.labels.add(locations);
+	img.labels.add(city);
+	ui.App.CONTENT.add(img);
+	img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/apt.jpg";
+	img.caption = "Apartment";
+	img.connections = new ui.observable.ObservableSet(ui.model.Connection.identifier);
+	img.connections.add(kramer);
+	img.connections.add(newman);
+	img.labels = new ui.observable.ObservableSet(ui.model.Label.identifier);
+	img.labels.add(locations);
+	img.labels.add(home);
+	ui.App.CONTENT.add(img);
+	img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/jrmint.jpg";
+	img.caption = "The Junior Mint!";
+	img.connections = new ui.observable.ObservableSet(ui.model.Connection.identifier);
+	img.connections.add(kramer);
+	img.labels = new ui.observable.ObservableSet(ui.model.Label.identifier);
+	img.labels.add(interests);
+	ui.App.CONTENT.add(img);
 }
 ui.CrossMojo = $hxClasses["ui.CrossMojo"] = function() { }
 ui.CrossMojo.__name__ = ["ui","CrossMojo"];
@@ -1981,12 +2029,17 @@ ui.model.User.__super__ = ui.model.ModelObj;
 ui.model.User.prototype = $extend(ui.model.ModelObj.prototype,{
 	__class__: ui.model.User
 });
+ui.model.Filterable = $hxClasses["ui.model.Filterable"] = function() { }
+ui.model.Filterable.__name__ = ["ui","model","Filterable"];
 ui.model.Label = $hxClasses["ui.model.Label"] = function(text) {
 	this.text = text;
 	this.color = ui.util.ColorProvider.getNextColor();
-	ui.App.LOGGER.debug("Color for " + text + " is " + this.color);
 };
 ui.model.Label.__name__ = ["ui","model","Label"];
+ui.model.Label.__interfaces__ = [ui.model.Filterable];
+ui.model.Label.identifier = function(label) {
+	return label.uid;
+}
 ui.model.Label.__super__ = ui.model.ModelObj;
 ui.model.Label.prototype = $extend(ui.model.ModelObj.prototype,{
 	color: null
@@ -2001,6 +2054,10 @@ ui.model.Connection = $hxClasses["ui.model.Connection"] = function(fname,lname,i
 	this.imgSrc = imgSrc;
 };
 ui.model.Connection.__name__ = ["ui","model","Connection"];
+ui.model.Connection.__interfaces__ = [ui.model.Filterable];
+ui.model.Connection.identifier = function(conn) {
+	return conn.uid;
+}
 ui.model.Connection.__super__ = ui.model.ModelObj;
 ui.model.Connection.prototype = $extend(ui.model.ModelObj.prototype,{
 	imgSrc: null
@@ -2008,6 +2065,38 @@ ui.model.Connection.prototype = $extend(ui.model.ModelObj.prototype,{
 	,fname: null
 	,uid: null
 	,__class__: ui.model.Connection
+});
+ui.model.Content = $hxClasses["ui.model.Content"] = function() { }
+ui.model.Content.__name__ = ["ui","model","Content"];
+ui.model.Content.identifier = function(cont) {
+	return cont.uid;
+}
+ui.model.Content.__super__ = ui.model.ModelObj;
+ui.model.Content.prototype = $extend(ui.model.ModelObj.prototype,{
+	connections: null
+	,labels: null
+	,type: null
+	,uid: null
+	,__class__: ui.model.Content
+});
+ui.model.ImageContent = $hxClasses["ui.model.ImageContent"] = function() {
+};
+ui.model.ImageContent.__name__ = ["ui","model","ImageContent"];
+ui.model.ImageContent.__super__ = ui.model.Content;
+ui.model.ImageContent.prototype = $extend(ui.model.Content.prototype,{
+	caption: null
+	,imgSrc: null
+	,__class__: ui.model.ImageContent
+});
+ui.model.AudioContent = $hxClasses["ui.model.AudioContent"] = function() {
+};
+ui.model.AudioContent.__name__ = ["ui","model","AudioContent"];
+ui.model.AudioContent.__super__ = ui.model.Content;
+ui.model.AudioContent.prototype = $extend(ui.model.Content.prototype,{
+	title: null
+	,audioType: null
+	,audioSrc: null
+	,__class__: ui.model.AudioContent
 });
 if(!ui.observable) ui.observable = {}
 ui.observable.OSet = $hxClasses["ui.observable.OSet"] = function() { }
@@ -2496,6 +2585,8 @@ ui.util.UidGenerator.randomNumChar = function() {
 	return Std.parseInt(ui.util.UidGenerator.nums.charAt(i));
 }
 if(!ui.widget) ui.widget = {}
+ui.widget.FilterableComponent = $hxClasses["ui.widget.FilterableComponent"] = function() { }
+ui.widget.FilterableComponent.__name__ = ["ui","widget","FilterableComponent"];
 ui.widget.Widgets = $hxClasses["ui.widget.Widgets"] = function() { }
 ui.widget.Widgets.__name__ = ["ui","widget","Widgets"];
 ui.widget.Widgets.getSelf = function() {
@@ -2505,7 +2596,7 @@ ui.widget.Widgets.getSelfElement = function() {
 	return this.element;
 }
 ui.widget.Widgets.getWidgetClasses = function() {
-	return "ui-widget";
+	return " ui-widget";
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_;
@@ -2557,6 +2648,7 @@ ui.jq.JQSortable = window.jQuery;
 ui.jq.JDialog = window.jQuery;
 ui.jq.JQDraggable = window.jQuery;
 ui.jq.JQDroppable = window.jQuery;
+ui.jq.JQTooltip = window.jQuery;
 ui.util.ColorProvider._COLORS = new Array();
 ui.util.ColorProvider._COLORS.push("#5C9BCC");
 ui.util.ColorProvider._COLORS.push("#CC5C64");
@@ -2575,6 +2667,97 @@ ui.util.ColorProvider._COLORS.push("#9BCC5C");
 ui.util.ColorProvider._COLORS.push("#CCC45C");
 ui.util.ColorProvider._COLORS.push("#CC8C5C");
 ui.util.ColorProvider._LAST_COLORS_USED = new ui.util.FixedSizeArray(10);
+ui.widget.FilterCombination = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of FilterCombination must be a div element");
+		selfElement.addClass("connectionDT labelDT nohelper dropCombiner filterCombination" + ui.widget.Widgets.getWidgetClasses());
+		selfElement.position({ my : "bottom right", at : "left top", of : self.options.event, collision : "flipfit", within : "#filter"});
+		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+			return d["is"](".filterable");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+		}});
+	}, _filterables : new Array(), position : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.position({ my : "center", at : "center", of : self.options.event, collision : "flipfit", within : "#filter"});
+	}, addFilterable : function(filterable) {
+		var self = this;
+		self._filterables.push(filterable);
+	}, removeFilterable : function(filterable) {
+		var self = this;
+		var selfElement = this.element;
+		var index = ui.helper.ArrayHelper.indexOfComplex(self._filterables,filterable.attr("id"),function(jq) {
+			return jq.attr("id");
+		});
+		self._filterables.splice(index,1);
+		if(self._filterables.length == 1) {
+			var position = self._filterables[0].position();
+			self._filterables[0].appendTo(selfElement.parent());
+			self._filterables[0].css({ position : "absolute"}).position({ my : "center center", at : "center+50 center+50", of : selfElement, collision : "fit", within : "#filter"});
+			self._filterables = null;
+			self.destroy();
+			selfElement.remove();
+		}
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.filterCombination",defineWidget());
+ui.widget.ConnectionAvatar = window.jQuery;
+var defineWidget = function() {
+	return { options : { connection : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionAvatar must be a div element");
+		selfElement.addClass(ui.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.fname + " " + self.options.connection.lname);
+		var img = new ui.jq.JQ("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
+		selfElement.append(img);
+		(js.Boot.__cast(selfElement , ui.jq.JQTooltip)).tooltip();
+		if(!self.options.dndEnabled) img.mousedown(function(evt) {
+			return false;;
+		}); else {
+			selfElement.data("clone",function(connectionAvatar,isDragByHelper,containment) {
+				if(containment == null) containment = false;
+				if(isDragByHelper == null) isDragByHelper = false;
+				if(connectionAvatar.hasClass("clone")) return connectionAvatar;
+				var clone = new ui.widget.ConnectionAvatar("<div class='clone'></div>");
+				clone.connectionAvatar({ connection : connectionAvatar.connectionAvatar("option","connection"), isDragByHelper : isDragByHelper, containment : containment, classes : connectionAvatar.connectionAvatar("option","classes")});
+				return clone;
+			});
+			selfElement.data("dropTargetClass","labelDT");
+			var helper;
+			if(!self.options.isDragByHelper) helper = "original"; else helper = function() {
+				var clone = $(this).clone();
+				return clone.children("img").addClass("connectionDraggingImg");
+			};
+			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
+			(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+				return $(this).parent()["is"](".dropCombiner") && d["is"](".filterable");
+			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+				var filterCombiner = new ui.widget.FilterCombination("<div class='ui-state-highlight filterCombo' style='padding: 10px; position: absolute;'></div>");
+				filterCombiner.appendTo($(this).parent());
+				filterCombiner.filterCombination({ event : event});
+				filterCombiner.filterCombination("addFilterable",$(this));
+				$(this).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
+				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
+				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass")).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
+				filterCombiner.filterCombination("addFilterable",clone);
+				filterCombiner.filterCombination("position");
+			}});
+		}
+	}, update : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.children("img").attr("src",self.options.connection.imgSrc);
+		selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.connectionAvatar",defineWidget());
 ui.widget.ConnectionComp = window.jQuery;
 var defineWidget = function() {
 	return { options : { connection : null, classes : null}, _create : function() {
@@ -2582,23 +2765,15 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionComp must be a div element");
 		selfElement.addClass(ui.widget.Widgets.getWidgetClasses() + " connection filterable odd container boxsizingBorder");
-		selfElement.append("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
-		selfElement.append("<div>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
-		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ revert : function(dropTarget) {
-			return (dropTarget == null || !(js.Boot.__cast(dropTarget , ui.jq.JQ))["is"](".connectionDT")) && $(this).addClass("ui-drop-reverted") != null;
-		}, distance : 10, scroll : false, stop : function(event,ui1) {
-			var clone = ui1.helper.clone();
-			ui.App.LOGGER.debug("true");
-		}});
-		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-			return d["is"](".connection") || d["is"](".label");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
-		}});
+		self._avatar = new ui.widget.ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({ connection : self.options.connection, isDragByHelper : true, containment : false});
+		selfElement.append(self._avatar);
+		selfElement.append("<div class='name'>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
 	}, update : function() {
 		var self = this;
 		var selfElement = this.element;
 		selfElement.children("img").attr("src",self.options.connection.imgSrc);
 		selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+		self._avatar.connectionAvatar("update");
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};
@@ -2611,11 +2786,6 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionsList must be a div element");
 		selfElement.addClass(ui.widget.Widgets.getWidgetClasses());
-		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-			return d["is"](".connection");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,ui1) {
-			ui.App.LOGGER.debug("droppable drop");
-		}});
 		var spacer = selfElement.children("#sideRightSpacer");
 		self.connections = new ui.observable.MappedSet(self.options.connections,function(conn) {
 			return new ui.widget.ConnectionComp("<div></div>").connectionComp({ connection : conn});
@@ -2628,6 +2798,125 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.connectionsList",defineWidget());
+ui.widget.LabelComp = window.jQuery;
+var defineWidget = function() {
+	return { options : { label : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelComp must be a div element");
+		selfElement.addClass("label filterable").attr("id",StringTools.htmlEscape(self.options.label.text) + "_" + ui.util.UidGenerator.create(8));
+		var labelTail = new ui.jq.JQ("<div class='labelTail'></div>");
+		labelTail.css("border-right-color",self.options.label.color);
+		selfElement.append(labelTail);
+		var labelBox = new ui.jq.JQ("<div class='labelBox shadowRight'></div>");
+		labelBox.css("background",self.options.label.color);
+		var labelBody = new ui.jq.JQ("<div class='labelBody'></div>");
+		var labelText = new ui.jq.JQ("<div>" + self.options.label.text + "</div>");
+		labelBody.append(labelText);
+		labelBox.append(labelBody);
+		selfElement.append(labelBox).append("<div class='clear'></div>");
+		if(self.options.dndEnabled) {
+			selfElement.data("clone",function(labelComp,isDragByHelper,containment) {
+				if(containment == null) containment = false;
+				if(isDragByHelper == null) isDragByHelper = false;
+				if(labelComp.hasClass("clone")) return labelComp;
+				var clone = new ui.widget.LabelComp("<div class='clone'></div>");
+				clone.labelComp({ label : labelComp.labelComp("option","label"), isDragByHelper : isDragByHelper, containment : containment, classes : labelComp.labelComp("option","classes")});
+				return clone;
+			});
+			selfElement.data("dropTargetClass","labelDT");
+			var helper = "clone";
+			if(!self.options.isDragByHelper) helper = "original";
+			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
+			(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+				return $(this).parent()["is"](".dropCombiner") && d["is"](".filterable");
+			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+				var filterCombiner = new ui.widget.FilterCombination("<div class='ui-state-highlight filterCombo' style='padding: 10px; position: absolute;'></div>");
+				filterCombiner.appendTo($(this).parent());
+				filterCombiner.filterCombination({ event : event});
+				filterCombiner.filterCombination("addFilterable",$(this));
+				$(this).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
+				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
+				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass")).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
+				filterCombiner.filterCombination("addFilterable",clone);
+				filterCombiner.filterCombination("position");
+			}, tolerance : "pointer"});
+		}
+	}, update : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.find(".labelBody").text(self.options.label.text);
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.labelComp",defineWidget());
+ui.widget.ContentComp = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ContentComp must be a div element");
+		selfElement.addClass("post container shadow " + ui.widget.Widgets.getWidgetClasses());
+		var postWr = new ui.jq.JQ("<section class='postWr'></section>");
+		selfElement.append(postWr);
+		var postContentWr = new ui.jq.JQ("<div class='postContentWr'></div>");
+		postWr.append(postContentWr);
+		var postContent = new ui.jq.JQ("<div class='postContent'></div>");
+		postContentWr.append(postContent);
+		if(self.options.content.type == "AUDIO") {
+			var audio = js.Boot.__cast(self.options.content , ui.model.AudioContent);
+			postContent.append(audio.title + "<br/>");
+			var audioControls = new ui.jq.JQ("<audio controls></audio>");
+			postContent.append(audioControls);
+			audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
+		} else if(self.options.content.type == "IMAGE") {
+			var img = js.Boot.__cast(self.options.content , ui.model.ImageContent);
+			postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");
+		}
+		var postConnections = new ui.jq.JQ("<aside class='postConnections'></aside>");
+		postWr.append(postConnections);
+		var connIter = self.options.content.connections.iterator();
+		while(connIter.hasNext()) {
+			var connection = connIter.next();
+			var connAvatar = new ui.widget.ConnectionAvatar("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection});
+			postConnections.append(connAvatar);
+		}
+		var postLabels = new ui.jq.JQ("<aside class='postLabels'></div>");
+		postWr.append(postLabels);
+		var labelIter = self.options.content.labels.iterator();
+		while(labelIter.hasNext()) {
+			var label = labelIter.next();
+			var labelComp = new ui.widget.LabelComp("<div></div>").labelComp({ dndEnabled : false, label : label});
+			postLabels.append(labelComp);
+		}
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.contentComp",defineWidget());
+ui.widget.ContentFeed = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ContentFeed must be a div element");
+		selfElement.addClass("container " + ui.widget.Widgets.getWidgetClasses()).css("padding","10px");
+		selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
+		self.content = new ui.observable.MappedSet(self.options.content,function(content) {
+			return new ui.widget.ContentComp("<div></div>").contentComp({ content : content});
+		});
+		self.content.listen(function(contentComp,evt) {
+			if(evt.isAdd()) {
+				ui.App.LOGGER.debug("Add " + evt.name());
+				new ui.jq.JQ("#postInput").after(contentComp);
+			} else if(evt.isUpdate()) contentComp.contentComp("update"); else if(evt.isDelete()) contentComp.remove();
+		});
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.contentFeed",defineWidget());
 ui.widget.FilterComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -2638,68 +2927,26 @@ var defineWidget = function() {
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".filterable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
+			clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
+			var isInFilterCombination = _ui.draggable.parent(".filterCombination").length > 0;
+			if(isInFilterCombination) {
+				var filterCombination = js.Boot.__cast(_ui.draggable.parent() , ui.widget.FilterCombination);
+				$(this).append(clone);
+				filterCombination.filterCombination("removeFilterable",_ui.draggable);
+			} else $(this).append(clone);
+			clone.css({ position : "absolute"}).position({ my : "left top", at : "left top", of : event, collision : "flipfit", within : "#filter"});
 		}});
 		(js.Boot.__cast(selfElement.children("#filterTrash") , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".filterTrashable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 			_ui.draggable.remove();
-		}});
+		}, tolerance : "pointer"});
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};
 };
 ui.jq.JQ.widget("ui.filterComp",defineWidget());
-ui.widget.LabelComp = window.jQuery;
-var defineWidget = function() {
-	return { options : { label : null, classes : null}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelComp must be a div element");
-		selfElement.addClass("label filterable");
-		var labelTail = new ui.jq.JQ("<div class='labelTail'></div>");
-		labelTail.css("border-right-color",self.options.label.color);
-		selfElement.append(labelTail);
-		var labelBox = new ui.jq.JQ("<div class='labelBox'></div>");
-		labelBox.css("background",self.options.label.color);
-		var labelBody = new ui.jq.JQ("<div class='labelBody'></div>");
-		var labelText = new ui.jq.JQ("<div>" + self.options.label.text + "</div>");
-		labelBody.append(labelText);
-		labelBox.append(labelBody);
-		selfElement.append(labelBox).append("<div class='clear'></div>");
-		var helper = "clone";
-		var containment = false;
-		if(selfElement.parent()["is"](".nohelper")) helper = "original";
-		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : containment, revert : function(dropTarget) {
-			var revert = false;
-			if(dropTarget == null || js.Boot.__instanceof(dropTarget,Bool) && dropTarget == false || !dropTarget["is"](".labelDT")) revert = true; else $(this).data("dropTarget",dropTarget);
-			return;
-		}, helper : helper, distance : 10, scroll : false, stop : function(event,_ui) {
-			var dropTarget = $(this).data("dropTarget");
-			$(this).data("dropTarget",null);
-			if(dropTarget != null && dropTarget["is"]("#filter") && !$(this).hasClass("cloned")) {
-				var clone = new ui.widget.LabelComp("<div></div>");
-				clone.appendTo(dropTarget);
-				clone.labelComp({ label : (js.Boot.__cast($(this) , ui.widget.LabelComp)).labelComp("option","label"), classes : (js.Boot.__cast($(this) , ui.widget.LabelComp)).labelComp("option","classes")}).css({ position : "absolute", left : _ui.position.left, top : _ui.position.top}).addClass("cloned filterTrashable");
-			}
-			ui.App.LOGGER.debug("draggable stop");
-		}});
-		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-			return $(this).parent()["is"](".dropCombiner") && (d["is"](".connection") || d["is"](".label"));
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
-			var filterCombiner = new ui.jq.JQ("<div class='ui-state-highlight filterCombo' style='padding: 10px;'></div>");
-			filterCombiner.appendTo($(this).parent());
-			$(this).appendTo(filterCombiner);
-			ui.App.LOGGER.debug("droppable drop");
-		}});
-	}, update : function() {
-		var self = this;
-		var selfElement = this.element;
-		selfElement.find(".labelBody").text(self.options.label.text);
-	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
-	}};
-};
-ui.jq.JQ.widget("ui.labelComp",defineWidget());
 ui.widget.LabelTreeBranch = window.jQuery;
 var defineWidget = function() {
 	return { options : { label : null, children : null, classes : null}, _create : function() {
@@ -2707,7 +2954,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTreeBranch must be a div element");
 		selfElement.addClass("labelWrapper");
-		var label = new ui.widget.LabelComp("<div></div>").labelComp({ label : self.options.label});
+		var label = new ui.widget.LabelComp("<div></div>").labelComp({ label : self.options.label, isDragByHelper : true, containment : false});
 		selfElement.append(label);
 		if(self.options.children != null) {
 			var labelChildren = new ui.widget.LabelTree("<div class='labelChildren'></div>");
@@ -2749,8 +2996,11 @@ var defineWidget = function() {
 ui.jq.JQ.widget("ui.labelTree",defineWidget());
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\"><implements path=\"haxe.rtti.Infos\"/></class>";
 ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\"><extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends></class>";
-ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\"><c path=\"String\"/></parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"33\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"28\" static=\"1\"><f a=\"label\">\n\t<c path=\"ui.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\"><c path=\"String\"/></parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"45\" static=\"1\"><f a=\"conn\">\n\t<c path=\"ui.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<identifier public=\"1\" set=\"method\" line=\"56\" static=\"1\"><f a=\"cont\">\n\t<c path=\"ui.model.Content\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<labels public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connections public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c></connections>\n</class>";
+ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"65\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"73\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);
 ui.observable.EventType.Update = new ui.observable.EventType("Update",false,true);
 ui.observable.EventType.Delete = new ui.observable.EventType("Delete",false,false);

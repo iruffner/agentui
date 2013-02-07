@@ -1,6 +1,9 @@
 package ui.widget;
 
+import js.JQuery;
 import ui.jq.JQ;
+import ui.jq.JQDroppable;
+import ui.jq.JQDraggable;
 import ui.model.ModelObj;
 import ui.observable.OSet.ObservableSet;
 
@@ -12,12 +15,14 @@ typedef ConnectionCompOptions = {
 typedef ConnectionCompWidgetDef = {
 	var options: ConnectionCompOptions;
 	var _create: Void->Void;
+	@:optional var _avatar: ConnectionAvatar;
 	var update: Void->Void;
 	var destroy: Void->Void;
 }
 
 extern class ConnectionComp extends JQ {
 	@:overload(function(cmd : String):Bool{})
+	@:overload(function(cmd:String, opt:String):Dynamic{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function connectionComp(opts: ConnectionCompOptions): ConnectionComp;
 
@@ -38,38 +43,13 @@ extern class ConnectionComp extends JQ {
 		        	}
 
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connection filterable odd container boxsizingBorder");
-		            selfElement.append("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
-		            selfElement.append("<div>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
-
-		            cast(selfElement, JQDraggable).draggable({ 
-				    		// containment: "#connections", 
-				    		revert: function(dropTarget: Dynamic) {
-
-				    			return (dropTarget == null || !cast(dropTarget, JQ).is(".connectionDT")) && JQ.cur.addClass("ui-drop-reverted") != null;
-				    		},
-				    		// helper: ,
-				    		distance: 10,
-				    		// grid: [5,5],
-				    		scroll: false, 
-				    		stop: function(event, ui) {
-				    			var clone = ui.helper.clone();
-				    			if(true) {
-				    				App.LOGGER.debug("true");
-
-				    			}
-				    		}
-				    	});
-		            cast(selfElement, JQDroppable).droppable({
-			    		accept: function(d) {
-			    			return d.is(".connection") || d.is(".label");
-			    		},
-						activeClass: "ui-state-hover",
-				      	hoverClass: "ui-state-active",
-				      	drop: function( event, ui ) {
-				      		
-				        	
-				      	}
-			    	});
+		        	self._avatar = new ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({
+		        		connection: self.options.connection,
+		        		isDragByHelper: true,
+		        		containment: false
+	        		});
+		            selfElement.append(self._avatar);
+		            selfElement.append("<div class='name'>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
 		        },
 
 		        update: function(): Void {
@@ -78,6 +58,8 @@ extern class ConnectionComp extends JQ {
 
 		        	selfElement.children("img").attr("src", self.options.connection.imgSrc);
 		            selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+
+		            self._avatar.connectionAvatar("update");
 	        	},
 		        
 		        destroy: function() {

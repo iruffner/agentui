@@ -40,19 +40,6 @@ extern class LabelTree extends JQ {
 
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
-					// cast(selfElement, JQDroppable).droppable({
-			  //   		accept: function(d: JQ) {
-			  //   			return d.is(".label");
-			  //   		},
-					// 	activeClass: "ui-state-hover",
-				 //      	hoverClass: "ui-state-active",
-				 //      	drop: function( event, ui ) {
-				 //      		App.LOGGER.debug("droppable drop");	
-				 //        	// $( this ).addClass( "ui-state-highlight" );
-				 //      	}
-				 //    });
-
-					// var spacer: JQ = selfElement.children("#sideLeftSpacer");
 		        	self.labels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				label: label,

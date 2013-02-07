@@ -26,16 +26,14 @@ class App {
 
     public static var CONNECTIONS: ObservableSet<Connection>;
     public static var LABELS: ObservableSet<Label>;
+    public static var CONTENT: ObservableSet<Content>;
 	
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
-        CONNECTIONS = new ObservableSet<Connection>(function(conn: Connection): String {
-                return conn.uid;
-            });
-        LABELS = new ObservableSet<Label>(function(label: Label): String {
-                return label.uid;
-            });
+        CONNECTIONS = new ObservableSet<Connection>(Connection.identifier);
+        LABELS = new ObservableSet<Label>(Label.identifier);
+        CONTENT = new ObservableSet<Content>(Content.identifier);
     }
 
     public static function start(): Void {
@@ -52,63 +50,122 @@ class App {
 
         new ui.widget.FilterComp("#filter").filterComp(null);
 
+        new ui.widget.ContentFeed("#feed").contentFeed({
+                content: App.CONTENT
+            });
+
         demo();
     }
 
     private static function demo(): Void {
         //connections
-        var c: Connection = new Connection("George", "Costanza", "media/test/george.jpg");
-        c.uid = UidGenerator.create();
-        App.CONNECTIONS.add(c);
+        var george: Connection = new Connection("George", "Costanza", "media/test/george.jpg");
+        george.uid = UidGenerator.create();
+        App.CONNECTIONS.add(george);
 
-        c = new Connection("Elaine", "Benes", "media/test/elaine.jpg");
-        c.uid = UidGenerator.create();
-        App.CONNECTIONS.add(c);
+        var elaine: Connection = new Connection("Elaine", "Benes", "media/test/elaine.jpg");
+        elaine.uid = UidGenerator.create();
+        App.CONNECTIONS.add(elaine);
 
-        c = new Connection("Cosmo", "Kramer", "media/test/kramer.jpg");
-        c.uid = UidGenerator.create();
-        App.CONNECTIONS.add(c);
+        var kramer: Connection = new Connection("Cosmo", "Kramer", "media/test/kramer.jpg");
+        kramer.uid = UidGenerator.create();
+        App.CONNECTIONS.add(kramer);
 
-        c = new Connection("Tom's", "Restaurant", "media/test/toms.jpg");
-        c.uid = UidGenerator.create();
-        App.CONNECTIONS.add(c);
+        var toms: Connection = new Connection("Tom's", "Restaurant", "media/test/toms.jpg");
+        toms.uid = UidGenerator.create();
+        App.CONNECTIONS.add(toms);
 
-        c = new Connection("Newman", "", "media/test/newman.jpg");
-        c.uid = UidGenerator.create();
-        App.CONNECTIONS.add(c);
+        var newman: Connection = new Connection("Newman", "", "media/test/newman.jpg");
+        newman.uid = UidGenerator.create();
+        App.CONNECTIONS.add(newman);
 
         //labels
-        var par: Label = new Label("Locations");
-        par.uid = UidGenerator.create();
-        App.LABELS.add(par);
+        var locations: Label = new Label("Locations");
+        locations.uid = UidGenerator.create();
+        App.LABELS.add(locations);
 
-        var ch: Label = new Label("Personal");
-        ch.uid = UidGenerator.create();
-        ch.parentUid = par.uid;
-        App.LABELS.add(ch);
+        var home: Label = new Label("Home");
+        home.uid = UidGenerator.create();
+        home.parentUid = locations.uid;
+        App.LABELS.add(home);
 
-        ch = new Label("Work");
-        ch.uid = UidGenerator.create();
-        ch.parentUid = par.uid;
-        App.LABELS.add(ch);
+        var city: Label = new Label("City");
+        city.uid = UidGenerator.create();
+        city.parentUid = locations.uid;
+        App.LABELS.add(city);
 
-        par = new Label("Media");
-        par.uid = UidGenerator.create();
-        App.LABELS.add(par);
+        var media: Label = new Label("Media");
+        media.uid = UidGenerator.create();
+        App.LABELS.add(media);
 
-        ch = new Label("Personal");
-        ch.uid = UidGenerator.create();
-        ch.parentUid = par.uid;
-        App.LABELS.add(ch);
+        var personal: Label = new Label("Personal");
+        personal.uid = UidGenerator.create();
+        personal.parentUid = media.uid;
+        App.LABELS.add(personal);
 
-        ch = new Label("Work");
-        ch.uid = UidGenerator.create();
-        ch.parentUid = par.uid;
-        App.LABELS.add(ch);
+        var work: Label = new Label("Work");
+        work.uid = UidGenerator.create();
+        work.parentUid = media.uid;
+        App.LABELS.add(work);
 
-        var par = new Label("Interests");
-        par.uid = UidGenerator.create();
-        App.LABELS.add(par);
+        var interests = new Label("Interests");
+        interests.uid = UidGenerator.create();
+        App.LABELS.add(interests);
+
+        //content
+        var audioContent: AudioContent = new AudioContent();
+        audioContent.uid = UidGenerator.create();
+        audioContent.type = "AUDIO";
+        audioContent.audioSrc = "media/test/hello_newman.mp3";
+        audioContent.audioType = "audio/mpeg";
+        audioContent.connections = new ObservableSet<Connection>(Connection.identifier);
+        audioContent.connections.add(kramer);
+        audioContent.connections.add(george);
+        audioContent.connections.add(newman);
+        audioContent.connections.add(elaine);
+        audioContent.labels = new ObservableSet<Label>(Label.identifier);
+        audioContent.labels.add(media);
+        audioContent.labels.add(personal);
+        audioContent.title = "Hello Newman Compilation";
+        App.CONTENT.add(audioContent);
+
+        var img: ImageContent = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = "IMAGE";
+        img.imgSrc = "media/test/soupkitchen.jpg";
+        img.caption = "Soup Kitchen";
+        img.connections = new ObservableSet<Connection>(Connection.identifier);
+        img.connections.add(george);
+        img.connections.add(elaine);
+        img.labels = new ObservableSet<Label>(Label.identifier);
+        img.labels.add(locations);
+        img.labels.add(city);
+        // img.labels.add(interests);
+        App.CONTENT.add(img);
+
+        img = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = "IMAGE";
+        img.imgSrc = "media/test/apt.jpg";
+        img.caption = "Apartment";
+        img.connections = new ObservableSet<Connection>(Connection.identifier);
+        img.connections.add(kramer);
+        img.connections.add(newman);
+        img.labels = new ObservableSet<Label>(Label.identifier);
+        img.labels.add(locations);
+        img.labels.add(home);
+        App.CONTENT.add(img);
+
+        img = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = "IMAGE";
+        img.imgSrc = "media/test/jrmint.jpg";
+        img.caption = "The Junior Mint!";
+        img.connections = new ObservableSet<Connection>(Connection.identifier);
+        img.connections.add(kramer);
+        img.labels = new ObservableSet<Label>(Label.identifier);
+        img.labels.add(interests);
+        App.CONTENT.add(img);
     }
 
 }

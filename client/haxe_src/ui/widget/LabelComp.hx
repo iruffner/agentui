@@ -1,11 +1,19 @@
 package ui.widget;
 
+import js.JQuery;
 import ui.jq.JQ;
+import ui.jq.JQDroppable;
+import ui.jq.JQDraggable;
 import ui.model.ModelObj;
 import ui.observable.OSet;
 
+using StringTools;
+
 typedef LabelCompOptions = {
 	var label: Label;
+	@:optional var dndEnabled: Bool;
+	@:optional var isDragByHelper: Bool;
+	@:optional var containment: Dynamic;
 	@:optional var classes: String;
 }
 
@@ -16,7 +24,7 @@ typedef LabelCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
-extern class LabelComp extends JQ {
+extern class LabelComp extends JQ, implements FilterableComponent {
 	public static var COLORS: Array<Array<String>>;
 
 	@:overload(function(cmd : String):Bool{})
@@ -64,6 +72,9 @@ extern class LabelComp extends JQ {
 			return {
 		        options: {
 		            label: null,
+		            isDragByHelper: true,
+		            containment: false,
+		            dndEnabled: true,
 		            classes: null
 		        },
 		        
@@ -76,12 +87,12 @@ extern class LabelComp extends JQ {
 
 		        	// selfElement.addClass(Widgets.getWidgetClasses());
 
-		        	selfElement.addClass("label filterable");
+		        	selfElement.addClass("label filterable").attr("id", self.options.label.text.htmlEscape() + "_" + ui.util.UidGenerator.create(8));
 		        	
 		            var labelTail: JQ = new JQ("<div class='labelTail'></div>");
 		            labelTail.css("border-right-color", self.options.label.color);
 		            selfElement.append(labelTail);
-		            var labelBox: JQ = new JQ("<div class='labelBox'></div>");
+		            var labelBox: JQ = new JQ("<div class='labelBox shadowRight'></div>");
 		            labelBox.css("background", self.options.label.color);
 		            var labelBody: JQ = new JQ("<div class='labelBody'></div>");
 		            var labelText: JQ = new JQ("<div>" + self.options.label.text + "</div>");
@@ -89,63 +100,65 @@ extern class LabelComp extends JQ {
 		            labelBox.append(labelBody);
 		            selfElement.append(labelBox).append("<div class='clear'></div>");
 
-		            var helper: String = "clone";
-		            var containment: Dynamic = false;
-		            if(selfElement.parent().is(".nohelper")) {
-		            	helper = "original";
-		            	// containment = "parent";
-		            }
+		            if(self.options.dndEnabled) {
+			            selfElement.data("clone", function(labelComp: LabelComp, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): LabelComp {
+			            	if(labelComp.hasClass("clone")) return labelComp;
+			            	var clone: LabelComp = new LabelComp("<div class='clone'></div>");
+			            	clone.labelComp({
+			                        label: labelComp.labelComp("option", "label"),
+			                        isDragByHelper: isDragByHelper,
+			                        containment: containment,
+			                        classes: labelComp.labelComp("option", "classes")
+			                    });
+			            	return clone;
+		            	});
+		            	selfElement.data("dropTargetClass", "labelDT");
 
-		            cast(selfElement, JQDraggable).draggable({ 
-			    		containment: containment, 
-			    		revert: function(dropTarget: Dynamic) {
-			    			var revert: Bool = false;
-			    			if(dropTarget == null || (Std.is(dropTarget, Bool) && dropTarget == false) || !dropTarget.is(".labelDT")) {
-			    				revert = true;
-			    			} else {
-			    				JQ.cur.data("dropTarget", dropTarget);
-			    			}
-			    			return ;
-			    		},
-			    		helper: helper,
-			    		distance: 10,
-			    		// grid: [5,5],
-			    		scroll: false, 
-			    		stop: function(event: js.JQuery.JqEvent, _ui: Dynamic): Void {
-			    			var dropTarget: JQ = JQ.cur.data("dropTarget");
-			    			JQ.cur.data("dropTarget", null);
-			    			if(dropTarget != null && dropTarget.is("#filter") && !JQ.cur.hasClass("cloned")) {
-			    				var clone: LabelComp = new LabelComp("<div></div>");
-				                clone.appendTo(dropTarget);
-				                clone.labelComp({
-				                        label: cast(JQ.cur, LabelComp).labelComp("option", "label"),
-				                        classes: cast(JQ.cur, LabelComp).labelComp("option", "classes")
-				                    })
-				                	.css({
-				                        "position": "absolute",
-				                        "left": _ui.position.left,
-				                        "top": _ui.position.top
-				                    })
-				                    .addClass("cloned filterTrashable");
-			    				// dropTarget.append(clone);
-			    			}
-			    			App.LOGGER.debug("draggable stop");
-			    		}
-			    	});
-		            cast(selfElement, JQDroppable).droppable({
-			    		accept: function(d) {
-			    			return JQ.cur.parent().is(".dropCombiner") && (d.is(".connection") || d.is(".label"));
-			    		},
-						activeClass: "ui-state-hover",
-				      	hoverClass: "ui-state-active",
-				      	drop: function( event, _ui ) {
-				      		var filterCombiner: JQ = new JQ("<div class='ui-state-highlight filterCombo' style='padding: 10px;'></div>");
-				      		filterCombiner.appendTo(JQ.cur.parent());
-				      		JQ.cur.appendTo(filterCombiner);
-				      		App.LOGGER.debug("droppable drop");
-				        	
-				      	}
-			    	});
+			            var helper: String = "clone";
+			            if(!self.options.isDragByHelper) {
+			            	helper = "original";
+			            }
+
+			            cast(selfElement, JQDraggable).draggable({ 
+				    		containment: self.options.containment, 
+				    		helper: helper,
+				    		distance: 10,
+				    		// grid: [5,5],
+				    		scroll: false
+				    	});
+
+			            cast(selfElement, JQDroppable).droppable({
+				    		accept: function(d) {
+				    			return JQ.cur.parent().is(".dropCombiner") && d.is(".filterable");
+				    		},
+							activeClass: "ui-state-hover",
+					      	hoverClass: "ui-state-active",
+					      	drop: function( event: JqEvent, _ui: UIDroppable ) {
+					      		var filterCombiner: FilterCombination = new FilterCombination("<div class='ui-state-highlight filterCombo' style='padding: 10px; position: absolute;'></div>");
+					      		filterCombiner.appendTo(JQ.cur.parent());
+					      		filterCombiner.filterCombination({
+					      			event: event	
+				      			});
+				      			filterCombiner.filterCombination("addFilterable", JQ.cur);
+
+					      		JQ.cur
+					      			.appendTo(filterCombiner)
+					      			.css("position", "relative")
+					      			.css({left: "", top: ""})
+					      			;
+				      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
+				                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"))
+				      				.appendTo(filterCombiner)
+					      			.css("position", "relative")
+					      			.css({left: "", top: ""});
+
+				      			filterCombiner.filterCombination("addFilterable", clone);
+
+				      			filterCombiner.filterCombination("position");
+					      	},
+					      	tolerance: "pointer"
+				    	});
+					}
 		        },
 
 		        update: function(): Void {

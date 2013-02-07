@@ -2,6 +2,7 @@ package ui.widget;
 
 import js.JQuery;
 import ui.jq.JQ;
+import ui.jq.JQDroppable;
 import ui.model.ModelObj;
 import ui.observable.OSet;
 import ui.widget.LabelComp;
@@ -40,10 +41,29 @@ extern class FilterComp extends JQ {
 			    		},
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",
-				      	drop: function( event: Dynamic, _ui: Dynamic ) {
+				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
-				      		// App.LOGGER.debug("droppable drop");	
-				        	// $( this ).addClass( "ui-state-highlight" );
+			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, "#filter");
+			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
+			                var isInFilterCombination: Bool = _ui.draggable.parent(".filterCombination").length > 0;
+			                if(isInFilterCombination) {
+			                	var filterCombination: FilterCombination = cast(_ui.draggable.parent(), FilterCombination);
+			                	JQ.cur.append(clone);
+			                	filterCombination.filterCombination("removeFilterable", _ui.draggable);
+			                } else {
+			                	JQ.cur.append(clone);
+			                }
+			                clone.css({
+			                        "position": "absolute"
+			                    })
+			                    .position({
+			                    	my: "left top",
+			                    	at: "left top",
+			                    	of: event, // _ui.helper can be smoother, but since we don't always use a helper, sometimes we're trying to position of ourselves
+			                    	collision: "flipfit",
+			                    	within: "#filter"
+	                    		})
+			                	;
 				      	}
 				    });
 
@@ -54,12 +74,11 @@ extern class FilterComp extends JQ {
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",
 				      	greedy: true,
-				      	drop: function( event: Dynamic, _ui: Dynamic ) {
+				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
 			                _ui.draggable.remove();
-				      		// App.LOGGER.debug("trashed");	
-				        	
-				      	}
+				      	},
+				      	tolerance: "pointer"
 			    	});
 		        },
 		        
