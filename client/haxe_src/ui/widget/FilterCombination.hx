@@ -43,7 +43,16 @@ extern class FilterCombination extends JQ {
 		        		throw new ui.exception.Exception("Root of FilterCombination must be a div element");
 		        	}
 
-		        	selfElement.addClass("connectionDT labelDT nohelper dropCombiner filterCombination" + Widgets.getWidgetClasses());
+		        	//classes
+		        	//- connectionTD & labelDT such that this is a valid drop target for connections and labels, respectively
+		        	//- filterCombination to give this element its styling for css purposes
+		        	//- filterTrashable so this element can be trashed
+		        	//- dropCombiner is used to identify what kinds of elements are accepted by connections and labels
+		        	//- ui-state-highlight gives the yellow background
+		        	//- container rounds the corners and gives a blue border
+		        	//- shadow gives a box shadow
+
+		        	selfElement.addClass("ui-state-highlight connectionDT labelDT dropCombiner filterCombination filterTrashable container shadow" + Widgets.getWidgetClasses());
 
 		        	selfElement.position({
 		        		my: "bottom right",
@@ -53,12 +62,12 @@ extern class FilterCombination extends JQ {
 		        		within: "#filter"
 	        		});
 
-		      //   	cast(selfElement, JQDraggable).draggable({
-			    	// 	containment: "parent", 
-			    	// 	distance: 10,
-			    	// 	// grid: [5,5],
-			    	// 	scroll: false
-				    // });
+		        	cast(selfElement, JQDraggable).draggable({
+			    		containment: "parent", 
+			    		distance: 10,
+			    		// grid: [5,5],
+			    		scroll: false
+				    });
 
 					cast(selfElement, JQDroppable).droppable({
 			    		accept: function(d) {

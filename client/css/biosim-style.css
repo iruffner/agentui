@@ -44,14 +44,14 @@ body {
 .container {
 	background: white;
 	border-radius: 9px;
-	border: 1px solid #5c9ccc;
+	border: 1px solid #5c9ccc !important;
 	padding: 5px;
 }
 
 .icontainer {
 	background: #E6E6E6;
 	border-radius: 9px;
-	border: 1px solid #5c9ccc;
+	border: 1px solid #5c9ccc !important;
 }
 
 /* Middle
@@ -93,6 +93,11 @@ body {
 			background-size: 50px;
 			background-repeat: no-repeat;
 			background-position: 100px;
+		}
+
+		#filter .filterCombination {
+			position: absolute;
+			padding: 10px 20px;
 		}
 
 	/* Feed

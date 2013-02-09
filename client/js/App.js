@@ -2673,8 +2673,9 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of FilterCombination must be a div element");
-		selfElement.addClass("connectionDT labelDT nohelper dropCombiner filterCombination" + ui.widget.Widgets.getWidgetClasses());
+		selfElement.addClass("ui-state-highlight connectionDT labelDT dropCombiner filterCombination filterTrashable container shadow" + ui.widget.Widgets.getWidgetClasses());
 		selfElement.position({ my : "bottom right", at : "left top", of : self.options.event, collision : "flipfit", within : "#filter"});
+		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : "parent", distance : 10, scroll : false});
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".filterable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
@@ -2830,8 +2831,8 @@ var defineWidget = function() {
 			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
 			(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 				return $(this).parent()["is"](".dropCombiner") && d["is"](".filterable");
-			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
-				var filterCombiner = new ui.widget.FilterCombination("<div class='ui-state-highlight filterCombo' style='padding: 10px; position: absolute;'></div>");
+			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
+				var filterCombiner = new ui.widget.FilterCombination("<div></div>");
 				filterCombiner.appendTo($(this).parent());
 				filterCombiner.filterCombination({ event : event});
 				filterCombiner.filterCombination("addFilterable",$(this));
@@ -2923,11 +2924,12 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of FilterComp must be a div element");
-		selfElement.addClass("connectionDT labelDT nohelper dropCombiner " + ui.widget.Widgets.getWidgetClasses());
+		selfElement.addClass("connectionDT labelDT dropCombiner " + ui.widget.Widgets.getWidgetClasses());
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".filterable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
+			var cloneOffset = clone.offset();
 			clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
 			var isInFilterCombination = _ui.draggable.parent(".filterCombination").length > 0;
 			if(isInFilterCombination) {
@@ -2935,7 +2937,8 @@ var defineWidget = function() {
 				$(this).append(clone);
 				filterCombination.filterCombination("removeFilterable",_ui.draggable);
 			} else $(this).append(clone);
-			clone.css({ position : "absolute"}).position({ my : "left top", at : "left top", of : event, collision : "flipfit", within : "#filter"});
+			clone.css({ position : "absolute"});
+			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : "#filter"});
 		}});
 		(js.Boot.__cast(selfElement.children("#filterTrash") , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".filterTrashable");

@@ -33,7 +33,7 @@ extern class FilterComp extends JQ {
 		        		throw new ui.exception.Exception("Root of FilterComp must be a div element");
 		        	}
 
-		        	selfElement.addClass("connectionDT labelDT nohelper dropCombiner " + Widgets.getWidgetClasses());
+		        	selfElement.addClass("connectionDT labelDT dropCombiner " + Widgets.getWidgetClasses());
 
 					cast(selfElement, JQDroppable).droppable({
 			    		accept: function(d) {
@@ -44,6 +44,7 @@ extern class FilterComp extends JQ {
 				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
 			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, "#filter");
+			                var cloneOffset: {top: Int, left: Int} = clone.offset();
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
 			                var isInFilterCombination: Bool = _ui.draggable.parent(".filterCombination").length > 0;
 			                if(isInFilterCombination) {
@@ -55,15 +56,18 @@ extern class FilterComp extends JQ {
 			                }
 			                clone.css({
 			                        "position": "absolute"
-			                    })
-			                    .position({
+			                    });
+			                if(cloneOffset.top != 0) {
+			                	clone.offset(cloneOffset);
+		                	} else {
+			                	clone.position({
 			                    	my: "left top",
 			                    	at: "left top",
-			                    	of: event, // _ui.helper can be smoother, but since we don't always use a helper, sometimes we're trying to position of ourselves
+			                    	of: _ui.helper, //event, // _ui.helper can be smoother, but since we don't always use a helper, sometimes we're trying to position of ourselves
 			                    	collision: "flipfit",
 			                    	within: "#filter"
-	                    		})
-			                	;
+	                    		});
+			                }
 				      	}
 				    });
 

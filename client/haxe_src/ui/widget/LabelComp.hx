@@ -101,17 +101,21 @@ extern class LabelComp extends JQ, implements FilterableComponent {
 		            selfElement.append(labelBox).append("<div class='clear'></div>");
 
 		            if(self.options.dndEnabled) {
-			            selfElement.data("clone", function(labelComp: LabelComp, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): LabelComp {
-			            	if(labelComp.hasClass("clone")) return labelComp;
-			            	var clone: LabelComp = new LabelComp("<div class='clone'></div>");
-			            	clone.labelComp({
-			                        label: labelComp.labelComp("option", "label"),
-			                        isDragByHelper: isDragByHelper,
-			                        containment: containment,
-			                        classes: labelComp.labelComp("option", "classes")
-			                    });
-			            	return clone;
-		            	});
+		            	//clone function
+			            selfElement.data(
+			            	"clone", 
+			            	function(labelComp: LabelComp, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): LabelComp {
+				            	if(labelComp.hasClass("clone")) return labelComp;
+				            	var clone: LabelComp = new LabelComp("<div class='clone'></div>");
+				            	clone.labelComp({
+				                        label: labelComp.labelComp("option", "label"),
+				                        isDragByHelper: isDragByHelper,
+				                        containment: containment,
+				                        classes: labelComp.labelComp("option", "classes")
+				                    });
+				            	return clone;
+		            		}
+		            	);
 		            	selfElement.data("dropTargetClass", "labelDT");
 
 			            var helper: String = "clone";
@@ -133,8 +137,9 @@ extern class LabelComp extends JQ, implements FilterableComponent {
 				    		},
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
+					      	greedy: true,
 					      	drop: function( event: JqEvent, _ui: UIDroppable ) {
-					      		var filterCombiner: FilterCombination = new FilterCombination("<div class='ui-state-highlight filterCombo' style='padding: 10px; position: absolute;'></div>");
+					      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
 					      		filterCombiner.appendTo(JQ.cur.parent());
 					      		filterCombiner.filterCombination({
 					      			event: event	
