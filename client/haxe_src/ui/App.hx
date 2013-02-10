@@ -13,6 +13,11 @@ import ui.observable.OSet;
 
 import ui.util.UidGenerator;
 
+import ui.widget.FilterableComp;
+import ui.widget.ConnectionsList;
+import ui.widget.ContentFeed;
+import ui.widget.FilterComp;
+import ui.widget.LabelTree;
 import ui.widget.LabelComp;
 
 using ui.helper.ArrayHelper;
@@ -34,23 +39,27 @@ class App {
         CONNECTIONS = new ObservableSet<Connection>(Connection.identifier);
         LABELS = new ObservableSet<Label>(Label.identifier);
         CONTENT = new ObservableSet<Content>(Content.identifier);
+
+        //widgets
+        // LabelComp.widgetizeMe();
+        // ui.widget.ConnectionAvatar.widgetizeMe();
     }
 
     public static function start(): Void {
     	new JQ("#middleContainer #content #tabs").tabs();
 
-        new ui.widget.ConnectionsList("#connections").connectionsList({
+        new ConnectionsList("#connections").connectionsList({
                 connections: App.CONNECTIONS
             });
-        new ui.widget.LabelTree("#labels").labelTree({
+        new LabelTree("#labels").labelTree({
                 labels: new FilteredSet(App.LABELS, function(label: Label): Bool { 
                         return label.parentUid.isBlank();
                     })
             });
 
-        new ui.widget.FilterComp("#filter").filterComp(null);
+        new FilterComp("#filter").filterComp(null);
 
-        new ui.widget.ContentFeed("#feed").contentFeed({
+        new ContentFeed("#feed").contentFeed({
                 content: App.CONTENT
             });
 

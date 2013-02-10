@@ -2585,8 +2585,6 @@ ui.util.UidGenerator.randomNumChar = function() {
 	return Std.parseInt(ui.util.UidGenerator.nums.charAt(i));
 }
 if(!ui.widget) ui.widget = {}
-ui.widget.FilterableComponent = $hxClasses["ui.widget.FilterableComponent"] = function() { }
-ui.widget.FilterableComponent.__name__ = ["ui","widget","FilterableComponent"];
 ui.widget.Widgets = $hxClasses["ui.widget.Widgets"] = function() { }
 ui.widget.Widgets.__name__ = ["ui","widget","Widgets"];
 ui.widget.Widgets.getSelf = function() {
@@ -2678,15 +2676,22 @@ var defineWidget = function() {
 		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : "parent", distance : 10, scroll : false});
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".filterable");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
-		}});
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
+			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
+			clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass")).appendTo(selfElement).css("position","relative").css({ left : "", top : ""});
+			self.addFilterable(clone);
+			selfElement.position({ collision : "flipfit", within : "#filter"});
+		}, tolerance : "pointer"});
 	}, _filterables : new Array(), position : function() {
 		var self = this;
 		var selfElement = this.element;
 		selfElement.position({ my : "center", at : "center", of : self.options.event, collision : "flipfit", within : "#filter"});
 	}, addFilterable : function(filterable) {
 		var self = this;
+		var selfElement = this.element;
 		self._filterables.push(filterable);
+		var pairs = (self._filterables.length / 2 | 0) + self._filterables.length % 2;
+		selfElement.css({ 'min-width' : 135 * pairs + "px"});
 	}, removeFilterable : function(filterable) {
 		var self = this;
 		var selfElement = this.element;
@@ -2707,9 +2712,50 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.filterCombination",defineWidget());
+ui.widget.FilterableComp = window.jQuery;
+var defineWidget = function() {
+	return { options : { isDragByHelper : true, containment : false, dndEnabled : true, cloneFcn : null, dropTargetClass : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of FilterableComp must be a div element");
+		selfElement.addClass("filterable");
+		if(self.options.dndEnabled) {
+			selfElement.data("clone",self.options.cloneFcn);
+			selfElement.data("dropTargetClass",self.options.dropTargetClass);
+			var helper = "clone";
+			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
+			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
+			(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
+				return $(this).parent()["is"](".dropCombiner") && d["is"](".filterable");
+			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
+				var filterCombiner = new ui.widget.FilterCombination("<div></div>");
+				filterCombiner.appendTo($(this).parent());
+				filterCombiner.filterCombination({ event : event});
+				filterCombiner.filterCombination("addFilterable",$(this));
+				$(this).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
+				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
+				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass")).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
+				filterCombiner.filterCombination("addFilterable",clone);
+				filterCombiner.filterCombination("position");
+			}, tolerance : "pointer"});
+		}
+	}};
+};
+ui.jq.JQ.widget("ui.filterableComp",defineWidget());
 ui.widget.ConnectionAvatar = window.jQuery;
 var defineWidget = function() {
-	return { options : { connection : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null}, _create : function() {
+	return { options : { connection : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, cloneFcn : function(filterableComp,isDragByHelper,containment) {
+		if(containment == null) containment = false;
+		if(isDragByHelper == null) isDragByHelper = false;
+		var connectionAvatar = js.Boot.__cast(filterableComp , ui.widget.ConnectionAvatar);
+		if(connectionAvatar.hasClass("clone")) return connectionAvatar;
+		var clone = new ui.widget.ConnectionAvatar("<div class='clone'></div>");
+		clone.connectionAvatar({ connection : connectionAvatar.connectionAvatar("option","connection"), isDragByHelper : isDragByHelper, containment : containment, classes : connectionAvatar.connectionAvatar("option","classes"), cloneFcn : connectionAvatar.connectionAvatar("option","cloneFcn"), dropTargetClass : connectionAvatar.connectionAvatar("option","dropTargetClass"), helperFcn : connectionAvatar.connectionAvatar("option","helperFcn")});
+		return clone;
+	}, dropTargetClass : "connectionDT", helperFcn : function() {
+		var clone = $(this).clone();
+		return clone.children("img").addClass("connectionDraggingImg");
+	}}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionAvatar must be a div element");
@@ -2720,35 +2766,8 @@ var defineWidget = function() {
 		if(!self.options.dndEnabled) img.mousedown(function(evt) {
 			return false;;
 		}); else {
-			selfElement.data("clone",function(connectionAvatar,isDragByHelper,containment) {
-				if(containment == null) containment = false;
-				if(isDragByHelper == null) isDragByHelper = false;
-				if(connectionAvatar.hasClass("clone")) return connectionAvatar;
-				var clone = new ui.widget.ConnectionAvatar("<div class='clone'></div>");
-				clone.connectionAvatar({ connection : connectionAvatar.connectionAvatar("option","connection"), isDragByHelper : isDragByHelper, containment : containment, classes : connectionAvatar.connectionAvatar("option","classes")});
-				return clone;
-			});
-			selfElement.data("dropTargetClass","labelDT");
-			var helper;
-			if(!self.options.isDragByHelper) helper = "original"; else helper = function() {
-				var clone = $(this).clone();
-				return clone.children("img").addClass("connectionDraggingImg");
-			};
-			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
-			(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-				return $(this).parent()["is"](".dropCombiner") && d["is"](".filterable");
-			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
-				var filterCombiner = new ui.widget.FilterCombination("<div class='ui-state-highlight filterCombo' style='padding: 10px; position: absolute;'></div>");
-				filterCombiner.appendTo($(this).parent());
-				filterCombiner.filterCombination({ event : event});
-				filterCombiner.filterCombination("addFilterable",$(this));
-				$(this).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
-				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
-				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass")).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
-				filterCombiner.filterCombination("addFilterable",clone);
-				filterCombiner.filterCombination("position");
-			}});
 		}
+		self._super();
 	}, update : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -2758,15 +2777,15 @@ var defineWidget = function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.connectionAvatar",defineWidget());
+ui.jq.JQ.widget("ui.connectionAvatar",ui.jq.JQ.ui.filterableComp,defineWidget());
 ui.widget.ConnectionComp = window.jQuery;
 var defineWidget = function() {
 	return { options : { connection : null, classes : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionComp must be a div element");
-		selfElement.addClass(ui.widget.Widgets.getWidgetClasses() + " connection filterable odd container boxsizingBorder");
-		self._avatar = new ui.widget.ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({ connection : self.options.connection, isDragByHelper : true, containment : false});
+		selfElement.addClass(ui.widget.Widgets.getWidgetClasses() + " connection container boxsizingBorder");
+		self._avatar = new ui.widget.ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({ connection : self.options.connection, dndEnabled : true, isDragByHelper : true, containment : false});
 		selfElement.append(self._avatar);
 		selfElement.append("<div class='name'>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
 	}, update : function() {
@@ -2801,11 +2820,19 @@ var defineWidget = function() {
 ui.jq.JQ.widget("ui.connectionsList",defineWidget());
 ui.widget.LabelComp = window.jQuery;
 var defineWidget = function() {
-	return { options : { label : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null}, _create : function() {
+	return { options : { label : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dropTargetClass : "labelDT", cloneFcn : function(filterableComp,isDragByHelper,containment) {
+		if(containment == null) containment = false;
+		if(isDragByHelper == null) isDragByHelper = false;
+		var labelComp = js.Boot.__cast(filterableComp , ui.widget.LabelComp);
+		if(labelComp.hasClass("clone")) return labelComp;
+		var clone = new ui.widget.LabelComp("<div class='clone'></div>");
+		clone.labelComp({ label : labelComp.labelComp("option","label"), isDragByHelper : isDragByHelper, containment : containment, classes : labelComp.labelComp("option","classes"), cloneFcn : labelComp.labelComp("option","cloneFcn"), dropTargetClass : labelComp.labelComp("option","dropTargetClass")});
+		return clone;
+	}}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelComp must be a div element");
-		selfElement.addClass("label filterable").attr("id",StringTools.htmlEscape(self.options.label.text) + "_" + ui.util.UidGenerator.create(8));
+		selfElement.addClass("label").attr("id",StringTools.htmlEscape(self.options.label.text) + "_" + ui.util.UidGenerator.create(8));
 		var labelTail = new ui.jq.JQ("<div class='labelTail'></div>");
 		labelTail.css("border-right-color",self.options.label.color);
 		selfElement.append(labelTail);
@@ -2816,33 +2843,7 @@ var defineWidget = function() {
 		labelBody.append(labelText);
 		labelBox.append(labelBody);
 		selfElement.append(labelBox).append("<div class='clear'></div>");
-		if(self.options.dndEnabled) {
-			selfElement.data("clone",function(labelComp,isDragByHelper,containment) {
-				if(containment == null) containment = false;
-				if(isDragByHelper == null) isDragByHelper = false;
-				if(labelComp.hasClass("clone")) return labelComp;
-				var clone = new ui.widget.LabelComp("<div class='clone'></div>");
-				clone.labelComp({ label : labelComp.labelComp("option","label"), isDragByHelper : isDragByHelper, containment : containment, classes : labelComp.labelComp("option","classes")});
-				return clone;
-			});
-			selfElement.data("dropTargetClass","labelDT");
-			var helper = "clone";
-			if(!self.options.isDragByHelper) helper = "original";
-			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
-			(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-				return $(this).parent()["is"](".dropCombiner") && d["is"](".filterable");
-			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
-				var filterCombiner = new ui.widget.FilterCombination("<div></div>");
-				filterCombiner.appendTo($(this).parent());
-				filterCombiner.filterCombination({ event : event});
-				filterCombiner.filterCombination("addFilterable",$(this));
-				$(this).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
-				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
-				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass")).appendTo(filterCombiner).css("position","relative").css({ left : "", top : ""});
-				filterCombiner.filterCombination("addFilterable",clone);
-				filterCombiner.filterCombination("position");
-			}, tolerance : "pointer"});
-		}
+		self._super();
 	}, update : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -2851,7 +2852,7 @@ var defineWidget = function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.labelComp",defineWidget());
+ui.jq.JQ.widget("ui.labelComp",ui.jq.JQ.ui.filterableComp,defineWidget());
 ui.widget.ContentComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {

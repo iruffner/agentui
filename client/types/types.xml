@@ -6147,9 +6147,9 @@
 		<CONNECTIONS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></CONNECTIONS>
 		<LABELS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></LABELS>
 		<CONTENT public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Content"/></c></CONTENT>
-		<main public="1" set="method" line="32" static="1"><f a=""><e path="Void"/></f></main>
-		<start public="1" set="method" line="39" static="1"><f a=""><e path="Void"/></f></start>
-		<demo set="method" line="60" static="1"><f a=""><e path="Void"/></f></demo>
+		<main public="1" set="method" line="37" static="1"><f a=""><e path="Void"/></f></main>
+		<start public="1" set="method" line="48" static="1"><f a=""><e path="Void"/></f></start>
+		<demo set="method" line="69" static="1"><f a=""><e path="Void"/></f></demo>
 	</class>
 	<class path="ui.CrossMojo" params="" file="haxe_src/ui/CrossMojo.hx">
 		<jq public="1" set="method" line="7" static="1"><f a="selector:?arg2">
@@ -7487,6 +7487,14 @@
 		<e path="Bool"/>
 		<meta><m n=":optional"/></meta>
 	</isDragByHelper>
+	<helperFcn>
+		<f a=""><c path="ui.jq.JQ"/></f>
+		<meta><m n=":optional"/></meta>
+	</helperFcn>
+	<dropTargetClass>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</dropTargetClass>
 	<dndEnabled>
 		<e path="Bool"/>
 		<meta><m n=":optional"/></meta>
@@ -7496,6 +7504,15 @@
 		<meta><m n=":optional"/></meta>
 	</containment>
 	<connection><c path="ui.model.Connection"/></connection>
+	<cloneFcn>
+		<f a="::">
+			<c path="ui.widget.FilterableComp"/>
+			<e path="Bool"/>
+			<d/>
+			<c path="ui.widget.FilterableComp"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</cloneFcn>
 	<classes>
 		<c path="String"/>
 		<meta><m n=":optional"/></meta>
@@ -7505,9 +7522,12 @@
 	<update><f a=""><e path="Void"/></f></update>
 	<options><t path="ui.widget.ConnectionAvatarOptions"/></options>
 	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_super>
+		<f a=""><e path="Void"/></f>
+		<meta><m n=":optional"/></meta>
+	</_super>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
-	<class path="ui.widget.FilterableComponent" params="" file="haxe_src/ui/widget/FilterableComponent.hx" interface="1"/>
 	<class path="ui.widget.Widgets" params="" file="haxe_src/ui/widget/Widgets.hx">
 		<getSelf public="1" params="T" get="inline" set="null" line="7" static="1"><f a=""><c path="getSelf.T"/></f></getSelf>
 		<getSelfElement public="1" params="T" get="inline" set="null" line="11" static="1"><f a=""><c path="getSelfElement.T"/></f></getSelfElement>
@@ -7520,9 +7540,15 @@
 	<c path="ui.widget.FilterCombination"/>
 </f></filterCombination>
 	</class>
-	<class path="ui.widget.ConnectionAvatar" params="" file="haxe_src/ui/widget/ConnectionAvatar.hx" extern="1">
+	<class path="ui.widget.FilterableComp" params="" file="haxe_src/ui/widget/FilterableComp.hx" extern="1">
 		<extends path="ui.jq.JQ"/>
-		<implements path="ui.widget.FilterableComponent"/>
+		<filterableComp public="1" set="method"><f a="opts">
+	<t path="ui.widget.FilterableCompOptions"/>
+	<c path="ui.widget.FilterableComp"/>
+</f></filterableComp>
+	</class>
+	<class path="ui.widget.ConnectionAvatar" params="" file="haxe_src/ui/widget/ConnectionAvatar.hx" extern="1">
+		<extends path="ui.widget.FilterableComp"/>
 		<connectionAvatar public="1" set="method"><f a="opts">
 	<t path="ui.widget.ConnectionAvatarOptions"/>
 	<c path="ui.widget.ConnectionAvatar"/>
@@ -7588,8 +7614,7 @@
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
 	<class path="ui.widget.LabelComp" params="" file="haxe_src/ui/widget/LabelComp.hx" extern="1">
-		<extends path="ui.jq.JQ"/>
-		<implements path="ui.widget.FilterableComponent"/>
+		<extends path="ui.widget.FilterableComp"/>
 		<COLORS public="1" static="1"><c path="Array"><c path="Array"><c path="String"/></c></c></COLORS>
 		<_initColors set="method" static="1"><f a=""><e path="Void"/></f></_initColors>
 		<labelComp public="1" set="method"><f a="opts">
@@ -7674,12 +7699,19 @@
 	<c path="ui.widget.FilterComp"/>
 </f></filterComp>
 	</class>
-	<typedef path="ui.widget.LabelCompOptions" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
-	<label><c path="ui.model.Label"/></label>
+	<typedef path="ui.widget.FilterableCompOptions" params="" file="haxe_src/ui/widget/FilterableComp.hx" module="ui.widget.FilterableComp"><a>
 	<isDragByHelper>
 		<e path="Bool"/>
 		<meta><m n=":optional"/></meta>
 	</isDragByHelper>
+	<helperFcn>
+		<f a=""><c path="ui.jq.JQ"/></f>
+		<meta><m n=":optional"/></meta>
+	</helperFcn>
+	<dropTargetClass>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</dropTargetClass>
 	<dndEnabled>
 		<e path="Bool"/>
 		<meta><m n=":optional"/></meta>
@@ -7688,6 +7720,55 @@
 		<d/>
 		<meta><m n=":optional"/></meta>
 	</containment>
+	<cloneFcn>
+		<f a="::">
+			<c path="ui.widget.FilterableComp"/>
+			<e path="Bool"/>
+			<d/>
+			<c path="ui.widget.FilterableComp"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</cloneFcn>
+	<classes>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</classes>
+</a></typedef>
+	<typedef path="ui.widget.FilterableCompWidgetDef" params="" file="haxe_src/ui/widget/FilterableComp.hx" module="ui.widget.FilterableComp"><a>
+	<options><t path="ui.widget.FilterableCompOptions"/></options>
+	<_create><f a=""><e path="Void"/></f></_create>
+</a></typedef>
+	<typedef path="ui.widget.LabelCompOptions" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
+	<label><c path="ui.model.Label"/></label>
+	<isDragByHelper>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</isDragByHelper>
+	<helperFcn>
+		<f a=""><c path="ui.jq.JQ"/></f>
+		<meta><m n=":optional"/></meta>
+	</helperFcn>
+	<dropTargetClass>
+		<c path="String"/>
+		<meta><m n=":optional"/></meta>
+	</dropTargetClass>
+	<dndEnabled>
+		<e path="Bool"/>
+		<meta><m n=":optional"/></meta>
+	</dndEnabled>
+	<containment>
+		<d/>
+		<meta><m n=":optional"/></meta>
+	</containment>
+	<cloneFcn>
+		<f a="::">
+			<c path="ui.widget.FilterableComp"/>
+			<e path="Bool"/>
+			<d/>
+			<c path="ui.widget.FilterableComp"/>
+		</f>
+		<meta><m n=":optional"/></meta>
+	</cloneFcn>
 	<classes>
 		<c path="String"/>
 		<meta><m n=":optional"/></meta>
@@ -7697,6 +7778,10 @@
 	<update><f a=""><e path="Void"/></f></update>
 	<options><t path="ui.widget.LabelCompOptions"/></options>
 	<destroy><f a=""><e path="Void"/></f></destroy>
+	<_super>
+		<f a=""><e path="Void"/></f>
+		<meta><m n=":optional"/></meta>
+	</_super>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
 	<typedef path="ui.widget.LabelTreeOptions" params="" file="haxe_src/ui/widget/LabelTree.hx" module="ui.widget.LabelTree"><a>

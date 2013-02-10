@@ -1,5 +1,5 @@
-package ui.widget;
+// package ui.widget;
 
-interface FilterableComponent {
+// interface FilterableComponent {
 	
-}
+// }

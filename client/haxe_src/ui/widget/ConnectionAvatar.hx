@@ -7,29 +7,28 @@ import ui.jq.JQDraggable;
 import ui.jq.JQTooltip;
 import ui.model.ModelObj;
 import ui.observable.OSet.ObservableSet;
+import ui.widget.FilterableComp;
 
 typedef ConnectionAvatarOptions = {
+	>FilterableCompOptions,
 	var connection: Connection;
-	@:optional var dndEnabled: Bool;
-	@:optional var isDragByHelper: Bool;
-	@:optional var containment: Dynamic;
-	@:optional var classes: String;
 }
 
 typedef ConnectionAvatarWidgetDef = {
 	var options: ConnectionAvatarOptions;
 	var _create: Void->Void;
+	@:optional var _super: Void->Void;
 	var update: Void->Void;
 	var destroy: Void->Void;
 }
 
-extern class ConnectionAvatar extends JQ, implements FilterableComponent {
+extern class ConnectionAvatar extends FilterableComp {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String):Dynamic{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function connectionAvatar(opts: ConnectionAvatarOptions): ConnectionAvatar;
 
-	private static function __init__(): Void {
+	static function __init__(): Void {
 		untyped ConnectionAvatar = window.jQuery;
 		var defineWidget: Void->ConnectionAvatarWidgetDef = function(): ConnectionAvatarWidgetDef {
 			return {
@@ -38,7 +37,27 @@ extern class ConnectionAvatar extends JQ, implements FilterableComponent {
 		            isDragByHelper: true,
 		            containment: false,
 		            dndEnabled: true,
-		            classes: null
+		            classes: null,
+		            cloneFcn: function(filterableComp: FilterableComp, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): ConnectionAvatar {
+			            	var connectionAvatar: ConnectionAvatar = cast(filterableComp, ConnectionAvatar);
+			            	if(connectionAvatar.hasClass("clone")) return connectionAvatar;
+			            	var clone: ConnectionAvatar = new ConnectionAvatar("<div class='clone'></div>");
+			            	clone.connectionAvatar({
+			                        connection: connectionAvatar.connectionAvatar("option", "connection"),
+			                        isDragByHelper: isDragByHelper,
+			                        containment: containment,
+			                        classes: connectionAvatar.connectionAvatar("option", "classes"),
+			                        cloneFcn: connectionAvatar.connectionAvatar("option", "cloneFcn"),
+			                        dropTargetClass: connectionAvatar.connectionAvatar("option", "dropTargetClass"),
+			                        helperFcn: connectionAvatar.connectionAvatar("option", "helperFcn")
+			                    });
+			            	return clone;
+		            	},
+					dropTargetClass: "connectionDT",
+					helperFcn: function(): JQ {
+			    			var clone: JQ = JQ.cur.clone();
+			    			return clone.children("img").addClass("connectionDraggingImg");
+	    				}
 		        },
 		        
 		        _create: function(): Void {
@@ -60,68 +79,71 @@ extern class ConnectionAvatar extends JQ, implements FilterableComponent {
 		            		untyped __js__("return false;"); 
 	            		});
 	            	} else {
+			  //           selfElement.data("clone", function(connectionAvatar: ConnectionAvatar, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): ConnectionAvatar {
+			  //           	if(connectionAvatar.hasClass("clone")) return connectionAvatar;
+			  //           	var clone: ConnectionAvatar = new ConnectionAvatar("<div class='clone'></div>");
+			  //           	clone.connectionAvatar({
+			  //                       connection: connectionAvatar.connectionAvatar("option", "connection"),
+			  //                       isDragByHelper: isDragByHelper,
+			  //                       containment: containment,
+			  //                       classes: connectionAvatar.connectionAvatar("option", "classes")
+			  //                   });
+			  //           	return clone;
+		   //          	});
+		   //          	selfElement.data("dropTargetClass", "labelDT");
 
-			            selfElement.data("clone", function(connectionAvatar: ConnectionAvatar, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): ConnectionAvatar {
-			            	if(connectionAvatar.hasClass("clone")) return connectionAvatar;
-			            	var clone: ConnectionAvatar = new ConnectionAvatar("<div class='clone'></div>");
-			            	clone.connectionAvatar({
-			                        connection: connectionAvatar.connectionAvatar("option", "connection"),
-			                        isDragByHelper: isDragByHelper,
-			                        containment: containment,
-			                        classes: connectionAvatar.connectionAvatar("option", "classes")
-			                    });
-			            	return clone;
-		            	});
-		            	selfElement.data("dropTargetClass", "labelDT");
+			  //           var helper: Dynamic;
+			  //           if(!self.options.isDragByHelper) {
+			  //           	helper = "original";
+			  //           } else {
+			  //           	helper = function(): JQ {
+					//     			var clone: JQ = JQ.cur.clone();
+					//     			return clone.children("img").addClass("connectionDraggingImg");
+			  //   			};
+			  //           }
 
-			            var helper: Dynamic;
-			            if(!self.options.isDragByHelper) {
-			            	helper = "original";
-			            } else {
-			            	helper = function(): JQ {
-					    			var clone: JQ = JQ.cur.clone();
-					    			return clone.children("img").addClass("connectionDraggingImg");
-			    			};
-			            }
+			  //           cast(selfElement, JQDraggable).draggable({ 
+					//     		containment: self.options.containment, 
+					//     		helper: helper,
+					//     		distance: 10,
+					//     		// grid: [5,5],
+					//     		scroll: false
+					//     	});
+			  //           cast(selfElement, JQDroppable).droppable({
+				 //    		accept: function(d) {
+				 //    			return JQ.cur.parent().is(".dropCombiner") && d.is(".filterable");
+				 //    		},
+					// 		activeClass: "ui-state-hover",
+					//       	hoverClass: "ui-state-active",
+					//       	greedy: true,
+					//       	drop: function( event: JqEvent, _ui: UIDroppable ) {
+					//       		var filterCombiner: FilterCombination = new FilterCombination("<div class='ui-state-highlight filterCombo' style='padding: 10px; position: absolute;'></div>");
+					//       		filterCombiner.appendTo(JQ.cur.parent());
+					//       		filterCombiner.filterCombination({
+					//       			event: event	
+				 //      			});
+				 //      			filterCombiner.filterCombination("addFilterable", JQ.cur);
 
-			            cast(selfElement, JQDraggable).draggable({ 
-					    		containment: self.options.containment, 
-					    		helper: helper,
-					    		distance: 10,
-					    		// grid: [5,5],
-					    		scroll: false
-					    	});
-			            cast(selfElement, JQDroppable).droppable({
-				    		accept: function(d) {
-				    			return JQ.cur.parent().is(".dropCombiner") && d.is(".filterable");
-				    		},
-							activeClass: "ui-state-hover",
-					      	hoverClass: "ui-state-active",
-					      	drop: function( event: JqEvent, _ui: UIDroppable ) {
-					      		var filterCombiner: FilterCombination = new FilterCombination("<div class='ui-state-highlight filterCombo' style='padding: 10px; position: absolute;'></div>");
-					      		filterCombiner.appendTo(JQ.cur.parent());
-					      		filterCombiner.filterCombination({
-					      			event: event	
-				      			});
-				      			filterCombiner.filterCombination("addFilterable", JQ.cur);
+					//       		JQ.cur
+					//       			.appendTo(filterCombiner)
+					//       			.css("position", "relative")
+					//       			.css({left: "", top: ""})
+					//       			;
+				 //      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
+				 //                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"))
+				 //      				.appendTo(filterCombiner)
+					//       			.css("position", "relative")
+					//       			.css({left: "", top: ""});
 
-					      		JQ.cur
-					      			.appendTo(filterCombiner)
-					      			.css("position", "relative")
-					      			.css({left: "", top: ""})
-					      			;
-				      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
-				                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"))
-				      				.appendTo(filterCombiner)
-					      			.css("position", "relative")
-					      			.css({left: "", top: ""});
+				 //      			filterCombiner.filterCombination("addFilterable", clone);
 
-				      			filterCombiner.filterCombination("addFilterable", clone);
-
-				      			filterCombiner.filterCombination("position");
-					      	},
-				    	});
+				 //      			filterCombiner.filterCombination("position");
+					//       	},
+					//       	tolerance: "pointer"
+				 //    	});
 					}
+
+					self._super();
 		        },
 
 		        update: function(): Void {
@@ -137,6 +159,6 @@ extern class ConnectionAvatar extends JQ, implements FilterableComponent {
 		        }
 		    };
 		}
-		JQ.widget( "ui.connectionAvatar", defineWidget());
+		JQ.widget( "ui.connectionAvatar", JQ.ui.filterableComp, defineWidget());
 	}	
 }

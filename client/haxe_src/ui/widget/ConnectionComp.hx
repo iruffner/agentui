@@ -42,9 +42,10 @@ extern class ConnectionComp extends JQ {
 		        		throw new ui.exception.Exception("Root of ConnectionComp must be a div element");
 		        	}
 
-		        	selfElement.addClass(Widgets.getWidgetClasses() + " connection filterable odd container boxsizingBorder");
+		        	selfElement.addClass(Widgets.getWidgetClasses() + " connection container boxsizingBorder");
 		        	self._avatar = new ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({
 		        		connection: self.options.connection,
+		        		dndEnabled: true,
 		        		isDragByHelper: true,
 		        		containment: false
 	        		});

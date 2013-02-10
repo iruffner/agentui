@@ -97,7 +97,15 @@ body {
 
 		#filter .filterCombination {
 			position: absolute;
-			padding: 10px 20px;
+			padding: 10px 30px;
+			max-height: 100px;
+			min-width: 135px;
+			-webkit-column-width: 120px;
+			-webkit-column-gap: 10px;
+		}
+
+		#filter .filterCombination .filterable:nth-child(odd) {
+			-webkit-column-break-before: always;
 		}
 
 	/* Feed

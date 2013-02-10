@@ -75,11 +75,23 @@ extern class FilterCombination extends JQ {
 			    		},
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",
+				      	greedy: true,
 				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
-				      		// App.LOGGER.debug("droppable drop");	
-				        	// $( this ).addClass( "ui-state-highlight" );
-				      	}
+				      		var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
+			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"))
+			      				.appendTo(selfElement)
+				      			.css("position", "relative")
+				      			.css({left: "", top: ""});
+
+			      			self.addFilterable(clone);
+
+			      			selfElement.position({
+				      				collision: "flipfit",
+			        				within: "#filter"
+			      				});
+				      	},
+				      	tolerance: "pointer"
 				    });
 		        },
 
@@ -99,7 +111,15 @@ extern class FilterCombination extends JQ {
 
 		        addFilterable: function(filterable: JQ): Void {
 		        	var self: FilterCombinationWidgetDef = Widgets.getSelf();
+		        	var selfElement: JQ = Widgets.getSelfElement();
 		        	self._filterables.push(filterable);
+		        	var pairs: Int = Std.int(self._filterables.length / 2) + self._filterables.length % 2;
+		        	selfElement.css ( {
+		    //     		"-moz-column-count": pairs, /* Firefox */
+						// "-webkit-column-count": pairs, /* Safari and Chrome */
+						// "column-count": pairs,
+						"min-width": (135 * pairs) + "px"
+	        		});
 	        	},
 
 	        	removeFilterable: function(filterable: JQ): Void {

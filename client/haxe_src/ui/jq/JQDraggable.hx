@@ -47,6 +47,9 @@ typedef JQDraggableOpts = {
 }
 
 extern class JQDraggable extends JQ {
+	@:overload(function(cmd : String):Bool{})
+	@:overload(function(cmd:String, opt:String):Dynamic{})
+	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function draggable(opts: JQDraggableOpts): JQDraggable;
 
 	private static function __init__() : Void untyped {
