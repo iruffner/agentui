@@ -4,17 +4,22 @@ import ui.util.ColorProvider;
 import ui.observable.OSet;
 
 class ModelObj<T> implements haxe.rtti.Infos {
+	public var uid: String;
 
+	public static function identifier<T>(t: {uid: String}): String {
+		return t.uid;
+	}
 }
 
 class User extends ModelObj<User> {
 
 }
 
-interface Filterable {}
+interface Filterable {
 
-class Label extends ModelObj<Label>, implements Filterable {
-	public var uid: String;
+}
+
+class Label extends ModelObj<Connection>, implements Filterable {
 	public var text: String;
 	public var parentUid: String;
 
@@ -24,14 +29,9 @@ class Label extends ModelObj<Label>, implements Filterable {
 		this.text = text;
 		color = ColorProvider.getNextColor();
 	}
-
-	public static function identifier(label: Label): String {
-		return label.uid;
-	}
 }
 
 class Connection extends ModelObj<Connection>, implements Filterable {
-	public var uid: String;
 	public var fname: String;
 	public var lname: String;
 	public var imgSrc: String;
@@ -41,21 +41,12 @@ class Connection extends ModelObj<Connection>, implements Filterable {
 		this.lname = lname;
 		this.imgSrc = imgSrc;
 	}
-
-	public static function identifier(conn: Connection): String {
-		return conn.uid;
-	}
 }
 
 class Content extends ModelObj<Content> {
-	public var uid: String;
 	public var type: String;
 	public var labels: ObservableSet<Label>;
 	public var connections: ObservableSet<Connection>;
-
-	public static function identifier(cont: Content): String {
-		return cont.uid;
-	}
 }
 
 class ImageContent extends Content {

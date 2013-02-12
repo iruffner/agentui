@@ -110,7 +110,7 @@ class ObservableSet<T> extends AbstractSet<T> {
 		addOrUpdate(t);
 	}
 
-	public override function iterator() {
+	public override function iterator(): Iterator<T> {
 		return _delegate.iterator();
 	}
 

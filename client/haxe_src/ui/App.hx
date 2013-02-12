@@ -13,7 +13,6 @@ import ui.observable.OSet;
 
 import ui.util.UidGenerator;
 
-import ui.widget.FilterableComp;
 import ui.widget.ConnectionsList;
 import ui.widget.ContentFeed;
 import ui.widget.FilterComp;
@@ -36,9 +35,9 @@ class App {
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
-        CONNECTIONS = new ObservableSet<Connection>(Connection.identifier);
-        LABELS = new ObservableSet<Label>(Label.identifier);
-        CONTENT = new ObservableSet<Content>(Content.identifier);
+        CONNECTIONS = new ObservableSet<Connection>(ModelObj.identifier);
+        LABELS = new ObservableSet<Label>(ModelObj.identifier);
+        CONTENT = new ObservableSet<Content>(ModelObj.identifier);
 
         //widgets
         // LabelComp.widgetizeMe();
@@ -127,12 +126,12 @@ class App {
         audioContent.type = "AUDIO";
         audioContent.audioSrc = "media/test/hello_newman.mp3";
         audioContent.audioType = "audio/mpeg";
-        audioContent.connections = new ObservableSet<Connection>(Connection.identifier);
+        audioContent.connections = new ObservableSet<Connection>(ModelObj.identifier);
         audioContent.connections.add(kramer);
         audioContent.connections.add(george);
         audioContent.connections.add(newman);
         audioContent.connections.add(elaine);
-        audioContent.labels = new ObservableSet<Label>(Label.identifier);
+        audioContent.labels = new ObservableSet<Label>(ModelObj.identifier);
         audioContent.labels.add(media);
         audioContent.labels.add(personal);
         audioContent.title = "Hello Newman Compilation";
@@ -143,10 +142,10 @@ class App {
         img.type = "IMAGE";
         img.imgSrc = "media/test/soupkitchen.jpg";
         img.caption = "Soup Kitchen";
-        img.connections = new ObservableSet<Connection>(Connection.identifier);
+        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
         img.connections.add(george);
         img.connections.add(elaine);
-        img.labels = new ObservableSet<Label>(Label.identifier);
+        img.labels = new ObservableSet<Label>(ModelObj.identifier);
         img.labels.add(locations);
         img.labels.add(city);
         // img.labels.add(interests);
@@ -157,10 +156,10 @@ class App {
         img.type = "IMAGE";
         img.imgSrc = "media/test/apt.jpg";
         img.caption = "Apartment";
-        img.connections = new ObservableSet<Connection>(Connection.identifier);
+        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
         img.connections.add(kramer);
         img.connections.add(newman);
-        img.labels = new ObservableSet<Label>(Label.identifier);
+        img.labels = new ObservableSet<Label>(ModelObj.identifier);
         img.labels.add(locations);
         img.labels.add(home);
         App.CONTENT.add(img);
@@ -170,9 +169,9 @@ class App {
         img.type = "IMAGE";
         img.imgSrc = "media/test/jrmint.jpg";
         img.caption = "The Junior Mint!";
-        img.connections = new ObservableSet<Connection>(Connection.identifier);
+        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
         img.connections.add(kramer);
-        img.labels = new ObservableSet<Label>(Label.identifier);
+        img.labels = new ObservableSet<Label>(ModelObj.identifier);
         img.labels.add(interests);
         App.CONTENT.add(img);
     }

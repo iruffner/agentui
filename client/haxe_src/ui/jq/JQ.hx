@@ -21,13 +21,14 @@ typedef AjaxOptions = {
 	@:optional var data:Dynamic;
 }
 
-typedef PositionOpts = {
-	@:optional var of: Dynamic;
-	@:optional var my: String;
-	@:optional var at: String;
-	@:optional var within: Dynamic;
-	@:optional var collision: String;
-}
+// typedef PositionOpts = {
+// 	@:optional my: String,
+// 	@:optional at: String,
+// 	@:optional of: Dynamic,
+// 	@:optional "using": Dynamic,
+// 	@:optional within: Dynamic,
+// 	@:optional collision: String
+// }
 typedef UIPosition = {
 	top: Int,
 	left: Int
@@ -53,6 +54,10 @@ extern class JQ extends js.JQuery {
 	@:overload(function(?duration:String, ?call:Void->Void) : JQ{})
 	@:overload(function(?duration:Int,?easing:String,?call:Void->Void) : JQ{})
 	override function slideToggle( ?duration : Int, ?call : Void -> Void ) : JQ;
+
+	@:overload(function(effect: String,?duration:Int,?easing:String,?call:Void->Void) : JQ{})
+	@:overload(function(?duration:Int,?easing:String,?call:Void->Void) : JQ{})
+	override function toggle( ?duration : Int, ?call : Void -> Void ) : JQ;
 
 	@:overload(function(prop:String,value:Int):JQ{})
 	@:overload(function(prop:String,value:String):JQ{})
@@ -120,7 +125,11 @@ extern class JQ extends js.JQuery {
 	override function find( selector : String ) : JQ;
 	@:overload(function( onOver : Void -> Void, ?onOut : Void -> Void ) : JQ{})
 	override function hover( onOver : js.JQuery.JqEvent -> Void, ?onOut : Void -> Void ) : JQ;
+	
+	@:overload(function(clazz: String,?duration: Int):JQ{})
 	override function addClass( clazz: String ): JQ;
+	@:overload(function(?clazz: String,?duration: Int):JQ{})
+	override function removeClass( ?className : String ) : JQ;
 
 	@:overload(function(value:js.JQuery):JQ{})
 	@:overload(function(value:js.Dom.HtmlDom):JQ{})
@@ -171,7 +180,7 @@ extern class JQ extends js.JQuery {
 
 	function map(fcn: JQ->Int->Dynamic): Void;
 
-	@:overload(function(args: PositionOpts): Void{})
+	@:overload(function(args: Dynamic): Void{})
 	@:overload(function(value: { left : Int, top : Int }):js.JQuery{})
 	override function position() : { left : Int, top : Int };
 

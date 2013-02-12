@@ -4,7 +4,7 @@
         <title>Agent UI</title>
         <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
         <style type="text/css" media="all">
-            @import url("css/biosim-style.css");
+            @import url("css/agentui-style.css");
         </style>
         <style type="text/css" media="all">
             @import url("css/jquery-ui-1.10.0.custom/redmond/jquery-ui-1.10.0.custom.min.css");
@@ -61,7 +61,9 @@
 							</ul>
 							<div id="tabs-feed">
 								<div id="filter" class="container " style="">
-									<div id="filterTrash"></div>
+									<div id="filterTrash">
+										<img src="media/trash.png" alt="trash"  title="Drag items here to remove them from the filter, or double-click to clear." style=""/>
+									</div>
 								</div>
 								<div id="feed" class="container" style="padding: 10px;">
 									<div id="postInput" class="container shadow">
@@ -70,123 +72,6 @@
 											<aside>Post:</aside>
 										</section>
 									</div>
-									<!-- <div class="post container shadow">
-										<section class="postWr">
-											<div class="postContentWr">
-												<div class="postContent" style="margin: 20px;">
-													Hello Newman Compilation
-													<br/>
-													<audio controls>
-													  <source src="media/test/hello_newman.mp3" type="audio/mpeg">
-														Your browser does not support the audio element.
-													</audio>
-												</div>
-											</div>
-											<aside class="postConnections">
-												<img src="media/test/kramer.jpg" class="shadow"/>
-												<img src="media/test/george.jpg" class="shadow"/>
-												<img src="media/test/newman.jpg" class="shadow"/>
-												<img src="media/test/elaine.jpg" class="shadow"/>
-											</aside>
-											<aside class="postLabels">
-												<div class="label labelBlue">
-													<div class="labelTail"></div>
-													<div class="labelBox">
-														<div class="labelBody"></div>
-													</div>
-													<div class="clear"></div>
-												</div>
-												<div class="label labelOrange">
-													<div class="labelTail"></div>
-													<div class="labelBox">
-														<div class="labelBody"></div>
-													</div>
-													<div class="clear"></div>
-												</div>
-											</aside>
-										</section>
-									</div> -->
-									<!-- <div class="post container shadow">
-										<section class="postWr">
-											<div class="postContentWr">
-												<div class="postContent">
-													<img alt="image" src="media/test/soupkitchen.jpg"/>
-												</div>
-											</div>
-											<aside class="postConnections">
-												<img src="media/test/jerry.jpg" class="shadow"/>
-												<img src="media/test/george.jpg" class="shadow"/>
-												<img src="media/test/elaine.jpg" class="shadow"/>
-											</aside>
-											<aside class="postLabels">
-												<div class="label labelRed">
-													<div class="labelTail"></div>
-													<div class="labelBox">
-														<div class="labelBody"></div>
-													</div>
-													<div class="clear"></div>
-												</div>
-											</aside>
-										</section>
-									</div> -->
-									<!-- <div class="post container shadow">
-										<section class="postWr">
-											<div class="postContentWr">
-												<div class="postContent">
-													<img alt="image" src="media/test/apt.jpg"/>
-												</div>
-											</div>
-											<aside class="postConnections">
-												<img src="media/test/jerry.jpg" class="shadow"/>
-												<img src="media/test/kramer.jpg" class="shadow"/>
-												<img src="media/test/newman.jpg" class="shadow"/>
-											</aside>
-											<aside class="postLabels">
-												<div class="label labelGreen">
-													<div class="labelTail"></div>
-													<div class="labelBox">
-														<div class="labelBody"></div>
-													</div>
-													<div class="clear"></div>
-												</div>
-												<div class="label labelOrange">
-													<div class="labelTail"></div>
-													<div class="labelBox">
-														<div class="labelBody"></div>
-													</div>
-													<div class="clear"></div>
-												</div>
-											</aside>
-										</section>
-									</div> -->
-									<!-- <div class="post container shadow">
-										<section class="postWr">
-											<div class="postContentWr">
-												<div class="postContent">
-													<img alt="image" src="media/test/jrmint.jpg"/>
-												</div>
-											</div>
-											<aside class="postConnections">
-												<img src="media/test/kramer.jpg" class="shadow"/>
-											</aside>
-											<aside class="postLabels">
-												<div class="label labelRed">
-													<div class="labelTail"></div>
-													<div class="labelBox">
-														<div class="labelBody"></div>
-													</div>
-													<div class="clear"></div>
-												</div>
-												<div class="label labelBlue">
-													<div class="labelTail"></div>
-													<div class="labelBox">
-														<div class="labelBody"></div>
-													</div>
-													<div class="clear"></div>
-												</div>
-											</aside>
-										</section>
-									</div> -->
 									<div id="middleContainerSpacer" class="spacer"></div>
 								</div>
 							</div><!-- #tabs-feed-->

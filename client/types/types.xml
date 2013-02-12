@@ -6147,9 +6147,9 @@
 		<CONNECTIONS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></CONNECTIONS>
 		<LABELS public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></LABELS>
 		<CONTENT public="1" static="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Content"/></c></CONTENT>
-		<main public="1" set="method" line="37" static="1"><f a=""><e path="Void"/></f></main>
-		<start public="1" set="method" line="48" static="1"><f a=""><e path="Void"/></f></start>
-		<demo set="method" line="69" static="1"><f a=""><e path="Void"/></f></demo>
+		<main public="1" set="method" line="36" static="1"><f a=""><e path="Void"/></f></main>
+		<start public="1" set="method" line="47" static="1"><f a=""><e path="Void"/></f></start>
+		<demo set="method" line="68" static="1"><f a=""><e path="Void"/></f></demo>
 	</class>
 	<class path="ui.CrossMojo" params="" file="haxe_src/ui/CrossMojo.hx">
 		<jq public="1" set="method" line="7" static="1"><f a="selector:?arg2">
@@ -6399,28 +6399,6 @@
 		<meta><m n=":optional"/></meta>
 	</async>
 </a></typedef>
-	<typedef path="ui.jq.PositionOpts" params="" file="haxe_src/ui/jq/JQ.hx" module="ui.jq.JQ"><a>
-	<within>
-		<d/>
-		<meta><m n=":optional"/></meta>
-	</within>
-	<of>
-		<d/>
-		<meta><m n=":optional"/></meta>
-	</of>
-	<my>
-		<c path="String"/>
-		<meta><m n=":optional"/></meta>
-	</my>
-	<collision>
-		<c path="String"/>
-		<meta><m n=":optional"/></meta>
-	</collision>
-	<at>
-		<c path="String"/>
-		<meta><m n=":optional"/></meta>
-	</at>
-</a></typedef>
 	<typedef path="ui.jq.UIPosition" params="" file="haxe_src/ui/jq/JQ.hx" module="ui.jq.JQ"><a>
 	<top><c path="Int"/></top>
 	<left><c path="Int"/></left>
@@ -6469,8 +6447,8 @@
 			<haxe_doc>Return the current JQuery element (in a callback), similar to $(this) in JS.</haxe_doc>
 		</cur>
 		<curNoWrap public="1" get="getCurrent2" set="null" static="1"><t path="js.HtmlDom"/></curNoWrap>
-		<getCurrent get="inline" set="null" line="196" static="1"><f a=""><c path="ui.jq.JQ"/></f></getCurrent>
-		<getCurrent2 get="inline" set="null" line="199" static="1"><f a=""><t path="js.HtmlDom"/></f></getCurrent2>
+		<getCurrent get="inline" set="null" line="205" static="1"><f a=""><c path="ui.jq.JQ"/></f></getCurrent>
+		<getCurrent2 get="inline" set="null" line="208" static="1"><f a=""><t path="js.HtmlDom"/></f></getCurrent2>
 		<position public="1" set="method" override="1"><f a=""><a>
 	<top><c path="Int"/></top>
 	<left><c path="Int"/></left>
@@ -6555,6 +6533,10 @@
 	<c path="String"/>
 	<c path="ui.jq.JQ"/>
 </f></append>
+		<removeClass public="1" set="method" override="1"><f a="?className">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></removeClass>
 		<addClass public="1" set="method" override="1"><f a="clazz">
 	<c path="String"/>
 	<c path="ui.jq.JQ"/>
@@ -6678,6 +6660,11 @@
 	<c path="String"/>
 	<c path="String"/>
 </f></css>
+		<toggle public="1" set="method" override="1"><f a="?duration:?call">
+	<c path="Int"/>
+	<f a=""><e path="Void"/></f>
+	<c path="ui.jq.JQ"/>
+</f></toggle>
 		<slideToggle public="1" set="method" override="1"><f a="?duration:?call">
 	<c path="Int"/>
 	<f a=""><e path="Void"/></f>
@@ -7057,28 +7044,28 @@
 	<class path="ui.model.ModelObj" params="T" file="haxe_src/ui/model/ModelObj.hx">
 		<implements path="haxe.rtti.Infos"/>
 		<__rtti public="1" line="6" static="1"><c path="String"/></__rtti>
+		<identifier public="1" params="T" set="method" line="9" static="1"><f a="t">
+	<a><uid><c path="String"/></uid></a>
+	<c path="String"/>
+</f></identifier>
+		<uid public="1"><c path="String"/></uid>
 	</class>
 	<class path="ui.model.User" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.User"/></extends>
-		<__rtti public="1" line="10" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="14" static="1"><c path="String"/></__rtti>
 	</class>
 	<class path="ui.model.Filterable" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj" interface="1"/>
 	<class path="ui.model.Label" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
-		<extends path="ui.model.ModelObj"><c path="ui.model.Label"/></extends>
+		<extends path="ui.model.ModelObj"><c path="ui.model.Connection"/></extends>
 		<implements path="ui.model.Filterable"/>
-		<__rtti public="1" line="16" static="1"><c path="String"/></__rtti>
-		<identifier public="1" set="method" line="28" static="1"><f a="label">
-	<c path="ui.model.Label"/>
-	<c path="String"/>
-</f></identifier>
+		<__rtti public="1" line="22" static="1"><c path="String"/></__rtti>
 		<color public="1">
 			<c path="String"/>
 			<meta><m n=":transient"/></meta>
 		</color>
 		<parentUid public="1"><c path="String"/></parentUid>
 		<text public="1"><c path="String"/></text>
-		<uid public="1"><c path="String"/></uid>
-		<new public="1" set="method" line="23"><f a="?text">
+		<new public="1" set="method" line="28"><f a="?text">
 	<c path="String"/>
 	<e path="Void"/>
 </f></new>
@@ -7086,15 +7073,10 @@
 	<class path="ui.model.Connection" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Connection"/></extends>
 		<implements path="ui.model.Filterable"/>
-		<__rtti public="1" line="33" static="1"><c path="String"/></__rtti>
-		<identifier public="1" set="method" line="45" static="1"><f a="conn">
-	<c path="ui.model.Connection"/>
-	<c path="String"/>
-</f></identifier>
+		<__rtti public="1" line="34" static="1"><c path="String"/></__rtti>
 		<imgSrc public="1"><c path="String"/></imgSrc>
 		<lname public="1"><c path="String"/></lname>
 		<fname public="1"><c path="String"/></fname>
-		<uid public="1"><c path="String"/></uid>
 		<new public="1" set="method" line="39"><f a="?fname:?lname:?imgSrc">
 	<c path="String"/>
 	<c path="String"/>
@@ -7104,30 +7086,25 @@
 	</class>
 	<class path="ui.model.Content" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.ModelObj"><c path="ui.model.Content"/></extends>
-		<__rtti public="1" line="50" static="1"><c path="String"/></__rtti>
-		<identifier public="1" set="method" line="56" static="1"><f a="cont">
-	<c path="ui.model.Content"/>
-	<c path="String"/>
-</f></identifier>
+		<__rtti public="1" line="46" static="1"><c path="String"/></__rtti>
 		<connections public="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Connection"/></c></connections>
 		<labels public="1"><c path="ui.observable.ObservableSet"><c path="ui.model.Label"/></c></labels>
 		<type public="1"><c path="String"/></type>
-		<uid public="1"><c path="String"/></uid>
 	</class>
 	<class path="ui.model.ImageContent" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.Content"/>
-		<__rtti public="1" line="61" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="52" static="1"><c path="String"/></__rtti>
 		<caption public="1"><c path="String"/></caption>
 		<imgSrc public="1"><c path="String"/></imgSrc>
-		<new public="1" set="method" line="65"><f a=""><e path="Void"/></f></new>
+		<new public="1" set="method" line="56"><f a=""><e path="Void"/></f></new>
 	</class>
 	<class path="ui.model.AudioContent" params="" file="haxe_src/ui/model/ModelObj.hx" module="ui.model.ModelObj">
 		<extends path="ui.model.Content"/>
-		<__rtti public="1" line="68" static="1"><c path="String"/></__rtti>
+		<__rtti public="1" line="59" static="1"><c path="String"/></__rtti>
 		<title public="1"><c path="String"/></title>
 		<audioType public="1"><c path="String"/></audioType>
 		<audioSrc public="1"><c path="String"/></audioSrc>
-		<new public="1" set="method" line="73"><f a=""><e path="Void"/></f></new>
+		<new public="1" set="method" line="64"><f a=""><e path="Void"/></f></new>
 	</class>
 	<class path="ui.observable.OSet" params="T" file="haxe_src/ui/observable/OSet.hx" interface="1">
 		<delegate public="1" set="method"><f a=""><c path="Hash"><c path="ui.observable.OSet.T"/></c></f></delegate>
@@ -7506,10 +7483,10 @@
 	<connection><c path="ui.model.Connection"/></connection>
 	<cloneFcn>
 		<f a="::">
-			<c path="ui.widget.FilterableComp"/>
+			<c path="ui.widget.FilterableComponent"/>
 			<e path="Bool"/>
 			<d/>
-			<c path="ui.widget.FilterableComp"/>
+			<c path="ui.widget.FilterableComponent"/>
 		</f>
 		<meta><m n=":optional"/></meta>
 	</cloneFcn>
@@ -7528,6 +7505,7 @@
 	</_super>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
+	<class path="ui.widget.FilterableComponent" params="" file="haxe_src/ui/widget/FilterableComponent.hx" extern="1"><extends path="ui.jq.JQ"/></class>
 	<class path="ui.widget.Widgets" params="" file="haxe_src/ui/widget/Widgets.hx">
 		<getSelf public="1" params="T" get="inline" set="null" line="7" static="1"><f a=""><c path="getSelf.T"/></f></getSelf>
 		<getSelfElement public="1" params="T" get="inline" set="null" line="11" static="1"><f a=""><c path="getSelfElement.T"/></f></getSelfElement>
@@ -7540,15 +7518,8 @@
 	<c path="ui.widget.FilterCombination"/>
 </f></filterCombination>
 	</class>
-	<class path="ui.widget.FilterableComp" params="" file="haxe_src/ui/widget/FilterableComp.hx" extern="1">
-		<extends path="ui.jq.JQ"/>
-		<filterableComp public="1" set="method"><f a="opts">
-	<t path="ui.widget.FilterableCompOptions"/>
-	<c path="ui.widget.FilterableComp"/>
-</f></filterableComp>
-	</class>
 	<class path="ui.widget.ConnectionAvatar" params="" file="haxe_src/ui/widget/ConnectionAvatar.hx" extern="1">
-		<extends path="ui.widget.FilterableComp"/>
+		<extends path="ui.widget.FilterableComponent"/>
 		<connectionAvatar public="1" set="method"><f a="opts">
 	<t path="ui.widget.ConnectionAvatarOptions"/>
 	<c path="ui.widget.ConnectionAvatar"/>
@@ -7614,9 +7585,8 @@
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
 	<class path="ui.widget.LabelComp" params="" file="haxe_src/ui/widget/LabelComp.hx" extern="1">
-		<extends path="ui.widget.FilterableComp"/>
+		<extends path="ui.widget.FilterableComponent"/>
 		<COLORS public="1" static="1"><c path="Array"><c path="Array"><c path="String"/></c></c></COLORS>
-		<_initColors set="method" static="1"><f a=""><e path="Void"/></f></_initColors>
 		<labelComp public="1" set="method"><f a="opts">
 	<t path="ui.widget.LabelCompOptions"/>
 	<c path="ui.widget.LabelComp"/>
@@ -7667,7 +7637,7 @@
 </a></typedef>
 	<typedef path="ui.widget.FilterCombinationWidgetDef" params="" file="haxe_src/ui/widget/FilterCombination.hx" module="ui.widget.FilterCombination"><a>
 	<removeFilterable><f a="">
-	<c path="ui.jq.JQ"/>
+	<c path="ui.widget.FilterableComponent"/>
 	<e path="Void"/>
 </f></removeFilterable>
 	<position><f a=""><e path="Void"/></f></position>
@@ -7677,11 +7647,23 @@
 	</options>
 	<destroy><f a=""><e path="Void"/></f></destroy>
 	<addFilterable><f a="">
-	<c path="ui.jq.JQ"/>
+	<c path="ui.widget.FilterableComponent"/>
 	<e path="Void"/>
 </f></addFilterable>
-	<_filterables><c path="Array"><c path="ui.jq.JQ"/></c></_filterables>
+	<_remove><f a="">
+	<c path="ui.widget.FilterableComponent"/>
+	<e path="Void"/>
+</f></_remove>
+	<_layout><f a=""><e path="Void"/></f></_layout>
+	<_filterables>
+		<c path="ui.observable.ObservableSet"><c path="ui.widget.FilterableComponent"/></c>
+		<meta><m n=":optional"/></meta>
+	</_filterables>
 	<_create><f a=""><e path="Void"/></f></_create>
+	<_add><f a="">
+	<c path="ui.widget.FilterableComponent"/>
+	<e path="Void"/>
+</f></_add>
 </a></typedef>
 	<typedef path="ui.widget.FilterCompOptions" params="" file="haxe_src/ui/widget/FilterComp.hx" module="ui.widget.FilterComp"><a/></typedef>
 	<typedef path="ui.widget.FilterCompWidgetDef" params="" file="haxe_src/ui/widget/FilterComp.hx" module="ui.widget.FilterComp"><a>
@@ -7699,7 +7681,7 @@
 	<c path="ui.widget.FilterComp"/>
 </f></filterComp>
 	</class>
-	<typedef path="ui.widget.FilterableCompOptions" params="" file="haxe_src/ui/widget/FilterableComp.hx" module="ui.widget.FilterableComp"><a>
+	<typedef path="ui.widget.FilterableCompOptions" params="" file="haxe_src/ui/widget/FilterableComponent.hx" module="ui.widget.FilterableComponent"><a>
 	<isDragByHelper>
 		<e path="Bool"/>
 		<meta><m n=":optional"/></meta>
@@ -7722,10 +7704,10 @@
 	</containment>
 	<cloneFcn>
 		<f a="::">
-			<c path="ui.widget.FilterableComp"/>
+			<c path="ui.widget.FilterableComponent"/>
 			<e path="Bool"/>
 			<d/>
-			<c path="ui.widget.FilterableComp"/>
+			<c path="ui.widget.FilterableComponent"/>
 		</f>
 		<meta><m n=":optional"/></meta>
 	</cloneFcn>
@@ -7733,10 +7715,6 @@
 		<c path="String"/>
 		<meta><m n=":optional"/></meta>
 	</classes>
-</a></typedef>
-	<typedef path="ui.widget.FilterableCompWidgetDef" params="" file="haxe_src/ui/widget/FilterableComp.hx" module="ui.widget.FilterableComp"><a>
-	<options><t path="ui.widget.FilterableCompOptions"/></options>
-	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
 	<typedef path="ui.widget.LabelCompOptions" params="" file="haxe_src/ui/widget/LabelComp.hx" module="ui.widget.LabelComp"><a>
 	<label><c path="ui.model.Label"/></label>
@@ -7762,10 +7740,10 @@
 	</containment>
 	<cloneFcn>
 		<f a="::">
-			<c path="ui.widget.FilterableComp"/>
+			<c path="ui.widget.FilterableComponent"/>
 			<e path="Bool"/>
 			<d/>
-			<c path="ui.widget.FilterableComp"/>
+			<c path="ui.widget.FilterableComponent"/>
 		</f>
 		<meta><m n=":optional"/></meta>
 	</cloneFcn>

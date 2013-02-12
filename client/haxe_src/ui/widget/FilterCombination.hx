@@ -6,7 +6,6 @@ import ui.jq.JQDroppable;
 import ui.jq.JQDraggable;
 import ui.model.ModelObj;
 import ui.observable.OSet;
-import ui.widget.LabelComp;
 
 using ui.helper.ArrayHelper;
 
@@ -19,10 +18,13 @@ typedef FilterCombinationWidgetDef = {
 	@:optional var options: FilterCombinationOptions;
 	var _create: Void->Void;
 	var destroy: Void->Void;
-	var addFilterable: JQ->Void;
-	var removeFilterable: JQ->Void;
+	var addFilterable: FilterableComponent->Void;
+	var removeFilterable: FilterableComponent->Void;
+	var _add: FilterableComponent->Void;
+	var _remove: FilterableComponent->Void;
+	var _layout: Void->Void;
 	var position: Void->Void;
-	var _filterables: Array<JQ>;
+	@:optional var _filterables: ObservableSet<FilterableComponent>;
 }
 
 extern class FilterCombination extends JQ {
@@ -39,9 +41,21 @@ extern class FilterCombination extends JQ {
 		        _create: function(): Void {
 		        	var self: FilterCombinationWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+
 		        	if(!selfElement.is("div")) {
 		        		throw new ui.exception.Exception("Root of FilterCombination must be a div element");
 		        	}
+					
+					self._filterables = new ObservableSet<FilterableComponent>(function (fc: FilterableComponent): String { return cast(fc, JQ).attr("id");});
+					self._filterables.listen(function(fc: FilterableComponent, evt: EventType): Void {
+		            		if(evt.isAdd()) {
+		            			self._add(fc);
+		            		} else if (evt.isUpdate()) {
+		            			// fc.labelTreeBranch("update");
+		            		} else if (evt.isDelete()) {
+		            			self._remove(fc);
+		            		}
+		            	});
 
 		        	//classes
 		        	//- connectionTD & labelDT such that this is a valid drop target for connections and labels, respectively
@@ -62,6 +76,27 @@ extern class FilterCombination extends JQ {
 		        		within: "#filter"
 	        		});
 
+		        	var toggle: JQ = new JQ("<div class='andOrToggle'></div>");
+		        	var and: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-top'>Any</div>");
+		        	var or: JQ = new JQ("<div class='ui-widget-content ui-corner-bottom'>All</div>");
+		        	toggle.append(and).append(or);
+		        	var children: JQ = toggle.children();
+		        	children
+		        		.hover(
+			        		function(evt: JqEvent): Void {
+			        			JQ.cur.addClass("ui-state-hover");
+		        			},
+			        		function(): Void {
+			        			JQ.cur.removeClass("ui-state-hover");
+			        		}
+		        		)
+		        		.click(
+		        			function(evt: JqEvent): Void {
+		        				children.toggleClass("ui-state-active");
+		        			}
+	        			);
+	        		selfElement.append(toggle);
+
 		        	cast(selfElement, JQDraggable).draggable({
 			    		containment: "parent", 
 			    		distance: 10,
@@ -78,10 +113,10 @@ extern class FilterCombination extends JQ {
 				      	greedy: true,
 				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
-				      		var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
+				      		var clone: FilterableComponent = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"))
 			      				.appendTo(selfElement)
-				      			.css("position", "relative")
+				      			.css("position", "absolute")
 				      			.css({left: "", top: ""});
 
 			      			self.addFilterable(clone);
@@ -95,8 +130,6 @@ extern class FilterCombination extends JQ {
 				    });
 		        },
 
-		        _filterables: new Array<JQ>(),
-
 		        position: function(): Void {
 		        	var self: FilterCombinationWidgetDef = Widgets.getSelf();
 		        	var selfElement: JQ = Widgets.getSelfElement();
@@ -109,45 +142,108 @@ extern class FilterCombination extends JQ {
 	        		});
 	        	},
 
-		        addFilterable: function(filterable: JQ): Void {
+		        addFilterable: function(filterable: FilterableComponent): Void {
 		        	var self: FilterCombinationWidgetDef = Widgets.getSelf();
-		        	var selfElement: JQ = Widgets.getSelfElement();
-		        	self._filterables.push(filterable);
-		        	var pairs: Int = Std.int(self._filterables.length / 2) + self._filterables.length % 2;
-		        	selfElement.css ( {
-		    //     		"-moz-column-count": pairs, /* Firefox */
-						// "-webkit-column-count": pairs, /* Safari and Chrome */
-						// "column-count": pairs,
-						"min-width": (135 * pairs) + "px"
-	        		});
+		        	self._filterables.add(filterable);
 	        	},
 
-	        	removeFilterable: function(filterable: JQ): Void {
+	        	removeFilterable: function(filterable: FilterableComponent): Void {
+		        	var self: FilterCombinationWidgetDef = Widgets.getSelf();
+		        	self._filterables.delete(filterable);
+	        	},
+
+	        	_add: function(filterable: FilterableComponent): Void {
+	        		var self: FilterCombinationWidgetDef = Widgets.getSelf();
+		        	var selfElement: JQ = Widgets.getSelfElement();
+		        	var jq: JQ = cast(filterable, JQ);
+		        	jq
+		      			.appendTo(selfElement)
+		      			// .css("position", "relative")
+		      			.css("position", "absolute")
+		      			.css({left: "", top: ""})
+		      			;
+
+		        	self._layout();
+	        	},
+
+	        	_remove: function(filterable: FilterableComponent): Void {
 	        		var self: FilterCombinationWidgetDef = Widgets.getSelf();
 	        		var selfElement: JQ = Widgets.getSelfElement();
-	        		var index: Int = self._filterables.indexOfComplex(filterable.attr("id"), function(jq: JQ): String { return jq.attr("id"); });
-		        	self._filterables.splice(index, 1);
-		        	if(self._filterables.length == 1) {
-		        		var position: {top: Int, left: Int} = self._filterables[0].position();
-		        		self._filterables[0].appendTo(selfElement.parent());
-	        			self._filterables[0].css({
-	        					"position": "absolute"
-	        					// , "left": position.left
-	        					// , "top": position.top
-	        				})
-		                    .position({
-		                    	my: "center center",
-		                    	at: "center+50 center+50",
-		                    	of: selfElement,
-		                    	collision: "fit",
-		                    	within: "#filter"
-                    		})
-		                	;
-		                self._filterables = null;
+
+		        	var iter: Iterator<FilterableComponent> = self._filterables.iterator();
+		        	if( iter.hasNext() ) {
+		        		var filterable: FilterableComponent = iter.next();
+		        		if(iter.hasNext()) {
+			        		self._layout();
+			        	} else {
+			        		//there is only one more filterable left
+			        		var jq: JQ = cast(filterable, JQ);
+			        		var position: {top: Int, left: Int} = jq.offset();
+		        			jq
+			        			.appendTo(selfElement.parent())
+		        				.offset(position)
+			                	;
+		        			selfElement.remove();
+		        			self.destroy();
+			        	}
+		        	} else {
 		        		self.destroy();
 		        		selfElement.remove();
 		        	}
 	        	},
+
+	        	_layout: function(): Void {
+	        		var self: FilterCombinationWidgetDef = Widgets.getSelf();
+		        	var selfElement: JQ = Widgets.getSelfElement();
+
+	        		var filterableConns: OSet<FilterableComponent> = new FilteredSet<FilterableComponent>(self._filterables, function(fc: FilterableComponent): Bool { 
+                        return fc.hasClass("connectionAvatar");
+                    });
+
+                    var filterableLabels: OSet<FilterableComponent> = new FilteredSet<FilterableComponent>(self._filterables, function(fc: FilterableComponent): Bool { 
+                        return fc.hasClass("label");
+                    });
+
+                    var leftPadding: Int = 30;
+                    var topPadding: Int = 6;
+                    var typeGap: Int = 10;
+                    var rowGap: Int = 50;
+
+                    var iterC: Iterator<FilterableComponent> = filterableConns.iterator();
+                    var connCount: Int = 0;
+                    var connPairs: Int = 0;
+                    while(iterC.hasNext()) {
+                    	connCount++;
+                    	connPairs = Std.int(connCount / 2) + connCount % 2;
+                    	var connAvatar: FilterableComponent = iterC.next();
+                    	connAvatar.css({
+                    		"left": leftPadding + (35 * (connPairs-1)),
+                    		"top": topPadding + (rowGap * (connCount+1) % 2)
+                		});
+                    }
+
+                    var connectionWidth = 35 * connPairs;
+
+                    var iterL: Iterator<FilterableComponent> = filterableLabels.iterator();
+                    var labelCount: Int = 0;
+                    var labelPairs: Int = 0;
+                    while(iterL.hasNext()) {
+                    	labelCount++;
+                    	labelPairs = Std.int(labelCount / 2) + labelCount % 2;
+                    	var labelComp: FilterableComponent = iterL.next();
+                    	labelComp.css({
+                    		"left": leftPadding + connectionWidth + typeGap + (135 * (labelPairs-1)),
+                    		"top": topPadding + (rowGap * (labelCount+1) % 2)
+                		});
+                    }
+
+		        	selfElement.css ( {
+						"width": (35 * connPairs + 135 * labelPairs) + "px",
+						"min-width": (35 * connPairs + 135 * labelPairs) + "px"
+	        		});
+	        	},
+
+	        	
 		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );

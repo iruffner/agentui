@@ -71,7 +71,30 @@ extern class FilterComp extends JQ {
 				      	}
 				    });
 
-				    cast(selfElement.children("#filterTrash"), JQDroppable).droppable({
+					var trashDiv: JQ = selfElement.children("#filterTrash");
+					var trashCan: JQ = trashDiv.children("img");
+
+					var grow: Int->Void = function(?duration: Int = 300): Void {
+						trashDiv.animate({
+			    				width: "100px"
+			    			}, duration);
+			    		trashCan.animate({
+			    				"max-width": "100px",
+			    				"margin-top": "35px"
+			    			}, duration);
+					}
+
+					var shrink: Void->Void = function(): Void {
+						trashDiv.animate({
+			    				width: "50px"
+			    			}, 200);
+			    		trashCan.animate({
+			    				"max-width": "50px",
+			    				"margin-top": "50px"
+			    			}, 200);
+					}
+
+				    cast(trashDiv, JQDroppable).droppable({
 				    	accept: function(d) {
 			    			return d.is(".filterTrashable");
 			    		},
@@ -81,9 +104,39 @@ extern class FilterComp extends JQ {
 				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
 			                _ui.draggable.remove();
+			                shrink();
 				      	},
-				      	tolerance: "pointer"
-			    	});
+				      	tolerance: "pointer",
+				      	over: function( event: JqEvent, _ui: UIDroppable) {
+				    		grow(300);
+				      	},
+				      	out: function( event: JqEvent, _ui: UIDroppable) {
+				      		shrink();
+				      	}
+			    	}).tooltip().dblclick(function(event: JqEvent) {
+			    			grow(150);
+		    				var trashables: JQ = selfElement.children(".filterTrashable");
+			    			trashables.position({
+			    					"my": "center",
+			    					"at": "center",
+			    					"of": trashCan,
+			    					"using": function(pos: {top: Int, left: Int}): Void {
+			    						JQ.cur.animate({
+			    								left: pos.left,
+			    								top: pos.top
+			    							}, 500, function(): Void {
+			    									// JQ.cur.animate({
+			    									// 		width: "10px",
+			    									// 		height: "10px"
+			    									// 	}, 250, function(): Void {
+			    									// 		JQ.cur.remove();
+			    									// 	});
+			    									JQ.cur.remove();
+			    									shrink();
+			    								});
+			    					}
+			    				});
+			    		});
 		        },
 		        
 		        destroy: function() {
