@@ -43,15 +43,13 @@ extern class LabelTree extends JQ {
 		        	self.labels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				label: label,
-	        					children: new FilteredSet<Label>(App.LABELS, function(child: Label): Bool{
-	        							if(child.parentUid == label.uid) App.LOGGER.debug(label.text + " keep " + child.text);
+	        					children: new FilteredSet<Label>(AgentUi.LABELS, function(child: Label): Bool{
 		        						return child.parentUid == label.uid;
 		        					})
 		        			});
 		        		});
 		        	self.labels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
 		            		if(evt.isAdd()) {
-		            			App.LOGGER.debug("Add " + evt.name());
 		            			selfElement.append(labelTreeBranch);
 		            		} else if (evt.isUpdate()) {
 		            			labelTreeBranch.labelTreeBranch("update");

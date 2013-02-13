@@ -94,52 +94,6 @@ extern class LabelTreeBranch extends JQ {
 			            	});
 			            selfElement.append(labelChildren);
 			        }
-
-		      //       cast(label, JQDraggable).draggable({ 
-			    	// 	// containment: "#connections", 
-			    	// 	revert: function(dropTarget: Dynamic) {
-			    	// 		var revert: Bool = false;
-			    	// 		if(dropTarget == null || !cast(dropTarget, JQ).is(".labelDT")) {
-			    	// 			revert = true;
-			    	// 		} else {
-			    	// 			JQ.cur.data("dropTarget", dropTarget);
-			    	// 		}
-			    	// 		return ;
-			    	// 	},
-			    	// 	helper: "clone",
-			    	// 	distance: 10,
-			    	// 	// grid: [5,5],
-			    	// 	scroll: false, 
-			    	// 	stop: function(event: js.JQuery.JqEvent, _ui: Dynamic): Void {
-			    	// 		var dropTarget: JQ = JQ.cur.data("dropTarget");
-			    	// 		JQ.cur.data("dropTarget", null);
-			    	// 		if(dropTarget != null && dropTarget.is("#filter")) {
-			    	// 			var clone: LabelComp = new LabelComp("<div></div>");
-				    //             clone.labelComp({
-				    //                     label: cast(JQ.cur.parent(), LabelComp).labelComp("option", "label"),
-				    //                     classes: cast(JQ.cur.parent(), LabelComp).labelComp("option", "classes")
-				    //                 });
-				    //             clone.css({
-				    //                     "position": "absolute",
-				    //                     "left": _ui.position.left,
-				    //                     "top": _ui.position.top
-				    //                 });
-			    	// 			dropTarget.append(clone);
-			    	// 		}
-			    	// 		App.LOGGER.debug("draggable stop");
-			    	// 	}
-			    	// });
-		    //         cast(selfElement, JQDroppable).droppable({
-			   //  		accept: function(d) {
-			   //  			return d.is(".connection") || d.is(".label");
-			   //  		},
-						// activeClass: "ui-state-hover",
-				  //     	hoverClass: "ui-state-active",
-				  //     	drop: function( event, ui ) {
-				  //     		App.LOGGER.debug("droppable drop");
-				        	
-				  //     	}
-			   //  	});
 		        },
 
 		        update: function(): Void {

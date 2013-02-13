@@ -45,7 +45,6 @@ extern class ContentFeed extends JQ {
 		        		});
 		        	self.content.listen(function(contentComp: ContentComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {
-		            			App.LOGGER.debug("Add " + evt.name());
 		            			new JQ("#postInput").after(contentComp);
 		            		} else if (evt.isUpdate()) {
 		            			contentComp.contentComp("update");

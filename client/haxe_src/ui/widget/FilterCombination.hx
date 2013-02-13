@@ -24,7 +24,7 @@ typedef FilterCombinationWidgetDef = {
 	var _add: FilterableComponent->Void;
 	var _remove: FilterableComponent->Void;
 	var _layout: Void->Void;
-	var _fireBuildFilter: Void->Void;
+	var _fireFilter: Void->Void;
 	var position: Void->Void;
 	@:optional var _filterables: ObservableSet<FilterableComponent>;
 }
@@ -95,6 +95,11 @@ extern class FilterCombination extends FilterableComponent {
 		        		within: "#filter"
 	        		});
 
+	        		selfElement.data("clone", function(filterableComp: FilterableComponent, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): FilterCombination {
+		            			var fc: FilterCombination = cast(filterableComp, FilterCombination);
+				            	return fc;
+		            		});
+
 		        	var toggle: JQ = new JQ("<div class='andOrToggle'></div>");
 		        	var and: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
 		        	var or: JQ = new JQ("<div class='ui-widget-content ui-corner-bottom all'>All</div>");
@@ -112,7 +117,7 @@ extern class FilterCombination extends FilterableComponent {
 		        		.click(
 		        			function(evt: JqEvent): Void {
 		        				children.toggleClass("ui-state-active");
-		        				self._fireBuildFilter();
+		        				self._fireFilter();
 		        			}
 	        			);
 	        		selfElement.append(toggle);
@@ -167,7 +172,13 @@ extern class FilterCombination extends FilterableComponent {
 		        addFilterable: function(filterable: FilterableComponent): Void {
 		        	var self: FilterCombinationWidgetDef = Widgets.getSelf();
 		        	self._filterables.add(filterable);
-		        	self._fireBuildFilter();
+		        	//because we should only exist when we have at least 2 filterables
+		        	// we don't want to fire a filter when we only have one filterable
+		        	// as we should be receiving a second filterable shortly that we
+		        	// would want to filter on
+		        	if(self._filterables.size() > 1) {
+		        		self._fireFilter();
+		        	}
 	        	},
 
 	        	removeFilterable: function(filterable: FilterableComponent): Void {
@@ -266,10 +277,10 @@ extern class FilterCombination extends FilterableComponent {
 	        		});
 	        	},
 
-	        	_fireBuildFilter: function() {
+	        	_fireFilter: function() {
 		        	var selfElement: JQ = Widgets.getSelfElement();
 		        	var filter: FilterComp = cast(selfElement.parent("#filter"), FilterComp);
-	      			filter.filterComp("buildFilter");
+	      			filter.filterComp("fireFilter");
         		},
 		        
 		        destroy: function() {

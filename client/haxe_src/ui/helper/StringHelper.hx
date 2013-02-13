@@ -55,6 +55,15 @@ class StringHelper {
 		return !isBlank(str);
 	}
 
+    public static function indentLeft( baseString:String, chars:Int, padChar:String ):String {
+        if(baseString == null) baseString = "";
+        var padding:String = "";
+        for(i_ in 0...chars) {
+            padding += padChar;
+        }
+        return padding + baseString;
+    }
+
 	public static function padLeft( baseString:String, minChars:Int, padChar:String ):String {
         if(baseString == null) baseString = "";
         var padding:String = "";

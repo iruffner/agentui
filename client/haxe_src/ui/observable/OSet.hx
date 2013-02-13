@@ -4,6 +4,7 @@ package ui.observable;
 import ui.helper.StringHelper;
 import ui.exception.Exception;
 import ui.util.M;
+import ui.util.SizedHash;
 
 using Lambda;
 /*
@@ -97,13 +98,13 @@ class EventType {
 
 class ObservableSet<T> extends AbstractSet<T> {
 
-	var _delegate: Hash<T>;
+	var _delegate: SizedHash<T>;
 	var _identifier: T->String;
 
 	public function new(identifier: T->String) {
 		super();
 		_identifier = identifier;
-		_delegate = new Hash();
+		_delegate = new SizedHash();
 	}
 
 	public function add(t: T) {
@@ -130,7 +131,7 @@ class ObservableSet<T> extends AbstractSet<T> {
 		fire(t, type);
 	}
 
-	public override function delegate() {
+	public override function delegate(): Hash<T>{
 		return _delegate;
 	}
 
@@ -148,6 +149,17 @@ class ObservableSet<T> extends AbstractSet<T> {
 
 	public override function identifier() {
 		return _identifier;
+	}
+
+	public function clear(): Void {
+		var iter: Iterator<T> = iterator();
+		while(iter.hasNext()) {
+			delete(iter.next());
+		}
+	}
+
+	public function size(): Int {
+		return _delegate.size;
 	}
 
 }
@@ -187,7 +199,6 @@ class AbstractSet<T> implements OSet<T> {
 	public function delegate(): Hash<T> {
 		return throw new Exception("implement me");
 	}
-
 }
 
 
