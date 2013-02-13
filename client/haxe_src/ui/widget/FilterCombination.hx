@@ -83,7 +83,7 @@ extern class FilterCombination extends FilterableComponent {
 		        	//- ui-state-highlight gives the yellow background
 		        	//- container rounds the corners and gives a blue border
 		        	//- shadow gives a box shadow
-		        	//- filterable says this item can be compiled into a filter
+		        	//- filterable says this item can be composed into a filter
 
 		        	selfElement.addClass("ui-state-highlight connectionDT labelDT filterable dropCombiner filterCombination filterTrashable container shadow" + Widgets.getWidgetClasses());
 
