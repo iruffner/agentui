@@ -2093,6 +2093,50 @@ ui.model.AudioContent.prototype = $extend(ui.model.Content.prototype,{
 	,audioSrc: null
 	,__class__: ui.model.AudioContent
 });
+ui.model.Node = $hxClasses["ui.model.Node"] = function() { }
+ui.model.Node.__name__ = ["ui","model","Node"];
+ui.model.Node.prototype = {
+	getPrintName: function() {
+		throw new ui.exception.Exception("override me");
+		return null;
+	}
+	,nodes: null
+	,__class__: ui.model.Node
+}
+ui.model.And = $hxClasses["ui.model.And"] = function() {
+	this.nodes = new Array();
+};
+ui.model.And.__name__ = ["ui","model","And"];
+ui.model.And.__super__ = ui.model.Node;
+ui.model.And.prototype = $extend(ui.model.Node.prototype,{
+	getPrintName: function() {
+		return "AND";
+	}
+	,__class__: ui.model.And
+});
+ui.model.Or = $hxClasses["ui.model.Or"] = function() {
+	this.nodes = new Array();
+};
+ui.model.Or.__name__ = ["ui","model","Or"];
+ui.model.Or.__super__ = ui.model.Node;
+ui.model.Or.prototype = $extend(ui.model.Node.prototype,{
+	getPrintName: function() {
+		return "OR";
+	}
+	,__class__: ui.model.Or
+});
+ui.model.ContentNode = $hxClasses["ui.model.ContentNode"] = function() {
+};
+ui.model.ContentNode.__name__ = ["ui","model","ContentNode"];
+ui.model.ContentNode.__super__ = ui.model.Node;
+ui.model.ContentNode.prototype = $extend(ui.model.Node.prototype,{
+	getPrintName: function() {
+		return "CONTENT(" + this.type + " | " + this.contentUid + ")";
+	}
+	,contentUid: null
+	,type: null
+	,__class__: ui.model.ContentNode
+});
 if(!ui.observable) ui.observable = {}
 ui.observable.OSet = $hxClasses["ui.observable.OSet"] = function() { }
 ui.observable.OSet.__name__ = ["ui","observable","OSet"];
@@ -2637,6 +2681,15 @@ q.fn.iterator = function() {
 };
 ui.jq = function() {}
 ui.jq.JQ = window.jQuery;
+ui.jq.JQ.fn.exists = function() {
+	return $(this).length > 0;
+};
+ui.jq.JQ.fn.isVisible = function() {
+	return $(this).css("display") != "none";
+};
+ui.jq.JQ.fn.hasAttr = function(name) {
+	return $(this).attr(name) != undefined;
+};
 ui.jq.JQSortable = window.jQuery;
 ui.jq.JDialog = window.jQuery;
 ui.jq.JQDraggable = window.jQuery;
@@ -2667,6 +2720,17 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of FilterCombination must be a div element");
+		selfElement.data("getNode",function() {
+			var root;
+			if(selfElement.children(".andOrToggle").children(".any").hasClass("ui-state-active")) root = new ui.model.Or(); else root = new ui.model.And();
+			var filterables = selfElement.children(".filterable");
+			filterables.each(function(idx,el) {
+				var filterable = new ui.widget.FilterableComponent(el);
+				var node = (filterable.data("getNode"))();
+				root.nodes.push(node);
+			});
+			return root;
+		});
 		self._filterables = new ui.observable.ObservableSet(function(fc) {
 			return (js.Boot.__cast(fc , ui.jq.JQ)).attr("id");
 		});
@@ -2674,11 +2738,11 @@ var defineWidget = function() {
 			if(evt.isAdd()) self._add(fc); else if(evt.isUpdate()) {
 			} else if(evt.isDelete()) self._remove(fc);
 		});
-		selfElement.addClass("ui-state-highlight connectionDT labelDT dropCombiner filterCombination filterTrashable container shadow" + ui.widget.Widgets.getWidgetClasses());
+		selfElement.addClass("ui-state-highlight connectionDT labelDT filterable dropCombiner filterCombination filterTrashable container shadow" + ui.widget.Widgets.getWidgetClasses());
 		selfElement.position({ my : "bottom right", at : "left top", of : self.options.event, collision : "flipfit", within : "#filter"});
 		var toggle = new ui.jq.JQ("<div class='andOrToggle'></div>");
-		var and = new ui.jq.JQ("<div class='ui-widget-content ui-state-active ui-corner-top'>Any</div>");
-		var or = new ui.jq.JQ("<div class='ui-widget-content ui-corner-bottom'>All</div>");
+		var and = new ui.jq.JQ("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
+		var or = new ui.jq.JQ("<div class='ui-widget-content ui-corner-bottom all'>All</div>");
 		toggle.append(and).append(or);
 		var children = toggle.children();
 		children.hover(function(evt) {
@@ -2687,6 +2751,7 @@ var defineWidget = function() {
 			$(this).removeClass("ui-state-hover");
 		}).click(function(evt) {
 			children.toggleClass("ui-state-active");
+			self._fireBuildFilter();
 		});
 		selfElement.append(toggle);
 		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : "parent", distance : 10, scroll : false});
@@ -2705,6 +2770,7 @@ var defineWidget = function() {
 	}, addFilterable : function(filterable) {
 		var self = this;
 		self._filterables.add(filterable);
+		self._fireBuildFilter();
 	}, removeFilterable : function(filterable) {
 		var self = this;
 		self._filterables["delete"](filterable);
@@ -2764,6 +2830,10 @@ var defineWidget = function() {
 			labelComp.css({ left : leftPadding + connectionWidth + typeGap + 135 * (labelPairs - 1), top : topPadding + rowGap * ((labelCount + 1) % 2)});
 		}
 		selfElement.css({ width : 35 * connPairs + 135 * labelPairs + "px", 'min-width' : 35 * connPairs + 135 * labelPairs + "px"});
+	}, _fireBuildFilter : function() {
+		var selfElement = this.element;
+		var filter = js.Boot.__cast(selfElement.parent("#filter") , ui.widget.FilterComp);
+		filter.filterComp("buildFilter");
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};
@@ -2797,6 +2867,12 @@ var defineWidget = function() {
 			selfElement.addClass("filterable");
 			selfElement.data("clone",self.options.cloneFcn);
 			selfElement.data("dropTargetClass",self.options.dropTargetClass);
+			selfElement.data("getNode",function() {
+				var node = new ui.model.ContentNode();
+				node.type = "CONNECTION";
+				node.contentUid = self.options.connection.uid;
+				return node;
+			});
 			var helper = "clone";
 			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
 			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
@@ -2892,6 +2968,12 @@ var defineWidget = function() {
 		if(self.options.dndEnabled) {
 			selfElement.data("clone",self.options.cloneFcn);
 			selfElement.data("dropTargetClass",self.options.dropTargetClass);
+			selfElement.data("getNode",function() {
+				var node = new ui.model.ContentNode();
+				node.type = "LABEL";
+				node.contentUid = self.options.label.uid;
+				return node;
+			});
 			var helper = "clone";
 			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
 			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
@@ -3004,6 +3086,7 @@ var defineWidget = function() {
 			} else $(this).append(clone);
 			clone.css({ position : "absolute"});
 			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : "#filter"});
+			self.buildFilter();
 		}});
 		var trashDiv = selfElement.children("#filterTrash");
 		var trashCan = trashDiv.children("img");
@@ -3021,6 +3104,7 @@ var defineWidget = function() {
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 			_ui.draggable.remove();
 			shrink();
+			self.buildFilter();
 		}, tolerance : "pointer", over : function(event,_ui) {
 			grow(300);
 		}, out : function(event,_ui) {
@@ -3034,7 +3118,19 @@ var defineWidget = function() {
 					shrink();
 				});
 			}});
+			self.buildFilter();
 		});
+	}, buildFilter : function() {
+		var self = this;
+		var selfElement = this.element;
+		var root = new ui.model.And();
+		var filterables = selfElement.children(".filterable");
+		filterables.each(function(idx,el) {
+			var filterable = new ui.widget.FilterableComponent(el);
+			var node = (filterable.data("getNode"))();
+			root.nodes.push(node);
+		});
+		return root;
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};

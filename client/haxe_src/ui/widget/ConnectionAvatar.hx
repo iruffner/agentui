@@ -6,6 +6,7 @@ import ui.jq.JQDroppable;
 import ui.jq.JQDraggable;
 import ui.jq.JQTooltip;
 import ui.model.ModelObj;
+import ui.model.Node;
 import ui.observable.OSet.ObservableSet;
 import ui.widget.FilterableComponent;
 
@@ -89,6 +90,12 @@ extern class ConnectionAvatar extends FilterableComponent {
 			            	"clone", self.options.cloneFcn
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
+		            	selfElement.data("getNode", function(): Node {
+			            		var node: ContentNode = new ContentNode();
+			            		node.type = "CONNECTION";
+			            		node.contentUid = self.options.connection.uid;
+			            		return node;
+			            	});
 
 			            var helper: Dynamic = "clone";
 			            if(!self.options.isDragByHelper) {

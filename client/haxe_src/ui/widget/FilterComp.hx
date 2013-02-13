@@ -4,6 +4,7 @@ import js.JQuery;
 import ui.jq.JQ;
 import ui.jq.JQDroppable;
 import ui.model.ModelObj;
+import ui.model.Node;
 import ui.observable.OSet;
 import ui.widget.LabelComp;
 
@@ -14,6 +15,7 @@ typedef FilterCompWidgetDef = {
 	@:optional var options: FilterCompOptions;
 	var _create: Void->Void;
 	var destroy: Void->Void;
+	var buildFilter: Void->Node;
 }
 
 extern class FilterComp extends JQ {
@@ -68,6 +70,7 @@ extern class FilterComp extends JQ {
 			                    	within: "#filter"
 	                    		});
 			                }
+			                self.buildFilter();
 				      	}
 				    });
 
@@ -105,6 +108,7 @@ extern class FilterComp extends JQ {
 			                //fire off a filterable
 			                _ui.draggable.remove();
 			                shrink();
+			                self.buildFilter();
 				      	},
 				      	tolerance: "pointer",
 				      	over: function( event: JqEvent, _ui: UIDroppable) {
@@ -136,8 +140,24 @@ extern class FilterComp extends JQ {
 			    								});
 			    					}
 			    				});
+			    			self.buildFilter();
 			    		});
 		        },
+
+		        buildFilter: function(): Node {
+		        	var self: FilterCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+		        	var root: Node = new And();//determine this
+
+		        	var filterables: JQ = selfElement.children(".filterable");
+		        	filterables.each(function (idx: Int, el: js.Dom.HtmlDom): Void {
+		        			var filterable: FilterableComponent = new FilterableComponent(el);
+		        			var node: Node = filterable.data("getNode")();
+		        			root.nodes.push(node);
+		        		});
+		        	return root;
+	        	},
 		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );

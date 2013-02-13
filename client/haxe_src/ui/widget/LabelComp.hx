@@ -5,6 +5,7 @@ import ui.jq.JQ;
 import ui.jq.JQDroppable;
 import ui.jq.JQDraggable;
 import ui.model.ModelObj;
+import ui.model.Node;
 import ui.observable.OSet;
 import ui.widget.FilterableComponent;
 
@@ -87,6 +88,12 @@ extern class LabelComp extends FilterableComponent {
 			            	"clone", self.options.cloneFcn
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
+		            	selfElement.data("getNode", function(): Node {
+			            		var node: ContentNode = new ContentNode();
+			            		node.type = "LABEL";
+			            		node.contentUid = self.options.label.uid;
+			            		return node;
+			            	});
 
 			            var helper: Dynamic = "clone";
 			            if(!self.options.isDragByHelper) {

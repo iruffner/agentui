@@ -5,6 +5,7 @@ import ui.jq.JQ;
 import ui.jq.JQDroppable;
 import ui.jq.JQDraggable;
 import ui.model.ModelObj;
+import ui.model.Node;
 import ui.observable.OSet;
 
 using ui.helper.ArrayHelper;
@@ -23,11 +24,12 @@ typedef FilterCombinationWidgetDef = {
 	var _add: FilterableComponent->Void;
 	var _remove: FilterableComponent->Void;
 	var _layout: Void->Void;
+	var _fireBuildFilter: Void->Void;
 	var position: Void->Void;
 	@:optional var _filterables: ObservableSet<FilterableComponent>;
 }
 
-extern class FilterCombination extends JQ {
+extern class FilterCombination extends FilterableComponent {
 
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd : String, arg: Dynamic):Void{})
@@ -45,6 +47,22 @@ extern class FilterCombination extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new ui.exception.Exception("Root of FilterCombination must be a div element");
 		        	}
+
+		        	selfElement.data("getNode", function(): Node {
+		            		var root: Node;
+		            		if(selfElement.children(".andOrToggle").children(".any").hasClass("ui-state-active")) {
+		            			root = new Or();
+		            		} else {
+		            			root = new And();
+		            		}
+		            		var filterables: JQ = selfElement.children(".filterable");
+				        	filterables.each(function (idx: Int, el: js.Dom.HtmlDom): Void {
+				        			var filterable: FilterableComponent = new FilterableComponent(el);
+				        			var node: Node = filterable.data("getNode")();
+				        			root.nodes.push(node);
+				        		});
+		            		return root;
+		            	});
 					
 					self._filterables = new ObservableSet<FilterableComponent>(function (fc: FilterableComponent): String { return cast(fc, JQ).attr("id");});
 					self._filterables.listen(function(fc: FilterableComponent, evt: EventType): Void {
@@ -65,8 +83,9 @@ extern class FilterCombination extends JQ {
 		        	//- ui-state-highlight gives the yellow background
 		        	//- container rounds the corners and gives a blue border
 		        	//- shadow gives a box shadow
+		        	//- filterable says this item can be compiled into a filter
 
-		        	selfElement.addClass("ui-state-highlight connectionDT labelDT dropCombiner filterCombination filterTrashable container shadow" + Widgets.getWidgetClasses());
+		        	selfElement.addClass("ui-state-highlight connectionDT labelDT filterable dropCombiner filterCombination filterTrashable container shadow" + Widgets.getWidgetClasses());
 
 		        	selfElement.position({
 		        		my: "bottom right",
@@ -77,8 +96,8 @@ extern class FilterCombination extends JQ {
 	        		});
 
 		        	var toggle: JQ = new JQ("<div class='andOrToggle'></div>");
-		        	var and: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-top'>Any</div>");
-		        	var or: JQ = new JQ("<div class='ui-widget-content ui-corner-bottom'>All</div>");
+		        	var and: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
+		        	var or: JQ = new JQ("<div class='ui-widget-content ui-corner-bottom all'>All</div>");
 		        	toggle.append(and).append(or);
 		        	var children: JQ = toggle.children();
 		        	children
@@ -93,6 +112,7 @@ extern class FilterCombination extends JQ {
 		        		.click(
 		        			function(evt: JqEvent): Void {
 		        				children.toggleClass("ui-state-active");
+		        				self._fireBuildFilter();
 		        			}
 	        			);
 	        		selfElement.append(toggle);
@@ -125,6 +145,8 @@ extern class FilterCombination extends JQ {
 				      				collision: "flipfit",
 			        				within: "#filter"
 			      				});
+
+
 				      	},
 				      	tolerance: "pointer"
 				    });
@@ -145,6 +167,7 @@ extern class FilterCombination extends JQ {
 		        addFilterable: function(filterable: FilterableComponent): Void {
 		        	var self: FilterCombinationWidgetDef = Widgets.getSelf();
 		        	self._filterables.add(filterable);
+		        	self._fireBuildFilter();
 	        	},
 
 	        	removeFilterable: function(filterable: FilterableComponent): Void {
@@ -243,7 +266,11 @@ extern class FilterCombination extends JQ {
 	        		});
 	        	},
 
-	        	
+	        	_fireBuildFilter: function() {
+		        	var selfElement: JQ = Widgets.getSelfElement();
+		        	var filter: FilterComp = cast(selfElement.parent("#filter"), FilterComp);
+	      			filter.filterComp("buildFilter");
+        		},
 		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );

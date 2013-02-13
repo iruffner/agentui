@@ -6447,12 +6447,55 @@
 			<haxe_doc>Return the current JQuery element (in a callback), similar to $(this) in JS.</haxe_doc>
 		</cur>
 		<curNoWrap public="1" get="getCurrent2" set="null" static="1"><t path="js.HtmlDom"/></curNoWrap>
-		<getCurrent get="inline" set="null" line="205" static="1"><f a=""><c path="ui.jq.JQ"/></f></getCurrent>
-		<getCurrent2 get="inline" set="null" line="208" static="1"><f a=""><t path="js.HtmlDom"/></f></getCurrent2>
-		<position public="1" set="method" override="1"><f a=""><a>
-	<top><c path="Int"/></top>
-	<left><c path="Int"/></left>
-</a></f></position>
+		<getCurrent get="inline" set="null" line="230" static="1"><f a=""><c path="ui.jq.JQ"/></f></getCurrent>
+		<getCurrent2 get="inline" set="null" line="233" static="1"><f a=""><t path="js.HtmlDom"/></f></getCurrent2>
+		<zIndex public="1" set="method"><f a="zIndex">
+	<c path="Int"/>
+	<c path="ui.jq.JQ"/>
+</f></zIndex>
+		<tooltip public="1" set="method"><f a="?opts">
+	<d/>
+	<c path="ui.jq.JQ"/>
+</f></tooltip>
+		<tabs public="1" set="method"><f a="?opts">
+	<d/>
+	<c path="ui.jq.JQ"/>
+</f></tabs>
+		<sortable public="1" set="method"><f a="?opts">
+	<d/>
+	<c path="ui.jq.JQSortable"/>
+</f></sortable>
+		<slider public="1" set="method"><f a="options">
+	<d/>
+	<c path="ui.jq.JQ"/>
+</f></slider>
+		<menu public="1" set="method"><f a="opts">
+	<d/>
+	<c path="ui.jq.JQ"/>
+</f></menu>
+		<button public="1" set="method"><f a="?opts">
+	<d/>
+	<c path="ui.jq.JQ"/>
+</f></button>
+		<autocomplete public="1" set="method"><f a="opts">
+	<d/>
+	<c path="ui.jq.JQ"/>
+</f></autocomplete>
+		<accordion public="1" set="method"><f a="options">
+	<d/>
+	<c path="ui.jq.JQ"/>
+</f></accordion>
+		<helpToolTips public="1" set="method"><f a=""><c path="ui.jq.JQ"/></f></helpToolTips>
+		<buttonsetv public="1" set="method"><f a="i">
+	<c path="Int"/>
+	<c path="ui.jq.JQ"/>
+</f></buttonsetv>
+		<hasAttr public="1" set="method"><f a="attrName">
+	<c path="String"/>
+	<e path="Bool"/>
+</f></hasAttr>
+		<isVisible public="1" set="method"><f a=""><e path="Bool"/></f></isVisible>
+		<exists public="1" set="method"><f a=""><e path="Bool"/></f></exists>
 		<map public="1" set="method"><f a="fcn">
 	<f a=":">
 		<c path="ui.jq.JQ"/>
@@ -6461,23 +6504,8 @@
 	</f>
 	<e path="Void"/>
 </f></map>
-		<menu public="1" set="method"><f a="opts">
-	<d/>
-	<c path="ui.jq.JQ"/>
-</f></menu>
-		<zIndex public="1" set="method"><f a="zIndex">
-	<c path="Int"/>
-	<c path="ui.jq.JQ"/>
-</f></zIndex>
-		<propAttr public="1" set="method"><f a="name">
-	<c path="String"/>
-	<d/>
-</f></propAttr>
-		<val public="1" set="method" override="1"><f a=""><c path="String"/></f></val>
-		<attr public="1" set="method" override="1"><f a="name">
-	<c path="String"/>
-	<c path="String"/>
-</f></attr>
+		<fnDestroy public="1" set="method"><f a=""><e path="Void"/></f></fnDestroy>
+		<destroy public="1" set="method"><f a=""><e path="Void"/></f></destroy>
 		<on public="1" set="method"><f a="events:?selector:?callb">
 	<c path="String"/>
 	<c path="String"/>
@@ -6488,83 +6516,6 @@
 	</f>
 	<e path="Void"/>
 </f></on>
-		<mousedown public="1" set="method" override="1"><f a="?callb">
-	<f a="">
-		<t path="js.JqEvent"/>
-		<e path="Void"/>
-	</f>
-	<c path="ui.jq.JQ"/>
-</f></mousedown>
-		<mouseout public="1" set="method" override="1"><f a="?callb">
-	<f a="">
-		<t path="js.JqEvent"/>
-		<e path="Void"/>
-	</f>
-	<c path="ui.jq.JQ"/>
-</f></mouseout>
-		<mouseover public="1" set="method" override="1"><f a="?callb">
-	<f a="">
-		<t path="js.JqEvent"/>
-		<e path="Void"/>
-	</f>
-	<c path="ui.jq.JQ"/>
-</f></mouseover>
-		<prependTo public="1" set="method" override="1"><f a="html">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></prependTo>
-		<prepend public="1" set="method" override="1"><f a="html">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></prepend>
-		<insertAfter public="1" set="method" override="1"><f a="html">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></insertAfter>
-		<insertBefore public="1" set="method" override="1"><f a="html">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></insertBefore>
-		<appendTo public="1" set="method" override="1"><f a="selector">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></appendTo>
-		<append public="1" set="method" override="1"><f a="html">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></append>
-		<removeClass public="1" set="method" override="1"><f a="?className">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></removeClass>
-		<addClass public="1" set="method" override="1"><f a="clazz">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></addClass>
-		<hover public="1" set="method" override="1"><f a="onOver:?onOut">
-	<f a="">
-		<t path="js.JqEvent"/>
-		<e path="Void"/>
-	</f>
-	<f a=""><e path="Void"/></f>
-	<c path="ui.jq.JQ"/>
-</f></hover>
-		<find public="1" set="method" override="1"><f a="selector">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></find>
-		<parent public="1" set="method" override="1"><f a="?selector">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></parent>
-		<empty public="1" set="method" override="1"><f a=""><c path="ui.jq.JQ"/></f></empty>
-		<click public="1" set="method" override="1"><f a="?callb">
-	<f a="">
-		<t path="js.JqEvent"/>
-		<e path="Void"/>
-	</f>
-	<c path="ui.jq.JQ"/>
-</f></click>
 		<bind public="1" set="method" override="1"><f a="events:callb">
 	<c path="String"/>
 	<f a="">
@@ -6573,93 +6524,42 @@
 	</f>
 	<c path="ui.jq.JQ"/>
 </f></bind>
-		<clone public="1" set="method" override="1"><f a="?withDataAndEvents">
-	<e path="Bool"/>
-	<c path="ui.jq.JQ"/>
-</f></clone>
-		<next public="1" set="method" override="1"><f a="?selector">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></next>
-		<siblings public="1" set="method" override="1"><f a="?selector">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></siblings>
-		<children public="1" set="method" override="1"><f a="?selector">
-	<c path="String"/>
-	<c path="ui.jq.JQ"/>
-</f></children>
-		<slider public="1" set="method"><f a="options">
-	<d/>
-	<c path="ui.jq.JQ"/>
-</f></slider>
-		<tabs public="1" set="method"><f a="?opts">
-	<d/>
-	<c path="ui.jq.JQ"/>
-</f></tabs>
-		<destroyContextMenu public="1" set="method"><f a=""><e path="Void"/></f></destroyContextMenu>
-		<showContextMenu public="1" set="method"><f a="opts:callbak:positioningEvent">
-	<d/>
-	<f a="::">
-		<c path="String"/>
-		<c path="ui.jq.JQ"/>
-		<d/>
+		<mouseover public="1" set="method" override="1"><f a="?callb">
+	<f a="">
+		<t path="js.JqEvent"/>
 		<e path="Void"/>
 	</f>
-	<t path="js.JqEvent"/>
 	<c path="ui.jq.JQ"/>
-</f></showContextMenu>
-		<autocomplete public="1" set="method"><f a="opts">
-	<d/>
-	<c path="ui.jq.JQ"/>
-</f></autocomplete>
-		<helpToolTips public="1" set="method"><f a=""><c path="ui.jq.JQ"/></f></helpToolTips>
-		<checkbox public="1" set="method"><f a="?opts">
-	<d/>
-	<c path="ui.jq.JQ"/>
-</f></checkbox>
-		<sortable public="1" set="method"><f a="?opts">
-	<d/>
-	<c path="ui.jq.JQSortable"/>
-</f></sortable>
-		<button public="1" set="method"><f a="?opts">
-	<d/>
-	<c path="ui.jq.JQ"/>
-</f></button>
-		<buttonsetv public="1" set="method"><f a="i">
-	<c path="Int"/>
-	<c path="ui.jq.JQ"/>
-</f></buttonsetv>
-		<tooltip public="1" set="method"><f a="?opts">
-	<d/>
-	<c path="ui.jq.JQ"/>
-</f></tooltip>
-		<accordion public="1" set="method"><f a="options">
-	<d/>
-	<c path="ui.jq.JQ"/>
-</f></accordion>
-		<editable public="1" set="method"><f a="fcn:options">
-	<f a=":">
-		<d/>
-		<c path="Array"><d/></c>
-		<d/>
+</f></mouseover>
+		<mouseout public="1" set="method" override="1"><f a="?callb">
+	<f a="">
+		<t path="js.JqEvent"/>
+		<e path="Void"/>
 	</f>
-	<d/>
 	<c path="ui.jq.JQ"/>
-</f></editable>
-		<width public="1" set="method" override="1"><f a=""><c path="Int"/></f></width>
-		<index public="1" set="method" override="1"><f a="?selector">
-	<c path="String"/>
-	<c path="Int"/>
-</f></index>
-		<filter public="1" set="method" override="1"><f a="selector">
-	<c path="String"/>
-	<c path="js.JQuery"/>
-</f></filter>
-		<css public="1" set="method" override="1"><f a="prop">
-	<c path="String"/>
-	<c path="String"/>
-</f></css>
+</f></mouseout>
+		<mousedown public="1" set="method" override="1"><f a="?callb">
+	<f a="">
+		<t path="js.JqEvent"/>
+		<e path="Void"/>
+	</f>
+	<c path="ui.jq.JQ"/>
+</f></mousedown>
+		<hover public="1" set="method" override="1"><f a="onOver:?onOut">
+	<f a="">
+		<t path="js.JqEvent"/>
+		<e path="Void"/>
+	</f>
+	<f a=""><e path="Void"/></f>
+	<c path="ui.jq.JQ"/>
+</f></hover>
+		<click public="1" set="method" override="1"><f a="?callb">
+	<f a="">
+		<t path="js.JqEvent"/>
+		<e path="Void"/>
+	</f>
+	<c path="ui.jq.JQ"/>
+</f></click>
 		<toggle public="1" set="method" override="1"><f a="?duration:?call">
 	<c path="Int"/>
 	<f a=""><e path="Void"/></f>
@@ -6680,9 +6580,86 @@
 	<f a=""><e path="Void"/></f>
 	<c path="ui.jq.JQ"/>
 </f></hide>
-		<isVisible public="1" set="method"><f a=""><e path="Bool"/></f></isVisible>
-		<fnDestroy public="1" set="method"><f a=""><e path="Void"/></f></fnDestroy>
-		<destroy public="1" set="method"><f a=""><e path="Void"/></f></destroy>
+		<prependTo public="1" set="method" override="1"><f a="html">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></prependTo>
+		<prepend public="1" set="method" override="1"><f a="html">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></prepend>
+		<insertAfter public="1" set="method" override="1"><f a="html">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></insertAfter>
+		<insertBefore public="1" set="method" override="1"><f a="html">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></insertBefore>
+		<empty public="1" set="method" override="1"><f a=""><c path="ui.jq.JQ"/></f></empty>
+		<appendTo public="1" set="method" override="1"><f a="selector">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></appendTo>
+		<append public="1" set="method" override="1"><f a="html">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></append>
+		<siblings public="1" set="method" override="1"><f a="?selector">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></siblings>
+		<parent public="1" set="method" override="1"><f a="?selector">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></parent>
+		<next public="1" set="method" override="1"><f a="?selector">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></next>
+		<index public="1" set="method" override="1"><f a="?selector">
+	<c path="String"/>
+	<c path="Int"/>
+</f></index>
+		<find public="1" set="method" override="1"><f a="selector">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></find>
+		<filter public="1" set="method" override="1"><f a="selector">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></filter>
+		<clone public="1" set="method" override="1"><f a="?withDataAndEvents">
+	<e path="Bool"/>
+	<c path="ui.jq.JQ"/>
+</f></clone>
+		<children public="1" set="method" override="1"><f a="?selector">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></children>
+		<position public="1" set="method" override="1"><f a=""><a>
+	<top><c path="Int"/></top>
+	<left><c path="Int"/></left>
+</a></f></position>
+		<height public="1" set="method" override="1"><f a=""><c path="Int"/></f></height>
+		<width public="1" set="method" override="1"><f a=""><c path="Int"/></f></width>
+		<val public="1" set="method" override="1"><f a=""><c path="String"/></f></val>
+		<css public="1" set="method" override="1"><f a="prop">
+	<c path="String"/>
+	<c path="String"/>
+</f></css>
+		<attr public="1" set="method" override="1"><f a="name">
+	<c path="String"/>
+	<c path="String"/>
+</f></attr>
+		<removeClass public="1" set="method" override="1"><f a="?className">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></removeClass>
+		<addClass public="1" set="method" override="1"><f a="clazz">
+	<c path="String"/>
+	<c path="ui.jq.JQ"/>
+</f></addClass>
 	</class>
 	<class path="ui.jq.JQSortable" params="" file="haxe_src/ui/jq/JQ.hx" module="ui.jq.JQ" extern="1">
 		<extends path="ui.jq.JQ"/>
@@ -7106,6 +7083,27 @@
 		<audioSrc public="1"><c path="String"/></audioSrc>
 		<new public="1" set="method" line="64"><f a=""><e path="Void"/></f></new>
 	</class>
+	<class path="ui.model.Node" params="" file="haxe_src/ui/model/Node.hx">
+		<getPrintName public="1" set="method" line="8"><f a=""><c path="String"/></f></getPrintName>
+		<nodes public="1"><c path="Array"><c path="ui.model.Node"/></c></nodes>
+	</class>
+	<class path="ui.model.And" params="" file="haxe_src/ui/model/Node.hx" module="ui.model.Node">
+		<extends path="ui.model.Node"/>
+		<getPrintName public="1" set="method" line="19" override="1"><f a=""><c path="String"/></f></getPrintName>
+		<new public="1" set="method" line="15"><f a=""><e path="Void"/></f></new>
+	</class>
+	<class path="ui.model.Or" params="" file="haxe_src/ui/model/Node.hx" module="ui.model.Node">
+		<extends path="ui.model.Node"/>
+		<getPrintName public="1" set="method" line="29" override="1"><f a=""><c path="String"/></f></getPrintName>
+		<new public="1" set="method" line="25"><f a=""><e path="Void"/></f></new>
+	</class>
+	<class path="ui.model.ContentNode" params="" file="haxe_src/ui/model/Node.hx" module="ui.model.Node">
+		<extends path="ui.model.Node"/>
+		<getPrintName public="1" set="method" line="41" override="1"><f a=""><c path="String"/></f></getPrintName>
+		<contentUid public="1"><c path="String"/></contentUid>
+		<type public="1"><c path="String"/></type>
+		<new public="1" set="method" line="38"><f a=""><e path="Void"/></f></new>
+	</class>
 	<class path="ui.observable.OSet" params="T" file="haxe_src/ui/observable/OSet.hx" interface="1">
 		<delegate public="1" set="method"><f a=""><c path="Hash"><c path="ui.observable.OSet.T"/></c></f></delegate>
 		<iterator public="1" set="method"><f a=""><t path="Iterator"><c path="ui.observable.OSet.T"/></t></f></iterator>
@@ -7512,7 +7510,7 @@
 		<getWidgetClasses public="1" set="method" line="15" static="1"><f a=""><c path="String"/></f></getWidgetClasses>
 	</class>
 	<class path="ui.widget.FilterCombination" params="" file="haxe_src/ui/widget/FilterCombination.hx" extern="1">
-		<extends path="ui.jq.JQ"/>
+		<extends path="ui.widget.FilterableComponent"/>
 		<filterCombination public="1" set="method"><f a="?opts">
 	<t path="ui.widget.FilterCombinationOptions"/>
 	<c path="ui.widget.FilterCombination"/>
@@ -7655,6 +7653,7 @@
 	<e path="Void"/>
 </f></_remove>
 	<_layout><f a=""><e path="Void"/></f></_layout>
+	<_fireBuildFilter><f a=""><e path="Void"/></f></_fireBuildFilter>
 	<_filterables>
 		<c path="ui.observable.ObservableSet"><c path="ui.widget.FilterableComponent"/></c>
 		<meta><m n=":optional"/></meta>
@@ -7672,6 +7671,7 @@
 		<meta><m n=":optional"/></meta>
 	</options>
 	<destroy><f a=""><e path="Void"/></f></destroy>
+	<buildFilter><f a=""><c path="ui.model.Node"/></f></buildFilter>
 	<_create><f a=""><e path="Void"/></f></_create>
 </a></typedef>
 	<class path="ui.widget.FilterComp" params="" file="haxe_src/ui/widget/FilterComp.hx" extern="1">
