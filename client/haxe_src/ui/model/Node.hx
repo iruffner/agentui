@@ -1,5 +1,6 @@
 package ui.model;
 
+import ui.model.ModelObj;
 import ui.exception.Exception;
 
 class Node {
@@ -33,7 +34,8 @@ class Or extends Node {
 
 class ContentNode extends Node {
     public var type: String;
-	public var contentUid: String;	
+	public var contentUid: String;
+	public var filterable: Filterable;
 
 	public function new() {
 	}

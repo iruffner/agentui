@@ -2133,6 +2133,7 @@ ui.model.ContentNode.prototype = $extend(ui.model.Node.prototype,{
 	getPrintName: function() {
 		return "CONTENT(" + this.type + " | " + this.contentUid + ")";
 	}
+	,filterable: null
 	,contentUid: null
 	,type: null
 	,__class__: ui.model.ContentNode
@@ -2871,6 +2872,7 @@ var defineWidget = function() {
 				var node = new ui.model.ContentNode();
 				node.type = "CONNECTION";
 				node.contentUid = self.options.connection.uid;
+				node.filterable = self.options.connection;
 				return node;
 			});
 			var helper = "clone";
@@ -2972,6 +2974,7 @@ var defineWidget = function() {
 				var node = new ui.model.ContentNode();
 				node.type = "LABEL";
 				node.contentUid = self.options.label.uid;
+				node.filterable = self.options.label;
 				return node;
 			});
 			var helper = "clone";
