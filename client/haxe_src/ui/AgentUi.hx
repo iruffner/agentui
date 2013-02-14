@@ -21,6 +21,7 @@ import ui.widget.ContentFeed;
 import ui.widget.FilterComp;
 import ui.widget.LabelTree;
 import ui.widget.LabelComp;
+import ui.widget.UserComp;
 
 import ui.model.TestDao;
 
@@ -69,6 +70,8 @@ class AgentUi {
                 content: AgentUi.CONTENT
             });
 
+        new UserComp("#userId").userComp();
+
         EventModel.addListener("filterComplete", new EventListener(function(filter: Node) {
                 untyped __js__("fitWindow()");
             })
@@ -78,11 +81,13 @@ class AgentUi {
     }
 
     private static function demo(): Void {
-        var connections: Array<Connection> = TestDao.getConnections(null);
+        var user: User = DAO.getUser("");
+        EventModel.change("user", user);
+        var connections: Array<Connection> = DAO.getConnections(null);
         for(c_ in 0...connections.length) {
             CONNECTIONS.add(connections[c_]);
         }
-        var labels: Array<Label> = TestDao.getLabels(null);
+        var labels: Array<Label> = DAO.getLabels(null);
         for(l_ in 0...labels.length) {
             LABELS.add(labels[l_]);
         }

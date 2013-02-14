@@ -333,7 +333,27 @@ class TestDao {
 		if(!initialized) initialize();
 		var arr: Array<Content> = randomizeOrder( generateContent(node) );
 		return getRandomNumber(arr , Std.random(arr.length));
-		// content
-		// return null;
+	}
+
+	public static function getUser(uid: String): User {
+		var user: User = new User();
+        user.fname = "Jerry";
+        user.lname = "Seinfeld";
+        user.uid = UidGenerator.create();
+        user.imgSrc = "media/test/jerry.jpg";
+        user.aliases = new ObservableSet<Alias>(ModelObj.identifier);
+        var alias: Alias = new Alias();
+        alias.uid = UidGenerator.create();
+        alias.label = "Comedian";
+        user.aliases.add(alias);
+        alias = new Alias();
+        alias.uid = UidGenerator.create();
+        alias.label = "Actor";
+        user.aliases.add(alias);
+        alias = new Alias();
+        alias.uid = UidGenerator.create();
+        alias.label = "Private";
+        user.aliases.add(alias);
+        return user;
 	}
 }

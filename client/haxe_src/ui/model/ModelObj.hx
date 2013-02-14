@@ -12,7 +12,31 @@ class ModelObj<T> implements haxe.rtti.Infos {
 }
 
 class User extends ModelObj<User> {
+	public var fname: String;
+	public var lname: String;
+	public var imgSrc: String;
+	public var aliases: ObservableSet<Alias>;
+	public var currentAlias (_getCurrentAlias,_setCurrentAlias): Alias;
 
+	public function new () {}
+
+	private function _getCurrentAlias(): Alias {
+		if(currentAlias == null) {
+			currentAlias = aliases.iterator().next();
+		}
+		return currentAlias;
+	}
+
+	private function _setCurrentAlias(alias: Alias): Alias {
+		currentAlias = alias;
+		return currentAlias;
+	}
+}
+
+class Alias extends ModelObj<Alias> {
+	public var label: String;
+
+	public function new () {}
 }
 
 interface Filterable {

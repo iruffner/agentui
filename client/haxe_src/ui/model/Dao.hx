@@ -27,6 +27,10 @@ class Dao {
 		EventModel.change("filterComplete", node);
 	}
 
+	public function getUser(uid: String): User {
+		return TestDao.getUser(uid);
+	}
+
 	public function getConnections(user: User): Array<Connection> {
 		return TestDao.getConnections(user);
 	}

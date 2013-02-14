@@ -1497,19 +1497,22 @@ ui.AgentUi.start = function() {
 	})});
 	new ui.widget.FilterComp("#filter").filterComp(null);
 	new ui.widget.ContentFeed("#feed").contentFeed({ content : ui.AgentUi.CONTENT});
+	new ui.widget.UserComp("#userId").userComp();
 	ui.model.EventModel.addListener("filterComplete",new ui.model.EventListener(function(filter) {
 		fitWindow();
 	}));
 	ui.AgentUi.demo();
 }
 ui.AgentUi.demo = function() {
-	var connections = ui.model.TestDao.getConnections(null);
+	var user = ui.AgentUi.DAO.getUser("");
+	ui.model.EventModel.change("user",user);
+	var connections = ui.AgentUi.DAO.getConnections(null);
 	var _g1 = 0, _g = connections.length;
 	while(_g1 < _g) {
 		var c_ = _g1++;
 		ui.AgentUi.CONNECTIONS.add(connections[c_]);
 	}
-	var labels = ui.model.TestDao.getLabels(null);
+	var labels = ui.AgentUi.DAO.getLabels(null);
 	var _g1 = 0, _g = labels.length;
 	while(_g1 < _g) {
 		var l_ = _g1++;
@@ -1972,6 +1975,9 @@ ui.model.Dao.prototype = {
 	,getConnections: function(user) {
 		return ui.model.TestDao.getConnections(user);
 	}
+	,getUser: function(uid) {
+		return ui.model.TestDao.getUser(uid);
+	}
 	,filter: function(node) {
 		node.log();
 		ui.AgentUi.CONTENT.clear();
@@ -2031,11 +2037,34 @@ ui.model.ModelObj.prototype = {
 	uid: null
 	,__class__: ui.model.ModelObj
 }
-ui.model.User = $hxClasses["ui.model.User"] = function() { }
+ui.model.User = $hxClasses["ui.model.User"] = function() {
+};
 ui.model.User.__name__ = ["ui","model","User"];
 ui.model.User.__super__ = ui.model.ModelObj;
 ui.model.User.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.User
+	_setCurrentAlias: function(alias) {
+		this.currentAlias = alias;
+		return this._getCurrentAlias();
+	}
+	,_getCurrentAlias: function() {
+		if(this.currentAlias == null) this._setCurrentAlias(this.aliases.iterator().next());
+		return this.currentAlias;
+	}
+	,currentAlias: null
+	,aliases: null
+	,imgSrc: null
+	,lname: null
+	,fname: null
+	,__class__: ui.model.User
+	,__properties__: {set_currentAlias:"_setCurrentAlias",get_currentAlias:"_getCurrentAlias"}
+});
+ui.model.Alias = $hxClasses["ui.model.Alias"] = function() {
+};
+ui.model.Alias.__name__ = ["ui","model","Alias"];
+ui.model.Alias.__super__ = ui.model.ModelObj;
+ui.model.Alias.prototype = $extend(ui.model.ModelObj.prototype,{
+	label: null
+	,__class__: ui.model.Alias
 });
 ui.model.Filterable = $hxClasses["ui.model.Filterable"] = function() { }
 ui.model.Filterable.__name__ = ["ui","model","Filterable"];
@@ -2393,6 +2422,27 @@ ui.model.TestDao.getContent = function(node) {
 	if(!ui.model.TestDao.initialized) ui.model.TestDao.initialize();
 	var arr = ui.model.TestDao.randomizeOrder(ui.model.TestDao.generateContent(node));
 	return ui.model.TestDao.getRandomNumber(arr,Std.random(arr.length));
+}
+ui.model.TestDao.getUser = function(uid) {
+	var user = new ui.model.User();
+	user.fname = "Jerry";
+	user.lname = "Seinfeld";
+	user.uid = ui.util.UidGenerator.create();
+	user.imgSrc = "media/test/jerry.jpg";
+	user.aliases = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	var alias = new ui.model.Alias();
+	alias.uid = ui.util.UidGenerator.create();
+	alias.label = "Comedian";
+	user.aliases.add(alias);
+	alias = new ui.model.Alias();
+	alias.uid = ui.util.UidGenerator.create();
+	alias.label = "Actor";
+	user.aliases.add(alias);
+	alias = new ui.model.Alias();
+	alias.uid = ui.util.UidGenerator.create();
+	alias.label = "Private";
+	user.aliases.add(alias);
+	return user;
 }
 if(!ui.observable) ui.observable = {}
 ui.observable.OSet = $hxClasses["ui.observable.OSet"] = function() { }
@@ -3466,13 +3516,39 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.labelTree",defineWidget());
+ui.widget.UserComp = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of UserComp must be a div element");
+		selfElement.addClass("ocontainer shadow ");
+		selfElement.append(new ui.jq.JQ("<div class='container'></div>"));
+		ui.model.EventModel.addListener("user",new ui.model.EventListener(function(user) {
+			self._setUser(user);
+		}));
+	}, _setUser : function(user) {
+		var self = this;
+		var selfElement = this.element;
+		var container = selfElement.children(".container");
+		var img = new ui.jq.JQ("<img alt='user' src='" + user.imgSrc + "' class='shadow'/>");
+		container.append(img);
+		var userIdTxt = new ui.jq.JQ("<div class='userIdTxt ui-helper-clearfix'></div>");
+		container.append(userIdTxt);
+		userIdTxt.append("<strong>" + user.fname + " " + user.lname + "</strong>").append("<br/>").append("<font style='font-size:12px'>" + user._getCurrentAlias().label + "</font>");
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.userComp",defineWidget());
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"9\" static=\"1\"><f a=\"t\">\n\t<a><uid><c path=\"String\"/></uid></a>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n</class>";
-ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\"><extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends></class>";
-ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\"><c path=\"String\"/></parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"28\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<aliases public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Alias\"/></c></aliases>\n\t<currentAlias public=\"1\" get=\"_getCurrentAlias\" set=\"_setCurrentAlias\"><c path=\"ui.model.Alias\"/></currentAlias>\n\t<_getCurrentAlias set=\"method\" line=\"23\"><f a=\"\"><c path=\"ui.model.Alias\"/></f></_getCurrentAlias>\n\t<_setCurrentAlias set=\"method\" line=\"30\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"ui.model.Alias\"/>\n</f></_setCurrentAlias>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Alias\"/></extends>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\"><c path=\"String\"/></parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"52\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"63\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<labels public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connections public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c></connections>\n</class>";
-ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"56\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"64\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"80\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"88\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.model.TestDao.initialized = false;
 ui.model.TestDao._lastRandom = 0;
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);
