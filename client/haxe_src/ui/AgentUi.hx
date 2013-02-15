@@ -17,10 +17,9 @@ import ui.observable.OSet;
 import ui.util.UidGenerator;
 
 import ui.widget.ConnectionsList;
+import ui.widget.LabelsList;
 import ui.widget.ContentFeed;
 import ui.widget.FilterComp;
-import ui.widget.LabelTree;
-import ui.widget.LabelComp;
 import ui.widget.UserComp;
 
 import ui.model.TestDao;
@@ -34,35 +33,28 @@ class AgentUi {
     
 	public static var LOGGER: Logga;
 
-    public static var CONNECTIONS: ObservableSet<Connection>;
-    public static var LABELS: ObservableSet<Label>;
+    // public static var CONNECTIONS: ObservableSet<Connection>;
+    // public static var LABELS: ObservableSet<Label>;
     public static var CONTENT: ObservableSet<Content>;
+    public static var USER: User;
 
     public static var DAO: Dao;
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
-        CONNECTIONS = new ObservableSet<Connection>(ModelObj.identifier);
-        LABELS = new ObservableSet<Label>(ModelObj.identifier);
+        // CONNECTIONS = new ObservableSet<Connection>(ModelObj.identifier);
+        // LABELS = new ObservableSet<Label>(ModelObj.identifier);
         CONTENT = new ObservableSet<Content>(ModelObj.identifier);
         DAO = new Dao();
-
-        //widgets
-        // LabelComp.widgetizeMe();
-        // ui.widget.ConnectionAvatar.widgetizeMe();
     }
 
     public static function start(): Void {
     	new JQ("#middleContainer #content #tabs").tabs();
 
         new ConnectionsList("#connections").connectionsList({
-                connections: AgentUi.CONNECTIONS
+                // connections: AgentUi.CONNECTIONS
             });
-        new LabelTree("#labels").labelTree({
-                labels: new FilteredSet(AgentUi.LABELS, function(label: Label): Bool { 
-                        return label.parentUid.isBlank();
-                    })
-            });
+        new LabelsList("#labelsList").labelsList();
 
         new FilterComp("#filter").filterComp(null);
 
@@ -77,20 +69,31 @@ class AgentUi {
             })
         );
 
+        EventModel.addListener("aliasLoaded", new EventListener(function(alias: Alias) {
+                USER.currentAlias = alias;
+            })
+        );
+
+        new JQ("body").click(function(evt: JqEvent): Void {
+            new JQ(".nonmodalPopup").hide();
+        });
+
+        //TODO load the user from the session
+
         demo();
     }
 
     private static function demo(): Void {
-        var user: User = DAO.getUser("");
-        EventModel.change("user", user);
-        var connections: Array<Connection> = DAO.getConnections(null);
-        for(c_ in 0...connections.length) {
-            CONNECTIONS.add(connections[c_]);
-        }
-        var labels: Array<Label> = DAO.getLabels(null);
-        for(l_ in 0...labels.length) {
-            LABELS.add(labels[l_]);
-        }
+        USER = DAO.getUser("");
+        EventModel.change("user", USER);
+        // var connections: Array<Connection> = DAO.getConnections(null);
+        // for(c_ in 0...connections.length) {
+            // CONNECTIONS.add(connections[c_]);
+        // }
+        // var labels: Array<Label> = DAO.getLabels(null);
+        // for(l_ in 0...labels.length) {
+            // LABELS.add(labels[l_]);
+        // }
     }
 
 }

@@ -157,7 +157,7 @@ extern class FilterComp extends JQ {
 		        			var node: Node = filterable.data("getNode")();
 		        			root.nodes.push(node);
 		        		});
-		        	EventModel.change("filter", root);
+		        	EventModel.change("runFilter", root);
 	        	},
 
 		        destroy: function() {

@@ -3,17 +3,19 @@ package ui.widget;
 import ui.jq.JQ;
 import ui.jq.JQDroppable;
 import ui.model.ModelObj;
+import ui.model.EventModel;
 import ui.observable.OSet;
 
 typedef ConnectionsListOptions = {
-	var connections: ObservableSet<Connection>;
 	@:optional var itemsClass: String;
 }
 
 typedef ConnectionsListWidgetDef = {
 	var options: ConnectionsListOptions;
-	@:optional var connections: MappedSet<Connection, ConnectionComp>;
+	// var connections: ObservableSet<Connection>;
+	@:optional var connectionsMap: MappedSet<Connection, ConnectionComp>;
 	var _create: Void->Void;
+	var _setConnections: ObservableSet<Connection>->Void;
 	var destroy: Void->Void;
 }
 
@@ -27,7 +29,7 @@ extern class ConnectionsList extends JQ {
 		var defineWidget: Void->ConnectionsListWidgetDef = function(): ConnectionsListWidgetDef {
 			return {
 		        options: {
-		            connections: null,
+		            // connections: null,
 		            itemsClass: null
 		        },
 
@@ -40,23 +42,28 @@ extern class ConnectionsList extends JQ {
 
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
-					// cast(selfElement, JQDroppable).droppable({
-			  //   		accept: function(d) {
-			  //   			return d.is(".connection");
-			  //   		},
-					// 	activeClass: "ui-state-hover",
-				 //      	hoverClass: "ui-state-active",
-				 //      	drop: function( event, ui ) {
-				 //      		App.LOGGER.debug("droppable drop");	
-				 //        	// $( this ).addClass( "ui-state-highlight" );
-				 //      	}
-				 //    });
+		        	EventModel.addListener("aliasLoaded", new EventListener(function(alias: Alias) {
+			                self._setConnections(alias.connections);
+			            })
+			        );
 
-					var spacer: JQ = selfElement.children("#sideRightSpacer");
-		        	self.connections = new MappedSet<Connection, ConnectionComp>(self.options.connections, function(conn: Connection): ConnectionComp {
+		        	EventModel.addListener("user", new EventListener(function(user: User) {
+			               	self._setConnections(user.currentAlias.connections);
+			            })
+			        );
+		        },
+
+		        _setConnections: function(connections: ObservableSet<Connection>): Void {
+		        	var self: ConnectionsListWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+		        	selfElement.children(".connection").remove();
+		        	
+		        	var spacer: JQ = selfElement.children("#sideRightSpacer");
+		        	self.connectionsMap = new MappedSet<Connection, ConnectionComp>(connections, function(conn: Connection): ConnectionComp {
 		        			return new ConnectionComp("<div></div>").connectionComp({connection: conn});
 		        		});
-		        	self.connections.listen(function(connComp: ConnectionComp, evt: EventType): Void {
+		        	self.connectionsMap.listen(function(connComp: ConnectionComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {
 		            			spacer.before(connComp);
 		            		} else if (evt.isUpdate()) {

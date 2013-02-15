@@ -54,7 +54,6 @@ class EventManager<T> {
 			)
 		);
 	}
-
 }
 
 class EventType {
@@ -92,9 +91,44 @@ class EventType {
 	public function isDelete() {
 		return !(_add || _update);
 	}
-
 }
 
+class AbstractSet<T> implements OSet<T> {
+
+	var _eventManager: EventManager<T>;
+
+	public function new() {
+		_eventManager = new EventManager(this);		
+	}
+
+	public function listen(l: T->EventType->Void): Void {
+		_eventManager.add(l);
+	}
+
+	public function filter(f: T->Bool): OSet<T> {
+		return new FilteredSet(this, f);
+	}
+
+	public function map<U>(f: T->U): OSet<U> {
+		return new MappedSet<T,U>(this, f);
+	}
+
+	function fire(t: T, type: EventType) {
+		_eventManager.fire(t, type);
+	}
+
+	public function identifier(): T->String {
+		return throw new Exception("implement me");
+	}
+
+	public function iterator(): Iterator<T> {
+		return throw new Exception("implement me");
+	}
+
+	public function delegate(): Hash<T> {
+		return throw new Exception("implement me");
+	}
+}
 
 class ObservableSet<T> extends AbstractSet<T> {
 
@@ -109,6 +143,14 @@ class ObservableSet<T> extends AbstractSet<T> {
 
 	public function add(t: T) {
 		addOrUpdate(t);
+	}
+
+	public function addAll(tArr: Array<T>) {
+		if(tArr != null && tArr.length > 0) {
+			for(t_ in 0...tArr.length) {
+				addOrUpdate(tArr[t_]);
+			}
+		}
 	}
 
 	public override function iterator(): Iterator<T> {
@@ -161,46 +203,7 @@ class ObservableSet<T> extends AbstractSet<T> {
 	public function size(): Int {
 		return _delegate.size;
 	}
-
 }
-
-class AbstractSet<T> implements OSet<T> {
-
-	var _eventManager: EventManager<T>;
-
-	public function new() {
-		_eventManager = new EventManager(this);		
-	}
-
-	public function listen(l: T->EventType->Void): Void {
-		_eventManager.add(l);
-	}
-
-	public function filter(f: T->Bool): OSet<T> {
-		return new FilteredSet(this, f);
-	}
-
-	public function map<U>(f: T->U): OSet<U> {
-		return new MappedSet<T,U>(this, f);
-	}
-
-	function fire(t: T, type: EventType) {
-		_eventManager.fire(t, type);
-	}
-
-	public function identifier(): T->String {
-		return throw new Exception("implement me");
-	}
-
-	public function iterator(): Iterator<T> {
-		return throw new Exception("implement me");
-	}
-
-	public function delegate(): Hash<T> {
-		return throw new Exception("implement me");
-	}
-}
-
 
 class MappedSet<T,U> extends AbstractSet<U> {
 
@@ -248,9 +251,7 @@ class MappedSet<T,U> extends AbstractSet<U> {
 	public override function iterator(): Iterator<U> {
 		return _mappedSet.iterator();
 	}
-
 }
-
 
 class FilteredSet<T> extends AbstractSet<T> {
 
@@ -313,7 +314,6 @@ class FilteredSet<T> extends AbstractSet<T> {
 		return _filteredSet.iterator();
 	}
 }
-
 
 class GroupedSet<T> extends AbstractSet<OSet<T>> {
 
@@ -407,9 +407,7 @@ class GroupedSet<T> extends AbstractSet<OSet<T>> {
 	public override function delegate(): Hash<OSet<T>> {
 		return cast _groupedSets;
 	}
-
 }
-
 
 class SortedSet<T> extends AbstractSet<T> {
 
@@ -511,7 +509,6 @@ class SortedSet<T> extends AbstractSet<T> {
 		throw new Exception("not implemented");
 		return null;
 	}
-
 }
 
 

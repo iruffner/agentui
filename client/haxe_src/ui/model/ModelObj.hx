@@ -14,7 +14,7 @@ class ModelObj<T> implements haxe.rtti.Infos {
 class User extends ModelObj<User> {
 	public var fname: String;
 	public var lname: String;
-	public var imgSrc: String;
+	@:optional public var imgSrc: String;
 	public var aliases: ObservableSet<Alias>;
 	public var currentAlias (_getCurrentAlias,_setCurrentAlias): Alias;
 
@@ -34,7 +34,10 @@ class User extends ModelObj<User> {
 }
 
 class Alias extends ModelObj<Alias> {
+	@:optional public var imgSrc: String;
 	public var label: String;
+	public var labels: ObservableSet<Label>;
+	public var connections: ObservableSet<Connection>;
 
 	public function new () {}
 }
@@ -45,7 +48,7 @@ interface Filterable {
 
 class Label extends ModelObj<Connection>, implements Filterable {
 	public var text: String;
-	public var parentUid: String;
+	@:optional public var parentUid: String;
 
 	@:transient public var color: String;
 

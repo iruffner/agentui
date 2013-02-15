@@ -21,6 +21,7 @@ class EventModel {
 	}
 
 	public static function change<T>(id: String, t: T): Void {
+		ui.AgentUi.LOGGER.debug("EVENTMODEL: Change to " + id);
 		var arr: Array<EventListener> = hash.get(id);
 		if(arr.hasValues()) {
 			for(l_ in 0...arr.length) {

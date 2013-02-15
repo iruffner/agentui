@@ -242,18 +242,46 @@ body {
 
 	/* UserId
 	-----------------------------------------------------------------------------*/
-	#userId img {
-		float: left; 
-		margin-left: 5px; 
-		margin-top: -15px; 
-		border-radius: 50%;
-		width: 100px;
-		border: 1px solid #5c9ccc;
+	#userId {
+		position: relative;
 	}
 
-	#userId .userIdTxt {
-		padding-top: 15px;
-	}
+		#userId img {
+			float: left; 
+			margin-left: 5px; 
+			margin-top: -15px; 
+			border-radius: 50%;
+			width: 100px;
+			border: 1px solid #5c9ccc;
+		}
+
+		#userId .userIdTxt {
+			padding-top: 15px;
+		}
+
+		#userId .aliasToggle {
+			color: blue;
+			text-decoration: underline;
+			position: absolute;
+			bottom: 0;
+			width: 6em;
+			margin-left: 8.75em;
+			margin-bottom: .3em;
+			cursor: pointer;
+		}
+		#userId .aliasBtn {
+			padding: 2px 6px;
+			width: 100%;
+		}
+			#userId .aliasBtn:last-child {
+				border-bottom-left-radius: 9px;
+				border-bottom-right-radius: 9px;
+			}
+
+			#userId .aliasBtn:first-child {
+				border-top-left-radius: 9px;
+				border-top-right-radius: 9px;
+			}
 
 	/* Labels
 	-----------------------------------------------------------------------------*/

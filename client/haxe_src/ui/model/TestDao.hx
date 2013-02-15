@@ -12,6 +12,7 @@ class TestDao {
 
 	private static var connections: Array<Connection>;
 	private static var labels: Array<Label>;
+	private static var aliases: Array<Alias>;
 	private static var initialized: Bool = false;
 	private static var _lastRandom: Int = 0;
 
@@ -74,6 +75,27 @@ class TestDao {
         var interests = new Label("Interests");
         interests.uid = UidGenerator.create();
         labels.push(interests);
+	}
+
+	private static function buildAliases(): Void {
+		aliases = new Array<Alias>();
+
+		var alias: Alias = new Alias();
+        alias.uid = UidGenerator.create();
+        alias.label = "Comedian";
+        alias.imgSrc = "media/test/jerry_comedy.jpg";
+        aliases.push(alias);
+
+        alias = new Alias();
+        alias.uid = UidGenerator.create();
+        alias.label = "Actor";
+        alias.imgSrc = "media/test/jerry_bee.jpg";
+        aliases.push(alias);
+
+        alias = new Alias();
+        alias.uid = UidGenerator.create();
+        alias.label = "Private";
+        aliases.push(alias);
 	}
 
 	private static function generateContent(node: Node): Array<Content> {
@@ -317,6 +339,7 @@ class TestDao {
 		initialized = true;
 		buildConnections();
 		buildLabels();
+		buildAliases();
 	}
 
 	public static function getConnections(user: User): Array<Connection> {
@@ -336,24 +359,31 @@ class TestDao {
 	}
 
 	public static function getUser(uid: String): User {
+		if(!initialized) initialize();
 		var user: User = new User();
         user.fname = "Jerry";
         user.lname = "Seinfeld";
         user.uid = UidGenerator.create();
-        user.imgSrc = "media/test/jerry.jpg";
+        user.imgSrc = "media/test/jerry_default.jpg";
         user.aliases = new ObservableSet<Alias>(ModelObj.identifier);
-        var alias: Alias = new Alias();
-        alias.uid = UidGenerator.create();
-        alias.label = "Comedian";
-        user.aliases.add(alias);
-        alias = new Alias();
-        alias.uid = UidGenerator.create();
-        alias.label = "Actor";
-        user.aliases.add(alias);
-        alias = new Alias();
-        alias.uid = UidGenerator.create();
-        alias.label = "Private";
-        user.aliases.add(alias);
+        user.aliases.addAll(aliases);
+        var alias: Alias = aliases[0];
+        alias.connections = new ObservableSet<Connection>(ModelObj.identifier);
+        alias.connections.addAll(connections);
+        alias.labels = new ObservableSet<Label>(ModelObj.identifier);
+        alias.labels.addAll(labels);
+        user.currentAlias = alias;
+        
         return user;
+	}
+
+	public static function getAlias(uid: String): Alias {
+		if(!initialized) initialize();
+		var alias: Alias = aliases.getElementComplex(uid, "uid");
+		alias.connections = new ObservableSet<Connection>(ModelObj.identifier);
+        alias.connections.addAll(connections);
+        alias.labels = new ObservableSet<Label>(ModelObj.identifier);
+        alias.labels.addAll(labels);
+		return alias;
 	}
 }

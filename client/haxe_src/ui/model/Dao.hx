@@ -9,8 +9,14 @@ using ui.helper.ArrayHelper;
 class Dao {
 
 	public function new() {
-		EventModel.addListener("filter", new EventListener(function(node: Node): Void {
+		EventModel.addListener("runFilter", new EventListener(function(node: Node): Void {
                 this.filter(node);
+            })
+        );
+
+        EventModel.addListener("loadAlias", new EventListener(function(uid: String): Void {
+                var alias: Alias = this.getAlias(uid);
+                EventModel.change("aliasLoaded", alias);
             })
         );
 	}
@@ -29,6 +35,10 @@ class Dao {
 
 	public function getUser(uid: String): User {
 		return TestDao.getUser(uid);
+	}
+
+	public function getAlias(uid: String): Alias {
+		return TestDao.getAlias(uid);
 	}
 
 	public function getConnections(user: User): Array<Connection> {
