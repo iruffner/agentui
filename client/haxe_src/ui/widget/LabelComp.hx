@@ -113,7 +113,7 @@ extern class LabelComp extends FilterableComponent {
 
 			            cast(selfElement, JQDroppable).droppable({
 				    		accept: function(d) {
-				    			return !JQ.cur.parent().is(".filterCombination") && JQ.cur.parent().is(".dropCombiner") && d.is(".filterable");
+				    			return !JQ.cur.parent().is(".filterCombination") && JQ.cur.parent().is(".dropCombiner") && d.is(".label");
 				    		},
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
@@ -122,7 +122,8 @@ extern class LabelComp extends FilterableComponent {
 					      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
 					      		filterCombiner.appendTo(JQ.cur.parent());
 					      		filterCombiner.filterCombination({
-					      			event: event	
+					      			event: event,
+					      			type: "LABEL"
 				      			});
 				      			filterCombiner.filterCombination("addFilterable", JQ.cur);
 

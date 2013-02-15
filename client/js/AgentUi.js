@@ -3127,7 +3127,7 @@ var defineWidget = function() {
 		selfElement.append(toggle);
 		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : "parent", distance : 10, scroll : false});
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-			return d["is"](".filterable");
+			return self.options.type == "LABEL" && d["is"](".label") || self.options.type == "CONNECTION" && d["is"](".connectionAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
 			clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass")).appendTo(selfElement).css("position","absolute").css({ left : "", top : ""});
@@ -3249,11 +3249,11 @@ var defineWidget = function() {
 			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
 			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
 			(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-				return !$(this).parent()["is"](".filterCombination") && $(this).parent()["is"](".dropCombiner") && d["is"](".filterable");
+				return !$(this).parent()["is"](".filterCombination") && $(this).parent()["is"](".dropCombiner") && d["is"](".connectionAvatar");
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 				var filterCombiner = new ui.widget.FilterCombination("<div></div>");
 				filterCombiner.appendTo($(this).parent());
-				filterCombiner.filterCombination({ event : event});
+				filterCombiner.filterCombination({ event : event, type : "CONNECTION"});
 				filterCombiner.filterCombination("addFilterable",$(this));
 				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
 				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
@@ -3361,11 +3361,11 @@ var defineWidget = function() {
 			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
 			(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
 			(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
-				return !$(this).parent()["is"](".filterCombination") && $(this).parent()["is"](".dropCombiner") && d["is"](".filterable");
+				return !$(this).parent()["is"](".filterCombination") && $(this).parent()["is"](".dropCombiner") && d["is"](".label");
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 				var filterCombiner = new ui.widget.FilterCombination("<div></div>");
 				filterCombiner.appendTo($(this).parent());
-				filterCombiner.filterCombination({ event : event});
+				filterCombiner.filterCombination({ event : event, type : "LABEL"});
 				filterCombiner.filterCombination("addFilterable",$(this));
 				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
 				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));

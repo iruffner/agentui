@@ -13,6 +13,7 @@ using ui.helper.ArrayHelper;
 typedef FilterCombinationOptions = {
 	@:optional var position: {left: Int, top: Int};
 	@:optional var event: JqEvent;
+	var type: String;
 }
 
 typedef FilterCombinationWidgetDef = {
@@ -34,7 +35,7 @@ extern class FilterCombination extends FilterableComponent {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd : String, arg: Dynamic):Void{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function filterCombination(?opts: FilterCombinationOptions): FilterCombination;
+	function filterCombination(opts: FilterCombinationOptions): FilterCombination;
 
 	private static function __init__(): Void {
 		untyped FilterCombination = window.jQuery;
@@ -130,8 +131,8 @@ extern class FilterCombination extends FilterableComponent {
 				    });
 
 					cast(selfElement, JQDroppable).droppable({
-			    		accept: function(d) {
-			    			return d.is(".filterable");
+			    		accept: function(d: JQ) {
+			    			return (self.options.type == "LABEL" && d.is(".label")) || (self.options.type == "CONNECTION" && d.is(".connectionAvatar"));
 			    		},
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",

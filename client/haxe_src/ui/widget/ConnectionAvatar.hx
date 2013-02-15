@@ -115,7 +115,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 			            cast(selfElement, JQDroppable).droppable({
 				    		accept: function(d) {
-				    			return !JQ.cur.parent().is(".filterCombination") && JQ.cur.parent().is(".dropCombiner") && d.is(".filterable");
+				    			return !JQ.cur.parent().is(".filterCombination") && JQ.cur.parent().is(".dropCombiner") && d.is(".connectionAvatar");
 				    		},
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
@@ -124,7 +124,8 @@ extern class ConnectionAvatar extends FilterableComponent {
 					      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
 					      		filterCombiner.appendTo(JQ.cur.parent());
 					      		filterCombiner.filterCombination({
-					      			event: event	
+					      			event: event,
+					      			type: "CONNECTION"
 				      			});
 				      			filterCombiner.filterCombination("addFilterable", JQ.cur);
 
