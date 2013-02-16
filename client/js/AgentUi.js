@@ -1952,8 +1952,8 @@ ui.log.Logga.prototype = {
 if(!ui.model) ui.model = {}
 ui.model.Dao = $hxClasses["ui.model.Dao"] = function() {
 	var _g = this;
-	ui.model.EventModel.addListener("runFilter",new ui.model.EventListener(function(node) {
-		_g.filter(node);
+	ui.model.EventModel.addListener("runFilter",new ui.model.EventListener(function(filter) {
+		_g.filter(filter);
 	}));
 	ui.model.EventModel.addListener("loadAlias",new ui.model.EventListener(function(uid) {
 		var alias = _g.getAlias(uid);
@@ -1974,18 +1974,16 @@ ui.model.Dao.prototype = {
 	,getUser: function(uid) {
 		return ui.model.TestDao.getUser(uid);
 	}
-	,filter: function(node) {
-		node.log();
+	,filter: function(filter) {
+		filter.rootNode.log();
 		ui.AgentUi.CONTENT.clear();
-		if(ui.helper.ArrayHelper.hasValues(node.nodes)) {
-			var content = ui.model.TestDao.getContent(node);
-			var _g1 = 0, _g = content.length;
-			while(_g1 < _g) {
-				var c_ = _g1++;
-				ui.AgentUi.CONTENT.add(content[c_]);
-			}
+		if(filter.rootNode.hasChildren()) {
+			var string = filter.kdbxify();
+			ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
+			var content = ui.model.TestDao.getContent(filter.rootNode);
+			ui.AgentUi.CONTENT.addAll(content);
 		}
-		ui.model.EventModel.change("filterComplete",node);
+		ui.model.EventModel.change("filterComplete",filter);
 	}
 	,__class__: ui.model.Dao
 }
@@ -2023,6 +2021,46 @@ ui.model.EventListener.prototype = {
 	,uid: null
 	,fcn: null
 	,__class__: ui.model.EventListener
+}
+ui.model.Filter = $hxClasses["ui.model.Filter"] = function(node) {
+	this.rootNode = node;
+	this.connectionNodes = new Array();
+	this.labelNodes = new Array();
+	if(node.hasChildren()) {
+		var _g1 = 0, _g = node.nodes.length;
+		while(_g1 < _g) {
+			var ch_ = _g1++;
+			if(node.nodes[ch_].type == "CONNECTION") this.connectionNodes.push(node.nodes[ch_]); else if(node.nodes[ch_].type == "LABEL") this.labelNodes.push(node.nodes[ch_]); else throw new ui.exception.Exception("dont know how to handle node of type " + node.nodes[ch_].type);
+		}
+	}
+};
+ui.model.Filter.__name__ = ["ui","model","Filter"];
+ui.model.Filter.prototype = {
+	_kdbxify: function(nodes) {
+		var str = "";
+		if(ui.helper.ArrayHelper.hasValues(nodes)) {
+			if(nodes.length > 1) str += "(";
+			var iteration = 0;
+			var _g1 = 0, _g = nodes.length;
+			while(_g1 < _g) {
+				var ln_ = _g1++;
+				if(iteration++ > 0) str += ",";
+				str += nodes[ln_].getKdbxName();
+				if(nodes[ln_].hasChildren()) str += this._kdbxify(nodes[ln_].nodes);
+			}
+			if(nodes.length > 1) str += ")";
+		}
+		return str;
+	}
+	,kdbxify: function() {
+		var queries = [this._kdbxify(this.labelNodes),this._kdbxify(this.connectionNodes)];
+		var query = ui.helper.ArrayHelper.joinX(queries,",");
+		return query;
+	}
+	,rootNode: null
+	,connectionNodes: null
+	,labelNodes: null
+	,__class__: ui.model.Filter
 }
 ui.model.ModelObj = $hxClasses["ui.model.ModelObj"] = function() { }
 ui.model.ModelObj.__name__ = ["ui","model","ModelObj"];
@@ -2123,12 +2161,24 @@ ui.model.AudioContent.prototype = $extend(ui.model.Content.prototype,{
 	,audioSrc: null
 	,__class__: ui.model.AudioContent
 });
-ui.model.Node = $hxClasses["ui.model.Node"] = function() { }
+ui.model.Node = $hxClasses["ui.model.Node"] = function() {
+	this.type = "ROOT";
+};
 ui.model.Node.__name__ = ["ui","model","Node"];
 ui.model.Node.prototype = {
-	getPrintName: function() {
+	getKdbxName: function() {
 		throw new ui.exception.Exception("override me");
 		return null;
+	}
+	,getPrintName: function() {
+		throw new ui.exception.Exception("override me");
+		return null;
+	}
+	,hasChildren: function() {
+		return ui.helper.ArrayHelper.hasValues(this.nodes);
+	}
+	,addNode: function(n) {
+		this.nodes.push(n);
 	}
 	,_log: function(depth) {
 		if(depth == null) depth = 0;
@@ -2148,6 +2198,7 @@ ui.model.Node.prototype = {
 		ui.AgentUi.LOGGER.debug(msg);
 		ui.AgentUi.LOGGER.debug("===================");
 	}
+	,type: null
 	,nodes: null
 	,__class__: ui.model.Node
 }
@@ -2157,8 +2208,11 @@ ui.model.And = $hxClasses["ui.model.And"] = function() {
 ui.model.And.__name__ = ["ui","model","And"];
 ui.model.And.__super__ = ui.model.Node;
 ui.model.And.prototype = $extend(ui.model.Node.prototype,{
-	getPrintName: function() {
-		return "AND";
+	getKdbxName: function() {
+		return "all";
+	}
+	,getPrintName: function() {
+		return "AND (" + this.type + " )";
 	}
 	,__class__: ui.model.And
 });
@@ -2168,8 +2222,11 @@ ui.model.Or = $hxClasses["ui.model.Or"] = function() {
 ui.model.Or.__name__ = ["ui","model","Or"];
 ui.model.Or.__super__ = ui.model.Node;
 ui.model.Or.prototype = $extend(ui.model.Node.prototype,{
-	getPrintName: function() {
-		return "OR";
+	getKdbxName: function() {
+		return "any";
+	}
+	,getPrintName: function() {
+		return "OR (" + this.type + " )";
 	}
 	,__class__: ui.model.Or
 });
@@ -2178,12 +2235,17 @@ ui.model.ContentNode = $hxClasses["ui.model.ContentNode"] = function() {
 ui.model.ContentNode.__name__ = ["ui","model","ContentNode"];
 ui.model.ContentNode.__super__ = ui.model.Node;
 ui.model.ContentNode.prototype = $extend(ui.model.Node.prototype,{
-	getPrintName: function() {
+	getKdbxName: function() {
+		return this.contentUid;
+	}
+	,getPrintName: function() {
 		return "CONTENT(" + this.type + " | " + this.contentUid + ")";
+	}
+	,hasChildren: function() {
+		return false;
 	}
 	,filterable: null
 	,contentUid: null
-	,type: null
 	,__class__: ui.model.ContentNode
 });
 ui.model.TestDao = $hxClasses["ui.model.TestDao"] = function() { }
@@ -3088,11 +3150,12 @@ var defineWidget = function() {
 		selfElement.data("getNode",function() {
 			var root;
 			if(selfElement.children(".andOrToggle").children(".any").hasClass("ui-state-active")) root = new ui.model.Or(); else root = new ui.model.And();
+			root.type = self.options.type;
 			var filterables = selfElement.children(".filterable");
 			filterables.each(function(idx,el) {
 				var filterable = new ui.widget.FilterableComponent(el);
 				var node = (filterable.data("getNode"))();
-				root.nodes.push(node);
+				root.addNode(node);
 			});
 			return root;
 		});
@@ -3504,13 +3567,14 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		var root = new ui.model.And();
+		root.type = "ROOT";
 		var filterables = selfElement.children(".filterable");
 		filterables.each(function(idx,el) {
 			var filterable = new ui.widget.FilterableComponent(el);
 			var node = (filterable.data("getNode"))();
-			root.nodes.push(node);
+			root.addNode(node);
 		});
-		ui.model.EventModel.change("runFilter",root);
+		ui.model.EventModel.change("runFilter",new ui.model.Filter(root));
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};

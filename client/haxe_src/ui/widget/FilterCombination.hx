@@ -56,11 +56,12 @@ extern class FilterCombination extends FilterableComponent {
 		            		} else {
 		            			root = new And();
 		            		}
+		            		root.type = self.options.type;
 		            		var filterables: JQ = selfElement.children(".filterable");
 				        	filterables.each(function (idx: Int, el: js.Dom.HtmlDom): Void {
 				        			var filterable: FilterableComponent = new FilterableComponent(el);
 				        			var node: Node = filterable.data("getNode")();
-				        			root.nodes.push(node);
+				        			root.addNode(node);
 				        		});
 		            		return root;
 		            	});

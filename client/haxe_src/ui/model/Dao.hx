@@ -5,12 +5,13 @@ import ui.model.Node;
 import ui.model.EventModel;
 
 using ui.helper.ArrayHelper;
+using Lambda;
 
 class Dao {
 
 	public function new() {
-		EventModel.addListener("runFilter", new EventListener(function(node: Node): Void {
-                this.filter(node);
+		EventModel.addListener("runFilter", new EventListener(function(filter: Filter): Void {
+                this.filter(filter);
             })
         );
 
@@ -21,16 +22,18 @@ class Dao {
         );
 	}
 
-	public function filter(node: Node): Void {
-		node.log();
+	public function filter(filter: Filter): Void {
+		filter.rootNode.log();
 		ui.AgentUi.CONTENT.clear();
-		if(node.nodes.hasValues()) {
-			var content: Array<Content> = ui.model.TestDao.getContent(node);
-			for(c_ in 0...content.length) {
-				ui.AgentUi.CONTENT.add(content[c_]);
-			}
+		
+		if(filter.rootNode.hasChildren()) {
+			var string: String = filter.kdbxify();
+			ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
+			var content: Array<Content> = ui.model.TestDao.getContent(filter.rootNode);
+			ui.AgentUi.CONTENT.addAll(content);
 		}
-		EventModel.change("filterComplete", node);
+
+		EventModel.change("filterComplete", filter);
 	}
 
 	public function getUser(uid: String): User {

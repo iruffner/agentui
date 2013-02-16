@@ -5,6 +5,7 @@ import ui.jq.JQ;
 import ui.jq.JQDroppable;
 import ui.model.ModelObj;
 import ui.model.Node;
+import ui.model.Filter;
 import ui.model.EventModel;
 import ui.observable.OSet;
 import ui.widget.LabelComp;
@@ -150,14 +151,15 @@ extern class FilterComp extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	var root: Node = new And();//determine this
+		        	root.type = "ROOT";
 
 		        	var filterables: JQ = selfElement.children(".filterable");
 		        	filterables.each(function (idx: Int, el: js.Dom.HtmlDom): Void {
 		        			var filterable: FilterableComponent = new FilterableComponent(el);
 		        			var node: Node = filterable.data("getNode")();
-		        			root.nodes.push(node);
+		        			root.addNode(node);
 		        		});
-		        	EventModel.change("runFilter", root);
+		        	EventModel.change("runFilter", new Filter(root));
 	        	},
 
 		        destroy: function() {
