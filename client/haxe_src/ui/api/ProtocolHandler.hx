@@ -1,13 +1,19 @@
-package ui.model;
+package ui.api;
 
 import ui.model.ModelObj;
 import ui.model.Node;
+import ui.model.Filter;
 import ui.model.EventModel;
+
+import ui.api.Requester;
+import ui.api.ProtocolMessage;
 
 using ui.helper.ArrayHelper;
 using Lambda;
 
-class Dao {
+class ProtocolHandler {
+
+	private var currentFilter: Filter;
 
 	public function new() {
 		EventModel.addListener("runFilter", new EventListener(function(filter: Filter): Void {
@@ -29,14 +35,13 @@ class Dao {
 		if(filter.rootNode.hasChildren()) {
 			var string: String = filter.kdbxify();
 			ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
-			var content: Array<Content> = ui.model.TestDao.getContent(filter.rootNode);
+			var content: Array<Content> =TestDao.getContent(filter.rootNode);
 			ui.AgentUi.CONTENT.addAll(content);
 		}
-
-		EventModel.change("filterComplete", filter);
 	}
 
 	public function getUser(uid: String): User {
+		new InitializeSessionRequest();
 		return TestDao.getUser(uid);
 	}
 

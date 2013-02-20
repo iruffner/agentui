@@ -8,9 +8,9 @@ import ui.log.Logga;
 import ui.log.LogLevel;
 
 import ui.model.ModelObj;
-import ui.model.Dao;
 import ui.model.Node;
 import ui.model.EventModel;
+import ui.api.ProtocolHandler;
 
 import ui.observable.OSet;
 
@@ -21,8 +21,6 @@ import ui.widget.LabelsList;
 import ui.widget.ContentFeed;
 import ui.widget.FilterComp;
 import ui.widget.UserComp;
-
-import ui.model.TestDao;
 
 using ui.helper.ArrayHelper;
 using ui.helper.StringHelper;
@@ -38,14 +36,14 @@ class AgentUi {
     public static var CONTENT: ObservableSet<Content>;
     public static var USER: User;
 
-    public static var DAO: Dao;
+    public static var PROTOCOL: ProtocolHandler;
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
         // CONNECTIONS = new ObservableSet<Connection>(ModelObj.identifier);
         // LABELS = new ObservableSet<Label>(ModelObj.identifier);
         CONTENT = new ObservableSet<Content>(ModelObj.identifier);
-        DAO = new Dao();
+        PROTOCOL = new ProtocolHandler();
     }
 
     public static function start(): Void {
@@ -84,7 +82,7 @@ class AgentUi {
     }
 
     private static function demo(): Void {
-        USER = DAO.getUser("");
+        USER = PROTOCOL.getUser("");
         EventModel.change("user", USER);
         // var connections: Array<Connection> = DAO.getConnections(null);
         // for(c_ in 0...connections.length) {

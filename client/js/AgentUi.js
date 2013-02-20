@@ -1480,11 +1480,11 @@ ui.AgentUi.__name__ = ["ui","AgentUi"];
 ui.AgentUi.LOGGER = null;
 ui.AgentUi.CONTENT = null;
 ui.AgentUi.USER = null;
-ui.AgentUi.DAO = null;
+ui.AgentUi.PROTOCOL = null;
 ui.AgentUi.main = function() {
 	ui.AgentUi.LOGGER = new ui.log.Logga(ui.log.LogLevel.DEBUG);
 	ui.AgentUi.CONTENT = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	ui.AgentUi.DAO = new ui.model.Dao();
+	ui.AgentUi.PROTOCOL = new ui.api.ProtocolHandler();
 }
 ui.AgentUi.start = function() {
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
@@ -1505,7 +1505,7 @@ ui.AgentUi.start = function() {
 	ui.AgentUi.demo();
 }
 ui.AgentUi.demo = function() {
-	ui.AgentUi.USER = ui.AgentUi.DAO.getUser("");
+	ui.AgentUi.USER = ui.AgentUi.PROTOCOL.getUser("");
 	ui.model.EventModel.change("user",ui.AgentUi.USER);
 }
 ui.CrossMojo = $hxClasses["ui.CrossMojo"] = function() { }
@@ -1520,6 +1520,564 @@ ui.CrossMojo.windowConsole = function() {
 }
 ui.CrossMojo.confirm = function() {
 	return confirm;
+}
+if(!ui.api) ui.api = {}
+ui.api.ProtocolHandler = $hxClasses["ui.api.ProtocolHandler"] = function() {
+	var _g = this;
+	ui.model.EventModel.addListener("runFilter",new ui.model.EventListener(function(filter) {
+		_g.filter(filter);
+	}));
+	ui.model.EventModel.addListener("loadAlias",new ui.model.EventListener(function(uid) {
+		var alias = _g.getAlias(uid);
+		ui.model.EventModel.change("aliasLoaded",alias);
+	}));
+};
+ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
+ui.api.ProtocolHandler.prototype = {
+	getLabels: function(user) {
+		return ui.api.TestDao.getLabels(user);
+	}
+	,getConnections: function(user) {
+		return ui.api.TestDao.getConnections(user);
+	}
+	,getAlias: function(uid) {
+		return ui.api.TestDao.getAlias(uid);
+	}
+	,getUser: function(uid) {
+		new ui.api.InitializeSessionRequest();
+		return ui.api.TestDao.getUser(uid);
+	}
+	,filter: function(filter) {
+		filter.rootNode.log();
+		ui.AgentUi.CONTENT.clear();
+		if(filter.rootNode.hasChildren()) {
+			var string = filter.kdbxify();
+			ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
+			var content = ui.api.TestDao.getContent(filter.rootNode);
+			ui.AgentUi.CONTENT.addAll(content);
+		}
+	}
+	,currentFilter: null
+	,__class__: ui.api.ProtocolHandler
+}
+ui.api.ProtocolMessage = $hxClasses["ui.api.ProtocolMessage"] = function() { }
+ui.api.ProtocolMessage.__name__ = ["ui","api","ProtocolMessage"];
+ui.api.ProtocolMessage.prototype = {
+	toJson: function() {
+		return { };
+	}
+	,content: null
+	,msgType: null
+	,__class__: ui.api.ProtocolMessage
+}
+ui.api.Payload = $hxClasses["ui.api.Payload"] = function() { }
+ui.api.Payload.__name__ = ["ui","api","Payload"];
+ui.api.InitializeSessionRequest = $hxClasses["ui.api.InitializeSessionRequest"] = function() {
+	this.msgType = ui.api.MsgType.initializeSessionRequest;
+};
+ui.api.InitializeSessionRequest.__name__ = ["ui","api","InitializeSessionRequest"];
+ui.api.InitializeSessionRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.InitializeSessionRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.InitializeSessionRequest
+});
+ui.api.InitializeSessionRequestData = $hxClasses["ui.api.InitializeSessionRequestData"] = function() { }
+ui.api.InitializeSessionRequestData.__name__ = ["ui","api","InitializeSessionRequestData"];
+ui.api.InitializeSessionRequestData.__super__ = ui.api.Payload;
+ui.api.InitializeSessionRequestData.prototype = $extend(ui.api.Payload.prototype,{
+	agentIdentifier: null
+	,userCredentials: null
+	,__class__: ui.api.InitializeSessionRequestData
+});
+ui.api.InitializeSessionResponse = $hxClasses["ui.api.InitializeSessionResponse"] = function() {
+	this.msgType = ui.api.MsgType.initializeSessionResponse;
+};
+ui.api.InitializeSessionResponse.__name__ = ["ui","api","InitializeSessionResponse"];
+ui.api.InitializeSessionResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.InitializeSessionResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.InitializeSessionResponse
+});
+ui.api.InitializeSessionResponseData = $hxClasses["ui.api.InitializeSessionResponseData"] = function() { }
+ui.api.InitializeSessionResponseData.__name__ = ["ui","api","InitializeSessionResponseData"];
+ui.api.InitializeSessionResponseData.__super__ = ui.api.Payload;
+ui.api.InitializeSessionResponseData.prototype = $extend(ui.api.Payload.prototype,{
+	userToken: null
+	,sessionIdentifier: null
+	,lastActiveFilter: null
+	,connections: null
+	,labels: null
+	,defaultAlias: null
+	,aliases: null
+	,__class__: ui.api.InitializeSessionResponseData
+});
+ui.api.CloseSessionRequest = $hxClasses["ui.api.CloseSessionRequest"] = function() {
+	this.msgType = ui.api.MsgType.closeSessionRequest;
+};
+ui.api.CloseSessionRequest.__name__ = ["ui","api","CloseSessionRequest"];
+ui.api.CloseSessionRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.CloseSessionRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.CloseSessionRequest
+});
+ui.api.CloseSessionRequestData = $hxClasses["ui.api.CloseSessionRequestData"] = function() { }
+ui.api.CloseSessionRequestData.__name__ = ["ui","api","CloseSessionRequestData"];
+ui.api.CloseSessionRequestData.prototype = {
+	reason: null
+	,userToken: null
+	,sessionIdentifier: null
+	,__class__: ui.api.CloseSessionRequestData
+}
+ui.api.CloseSessionResponse = $hxClasses["ui.api.CloseSessionResponse"] = function() {
+	this.msgType = ui.api.MsgType.closeSessionResponse;
+};
+ui.api.CloseSessionResponse.__name__ = ["ui","api","CloseSessionResponse"];
+ui.api.CloseSessionResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.CloseSessionResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.CloseSessionResponse
+});
+ui.api.CloseSessionResponseData = $hxClasses["ui.api.CloseSessionResponseData"] = function() { }
+ui.api.CloseSessionResponseData.__name__ = ["ui","api","CloseSessionResponseData"];
+ui.api.CloseSessionResponseData.prototype = {
+	userToken: null
+	,sessionIdentifier: null
+	,__class__: ui.api.CloseSessionResponseData
+}
+ui.api.EvalRequest = $hxClasses["ui.api.EvalRequest"] = function() {
+	this.msgType = ui.api.MsgType.evalRequest;
+};
+ui.api.EvalRequest.__name__ = ["ui","api","EvalRequest"];
+ui.api.EvalRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.EvalRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.EvalRequest
+});
+ui.api.EvalRequestData = $hxClasses["ui.api.EvalRequestData"] = function() { }
+ui.api.EvalRequestData.__name__ = ["ui","api","EvalRequestData"];
+ui.api.EvalRequestData.prototype = {
+	userToken: null
+	,sessionIdentifier: null
+	,subsessionIdentifier: null
+	,expression: null
+	,__class__: ui.api.EvalRequestData
+}
+ui.api.EvalResponse = $hxClasses["ui.api.EvalResponse"] = function() {
+	this.msgType = ui.api.MsgType.evalResponse;
+};
+ui.api.EvalResponse.__name__ = ["ui","api","EvalResponse"];
+ui.api.EvalResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.EvalResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.EvalResponse
+});
+ui.api.EvalComplete = $hxClasses["ui.api.EvalComplete"] = function() {
+	this.msgType = ui.api.MsgType.evalComplete;
+};
+ui.api.EvalComplete.__name__ = ["ui","api","EvalComplete"];
+ui.api.EvalComplete.__super__ = ui.api.ProtocolMessage;
+ui.api.EvalComplete.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.EvalComplete
+});
+ui.api.EvalResponseData = $hxClasses["ui.api.EvalResponseData"] = function() { }
+ui.api.EvalResponseData.__name__ = ["ui","api","EvalResponseData"];
+ui.api.EvalResponseData.prototype = {
+	userToken: null
+	,sessionIdentifier: null
+	,subsessionIdentifier: null
+	,posts: null
+	,__class__: ui.api.EvalResponseData
+}
+ui.api.EvalError = $hxClasses["ui.api.EvalError"] = function() {
+	this.msgType = ui.api.MsgType.evalError;
+};
+ui.api.EvalError.__name__ = ["ui","api","EvalError"];
+ui.api.EvalError.__super__ = ui.api.ProtocolMessage;
+ui.api.EvalError.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.EvalError
+});
+ui.api.EvalErrorData = $hxClasses["ui.api.EvalErrorData"] = function() { }
+ui.api.EvalErrorData.__name__ = ["ui","api","EvalErrorData"];
+ui.api.EvalErrorData.prototype = {
+	userToken: null
+	,sessionIdentifier: null
+	,subsessionIdentifier: null
+	,errorMsg: null
+	,__class__: ui.api.EvalErrorData
+}
+ui.api.StopEvalRequest = $hxClasses["ui.api.StopEvalRequest"] = function() {
+	this.msgType = ui.api.MsgType.stopEvalRequest;
+};
+ui.api.StopEvalRequest.__name__ = ["ui","api","StopEvalRequest"];
+ui.api.StopEvalRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.StopEvalRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.StopEvalRequest
+});
+ui.api.StopEvalResponse = $hxClasses["ui.api.StopEvalResponse"] = function() {
+	this.msgType = ui.api.MsgType.stopEvalResponse;
+};
+ui.api.StopEvalResponse.__name__ = ["ui","api","StopEvalResponse"];
+ui.api.StopEvalResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.StopEvalResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.StopEvalResponse
+});
+ui.api.StopMsgData = $hxClasses["ui.api.StopMsgData"] = function() { }
+ui.api.StopMsgData.__name__ = ["ui","api","StopMsgData"];
+ui.api.StopMsgData.prototype = {
+	userToken: null
+	,sessionIdentifier: null
+	,subsessionIdentifier: null
+	,__class__: ui.api.StopMsgData
+}
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","closeSessionRequest","closeSessionResponse","evalRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse"] }
+ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
+ui.api.MsgType.initializeSessionRequest.toString = $estr;
+ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.initializeSessionResponse = ["initializeSessionResponse",1];
+ui.api.MsgType.initializeSessionResponse.toString = $estr;
+ui.api.MsgType.initializeSessionResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.closeSessionRequest = ["closeSessionRequest",2];
+ui.api.MsgType.closeSessionRequest.toString = $estr;
+ui.api.MsgType.closeSessionRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.closeSessionResponse = ["closeSessionResponse",3];
+ui.api.MsgType.closeSessionResponse.toString = $estr;
+ui.api.MsgType.closeSessionResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.evalRequest = ["evalRequest",4];
+ui.api.MsgType.evalRequest.toString = $estr;
+ui.api.MsgType.evalRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.evalResponse = ["evalResponse",5];
+ui.api.MsgType.evalResponse.toString = $estr;
+ui.api.MsgType.evalResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.evalComplete = ["evalComplete",6];
+ui.api.MsgType.evalComplete.toString = $estr;
+ui.api.MsgType.evalComplete.__enum__ = ui.api.MsgType;
+ui.api.MsgType.evalError = ["evalError",7];
+ui.api.MsgType.evalError.toString = $estr;
+ui.api.MsgType.evalError.__enum__ = ui.api.MsgType;
+ui.api.MsgType.stopEvalRequest = ["stopEvalRequest",8];
+ui.api.MsgType.stopEvalRequest.toString = $estr;
+ui.api.MsgType.stopEvalRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.stopEvalResponse = ["stopEvalResponse",9];
+ui.api.MsgType.stopEvalResponse.toString = $estr;
+ui.api.MsgType.stopEvalResponse.__enum__ = ui.api.MsgType;
+ui.api.Requester = $hxClasses["ui.api.Requester"] = function() { }
+ui.api.Requester.__name__ = ["ui","api","Requester"];
+ui.api.Requester.prototype = {
+	abort: null
+	,start: null
+	,__class__: ui.api.Requester
+}
+ui.api.LongPollingRequest = $hxClasses["ui.api.LongPollingRequest"] = function(request) {
+	this.stop = false;
+	var _g = this;
+	this.request = request;
+	ui.model.EventModel.addListener("runFilter",new ui.model.EventListener(function(filter) {
+		_g.abort();
+	}));
+};
+ui.api.LongPollingRequest.__name__ = ["ui","api","LongPollingRequest"];
+ui.api.LongPollingRequest.__interfaces__ = [ui.api.Requester];
+ui.api.LongPollingRequest.prototype = {
+	poll: function() {
+		var _g = this;
+		if(!this.stop) this.jqXHR = ui.jq.JQ.ajax({ url : "server", dataType : "json", data : this.request.toJson(), success : function(data,textStatus,jqXHR) {
+			if(!_g.stop) {
+			}
+		}, complete : function(arg) {
+			_g.poll();
+		}, timeout : 30000});
+	}
+	,abort: function() {
+		this.stop = true;
+		if(this.jqXHR != null) try {
+			this.jqXHR.abort();
+			this.jqXHR = null;
+		} catch( err ) {
+		}
+	}
+	,start: function() {
+		this.poll();
+	}
+	,stop: null
+	,request: null
+	,jqXHR: null
+	,__class__: ui.api.LongPollingRequest
+}
+ui.api.TestDao = $hxClasses["ui.api.TestDao"] = function() { }
+ui.api.TestDao.__name__ = ["ui","api","TestDao"];
+ui.api.TestDao.connections = null;
+ui.api.TestDao.labels = null;
+ui.api.TestDao.aliases = null;
+ui.api.TestDao.buildConnections = function() {
+	ui.api.TestDao.connections = new Array();
+	var george = new ui.model.Connection("George","Costanza","media/test/george.jpg");
+	george.uid = ui.util.UidGenerator.create();
+	ui.api.TestDao.connections.push(george);
+	var elaine = new ui.model.Connection("Elaine","Benes","media/test/elaine.jpg");
+	elaine.uid = ui.util.UidGenerator.create();
+	ui.api.TestDao.connections.push(elaine);
+	var kramer = new ui.model.Connection("Cosmo","Kramer","media/test/kramer.jpg");
+	kramer.uid = ui.util.UidGenerator.create();
+	ui.api.TestDao.connections.push(kramer);
+	var toms = new ui.model.Connection("Tom's","Restaurant","media/test/toms.jpg");
+	toms.uid = ui.util.UidGenerator.create();
+	ui.api.TestDao.connections.push(toms);
+	var newman = new ui.model.Connection("Newman","","media/test/newman.jpg");
+	newman.uid = ui.util.UidGenerator.create();
+	ui.api.TestDao.connections.push(newman);
+}
+ui.api.TestDao.buildLabels = function() {
+	ui.api.TestDao.labels = new Array();
+	var locations = new ui.model.Label("Locations");
+	locations.uid = ui.util.UidGenerator.create();
+	ui.api.TestDao.labels.push(locations);
+	var home = new ui.model.Label("Home");
+	home.uid = ui.util.UidGenerator.create();
+	home.parentUid = locations.uid;
+	ui.api.TestDao.labels.push(home);
+	var city = new ui.model.Label("City");
+	city.uid = ui.util.UidGenerator.create();
+	city.parentUid = locations.uid;
+	ui.api.TestDao.labels.push(city);
+	var media = new ui.model.Label("Media");
+	media.uid = ui.util.UidGenerator.create();
+	ui.api.TestDao.labels.push(media);
+	var personal = new ui.model.Label("Personal");
+	personal.uid = ui.util.UidGenerator.create();
+	personal.parentUid = media.uid;
+	ui.api.TestDao.labels.push(personal);
+	var work = new ui.model.Label("Work");
+	work.uid = ui.util.UidGenerator.create();
+	work.parentUid = media.uid;
+	ui.api.TestDao.labels.push(work);
+	var interests = new ui.model.Label("Interests");
+	interests.uid = ui.util.UidGenerator.create();
+	ui.api.TestDao.labels.push(interests);
+}
+ui.api.TestDao.buildAliases = function() {
+	ui.api.TestDao.aliases = new Array();
+	var alias = new ui.model.Alias();
+	alias.uid = ui.util.UidGenerator.create();
+	alias.label = "Comedian";
+	alias.imgSrc = "media/test/jerry_comedy.jpg";
+	ui.api.TestDao.aliases.push(alias);
+	alias = new ui.model.Alias();
+	alias.uid = ui.util.UidGenerator.create();
+	alias.label = "Actor";
+	alias.imgSrc = "media/test/jerry_bee.jpg";
+	ui.api.TestDao.aliases.push(alias);
+	alias = new ui.model.Alias();
+	alias.uid = ui.util.UidGenerator.create();
+	alias.label = "Private";
+	ui.api.TestDao.aliases.push(alias);
+}
+ui.api.TestDao.generateContent = function(node) {
+	var availableConnections = ui.api.TestDao.getConnectionsFromNode(node);
+	var availableLabels = ui.api.TestDao.getLabelsFromNode(node);
+	var content = new Array();
+	var audioContent = new ui.model.AudioContent();
+	audioContent.uid = ui.util.UidGenerator.create();
+	audioContent.type = "AUDIO";
+	audioContent.audioSrc = "media/test/hello_newman.mp3";
+	audioContent.audioType = "audio/mpeg";
+	audioContent.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	audioContent.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,audioContent,2);
+	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,audioContent,2);
+	audioContent.title = "Hello Newman Compilation";
+	content.push(audioContent);
+	var img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/soupkitchen.jpg";
+	img.caption = "Soup Kitchen";
+	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
+	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/apt.jpg";
+	img.caption = "Apartment";
+	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
+	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/jrmint.jpg";
+	img.caption = "The Junior Mint!";
+	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,3);
+	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/oldschool.jpg";
+	img.caption = "Retro";
+	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,3);
+	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/mailman.jpg";
+	img.caption = "Jerry Delivering the mail";
+	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
+	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.uid = ui.util.UidGenerator.create();
+	img.type = "IMAGE";
+	img.imgSrc = "media/test/closet.jpg";
+	img.caption = "Stuck in the closet!";
+	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
+	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
+	content.push(img);
+	return content;
+}
+ui.api.TestDao.addConnections = function(availableConnections,content,numToAdd) {
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) {
+		if(numToAdd == 1) ui.api.TestDao.addOne(availableConnections,content.connections); else if(numToAdd == 2) ui.api.TestDao.addTwo(availableConnections,content.connections); else ui.api.TestDao.addAll(availableConnections,content.connections);
+	}
+}
+ui.api.TestDao.addLabels = function(availableConnections,content,numToAdd) {
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) {
+		if(numToAdd == 1) ui.api.TestDao.addOne(availableConnections,content.labels); else if(numToAdd == 2) ui.api.TestDao.addTwo(availableConnections,content.labels); else ui.api.TestDao.addAll(availableConnections,content.labels);
+	}
+}
+ui.api.TestDao.addOne = function(available,arr) {
+	arr.add(ui.api.TestDao.getRandomFromArray(available));
+}
+ui.api.TestDao.addTwo = function(available,arr) {
+	if(available.length == 1) arr.add(ui.api.TestDao.getRandomFromArray(available)); else {
+		arr.add(ui.api.TestDao.getRandomFromArray(available));
+		arr.add(ui.api.TestDao.getRandomFromArray(available));
+	}
+}
+ui.api.TestDao.addAll = function(available,arr) {
+	var _g1 = 0, _g = available.length;
+	while(_g1 < _g) {
+		var t_ = _g1++;
+		arr.add(available[t_]);
+	}
+}
+ui.api.TestDao.getRandomFromArray = function(arr) {
+	var t = null;
+	if(ui.helper.ArrayHelper.hasValues(arr)) t = arr[Std.random(arr.length)];
+	return t;
+}
+ui.api.TestDao.getConnectionsFromNode = function(node) {
+	var connections = new Array();
+	if(js.Boot.__instanceof(node,ui.model.ContentNode)) {
+		if((js.Boot.__cast(node , ui.model.ContentNode)).type == "CONNECTION") connections.push(js.Boot.__cast((js.Boot.__cast(node , ui.model.ContentNode)).filterable , ui.model.Connection));
+	} else {
+		var _g1 = 0, _g = node.nodes.length;
+		while(_g1 < _g) {
+			var n_ = _g1++;
+			var childNode = node.nodes[n_];
+			if(js.Boot.__instanceof(childNode,ui.model.ContentNode) && (js.Boot.__cast(childNode , ui.model.ContentNode)).type == "CONNECTION") connections.push(js.Boot.__cast((js.Boot.__cast(childNode , ui.model.ContentNode)).filterable , ui.model.Connection)); else if(ui.helper.ArrayHelper.hasValues(childNode.nodes)) {
+				var _g3 = 0, _g2 = childNode.nodes.length;
+				while(_g3 < _g2) {
+					var nn_ = _g3++;
+					var grandChild = childNode.nodes[nn_];
+					connections = connections.concat(ui.api.TestDao.getConnectionsFromNode(grandChild));
+				}
+			}
+		}
+	}
+	return connections;
+}
+ui.api.TestDao.getLabelsFromNode = function(node) {
+	var labels = new Array();
+	if(js.Boot.__instanceof(node,ui.model.ContentNode)) {
+		if((js.Boot.__cast(node , ui.model.ContentNode)).type == "LABEL") labels.push(js.Boot.__cast((js.Boot.__cast(node , ui.model.ContentNode)).filterable , ui.model.Label));
+	} else {
+		var _g1 = 0, _g = node.nodes.length;
+		while(_g1 < _g) {
+			var n_ = _g1++;
+			var childNode = node.nodes[n_];
+			if(js.Boot.__instanceof(childNode,ui.model.ContentNode) && (js.Boot.__cast(childNode , ui.model.ContentNode)).type == "LABEL") labels.push(js.Boot.__cast((js.Boot.__cast(childNode , ui.model.ContentNode)).filterable , ui.model.Label)); else if(ui.helper.ArrayHelper.hasValues(childNode.nodes)) {
+				var _g3 = 0, _g2 = childNode.nodes.length;
+				while(_g3 < _g2) {
+					var nn_ = _g3++;
+					var grandChild = childNode.nodes[nn_];
+					labels = labels.concat(ui.api.TestDao.getLabelsFromNode(grandChild));
+				}
+			}
+		}
+	}
+	return labels;
+}
+ui.api.TestDao.randomizeOrder = function(arr) {
+	var newArr = new Array();
+	do {
+		var randomIndex = Std.random(arr.length);
+		newArr.push(arr[randomIndex]);
+		arr.splice(randomIndex,1);
+	} while(arr.length > 0);
+	return newArr;
+}
+ui.api.TestDao.getRandomNumber = function(arr,amount) {
+	ui.AgentUi.LOGGER.debug("return " + amount);
+	var newArr = new Array();
+	do {
+		var randomIndex = Std.random(arr.length);
+		newArr.push(arr[randomIndex]);
+		arr.splice(randomIndex,1);
+	} while(newArr.length < amount);
+	return newArr;
+}
+ui.api.TestDao.initialize = function() {
+	ui.api.TestDao.initialized = true;
+	ui.api.TestDao.buildConnections();
+	ui.api.TestDao.buildLabels();
+	ui.api.TestDao.buildAliases();
+}
+ui.api.TestDao.getConnections = function(user) {
+	if(!ui.api.TestDao.initialized) ui.api.TestDao.initialize();
+	return ui.api.TestDao.connections;
+}
+ui.api.TestDao.getLabels = function(user) {
+	if(!ui.api.TestDao.initialized) ui.api.TestDao.initialize();
+	return ui.api.TestDao.labels;
+}
+ui.api.TestDao.getContent = function(node) {
+	if(!ui.api.TestDao.initialized) ui.api.TestDao.initialize();
+	var arr = ui.api.TestDao.randomizeOrder(ui.api.TestDao.generateContent(node));
+	return ui.api.TestDao.getRandomNumber(arr,Std.random(arr.length));
+}
+ui.api.TestDao.getUser = function(uid) {
+	if(!ui.api.TestDao.initialized) ui.api.TestDao.initialize();
+	var user = new ui.model.User();
+	user.fname = "Jerry";
+	user.lname = "Seinfeld";
+	user.uid = ui.util.UidGenerator.create();
+	user.imgSrc = "media/test/jerry_default.jpg";
+	user.aliases = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	user.aliases.addAll(ui.api.TestDao.aliases);
+	var alias = ui.api.TestDao.aliases[0];
+	alias.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	alias.connections.addAll(ui.api.TestDao.connections);
+	alias.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	alias.labels.addAll(ui.api.TestDao.labels);
+	user._setCurrentAlias(alias);
+	return user;
+}
+ui.api.TestDao.getAlias = function(uid) {
+	if(!ui.api.TestDao.initialized) ui.api.TestDao.initialize();
+	var alias = ui.helper.ArrayHelper.getElementComplex(ui.api.TestDao.aliases,uid,"uid");
+	alias.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	alias.connections.addAll(ui.api.TestDao.connections);
+	alias.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	alias.labels.addAll(ui.api.TestDao.labels);
+	return alias;
 }
 if(!ui.exception) ui.exception = {}
 ui.exception.Exception = $hxClasses["ui.exception.Exception"] = function(message,cause) {
@@ -1950,43 +2508,6 @@ ui.log.Logga.prototype = {
 	,__class__: ui.log.Logga
 }
 if(!ui.model) ui.model = {}
-ui.model.Dao = $hxClasses["ui.model.Dao"] = function() {
-	var _g = this;
-	ui.model.EventModel.addListener("runFilter",new ui.model.EventListener(function(filter) {
-		_g.filter(filter);
-	}));
-	ui.model.EventModel.addListener("loadAlias",new ui.model.EventListener(function(uid) {
-		var alias = _g.getAlias(uid);
-		ui.model.EventModel.change("aliasLoaded",alias);
-	}));
-};
-ui.model.Dao.__name__ = ["ui","model","Dao"];
-ui.model.Dao.prototype = {
-	getLabels: function(user) {
-		return ui.model.TestDao.getLabels(user);
-	}
-	,getConnections: function(user) {
-		return ui.model.TestDao.getConnections(user);
-	}
-	,getAlias: function(uid) {
-		return ui.model.TestDao.getAlias(uid);
-	}
-	,getUser: function(uid) {
-		return ui.model.TestDao.getUser(uid);
-	}
-	,filter: function(filter) {
-		filter.rootNode.log();
-		ui.AgentUi.CONTENT.clear();
-		if(filter.rootNode.hasChildren()) {
-			var string = filter.kdbxify();
-			ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
-			var content = ui.model.TestDao.getContent(filter.rootNode);
-			ui.AgentUi.CONTENT.addAll(content);
-		}
-		ui.model.EventModel.change("filterComplete",filter);
-	}
-	,__class__: ui.model.Dao
-}
 ui.model.EventModel = $hxClasses["ui.model.EventModel"] = function() { }
 ui.model.EventModel.__name__ = ["ui","model","EventModel"];
 ui.model.EventModel.hash = null;
@@ -2248,288 +2769,6 @@ ui.model.ContentNode.prototype = $extend(ui.model.Node.prototype,{
 	,contentUid: null
 	,__class__: ui.model.ContentNode
 });
-ui.model.TestDao = $hxClasses["ui.model.TestDao"] = function() { }
-ui.model.TestDao.__name__ = ["ui","model","TestDao"];
-ui.model.TestDao.connections = null;
-ui.model.TestDao.labels = null;
-ui.model.TestDao.aliases = null;
-ui.model.TestDao.buildConnections = function() {
-	ui.model.TestDao.connections = new Array();
-	var george = new ui.model.Connection("George","Costanza","media/test/george.jpg");
-	george.uid = ui.util.UidGenerator.create();
-	ui.model.TestDao.connections.push(george);
-	var elaine = new ui.model.Connection("Elaine","Benes","media/test/elaine.jpg");
-	elaine.uid = ui.util.UidGenerator.create();
-	ui.model.TestDao.connections.push(elaine);
-	var kramer = new ui.model.Connection("Cosmo","Kramer","media/test/kramer.jpg");
-	kramer.uid = ui.util.UidGenerator.create();
-	ui.model.TestDao.connections.push(kramer);
-	var toms = new ui.model.Connection("Tom's","Restaurant","media/test/toms.jpg");
-	toms.uid = ui.util.UidGenerator.create();
-	ui.model.TestDao.connections.push(toms);
-	var newman = new ui.model.Connection("Newman","","media/test/newman.jpg");
-	newman.uid = ui.util.UidGenerator.create();
-	ui.model.TestDao.connections.push(newman);
-}
-ui.model.TestDao.buildLabels = function() {
-	ui.model.TestDao.labels = new Array();
-	var locations = new ui.model.Label("Locations");
-	locations.uid = ui.util.UidGenerator.create();
-	ui.model.TestDao.labels.push(locations);
-	var home = new ui.model.Label("Home");
-	home.uid = ui.util.UidGenerator.create();
-	home.parentUid = locations.uid;
-	ui.model.TestDao.labels.push(home);
-	var city = new ui.model.Label("City");
-	city.uid = ui.util.UidGenerator.create();
-	city.parentUid = locations.uid;
-	ui.model.TestDao.labels.push(city);
-	var media = new ui.model.Label("Media");
-	media.uid = ui.util.UidGenerator.create();
-	ui.model.TestDao.labels.push(media);
-	var personal = new ui.model.Label("Personal");
-	personal.uid = ui.util.UidGenerator.create();
-	personal.parentUid = media.uid;
-	ui.model.TestDao.labels.push(personal);
-	var work = new ui.model.Label("Work");
-	work.uid = ui.util.UidGenerator.create();
-	work.parentUid = media.uid;
-	ui.model.TestDao.labels.push(work);
-	var interests = new ui.model.Label("Interests");
-	interests.uid = ui.util.UidGenerator.create();
-	ui.model.TestDao.labels.push(interests);
-}
-ui.model.TestDao.buildAliases = function() {
-	ui.model.TestDao.aliases = new Array();
-	var alias = new ui.model.Alias();
-	alias.uid = ui.util.UidGenerator.create();
-	alias.label = "Comedian";
-	alias.imgSrc = "media/test/jerry_comedy.jpg";
-	ui.model.TestDao.aliases.push(alias);
-	alias = new ui.model.Alias();
-	alias.uid = ui.util.UidGenerator.create();
-	alias.label = "Actor";
-	alias.imgSrc = "media/test/jerry_bee.jpg";
-	ui.model.TestDao.aliases.push(alias);
-	alias = new ui.model.Alias();
-	alias.uid = ui.util.UidGenerator.create();
-	alias.label = "Private";
-	ui.model.TestDao.aliases.push(alias);
-}
-ui.model.TestDao.generateContent = function(node) {
-	var availableConnections = ui.model.TestDao.getConnectionsFromNode(node);
-	var availableLabels = ui.model.TestDao.getLabelsFromNode(node);
-	var content = new Array();
-	var audioContent = new ui.model.AudioContent();
-	audioContent.uid = ui.util.UidGenerator.create();
-	audioContent.type = "AUDIO";
-	audioContent.audioSrc = "media/test/hello_newman.mp3";
-	audioContent.audioType = "audio/mpeg";
-	audioContent.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	audioContent.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.model.TestDao.addConnections(availableConnections,audioContent,2);
-	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.model.TestDao.addLabels(availableLabels,audioContent,2);
-	audioContent.title = "Hello Newman Compilation";
-	content.push(audioContent);
-	var img = new ui.model.ImageContent();
-	img.uid = ui.util.UidGenerator.create();
-	img.type = "IMAGE";
-	img.imgSrc = "media/test/soupkitchen.jpg";
-	img.caption = "Soup Kitchen";
-	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.model.TestDao.addConnections(availableConnections,img,1);
-	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.model.TestDao.addLabels(availableLabels,img,2);
-	content.push(img);
-	img = new ui.model.ImageContent();
-	img.uid = ui.util.UidGenerator.create();
-	img.type = "IMAGE";
-	img.imgSrc = "media/test/apt.jpg";
-	img.caption = "Apartment";
-	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.model.TestDao.addConnections(availableConnections,img,1);
-	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.model.TestDao.addLabels(availableLabels,img,1);
-	content.push(img);
-	img = new ui.model.ImageContent();
-	img.uid = ui.util.UidGenerator.create();
-	img.type = "IMAGE";
-	img.imgSrc = "media/test/jrmint.jpg";
-	img.caption = "The Junior Mint!";
-	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.model.TestDao.addConnections(availableConnections,img,3);
-	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.model.TestDao.addLabels(availableLabels,img,2);
-	content.push(img);
-	img = new ui.model.ImageContent();
-	img.uid = ui.util.UidGenerator.create();
-	img.type = "IMAGE";
-	img.imgSrc = "media/test/oldschool.jpg";
-	img.caption = "Retro";
-	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.model.TestDao.addConnections(availableConnections,img,3);
-	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.model.TestDao.addLabels(availableLabels,img,1);
-	content.push(img);
-	img = new ui.model.ImageContent();
-	img.uid = ui.util.UidGenerator.create();
-	img.type = "IMAGE";
-	img.imgSrc = "media/test/mailman.jpg";
-	img.caption = "Jerry Delivering the mail";
-	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.model.TestDao.addConnections(availableConnections,img,1);
-	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.model.TestDao.addLabels(availableLabels,img,1);
-	content.push(img);
-	img = new ui.model.ImageContent();
-	img.uid = ui.util.UidGenerator.create();
-	img.type = "IMAGE";
-	img.imgSrc = "media/test/closet.jpg";
-	img.caption = "Stuck in the closet!";
-	img.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	img.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.model.TestDao.addConnections(availableConnections,img,1);
-	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.model.TestDao.addLabels(availableLabels,img,2);
-	content.push(img);
-	return content;
-}
-ui.model.TestDao.addConnections = function(availableConnections,content,numToAdd) {
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) {
-		if(numToAdd == 1) ui.model.TestDao.addOne(availableConnections,content.connections); else if(numToAdd == 2) ui.model.TestDao.addTwo(availableConnections,content.connections); else ui.model.TestDao.addAll(availableConnections,content.connections);
-	}
-}
-ui.model.TestDao.addLabels = function(availableConnections,content,numToAdd) {
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) {
-		if(numToAdd == 1) ui.model.TestDao.addOne(availableConnections,content.labels); else if(numToAdd == 2) ui.model.TestDao.addTwo(availableConnections,content.labels); else ui.model.TestDao.addAll(availableConnections,content.labels);
-	}
-}
-ui.model.TestDao.addOne = function(available,arr) {
-	arr.add(ui.model.TestDao.getRandomFromArray(available));
-}
-ui.model.TestDao.addTwo = function(available,arr) {
-	if(available.length == 1) arr.add(ui.model.TestDao.getRandomFromArray(available)); else {
-		arr.add(ui.model.TestDao.getRandomFromArray(available));
-		arr.add(ui.model.TestDao.getRandomFromArray(available));
-	}
-}
-ui.model.TestDao.addAll = function(available,arr) {
-	var _g1 = 0, _g = available.length;
-	while(_g1 < _g) {
-		var t_ = _g1++;
-		arr.add(available[t_]);
-	}
-}
-ui.model.TestDao.getRandomFromArray = function(arr) {
-	var t = null;
-	if(ui.helper.ArrayHelper.hasValues(arr)) t = arr[Std.random(arr.length)];
-	return t;
-}
-ui.model.TestDao.getConnectionsFromNode = function(node) {
-	var connections = new Array();
-	if(js.Boot.__instanceof(node,ui.model.ContentNode)) {
-		if((js.Boot.__cast(node , ui.model.ContentNode)).type == "CONNECTION") connections.push(js.Boot.__cast((js.Boot.__cast(node , ui.model.ContentNode)).filterable , ui.model.Connection));
-	} else {
-		var _g1 = 0, _g = node.nodes.length;
-		while(_g1 < _g) {
-			var n_ = _g1++;
-			var childNode = node.nodes[n_];
-			if(js.Boot.__instanceof(childNode,ui.model.ContentNode) && (js.Boot.__cast(childNode , ui.model.ContentNode)).type == "CONNECTION") connections.push(js.Boot.__cast((js.Boot.__cast(childNode , ui.model.ContentNode)).filterable , ui.model.Connection)); else if(ui.helper.ArrayHelper.hasValues(childNode.nodes)) {
-				var _g3 = 0, _g2 = childNode.nodes.length;
-				while(_g3 < _g2) {
-					var nn_ = _g3++;
-					var grandChild = childNode.nodes[nn_];
-					connections = connections.concat(ui.model.TestDao.getConnectionsFromNode(grandChild));
-				}
-			}
-		}
-	}
-	return connections;
-}
-ui.model.TestDao.getLabelsFromNode = function(node) {
-	var labels = new Array();
-	if(js.Boot.__instanceof(node,ui.model.ContentNode)) {
-		if((js.Boot.__cast(node , ui.model.ContentNode)).type == "LABEL") labels.push(js.Boot.__cast((js.Boot.__cast(node , ui.model.ContentNode)).filterable , ui.model.Label));
-	} else {
-		var _g1 = 0, _g = node.nodes.length;
-		while(_g1 < _g) {
-			var n_ = _g1++;
-			var childNode = node.nodes[n_];
-			if(js.Boot.__instanceof(childNode,ui.model.ContentNode) && (js.Boot.__cast(childNode , ui.model.ContentNode)).type == "LABEL") labels.push(js.Boot.__cast((js.Boot.__cast(childNode , ui.model.ContentNode)).filterable , ui.model.Label)); else if(ui.helper.ArrayHelper.hasValues(childNode.nodes)) {
-				var _g3 = 0, _g2 = childNode.nodes.length;
-				while(_g3 < _g2) {
-					var nn_ = _g3++;
-					var grandChild = childNode.nodes[nn_];
-					labels = labels.concat(ui.model.TestDao.getLabelsFromNode(grandChild));
-				}
-			}
-		}
-	}
-	return labels;
-}
-ui.model.TestDao.randomizeOrder = function(arr) {
-	var newArr = new Array();
-	do {
-		var randomIndex = Std.random(arr.length);
-		newArr.push(arr[randomIndex]);
-		arr.splice(randomIndex,1);
-	} while(arr.length > 0);
-	return newArr;
-}
-ui.model.TestDao.getRandomNumber = function(arr,amount) {
-	ui.AgentUi.LOGGER.debug("return " + amount);
-	var newArr = new Array();
-	do {
-		var randomIndex = Std.random(arr.length);
-		newArr.push(arr[randomIndex]);
-		arr.splice(randomIndex,1);
-	} while(newArr.length < amount);
-	return newArr;
-}
-ui.model.TestDao.initialize = function() {
-	ui.model.TestDao.initialized = true;
-	ui.model.TestDao.buildConnections();
-	ui.model.TestDao.buildLabels();
-	ui.model.TestDao.buildAliases();
-}
-ui.model.TestDao.getConnections = function(user) {
-	if(!ui.model.TestDao.initialized) ui.model.TestDao.initialize();
-	return ui.model.TestDao.connections;
-}
-ui.model.TestDao.getLabels = function(user) {
-	if(!ui.model.TestDao.initialized) ui.model.TestDao.initialize();
-	return ui.model.TestDao.labels;
-}
-ui.model.TestDao.getContent = function(node) {
-	if(!ui.model.TestDao.initialized) ui.model.TestDao.initialize();
-	var arr = ui.model.TestDao.randomizeOrder(ui.model.TestDao.generateContent(node));
-	return ui.model.TestDao.getRandomNumber(arr,Std.random(arr.length));
-}
-ui.model.TestDao.getUser = function(uid) {
-	if(!ui.model.TestDao.initialized) ui.model.TestDao.initialize();
-	var user = new ui.model.User();
-	user.fname = "Jerry";
-	user.lname = "Seinfeld";
-	user.uid = ui.util.UidGenerator.create();
-	user.imgSrc = "media/test/jerry_default.jpg";
-	user.aliases = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	user.aliases.addAll(ui.model.TestDao.aliases);
-	var alias = ui.model.TestDao.aliases[0];
-	alias.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	alias.connections.addAll(ui.model.TestDao.connections);
-	alias.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	alias.labels.addAll(ui.model.TestDao.labels);
-	user._setCurrentAlias(alias);
-	return user;
-}
-ui.model.TestDao.getAlias = function(uid) {
-	if(!ui.model.TestDao.initialized) ui.model.TestDao.initialize();
-	var alias = ui.helper.ArrayHelper.getElementComplex(ui.model.TestDao.aliases,uid,"uid");
-	alias.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	alias.connections.addAll(ui.model.TestDao.connections);
-	alias.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	alias.labels.addAll(ui.model.TestDao.labels);
-	return alias;
-}
 if(!ui.observable) ui.observable = {}
 ui.observable.OSet = $hxClasses["ui.observable.OSet"] = function() { }
 ui.observable.OSet.__name__ = ["ui","observable","OSet"];
@@ -3713,6 +3952,8 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.userComp",defineWidget());
+ui.api.TestDao.initialized = false;
+ui.api.TestDao._lastRandom = 0;
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"9\" static=\"1\"><f a=\"t\">\n\t<a><uid><c path=\"String\"/></uid></a>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n</class>";
 ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<aliases public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Alias\"/></c></aliases>\n\t<currentAlias public=\"1\" get=\"_getCurrentAlias\" set=\"_setCurrentAlias\"><c path=\"ui.model.Alias\"/></currentAlias>\n\t<_getCurrentAlias set=\"method\" line=\"23\"><f a=\"\"><c path=\"ui.model.Alias\"/></f></_getCurrentAlias>\n\t<_setCurrentAlias set=\"method\" line=\"30\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"ui.model.Alias\"/>\n</f></_setCurrentAlias>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Alias\"/></extends>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<labels public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connections public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c></connections>\n\t<new public=\"1\" set=\"method\" line=\"42\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
@@ -3721,8 +3962,6 @@ ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" mo
 ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<labels public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connections public=\"1\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c></connections>\n</class>";
 ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"83\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"91\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.TestDao.initialized = false;
-ui.model.TestDao._lastRandom = 0;
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);
 ui.observable.EventType.Update = new ui.observable.EventType("Update",false,true);
 ui.observable.EventType.Delete = new ui.observable.EventType("Delete",false,false);
