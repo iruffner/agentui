@@ -3,36 +3,41 @@ package ui.api;
 import ui.model.ModelObj;
 import ui.model.Filter;
 
-class ProtocolMessage<T> {
+class ProtocolMessage {
 	public var msgType: MsgType;
-	public var content: T;
+	public var content: Dynamic;
 	public function toJson(): Dynamic {
 		return {};
 	}
+
+	public function getContent<T>(): T {
+		//TODO serialize it to the correct type
+		return content;
+	}
 }
 
-class Payload {
+interface Payload implements Dynamic {
 
 }
 
-class InitializeSessionRequest extends ProtocolMessage<InitializeSessionRequestData> {
+class InitializeSessionRequest extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.initializeSessionRequest;
 	}
 }
 
-class InitializeSessionRequestData extends Payload {
+class InitializeSessionRequestData implements Payload {
 	public var userCredentials: Dynamic;
 	public var agentIdentifier: Dynamic;
 }
 
-class InitializeSessionResponse extends ProtocolMessage<InitializeSessionResponseData> {
+class InitializeSessionResponse extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.initializeSessionResponse;
 	}
 }
 
-class InitializeSessionResponseData extends Payload {
+class InitializeSessionResponseData implements Payload {
 	public var aliases: List<Alias>;
 	public var defaultAlias: Alias;
 	public var labels: List<Label>;
@@ -42,7 +47,7 @@ class InitializeSessionResponseData extends Payload {
 	public var userToken: Dynamic;
 }
 
-class CloseSessionRequest extends ProtocolMessage<CloseSessionRequestData> {
+class CloseSessionRequest extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.closeSessionRequest;
 	}
@@ -54,7 +59,7 @@ class CloseSessionRequestData {
 	public var reason: Reason;
 }
 
-class CloseSessionResponse extends ProtocolMessage<CloseSessionResponseData> {
+class CloseSessionResponse extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.closeSessionResponse;
 	}
@@ -65,7 +70,7 @@ class CloseSessionResponseData {
 	public var userToken: Dynamic;
 }
 
-class EvalRequest extends ProtocolMessage<EvalRequestData> {
+class EvalRequest extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.evalRequest;
 	}
@@ -78,13 +83,13 @@ class EvalRequestData {
 	public var userToken: Dynamic;
 }
 
-class EvalResponse extends ProtocolMessage<EvalResponseData> {
+class EvalResponse extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.evalResponse;
 	}
 }
 
-class EvalComplete extends ProtocolMessage<EvalResponseData> {
+class EvalComplete extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.evalComplete;
 	}
@@ -97,7 +102,7 @@ class EvalResponseData {
 	public var userToken: Dynamic;
 }
 
-class EvalError extends ProtocolMessage<EvalErrorData> {
+class EvalError extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.evalError;
 	}
@@ -110,13 +115,13 @@ class EvalErrorData {
 	public var userToken: Dynamic;
 }
 
-class StopEvalRequest extends ProtocolMessage<StopMsgData> {
+class StopEvalRequest extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.stopEvalRequest;
 	}
 }
 
-class StopEvalResponse extends ProtocolMessage<StopMsgData> {
+class StopEvalResponse extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.stopEvalResponse;
 	}

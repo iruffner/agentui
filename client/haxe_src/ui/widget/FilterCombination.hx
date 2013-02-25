@@ -50,12 +50,7 @@ extern class FilterCombination extends FilterableComponent {
 		        	}
 
 		        	selfElement.data("getNode", function(): Node {
-		            		var root: Node;
-		            		if(selfElement.children(".andOrToggle").children(".any").hasClass("ui-state-active")) {
-		            			root = new Or();
-		            		} else {
-		            			root = new And();
-		            		}
+		            		var root: Node = selfElement.children(".andOrToggle").data("getNode")();
 		            		root.type = self.options.type;
 		            		var filterables: JQ = selfElement.children(".filterable");
 				        	filterables.each(function (idx: Int, el: js.Dom.HtmlDom): Void {
@@ -102,8 +97,9 @@ extern class FilterCombination extends FilterableComponent {
 				            	return fc;
 		            		});
 
-		        	var toggle: JQ = new JQ("<div class='andOrToggle'></div>");
-		        	var and: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
+		        	var toggle: AndOrToggle = new AndOrToggle("<div class='andOrToggle'></div>").andOrToggle();
+
+		        	/*var and: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
 		        	var or: JQ = new JQ("<div class='ui-widget-content ui-corner-bottom all'>All</div>");
 		        	toggle.append(and).append(or);
 		        	var children: JQ = toggle.children();
@@ -121,7 +117,7 @@ extern class FilterCombination extends FilterableComponent {
 		        				children.toggleClass("ui-state-active");
 		        				self._fireFilter();
 		        			}
-	        			);
+	        			);*/
 	        		selfElement.append(toggle);
 
 		        	cast(selfElement, JQDraggable).draggable({

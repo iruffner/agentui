@@ -68,7 +68,7 @@ extern class LabelComp extends FilterableComponent {
 
 		        	// selfElement.addClass(Widgets.getWidgetClasses());
 
-		        	selfElement.addClass("label").attr("id", self.options.label.text.htmlEscape() + "_" + ui.util.UidGenerator.create(8));
+		        	selfElement.addClass("label labelComp ").attr("id", self.options.label.text.htmlEscape() + "_" + ui.util.UidGenerator.create(8));
 		        	
 		            var labelTail: JQ = new JQ("<div class='labelTail'></div>");
 		            labelTail.css("border-right-color", self.options.label.color);

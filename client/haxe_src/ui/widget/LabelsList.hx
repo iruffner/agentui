@@ -31,7 +31,7 @@ extern class LabelsList extends JQ {
 		        		throw new ui.exception.Exception("Root of LabelsList must be a div element");
 		        	}
 
-		        	selfElement.addClass("icontainer " + Widgets.getWidgetClasses());
+		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
 		        	EventModel.addListener("aliasLoaded", new EventListener(function(alias: Alias) {
 		        			self._setLabels(alias.labels);
@@ -48,14 +48,14 @@ extern class LabelsList extends JQ {
 		        	var self: LabelsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-					selfElement.children().remove();
+					selfElement.children(".labelTree").remove();
 					var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
 		                labels: new FilteredSet(labels, function(label: Label): Bool { 
 		                        return label.parentUid.isBlank();
 		                    })
 		            });
 
-		        	selfElement.append(labelTree);
+		        	selfElement.prepend(labelTree);
 	        	},
 		        
 		        destroy: function() {

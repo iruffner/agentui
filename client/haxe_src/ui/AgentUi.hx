@@ -63,12 +63,17 @@ class AgentUi {
         new UserComp("#userId").userComp();
 
         EventModel.addListener("filterComplete", new EventListener(function(filter: Node) {
-                untyped __js__("fitWindow()");
+                EventModel.change("fitWindow");
             })
         );
 
         EventModel.addListener("aliasLoaded", new EventListener(function(alias: Alias) {
                 USER.currentAlias = alias;
+            })
+        );
+
+        EventModel.addListener("fitWindow", new EventListener(function(n: Null<Dynamic>) {
+                untyped __js__("fitWindow()");
             })
         );
 

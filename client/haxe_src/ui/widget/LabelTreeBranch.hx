@@ -75,9 +75,10 @@ extern class LabelTreeBranch extends JQ {
 		        		throw new ui.exception.Exception("Root of LabelTreeBranch must be a div element");
 		        	}
 
-		        	// selfElement.addClass(Widgets.getWidgetClasses());
+		        	selfElement.addClass("labelTreeBranch ");
 
-		        	selfElement.addClass("labelWrapper");
+		        	var expander: JQ = new JQ("<div class='labelTreeExpander' style='visibility:hidden;'>+</div>");
+		        	selfElement.append(expander);
 		        	
 		        	var label: LabelComp = new LabelComp("<div></div>").labelComp({
 		        			label: self.options.label,
@@ -87,12 +88,27 @@ extern class LabelTreeBranch extends JQ {
 
 		            selfElement.append(label);
 
+		            label.hover(function(): Void {
+		            		if(self.options.children.iterator().hasNext()) {
+		            			expander.css("visibility", "visible");
+		            		}
+		            	}, function(): Void {
+		            		expander.css("visibility", "hidden");
+		            	}
+	            	);
+
+
 		            if(self.options.children != null) {
-			            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren'></div>");
+			            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren' style='display: none;'></div>");
 			            labelChildren.labelTree({
 			            		labels: self.options.children
 			            	});
 			            selfElement.append(labelChildren);
+		            	label.click(function(evt: js.JQuery.JqEvent): Void {
+		            			labelChildren.toggle();
+		            			ui.model.EventModel.change("fitWindow");
+		            		}
+	            		);
 			        }
 		        },
 

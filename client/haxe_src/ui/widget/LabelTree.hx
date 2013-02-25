@@ -38,7 +38,7 @@ extern class LabelTree extends JQ {
 		        		throw new ui.exception.Exception("Root of LabelTree must be a div element");
 		        	}
 
-		        	selfElement.addClass(Widgets.getWidgetClasses());
+		        	selfElement.addClass("labelTree " + Widgets.getWidgetClasses());
 
 		        	self.labels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({

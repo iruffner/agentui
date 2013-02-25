@@ -1494,10 +1494,13 @@ ui.AgentUi.start = function() {
 	new ui.widget.ContentFeed("#feed").contentFeed({ content : ui.AgentUi.CONTENT});
 	new ui.widget.UserComp("#userId").userComp();
 	ui.model.EventModel.addListener("filterComplete",new ui.model.EventListener(function(filter) {
-		fitWindow();
+		ui.model.EventModel.change("fitWindow");
 	}));
 	ui.model.EventModel.addListener("aliasLoaded",new ui.model.EventListener(function(alias) {
 		ui.AgentUi.USER._setCurrentAlias(alias);
+	}));
+	ui.model.EventModel.addListener("fitWindow",new ui.model.EventListener(function(n) {
+		fitWindow();
 	}));
 	new ui.jq.JQ("body").click(function(evt) {
 		new ui.jq.JQ(".nonmodalPopup").hide();
@@ -1563,7 +1566,10 @@ ui.api.ProtocolHandler.prototype = {
 ui.api.ProtocolMessage = $hxClasses["ui.api.ProtocolMessage"] = function() { }
 ui.api.ProtocolMessage.__name__ = ["ui","api","ProtocolMessage"];
 ui.api.ProtocolMessage.prototype = {
-	toJson: function() {
+	getContent: function() {
+		return this.content;
+	}
+	,toJson: function() {
 		return { };
 	}
 	,content: null
@@ -1582,12 +1588,12 @@ ui.api.InitializeSessionRequest.prototype = $extend(ui.api.ProtocolMessage.proto
 });
 ui.api.InitializeSessionRequestData = $hxClasses["ui.api.InitializeSessionRequestData"] = function() { }
 ui.api.InitializeSessionRequestData.__name__ = ["ui","api","InitializeSessionRequestData"];
-ui.api.InitializeSessionRequestData.__super__ = ui.api.Payload;
-ui.api.InitializeSessionRequestData.prototype = $extend(ui.api.Payload.prototype,{
+ui.api.InitializeSessionRequestData.__interfaces__ = [ui.api.Payload];
+ui.api.InitializeSessionRequestData.prototype = {
 	agentIdentifier: null
 	,userCredentials: null
 	,__class__: ui.api.InitializeSessionRequestData
-});
+}
 ui.api.InitializeSessionResponse = $hxClasses["ui.api.InitializeSessionResponse"] = function() {
 	this.msgType = ui.api.MsgType.initializeSessionResponse;
 };
@@ -1598,8 +1604,8 @@ ui.api.InitializeSessionResponse.prototype = $extend(ui.api.ProtocolMessage.prot
 });
 ui.api.InitializeSessionResponseData = $hxClasses["ui.api.InitializeSessionResponseData"] = function() { }
 ui.api.InitializeSessionResponseData.__name__ = ["ui","api","InitializeSessionResponseData"];
-ui.api.InitializeSessionResponseData.__super__ = ui.api.Payload;
-ui.api.InitializeSessionResponseData.prototype = $extend(ui.api.Payload.prototype,{
+ui.api.InitializeSessionResponseData.__interfaces__ = [ui.api.Payload];
+ui.api.InitializeSessionResponseData.prototype = {
 	userToken: null
 	,sessionIdentifier: null
 	,lastActiveFilter: null
@@ -1608,7 +1614,7 @@ ui.api.InitializeSessionResponseData.prototype = $extend(ui.api.Payload.prototyp
 	,defaultAlias: null
 	,aliases: null
 	,__class__: ui.api.InitializeSessionResponseData
-});
+}
 ui.api.CloseSessionRequest = $hxClasses["ui.api.CloseSessionRequest"] = function() {
 	this.msgType = ui.api.MsgType.closeSessionRequest;
 };
@@ -3379,6 +3385,39 @@ ui.util.ColorProvider._COLORS.push("#9BCC5C");
 ui.util.ColorProvider._COLORS.push("#CCC45C");
 ui.util.ColorProvider._COLORS.push("#CC8C5C");
 ui.util.ColorProvider._LAST_COLORS_USED = new ui.util.FixedSizeArray(10);
+ui.widget.AndOrToggle = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of AndOrToggle must be a div element");
+		selfElement.addClass("andOrToggle");
+		var or = new ui.jq.JQ("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
+		var and = new ui.jq.JQ("<div class='ui-widget-content ui-corner-bottom all'>All</div>");
+		selfElement.append(or).append(and);
+		var children = selfElement.children();
+		children.hover(function(evt) {
+			$(this).addClass("ui-state-hover");
+		},function() {
+			$(this).removeClass("ui-state-hover");
+		}).click(function(evt) {
+			children.toggleClass("ui-state-active");
+			self._fireFilter();
+		});
+		selfElement.data("getNode",function() {
+			var root;
+			if(or.hasClass("ui-state-active")) root = new ui.model.Or(); else root = new ui.model.And();
+			return root;
+		});
+	}, _fireFilter : function() {
+		var selfElement = this.element;
+		var filter = js.Boot.__cast(selfElement.closest("#filter") , ui.widget.FilterComp);
+		filter.filterComp("fireFilter");
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.andOrToggle",defineWidget());
 ui.widget.FilterableComponent = window.jQuery;
 ui.widget.FilterCombination = window.jQuery;
 var defineWidget = function() {
@@ -3387,8 +3426,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of FilterCombination must be a div element");
 		selfElement.data("getNode",function() {
-			var root;
-			if(selfElement.children(".andOrToggle").children(".any").hasClass("ui-state-active")) root = new ui.model.Or(); else root = new ui.model.And();
+			var root = (selfElement.children(".andOrToggle").data("getNode"))();
 			root.type = self.options.type;
 			var filterables = selfElement.children(".filterable");
 			filterables.each(function(idx,el) {
@@ -3413,19 +3451,7 @@ var defineWidget = function() {
 			var fc = js.Boot.__cast(filterableComp , ui.widget.FilterCombination);
 			return fc;
 		});
-		var toggle = new ui.jq.JQ("<div class='andOrToggle'></div>");
-		var and = new ui.jq.JQ("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
-		var or = new ui.jq.JQ("<div class='ui-widget-content ui-corner-bottom all'>All</div>");
-		toggle.append(and).append(or);
-		var children = toggle.children();
-		children.hover(function(evt) {
-			$(this).addClass("ui-state-hover");
-		},function() {
-			$(this).removeClass("ui-state-hover");
-		}).click(function(evt) {
-			children.toggleClass("ui-state-active");
-			self._fireFilter();
-		});
+		var toggle = new ui.widget.AndOrToggle("<div class='andOrToggle'></div>").andOrToggle();
 		selfElement.append(toggle);
 		(js.Boot.__cast(selfElement , ui.jq.JQDraggable)).draggable({ containment : "parent", distance : 10, scroll : false});
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
@@ -3637,7 +3663,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelComp must be a div element");
-		selfElement.addClass("label").attr("id",StringTools.htmlEscape(self.options.label.text) + "_" + ui.util.UidGenerator.create(8));
+		selfElement.addClass("label labelComp ").attr("id",StringTools.htmlEscape(self.options.label.text) + "_" + ui.util.UidGenerator.create(8));
 		var labelTail = new ui.jq.JQ("<div class='labelTail'></div>");
 		labelTail.css("border-right-color",self.options.label.color);
 		selfElement.append(labelTail);
@@ -3754,6 +3780,8 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of FilterComp must be a div element");
 		selfElement.addClass("connectionDT labelDT dropCombiner " + ui.widget.Widgets.getWidgetClasses());
+		var toggle = new ui.widget.AndOrToggle("<div class='rootToggle andOrToggle'></div>").andOrToggle();
+		selfElement.append(toggle);
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".filterable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
@@ -3805,7 +3833,7 @@ var defineWidget = function() {
 	}, fireFilter : function() {
 		var self = this;
 		var selfElement = this.element;
-		var root = new ui.model.And();
+		var root = (selfElement.children(".rootToggle").data("getNode"))();
 		root.type = "ROOT";
 		var filterables = selfElement.children(".filterable");
 		filterables.each(function(idx,el) {
@@ -3825,13 +3853,24 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTreeBranch must be a div element");
-		selfElement.addClass("labelWrapper");
+		selfElement.addClass("labelTreeBranch ");
+		var expander = new ui.jq.JQ("<div class='labelTreeExpander' style='visibility:hidden;'>+</div>");
+		selfElement.append(expander);
 		var label = new ui.widget.LabelComp("<div></div>").labelComp({ label : self.options.label, isDragByHelper : true, containment : false});
 		selfElement.append(label);
+		label.hover(function() {
+			if(self.options.children.iterator().hasNext()) expander.css("visibility","visible");
+		},function() {
+			expander.css("visibility","hidden");
+		});
 		if(self.options.children != null) {
-			var labelChildren = new ui.widget.LabelTree("<div class='labelChildren'></div>");
+			var labelChildren = new ui.widget.LabelTree("<div class='labelChildren' style='display: none;'></div>");
 			labelChildren.labelTree({ labels : self.options.children});
 			selfElement.append(labelChildren);
+			label.click(function(evt) {
+				labelChildren.toggle();
+				ui.model.EventModel.change("fitWindow");
+			});
 		}
 	}, update : function() {
 		var self = this;
@@ -3848,7 +3887,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTree must be a div element");
-		selfElement.addClass(ui.widget.Widgets.getWidgetClasses());
+		selfElement.addClass("labelTree " + ui.widget.Widgets.getWidgetClasses());
 		self.labels = new ui.observable.MappedSet(self.options.labels,function(label) {
 			return new ui.widget.LabelTreeBranch("<div></div>").labelTreeBranch({ label : label, children : new ui.observable.FilteredSet(ui.AgentUi.USER._getCurrentAlias().labels,function(child) {
 				return child.parentUid == label.uid;
@@ -3868,7 +3907,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelsList must be a div element");
-		selfElement.addClass("icontainer " + ui.widget.Widgets.getWidgetClasses());
+		selfElement.addClass("icontainer labelsList " + ui.widget.Widgets.getWidgetClasses());
 		ui.model.EventModel.addListener("aliasLoaded",new ui.model.EventListener(function(alias) {
 			self._setLabels(alias.labels);
 		}));
@@ -3878,11 +3917,11 @@ var defineWidget = function() {
 	}, _setLabels : function(labels) {
 		var self = this;
 		var selfElement = this.element;
-		selfElement.children().remove();
+		selfElement.children(".labelTree").remove();
 		var labelTree = new ui.widget.LabelTree("<div id='labels' class='labelDT'></div>").labelTree({ labels : new ui.observable.FilteredSet(labels,function(label) {
 			return ui.helper.StringHelper.isBlank(label.parentUid);
 		})});
-		selfElement.append(labelTree);
+		selfElement.prepend(labelTree);
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};

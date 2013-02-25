@@ -11,11 +11,11 @@ interface Requester {
 
 class LongPollingRequest implements Requester {
 	private var jqXHR: Dynamic;
-	private var request: ProtocolMessage<Dynamic>;
+	private var request: ProtocolMessage;
 	private var stop: Bool = false;
 
 
-	public function new(request: ProtocolMessage<Dynamic>) {
+	public function new(request: ProtocolMessage) {
 		this.request = request;
 		EventModel.addListener("runFilter", new EventListener(function(filter: Filter): Void {
                 this.abort();

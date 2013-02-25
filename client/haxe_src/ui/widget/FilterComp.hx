@@ -39,6 +39,9 @@ extern class FilterComp extends JQ {
 
 		        	selfElement.addClass("connectionDT labelDT dropCombiner " + Widgets.getWidgetClasses());
 
+		        	var toggle: AndOrToggle = new AndOrToggle("<div class='rootToggle andOrToggle'></div>").andOrToggle();
+		        	selfElement.append(toggle);
+
 					cast(selfElement, JQDroppable).droppable({
 			    		accept: function(d) {
 			    			return d.is(".filterable");
@@ -150,7 +153,7 @@ extern class FilterComp extends JQ {
 		        	var self: FilterCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	var root: Node = new And();//determine this
+		        	var root: Node = selfElement.children(".rootToggle").data("getNode")();//new And();//determine this
 		        	root.type = "ROOT";
 
 		        	var filterables: JQ = selfElement.children(".filterable");

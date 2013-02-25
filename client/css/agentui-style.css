@@ -133,16 +133,24 @@ body {
 			max-width: 30px;
 		}
 
+		#filter .andOrToggle {
+			float: left;
+			cursor: pointer;
+			font-weight: bold;
+		}
+
+		#filter .rootToggle.andOrToggle {
+			margin-left: -25px;
+			margin-top: 45px;
+		}
+
+		#filter .andOrToggle div {
+			padding: 1px;
+		}
+
 			#filter .filterCombination .andOrToggle {
 				margin-left: -50px;
 				margin-top: -15px;
-				float: left;
-				cursor: pointer;
-				font-weight: bold;
-			}
-
-			#filter .filterCombination .andOrToggle div {
-				padding: 1px;
 			}
 
 	/* Feed
@@ -301,6 +309,12 @@ body {
 		padding: 0;
 		/*margin-bottom: 5px;*/
 	}
+
+		.labelTreeExpander {
+			margin-top: 8px;
+			margin-right: 3px;
+			float: left;
+		}
 
 		.labelTail {
 			width: 0;

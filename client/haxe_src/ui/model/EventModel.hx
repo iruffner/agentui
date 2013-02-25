@@ -20,7 +20,7 @@ class EventModel {
 		arr.push(listener);
 	}
 
-	public static function change<T>(id: String, t: T): Void {
+	public static function change<T>(id: String, ?t: T): Void {
 		ui.AgentUi.LOGGER.debug("EVENTMODEL: Change to " + id);
 		var arr: Array<EventListener> = hash.get(id);
 		if(arr.hasValues()) {
