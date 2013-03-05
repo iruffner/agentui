@@ -1488,11 +1488,13 @@ ui.AgentUi.main = function() {
 }
 ui.AgentUi.start = function() {
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
+	new ui.jq.JQ("#sideRight #chat").tabs();
 	new ui.widget.ConnectionsList("#connections").connectionsList({ });
 	new ui.widget.LabelsList("#labelsList").labelsList();
 	new ui.widget.FilterComp("#filter").filterComp(null);
 	new ui.widget.ContentFeed("#feed").contentFeed({ content : ui.AgentUi.CONTENT});
 	new ui.widget.UserComp("#userId").userComp();
+	new ui.widget.PostComp("#postInput").postComp();
 	ui.model.EventModel.addListener("filterComplete",new ui.model.EventListener(function(filter) {
 		ui.model.EventModel.change("fitWindow");
 	}));
@@ -3927,6 +3929,106 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.labelsList",defineWidget());
+ui.widget.UploadComp = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of UploadComp must be a div element");
+		selfElement.addClass("uploadComp container " + ui.widget.Widgets.getWidgetClasses());
+		var filesUpload = new ui.jq.JQ("<input id='files-upload' type='file' multiple style='float: left;margin-top: 25px;margin-left: 25px;'/>").appendTo(selfElement);
+		filesUpload.change(function(evt) {
+			self._traverseFiles(this.files);
+		});
+		selfElement.on("dragleave",null,function(evt,d) {
+			ui.AgentUi.LOGGER.debug("dragleave");
+			var target = evt.target;
+			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("dragenter",null,function(evt,d) {
+			ui.AgentUi.LOGGER.debug("dragenter");
+			$(this).addClass("over");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("dragover",null,function(evt,d) {
+			ui.AgentUi.LOGGER.debug("dragover");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("drop",null,function(evt,d) {
+			ui.AgentUi.LOGGER.debug("drop");
+			self._traverseFiles(evt.originalEvent.dataTransfer.files);
+			$(this).removeClass("drop");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+	}, _uploadFile : function(file) {
+		var self = this;
+		var selfElement = this.element;
+		ui.AgentUi.LOGGER.debug("upload " + Std.string(file.name));
+		if(typeof FileReader !== 'undefined' && new EReg("image","i").match(file.type)) {
+			var img = new ui.jq.JQ("<img style='max-height: 90px;'/>").appendTo(selfElement);
+			var reader = new FileReader();
+			reader.onload = function(evt) {
+				img.attr("src",evt.target.result);
+			};
+			reader.readAsDataURL(file);
+		}
+	}, _traverseFiles : function(files) {
+		ui.AgentUi.LOGGER.debug("traverse the files");
+		var self = this;
+		if(ui.helper.ArrayHelper.hasValues(files)) {
+			var _g1 = 0, _g = files.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				self._uploadFile(files[i]);
+			}
+		} else {
+		}
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.uploadComp",defineWidget());
+ui.widget.PostComp = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of PostComp must be a div element");
+		selfElement.addClass("postComp container shadow " + ui.widget.Widgets.getWidgetClasses());
+		var section = new ui.jq.JQ("<section id='postSection'></section>").appendTo(selfElement);
+		var textInput = new ui.jq.JQ("<div class='postContainer'></div>").appendTo(section);
+		var ta = new ui.jq.JQ("<textarea class='boxsizingBorder ui-corner-all container' style='resize: none;'></textarea>").appendTo(textInput);
+		var mediaInput = new ui.widget.UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp();
+		mediaInput.appendTo(section);
+		var label = new ui.jq.JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
+		var tabs = new ui.jq.JQ("<aside class='tabs'></aside>").appendTo(section);
+		var fcn = function(evt) {
+			tabs.children(".active").removeClass("active");
+			$(this).addClass("active");
+		};
+		var textTab = new ui.jq.JQ("<span class='ui-icon ui-icon-document active ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
+			tabs.children(".active").removeClass("active");
+			$(this).addClass("active");
+			textInput.show();
+			mediaInput.hide();
+		});
+		var imgTab = new ui.jq.JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs).appendTo(tabs).click(function(evt) {
+			tabs.children(".active").removeClass("active");
+			$(this).addClass("active");
+			textInput.hide();
+			mediaInput.show();
+		});
+		mediaInput.hide();
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.postComp",defineWidget());
 ui.widget.UserComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {

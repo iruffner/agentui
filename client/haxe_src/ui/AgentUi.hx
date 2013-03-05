@@ -21,6 +21,7 @@ import ui.widget.LabelsList;
 import ui.widget.ContentFeed;
 import ui.widget.FilterComp;
 import ui.widget.UserComp;
+import ui.widget.PostComp;
 
 using ui.helper.ArrayHelper;
 using ui.helper.StringHelper;
@@ -30,9 +31,6 @@ using Lambda;
 class AgentUi {
     
 	public static var LOGGER: Logga;
-
-    // public static var CONNECTIONS: ObservableSet<Connection>;
-    // public static var LABELS: ObservableSet<Label>;
     public static var CONTENT: ObservableSet<Content>;
     public static var USER: User;
 
@@ -40,17 +38,15 @@ class AgentUi {
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
-        // CONNECTIONS = new ObservableSet<Connection>(ModelObj.identifier);
-        // LABELS = new ObservableSet<Label>(ModelObj.identifier);
         CONTENT = new ObservableSet<Content>(ModelObj.identifier);
         PROTOCOL = new ProtocolHandler();
     }
 
     public static function start(): Void {
-    	new JQ("#middleContainer #content #tabs").tabs();
+        new JQ("#middleContainer #content #tabs").tabs();
+    	new JQ("#sideRight #chat").tabs();
 
         new ConnectionsList("#connections").connectionsList({
-                // connections: AgentUi.CONNECTIONS
             });
         new LabelsList("#labelsList").labelsList();
 
@@ -61,6 +57,8 @@ class AgentUi {
             });
 
         new UserComp("#userId").userComp();
+        
+        new PostComp("#postInput").postComp();
 
         EventModel.addListener("filterComplete", new EventListener(function(filter: Node) {
                 EventModel.change("fitWindow");
@@ -89,14 +87,6 @@ class AgentUi {
     private static function demo(): Void {
         USER = PROTOCOL.getUser("");
         EventModel.change("user", USER);
-        // var connections: Array<Connection> = DAO.getConnections(null);
-        // for(c_ in 0...connections.length) {
-            // CONNECTIONS.add(connections[c_]);
-        // }
-        // var labels: Array<Label> = DAO.getLabels(null);
-        // for(l_ in 0...labels.length) {
-            // LABELS.add(labels[l_]);
-        // }
     }
 
 }

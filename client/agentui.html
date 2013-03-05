@@ -50,7 +50,7 @@
     		<header id="header" class="ui-widget-header ui-corner-top">
     			<div style="margin-top: 10px;"><strong style='font-size: xx-large;'>The Agency</strong></div>
     		</header>
-    		<section id="middle">
+    		<section id="middleSection">
 
 				<div id="middleContainer">
 					<div id="content">
@@ -66,11 +66,20 @@
 									</div>
 								</div>
 								<div id="feed" class="container" style="padding: 10px;">
-									<div id="postInput" class="container shadow">
-										<section id="postInputWr">
-											<textarea class="boxsizingBorder"></textarea>
-											<aside>Post:</aside>
-										</section>
+									<div id="postInput">
+										<!-- <section id="postSection">
+											<div class="postContainer">
+												<textarea class="boxsizingBorder ui-corner-all container"></textarea>
+												
+											</div>
+											<aside class="label">
+												<span>Post:</span>
+											</aside>
+											<aside class="tabs">
+												<span class='ui-icon ui-icon-document active ui-corner-left'></span>
+												<span class='ui-icon ui-icon-image ui-corner-left'></span>
+											</aside>
+										</section> -->
 									</div>
 									<div id="middleContainerSpacer" class="spacer"></div>
 								</div>
@@ -115,6 +124,32 @@
 								<div id="sideRightSpacer" class="spacer clear"></div>
 							</div>
 							<div id="chat" class="icontainer" style="min-height: 205px; margin-top: 15px;">
+								<ul>
+								    <li><a href="#chat-kramer" style="padding: .1em .2em;font-size: .8em;"><img src="media/test/kramer.jpg" class=""></a></li>
+								    <li><a href="#chat-george" style="padding: .1em .2em;font-size: .8em;"><img src="media/test/george.jpg" class=""></a></li>
+								</ul>
+								<div id="chat-kramer" class="chatContainer" style="padding: 3px;">
+									<div class="chatMsg chatLeft ui-helper-clearfix">
+										<div class="name">Hey Jerry! What's up?</div>
+									</div>
+									<div class="chatMsg chatRight ui-helper-clearfix">
+										<div class="name">Hi Kramer. Not much. You?</div>
+									</div>
+									<div class="chatMsg chatLeft ui-helper-clearfix">
+										<div class="name">Wanna grab some coffee?</div>
+									</div>
+								</div>
+								<div id="chat-george" class="chatContainer"  style="padding: 3px;">
+									<div class="chatMsg chatRight ui-helper-clearfix">
+										<div class="name">Hey George! Wanna meet Kramer and I for coffee?</div>
+									</div>
+									<div class="chatMsg chatLeft ui-helper-clearfix">
+										<div class="name">Sounds great. When/where?</div>
+									</div>
+									<div class="chatMsg chatRight ui-helper-clearfix">
+										<div class="name">Tom's @ 3pm</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>

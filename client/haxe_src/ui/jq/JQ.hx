@@ -1,5 +1,9 @@
 package ui.jq;
 
+typedef JQEvent = {> js.JQuery.JqEvent,
+	@:optional var originalEvent: Dynamic;
+}
+
 typedef AjaxOptions = {
 	@:optional var url:String;
 	@:optional var async:Bool;
@@ -149,26 +153,28 @@ extern class JQ extends js.JQuery {
 	
 
 	// Events
+	override function change( ?callb : JQEvent -> Void ) : JQ;
+
 	@:overload(function(callb: Void->Void):js.JQuery { } )
-	@:overload(function(callb: js.JQuery.JqEvent->Void):js.JQuery{})
+	@:overload(function(callb: JQEvent->Void):js.JQuery{})
 	@:overload(function(callb: Void->Bool):js.JQuery{})
-	override function click( ?callb : js.JQuery.JqEvent -> Void ) : JQ;
+	override function click( ?callb : JQEvent -> Void ) : JQ;
 	
 	@:overload(function( onOver : Void -> Void, ?onOut : Void -> Void ) : JQ{})
-	override function hover( onOver : js.JQuery.JqEvent -> Void, ?onOut : Void -> Void ) : JQ;
+	override function hover( onOver : JQEvent -> Void, ?onOut : Void -> Void ) : JQ;
 
-	override function mousedown( ?callb : js.JQuery.JqEvent -> Void ) : JQ;
+	override function mousedown( ?callb : JQEvent -> Void ) : JQ;
 	@:overload(function( ?callb : Void -> Void ) : JQ{})
-	override function mouseout( ?callb : js.JQuery.JqEvent -> Void ) : JQ;
+	override function mouseout( ?callb : JQEvent -> Void ) : JQ;
 	@:overload(function( ?callb : Void -> Void ) : JQ{})
-	override function mouseover( ?callb : js.JQuery.JqEvent -> Void ) : JQ;
+	override function mouseover( ?callb : JQEvent -> Void ) : JQ;
 	
-	@:overload(function(events : String, callb : js.JQuery.JqEvent -> Bool):JQ { } )
+	@:overload(function(events : String, callb : JQEvent -> Bool):JQ { } )
 	@:overload(function(events : String, callb : Void -> Bool):JQ { } )
-	override function bind( events : String, callb : js.JQuery.JqEvent -> Void ) : JQ;
+	override function bind( events : String, callb : JQEvent -> Void ) : JQ;
 
-	@:overload(function( events: String, ?callb: js.JQuery.JqEvent->Dynamic -> Void ) : Void{})
-	function on(events: String, ?selector: String, ?callb: js.JQuery.JqEvent->Dynamic -> Void) : Void;
+	@:overload(function( events: String, ?callb: JQEvent->Dynamic -> Void ) : Void{})
+	function on(events: String, ?selector: String, ?callb: JQEvent->Dynamic -> Void) : Void;
 
 
 	// Other

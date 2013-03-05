@@ -5,22 +5,6 @@ body {
 	min-width: 800px;
 }
 
-/*#wrap {
-	width: 100%;
-	border: 1px solid green;
-	min-height: 650px;
-}
-
-#header {
-	border: 1px solid red;
-	min-height: 60px;
-	background-color: red;
-}
-
-#content {
-	background-color: blue;
-}*/
-
 #spacer {
 	min-height: 10px;
 }
@@ -29,7 +13,6 @@ body {
 -----------------------------------------------------------------------------*/
 #header {
 	height: 60px;
-	/*background: #FFE680;*/
 	margin-bottom: 25px;
 }
 
@@ -56,23 +39,26 @@ body {
 
 /* Middle
 -----------------------------------------------------------------------------*/
-#middle {
+#middleSection {
 	margin-left: 250px;
 	margin-right: 250px;
 	height: 1%;
 	position: relative;
 }
-#middle:after {
+
+#middleSection:after {
 	content: '';
 	clear: both;
 	display: table;
 }
+
 #middleContainer {
 	width: 100%;
 	float: left;
 	overflow: hidden;
 	margin-right: -100%;
 }
+
 #content {
 	padding: 0 20px;
 }
@@ -112,24 +98,9 @@ body {
 			max-height: 80px;
 			min-height: 80px;
 			min-width: 135px;
-			/*-webkit-column-width: 120px;
-			-webkit-column-gap: 10px;*/
 		}
-
-		/*#filter .filterCombination .filterable.label:nth-child(odd), #filter .filterCombination .filterable.connectionAvatar:nth-child(odd) {
-			/*-webkit-column-break-before: always;* /
-			top: 10px;
-			left: 30px;
-		}
-
-		#filter .filterCombination .filterable.label:nth-child(even), #filter .filterCombination .filterable.connectionAvatar:nth-child(even) {
-			/*-webkit-column-break-before: always;* /
-			top: 60px;
-			left: 30px;
-		}*/
 
 		#filter .filterCombination img {
-			/*-webkit-column-break-before: always;*/
 			max-width: 30px;
 		}
 
@@ -164,23 +135,63 @@ body {
 		#feed #postInput {
 			margin-top: -25px !important; 
 			box-shadow: 0px 3px 10px 2px gray;
+			height: 100px;
 		}
 
-			#feed #postInputWr {
-				margin-left: 50px;
+			#feed #postSection {
+				margin-left: 75px;
+				height: 100%;
 			}
 
-				#feed #postInputWr aside {
+			#feed #postSection:after {
+				content: '';
+				clear: both;
+				display: table;
+			}
+
+				#feed #postSection .postContainer {
+					width: 100%;
+					height: 100%;
 					float: left;
-					width: 50px;
-					position: relative;
-					left: -50px;
-					margin-top: -38px;
+					overflow: hidden;
+					margin-right: -100%;
+					margin-left: -8px;
 				}
 
-				#feed #postInputWr textarea {
-					 width: 100%; 
+					#feed #postSection .postContainer textarea {
+						 width: 100%; 
+						 height: 100%;
+					}
+
+				#feed #postSection aside {
+					float: left;
+					position: relative;
 				}
+
+				#feed #postSection aside.label {
+					width: 50px;
+					left: -105px;
+				}
+
+				#feed #postSection aside.tabs {
+					width: 18px;
+					left: -125px;
+					margin-top: 7px;
+				}
+
+					#feed #postSection aside.tabs span {
+						margin-top: 1px;
+						background-color: #E6E6E6;
+						border: 1px solid #5c9ccc;
+					}
+
+					#feed #postSection aside.tabs .active {
+						/*border-top-color: blue !important;
+						border-left-color: blue !important;
+						border-bottom-color: blue !important;*/
+						border-right-color: white !important;
+						background-color: white !important;
+					}
 
 		#feed .post {
 			margin-top: 10px;
@@ -408,7 +419,7 @@ body {
 	position: relative;
 }
 
-	/* .sideRightSearch
+	/* #sideRightSearch
 	-----------------------------------------------------------------------------*/
 	#sideRightSearch {
 		min-height: 50px;
@@ -439,6 +450,9 @@ body {
 			border: 2px solid #5c9ccc;
 			border-radius: 12px;
 		}
+
+	/* #connections
+	-----------------------------------------------------------------------------*/
 
 	#connections {
 		margin-top: 10px;
@@ -478,7 +492,198 @@ body {
 				float: right;
 			}
 
+	/* #chat
+	-----------------------------------------------------------------------------*/
+	#chat {
+		font-size: 1em;
+	}
+		/*#chat .chatContainer .chatMsg:nth-child(odd) div.avatar, #chat .chatContainer .chatMsg:nth-child(even) div.name {
+			float: left;
+		}
 
+		#chat .chatContainer .chatMsg:nth-child(even) div.avatar, #chat .chatContainer .chatMsg:nth-child(odd) div.name {
+			float: right;
+		}*/
+
+		#chat img {
+			/*-webkit-column-break-before: always;*/
+			max-width: 30px;
+			clear: both;
+		}
+
+			#chat li img {
+				max-height: 45px;
+				max-width: 45px;
+				margin-right: 5px;
+				border-radius: 50%;
+				/*border: 1px solid #5c9ccc;*/
+			}
+
+		#chat .chatContainer {
+			max-height: 192px;
+			min-height: 192px;
+			margin-top: 3px;
+			overflow: auto;
+		}
+
+		#chat .chatContainer .chatMsg div.name {
+			z-index: 5;
+			position: relative;
+			margin-top: 5px;
+			margin-bottom: 5px;
+			max-width: 60%;
+			/*clear: both;*/
+		}
+
+		/*#chat .chatContainer .chatMsg:nth-child(odd) div.name {*/
+		#chat .chatContainer .chatMsg.chatLeft div.name {
+			float: left;
+			margin-right: auto;
+			text-align: left; 
+
+			/*margin-left: 36px;*/
+			padding: 4px 10px 4px 15px; /*position within the border*/
+		}
+
+		/*#chat .chatContainer .chatMsg:nth-child(odd) div.name:before{*/
+		#chat .chatContainer .chatMsg.chatLeft div.name:before{
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+			content: "";
+
+			border-width: 8px 10px 8px 17px; 
+			border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
+			-webkit-border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
+			-moz-border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
+			-o-border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
+		}
+
+		#chat .chatContainer .chatMsg.chatRight div.name {
+		/*#chat .chatContainer .chatMsg:nth-child(even) div.name {*/
+			float: right;
+			margin-left: auto;
+			text-align: right;
+
+			/*margin-right: 36px;*/
+			padding: 4px 15px 4px 10px; /*position within the border*/
+		}
+
+		/*#chat .chatContainer .chatMsg:nth-child(even) div.name:before{*/
+		#chat .chatContainer .chatMsg.chatRight div.name:before{
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+			content: "";
+
+			border-width: 8px 17px 8px 10px; 
+			border-image: url(../media/chat_right.png) 8 17 8 10 stretch stretch ;
+			-webkit-border-image: url(../media/chat_right.png) 8 17 8 10 stretch stretch ;
+			-moz-border-image: url(../media/chat_right.png) 8 17 8 10 stretch stretch ;
+			-o-border-image: url(../media/chat_right.png) 8 17 8 10 stretch stretch ;
+		}
+
+		.bubbledLeft,.bubbledRight{
+			position: relative;
+			margin-top: 5px;
+			margin-bottom: 5px;
+			max-width: 80%;
+			clear: both;
+		}
+
+		.bubbledLeft{
+			float: left;
+			margin-right: auto;
+			margin-left: 36px;
+			padding: 4px 10px 4px 15px; /*position within the border*/
+		}
+
+		.bubbledLeft:before{
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+			content: "";
+
+			border-width: 8px 10px 8px 17px; 
+			border-image: url(speech_bubble_left_2.png) 8 10 8 17 stretch stretch;
+			-webkit-border-image: url(speech_bubble_left_2.png) 8 10 8 17 stretch stretch;
+			-moz-border-image: url(speech_bubble_left_2.png) 8 10 8 17 stretch stretch;
+			-o-border-image: url(speech_bubble_left_2.png) 8 10 8 17 stretch stretch;
+		}
+
+		.bubbledLeft:after{
+			z-index: -1;
+			position: absolute;
+			left: -36px;
+			width: 32px;
+			bottom: 0px;
+			height: 32px;
+			content:"";
+
+			background-image: url(left_chatter.png);
+			background-size: 32px 32px;
+			background-position: bottom left;
+
+			border-radius: 3px;
+			-webkit-border-radius: 3px;	
+			-moz-border-radius: 3px;	
+			-o-border-radius: 3px;	
+			-ms-border-radius: 3px;	
+		}
+
+		.bubbledRight{
+			float: right;
+			margin-left: auto;
+			text-align: right;
+
+			margin-right: 36px;
+			padding: 4px 15px 4px 10px; /*position within the border*/	
+		}
+
+		.bubbledRight:before{
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+			content: "";
+
+			border-width: 8px 17px 8px 10px; 
+			border-image: url(speech_bubble_right_2.png) 8 17 8 10 stretch stretch ;
+			-webkit-border-image: url(speech_bubble_right_2.png) 8 17 8 10 stretch stretch ;
+			-moz-border-image: url(speech_bubble_right_2.png) 8 17 8 10 stretch stretch ;
+			-o-border-image: url(speech_bubble_right_2.png) 8 17 8 10 stretch stretch ;
+		}
+
+		.bubbledRight:after{
+			z-index: -1;
+			position: absolute;
+			right: -36px;
+			width: 32px;
+			bottom: 0px;
+			height: 32px;
+			content:"";
+
+			background-image: url(right_chatter.png);
+			background-size: 32px 32px;
+			background-position: bottom left;
+
+			border-radius: 3px;
+			-webkit-border-radius: 3px;	
+			-moz-border-radius: 3px;	
+			-o-border-radius: 3px;	
+			-ms-border-radius: 3px;	
+		}
 /* Other
 -----------------------------------------------------------------------------*/
 .clear {
@@ -513,4 +718,12 @@ body {
 .ui-effects-transfer {
     border: 1px dotted black;
     border-radius: 9px;
-  }
+}
+
+.ui-tabs-vertical { width: 55em; }
+.ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }
+.ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
+.ui-tabs-vertical .ui-tabs-nav li a { display:block; }
+.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; border-right-width: 1px; }
+.ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}
+
