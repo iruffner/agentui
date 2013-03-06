@@ -22,6 +22,7 @@ import ui.widget.ContentFeed;
 import ui.widget.FilterComp;
 import ui.widget.UserComp;
 import ui.widget.PostComp;
+import ui.serialization.Serialization;
 
 using ui.helper.ArrayHelper;
 using ui.helper.StringHelper;
@@ -34,12 +35,15 @@ class AgentUi {
     public static var CONTENT: ObservableSet<Content>;
     public static var USER: User;
 
+    public static var SERIALIZER: Serializer;
+
     public static var PROTOCOL: ProtocolHandler;
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
         CONTENT = new ObservableSet<Content>(ModelObj.identifier);
         PROTOCOL = new ProtocolHandler();
+        SERIALIZER = new Serializer();
     }
 
     public static function start(): Void {

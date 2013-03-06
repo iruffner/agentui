@@ -42,16 +42,20 @@ class LongPollingRequest implements Requester {
 	private function poll(): Void {
 		if(!stop) {
 			jqXHR = JQ.ajax( { 
-				url: "server", 
+				// url: "evalResponse.json", 
+				// isLocal: true,
+				url: "http://64.27.3.17:9876/", 
+				crossDomain: true,
 		        dataType: "json", 
-		        data: request.toJson(),
+		        data: request.toJsonString(),
+		        type: "POST",
 				success: function(data: Dynamic, textStatus: Dynamic, jqXHR: Dynamic) {
 			        if(!stop) {
 			        	//broadcast results
 			        }
 			    }, 
 		        complete: function(arg: Dynamic): Void {
-		        	poll();
+		        	// poll(); //to keep this going
 	        	}, 
 		        timeout: 30000 
 	        } );

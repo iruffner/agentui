@@ -37,6 +37,12 @@ class ProtocolHandler {
 			ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
 			var content: Array<Content> =TestDao.getContent(filter.rootNode);
 			ui.AgentUi.CONTENT.addAll(content);
+			var evalRequest: EvalRequest = new EvalRequest();
+			var evalRequestData: EvalRequestData = new EvalRequestData();
+			evalRequestData.expression = "feed( " + string + " )";
+			evalRequestData.sessionUri = "agent-session://myLovelySession/1234,";
+			evalRequest.contents = evalRequestData;
+			new LongPollingRequest(evalRequest).start();
 		}
 	}
 

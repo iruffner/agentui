@@ -22,6 +22,8 @@ typedef AjaxOptions = {
 	@:optional var complete:Dynamic->Void;
 	@:optional var dataType:String;
 	@:optional var cache:Bool;
+	@:optional var isLocal:Bool;
+	@:optional var crossDomain:Bool;
 	@:optional var data:Dynamic;
 	@:optional var timeout:Dynamic;
 }

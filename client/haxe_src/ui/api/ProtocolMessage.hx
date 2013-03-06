@@ -3,23 +3,26 @@ package ui.api;
 import ui.model.ModelObj;
 import ui.model.Filter;
 
-class ProtocolMessage {
-	public var msgType: MsgType;
-	public var content: Dynamic;
-	public function toJson(): Dynamic {
-		return {};
+class ProtocolMessage implements haxe.rtti.Infos {
+	public var msgType(default, null): MsgType;
+	public var contents: Dynamic;
+	public function toJsonString(): String {
+		return AgentUi.SERIALIZER.toJsonString(this);
 	}
 
-	public function getContent<T>(): T {
+	public function getContents<T>(): T {
 		//TODO serialize it to the correct type
-		return content;
+		return contents;
 	}
 }
 
-interface Payload implements Dynamic {
+interface Payload implements Dynamic, implements haxe.rtti.Infos {
 
 }
 
+/** 
+	Initialize Session Request/Response 
+**/
 class InitializeSessionRequest extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.initializeSessionRequest;
@@ -47,13 +50,16 @@ class InitializeSessionResponseData implements Payload {
 	public var userToken: Dynamic;
 }
 
+/** 
+	Close Session Request/Response 
+**/
 class CloseSessionRequest extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.closeSessionRequest;
 	}
 }
 
-class CloseSessionRequestData {
+class CloseSessionRequestData implements Payload {
 	public var sessionIdentifier: Dynamic;
 	public var userToken: Dynamic;
 	public var reason: Reason;
@@ -65,22 +71,25 @@ class CloseSessionResponse extends ProtocolMessage {
 	}
 }
 
-class CloseSessionResponseData {
+class CloseSessionResponseData implements Payload {
 	public var sessionIdentifier: Dynamic;
 	public var userToken: Dynamic;
 }
 
+/** 
+	Evaluate Request/Response 
+**/
 class EvalRequest extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.evalRequest;
 	}
 }
 
-class EvalRequestData {
+class EvalRequestData implements Payload {
 	public var expression: Dynamic;
-	public var subsessionIdentifier: Dynamic;
-	public var sessionIdentifier: Dynamic;
-	public var userToken: Dynamic;
+	public var sessionUri: String;
+
+	public function new() {}
 }
 
 class EvalResponse extends ProtocolMessage {
@@ -95,7 +104,7 @@ class EvalComplete extends ProtocolMessage {
 	}
 }
 
-class EvalResponseData {
+class EvalResponseData implements Payload {
 	public var posts: Array<Content>;
 	public var subsessionIdentifier: Dynamic;
 	public var sessionIdentifier: Dynamic;
@@ -108,13 +117,16 @@ class EvalError extends ProtocolMessage {
 	}
 }
 
-class EvalErrorData {
+class EvalErrorData implements Payload {
 	public var errorMsg: String;
 	public var subsessionIdentifier: Dynamic;
 	public var sessionIdentifier: Dynamic;
 	public var userToken: Dynamic;
 }
 
+/** 
+	Stop Evaluation Request/Response 
+**/
 class StopEvalRequest extends ProtocolMessage {
 	public function new() {
 		this.msgType = MsgType.stopEvalRequest;
@@ -127,7 +139,7 @@ class StopEvalResponse extends ProtocolMessage {
 	}
 }
 
-class StopMsgData {
+class StopMsgData implements Payload {
 	public var subsessionIdentifier: Dynamic;
 	public var sessionIdentifier: Dynamic;
 	public var userToken: Dynamic;
