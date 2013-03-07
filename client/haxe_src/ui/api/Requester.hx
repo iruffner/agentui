@@ -3,6 +3,7 @@ package ui.api;
 import ui.jq.JQ;
 import ui.model.Filter;
 import ui.model.EventModel;
+import ui.model.ModelEvents;
 
 interface Requester {
 	function start(): Void;
@@ -17,7 +18,7 @@ class LongPollingRequest implements Requester {
 
 	public function new(request: ProtocolMessage) {
 		this.request = request;
-		EventModel.addListener("runFilter", new EventListener(function(filter: Filter): Void {
+		EventModel.addListener(ModelEvents.RunFilter, new EventListener(function(filter: Filter): Void {
                 this.abort();
             })
         );

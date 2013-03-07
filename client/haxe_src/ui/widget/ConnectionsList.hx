@@ -4,6 +4,7 @@ import ui.jq.JQ;
 import ui.jq.JQDroppable;
 import ui.model.ModelObj;
 import ui.model.EventModel;
+import ui.model.ModelEvents;
 import ui.observable.OSet;
 
 typedef ConnectionsListOptions = {
@@ -42,15 +43,15 @@ extern class ConnectionsList extends JQ {
 
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
-		        	EventModel.addListener("aliasLoaded", new EventListener(function(alias: Alias) {
+		        	EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
 			                self._setConnections(alias.connections);
 			            })
 			        );
 
-		        	EventModel.addListener("user", new EventListener(function(user: User) {
-			               	self._setConnections(user.currentAlias.connections);
-			            })
-			        );
+		        	// EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
+			        //        	self._setConnections(user.currentAlias.connections);
+			        //     })
+			        // );
 		        },
 
 		        _setConnections: function(connections: ObservableSet<Connection>): Void {

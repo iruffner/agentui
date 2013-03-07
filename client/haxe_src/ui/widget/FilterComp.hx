@@ -7,6 +7,7 @@ import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
 import ui.model.EventModel;
+import ui.model.ModelEvents;
 import ui.observable.OSet;
 import ui.widget.LabelComp;
 
@@ -162,7 +163,7 @@ extern class FilterComp extends JQ {
 		        			var node: Node = filterable.data("getNode")();
 		        			root.addNode(node);
 		        		});
-		        	EventModel.change("runFilter", new Filter(root));
+		        	EventModel.change(ModelEvents.RunFilter, new Filter(root));
 	        	},
 
 		        destroy: function() {

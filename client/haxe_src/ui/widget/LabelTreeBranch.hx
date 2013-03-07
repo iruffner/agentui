@@ -2,6 +2,8 @@ package ui.widget;
 
 import ui.jq.JQ;
 import ui.model.ModelObj;
+import ui.model.EventModel;
+import ui.model.ModelEvents;
 import ui.observable.OSet;
 
 typedef LabelTreeBranchOptions = {
@@ -106,7 +108,7 @@ extern class LabelTreeBranch extends JQ {
 			            selfElement.append(labelChildren);
 		            	label.click(function(evt: js.JQuery.JqEvent): Void {
 		            			labelChildren.toggle();
-		            			ui.model.EventModel.change("fitWindow");
+		            			EventModel.change(ModelEvents.FitWindow);
 		            		}
 	            		);
 			        }

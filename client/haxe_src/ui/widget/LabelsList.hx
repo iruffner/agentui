@@ -3,6 +3,7 @@ package ui.widget;
 import ui.jq.JQ;
 import ui.model.ModelObj;
 import ui.model.EventModel;
+import ui.model.ModelEvents;
 import ui.observable.OSet;
 import ui.widget.LabelComp;
 
@@ -33,15 +34,15 @@ extern class LabelsList extends JQ {
 
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
-		        	EventModel.addListener("aliasLoaded", new EventListener(function(alias: Alias) {
+		        	EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
 		        			self._setLabels(alias.labels);
 	        			})
 		        	);
 
-		        	EventModel.addListener("user", new EventListener(function(user: User) {
-			               	self._setLabels(user.currentAlias.labels);
-			            })
-			        );
+		        	// EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
+			        //        	self._setLabels(user.currentAlias.labels);
+			        //     })
+			        // );
 		        },
 
 		        _setLabels: function(labels: ObservableSet<Label>): Void {

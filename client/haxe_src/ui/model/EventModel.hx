@@ -11,18 +11,18 @@ class EventModel {
 		hash = new Hash<Array<EventListener>>();
 	}
 
-	public static function addListener<T>(id: String, listener: EventListener) {
-		var arr: Array<EventListener> = hash.get(id);
+	public static function addListener<T>(id: ModelEvents, listener: EventListener) {
+		var arr: Array<EventListener> = hash.get(Std.string(id));
 		if(arr == null) {
 			arr = new Array<EventListener>();
-			hash.set(id, arr);
+			hash.set(Std.string(id), arr);
 		}
 		arr.push(listener);
 	}
 
-	public static function change<T>(id: String, ?t: T): Void {
+	public static function change<T>(id: ModelEvents, ?t: T): Void {
 		ui.AgentUi.LOGGER.debug("EVENTMODEL: Change to " + id);
-		var arr: Array<EventListener> = hash.get(id);
+		var arr: Array<EventListener> = hash.get(Std.string(id));
 		if(arr.hasValues()) {
 			for(l_ in 0...arr.length) {
 				arr[l_].change(t);

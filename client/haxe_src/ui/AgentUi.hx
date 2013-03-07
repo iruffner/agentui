@@ -10,6 +10,7 @@ import ui.log.LogLevel;
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.EventModel;
+import ui.model.ModelEvents;
 import ui.api.ProtocolHandler;
 
 import ui.observable.OSet;
@@ -22,6 +23,8 @@ import ui.widget.ContentFeed;
 import ui.widget.FilterComp;
 import ui.widget.UserComp;
 import ui.widget.PostComp;
+import ui.widget.LoginComp;
+
 import ui.serialization.Serialization;
 
 using ui.helper.ArrayHelper;
@@ -31,12 +34,11 @@ using Lambda;
 
 class AgentUi {
     
-	public static var LOGGER: Logga;
+    public static var LOGGER: Logga;
+	public static var DEMO: Bool = true;
     public static var CONTENT: ObservableSet<Content>;
     public static var USER: User;
-
     public static var SERIALIZER: Serializer;
-
     public static var PROTOCOL: ProtocolHandler;
 
 	public static function main() {
@@ -64,17 +66,23 @@ class AgentUi {
         
         new PostComp("#postInput").postComp();
 
-        EventModel.addListener("filterComplete", new EventListener(function(filter: Node) {
-                EventModel.change("fitWindow");
+        EventModel.addListener(ModelEvents.FilterComplete, new EventListener(function(filter: Node) {
+                EventModel.change(ModelEvents.FitWindow);
             })
         );
 
-        EventModel.addListener("aliasLoaded", new EventListener(function(alias: Alias) {
+        EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
+                USER = user;
+                EventModel.change(ModelEvents.AliasLoaded, user.currentAlias);
+            })
+        );
+
+        EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
                 USER.currentAlias = alias;
             })
         );
 
-        EventModel.addListener("fitWindow", new EventListener(function(n: Null<Dynamic>) {
+        EventModel.addListener(ModelEvents.FitWindow, new EventListener(function(n: Null<Dynamic>) {
                 untyped __js__("fitWindow()");
             })
         );
@@ -84,13 +92,17 @@ class AgentUi {
         });
 
         //TODO load the user from the session
+        var loginComp: LoginComp = new LoginComp("<div></div>");
+        loginComp.appendTo(new JQ("body"));
+        loginComp.loginComp();
+        loginComp.loginComp("open");
 
-        demo();
+        // demo();
     }
 
-    private static function demo(): Void {
-        USER = PROTOCOL.getUser("");
-        EventModel.change("user", USER);
-    }
+    // private static function demo(): Void {
+    //     USER = PROTOCOL.getUser(null);
+    //     EventModel.change("user", USER);
+    // }
 
 }

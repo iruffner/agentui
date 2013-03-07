@@ -4,6 +4,7 @@ import js.JQuery;
 import ui.jq.JQ;
 import ui.model.ModelObj;
 import ui.model.EventModel;
+import ui.model.ModelEvents;
 
 using ui.helper.StringHelper;
 
@@ -37,13 +38,13 @@ extern class UserComp extends JQ {
 
 		        	selfElement.addClass("ocontainer shadow ");
 		        	selfElement.append(new JQ("<div class='container'></div>"));
-		        	EventModel.addListener("user", new EventListener(function(user: User): Void {
+		        	EventModel.addListener(ModelEvents.User, new EventListener(function(user: User): Void {
 		        			self.user = user;
 		        			self._setUser();
 		        		})
 		        	);
 
-		        	EventModel.addListener("loadAlias", new EventListener(function(alias: Alias): Void {
+		        	EventModel.addListener(ModelEvents.LoadAlias, new EventListener(function(alias: Alias): Void {
 		        			self._setUser();
 		        		})
 		        	);
@@ -90,7 +91,7 @@ extern class UserComp extends JQ {
 		        					JQ.cur.removeClass("ui-state-hover");	
 	        					})
 		        			.click(function(evt: JqEvent) {
-		        					EventModel.change("loadAlias", alias.uid);
+		        					EventModel.change(ModelEvents.LoadAlias, alias.uid);
 		        				});
 		        	}
 

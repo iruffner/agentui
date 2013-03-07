@@ -4,6 +4,7 @@ import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
 import ui.model.EventModel;
+import ui.model.ModelEvents;
 
 import ui.api.Requester;
 import ui.api.ProtocolMessage;
@@ -16,14 +17,19 @@ class ProtocolHandler {
 	private var currentFilter: Filter;
 
 	public function new() {
-		EventModel.addListener("runFilter", new EventListener(function(filter: Filter): Void {
+		EventModel.addListener(ModelEvents.RunFilter, new EventListener(function(filter: Filter): Void {
                 this.filter(filter);
             })
         );
 
-        EventModel.addListener("loadAlias", new EventListener(function(uid: String): Void {
+        EventModel.addListener(ModelEvents.LoadAlias, new EventListener(function(uid: String): Void {
                 var alias: Alias = this.getAlias(uid);
-                EventModel.change("aliasLoaded", alias);
+                EventModel.change(ModelEvents.AliasLoaded, alias);
+            })
+        );
+
+        EventModel.addListener(ModelEvents.Login, new EventListener(function(login: Login): Void {
+                getUser(login);
             })
         );
 	}
@@ -46,9 +52,9 @@ class ProtocolHandler {
 		}
 	}
 
-	public function getUser(uid: String): User {
+	public function getUser(login: Login): Void {
 		new InitializeSessionRequest();
-		return TestDao.getUser(uid);
+		EventModel.change(ModelEvents.User, TestDao.getUser(null));
 	}
 
 	public function getAlias(uid: String): Alias {

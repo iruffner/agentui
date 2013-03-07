@@ -155,12 +155,18 @@ extern class JQ extends js.JQuery {
 	
 
 	// Events
+	override function blur( ?callb : JQEvent -> Void ) : JQ;
 	override function change( ?callb : JQEvent -> Void ) : JQ;
 
-	@:overload(function(callb: Void->Void):js.JQuery { } )
-	@:overload(function(callb: JQEvent->Void):js.JQuery{})
-	@:overload(function(callb: Void->Bool):js.JQuery{})
+	@:overload(function(callb: Void->Void):JQ { } )
+	@:overload(function(callb: JQEvent->Void):JQ{})
+	@:overload(function(callb: Void->Bool):JQ{})
 	override function click( ?callb : JQEvent -> Void ) : JQ;
+	override function dblclick( ?callb : JQEvent -> Void ) : JQ;
+	override function error( ?callb : JQEvent -> Void ) : JQ;
+	override function focus( ?callb : JQEvent -> Void ) : JQ;
+	override function focusin( ?callb : JQEvent -> Void ) : JQ;
+	override function focusout( ?callb : JQEvent -> Void ) : JQ;
 	
 	@:overload(function( onOver : Void -> Void, ?onOut : Void -> Void ) : JQ{})
 	override function hover( onOver : JQEvent -> Void, ?onOut : Void -> Void ) : JQ;
@@ -266,12 +272,3 @@ extern class JQSortable extends JQ {
 		JQSortable = window.jQuery;
 	}	
 }
-
-extern class JDialog extends JQ {
-	function dialog(cmd: String): Void;
-
-	private static function __init__() : Void untyped {
-		JDialog = window.jQuery;
-	}	
-}
-

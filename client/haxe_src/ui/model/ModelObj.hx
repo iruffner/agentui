@@ -11,6 +11,13 @@ class ModelObj<T> implements haxe.rtti.Infos {
 	}
 }
 
+class Login extends ModelObj<Login> {
+	public var username: String;
+	public var password: String;
+
+	public function new () {}
+}
+
 class User extends ModelObj<User> {
 	public var fname: String;
 	public var lname: String;
@@ -30,6 +37,12 @@ class User extends ModelObj<User> {
 	private function _setCurrentAlias(alias: Alias): Alias {
 		currentAlias = alias;
 		return currentAlias;
+	}
+
+	public function hasValidSession(): Bool {
+		//TODO //IMPLEMENT ME
+		ui.AgentUi.LOGGER.warn("implement User.hasValidSession");
+		return true;
 	}
 }
 
