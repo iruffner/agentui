@@ -25,6 +25,7 @@ typedef LoginCompWidgetDef = {
 	var _setUser: User->Void;
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
+	var _login: Void->Void;
 
 	var _create: Void->Void;
 	var destroy: Void->Void;
@@ -59,6 +60,12 @@ extern class LoginComp extends JQ {
 		        	inputs.append("<br/>");
 		        	self.input_pw = new JQ("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	self.placeholder_pw = new JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+
+		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
+		        			if(evt.keyCode == 13) {
+		        				self._login();
+		        			}
+		        		});
 
 		        	self.placeholder_un.focus(function(evt: JQEvent): Void {
 		        			self.placeholder_un.hide();
@@ -95,6 +102,28 @@ extern class LoginComp extends JQ {
 
 		        initialized: false,
 
+		        _login: function(): Void {
+		        	var self: LoginCompWidgetDef = Widgets.getSelf();
+					var selfElement: JDialog = Widgets.getSelfElement();
+
+		        	var valid = true;
+    				var login: Login = new Login();
+    				login.username = self.input_un.val();
+    				if(login.username.isBlank()) {
+    					self.placeholder_un.addClass("ui-state-error");
+    					valid = false;
+    				}
+    				login.password = self.input_pw.val();
+    				if(login.password.isBlank()) {
+    					self.placeholder_pw.addClass("ui-state-error");
+    					valid = false;
+    				}
+    				if(!valid) return;
+    				selfElement.find(".ui-state-error").removeClass("ui-state-error");
+    				EventModel.change(ModelEvents.Login, login);
+    				selfElement.jdialog("close");
+	        	},
+
 		        _buildDialog: function(): Void {
 		        	var self: LoginCompWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
@@ -108,26 +137,7 @@ extern class LoginComp extends JQ {
 		        		width: 400,
 		        		buttons: {
 		        			"Login": function() {
-		        				var valid = true;
-		        				var login: Login = new Login();
-		        				login.username = self.input_un.val();
-		        				if(login.username.isBlank()) {
-		        					self.placeholder_un.addClass("ui-state-error");
-		        					valid = false;
-		        				}
-		        				login.password = self.input_pw.val();
-		        				if(login.password.isBlank()) {
-		        					self.placeholder_pw.addClass("ui-state-error");
-		        					valid = false;
-		        				}
-		        				if(!valid) return;
-		        				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-		        				EventModel.change(ModelEvents.Login, login);
-		        				JDialog.cur.jdialog("close");
-		        				// if(ui.AgentUi.DEMO) {
-			        			// 	AgentUi.USER = AgentUi.PROTOCOL.getUser(null);
-	        					// 	EventModel.change("user", AgentUi.USER);
-	        					// }
+		        				self._login();
 		        			},
 		        			"I\\\'m New": function() {
 

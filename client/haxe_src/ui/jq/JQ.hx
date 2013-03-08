@@ -171,6 +171,15 @@ extern class JQ extends js.JQuery {
 	@:overload(function( onOver : Void -> Void, ?onOut : Void -> Void ) : JQ{})
 	override function hover( onOver : JQEvent -> Void, ?onOut : Void -> Void ) : JQ;
 
+	@:overload(function( callb : JQEvent -> Bool ) : JQ {})
+	override function keydown( ?callb : JQEvent -> Void ) : JQ;
+
+	@:overload(function( callb : JQEvent -> Bool ) : JQ {})
+	override function keypress( ?callb : JQEvent -> Void ) : JQ;
+
+	@:overload(function( callb : JQEvent -> Bool ) : JQ {})
+	override function keyup( ?callb : JQEvent -> Void ) : JQ;
+
 	override function mousedown( ?callb : JQEvent -> Void ) : JQ;
 	@:overload(function( ?callb : Void -> Void ) : JQ{})
 	override function mouseout( ?callb : JQEvent -> Void ) : JQ;

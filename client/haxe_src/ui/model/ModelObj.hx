@@ -103,3 +103,9 @@ class AudioContent extends Content {
 
 	public function new () {}
 }
+
+class MessageContent extends Content {
+	public var text: String;
+
+	public function new () {}
+}

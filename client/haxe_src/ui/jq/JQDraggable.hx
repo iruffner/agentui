@@ -1,6 +1,6 @@
 package ui.jq;
 
-import js.JQuery;
+import ui.jq.JQ;
 import ui.jq.JQ.UIPosition;
 import ui.model.ModelObj;
 
@@ -41,9 +41,9 @@ typedef JQDraggableOpts = {
 	@:optional var zIndex: Int; //false;
 
 	// callbacks
-	@:optional var drag: JqEvent->UIDraggable->Void; //null
-	@:optional var start: JqEvent->UIDraggable->Void; //null
-	@:optional var stop: JqEvent->UIDraggable->Void; //null
+	@:optional var drag: JQEvent->UIDraggable->Void; //null
+	@:optional var start: JQEvent->UIDraggable->Void; //null
+	@:optional var stop: JQEvent->UIDraggable->Void; //null
 }
 
 extern class JQDraggable extends JQ {

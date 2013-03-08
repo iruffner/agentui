@@ -46,14 +46,19 @@ class ProtocolHandler {
 			var evalRequest: EvalRequest = new EvalRequest();
 			var evalRequestData: EvalRequestData = new EvalRequestData();
 			evalRequestData.expression = "feed( " + string + " )";
-			evalRequestData.sessionUri = "agent-session://myLovelySession/1234,";
+			evalRequestData.sessionURI = "agent-session://myLovelySession/1234,";
 			evalRequest.contents = evalRequestData;
 			new LongPollingRequest(evalRequest).start();
 		}
 	}
 
 	public function getUser(login: Login): Void {
-		new InitializeSessionRequest();
+		var request: InitializeSessionRequest = new InitializeSessionRequest();
+		var requestData: InitializeSessionRequestData = new InitializeSessionRequestData();
+		request.contents = requestData;
+		requestData.agentURI = "agent://" + login.username + ":" + login.password + "@host:1234/agentId";
+		//TODO send the request
+
 		EventModel.change(ModelEvents.User, TestDao.getUser(null));
 	}
 

@@ -12,11 +12,11 @@ interface Requester {
 
 class LongPollingRequest implements Requester {
 	private var jqXHR: Dynamic;
-	private var request: ProtocolMessage;
+	private var request: ProtocolMessage<Dynamic>;
 	private var stop: Bool = false;
 
 
-	public function new(request: ProtocolMessage) {
+	public function new(request: ProtocolMessage<Dynamic>) {
 		this.request = request;
 		EventModel.addListener(ModelEvents.RunFilter, new EventListener(function(filter: Filter): Void {
                 this.abort();
@@ -48,7 +48,7 @@ class LongPollingRequest implements Requester {
 				url: "http://64.27.3.17:9876/", 
 				crossDomain: true,
 		        dataType: "json", 
-		        data: request.toJsonString(),
+		        data: request.toJson(),
 		        type: "POST",
 				success: function(data: Dynamic, textStatus: Dynamic, jqXHR: Dynamic) {
 			        if(!stop) {

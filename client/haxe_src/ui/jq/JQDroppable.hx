@@ -1,7 +1,6 @@
 package ui.jq;
 
-import js.JQuery;
-import ui.jq.JQ.UIPosition;
+import ui.jq.JQ;
 
 typedef UIDroppable = {
 	draggable: JQDraggable,
@@ -20,11 +19,11 @@ typedef JQDroppableOpts = {
 	@:optional var tolerance: String; //"intersect",
 
 	// callbacks
-	@:optional var activate: JqEvent->UIDroppable->Void; //null,
-	@:optional var deactivate: JqEvent->UIDroppable->Void; //null,
-	@:optional var drop: JqEvent->UIDroppable->Void; //null,
-	@:optional var out: JqEvent->UIDroppable->Void; //null,
-	@:optional var over: JqEvent->UIDroppable->Void; //null,
+	@:optional var activate: JQEvent->UIDroppable->Void; //null,
+	@:optional var deactivate: JQEvent->UIDroppable->Void; //null,
+	@:optional var drop: JQEvent->UIDroppable->Void; //null,
+	@:optional var out: JQEvent->UIDroppable->Void; //null,
+	@:optional var over: JQEvent->UIDroppable->Void; //null,
 }
 
 extern class JQDroppable extends JQ {

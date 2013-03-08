@@ -521,6 +521,9 @@ body {
 	-----------------------------------------------------------------------------*/
 	#chat {
 		font-size: 1em;
+		min-height: 225px;
+		max-height: 225px;
+		margin-top: 15px;
 	}
 		/*#chat .chatContainer .chatMsg:nth-child(odd) div.avatar, #chat .chatContainer .chatMsg:nth-child(even) div.name {
 			float: left;
@@ -544,14 +547,30 @@ body {
 				/*border: 1px solid #5c9ccc;*/
 			}
 
-		#chat .chatContainer {
+			#chat li a {
+				padding: .1em .2em;
+				font-size: .8em;
+			}
+
+		#chat .chatComp {
+			padding: 3px 0 0 0;
 			max-height: 192px;
 			min-height: 192px;
 			margin-top: 3px;
 			overflow: auto;
 		}
 
-		#chat .chatContainer .chatMsg div.name {
+			#chat .chatComp .chatMsgs {
+				max-height: 135px;
+				min-height: 135px;
+				overflow: auto;
+			}
+
+			#chat .chatComp .chatInput input {
+				min-width: 98%;
+			}
+
+		#chat .chatComp .chatMsg div.name {
 			z-index: 5;
 			position: relative;
 			margin-top: 5px;
@@ -560,8 +579,8 @@ body {
 			/*clear: both;*/
 		}
 
-		/*#chat .chatContainer .chatMsg:nth-child(odd) div.name {*/
-		#chat .chatContainer .chatMsg.chatLeft div.name {
+		/*#chat .chatComp .chatMsg:nth-child(odd) div.name {*/
+		#chat .chatComp .chatMsg.chatLeft div.name {
 			float: left;
 			margin-right: auto;
 			text-align: left; 
@@ -570,8 +589,8 @@ body {
 			padding: 4px 10px 4px 15px; /*position within the border*/
 		}
 
-		/*#chat .chatContainer .chatMsg:nth-child(odd) div.name:before{*/
-		#chat .chatContainer .chatMsg.chatLeft div.name:before{
+		/*#chat .chatComp .chatMsg:nth-child(odd) div.name:before{*/
+		#chat .chatComp .chatMsg.chatLeft div.name:before{
 			z-index: -1;
 			position: absolute;
 			top: 0px;
@@ -587,8 +606,8 @@ body {
 			-o-border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
 		}
 
-		#chat .chatContainer .chatMsg.chatRight div.name {
-		/*#chat .chatContainer .chatMsg:nth-child(even) div.name {*/
+		#chat .chatComp .chatMsg.chatRight div.name {
+		/*#chat .chatComp .chatMsg:nth-child(even) div.name {*/
 			float: right;
 			margin-left: auto;
 			text-align: right;
@@ -597,8 +616,8 @@ body {
 			padding: 4px 15px 4px 10px; /*position within the border*/
 		}
 
-		/*#chat .chatContainer .chatMsg:nth-child(even) div.name:before{*/
-		#chat .chatContainer .chatMsg.chatRight div.name:before{
+		/*#chat .chatComp .chatMsg:nth-child(even) div.name:before{*/
+		#chat .chatComp .chatMsg.chatRight div.name:before{
 			z-index: -1;
 			position: absolute;
 			top: 0px;

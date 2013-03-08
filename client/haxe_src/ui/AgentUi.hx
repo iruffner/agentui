@@ -24,6 +24,7 @@ import ui.widget.FilterComp;
 import ui.widget.UserComp;
 import ui.widget.PostComp;
 import ui.widget.LoginComp;
+import ui.widget.MessagingComp;
 
 import ui.serialization.Serialization;
 
@@ -50,7 +51,7 @@ class AgentUi {
 
     public static function start(): Void {
         new JQ("#middleContainer #content #tabs").tabs();
-    	new JQ("#sideRight #chat").tabs();
+    	new MessagingComp("#sideRight #chat").messagingComp();
 
         new ConnectionsList("#connections").connectionsList({
             });
@@ -79,6 +80,11 @@ class AgentUi {
 
         EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
                 USER.currentAlias = alias;
+            })
+        );
+
+        EventModel.addListener(ModelEvents.Login, new EventListener(function(login: Login) {
+                EventModel.change(ModelEvents.FitWindow);
             })
         );
 
