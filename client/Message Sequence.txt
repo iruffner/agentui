@@ -1,0 +1,40 @@
+Message Sequence
+
+
+
+initializeSessionRequest (rc)	-->    	initializeSessionResponse (rc)
+										initializeSessionError (server side error)
+										404 (request with bad credentials)
+			[if timeout occurs would just send again]
+
+
+[now we open up two channels, one for requesting (rc), one for listening (lc)]
+
+
+
+sessionPing (lc)			-->		sessionPong (lc)
+	(occurs on listening channel)
+
+
+evalRequest	(rc)			-->		200
+
+
+evalResponse (lc)			<--	
+
+
+evalNextPageRequest	(rc)	--> 	200
+
+
+evalResponse (lc)			<--	 
+
+
+evalComplete (lc)			<--	   
+
+
+.....
+
+
+stopEvalRequest (rc)		-->		stopEvalResponse (rc)
+
+
+closeSessionRequest (rc)	-->		closeSessionResponse (rc)
