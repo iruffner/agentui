@@ -1,5 +1,7 @@
 package ui.api;
 
+import ui.exception.InitializeSessionException;
+
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
@@ -57,7 +59,12 @@ class ProtocolHandler {
 		var requestData: InitializeSessionRequestData = new InitializeSessionRequestData();
 		request.contents = requestData;
 		requestData.agentURI = "agent://" + login.username + ":" + login.password + "@host:1234/agentId";
-		//TODO send the request
+		try {
+			//TODO send the request
+
+		} catch (err: InitializeSessionException) {
+
+		}
 
 		EventModel.change(ModelEvents.User, TestDao.getUser(null));
 	}

@@ -11,13 +11,19 @@ class ProtocolMessage<T> implements haxe.rtti.Infos {
 		// return AgentUi.SERIALIZER.toJsonString(this);
 		return {
 			msgType: Std.string(this.msgType),
-			contents: getContents()
+			contents: _getContents()
 		}
 	}
 
-	function getContents(): Dynamic {
+
+	private function _getContents(): Dynamic {
 		return AgentUi.SERIALIZER.toJson(contents);
 	}
+
+	private function _setContents(json: Dynamic): T {
+		return AgentUi.SERIALIZER.toJson(contents);
+	}
+
 }
 
 class Payload implements haxe.rtti.Infos {
