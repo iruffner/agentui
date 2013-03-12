@@ -135,10 +135,13 @@ class ObservableSet<T> extends AbstractSet<T> {
 	var _delegate: SizedHash<T>;
 	var _identifier: T->String;
 
-	public function new(identifier: T->String) {
+	public function new(identifier: T->String, ?tArr: Array<T>) {
 		super();
 		_identifier = identifier;
 		_delegate = new SizedHash();
+		if(tArr != null) {
+			addAll(tArr);
+		}
 	}
 
 	public function add(t: T) {
