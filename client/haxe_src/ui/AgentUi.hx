@@ -67,10 +67,17 @@ class AgentUi {
         
         new PostComp("#postInput").postComp();
 
-        EventModel.addListener(ModelEvents.FilterComplete, new EventListener(function(filter: Node) {
+        var fitWindowListener = new EventListener(function(n: Null<Dynamic>) {
+                untyped __js__("fitWindow()");
+            });
+
+        var fireFitWindow = new EventListener(function(n: Null<Dynamic>) {
                 EventModel.change(ModelEvents.FitWindow);
-            })
-        );
+            });
+
+        EventModel.addListener(ModelEvents.MoreContent, fireFitWindow);
+
+        EventModel.addListener(ModelEvents.Login, fireFitWindow);
 
         EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
                 USER = user;
@@ -83,32 +90,15 @@ class AgentUi {
             })
         );
 
-        EventModel.addListener(ModelEvents.Login, new EventListener(function(login: Login) {
-                EventModel.change(ModelEvents.FitWindow);
-            })
-        );
-
-        EventModel.addListener(ModelEvents.FitWindow, new EventListener(function(n: Null<Dynamic>) {
-                untyped __js__("fitWindow()");
-            })
-        );
+        EventModel.addListener(ModelEvents.FitWindow, fitWindowListener);
 
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();
         });
 
-        //TODO load the user from the session
         var loginComp: LoginComp = new LoginComp("<div></div>");
         loginComp.appendTo(new JQ("body"));
         loginComp.loginComp();
         loginComp.loginComp("open");
-
-        // demo();
     }
-
-    // private static function demo(): Void {
-    //     USER = PROTOCOL.getUser(null);
-    //     EventModel.change("user", USER);
-    // }
-
 }

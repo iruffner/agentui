@@ -19,6 +19,7 @@ class Login extends ModelObj<Login> {
 }
 
 class User extends ModelObj<User> {
+	public var sessionURI: String;
 	public var fname: String;
 	public var lname: String;
 	@:optional public var imgSrc: String;

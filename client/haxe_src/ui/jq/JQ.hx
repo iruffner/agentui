@@ -4,6 +4,13 @@ typedef JQEvent = {> js.JQuery.JqEvent,
 	@:optional var originalEvent: Dynamic;
 }
 
+typedef JQXHR = {
+	@:optional var code:Int;
+	@:optional var message: String;
+	@:optional var name: String;
+	@:optional var stack: String;
+}
+
 typedef AjaxOptions = {
 	@:optional var url:String;
 	@:optional var async:Bool;
@@ -11,11 +18,11 @@ typedef AjaxOptions = {
 	/**
 		function(data:Dynamic, textStatus:Dynamic, jqXHR:Dynamic)
 	**/
-	@:optional var success:Dynamic->Dynamic->Dynamic->Void;
+	@:optional var success:Dynamic->Dynamic->JQXHR->Void;
 	/**
 		function(jqXHR:Dynamic, textStatus:Dynamic, errorThrown:Dynamic)
 	**/
-	@:optional var error:Dynamic->Dynamic->Dynamic->Void;
+	@:optional var error:Dynamic->Dynamic->JQXHR->Void;
 	/**
 		function(arg:Dynamic)
 	**/
