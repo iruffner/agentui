@@ -1,6 +1,6 @@
 package ui.util;
 
-class SizedHash<T> extends Hash<T> {
+class SizedHash<T> extends Hash<T>, implements haxe.rtti.Infos {
   public var size(default, null): Int;
 
   public function new() { super(); size = 0; }

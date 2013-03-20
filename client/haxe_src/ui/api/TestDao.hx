@@ -361,6 +361,7 @@ class TestDao {
 	public static function getUser(uid: String): User {
 		if(!initialized) initialize();
 		var user: User = new User();
+        user.sessionURI = "agent-session://ArtVandelay@session1";
         user.fname = "Jerry";
         user.lname = "Seinfeld";
         user.uid = UidGenerator.create();

@@ -2,8 +2,9 @@ package ui.model;
 
 import ui.util.ColorProvider;
 import ui.observable.OSet;
+import ui.serialization.Serialization;
 
-class ModelObj<T> implements haxe.rtti.Infos {
+class ModelObj<T> implements haxe.rtti.Infos  {
 	public var uid: String;
 
 	public static function identifier<T>(t: {uid: String}): String {
@@ -14,6 +15,7 @@ class ModelObj<T> implements haxe.rtti.Infos {
 class Login extends ModelObj<Login> {
 	public var username: String;
 	public var password: String;
+	public var agency: String;
 
 	public function new () {}
 }
@@ -110,3 +112,4 @@ class MessageContent extends Content {
 
 	public function new () {}
 }
+

@@ -32,7 +32,7 @@ class ProxyServlet extends HttpServlet with Logging {
     
     try {
       val client = new DefaultHttpClient()
-      val post = new HttpPost("http://64.27.3.17:9876/post")
+      val post = new HttpPost("http://64.27.3.17:9876/")
 
       req.getHeaderNames.asScala.filterNot(ignoreRequestHeaders).foreach { header =>
         post.setHeader(header, req.getHeader(header))

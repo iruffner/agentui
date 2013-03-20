@@ -13,7 +13,7 @@ interface Requester {
 	function abort(): Void;
 }
 
-class StandardRequest {
+class StandardRequest implements Requester {
 	private var request: ProtocolMessage<Dynamic>;
 	private var successFcn: Dynamic->Dynamic->JQXHR->Void;
 
@@ -22,19 +22,21 @@ class StandardRequest {
 		this.successFcn = successFcn;
 	}
 
-	public function execute(): Void {
+	public function start(): Void {
 		JQ.ajax( { 
-			async: false,
-			url: "api/login", 
+			async: true,
+			url: "/post", 
 	        dataType: "json", 
-	        data: AgentUi.SERIALIZER.toJson(request),
+	        data: AgentUi.SERIALIZER.toJsonString(request),
 	        type: "POST",
 			success: successFcn,
    			error: function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR) {
-   				throw new Exception("Error executing ajax call | " + jqXHR.code + " | " + jqXHR.message);
+   				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.code + " | " + jqXHR.message);
 			}
-			// , timeout: 30000 
         } );
+	}
+
+	public function abort(): Void {
 	}
 }
 
@@ -76,7 +78,7 @@ class LongPollingRequest implements Requester {
 	private function poll(): Void {
 		if(!stop) {
 			jqXHR = JQ.ajax( { 
-				url: "api/poll", 
+				url: "/post", 
 		        dataType: "json", 
 		        data: this.requestJson,
 		        type: "POST",
@@ -87,7 +89,7 @@ class LongPollingRequest implements Requester {
 			        }
 			    },
 			    error: function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR) {
-	   				AgentUi.LOGGER.error("Error executing ajax call | " + jqXHR.code + " | " + jqXHR.message);
+	   				AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.code + " | " + jqXHR.message);
 				},
 		        complete: function(arg: Dynamic): Void {
 		        	poll(); //to keep this going

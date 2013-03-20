@@ -4,32 +4,14 @@ import ui.model.ModelObj;
 import ui.model.Filter;
 import ui.exception.Exception;
 
-interface HasContents<T> {
-	function getContents(): T;
+interface HasContent<T> {
+	function getContent(): T;
 }
 
-class ProtocolMessage<T> implements haxe.rtti.Infos, implements HasContents<T> {
+class ProtocolMessage<T> implements haxe.rtti.Infos, implements HasContent<T> {
 	public var msgType(default, null): MsgType;
-	// public var contents: T;
 
-	// public function toJson(): {msgType: String, contents: Dynamic} {
-	// 	// return AgentUi.SERIALIZER.toJsonString(this);
-	// 	return {
-	// 		msgType: Std.string(this.msgType),
-	// 		contents: _getContents()
-	// 	}
-	// }
-
-
-	// private function _getContents(): Dynamic {
-	// 	return AgentUi.SERIALIZER.toJson(contents);
-	// }
-
-	// private function _setContents(json: Dynamic): T {
-	// 	return AgentUi.SERIALIZER.toJson(contents);
-	// }
-
-	public function getContents() {
+	public function getContent() {
 		return throw new Exception("don't call me");
 	}
 }
@@ -42,14 +24,14 @@ class Payload implements haxe.rtti.Infos {
 	Initialize Session Request/Response 
 **/
 class InitializeSessionRequest extends ProtocolMessage<InitializeSessionRequestData> {
-	public var contents: InitializeSessionRequestData;
+	public var content: InitializeSessionRequestData;
 
 	public function new() {
 		this.msgType = MsgType.initializeSessionRequest;
 	}
 
-	override public function getContents(): InitializeSessionRequestData {
-		return this.contents;
+	override public function getContent(): InitializeSessionRequestData {
+		return this.content;
 	}
 }
 
@@ -58,14 +40,14 @@ class InitializeSessionRequestData extends Payload {
 }
 
 class InitializeSessionResponse extends ProtocolMessage<InitializeSessionResponseData> {
-	public var contents: InitializeSessionResponseData;
+	public var content: InitializeSessionResponseData;
 
 	public function new() {
 		this.msgType = MsgType.initializeSessionResponse;
 	}
 
-	override public function getContents(): InitializeSessionResponseData {
-		return this.contents;
+	override public function getContent(): InitializeSessionResponseData {
+		return this.content;
 	}
 }
 
@@ -79,14 +61,14 @@ class InitializeSessionResponseData extends Payload {
 }
 
 class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData> {
-	public var contents: InitializeSessionErrorData;
+	public var content: InitializeSessionErrorData;
 
 	public function new() {
 		this.msgType = MsgType.initializeSessionError;
 	}
 
-	override public function getContents(): InitializeSessionErrorData {
-		return this.contents;
+	override public function getContent(): InitializeSessionErrorData {
+		return this.content;
 	}
 }
 
@@ -99,14 +81,14 @@ class InitializeSessionErrorData extends Payload {
 	Ping/pop Request/Response 
 **/
 class SessionPingRequest extends ProtocolMessage<SessionPingRequestData> {
-	public var contents: SessionPingRequestData;
+	public var content: SessionPingRequestData;
 
 	public function new() {
 		this.msgType = MsgType.sessionPing;
 	}
 
-	override public function getContents(): SessionPingRequestData {
-		return this.contents;
+	override public function getContent(): SessionPingRequestData {
+		return this.content;
 	}
 }
 
@@ -115,14 +97,14 @@ class SessionPingRequestData extends Payload {
 }
 
 class SessionPongResponse extends ProtocolMessage<SessionPongResponseData> {
-	public var contents: SessionPongResponseData;
+	public var content: SessionPongResponseData;
 
 	public function new() {
 		this.msgType = MsgType.sessionPong;
 	}
 
-	override public function getContents(): SessionPongResponseData {
-		return this.contents;
+	override public function getContent(): SessionPongResponseData {
+		return this.content;
 	}
 }
 
@@ -134,26 +116,26 @@ class SessionPongResponseData extends Payload {
 	Close Session Request/Response 
 **/
 class CloseSessionRequest extends ProtocolMessage<CloseSessionData> {
-	public var contents: CloseSessionData;
+	public var content: CloseSessionData;
 
 	public function new() {
 		this.msgType = MsgType.closeSessionRequest;
 	}
 
-	override public function getContents(): CloseSessionData {
-		return this.contents;
+	override public function getContent(): CloseSessionData {
+		return this.content;
 	}
 }
 
 class CloseSessionResponse extends ProtocolMessage<CloseSessionData> {
-	public var contents: CloseSessionData;
+	public var content: CloseSessionData;
 
 	public function new() {
 		this.msgType = MsgType.closeSessionResponse;
 	}
 
-	override public function getContents(): CloseSessionData {
-		return this.contents;
+	override public function getContent(): CloseSessionData {
+		return this.content;
 	}
 }
 
@@ -165,14 +147,14 @@ class CloseSessionData extends Payload {
 	Evaluate Request/Response 
 **/
 class EvalRequest extends ProtocolMessage<EvalRequestData> {
-	public var contents: EvalRequestData;
+	public var content: EvalRequestData;
 
 	public function new() {
 		this.msgType = MsgType.evalRequest;
 	}
 
-	override public function getContents(): EvalRequestData {
-		return this.contents;
+	override public function getContent(): EvalRequestData {
+		return this.content;
 	}
 }
 
@@ -181,27 +163,44 @@ class EvalRequestData extends Payload {
 	public var expression: Dynamic;
 }
 
+class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
+	public var content: EvalNextPageRequestData;
+
+	public function new() {
+		this.msgType = MsgType.evalRequest;
+	}
+
+	override public function getContent(): EvalNextPageRequestData {
+		return this.content;
+	}
+}
+
+class EvalNextPageRequestData extends Payload {
+	public var sessionURI: String;
+	public var nextPage: String;
+}
+
 class EvalResponse extends ProtocolMessage<EvalResponseData> {
-	public var contents: EvalResponseData;
+	public var content: EvalResponseData;
 
 	public function new() {
 		this.msgType = MsgType.evalResponse;
 	}
 
-	override public function getContents(): EvalResponseData {
-		return this.contents;
+	override public function getContent(): EvalResponseData {
+		return this.content;
 	}
 }
 
 class EvalComplete extends ProtocolMessage<EvalResponseData> {
-	public var contents: EvalResponseData;
+	public var content: EvalResponseData;
 
 	public function new() {
 		this.msgType = MsgType.evalComplete;
 	}
 
-	override public function getContents(): EvalResponseData {
-		return this.contents;
+	override public function getContent(): EvalResponseData {
+		return this.content;
 	}
 }
 
@@ -211,14 +210,14 @@ class EvalResponseData extends Payload {
 }
 
 class EvalError extends ProtocolMessage<EvalErrorData> {
-	public var contents: EvalErrorData;
+	public var content: EvalErrorData;
 
 	public function new() {
 		this.msgType = MsgType.evalError;
 	}
 
-	override public function getContents(): EvalErrorData {
-		return this.contents;
+	override public function getContent(): EvalErrorData {
+		return this.content;
 	}
 }
 
@@ -231,26 +230,26 @@ class EvalErrorData extends Payload {
 	Stop Evaluation Request/Response 
 **/
 class StopEvalRequest extends ProtocolMessage<StopMsgData> {
-	public var contents: StopMsgData;
+	public var content: StopMsgData;
 
 	public function new() {
 		this.msgType = MsgType.stopEvalRequest;
 	}
 
-	override public function getContents(): StopMsgData {
-		return this.contents;
+	override public function getContent(): StopMsgData {
+		return this.content;
 	}
 }
 
 class StopEvalResponse extends ProtocolMessage<StopMsgData> {
-	public var contents: StopMsgData;
+	public var content: StopMsgData;
 
 	public function new() {
 		this.msgType = MsgType.stopEvalResponse;
 	}
 
-	override public function getContents(): StopMsgData {
-		return this.contents;
+	override public function getContent(): StopMsgData {
+		return this.content;
 	}
 }
 

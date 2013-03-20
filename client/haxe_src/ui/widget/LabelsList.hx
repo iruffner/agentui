@@ -39,6 +39,10 @@ extern class LabelsList extends JQ {
 	        			})
 		        	);
 
+		        	var newLabelButton: JQ = new JQ("<button class='newLabelButton'>New Label</button>");
+		        	selfElement.append(newLabelButton).append("<div class='clear'></div>");
+		        	newLabelButton.button();
+
 		        	// EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
 			        //        	self._setLabels(user.currentAlias.labels);
 			        //     })

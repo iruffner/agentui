@@ -23,14 +23,14 @@ Upon listening do you get a bunch of adds?
 
 */
 
-interface OSet<T> {
+interface OSet<T> implements haxe.rtti.Infos {
 	function identifier(): T->String;
 	function listen(l: T->EventType->Void): Void;
 	function iterator(): Iterator<T>;
 	function delegate(): Hash<T>;
 }
 
-class EventManager<T> {
+class EventManager<T> implements haxe.rtti.Infos {
 
 	var _listeners: Array<T->EventType->Void>;
 	var _set: OSet<T>;
@@ -93,7 +93,7 @@ class EventType {
 	}
 }
 
-class AbstractSet<T> implements OSet<T> {
+class AbstractSet<T> implements OSet<T>, implements haxe.rtti.Infos {
 
 	var _eventManager: EventManager<T>;
 
@@ -130,7 +130,7 @@ class AbstractSet<T> implements OSet<T> {
 	}
 }
 
-class ObservableSet<T> extends AbstractSet<T> {
+class ObservableSet<T> extends AbstractSet<T>, implements haxe.rtti.Infos {
 
 	var _delegate: SizedHash<T>;
 	var _identifier: T->String;
