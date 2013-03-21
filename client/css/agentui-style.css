@@ -37,6 +37,10 @@ body {
 	border: 1px solid #5c9ccc !important;
 }
 
+.popup {
+	z-index: 100;
+}
+
 /* Login
 -----------------------------------------------------------------------------*/
 .loginComp {

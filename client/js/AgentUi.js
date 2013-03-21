@@ -3086,13 +3086,6 @@ ui.AgentUi.main = function() {
 	ui.AgentUi.CONTENT = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
 	ui.AgentUi.PROTOCOL = new ui.api.ProtocolHandler();
 	ui.AgentUi.SERIALIZER = new ui.serialization.Serializer();
-	var content = new ui.model.MessageContent();
-	content.type = "audio";
-	content.labels = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	content.connections = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
-	content.text = "test";
-	var str = ui.AgentUi.SERIALIZER.toJsonString(content);
-	ui.AgentUi.LOGGER.debug(str);
 }
 ui.AgentUi.start = function() {
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
@@ -6683,6 +6676,24 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.labelTree",defineWidget());
+ui.widget.Popup = window.jQuery;
+var defineWidget = function() {
+	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of Popup must be a div element");
+		selfElement.addClass("ocontainer shadow popup");
+		if(!self.options.modal) new ui.jq.JQ("body").click(function(evt) {
+			selfElement.remove();
+			self.destroy();
+		});
+		self.options.createFcn(selfElement);
+		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.popup",defineWidget());
 ui.widget.LabelsList = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -6695,7 +6706,21 @@ var defineWidget = function() {
 		}));
 		var newLabelButton = new ui.jq.JQ("<button class='newLabelButton'>New Label</button>");
 		selfElement.append(newLabelButton).append("<div class='clear'></div>");
-		newLabelButton.button();
+		newLabelButton.button().click(function(evt) {
+			var popup = new ui.widget.Popup("<div style='position: absolute;'></div>");
+			popup.appendTo(selfElement);
+			popup = popup.popup({ createFcn : function(el) {
+				var input = new ui.jq.JQ("<input value='New Label'/>").appendTo(el);
+				input.keypress(function(evt1) {
+					if(evt1.keyCode == 13) {
+						ui.AgentUi.LOGGER.info("Create new label | " + $(this).val());
+						$(this).val("New Label");
+					}
+				}).click(function(evt1) {
+					if($(this).val() == "New Label") $(this).val("");
+				});
+			}, positionalElement : newLabelButton});
+		});
 	}, _setLabels : function(labels) {
 		var self = this;
 		var selfElement = this.element;

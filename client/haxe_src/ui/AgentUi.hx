@@ -50,14 +50,14 @@ class AgentUi {
 
         // SERIALIZER.addHandler(ObservableSet, new ObservableSetHandler());
 
-        var content: MessageContent = new MessageContent();
-        content.type = "audio";
-        content.labels = new ObservableSet<Label>(ModelObj.identifier);
-        content.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        content.text = "test";
+        // var content: MessageContent = new MessageContent();
+        // content.type = "audio";
+        // content.labels = new ObservableSet<Label>(ModelObj.identifier);
+        // content.connections = new ObservableSet<Connection>(ModelObj.identifier);
+        // content.text = "test";
 
-        var str: String = SERIALIZER.toJsonString(content);
-        LOGGER.debug(str);
+        // var str: String = SERIALIZER.toJsonString(content);
+        // LOGGER.debug(str);
     }
 
     public static function start(): Void {

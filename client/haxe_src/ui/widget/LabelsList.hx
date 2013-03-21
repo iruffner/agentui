@@ -41,7 +41,27 @@ extern class LabelsList extends JQ {
 
 		        	var newLabelButton: JQ = new JQ("<button class='newLabelButton'>New Label</button>");
 		        	selfElement.append(newLabelButton).append("<div class='clear'></div>");
-		        	newLabelButton.button();
+		        	newLabelButton.button().click(function(evt: JQEvent): Void {
+		        			var popup: Popup = new Popup("<div style='position: absolute;'></div>");
+		        			popup.appendTo(selfElement);
+		        			popup = popup.popup({
+		        					createFcn: function(el: JQ): Void {
+		        						var input: JQ = new JQ("<input value='New Label'/>").appendTo(el);
+		        						input.keypress(function(evt: JQEvent): Void {
+		        								if(evt.keyCode == 13) {
+		        									AgentUi.LOGGER.info("Create new label | " + JQ.cur.val());
+		        									//create new label
+		        									JQ.cur.val("New Label");
+		        								}
+		        							}).click(function(evt: JQEvent): Void {
+		        								if(JQ.cur.val() == "New Label") {
+		        									JQ.cur.val("");
+		        								}
+	        								});
+		        					},
+		        					positionalElement: newLabelButton
+		        				});
+		        		});
 
 		        	// EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
 			        //        	self._setLabels(user.currentAlias.labels);
