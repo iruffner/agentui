@@ -8,6 +8,12 @@ import ui.util.DeepCompare;
 
 class DeepCompareTest implements haxe.rtti.Infos {
 
+
+    @test
+    function testFailingTest() {
+        DeepCompare.assert(1,2);
+    }
+
     @test
     function testInts() {    	
     	DeepCompare.assert(1,1);

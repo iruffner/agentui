@@ -3212,15 +3212,15 @@ test.DeepCompareTest.prototype = {
 			ui.util.DeepCompare.assert({ a : { b : { c : [1,2,3]}}},{ a : { b : { c : [1,2,3,4]}}});
 			test.Assert.fail("we should have blown up");
 		} catch( e ) {
-			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 66, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
-			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 67, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
+			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 72, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
+			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 73, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
 		}
 		try {
 			ui.util.DeepCompare.assert({ a : { b : { c : [1,2,3]}}},{ a : { b : { c : [1,2,99]}}});
 			test.Assert.fail("we should have blown up");
 		} catch( e ) {
-			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 77, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
-			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 78, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
+			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 83, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
+			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 84, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
 		}
 	}
 	,testArrayFailure: function() {
@@ -3230,8 +3230,8 @@ test.DeepCompareTest.prototype = {
 			ui.util.DeepCompare.assert(left,right);
 			test.Assert.fail("we should have blown up");
 		} catch( e ) {
-			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 51, className : "test.DeepCompareTest", methodName : "testArrayFailure"});
-			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 52, className : "test.DeepCompareTest", methodName : "testArrayFailure"});
+			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 57, className : "test.DeepCompareTest", methodName : "testArrayFailure"});
+			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 58, className : "test.DeepCompareTest", methodName : "testArrayFailure"});
 		}
 	}
 	,testFailure: function() {
@@ -3248,6 +3248,9 @@ test.DeepCompareTest.prototype = {
 	}
 	,testInts: function() {
 		ui.util.DeepCompare.assert(1,1);
+	}
+	,testFailingTest: function() {
+		ui.util.DeepCompare.assert(1,2);
 	}
 	,__class__: test.DeepCompareTest
 }
@@ -8320,8 +8323,8 @@ var defineWidget = function() {
 };
 ui.jq.JQ.widget("ui.userComp",defineWidget());
 js.Lib.onerror = null;
-test.DeepCompareTest.__meta__ = { fields : { testArraySuccess : { test : null}, testDeepCompareFailureMessage : { test : null}, testArrayFailure : { test : null}, testFailure : { test : null}, testStrings : { test : null}, testInts : { test : null}}};
-test.DeepCompareTest.__rtti = "<class path=\"test.DeepCompareTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<testInts set=\"method\" line=\"12\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testInts>\n\t<testStrings set=\"method\" line=\"17\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testStrings>\n\t<testFailure set=\"method\" line=\"22\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testFailure>\n\t<testArrayFailure set=\"method\" line=\"44\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testArrayFailure>\n\t<testDeepCompareFailureMessage set=\"method\" line=\"58\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testDeepCompareFailureMessage>\n\t<testArraySuccess set=\"method\" line=\"84\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testArraySuccess>\n</class>";
+test.DeepCompareTest.__meta__ = { fields : { testArraySuccess : { test : null}, testDeepCompareFailureMessage : { test : null}, testArrayFailure : { test : null}, testFailure : { test : null}, testStrings : { test : null}, testInts : { test : null}, testFailingTest : { test : null}}};
+test.DeepCompareTest.__rtti = "<class path=\"test.DeepCompareTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<testFailingTest set=\"method\" line=\"13\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testFailingTest>\n\t<testInts set=\"method\" line=\"18\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testInts>\n\t<testStrings set=\"method\" line=\"23\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testStrings>\n\t<testFailure set=\"method\" line=\"28\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testFailure>\n\t<testArrayFailure set=\"method\" line=\"50\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testArrayFailure>\n\t<testDeepCompareFailureMessage set=\"method\" line=\"64\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testDeepCompareFailureMessage>\n\t<testArraySuccess set=\"method\" line=\"90\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testArraySuccess>\n</class>";
 test.ExampleTest.__meta__ = { fields : { example1 : { test : null}, teardown : { teardown : null}, setup : { setup : null}}};
 test.ExampleTest.__rtti = "<class path=\"test.ExampleTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<setup set=\"method\" line=\"8\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"setup\"/></meta>\n\t</setup>\n\t<teardown set=\"method\" line=\"12\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"teardown\"/></meta>\n\t</teardown>\n\t<example1 set=\"method\" line=\"16\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</example1>\n</class>";
 test.MTest.__meta__ = { fields : { notNullXComplexObjectTest : { test : null}, notNullXSimpleVarTest : { test : null}, getXComplexDefault : { test : null}, getXSimpleDefaults : { test : null}, fn1 : { test : null}}};
