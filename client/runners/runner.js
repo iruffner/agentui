@@ -1571,6 +1571,14 @@ haxe.Json.prototype = {
 	,buf: null
 	,__class__: haxe.Json
 }
+haxe.Log = $hxClasses["haxe.Log"] = function() { }
+haxe.Log.__name__ = ["haxe","Log"];
+haxe.Log.trace = function(v,infos) {
+	js.Boot.__trace(v,infos);
+}
+haxe.Log.clear = function() {
+	js.Boot.__clear_trace();
+}
 haxe.StackItem = $hxClasses["haxe.StackItem"] = { __ename__ : ["haxe","StackItem"], __constructs__ : ["CFunction","Module","FilePos","Method","Lambda"] }
 haxe.StackItem.CFunction = ["CFunction",0];
 haxe.StackItem.CFunction.toString = $estr;
@@ -1669,6 +1677,41 @@ haxe.Stack.makeStack = function(s) {
 		}
 		return m;
 	} else return s;
+}
+haxe.Timer = $hxClasses["haxe.Timer"] = function(time_ms) {
+	var me = this;
+	this.id = window.setInterval(function() {
+		me.run();
+	},time_ms);
+};
+haxe.Timer.__name__ = ["haxe","Timer"];
+haxe.Timer.delay = function(f,time_ms) {
+	var t = new haxe.Timer(time_ms);
+	t.run = function() {
+		t.stop();
+		f();
+	};
+	return t;
+}
+haxe.Timer.measure = function(f,pos) {
+	var t0 = haxe.Timer.stamp();
+	var r = f();
+	haxe.Log.trace(haxe.Timer.stamp() - t0 + "s",pos);
+	return r;
+}
+haxe.Timer.stamp = function() {
+	return new Date().getTime() / 1000;
+}
+haxe.Timer.prototype = {
+	run: function() {
+	}
+	,stop: function() {
+		if(this.id == null) return;
+		window.clearInterval(this.id);
+		this.id = null;
+	}
+	,id: null
+	,__class__: haxe.Timer
 }
 if(!haxe.macro) haxe.macro = {}
 haxe.macro.Context = $hxClasses["haxe.macro.Context"] = function() { }
@@ -3074,6 +3117,1093 @@ js.Lib.setErrorHandler = function(f) {
 	js.Lib.onerror = f;
 }
 var ui = ui || {}
+if(!ui.exception) ui.exception = {}
+ui.exception.Exception = $hxClasses["ui.exception.Exception"] = function(message,cause) {
+	this.message = message;
+	this.cause = cause;
+	this.callStack = haxe.Stack.callStack();
+};
+ui.exception.Exception.__name__ = ["ui","exception","Exception"];
+ui.exception.Exception.prototype = {
+	messageList: function() {
+		return Lambda.map(this.chain(),function(e) {
+			return e.message;
+		});
+	}
+	,stackTrace: function() {
+		var l = new Array();
+		var index = 0;
+		var _g = 0, _g1 = this.chain();
+		while(_g < _g1.length) {
+			var e = _g1[_g];
+			++_g;
+			if(index++ > 0) l.push("CAUSED BY: " + e.message); else l.push("ERROR: " + e.message);
+			var _g2 = 0, _g3 = e.callStack;
+			while(_g2 < _g3.length) {
+				var s = _g3[_g2];
+				++_g2;
+				l.push("  " + Std.string(s));
+			}
+		}
+		return l.join("\n");
+	}
+	,chain: function() {
+		var chain = [];
+		var gather = (function($this) {
+			var $r;
+			var gather1 = null;
+			gather1 = function(e) {
+				if(e != null) {
+					chain.push(e);
+					gather1(e.cause);
+				}
+			};
+			$r = gather1;
+			return $r;
+		}(this));
+		gather(this);
+		return chain;
+	}
+	,rootCause: function() {
+		var ch = this.chain();
+		return ch[ch.length - 1];
+	}
+	,message: null
+	,cause: null
+	,callStack: null
+	,__class__: ui.exception.Exception
+}
+var test = test || {}
+test.Assert = $hxClasses["test.Assert"] = function(message,cause) {
+	ui.exception.Exception.call(this,message,cause);
+};
+test.Assert.__name__ = ["test","Assert"];
+test.Assert.isTrue = function(b) {
+	if(!b) throw new test.Assert("isTrue(" + Std.string(b) + ")");
+}
+test.Assert.isFalse = function(b) {
+	if(b) throw new test.Assert("isFalse(" + Std.string(b) + ")");
+}
+test.Assert.areEqual = function(left,right) {
+	if(left != right) {
+		var msg = "FAIL!!  areEqual(\n" + Std.string(left) + ", \n" + Std.string(right) + "\n)";
+		haxe.Log.trace(msg,{ fileName : "Assert.hx", lineNumber : 24, className : "test.Assert", methodName : "areEqual"});
+		throw new test.Assert(msg);
+	}
+}
+test.Assert.fail = function(msg) {
+	throw msg;
+}
+test.Assert.__super__ = ui.exception.Exception;
+test.Assert.prototype = $extend(ui.exception.Exception.prototype,{
+	__class__: test.Assert
+});
+test.DeepCompareTest = $hxClasses["test.DeepCompareTest"] = function() { }
+test.DeepCompareTest.__name__ = ["test","DeepCompareTest"];
+test.DeepCompareTest.__interfaces__ = [haxe.rtti.Infos];
+test.DeepCompareTest.prototype = {
+	testArraySuccess: function() {
+		var left = [1,2,3];
+		var right = [1,2,3];
+		ui.util.DeepCompare.assert(left,right);
+	}
+	,testDeepCompareFailureMessage: function() {
+		try {
+			ui.util.DeepCompare.assert({ a : { b : { c : [1,2,3]}}},{ a : { b : { c : [1,2,3,4]}}});
+			test.Assert.fail("we should have blown up");
+		} catch( e ) {
+			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 72, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
+			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 73, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
+		}
+		try {
+			ui.util.DeepCompare.assert({ a : { b : { c : [1,2,3]}}},{ a : { b : { c : [1,2,99]}}});
+			test.Assert.fail("we should have blown up");
+		} catch( e ) {
+			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 83, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
+			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 84, className : "test.DeepCompareTest", methodName : "testDeepCompareFailureMessage"});
+		}
+	}
+	,testArrayFailure: function() {
+		var left = [1,2,3];
+		var right = [1,2,3,4];
+		try {
+			ui.util.DeepCompare.assert(left,right);
+			test.Assert.fail("we should have blown up");
+		} catch( e ) {
+			haxe.Log.trace("we blewup as we should have",{ fileName : "DeepCompareTest.hx", lineNumber : 57, className : "test.DeepCompareTest", methodName : "testArrayFailure"});
+			haxe.Log.trace(e,{ fileName : "DeepCompareTest.hx", lineNumber : 58, className : "test.DeepCompareTest", methodName : "testArrayFailure"});
+		}
+	}
+	,testFailure: function() {
+		var left = { a : 1, b : "xyz"};
+		var right = { a : 1, b : "xyz", c : 5};
+		try {
+			ui.util.DeepCompare.assert(left,right);
+			test.Assert.fail("we should have blown up");
+		} catch( e ) {
+		}
+	}
+	,testStrings: function() {
+		ui.util.DeepCompare.assert("a","a");
+	}
+	,testInts: function() {
+		ui.util.DeepCompare.assert(1,1);
+	}
+	,testFailingTest: function() {
+		ui.util.DeepCompare.assert(1,2);
+	}
+	,__class__: test.DeepCompareTest
+}
+test.ExampleTest = $hxClasses["test.ExampleTest"] = function() { }
+test.ExampleTest.__name__ = ["test","ExampleTest"];
+test.ExampleTest.__interfaces__ = [haxe.rtti.Infos];
+test.ExampleTest.prototype = {
+	example1: function() {
+		test.Assert.areEqual("a","a");
+	}
+	,teardown: function() {
+	}
+	,setup: function() {
+	}
+	,__class__: test.ExampleTest
+}
+test.MTest = $hxClasses["test.MTest"] = function() { }
+test.MTest.__name__ = ["test","MTest"];
+test.MTest.__interfaces__ = [haxe.rtti.Infos];
+test.MTest.prototype = {
+	notNullXComplexObjectTest: function() {
+		var a = new test.A();
+		a.setB(null);
+		test.Assert.isFalse((function($this) {
+			var $r;
+			try {
+				$r = a.getB().getC().getStringValue();
+			} catch( __e ) {
+				$r = null;
+			}
+			return $r;
+		}(this)) != null);
+	}
+	,notNullXSimpleVarTest: function() {
+		var x = null;
+		test.Assert.isFalse((function($this) {
+			var $r;
+			try {
+				$r = (function($this) {
+					var $r;
+					x.length;
+					$r = true;
+					return $r;
+				}($this));
+			} catch( e ) {
+				$r = false;
+			}
+			return $r;
+		}(this)));
+		test.Assert.isFalse((function($this) {
+			var $r;
+			try {
+				$r = x;
+			} catch( __e ) {
+				$r = null;
+			}
+			return $r;
+		}(this)) != null);
+		test.Assert.isTrue((function($this) {
+			var $r;
+			try {
+				$r = "hello world";
+			} catch( __e ) {
+				$r = null;
+			}
+			return $r;
+		}(this)) != null);
+	}
+	,getXComplexDefault: function() {
+		var a = new test.A();
+		var aa = a;
+		a.setB(null);
+		test.Assert.areEqual((function($this) {
+			var $r;
+			try {
+				$r = a;
+			} catch( __e ) {
+				$r = aa;
+			}
+			return $r;
+		}(this)),aa);
+	}
+	,getXSimpleDefaults: function() {
+		var x = null;
+		test.Assert.areEqual((function($this) {
+			var $r;
+			try {
+				$r = 25;
+			} catch( __e ) {
+				$r = 10;
+			}
+			return $r;
+		}(this)),25);
+		test.Assert.areEqual((function($this) {
+			var $r;
+			try {
+				$r = x.length;
+			} catch( __e ) {
+				$r = 10;
+			}
+			return $r;
+		}(this)),10);
+	}
+	,fn1: function() {
+		var input = [1,2,3,4];
+		var expected = [10,20,30,40];
+		var actual = Lambda.array(Lambda.map(input,function(it) {
+			return it * 10;
+		}));
+		test.Assert.areEqual("" + Std.string(actual),"" + Std.string(expected));
+		test.Assert.areEqual(actual.length,expected.length);
+		haxe.Log.trace("  actual = " + Std.string(actual),{ fileName : "MTest.hx", lineNumber : 21, className : "test.MTest", methodName : "fn1"});
+		haxe.Log.trace("expected = " + Std.string(expected),{ fileName : "MTest.hx", lineNumber : 22, className : "test.MTest", methodName : "fn1"});
+		var _g1 = 0, _g = actual.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			test.Assert.areEqual(actual[i],expected[i]);
+		}
+	}
+	,__class__: test.MTest
+}
+test.A = $hxClasses["test.A"] = function() {
+	this.b = new test.B();
+};
+test.A.__name__ = ["test","A"];
+test.A.prototype = {
+	setB: function(bb) {
+		this.b = bb;
+	}
+	,getB: function() {
+		return this.b;
+	}
+	,b: null
+	,__class__: test.A
+}
+test.B = $hxClasses["test.B"] = function() {
+	this.c = new test.C();
+};
+test.B.__name__ = ["test","B"];
+test.B.prototype = {
+	setC: function(cc) {
+		this.c = cc;
+	}
+	,getC: function() {
+		return this.c;
+	}
+	,c: null
+	,__class__: test.B
+}
+test.C = $hxClasses["test.C"] = function() {
+	this.stringValue = "class C!";
+};
+test.C.__name__ = ["test","C"];
+test.C.prototype = {
+	getStringValue: function() {
+		return this.stringValue;
+	}
+	,stringValue: null
+	,__class__: test.C
+}
+test.OSetTest = $hxClasses["test.OSetTest"] = function() { }
+test.OSetTest.__name__ = ["test","OSetTest"];
+test.OSetTest.__interfaces__ = [haxe.rtti.Infos];
+test.OSetTest.prototype = {
+	sortSetTests: function() {
+		var menuItems = new ui.observable.ObservableSet(function(it) {
+			return it.uid;
+		});
+		var sortedItems = new ui.observable.SortedSet(menuItems,null);
+		var a = { uid : "a", category : "coolness", description : "loads of coolness"};
+		var b = { uid : "c", category : "meganess", description : "when you need more -ness go mega"};
+		var c = { uid : "b", category : "coolness", description : "extra coolness"};
+		menuItems.add(a);
+		menuItems.add(c);
+		menuItems.add(b);
+		ui.util.DeepCompare.assert(Lambda.list(["a","b","c"]),Lambda.map(sortedItems,function(mi) {
+			return mi.uid;
+		}));
+		menuItems["delete"](b);
+		var d = { uid : "a", category : "ultra mega coolness", description : "say what!?! coolness"};
+		menuItems.update(d);
+		var newA = sortedItems.delegate().get("a");
+		ui.util.DeepCompare.assert(d,newA);
+	}
+	,groupedSetTest: function() {
+		var menuItems = new ui.observable.ObservableSet(function(it) {
+			return it.uid;
+		});
+		var groupedItems = new ui.observable.GroupedSet(menuItems,function(it) {
+			return it.category;
+		});
+		menuItems.add({ uid : "a", category : "coolness", description : "loads of coolness"});
+		menuItems.add({ uid : "b", category : "coolness", description : "extra coolness"});
+		test.Assert.isTrue(groupedItems.delegate().exists("coolness"));
+		menuItems.add({ uid : "c", category : "meganess", description : "when you need more -ness go mega"});
+		test.Assert.isTrue(groupedItems.delegate().exists("coolness"));
+		test.Assert.isTrue(groupedItems.delegate().exists("meganess"));
+	}
+	,updateTest: function() {
+		var set = new ui.observable.ObservableSet(function(it) {
+			return it;
+		});
+		var fs = set.filter(function(it) {
+			return it.length > 4;
+		});
+		var setT = null;
+		var setType = null;
+		set.listen(function(t,type) {
+			setT = t;
+			setType = type;
+		});
+		var fsT = null;
+		var fsType = null;
+		fs.listen(function(t,type) {
+			fsT = t;
+			fsType = type;
+		});
+		set.add("ffffff");
+		test.Assert.areEqual(setT,"ffffff");
+		test.Assert.areEqual(setType,ui.observable.EventType.Add);
+		test.Assert.areEqual(fsT,"ffffff");
+		test.Assert.areEqual(fsType,ui.observable.EventType.Add);
+		set.update("ffffff");
+		test.Assert.areEqual(setT,"ffffff");
+		test.Assert.areEqual(setType,ui.observable.EventType.Update);
+		test.Assert.areEqual(fsT,"ffffff");
+		test.Assert.areEqual(fsType,ui.observable.EventType.Update);
+	}
+	,deleteTest: function() {
+		var set = new ui.observable.ObservableSet(function(it) {
+			return it;
+		});
+		var fs = set.filter(function(it) {
+			return it.length > 4;
+		});
+		var setT = null;
+		var setType = null;
+		set.listen(function(t,type) {
+			setT = t;
+			setType = type;
+		});
+		var fsT = null;
+		var fsType = null;
+		fs.listen(function(t,type) {
+			fsT = t;
+			fsType = type;
+		});
+		set.add("ggggggg");
+		test.Assert.areEqual(setT,"ggggggg");
+		test.Assert.areEqual(setType,ui.observable.EventType.Add);
+		test.Assert.areEqual(fsT,"ggggggg");
+		test.Assert.areEqual(fsType,ui.observable.EventType.Add);
+		set["delete"]("ggggggg");
+		test.Assert.areEqual(setT,"ggggggg");
+		test.Assert.areEqual(setType,ui.observable.EventType.Delete);
+		test.Assert.areEqual(fsT,"ggggggg");
+		test.Assert.areEqual(fsType,ui.observable.EventType.Delete);
+	}
+	,addWithFilterTest: function() {
+		var set = new ui.observable.ObservableSet(function(it) {
+			return it;
+		});
+		var fs = set.filter(function(it) {
+			return it.length > 4;
+		});
+		var setT = null;
+		var setType = null;
+		set.listen(function(t,type) {
+			setT = t;
+			setType = type;
+		});
+		var fsT = null;
+		var fsType = null;
+		fs.listen(function(t,type) {
+			fsT = t;
+			fsType = type;
+		});
+		set.add("a");
+		test.Assert.areEqual(setT,"a");
+		test.Assert.areEqual(setType,ui.observable.EventType.Add);
+		test.Assert.areEqual(fsT,null);
+		test.Assert.areEqual(fsType,null);
+		set.add("bb");
+		test.Assert.areEqual(setT,"bb");
+		test.Assert.areEqual(setType,ui.observable.EventType.Add);
+		test.Assert.areEqual(fsT,null);
+		test.Assert.areEqual(fsType,null);
+		set.add("ccc");
+		test.Assert.areEqual(setT,"ccc");
+		test.Assert.areEqual(setType,ui.observable.EventType.Add);
+		test.Assert.areEqual(fsT,null);
+		test.Assert.areEqual(fsType,null);
+		set.add("ddddd");
+		test.Assert.areEqual(setT,"ddddd");
+		test.Assert.areEqual(setType,ui.observable.EventType.Add);
+		test.Assert.areEqual(fsT,"ddddd");
+		test.Assert.areEqual(fsType,ui.observable.EventType.Add);
+	}
+	,__class__: test.OSetTest
+}
+test.Enum1 = $hxClasses["test.Enum1"] = { __ename__ : ["test","Enum1"], __constructs__ : ["ev1","ev2"] }
+test.Enum1.ev1 = ["ev1",0];
+test.Enum1.ev1.toString = $estr;
+test.Enum1.ev1.__enum__ = test.Enum1;
+test.Enum1.ev2 = ["ev2",1];
+test.Enum1.ev2.toString = $estr;
+test.Enum1.ev2.__enum__ = test.Enum1;
+test.Subclass = $hxClasses["test.Subclass"] = function() {
+	this.f1 = 21;
+};
+test.Subclass.__name__ = ["test","Subclass"];
+test.Subclass.__interfaces__ = [haxe.rtti.Infos];
+test.Subclass.prototype = {
+	f1: null
+	,__class__: test.Subclass
+}
+test.AbstractClass = $hxClasses["test.AbstractClass"] = function() {
+};
+test.AbstractClass.__name__ = ["test","AbstractClass"];
+test.AbstractClass.__interfaces__ = [haxe.rtti.Infos];
+test.AbstractClass.prototype = {
+	name: null
+	,__class__: test.AbstractClass
+}
+test.Concrete1 = $hxClasses["test.Concrete1"] = function() {
+	test.AbstractClass.call(this);
+};
+test.Concrete1.__name__ = ["test","Concrete1"];
+test.Concrete1.__super__ = test.AbstractClass;
+test.Concrete1.prototype = $extend(test.AbstractClass.prototype,{
+	name1: null
+	,__class__: test.Concrete1
+});
+test.Concrete2 = $hxClasses["test.Concrete2"] = function() {
+	test.AbstractClass.call(this);
+};
+test.Concrete2.__name__ = ["test","Concrete2"];
+test.Concrete2.__super__ = test.AbstractClass;
+test.Concrete2.prototype = $extend(test.AbstractClass.prototype,{
+	name2: null
+	,__class__: test.Concrete2
+});
+test.HasArrayOfDynamic = $hxClasses["test.HasArrayOfDynamic"] = function() {
+	this.arrayOfDynamic = new Array();
+};
+test.HasArrayOfDynamic.__name__ = ["test","HasArrayOfDynamic"];
+test.HasArrayOfDynamic.__interfaces__ = [haxe.rtti.Infos];
+test.HasArrayOfDynamic.prototype = {
+	arrayOfDynamic: null
+	,__class__: test.HasArrayOfDynamic
+}
+test.HasFunction = $hxClasses["test.HasFunction"] = function() {
+};
+test.HasFunction.__name__ = ["test","HasFunction"];
+test.HasFunction.__interfaces__ = [haxe.rtti.Infos];
+test.HasFunction.prototype = {
+	fn: null
+	,__class__: test.HasFunction
+}
+test.HasOptionalFunction = $hxClasses["test.HasOptionalFunction"] = function() {
+};
+test.HasOptionalFunction.__name__ = ["test","HasOptionalFunction"];
+test.HasOptionalFunction.__interfaces__ = [haxe.rtti.Infos];
+test.HasOptionalFunction.prototype = {
+	fn: null
+	,__class__: test.HasOptionalFunction
+}
+if(!ui.serialization) ui.serialization = {}
+ui.serialization.TypeHandler = $hxClasses["ui.serialization.TypeHandler"] = function() { }
+ui.serialization.TypeHandler.__name__ = ["ui","serialization","TypeHandler"];
+ui.serialization.TypeHandler.prototype = {
+	write: null
+	,read: null
+	,__class__: ui.serialization.TypeHandler
+}
+test.AbstractClassHandler = $hxClasses["test.AbstractClassHandler"] = function(serializer) {
+	this._serializer = serializer;
+};
+test.AbstractClassHandler.__name__ = ["test","AbstractClassHandler"];
+test.AbstractClassHandler.__interfaces__ = [ui.serialization.TypeHandler];
+test.AbstractClassHandler.prototype = {
+	write: function(value,writer) {
+		var handler = this._serializer.getHandlerViaClass(Type.getClass(value));
+		return handler.write(value,writer);
+	}
+	,read: function(fromJson,reader,instance) {
+		var handler;
+		if(Reflect.hasField(fromJson,"name1")) handler = this._serializer.getHandlerViaClass(test.Concrete1); else handler = this._serializer.getHandlerViaClass(test.Concrete2);
+		return handler.read(fromJson,reader,instance);
+	}
+	,_serializer: null
+	,__class__: test.AbstractClassHandler
+}
+test.HasAbstractClass = $hxClasses["test.HasAbstractClass"] = function() {
+};
+test.HasAbstractClass.__name__ = ["test","HasAbstractClass"];
+test.HasAbstractClass.__interfaces__ = [haxe.rtti.Infos];
+test.HasAbstractClass.prototype = {
+	ac: null
+	,__class__: test.HasAbstractClass
+}
+test.SerializeMe = $hxClasses["test.SerializeMe"] = function() {
+	this.subClass1 = new test.Subclass();
+	this.lotsOfStrings = new Array();
+	this.lotsOfSubclasses = new Array();
+	this.lotsOfSubclasses.push(new test.Subclass());
+};
+test.SerializeMe.__name__ = ["test","SerializeMe"];
+test.SerializeMe.__interfaces__ = [haxe.rtti.Infos];
+test.SerializeMe.prototype = {
+	lotsOfSubclasses: null
+	,arrayInArrayInArrayOfStrings: null
+	,lotsOfStrings: null
+	,enum1: null
+	,subClass1: null
+	,string1: null
+	,float1: null
+	,int1: null
+	,bool1: null
+	,anOptionalField: null
+	,aTransientField: null
+	,__class__: test.SerializeMe
+}
+test.ArrayOfArrays = $hxClasses["test.ArrayOfArrays"] = function() {
+	test.AbstractClass.call(this);
+	this.theArrayOfArrays = new Array();
+};
+test.ArrayOfArrays.__name__ = ["test","ArrayOfArrays"];
+test.ArrayOfArrays.__super__ = test.AbstractClass;
+test.ArrayOfArrays.prototype = $extend(test.AbstractClass.prototype,{
+	theArrayOfArrays: null
+	,__class__: test.ArrayOfArrays
+});
+test.Dynamite = $hxClasses["test.Dynamite"] = function() {
+};
+test.Dynamite.__name__ = ["test","Dynamite"];
+test.Dynamite.__interfaces__ = [haxe.rtti.Infos];
+test.Dynamite.prototype = {
+	dynamite: null
+	,__class__: test.Dynamite
+}
+test.HasTypeDef = $hxClasses["test.HasTypeDef"] = function() {
+};
+test.HasTypeDef.__name__ = ["test","HasTypeDef"];
+test.HasTypeDef.__interfaces__ = [haxe.rtti.Infos];
+test.HasTypeDef.prototype = {
+	mtd: null
+	,__class__: test.HasTypeDef
+}
+test.BaseClass = $hxClasses["test.BaseClass"] = function() { }
+test.BaseClass.__name__ = ["test","BaseClass"];
+test.BaseClass.__interfaces__ = [haxe.rtti.Infos];
+test.BaseClass.prototype = {
+	name: null
+	,__class__: test.BaseClass
+}
+test.ConcreteClass = $hxClasses["test.ConcreteClass"] = function() {
+};
+test.ConcreteClass.__name__ = ["test","ConcreteClass"];
+test.ConcreteClass.__super__ = test.BaseClass;
+test.ConcreteClass.prototype = $extend(test.BaseClass.prototype,{
+	title: null
+	,__class__: test.ConcreteClass
+});
+test.SerializationTest = $hxClasses["test.SerializationTest"] = function() {
+};
+test.SerializationTest.__name__ = ["test","SerializationTest"];
+test.SerializationTest.__interfaces__ = [haxe.rtti.Infos];
+test.SerializationTest.prototype = {
+	arrayOfArray: function() {
+		var serializer = new ui.serialization.Serializer();
+		var a0 = new test.ArrayOfArrays();
+		a0.theArrayOfArrays[0] = [0,1,2];
+		var json0 = serializer.toJson(a0);
+		var jsonStr0 = haxe.Json.stringify(json0);
+		var a1 = serializer.fromJson(json0,test.ArrayOfArrays).instance;
+		var json1 = serializer.toJson(a1);
+		var jsonStr1 = haxe.Json.stringify(json1);
+		test.Assert.areEqual(jsonStr0,jsonStr1);
+	}
+	,serializingBaseAndConcrete: function() {
+		var serializer = new ui.serialization.Serializer();
+		var cc0 = new test.ConcreteClass();
+		cc0.name = "nn";
+		cc0.title = "tt";
+		var json0 = serializer.toJson(cc0);
+		var jsonStr0 = haxe.Json.stringify(json0);
+		var cc1 = serializer.fromJson(json0,test.ConcreteClass).instance;
+		var json1 = serializer.toJson(cc1);
+		var jsonStr1 = haxe.Json.stringify(json1);
+		test.Assert.areEqual(jsonStr0,jsonStr1);
+	}
+	,serializingFunctionText: function() {
+		var serializer = new ui.serialization.Serializer();
+		var json0 = { fn : "asdf asdf saf as fsaf sadfsdafa"};
+		try {
+			serializer.fromJson(json0,test.HasFunction);
+			test.Assert.fail("we should have blown up");
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,ui.serialization.JsonException) ) {
+				haxe.Log.trace("YAY we blew up like we should have",{ fileName : "SerializationTest.hx", lineNumber : 352, className : "test.SerializationTest", methodName : "serializingFunctionText"});
+			} else throw(e);
+		}
+		var json1 = { fn : "return arg;"};
+		var hf = serializer.fromJson(json1,test.HasFunction).instance;
+		test.Assert.isTrue(hf.fn != null);
+		var json1 = { fn : null};
+		try {
+			serializer.fromJson(json1,test.HasFunction);
+			test.Assert.fail("we should have blown up");
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,ui.serialization.JsonException) ) {
+				haxe.Log.trace("YAY we blew up like we should have",{ fileName : "SerializationTest.hx", lineNumber : 370, className : "test.SerializationTest", methodName : "serializingFunctionText"});
+			} else throw(e);
+		}
+		var json1 = { fn : ""};
+		var hf = serializer.fromJson(json1,test.HasOptionalFunction).instance;
+		test.Assert.isTrue(hf.fn == null);
+		var json1 = { fn : null};
+		var hf = serializer.fromJson(json1,test.HasOptionalFunction).instance;
+		test.Assert.isTrue(hf.fn == null);
+		var json1 = { fn : ""};
+		var hf = serializer.fromJson(json1,test.HasOptionalFunction).instance;
+		test.Assert.isTrue(hf.fn == null);
+	}
+	,transientFieldsAreNotRequired: function() {
+		var serializer = new ui.serialization.Serializer();
+		var json = { bool1 : true, int1 : 1, float1 : 1.2, string1 : "abc", subClass1 : { f1 : 1234}, enum1 : "ev1", lotsOfStrings : ["a","b","c"], lotsOfSubclasses : [{ f1 : 4567, bigFatExtraUglyField : 123}], arrayInArrayInArrayOfStrings : [[["a","b","c"],["d","e","f"]]]};
+		try {
+			serializer.fromJson(json,test.SerializeMe);
+			test.Assert.fail("we should have blown up with a field not found exception");
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,ui.serialization.JsonException) ) {
+				haxe.Log.trace("fieldMissingFromJson() we blew up like we should have -- " + Std.string(e.messageList()),{ fileName : "SerializationTest.hx", lineNumber : 335, className : "test.SerializationTest", methodName : "transientFieldsAreNotRequired"});
+				test.Assert.isTrue(true);
+			} else throw(e);
+		}
+	}
+	,fieldMissingFromJson: function() {
+		var serializer = new ui.serialization.Serializer();
+		var json = { int1 : 1, float1 : 1.2, string1 : "abc", subClass1 : { f1 : 1234}, enum1 : "ev1", lotsOfStrings : ["a","b","c"], lotsOfSubclasses : [{ f1 : 4567, bigFatExtraUglyField : 123}], arrayInArrayInArrayOfStrings : [[["a","b","c"],["d","e","f"]]]};
+		try {
+			serializer.fromJson(json,test.SerializeMe);
+			test.Assert.fail("we should have blown up with a field not found exception");
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,ui.serialization.JsonException) ) {
+				haxe.Log.trace("fieldMissingFromJson() we blew up like we should have -- " + Std.string(e.messageList()),{ fileName : "SerializationTest.hx", lineNumber : 312, className : "test.SerializationTest", methodName : "fieldMissingFromJson"});
+				test.Assert.isTrue(true);
+			} else throw(e);
+		}
+	}
+	,extraFieldInJsonFailure: function() {
+		var serializer = new ui.serialization.Serializer();
+		var json = { bool1 : true, int1 : 1, float1 : 1.2, string1 : "abc", subClass1 : { f1 : 1234}, enum1 : "ev1", lotsOfStrings : ["a","b","c"], lotsOfSubclasses : [{ f1 : 4567, bigFatExtraUglyField : 123}], arrayInArrayInArrayOfStrings : [[["a","b","c"],["d","e","f"]]]};
+		try {
+			serializer.fromJson(json,test.SerializeMe);
+			test.Assert.fail("we should have blown up with a field not found exception");
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,ui.serialization.JsonException) ) {
+				haxe.Log.trace("extraFieldInJsonFailure() we blew up like we should have -- " + Std.string(e.messageList()),{ fileName : "SerializationTest.hx", lineNumber : 289, className : "test.SerializationTest", methodName : "extraFieldInJsonFailure"});
+				test.Assert.isTrue(true);
+			} else throw(e);
+		}
+	}
+	,simpleSerialization: function() {
+		var serializer = new ui.serialization.Serializer();
+		var json = { bool1 : true, int1 : 1, float1 : 1.2, string1 : "abc", subClass1 : { f1 : 1234}, enum1 : "ev1", lotsOfStrings : ["a","b","c"], lotsOfSubclasses : [{ f1 : 4567}], arrayInArrayInArrayOfStrings : [[["a","b","c"],["d","e","f"]]]};
+		var reader = serializer.fromJson(json,test.SerializeMe);
+		var str = haxe.Json.stringify(serializer.toJson(reader.instance));
+		var expected = "{\"bool1\":true,\"int1\":1,\"float1\":1.2,\"string1\":\"abc\",\"subClass1\":{\"f1\":1234},\"enum1\":\"ev1\",\"lotsOfStrings\":[\"a\",\"b\",\"c\"],\"arrayInArrayInArrayOfStrings\":[[[\"a\",\"b\",\"c\"],[\"d\",\"e\",\"f\"]]],\"lotsOfSubclasses\":[{\"f1\":4567}]}";
+		test.Assert.areEqual(str,expected);
+	}
+	,dynamiteTest: function() {
+		var serializer = new ui.serialization.Serializer();
+		var json = { dynamite : { hello : "world"}};
+		var reader = serializer.fromJson(json,test.Dynamite);
+		var str = haxe.Json.stringify(serializer.toJson(reader.instance));
+		var expected = "{\"dynamite\":{\"hello\":\"world\"}}";
+		test.Assert.areEqual(str,expected);
+	}
+	,typeDefTest: function() {
+		var serializer = new ui.serialization.Serializer();
+		var json = { mtd : { a : "world", b : 32}};
+		var reader = serializer.fromJson(json,test.HasTypeDef);
+		var str = haxe.Json.stringify(serializer.toJson(reader.instance));
+		var expected = "{\"mtd\":{\"a\":\"world\",\"b\":32}}";
+		test.Assert.areEqual(str,expected);
+	}
+	,abstractTest: function() {
+		var serializer = new ui.serialization.Serializer();
+		serializer.addHandler(test.AbstractClass,new test.AbstractClassHandler(serializer));
+		var json = { ac : { name : "name", name1 : "name1"}};
+		var reader = serializer.fromJson(json,test.HasAbstractClass);
+		var str = haxe.Json.stringify(serializer.toJson(reader.instance));
+		var expected = "{\"ac\":{\"name\":\"name\",\"name1\":\"name1\"}}";
+		test.Assert.areEqual(str,expected);
+		var json = { ac : { name : "name", name2 : "name2"}};
+		var reader = serializer.fromJson(json,test.HasAbstractClass);
+		var str = haxe.Json.stringify(serializer.toJson(reader.instance));
+		var expected = "{\"ac\":{\"name\":\"name\",\"name2\":\"name2\"}}";
+		test.Assert.areEqual(str,expected);
+	}
+	,arrayOfDynamicTest: function() {
+		var serializer = new ui.serialization.Serializer();
+		var json = haxe.Json.parse("{ \"arrayOfDynamic\": [{\"name\": \"name\", \"name1\": \"name1\"}] }");
+		var reader = serializer.fromJson(json,test.HasArrayOfDynamic);
+		test.Assert.areEqual(reader.instance.arrayOfDynamic,json.arrayOfDynamic);
+		var json = { arrayOfDynamic : { name : "name", name1 : "name1"}};
+		try {
+			var reader = serializer.fromJson(json,test.HasArrayOfDynamic);
+			test.Assert.fail("we should have blown up since we passed in an object and not an array");
+		} catch( e ) {
+			haxe.Log.trace("we blew up like we should have",{ fileName : "SerializationTest.hx", lineNumber : 182, className : "test.SerializationTest", methodName : "arrayOfDynamicTest"});
+		}
+	}
+	,newSerializer: function() {
+		var serializer = new ui.serialization.Serializer();
+		return serializer;
+	}
+	,__class__: test.SerializationTest
+}
+test.StringHelperTest = $hxClasses["test.StringHelperTest"] = function() { }
+test.StringHelperTest.__name__ = ["test","StringHelperTest"];
+test.StringHelperTest.__interfaces__ = [haxe.rtti.Infos];
+test.StringHelperTest.prototype = {
+	trimRightTests: function() {
+		var expected = "";
+		var actual = ui.helper.StringHelper.trimRight(null);
+		test.Assert.areEqual(expected,actual);
+		var expected1 = "good to go!";
+		var actual1 = ui.helper.StringHelper.trimRight("good to go!\n\t");
+		test.Assert.areEqual(expected1,actual1);
+		var expected11 = "\n\t\n\tgood to go!";
+		var actual11 = ui.helper.StringHelper.trimRight("\n\t\n\tgood to go!\n\t");
+		test.Assert.areEqual(expected11,actual11);
+		var expected2 = "good to do!";
+		var actual2 = ui.helper.StringHelper.trimRight("good to do!",20);
+		test.Assert.areEqual(expected2,actual2);
+		var expected3 = "good to ";
+		var actual3 = ui.helper.StringHelper.trimRight("good to go!",2,"go!");
+		test.Assert.areEqual(expected3,actual3);
+		var expected4 = "good to go!";
+		var actual4 = ui.helper.StringHelper.trimRight("good to go!",null,"o");
+		test.Assert.areEqual(expected4,actual4);
+		var expected5 = "body is";
+		var actual5 = ui.helper.StringHelper.trimRight("body is good!",null," good!");
+		test.Assert.areEqual(expected5,actual5);
+	}
+	,trimLeftTests: function() {
+		var expected = "";
+		var actual = ui.helper.StringHelper.trimLeft(null);
+		test.Assert.areEqual(expected,actual);
+		var expected1 = "good to go!";
+		var actual1 = ui.helper.StringHelper.trimLeft("\n\tgood to go!");
+		test.Assert.areEqual(expected1,actual1);
+		var expected11 = "good to go!\n\t";
+		var actual11 = ui.helper.StringHelper.trimLeft("\n\t\n\tgood to go!\n\t");
+		test.Assert.areEqual(expected11,actual11);
+		var expected2 = "good to do!";
+		var actual2 = ui.helper.StringHelper.trimLeft("good to do!",20);
+		test.Assert.areEqual(expected2,actual2);
+		var expected3 = "d to go!";
+		var actual3 = ui.helper.StringHelper.trimLeft("good to go!",2,"go");
+		test.Assert.areEqual(expected3,actual3);
+		var expected4 = "good to go!";
+		var actual4 = ui.helper.StringHelper.trimLeft("good to go!",null,"o");
+		test.Assert.areEqual(expected4,actual4);
+		var expected5 = "dy is good!";
+		var actual5 = ui.helper.StringHelper.trimLeft("body is good!",null,"bo");
+		test.Assert.areEqual(expected5,actual5);
+	}
+	,padRightTests: function() {
+		var expected = "test----";
+		var actual = ui.helper.StringHelper.padRight("test",8,"-");
+		test.Assert.areEqual(expected,actual);
+		var expected1 = "test";
+		var actual1 = ui.helper.StringHelper.padRight("test",4,"<");
+		test.Assert.areEqual(expected1,actual1);
+		var expected2 = "<<<<";
+		var actual2 = ui.helper.StringHelper.padRight(null,4,"<");
+		test.Assert.areEqual(expected2,actual2);
+	}
+	,padLeftTests: function() {
+		var expected = "<<<<test";
+		var actual = ui.helper.StringHelper.padLeft("test",8,"<");
+		test.Assert.areEqual(expected,actual);
+		var expected1 = "----test";
+		var actual1 = ui.helper.StringHelper.padLeft("test",8,"-");
+		test.Assert.areEqual(expected1,actual1);
+		var expected2 = "----";
+		var actual2 = ui.helper.StringHelper.padLeft(null,4,"-");
+		test.Assert.areEqual(expected2,actual2);
+	}
+	,__class__: test.StringHelperTest
+}
+test.TestRunner = $hxClasses["test.TestRunner"] = function() {
+	var _g = this;
+	this._unitTestClasses = [];
+	Lambda.iter(this.getUnitTestClasses(),function(clazz) {
+		try {
+			_g._unitTestClasses.push(new test.TestClass(clazz));
+		} catch( e ) {
+			test.Logger.console.error("error creating TestClass for " + ui.serialization.TypeTools.classname(clazz));
+			test.Logger.console.error(e);
+		}
+	});
+	this.logger = { };
+};
+test.TestRunner.__name__ = ["test","TestRunner"];
+test.TestRunner.main = function() {
+	new ui.jq.JQ("document").ready(function(event) {
+		new test.TestRunner().start();
+	});
+}
+test.TestRunner.prototype = {
+	runTests: function() {
+		Lambda.iter(this._unitTestClasses,function(t) {
+			t.runTests();
+		});
+	}
+	,start: function() {
+		var div = new ui.jq.JQ("#tests_go_here");
+		var _g1 = 0, _g = this._unitTestClasses.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var tw = this._unitTestClasses[i];
+			div.append("<h2>" + tw.getName() + "</h2><br/><br/>");
+			Lambda.iter(tw.getTests(),function(testMethod) {
+				testMethod.mainDiv = new ui.jq.JQ("<div></div>");
+				testMethod.resultsDiv = new ui.jq.JQ("<span>not run</span>");
+				testMethod.logDiv = new ui.jq.JQ("<div style='width: 800px; border: 1px solid black; min-height: 50px; overflow: auto; max-height: 500px; display: none; margin: auto; text-align: left;'></div>");
+				var toggler = new ui.jq.JQ("<span>Toggle Logs</span>");
+				toggler.click(function(evt) {
+					testMethod.logDiv.toggle();
+				});
+				var button = new ui.jq.JQ("<button>run</button>");
+				button.click(function(evt) {
+					testMethod.runTest();
+				});
+				testMethod.mainDiv.append("<b>" + testMethod.name + "</b>").append("&nbsp;&nbsp;&nbsp;").append(button).append("&nbsp;&nbsp;&nbsp;").append(testMethod.resultsDiv).append("&nbsp;&nbsp;&nbsp;").append(toggler).append("<br/>").append(testMethod.logDiv);
+				div.append(testMethod.mainDiv);
+				div.append("<br/><br/>");
+			});
+		}
+		this.runTests();
+		haxe.Log.trace("tests ran woot woot",{ fileName : "TestRunner.hx", lineNumber : 91, className : "test.TestRunner", methodName : "start"});
+	}
+	,logger: null
+	,_unitTestClasses: null
+	,getUnitTestClasses: function() {
+		return [test.DeepCompareTest,test.ExampleTest,test.MTest,test.OSetTest,test.SerializationTest,test.UidGenTest,test.StringHelperTest];
+	}
+	,__class__: test.TestRunner
+}
+test.TestStatus = $hxClasses["test.TestStatus"] = function() { }
+test.TestStatus.__name__ = ["test","TestStatus"];
+test.TestResults = $hxClasses["test.TestResults"] = function(status,messages) {
+	this.status = status;
+	this.messages = messages;
+};
+test.TestResults.__name__ = ["test","TestResults"];
+test.TestResults.prototype = {
+	error: null
+	,fail: null
+	,messages: null
+	,status: null
+	,__class__: test.TestResults
+}
+test.TestMethod = $hxClasses["test.TestMethod"] = function(tc,name) {
+	this.testClass = tc;
+	this.name = name;
+};
+test.TestMethod.__name__ = ["test","TestMethod"];
+test.TestMethod.prototype = {
+	runTestImpl: function() {
+		var results = new test.TestResults(test.TestStatus.Running,new Array());
+		try {
+			results.messages.push("START -- " + Std.string(new Date()));
+			var instance = this.testClass.setup();
+			try {
+				this.testClass.runMethod(instance,this.name);
+				results.status = test.TestStatus.Pass;
+				results.messages.push("PASS");
+			} catch( e ) {
+				if( js.Boot.__instanceof(e,test.Assert) ) {
+					test.Logger.exception(e);
+					results.status = test.TestStatus.Fail;
+					results.messages.push("FAIL -- " + e.message);
+					results.messages.push(e.stackTrace());
+				} else throw(e);
+			}
+			this.testClass.teardown(instance);
+		} catch( $e0 ) {
+			if( js.Boot.__instanceof($e0,ui.exception.Exception) ) {
+				var e = $e0;
+				results.status = test.TestStatus.Error;
+				results.messages.push("ERROR -- " + e.message);
+				try {
+					results.messages.push(e.stackTrace());
+				} catch( er ) {
+					haxe.Log.trace("Couldn't push stacktrace",{ fileName : "TestRunner.hx", lineNumber : 185, className : "test.TestMethod", methodName : "runTestImpl"});
+				}
+				results.error = e;
+				test.Logger.console.error(e);
+			} else {
+			var e = $e0;
+			results.status = test.TestStatus.Error;
+			results.messages.push("ERROR -- " + Std.string(e));
+			results.messages.push("  " + Std.string(e.stack));
+			results.error = e;
+			test.Logger.console.error(e.stack);
+			test.Logger.exception(e);
+			}
+		}
+		return results;
+	}
+	,runTest: function() {
+		var _g = this;
+		var fn = function() {
+			var testInstance = _g.testClass.setup();
+			var results = _g.runTestImpl();
+			_g.resultsDiv.text(results.status);
+			_g.logDiv.empty();
+			Lambda.iter(results.messages,function(msg) {
+				_g.logDiv.append(msg).append("<br/>");
+			});
+		};
+		haxe.Timer.delay(fn,0);
+	}
+	,name: null
+	,testClass: null
+	,resultsDiv: null
+	,logDiv: null
+	,mainDiv: null
+	,__class__: test.TestMethod
+}
+test.TestClass = $hxClasses["test.TestClass"] = function(clazz) {
+	var _g = this;
+	this._clazz = clazz;
+	this._classname = ui.serialization.TypeTools.classname(this._clazz);
+	this._setupMethods = [];
+	this._teardownMethods = [];
+	this._tests = [];
+	var rtti = this._clazz.__rtti;
+	if(rtti == null) {
+		var msg = "no rtti found for " + this._classname;
+		haxe.Log.trace(msg,{ fileName : "TestRunner.hx", lineNumber : 227, className : "test.TestClass", methodName : "new"});
+		throw new ui.exception.Exception(msg);
+	}
+	var x = Xml.parse(rtti).firstElement();
+	var typeTree = new haxe.rtti.XmlParser().processElement(x);
+	this._classDef = (function($this) {
+		var $r;
+		var $e = (typeTree);
+		switch( $e[1] ) {
+		case 1:
+			var c = $e[2];
+			$r = c;
+			break;
+		default:
+			$r = (function($this) {
+				var $r;
+				throw new ui.exception.Exception("expected a class got " + Std.string(typeTree));
+				return $r;
+			}($this));
+		}
+		return $r;
+	}(this));
+	var tests = [];
+	var $it0 = this._classDef.fields.iterator();
+	while( $it0.hasNext() ) {
+		var f = $it0.next();
+		var fieldXml = x.elementsNamed(f.name).next();
+		if(fieldXml.get("set") == "method") {
+			var $it1 = fieldXml.elementsNamed("meta");
+			while( $it1.hasNext() ) {
+				var meta = $it1.next();
+				var $it2 = meta.elementsNamed("m");
+				while( $it2.hasNext() ) {
+					var m = $it2.next();
+					switch(m.get("n")) {
+					case "setup":
+						this._setupMethods.push(f.name);
+						break;
+					case "teardown":
+						this._teardownMethods.push(f.name);
+						break;
+					case "test":
+						tests.push(f.name);
+						break;
+					}
+				}
+			}
+		}
+	}
+	this._tests = [];
+	Lambda.iter(tests,function(t) {
+		_g._tests.push(new test.TestMethod(_g,t));
+	});
+};
+test.TestClass.__name__ = ["test","TestClass"];
+test.TestClass.prototype = {
+	runMethod: function(obj,method) {
+		Reflect.field(obj,method).apply(obj,[]);
+	}
+	,teardown: function(testInstance) {
+		this.runMethods(testInstance,this._teardownMethods);
+	}
+	,setup: function() {
+		var testInstance = Type.createInstance(this._clazz,[]);
+		this.runMethods(testInstance,this._setupMethods);
+		return testInstance;
+	}
+	,runMethods: function(obj,methods) {
+		var _g = this;
+		Lambda.iter(methods,function(m) {
+			_g.runMethod(obj,m);
+		});
+	}
+	,runTests: function() {
+		Lambda.iter(this._tests,function(t) {
+			t.runTest();
+		});
+	}
+	,getTests: function() {
+		return this._tests;
+	}
+	,getName: function() {
+		return this._classname;
+	}
+	,_tests: null
+	,_teardownMethods: null
+	,_setupMethods: null
+	,_classDef: null
+	,_classname: null
+	,_clazz: null
+	,__class__: test.TestClass
+}
+test.Logger = $hxClasses["test.Logger"] = function() { }
+test.Logger.__name__ = ["test","Logger"];
+test.Logger.exception = function(error) {
+	test.Logger.console.error(error);
+}
+test.UidGenTest = $hxClasses["test.UidGenTest"] = function() { }
+test.UidGenTest.__name__ = ["test","UidGenTest"];
+test.UidGenTest.__interfaces__ = [haxe.rtti.Infos];
+test.UidGenTest.prototype = {
+	test: function() {
+		var uid = ui.util.UidGenerator.create(24);
+		test.Assert.areEqual(uid.length,24);
+	}
+	,__class__: test.UidGenTest
+}
 ui.AgentUi = $hxClasses["ui.AgentUi"] = function() { }
 ui.AgentUi.__name__ = ["ui","AgentUi"];
 ui.AgentUi.LOGGER = null;
@@ -3969,62 +5099,6 @@ ui.api.TestDao.getAlias = function(uid) {
 	alias.connectionSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,ui.api.TestDao.connections);
 	alias.labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,ui.api.TestDao.labels);
 	return alias;
-}
-if(!ui.exception) ui.exception = {}
-ui.exception.Exception = $hxClasses["ui.exception.Exception"] = function(message,cause) {
-	this.message = message;
-	this.cause = cause;
-	this.callStack = haxe.Stack.callStack();
-};
-ui.exception.Exception.__name__ = ["ui","exception","Exception"];
-ui.exception.Exception.prototype = {
-	messageList: function() {
-		return Lambda.map(this.chain(),function(e) {
-			return e.message;
-		});
-	}
-	,stackTrace: function() {
-		var l = new Array();
-		var index = 0;
-		var _g = 0, _g1 = this.chain();
-		while(_g < _g1.length) {
-			var e = _g1[_g];
-			++_g;
-			if(index++ > 0) l.push("CAUSED BY: " + e.message); else l.push("ERROR: " + e.message);
-			var _g2 = 0, _g3 = e.callStack;
-			while(_g2 < _g3.length) {
-				var s = _g3[_g2];
-				++_g2;
-				l.push("  " + Std.string(s));
-			}
-		}
-		return l.join("\n");
-	}
-	,chain: function() {
-		var chain = [];
-		var gather = (function($this) {
-			var $r;
-			var gather1 = null;
-			gather1 = function(e) {
-				if(e != null) {
-					chain.push(e);
-					gather1(e.cause);
-				}
-			};
-			$r = gather1;
-			return $r;
-		}(this));
-		gather(this);
-		return chain;
-	}
-	,rootCause: function() {
-		var ch = this.chain();
-		return ch[ch.length - 1];
-	}
-	,message: null
-	,cause: null
-	,callStack: null
-	,__class__: ui.exception.Exception
 }
 ui.exception.InitializeSessionException = $hxClasses["ui.exception.InitializeSessionException"] = function(error,message,cause) {
 	ui.exception.Exception.call(this,message,cause);
@@ -5172,7 +6246,6 @@ ui.observable.SortedSet.prototype = $extend(ui.observable.AbstractSet.prototype,
 	,_source: null
 	,__class__: ui.observable.SortedSet
 });
-if(!ui.serialization) ui.serialization = {}
 ui.serialization.Serializer = $hxClasses["ui.serialization.Serializer"] = function() {
 	this._handlersMap = new Hash();
 	this.addHandlerViaName("Array<Dynamic>",new ui.serialization.DynamicArrayHandler());
@@ -5283,13 +6356,6 @@ ui.serialization.Serializer.prototype = {
 	}
 	,_handlersMap: null
 	,__class__: ui.serialization.Serializer
-}
-ui.serialization.TypeHandler = $hxClasses["ui.serialization.TypeHandler"] = function() { }
-ui.serialization.TypeHandler.__name__ = ["ui","serialization","TypeHandler"];
-ui.serialization.TypeHandler.prototype = {
-	write: null
-	,read: null
-	,__class__: ui.serialization.TypeHandler
 }
 ui.serialization.ArrayHandler = $hxClasses["ui.serialization.ArrayHandler"] = function(parms,serializer) {
 	this._parms = parms;
@@ -5504,7 +6570,7 @@ ui.serialization.ClassHandler = $hxClasses["ui.serialization.ClassHandler"] = fu
 	var rtti = this._clazz.__rtti;
 	if(rtti == null) {
 		var msg = "no rtti found for " + this._typename;
-		console.log(msg);
+		haxe.Log.trace(msg,{ fileName : "Serialization.hx", lineNumber : 388, className : "ui.serialization.ClassHandler", methodName : "new"});
 		throw new ui.serialization.JsonException(msg);
 	}
 	var x = Xml.parse(rtti).firstElement();
@@ -5770,7 +6836,7 @@ ui.serialization.TypeTools.classname = function(clazz) {
 }
 ui.serialization.TypeTools.clazz = function(d) {
 	var c = Type.getClass(d);
-	if(c == null) console.log("tried to get class for type -- " + Std.string(Type["typeof"](d)) + " -- " + Std.string(d));
+	if(c == null) haxe.Log.trace("tried to get class for type -- " + Std.string(Type["typeof"](d)) + " -- " + Std.string(d),{ fileName : "TypeTools.hx", lineNumber : 22, className : "ui.serialization.TypeTools", methodName : "clazz"});
 	return c;
 }
 ui.serialization.CTypeTools = $hxClasses["ui.serialization.CTypeTools"] = function() { }
@@ -5956,6 +7022,217 @@ ui.util.ColorProvider.getRandomColor = function() {
 	do index = Std.random(ui.util.ColorProvider._COLORS.length); while(ui.util.ColorProvider._LAST_COLORS_USED.contains(index));
 	ui.util.ColorProvider._LAST_COLORS_USED.push(index);
 	return ui.util.ColorProvider._COLORS[index];
+}
+ui.util.TypeComparator = $hxClasses["ui.util.TypeComparator"] = function() { }
+ui.util.TypeComparator.__name__ = ["ui","util","TypeComparator"];
+ui.util.TypeComparator.prototype = {
+	equivalent: null
+	,canCompare: null
+	,__class__: ui.util.TypeComparator
+}
+ui.util.ArrayComparator = $hxClasses["ui.util.ArrayComparator"] = function() {
+};
+ui.util.ArrayComparator.__name__ = ["ui","util","ArrayComparator"];
+ui.util.ArrayComparator.__super__ = ui.util.TypeComparator;
+ui.util.ArrayComparator.prototype = $extend(ui.util.TypeComparator.prototype,{
+	equivalent: function(path,left,right) {
+		var l = left;
+		var r = right;
+		if(l.length != r.length) throw new ui.exception.Exception("array length mismatch " + l.length + " != " + r.length);
+		var _g1 = 0, _g = l.length;
+		while(_g1 < _g) {
+			var i = [_g1++];
+			path.arrayAccess(i[0],(function(i) {
+				return function() {
+					ui.util.DeepCompare.assertImpl(path,l[i[0]],r[i[0]]);
+				};
+			})(i));
+		}
+		return true;
+	}
+	,canCompare: function(vt) {
+		return "Array" == ui.serialization.ValueTypeTools.getClassname(vt);
+	}
+	,__class__: ui.util.ArrayComparator
+});
+ui.util.ClassComparator = $hxClasses["ui.util.ClassComparator"] = function(clazz) {
+	this.classname = ui.serialization.TypeTools.classname(clazz);
+};
+ui.util.ClassComparator.__name__ = ["ui","util","ClassComparator"];
+ui.util.ClassComparator.__super__ = ui.util.TypeComparator;
+ui.util.ClassComparator.prototype = $extend(ui.util.TypeComparator.prototype,{
+	equivalent: function(path,left,right) {
+		return left == right;
+	}
+	,canCompare: function(vt) {
+		return this.classname == ui.serialization.ValueTypeTools.getClassname(vt);
+	}
+	,classname: null
+	,__class__: ui.util.ClassComparator
+});
+ui.util.BasicComparator = $hxClasses["ui.util.BasicComparator"] = function(valueType) {
+	this.valueType = valueType;
+};
+ui.util.BasicComparator.__name__ = ["ui","util","BasicComparator"];
+ui.util.BasicComparator.__super__ = ui.util.TypeComparator;
+ui.util.BasicComparator.prototype = $extend(ui.util.TypeComparator.prototype,{
+	equivalent: function(path,left,right) {
+		return left == right;
+	}
+	,canCompare: function(vt) {
+		return this.valueType == vt;
+	}
+	,valueType: null
+	,__class__: ui.util.BasicComparator
+});
+ui.util.ObjectComparator = $hxClasses["ui.util.ObjectComparator"] = function(valueTypeName) {
+	this.valueTypeName = valueTypeName;
+};
+ui.util.ObjectComparator.__name__ = ["ui","util","ObjectComparator"];
+ui.util.ObjectComparator.compareFieldNames = function(left,right) {
+	var sorter = function(l,r) {
+		if(l == r) return 0; else if(l < r) return -1; else return 1;
+	};
+	left.sort(sorter);
+	right.sort(sorter);
+	if(left.length != right.length) throw new ui.exception.Exception("different field names -- " + Std.string(left) + " -- " + Std.string(right));
+	ui.util.LambdaX.iteri(left,function(l,i) {
+		var r = right[i];
+		if(l != r) throw new ui.exception.Exception("different field names -- " + Std.string(left) + " -- " + Std.string(right));
+	});
+	return left;
+}
+ui.util.ObjectComparator.__super__ = ui.util.TypeComparator;
+ui.util.ObjectComparator.prototype = $extend(ui.util.TypeComparator.prototype,{
+	equivalent: function(path,left,right) {
+		var fields = ui.util.ObjectComparator.compareFieldNames(Reflect.fields(left),Reflect.fields(right));
+		Lambda.iter(fields,function(field) {
+			var l = Reflect.field(left,field);
+			var r = Reflect.field(right,field);
+			path.fieldAccess(field,function() {
+				try {
+					ui.util.DeepCompare.assertImpl(path,l,r);
+				} catch( $e0 ) {
+					if( js.Boot.__instanceof($e0,ui.util.CompareFailure) ) {
+						var e = $e0;
+						throw e;
+					} else if( js.Boot.__instanceof($e0,ui.exception.Exception) ) {
+						var e = $e0;
+						throw new ui.util.CompareFailure(path,e.message,e);
+					} else throw($e0);
+				}
+			});
+		});
+		return true;
+	}
+	,canCompare: function(vt) {
+		return ui.serialization.ValueTypeTools.getName(vt) == this.valueTypeName;
+	}
+	,valueTypeName: null
+	,__class__: ui.util.ObjectComparator
+});
+ui.util.EnumComparator = $hxClasses["ui.util.EnumComparator"] = function() {
+};
+ui.util.EnumComparator.__name__ = ["ui","util","EnumComparator"];
+ui.util.EnumComparator.__super__ = ui.util.TypeComparator;
+ui.util.EnumComparator.prototype = $extend(ui.util.TypeComparator.prototype,{
+	equivalent: function(path,left,right) {
+		return Type.enumEq(left,right);
+	}
+	,canCompare: function(vt) {
+		return ui.serialization.ValueTypeTools.getName(vt) == "TEnum";
+	}
+	,__class__: ui.util.EnumComparator
+});
+ui.util.DeepCompare = $hxClasses["ui.util.DeepCompare"] = function() { }
+ui.util.DeepCompare.__name__ = ["ui","util","DeepCompare"];
+ui.util.DeepCompare.assert = function(left,right) {
+	ui.util.DeepCompare.assertImpl(new ui.util.VariablePath(),left,right);
+}
+ui.util.DeepCompare.assertImpl = function(path,left,right) {
+	try {
+		var leftType = Type["typeof"](left);
+		var rightType = Type["typeof"](right);
+		var lc = ui.serialization.ValueTypeTools.getClassname(leftType);
+		var rc = ui.serialization.ValueTypeTools.getClassname(rightType);
+		if(lc != rc) throw new ui.exception.Exception("types differ " + lc + " != " + rc);
+		var comparator = ui.util.DeepCompare.findComparator(leftType);
+		var equiv = comparator.equivalent(path,left,right);
+		if(!equiv) throw new ui.exception.Exception("values differ " + Std.string(left) + " != " + Std.string(right));
+	} catch( $e0 ) {
+		if( js.Boot.__instanceof($e0,ui.util.CompareFailure) ) {
+			var e = $e0;
+			throw e;
+		} else if( js.Boot.__instanceof($e0,ui.exception.Exception) ) {
+			var e = $e0;
+			throw new ui.util.CompareFailure(path,e.message,e);
+		} else throw($e0);
+	}
+}
+ui.util.DeepCompare.findComparator = function(type) {
+	var _g1 = 0, _g = ui.util.DeepCompare._typeComparators.length - 1;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(ui.util.DeepCompare._typeComparators[i].canCompare(type)) return ui.util.DeepCompare._typeComparators[i];
+	}
+	throw new ui.exception.Exception("unable to find comparator for " + Std.string(type));
+}
+ui.util.VariablePath = $hxClasses["ui.util.VariablePath"] = function() {
+	this._paths = ["root"];
+};
+ui.util.VariablePath.__name__ = ["ui","util","VariablePath"];
+ui.util.VariablePath.prototype = {
+	clone: function() {
+		var c = new ui.util.VariablePath();
+		Lambda.iter(this._paths,function(i) {
+			c._paths.push(i);
+		});
+		return c;
+	}
+	,get: function() {
+		return this._paths.join("");
+	}
+	,access: function(name,fn) {
+		if(this._paths.length > 99) throw new ui.exception.Exception("stack blowup -- " + this.get());
+		this._paths.push(name);
+		try {
+			var result = fn();
+			this._paths.pop();
+			return result;
+		} catch( e ) {
+			this._paths.pop();
+			throw e;
+		}
+	}
+	,fieldAccess: function(name,fn) {
+		return this.access("." + name,fn);
+	}
+	,arrayAccess: function(index,fn) {
+		return this.access("[" + index + "]",fn);
+	}
+	,_paths: null
+	,__class__: ui.util.VariablePath
+}
+ui.util.CompareFailure = $hxClasses["ui.util.CompareFailure"] = function(path,message,cause) {
+	ui.exception.Exception.call(this,path.get() + " -- " + message,cause);
+	this.path = path.clone();
+};
+ui.util.CompareFailure.__name__ = ["ui","util","CompareFailure"];
+ui.util.CompareFailure.__super__ = ui.exception.Exception;
+ui.util.CompareFailure.prototype = $extend(ui.exception.Exception.prototype,{
+	path: null
+	,__class__: ui.util.CompareFailure
+});
+ui.util.LambdaX = $hxClasses["ui.util.LambdaX"] = function() { }
+ui.util.LambdaX.__name__ = ["ui","util","LambdaX"];
+ui.util.LambdaX.iteri = function(it,f) {
+	var i = 0;
+	var $it0 = $iterator(it)();
+	while( $it0.hasNext() ) {
+		var x = $it0.next();
+		f(x,i);
+		i += 1;
+	}
 }
 ui.util.M = $hxClasses["ui.util.M"] = function() { }
 ui.util.M.__name__ = ["ui","util","M"];
@@ -7132,23 +8409,56 @@ var defineWidget = function() {
 };
 ui.jq.JQ.widget("ui.userComp",defineWidget());
 js.Lib.onerror = null;
+test.DeepCompareTest.__meta__ = { fields : { testArraySuccess : { test : null}, testDeepCompareFailureMessage : { test : null}, testArrayFailure : { test : null}, testFailure : { test : null}, testStrings : { test : null}, testInts : { test : null}, testFailingTest : { test : null}}};
+test.DeepCompareTest.__rtti = "<class path=\"test.DeepCompareTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<testFailingTest set=\"method\" line=\"13\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testFailingTest>\n\t<testInts set=\"method\" line=\"18\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testInts>\n\t<testStrings set=\"method\" line=\"23\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testStrings>\n\t<testFailure set=\"method\" line=\"28\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testFailure>\n\t<testArrayFailure set=\"method\" line=\"50\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testArrayFailure>\n\t<testDeepCompareFailureMessage set=\"method\" line=\"64\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testDeepCompareFailureMessage>\n\t<testArraySuccess set=\"method\" line=\"90\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</testArraySuccess>\n</class>";
+test.ExampleTest.__meta__ = { fields : { example1 : { test : null}, teardown : { teardown : null}, setup : { setup : null}}};
+test.ExampleTest.__rtti = "<class path=\"test.ExampleTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<setup set=\"method\" line=\"8\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"setup\"/></meta>\n\t</setup>\n\t<teardown set=\"method\" line=\"12\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"teardown\"/></meta>\n\t</teardown>\n\t<example1 set=\"method\" line=\"16\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</example1>\n</class>";
+test.MTest.__meta__ = { fields : { notNullXComplexObjectTest : { test : null}, notNullXSimpleVarTest : { test : null}, getXComplexDefault : { test : null}, getXSimpleDefaults : { test : null}, fn1 : { test : null}}};
+test.MTest.__rtti = "<class path=\"test.MTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<fn1 set=\"method\" line=\"11\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</fn1>\n\t<getXSimpleDefaults set=\"method\" line=\"32\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</getXSimpleDefaults>\n\t<getXComplexDefault set=\"method\" line=\"42\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</getXComplexDefault>\n\t<notNullXSimpleVarTest set=\"method\" line=\"52\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</notNullXSimpleVarTest>\n\t<notNullXComplexObjectTest set=\"method\" line=\"63\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</notNullXComplexObjectTest>\n</class>";
+test.OSetTest.__meta__ = { fields : { sortSetTests : { test : null}, groupedSetTest : { test : null}, updateTest : { test : null}, deleteTest : { test : null}, addWithFilterTest : { test : null}}};
+test.OSetTest.__rtti = "<class path=\"test.OSetTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<addWithFilterTest set=\"method\" line=\"13\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</addWithFilterTest>\n\t<deleteTest set=\"method\" line=\"61\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</deleteTest>\n\t<updateTest set=\"method\" line=\"96\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</updateTest>\n\t<groupedSetTest set=\"method\" line=\"133\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</groupedSetTest>\n\t<sortSetTests set=\"method\" line=\"164\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</sortSetTests>\n</class>";
+test.Subclass.__rtti = "<class path=\"test.Subclass\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<f1 public=\"1\" line=\"23\"><c path=\"Int\"/></f1>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.AbstractClass.__rtti = "<class path=\"test.AbstractClass\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<new public=\"1\" set=\"method\" line=\"29\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.Concrete1.__rtti = "<class path=\"test.Concrete1\" params=\"\" module=\"test.SerializationTest\">\n\t<extends path=\"test.AbstractClass\"/>\n\t<name1 public=\"1\"><c path=\"String\"/></name1>\n\t<new public=\"1\" set=\"method\" line=\"34\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.Concrete2.__rtti = "<class path=\"test.Concrete2\" params=\"\" module=\"test.SerializationTest\">\n\t<extends path=\"test.AbstractClass\"/>\n\t<name2 public=\"1\"><c path=\"String\"/></name2>\n\t<new public=\"1\" set=\"method\" line=\"41\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.HasArrayOfDynamic.__rtti = "<class path=\"test.HasArrayOfDynamic\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<arrayOfDynamic public=\"1\"><c path=\"Array\"><d/></c></arrayOfDynamic>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.HasFunction.__rtti = "<class path=\"test.HasFunction\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<fn public=\"1\"><f a=\"\">\n\t<d/>\n\t<c path=\"String\"/>\n</f></fn>\n\t<new public=\"1\" set=\"method\" line=\"55\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.HasOptionalFunction.__rtti = "<class path=\"test.HasOptionalFunction\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<fn public=\"1\">\n\t\t<f a=\"\">\n\t\t\t<d/>\n\t\t\t<c path=\"String\"/>\n\t\t</f>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</fn>\n\t<new public=\"1\" set=\"method\" line=\"61\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.HasAbstractClass.__rtti = "<class path=\"test.HasAbstractClass\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<ac><c path=\"test.AbstractClass\"/></ac>\n\t<new public=\"1\" set=\"method\" line=\"92\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.SerializeMe.__rtti = "<class path=\"test.SerializeMe\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<aTransientField public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</aTransientField>\n\t<anOptionalField public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</anOptionalField>\n\t<bool1 public=\"1\"><e path=\"Bool\"/></bool1>\n\t<int1 public=\"1\"><c path=\"Int\"/></int1>\n\t<float1 public=\"1\"><c path=\"Float\"/></float1>\n\t<string1 public=\"1\"><c path=\"String\"/></string1>\n\t<subClass1 public=\"1\"><c path=\"test.Subclass\"/></subClass1>\n\t<enum1 public=\"1\"><e path=\"test.Enum1\"/></enum1>\n\t<lotsOfStrings public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></lotsOfStrings>\n\t<arrayInArrayInArrayOfStrings public=\"1\"><c path=\"Array\"><c path=\"Array\"><c path=\"Array\"><c path=\"String\"/></c></c></c></arrayInArrayInArrayOfStrings>\n\t<lotsOfSubclasses public=\"1\"><c path=\"Array\"><c path=\"test.Subclass\"/></c></lotsOfSubclasses>\n\t<new public=\"1\" set=\"method\" line=\"110\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.ArrayOfArrays.__rtti = "<class path=\"test.ArrayOfArrays\" params=\"\" module=\"test.SerializationTest\">\n\t<extends path=\"test.AbstractClass\"/>\n\t<theArrayOfArrays public=\"1\"><c path=\"Array\"><c path=\"Array\"><c path=\"Int\"/></c></c></theArrayOfArrays>\n\t<new public=\"1\" set=\"method\" line=\"121\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.Dynamite.__rtti = "<class path=\"test.Dynamite\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<dynamite public=\"1\"><d/></dynamite>\n\t<new public=\"1\" set=\"method\" line=\"129\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.HasTypeDef.__rtti = "<class path=\"test.HasTypeDef\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<mtd public=\"1\"><t path=\"test.MyTypeDef\"/></mtd>\n\t<new public=\"1\" set=\"method\" line=\"139\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.BaseClass.__rtti = "<class path=\"test.BaseClass\" params=\"\" module=\"test.SerializationTest\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n</class>";
+test.ConcreteClass.__rtti = "<class path=\"test.ConcreteClass\" params=\"\" module=\"test.SerializationTest\">\n\t<extends path=\"test.BaseClass\"/>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"149\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.SerializationTest.__meta__ = { fields : { arrayOfArray : { test : null}, serializingBaseAndConcrete : { test : null}, serializingFunctionText : { test : null}, transientFieldsAreNotRequired : { test : null}, fieldMissingFromJson : { test : null}, extraFieldInJsonFailure : { test : null}, simpleSerialization : { test : null}, dynamiteTest : { test : null}, typeDefTest : { test : null}, abstractTest : { test : null}, arrayOfDynamicTest : { test : null}}};
+test.SerializationTest.__rtti = "<class path=\"test.SerializationTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<newSerializer set=\"method\" line=\"154\"><f a=\"\"><c path=\"ui.serialization.Serializer\"/></f></newSerializer>\n\t<arrayOfDynamicTest set=\"method\" line=\"164\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</arrayOfDynamicTest>\n\t<abstractTest public=\"1\" set=\"method\" line=\"189\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</abstractTest>\n\t<typeDefTest public=\"1\" set=\"method\" line=\"219\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</typeDefTest>\n\t<dynamiteTest public=\"1\" set=\"method\" line=\"234\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</dynamiteTest>\n\t<simpleSerialization public=\"1\" set=\"method\" line=\"249\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</simpleSerialization>\n\t<extraFieldInJsonFailure public=\"1\" set=\"method\" line=\"272\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</extraFieldInJsonFailure>\n\t<fieldMissingFromJson public=\"1\" set=\"method\" line=\"295\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</fieldMissingFromJson>\n\t<transientFieldsAreNotRequired public=\"1\" set=\"method\" line=\"318\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</transientFieldsAreNotRequired>\n\t<serializingFunctionText public=\"1\" set=\"method\" line=\"342\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</serializingFunctionText>\n\t<serializingBaseAndConcrete public=\"1\" set=\"method\" line=\"398\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</serializingBaseAndConcrete>\n\t<arrayOfArray public=\"1\" set=\"method\" line=\"421\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</arrayOfArray>\n\t<new set=\"method\" line=\"161\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+test.StringHelperTest.__meta__ = { fields : { trimRightTests : { test : null}, trimLeftTests : { test : null}, padRightTests : { test : null}, padLeftTests : { test : null}}};
+test.StringHelperTest.__rtti = "<class path=\"test.StringHelperTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<padLeftTests set=\"method\" line=\"9\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</padLeftTests>\n\t<padRightTests set=\"method\" line=\"24\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</padRightTests>\n\t<trimLeftTests set=\"method\" line=\"39\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</trimLeftTests>\n\t<trimRightTests set=\"method\" line=\"70\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</trimRightTests>\n</class>";
+test.TestStatus.Running = "Running";
+test.TestStatus.Pass = "Pass";
+test.TestStatus.Fail = "Fail";
+test.TestStatus.Error = "Error";
+test.Logger.console = window.console;
+test.UidGenTest.__meta__ = { fields : { test : { test : null}}};
+test.UidGenTest.__rtti = "<class path=\"test.UidGenTest\" params=\"\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<test set=\"method\" line=\"9\">\n\t\t<f a=\"\"><e path=\"Void\"/></f>\n\t\t<meta><m n=\"test\"/></meta>\n\t</test>\n</class>";
 ui.AgentUi.DEMO = true;
 ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<implements path=\"ui.api.HasContent\"><c path=\"ui.api.ProtocolMessage.T\"/></implements>\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<getContent public=\"1\" set=\"method\" line=\"14\"><f a=\"\"><c path=\"ui.api.ProtocolMessage.T\"/></f></getContent>\n</class>";
 ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"33\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"29\"><f a=\"\"><e path=\"Void\"/></f></new>\n\t<haxe_doc>Initialize Session Request/Response</haxe_doc>\n</class>";
+ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"33\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"29\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.InitializeSessionRequestData.__rtti = "<class path=\"ui.api.InitializeSessionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.InitializeSessionResponse.__rtti = "<class path=\"ui.api.InitializeSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"49\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"45\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.InitializeSessionResponseData.__rtti = "<class path=\"ui.api.InitializeSessionResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<listOfAliases public=\"1\"><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></listOfAliases>\n\t<defaultAlias public=\"1\"><c path=\"ui.model.Alias\"/></defaultAlias>\n\t<listOfLabels public=\"1\"><c path=\"Array\"><c path=\"ui.model.Label\"/></c></listOfLabels>\n\t<listOfCnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></listOfCnxns>\n\t<lastActiveFilter public=\"1\"><c path=\"String\"/></lastActiveFilter>\n\t<new public=\"1\" set=\"method\" line=\"54\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.InitializeSessionError.__rtti = "<class path=\"ui.api.InitializeSessionError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionErrorData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionErrorData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"70\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionErrorData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"66\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.InitializeSessionErrorData.__rtti = "<class path=\"ui.api.InitializeSessionErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"75\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPingRequest.__rtti = "<class path=\"ui.api.SessionPingRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPingRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.SessionPingRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"90\" override=\"1\"><f a=\"\"><c path=\"ui.api.SessionPingRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"86\"><f a=\"\"><e path=\"Void\"/></f></new>\n\t<haxe_doc>Ping/pop Request/Response</haxe_doc>\n</class>";
+ui.api.SessionPingRequest.__rtti = "<class path=\"ui.api.SessionPingRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPingRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.SessionPingRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"90\" override=\"1\"><f a=\"\"><c path=\"ui.api.SessionPingRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"86\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.SessionPingRequestData.__rtti = "<class path=\"ui.api.SessionPingRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"95\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.SessionPongResponse.__rtti = "<class path=\"ui.api.SessionPongResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPongResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.SessionPongResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"106\" override=\"1\"><f a=\"\"><c path=\"ui.api.SessionPongResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.SessionPongResponseData.__rtti = "<class path=\"ui.api.SessionPongResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"111\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.CloseSessionData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"125\" override=\"1\"><f a=\"\"><c path=\"ui.api.CloseSessionData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"121\"><f a=\"\"><e path=\"Void\"/></f></new>\n\t<haxe_doc>Close Session Request/Response</haxe_doc>\n</class>";
+ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.CloseSessionData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"125\" override=\"1\"><f a=\"\"><c path=\"ui.api.CloseSessionData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"121\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.CloseSessionResponse.__rtti = "<class path=\"ui.api.CloseSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.CloseSessionData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"137\" override=\"1\"><f a=\"\"><c path=\"ui.api.CloseSessionData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"133\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.CloseSessionData.__rtti = "<class path=\"ui.api.CloseSessionData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"142\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalRequest.__rtti = "<class path=\"ui.api.EvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"156\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"152\"><f a=\"\"><e path=\"Void\"/></f></new>\n\t<haxe_doc>Evaluate Request/Response</haxe_doc>\n</class>";
+ui.api.EvalRequest.__rtti = "<class path=\"ui.api.EvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"156\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"152\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalRequestData.__rtti = "<class path=\"ui.api.EvalRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<expression public=\"1\"><d/></expression>\n\t<new public=\"1\" set=\"method\" line=\"161\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalNextPageRequest.__rtti = "<class path=\"ui.api.EvalNextPageRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalNextPageRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalNextPageRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"173\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalNextPageRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"169\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalNextPageRequestData.__rtti = "<class path=\"ui.api.EvalNextPageRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<nextPage public=\"1\"><c path=\"String\"/></nextPage>\n\t<new public=\"1\" set=\"method\" line=\"178\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
@@ -7157,7 +8467,7 @@ ui.api.EvalComplete.__rtti = "<class path=\"ui.api.EvalComplete\" params=\"\" mo
 ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"ui.model.Content\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"207\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalError.__rtti = "<class path=\"ui.api.EvalError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalErrorData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalErrorData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"219\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalErrorData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"215\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalErrorData.__rtti = "<class path=\"ui.api.EvalErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<errorMsg public=\"1\"><c path=\"String\"/></errorMsg>\n\t<new public=\"1\" set=\"method\" line=\"224\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.StopEvalRequest.__rtti = "<class path=\"ui.api.StopEvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.StopMsgData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"239\" override=\"1\"><f a=\"\"><c path=\"ui.api.StopMsgData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"235\"><f a=\"\"><e path=\"Void\"/></f></new>\n\t<haxe_doc>Stop Evaluation Request/Response</haxe_doc>\n</class>";
+ui.api.StopEvalRequest.__rtti = "<class path=\"ui.api.StopEvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.StopMsgData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"239\" override=\"1\"><f a=\"\"><c path=\"ui.api.StopMsgData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"235\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.StopEvalResponse.__rtti = "<class path=\"ui.api.StopEvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.StopMsgData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"251\" override=\"1\"><f a=\"\"><c path=\"ui.api.StopMsgData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"247\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.StopMsgData.__rtti = "<class path=\"ui.api.StopMsgData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"256\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.TestDao.initialized = false;
@@ -7184,8 +8494,9 @@ ui.observable.FilteredSet.__rtti = "<class path=\"ui.observable.FilteredSet\" pa
 ui.observable.GroupedSet.__rtti = "<class path=\"ui.observable.GroupedSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><c path=\"Hash\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></c></_groupedSets>\n\t<_identityToGrouping><c path=\"Hash\"><c path=\"String\"/></c></_identityToGrouping>\n\t<delete set=\"method\" line=\"358\"><f a=\"t\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<e path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"380\"><f a=\"t\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<e path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"400\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"404\"><f a=\"set\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"415\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"419\" override=\"1\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></c></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"337\"><f a=\"source:groupingFn\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
 ui.observable.SortedSet.__rtti = "<class path=\"ui.observable.SortedSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"ui.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><e path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted set=\"method\" line=\"471\"><f a=\"\"><c path=\"Array\"><c path=\"ui.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"479\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"484\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<c path=\"Int\"/>\n\t<c path=\"Int\"/>\n\t<c path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"502\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<e path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"506\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<e path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"512\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"516\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"520\" override=\"1\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.SortedSet.T\"/></c></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"432\"><f a=\"source:?sortByFn\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
 ui.util.ColorProvider._INDEX = 0;
+ui.util.DeepCompare._typeComparators = [new ui.util.ArrayComparator(),new ui.util.ClassComparator(String),new ui.util.BasicComparator(ValueType.TBool),new ui.util.ObjectComparator("TClass"),new ui.util.EnumComparator(),new ui.util.BasicComparator(ValueType.TFloat),new ui.util.BasicComparator(ValueType.TFunction),new ui.util.BasicComparator(ValueType.TInt),new ui.util.BasicComparator(ValueType.TNull),new ui.util.ObjectComparator("TObject"),new ui.util.ObjectComparator("TUnknown")];
 ui.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 ui.util.UidGenerator.nums = "0123456789";
-ui.AgentUi.main();
+test.TestRunner.main();
 
-//@ sourceMappingURL=AgentUi.js.map
+//@ sourceMappingURL=runner.js.map
