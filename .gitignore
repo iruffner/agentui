@@ -1,4 +1,4 @@
 *.js.map
 types.xml
 .cache
-proxy\src\main\webapp\client\*
+proxy/src/main/webapp/client/*
