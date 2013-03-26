@@ -27,7 +27,9 @@ class GuiceModule extends ScalaModule with Provider[Module] {
   object ServletModule extends M3ServletModule {
     override def configureServlets = {
       
-      serve("/post").`with`(classOf[ProxyServlet])
+//      serve("/post").`with`(classOf[ProxyServlet])
+//      serve("/sessionPing").`with`(classOf[ProxyServlet])
+      serve("/api").`with`(classOf[ProxyServlet])
       
     } 
   }

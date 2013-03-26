@@ -108,8 +108,8 @@ class TestDao {
         audioContent.type = "AUDIO";
         audioContent.audioSrc = "media/test/hello_newman.mp3";
         audioContent.audioType = "audio/mpeg";
-        audioContent.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        audioContent.labels = new ObservableSet<Label>(ModelObj.identifier);
+        audioContent.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
+        audioContent.labelSet = new ObservableSet<Label>(ModelObj.identifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, audioContent, 2);
 	    }
@@ -124,8 +124,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/soupkitchen.jpg";
         img.caption = "Soup Kitchen";
-        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labels = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -139,8 +139,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/apt.jpg";
         img.caption = "Apartment";
-        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labels = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -154,8 +154,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/jrmint.jpg";
         img.caption = "The Junior Mint!";
-        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labels = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 3);
 	    }
@@ -169,8 +169,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/oldschool.jpg";
         img.caption = "Retro";
-        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labels = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 3);
 	    }
@@ -184,8 +184,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/mailman.jpg";
         img.caption = "Jerry Delivering the mail";
-        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labels = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -199,8 +199,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/closet.jpg";
         img.caption = "Stuck in the closet!";
-        img.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labels = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -215,11 +215,11 @@ class TestDao {
 	private static function addConnections(availableConnections: Array<Connection>, content: Content, numToAdd: Int) {
 		if(availableConnections.hasValues()) {
         	if(numToAdd == 1) {
-        		addOne(availableConnections, content.connections);
+        		addOne(availableConnections, content.connectionSet);
         	} else if(numToAdd == 2) {
-        		addTwo(availableConnections, content.connections);
+        		addTwo(availableConnections, content.connectionSet);
     		} else {
-    			addAll(availableConnections, content.connections);
+    			addAll(availableConnections, content.connectionSet);
     		}
 	    }
 	}
@@ -227,11 +227,11 @@ class TestDao {
 	private static function addLabels(availableConnections: Array<Label>, content: Content, numToAdd: Int) {
 		if(availableConnections.hasValues()) {
         	if(numToAdd == 1) {
-        		addOne(availableConnections, content.labels);
+        		addOne(availableConnections, content.labelSet);
         	} else if(numToAdd == 2) {
-        		addTwo(availableConnections, content.labels);
+        		addTwo(availableConnections, content.labelSet);
     		} else {
-    			addAll(availableConnections, content.labels);
+    			addAll(availableConnections, content.labelSet);
     		}
 	    }
 	}
@@ -366,13 +366,11 @@ class TestDao {
         user.lname = "Seinfeld";
         user.uid = UidGenerator.create();
         user.imgSrc = "media/test/jerry_default.jpg";
-        user.aliases = new ObservableSet<Alias>(ModelObj.identifier);
-        user.aliases.addAll(aliases);
+        user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);
+        user.aliasSet.addAll(aliases);
         var alias: Alias = aliases[0];
-        alias.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        alias.connections.addAll(connections);
-        alias.labels = new ObservableSet<Label>(ModelObj.identifier);
-        alias.labels.addAll(labels);
+        alias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+        alias.labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
         user.currentAlias = alias;
         
         return user;
@@ -381,10 +379,8 @@ class TestDao {
 	public static function getAlias(uid: String): Alias {
 		if(!initialized) initialize();
 		var alias: Alias = aliases.getElementComplex(uid, "uid");
-		alias.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        alias.connections.addAll(connections);
-        alias.labels = new ObservableSet<Label>(ModelObj.identifier);
-        alias.labels.addAll(labels);
+		alias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+        alias.labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
 		return alias;
 	}
 }

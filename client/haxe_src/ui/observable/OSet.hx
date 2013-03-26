@@ -206,6 +206,15 @@ class ObservableSet<T> extends AbstractSet<T>, implements haxe.rtti.Infos {
 	public function size(): Int {
 		return _delegate.size;
 	}
+
+	public function asArray(): Array<T> {
+		var a: Array<T> = new Array<T>();
+		var iter: Iterator<T> = iterator();
+		while( iter.hasNext() ) {
+			a.push(iter.next());
+		}
+		return a;
+	}
 }
 
 class MappedSet<T,U> extends AbstractSet<U> {

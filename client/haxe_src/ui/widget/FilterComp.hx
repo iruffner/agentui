@@ -43,6 +43,9 @@ extern class FilterComp extends JQ {
 		        	var toggle: AndOrToggle = new AndOrToggle("<div class='rootToggle andOrToggle'></div>").andOrToggle();
 		        	selfElement.append(toggle);
 
+		        	var liveToggle: LiveBuildToggle = new LiveBuildToggle("<div class='liveBuildToggle'></div>").liveBuildToggle();
+		        	selfElement.append(liveToggle);
+
 					cast(selfElement, JQDroppable).droppable({
 			    		accept: function(d) {
 			    			return d.is(".filterable");
@@ -153,6 +156,11 @@ extern class FilterComp extends JQ {
 		        fireFilter: function(): Void {
 		        	var self: FilterCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+
+					var liveToggle: LiveBuildToggle = cast(selfElement.children(".liveBuildToggle"), LiveBuildToggle);
+					if(!cast(liveToggle.liveBuildToggle("isLive"), Bool)) {
+						return;
+					}
 
 		        	var root: Node = selfElement.children(".rootToggle").data("getNode")();//new And();//determine this
 		        	root.type = "ROOT";

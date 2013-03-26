@@ -76,7 +76,7 @@ extern class UserComp extends JQ {
 	        		container.append(changeDiv);
 		        	var aliases: JQ = new JQ("<div class='aliases ocontainer nonmodalPopup' style='position: absolute;'></div>");
 		        	container.append(aliases);
-		        	var iter: Iterator<Alias> = user.aliases.iterator();
+		        	var iter: Iterator<Alias> = user.aliasSet.iterator();
 		        	while(iter.hasNext()) {
 		        		var alias: Alias = iter.next();
 		        		var btn: JQ = new JQ("<div id='" + alias.uid + "' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>" + alias.label + "</div>");

@@ -57,7 +57,7 @@ class InitializeSessionResponseData extends Payload {
 	public var defaultAlias: Alias;
 	public var listOfLabels: Array<Label>;
 	public var listOfCnxns: Array<Connection>;
-	public var lastActiveFilter: Filter;
+	public var lastActiveFilter: String;
 }
 
 class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData> {
@@ -254,9 +254,7 @@ class StopEvalResponse extends ProtocolMessage<StopMsgData> {
 }
 
 class StopMsgData extends Payload {
-	public var subsessionIdentifier: Dynamic;
-	public var sessionIdentifier: Dynamic;
-	public var userToken: Dynamic;
+	public var sessionURI: String;
 }
 
 enum MsgType {

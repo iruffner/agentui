@@ -22,13 +22,36 @@ using Lambda;
 
 class ProtocolHandler {
 
-	// private var currentFilter: Filter;
+	private var filterIsRunning: Bool = false;
 	private var listeningChannel: Requester;
 	private var processHash: Hash<Dynamic->Void>;
 
 	public function new() {
 		EventModel.addListener(ModelEvents.RunFilter, new EventListener(function(filter: Filter): Void {
-                this.filter(filter);
+				if(filterIsRunning) {
+					try {
+						var stopEval: StopEvalRequest = new StopEvalRequest();
+						var stopData: StopMsgData = new StopMsgData();
+						stopData.sessionURI = AgentUi.USER.sessionURI;
+						stopEval.content = stopData;
+						new StandardRequest(stopEval, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+							AgentUi.LOGGER.debug("stopEval successfully submitted");
+	                		this.filter(filter);
+						}).start();
+					} catch (err: Dynamic) {
+						var exc: Exception = Logga.getExceptionInst(err);
+						AgentUi.LOGGER.error("Error executing stop evaluation request", exc);
+                		this.filter(filter);
+					}
+				} else {
+            		this.filter(filter);
+				}
+				filterIsRunning = true;
+            })
+        );
+
+        EventModel.addListener(ModelEvents.EndOfContent, new EventListener(function(nextPageURI: String): Void {
+                filterIsRunning = false;
             })
         );
 
@@ -77,21 +100,22 @@ class ProtocolHandler {
 				var loginRequest: StandardRequest = new StandardRequest(request, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
 						if(data.msgType == MsgType.initializeSessionResponse) {
 							try {
-					        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse);
+					        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
 
 					        	var user: User = new User();
 								user.currentAlias = response.content.defaultAlias;
 								user.sessionURI = response.content.sessionURI;
-								user.currentAlias.connections = new ObservableSet<Connection>(ModelObj.identifier, response.content.listOfCnxns);
-								user.currentAlias.labels = new ObservableSet<Label>(ModelObj.identifier, response.content.listOfLabels);
-								user.aliases = new ObservableSet<Alias>(ModelObj.identifier, response.content.listOfAliases);
+								user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.content.listOfCnxns);
+								user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.content.listOfLabels);
+								user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier, response.content.listOfAliases);
 								//TODO user.imgSrc
 								//TODO user.fname
 
 								//open comm's with server
 								_startPolling(user.sessionURI);
 
-								EventModel.change(ModelEvents.User, user);
+								// EventModel.change(ModelEvents.User, user);
+								AgentUi.LOGGER.error("Enable firing new user event");
 							} catch (e: JsonException) {
 								AgentUi.LOGGER.error("Serialization error", e);
 							}
@@ -125,11 +149,11 @@ class ProtocolHandler {
 			var evalRequest: EvalRequest = new EvalRequest();
 			var evalRequestData: EvalRequestData = new EvalRequestData();
 			evalRequestData.expression = "feed( " + string + " )";
-			evalRequestData.sessionURI = AgentUi.USER.sessionURI;//"agent-session://myLovelySession/1234,";
+			evalRequestData.sessionURI = AgentUi.USER.sessionURI;
 			evalRequest.content = evalRequestData;
 			try {
 				//we don't expect anything back here
-				new StandardRequest(evalRequest, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
+				new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 						AgentUi.LOGGER.debug("filter successfully submitted");
 					}).start();
 			} catch (err: Dynamic) {
@@ -147,7 +171,7 @@ class ProtocolHandler {
 		nextPageRequest.content = nextPageRequestData;
 		try {
 			//we don't expect anything back here
-			new StandardRequest(nextPageRequest, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
+			new StandardRequest(nextPageRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("next page request successfully submitted");
 				}).start();
 		} catch (err: Dynamic) {
@@ -165,12 +189,14 @@ class ProtocolHandler {
 		ping.content = new SessionPingRequestData();
 		ping.content.sessionURI = sessionURI;
 
-		listeningChannel = new LongPollingRequest(ping, function(data: Dynamic, textStatus: Dynamic, jqXHR: Dynamic): Void {
+		listeningChannel = new LongPollingRequest(ping, function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {
 				var processor: Dynamic->Void = processHash.get(data.msgType);
 				if(processor == null) {
-					js.Lib.alert("Dont know how to handle " + data.msgType);
+					AgentUi.LOGGER.info("long poll response was empty");
+					// js.Lib.alert("Don't know how to handle " + data.msgType);
 					return;
 				} else {
+					AgentUi.LOGGER.debug("received " + data.msgType);
 					processor(data);
 				}
 			});

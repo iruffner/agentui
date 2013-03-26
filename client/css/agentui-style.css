@@ -133,6 +133,25 @@ body {
 			max-width: 30px;
 		}
 
+		#filter .liveBuildToggle {
+			text-align: center;
+			/*float: left;*/
+			cursor: pointer;
+			font-weight: bold;
+			margin-top: -18px;
+			/*margin-left: -25px;*/
+			/*margin-top: 45px;*/
+		}
+
+			#filter .liveBuildToggle div {
+				padding: 1px;
+				width: 100px;
+				margin-left: auto;
+				margin-right: auto;
+				display: inline-block;
+				min-width: 100px;
+			}
+
 		#filter .andOrToggle {
 			float: left;
 			cursor: pointer;

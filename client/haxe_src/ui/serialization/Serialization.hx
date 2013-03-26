@@ -521,11 +521,17 @@ class ClassHandler<T> implements TypeHandler {
  			}
 			reader.stack.pop();
 		}
+		if(instance.readResolve != null && Reflect.isFunction(instance.readResolve)) {
+			instance.readResolve();
+		}
 		return instance;
 	}
 
 	public function write(instanceValue: Dynamic, writer: JsonWriter) {
 		var instance:Dynamic = {}
+		if(instanceValue.writeResolve != null && Reflect.isFunction(instanceValue.writeResolve)) {
+			instanceValue.writeResolve();
+		}
 		for ( f in _fields ) {
    		 	try {
 			 	var fieldValue = Reflect.field(instanceValue, f.name);

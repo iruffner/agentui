@@ -35,7 +35,7 @@ extern class LabelsList extends JQ {
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
 		        	EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
-		        			self._setLabels(alias.labels);
+		        			self._setLabels(alias.labelSet);
 	        			})
 		        	);
 
