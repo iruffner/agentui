@@ -1,7 +1,0 @@
-{ 
-	"msgType" : "evalResponse", 
-	"contents" : { 
-		"sessionURI" : "agent-session://myLovelySession/1234, " 
-		"pageOfPosts" : [] 
-	}
-}

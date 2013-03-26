@@ -1,5 +1,3 @@
-
-
 -main ui.AgentUi
 -cp haxe_src
 -js js/AgentUi.js
