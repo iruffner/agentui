@@ -35,6 +35,7 @@ typedef AjaxOptions = {
 	@:optional var crossDomain:Bool;
 	@:optional var data:Dynamic;
 	@:optional var timeout:Dynamic;
+	@:optional var jsonp:Dynamic;
 }
 
 // typedef PositionOpts = {

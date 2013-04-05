@@ -41,6 +41,8 @@ class AgentUi {
     public static var USER: User;
     public static var SERIALIZER: Serializer;
     public static var PROTOCOL: ProtocolHandler;
+    public static var URL: String = "";//"http://64.27.3.17";
+
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
