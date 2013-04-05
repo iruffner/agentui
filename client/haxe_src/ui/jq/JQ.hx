@@ -84,6 +84,11 @@ extern class JQ extends js.JQuery {
 
 
 	// current group manipulation
+	@:overload(function(value:JQ):JQ{})
+	@:overload(function(value:js.Dom.HtmlDom):JQ{})
+	@:overload(function(value:Array<js.Dom.HtmlDom>):JQ{})
+	override function add( selector : String, ?context : JQ ) : JQ;
+	
 	@:overload(function(j:js.JQuery):JQ{})
 	@:overload(function(j:js.Dom.Window):JQ{})
 	@:overload(function(j:js.Dom.HtmlDom):JQ{})
@@ -108,6 +113,15 @@ extern class JQ extends js.JQuery {
 	@:overload(function(j:js.Dom.Window):JQ{})
 	@:overload(function(j:js.Dom.HtmlDom):JQ{})
 	override function parent( ?selector : String ) : JQ;
+
+	@:overload(function(j:js.JQuery):JQ{})
+	@:overload(function(j:js.Dom.Window):JQ{})
+	@:overload(function(j:js.Dom.HtmlDom):JQ{})
+	override function prev( ?selector : String ) : JQ;
+
+	@:overload(function(j:js.JQuery):JQ{})
+	@:overload(function(j:js.Dom.Window):JQ{})
+	@:overload(function(j:js.Dom.HtmlDom):JQ{})
 	override function siblings( ?selector : String ) : JQ;
 
 
