@@ -1,2 +1,5 @@
 *.js.map
 types.xml
+.cache
+proxy/src/main/webapp/client/*
+.DS_Store

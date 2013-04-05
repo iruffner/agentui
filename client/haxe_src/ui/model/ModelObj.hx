@@ -2,8 +2,11 @@ package ui.model;
 
 import ui.util.ColorProvider;
 import ui.observable.OSet;
+import ui.serialization.Serialization;
 
-class ModelObj<T> implements haxe.rtti.Infos {
+using ui.helper.ArrayHelper;
+
+class ModelObj<T> implements haxe.rtti.Infos  {
 	public var uid: String;
 
 	public static function identifier<T>(t: {uid: String}): String {
@@ -14,22 +17,28 @@ class ModelObj<T> implements haxe.rtti.Infos {
 class Login extends ModelObj<Login> {
 	public var username: String;
 	public var password: String;
+	public var agency: String;
 
 	public function new () {}
 }
 
 class User extends ModelObj<User> {
+	public var sessionURI: String;
 	public var fname: String;
 	public var lname: String;
 	@:optional public var imgSrc: String;
-	public var aliases: ObservableSet<Alias>;
+	@:transient public var aliasSet: ObservableSet<Alias>;
+	private var aliases: Array<Alias>;
 	public var currentAlias (_getCurrentAlias,_setCurrentAlias): Alias;
 
 	public function new () {}
 
 	private function _getCurrentAlias(): Alias {
-		if(currentAlias == null) {
-			currentAlias = aliases.iterator().next();
+		if(currentAlias == null && aliasSet != null) {
+			currentAlias = aliasSet.iterator().next();
+		} else if (currentAlias == null) {
+			currentAlias = new Alias();
+			AgentUi.LOGGER.warn("No aliases found for user.");
 		}
 		return currentAlias;
 	}
@@ -44,15 +53,36 @@ class User extends ModelObj<User> {
 		ui.AgentUi.LOGGER.warn("implement User.hasValidSession");
 		return true;
 	}
+
+	private function readResolve(): Void {
+		aliasSet = new ObservableSet<Alias>(ModelObj.identifier, aliases);
+	}
+
+	private function writeResolve(): Void {
+		aliases = aliasSet.asArray();
+	}
 }
 
 class Alias extends ModelObj<Alias> {
 	@:optional public var imgSrc: String;
 	public var label: String;
-	public var labels: ObservableSet<Label>;
-	public var connections: ObservableSet<Connection>;
+	@:transient public var labelSet: ObservableSet<Label>;
+	private var labels: Array<Label>;
+	@:transient public var connectionSet: ObservableSet<Connection>;
+	private var connections: Array<Connection>;
+
 
 	public function new () {}
+
+	private function readResolve(): Void {
+		labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
+		connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+	}
+
+	private function writeResolve(): Void {
+		labels = labelSet.asArray();
+		connections = connectionSet.asArray();
+	}
 }
 
 interface Filterable {
@@ -85,8 +115,20 @@ class Connection extends ModelObj<Connection>, implements Filterable {
 
 class Content extends ModelObj<Content> {
 	public var type: String;
-	public var labels: ObservableSet<Label>;
-	public var connections: ObservableSet<Connection>;
+	@:transient public var labelSet: ObservableSet<Label>;
+	private var labels: Array<Label>;
+	@:transient public var connectionSet: ObservableSet<Connection>;
+	private var connections: Array<Connection>;
+
+	private function readResolve(): Void {
+		labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
+		connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+	}
+
+	private function writeResolve(): Void {
+		labels = labelSet.asArray();
+		connections = connectionSet.asArray();
+	}
 }
 
 class ImageContent extends Content {
@@ -109,3 +151,4 @@ class MessageContent extends Content {
 
 	public function new () {}
 }
+

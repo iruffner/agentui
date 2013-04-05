@@ -5,6 +5,7 @@ import ui.model.Filter;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
 import ui.api.ProtocolMessage;
+import ui.exception.Exception;
 import ui.exception.InitializeSessionException;
 
 interface Requester {
@@ -12,49 +13,47 @@ interface Requester {
 	function abort(): Void;
 }
 
-class LoginRequest {
-	private var jqXHR: Dynamic;
-	private var request: InitializeSessionRequest;
+class StandardRequest implements Requester {
+	private var request: ProtocolMessage<Dynamic>;
+	private var successFcn: Dynamic->String->JQXHR->Void;
 
-	public function new(request: InitializeSessionRequest) {
+	public function new(request: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
 		this.request = request;
+		this.successFcn = successFcn;
 	}
 
-	public function execute(): InitializeSessionResponse {
-		var response: InitializeSessionResponse = null;
+	public function start(): Void {
+		AgentUi.LOGGER.debug("send " + request.msgType);
 		JQ.ajax( { 
-			async: false,
-			url: "http://64.27.3.17:9876/", 
-	        dataType: "json", 
-	        data: this.request.toJson(),
+			async: true,
+			url: AgentUi.URL + "/api", 
+	        // dataType: "jsonp", 
+	        jsonp: false,
+	        data: AgentUi.SERIALIZER.toJsonString(request),
 	        type: "POST",
-			success: function(data: Dynamic, textStatus: Dynamic, jqXHR: Dynamic) {
-		        if(data.msgType == MsgType.initializeSessionResponse) {
-
-		        } else if(data.msgType == MsgType.initializeSessionError) {
-		        	var error: InitializeSessionError = new InitializeSessionError();
-		        	error.contents = AgentUi.SERIALIZER.fromJsonX(data.contents, InitializeSessionErrorData);
-		        	throw new InitializeSessionException(error, "Login error");
-		        }
-        	}, 
-	        timeout: 30000 
+			success: successFcn,
+   			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
+   				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+			}
         } );
-        return response;
+	}
+
+	public function abort(): Void {
 	}
 }
 
 class LongPollingRequest implements Requester {
 	private var jqXHR: Dynamic;
 	private var request: ProtocolMessage<Dynamic>;
+	private var requestJson: String;
 	private var stop: Bool = false;
+	private var successFcn: Dynamic->String->JQXHR->Void;
 
 
-	public function new(request: ProtocolMessage<Dynamic>) {
-		this.request = request;
-		EventModel.addListener(ModelEvents.RunFilter, new EventListener(function(filter: Filter): Void {
-                this.abort();
-            })
-        );
+	public function new(requestToRepeat: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
+		this.request = requestToRepeat;
+		this.requestJson = AgentUi.SERIALIZER.toJsonString(this.request);
+		this.successFcn = successFcn;
 	}
 
 	public function start(): Void {
@@ -68,7 +67,8 @@ class LongPollingRequest implements Requester {
 				jqXHR.abort();
 				jqXHR = null;
 			} catch (err: Dynamic) {
-
+				//TODO what happens if we error on abort?
+				AgentUi.LOGGER.error("error on poll abort | " + err);
 			}
 		}
 	}
@@ -76,20 +76,21 @@ class LongPollingRequest implements Requester {
 	private function poll(): Void {
 		if(!stop) {
 			jqXHR = JQ.ajax( { 
-				// url: "evalResponse.json", 
-				// isLocal: true,
-				url: "http://64.27.3.17:9876/", 
-				crossDomain: true,
-		        dataType: "json", 
-		        data: request.toJson(),
+				url: AgentUi.URL + "/api", 
+		        // dataType: "json", 
+		        data: this.requestJson,
 		        type: "POST",
-				success: function(data: Dynamic, textStatus: Dynamic, jqXHR: Dynamic) {
+				success: function(data: Dynamic, textStatus: String, jqXHR: JQXHR) {
 			        if(!stop) {
 			        	//broadcast results
+			        	this.successFcn(data,textStatus,jqXHR);
 			        }
-			    }, 
-		        complete: function(arg: Dynamic): Void {
-		        	// poll(); //to keep this going
+			    },
+			    error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
+	   				AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+				},
+		        complete: function(jqXHR:JQXHR, textStatus:String): Void {
+		        	poll(); //to keep this going
 	        	}, 
 		        timeout: 30000 
 	        } );

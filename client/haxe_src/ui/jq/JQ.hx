@@ -4,28 +4,38 @@ typedef JQEvent = {> js.JQuery.JqEvent,
 	@:optional var originalEvent: Dynamic;
 }
 
+typedef JQXHR = {
+	@:optional var status:Int;
+	@:optional var statusCode:Int;
+	@:optional var message: String;
+	@:optional var name: String;
+	@:optional var stack: String;
+}
+
 typedef AjaxOptions = {
 	@:optional var url:String;
 	@:optional var async:Bool;
 	@:optional var type:String;
 	/**
-		function(data:Dynamic, textStatus:Dynamic, jqXHR:Dynamic)
+		function(data:Dynamic, textStatus:String, jqXHR:JQXHR)
 	**/
-	@:optional var success:Dynamic->Dynamic->Dynamic->Void;
+	@:optional var success:Dynamic->Dynamic->JQXHR->Void;
 	/**
-		function(jqXHR:Dynamic, textStatus:Dynamic, errorThrown:Dynamic)
+		function(jqXHR:JQXHR, textStatus:String, errorThrown:String)
 	**/
-	@:optional var error:Dynamic->Dynamic->Dynamic->Void;
+	@:optional var error:JQXHR->String->String->Void;
 	/**
-		function(arg:Dynamic)
+		function(jqXHR:JQXHR, textStatus:String)
 	**/
-	@:optional var complete:Dynamic->Void;
+	@:optional var complete:JQXHR->String->Void;
 	@:optional var dataType:String;
 	@:optional var cache:Bool;
 	@:optional var isLocal:Bool;
+	@:optional var processData:Bool;
 	@:optional var crossDomain:Bool;
 	@:optional var data:Dynamic;
 	@:optional var timeout:Dynamic;
+	@:optional var jsonp:Dynamic;
 }
 
 // typedef PositionOpts = {
@@ -84,10 +94,10 @@ extern class JQ extends js.JQuery {
 
 
 	// current group manipulation
-	@:overload(function(value:JQ):JQ{})
+	@:overload(function(value:js.JQuery):JQ{})
 	@:overload(function(value:js.Dom.HtmlDom):JQ{})
 	@:overload(function(value:Array<js.Dom.HtmlDom>):JQ{})
-	override function add( selector : String, ?context : JQ ) : JQ;
+	override function add( selector : String, ?context : js.JQuery ) : JQ;
 	
 	@:overload(function(j:js.JQuery):JQ{})
 	@:overload(function(j:js.Dom.Window):JQ{})

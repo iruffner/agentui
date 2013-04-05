@@ -43,7 +43,7 @@ extern class LabelTree extends JQ {
 		        	self.labels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				label: label,
-	        					children: new FilteredSet<Label>(ui.AgentUi.USER.currentAlias.labels, function(child: Label): Bool{
+	        					children:  new FilteredSet<Label>(AgentUi.USER.currentAlias.labelSet, function(child: Label): Bool{
 		        						return child.parentUid == label.uid;
 		        					})
 		        			});

@@ -54,7 +54,7 @@ extern class ContentComp extends JQ {
 		        	
 		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>");
 		        	postWr.append(postConnections);
-		        	var connIter: Iterator<Connection> = self.options.content.connections.iterator();
+		        	var connIter: Iterator<Connection> = self.options.content.connectionSet.iterator();
 		        	while(connIter.hasNext()) {
 		        		var connection: Connection = connIter.next();
 		        		var connAvatar: ConnectionAvatar = new ConnectionAvatar("<div></div>").connectionAvatar({
@@ -66,7 +66,7 @@ extern class ContentComp extends JQ {
 
 		        	var postLabels: JQ = new JQ("<aside class='postLabels'></div>");
 		        	postWr.append(postLabels);
-		        	var labelIter: Iterator<Label> = self.options.content.labels.iterator();
+		        	var labelIter: Iterator<Label> = self.options.content.labelSet.iterator();
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = labelIter.next();
 		        		var labelComp: LabelComp = new LabelComp("<div></div>").labelComp({

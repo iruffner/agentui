@@ -44,7 +44,7 @@ extern class ConnectionsList extends JQ {
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
 		        	EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
-			                self._setConnections(alias.connections);
+			                self._setConnections(alias.connectionSet);
 			            })
 			        );
 

@@ -17,8 +17,10 @@ typedef LoginCompWidgetDef = {
 
 	@:optional var input_un: JQ;
 	@:optional var input_pw: JQ;
+	@:optional var input_ag: JQ;
 	@:optional var placeholder_un: JQ;
 	@:optional var placeholder_pw: JQ;
+	@:optional var placeholder_ag: JQ;
 	
 	var initialized: Bool;
 
@@ -55,11 +57,21 @@ extern class LoginComp extends JQ {
 
 		        	labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Username</label></div>");
 		        	labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
+		        	labels.append("<div class='labelDiv'><label for='login_pw'>Agency</label></div>");
 		        	self.input_un = new JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
 		        	inputs.append("<br/>");
 		        	self.input_pw = new JQ("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	self.placeholder_pw = new JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		        	inputs.append("<br/>");
+		        	self.input_ag = new JQ("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		        	self.placeholder_ag = new JQ("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+
+		        	if(AgentUi.DEMO) {
+		        		self.input_un.val("George.Costanza");
+		        		self.input_pw.val("Bosco");
+		        		self.input_ag.val("TheAgency");
+		        	}
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
 		        			if(evt.keyCode == 13) {
@@ -91,6 +103,18 @@ extern class LoginComp extends JQ {
 		        			}
 		        		});
 
+		        	self.placeholder_ag.focus(function(evt: JQEvent): Void {
+		        			self.placeholder_ag.hide();
+		        			self.input_ag.show().focus();
+		        		});
+
+		        	self.input_ag.blur(function(evt: JQEvent): Void {
+		        			if(self.input_ag.val().isBlank()) {
+			        			self.placeholder_ag.show();
+			        			self.input_ag.hide();
+		        			}
+		        		});
+
 		        	EventModel.addListener(ModelEvents.User, new EventListener(function(user: User): Void {
 	        				self._setUser(user);
 		        			if(user == null) {
@@ -118,6 +142,11 @@ extern class LoginComp extends JQ {
     					self.placeholder_pw.addClass("ui-state-error");
     					valid = false;
     				}
+    				login.agency = self.input_ag.val();
+    				if(login.agency.isBlank()) {
+    					self.placeholder_ag.addClass("ui-state-error");
+    					valid = false;
+    				}
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EventModel.change(ModelEvents.Login, login);
@@ -133,7 +162,7 @@ extern class LoginComp extends JQ {
 		        	var dlgOptions: JDialogOptions = {
 		        		autoOpen: false,
 		        		title: "Login",
-		        		height: 230,
+		        		height: 280,
 		        		width: 400,
 		        		buttons: {
 		        			"Login": function() {

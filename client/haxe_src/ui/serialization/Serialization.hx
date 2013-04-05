@@ -7,6 +7,7 @@ import haxe.rtti.Infos;
 import Type;
 import haxe.rtti.CType;
 import haxe.Stack;
+import ui.observable.OSet;
 
 using ui.serialization.TypeTools;
 using Lambda;
@@ -104,6 +105,7 @@ class Serializer {
 					case "String": new StringHandler();
 					case "Int": new IntHandler();
 					case "Array": new ArrayHandler(parms, this);
+					// case "ui.observable.ObservableSet": new ObservableSetHandler(parms, this);
 					default:
 						new ClassHandler(Type.resolveClass(type.classname()), type.typename(), this);
 				}
@@ -171,6 +173,49 @@ class ArrayHandler implements TypeHandler {
 
 }
 
+/*class ObservableSetHandler implements TypeHandler {
+
+	var _parms: List<CType>;
+	var _serializer: Serializer;
+	var _elementHandler: TypeHandler;
+
+    public function new(parms: List<CType>, serializer: Serializer) {
+    	_parms = parms;
+		_serializer = serializer;
+		_elementHandler = _serializer.getHandler(_parms.first());
+    }
+
+    public function read(fromJson: Dynamic, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
+    	if ( instance == null ) {
+			instance = new ObservableSet<Dynamic>();
+		}
+		if ( fromJson != null ) {
+			var arr: Array<Dynamic> = cast fromJson;
+			var i = 0;
+			// return arr.map(function(e) { return _elementHandler.read(e, reader); });
+			for ( e in arr ) {
+				var context = "[" + i + "]";
+				reader.stack.push(context);
+				try {
+					instance.push(_elementHandler.read(e, reader));
+	 			} catch ( msg: String ) {
+	 				reader.error("error reading " + context + "\n" + msg);
+	 			} catch ( e: JsonException ) {
+	 				reader.error("error reading " + context, e);
+	 			}
+				reader.stack.pop();
+				i += 1;
+			}
+		}
+		return instance;
+    }
+
+    public function write(value: Dynamic, writer: JsonWriter): Dynamic {
+        // var handler = _serializer.getHandlerViaClass(Type.getClass(value));
+        // return handler.write(value, writer);
+        return null;
+    }
+}*/
 
 class EnumHandler implements TypeHandler {
 	var _enumName: String;
@@ -476,11 +521,17 @@ class ClassHandler<T> implements TypeHandler {
  			}
 			reader.stack.pop();
 		}
+		if(instance.readResolve != null && Reflect.isFunction(instance.readResolve)) {
+			instance.readResolve();
+		}
 		return instance;
 	}
 
 	public function write(instanceValue: Dynamic, writer: JsonWriter) {
 		var instance:Dynamic = {}
+		if(instanceValue.writeResolve != null && Reflect.isFunction(instanceValue.writeResolve)) {
+			instanceValue.writeResolve();
+		}
 		for ( f in _fields ) {
    		 	try {
 			 	var fieldValue = Reflect.field(instanceValue, f.name);

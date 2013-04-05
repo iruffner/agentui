@@ -2,7 +2,9 @@ package ui.model;
 
 enum ModelEvents {
 	RunFilter;
-	FilterComplete;
+	MoreContent;
+	NextContent;
+	EndOfContent;
 
 	LoadAlias;
 	AliasLoaded;

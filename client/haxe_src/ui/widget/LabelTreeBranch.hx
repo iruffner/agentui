@@ -90,7 +90,7 @@ extern class LabelTreeBranch extends JQ {
 
 		            selfElement.append(label);
 
-		            label.hover(function(): Void {
+		            selfElement.hover(function(): Void {
 		            		if(self.options.children.iterator().hasNext()) {
 		            			expander.css("visibility", "visible");
 		            		}
@@ -106,7 +106,7 @@ extern class LabelTreeBranch extends JQ {
 			            		labels: self.options.children
 			            	});
 			            selfElement.append(labelChildren);
-		            	label.click(function(evt: js.JQuery.JqEvent): Void {
+		            	label.add(expander).click(function(evt: js.JQuery.JqEvent): Void {
 		            			labelChildren.toggle();
 		            			EventModel.change(ModelEvents.FitWindow);
 		            		}

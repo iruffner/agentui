@@ -47,6 +47,7 @@ class Logga {
                     this.console.warn(statement);
                 } else if (Type.enumEq(level, LogLevel.ERROR) && console.error != null) {
                     this.console.error(statement);
+                    this.console.trace();
                 } else {
                     this.console.log(statement);
                 }
