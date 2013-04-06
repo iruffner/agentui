@@ -26,8 +26,9 @@ class StandardRequest implements Requester {
 		AgentUi.LOGGER.debug("send " + request.msgType);
 		JQ.ajax( { 
 			async: true,
-			url: "/api", 
-	        // dataType: "json", 
+			url: AgentUi.URL + "/api", 
+	        // dataType: "jsonp", 
+	        jsonp: false,
 	        data: AgentUi.SERIALIZER.toJsonString(request),
 	        type: "POST",
 			success: successFcn,
@@ -75,7 +76,7 @@ class LongPollingRequest implements Requester {
 	private function poll(): Void {
 		if(!stop) {
 			jqXHR = JQ.ajax( { 
-				url: "/api", 
+				url: AgentUi.URL + "/api", 
 		        // dataType: "json", 
 		        data: this.requestJson,
 		        type: "POST",

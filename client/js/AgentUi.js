@@ -3645,7 +3645,7 @@ ui.api.StandardRequest.prototype = {
 	}
 	,start: function() {
 		ui.AgentUi.LOGGER.debug("send " + Std.string(this.request.msgType));
-		ui.jq.JQ.ajax({ async : true, url : "/api", data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
+		ui.jq.JQ.ajax({ async : true, url : ui.AgentUi.URL + "/api", jsonp : false, data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
 			throw new ui.exception.Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 		}});
 	}
@@ -3664,7 +3664,7 @@ ui.api.LongPollingRequest.__interfaces__ = [ui.api.Requester];
 ui.api.LongPollingRequest.prototype = {
 	poll: function() {
 		var _g = this;
-		if(!this.stop) this.jqXHR = ui.jq.JQ.ajax({ url : "/api", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
+		if(!this.stop) this.jqXHR = ui.jq.JQ.ajax({ url : ui.AgentUi.URL + "/api", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
 			if(!_g.stop) _g.successFcn(data,textStatus,jqXHR);
 		}, error : function(jqXHR,textStatus,errorThrown) {
 			ui.AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
@@ -7133,6 +7133,7 @@ var defineWidget = function() {
 ui.jq.JQ.widget("ui.userComp",defineWidget());
 js.Lib.onerror = null;
 ui.AgentUi.DEMO = true;
+ui.AgentUi.URL = "";
 ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<implements path=\"ui.api.HasContent\"><c path=\"ui.api.ProtocolMessage.T\"/></implements>\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<getContent public=\"1\" set=\"method\" line=\"14\"><f a=\"\"><c path=\"ui.api.ProtocolMessage.T\"/></f></getContent>\n</class>";
 ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"33\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"29\"><f a=\"\"><e path=\"Void\"/></f></new>\n\t<haxe_doc>Initialize Session Request/Response</haxe_doc>\n</class>";
