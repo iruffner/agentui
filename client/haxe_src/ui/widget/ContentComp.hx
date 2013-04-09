@@ -50,6 +50,11 @@ extern class ContentComp extends JQ {
 		        	} else if (self.options.content.type == "IMAGE") {
 		        		var img: ImageContent = cast(self.options.content, ImageContent);
 		        		postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");// + img.caption);
+		        	} else if (self.options.content.type == "URL") {
+		        		var urlContent: UrlContent = cast(self.options.content, UrlContent);
+		        		postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
+		        	} else {
+		        		ui.AgentUi.LOGGER.error("Dont know how to handle " + self.options.content.type);
 		        	}
 		        	
 		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>");

@@ -25,6 +25,7 @@ import ui.widget.UserComp;
 import ui.widget.PostComp;
 import ui.widget.LoginComp;
 import ui.widget.MessagingComp;
+import ui.widget.InviteComp;
 
 import ui.serialization.Serialization;
 
@@ -79,6 +80,8 @@ class AgentUi {
         new UserComp("#userId").userComp();
         
         new PostComp("#postInput").postComp();
+
+        new InviteComp("#sideRight #sideRightInvite").inviteComp();
 
         var fitWindowListener = new EventListener(function(n: Null<Dynamic>) {
                 untyped __js__("fitWindow()");

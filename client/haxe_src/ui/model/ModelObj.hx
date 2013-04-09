@@ -152,3 +152,7 @@ class MessageContent extends Content {
 	public function new () {}
 }
 
+class UrlContent extends MessageContent {
+	public var url: String;
+}
+

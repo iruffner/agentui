@@ -3096,6 +3096,7 @@ ui.AgentUi.start = function() {
 	new ui.widget.ContentFeed("#feed").contentFeed({ content : ui.AgentUi.CONTENT});
 	new ui.widget.UserComp("#userId").userComp();
 	new ui.widget.PostComp("#postInput").postComp();
+	new ui.widget.InviteComp("#sideRight #sideRightInvite").inviteComp();
 	var fitWindowListener = new ui.model.EventListener(function(n) {
 		fitWindow();
 	});
@@ -3645,7 +3646,7 @@ ui.api.StandardRequest.prototype = {
 	}
 	,start: function() {
 		ui.AgentUi.LOGGER.debug("send " + Std.string(this.request.msgType));
-		ui.jq.JQ.ajax({ async : true, url : ui.AgentUi.URL + "/api", jsonp : false, data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
+		ui.jq.JQ.ajax({ async : true, url : ui.AgentUi.URL + "/api", data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
 			throw new ui.exception.Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 		}});
 	}
@@ -3834,6 +3835,16 @@ ui.api.TestDao.generateContent = function(node) {
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
 	content.push(img);
+	var urlContent = new ui.model.UrlContent();
+	urlContent.uid = ui.util.UidGenerator.create();
+	urlContent.type = "URL";
+	urlContent.connectionSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	urlContent.labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
+	urlContent.text = "Check out this link";
+	urlContent.url = "http://www.bing.com";
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,urlContent,1);
+	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,urlContent,2);
+	content.push(urlContent);
 	return content;
 }
 ui.api.TestDao.addConnections = function(availableConnections,content,numToAdd) {
@@ -4666,6 +4677,15 @@ ui.model.MessageContent.__super__ = ui.model.Content;
 ui.model.MessageContent.prototype = $extend(ui.model.Content.prototype,{
 	text: null
 	,__class__: ui.model.MessageContent
+});
+ui.model.UrlContent = $hxClasses["ui.model.UrlContent"] = function() {
+	ui.model.MessageContent.call(this);
+};
+ui.model.UrlContent.__name__ = ["ui","model","UrlContent"];
+ui.model.UrlContent.__super__ = ui.model.MessageContent;
+ui.model.UrlContent.prototype = $extend(ui.model.MessageContent.prototype,{
+	url: null
+	,__class__: ui.model.UrlContent
 });
 ui.model.Node = $hxClasses["ui.model.Node"] = function() {
 	this.type = "ROOT";
@@ -6558,7 +6578,10 @@ var defineWidget = function() {
 		} else if(self.options.content.type == "IMAGE") {
 			var img = js.Boot.__cast(self.options.content , ui.model.ImageContent);
 			postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");
-		}
+		} else if(self.options.content.type == "URL") {
+			var urlContent = js.Boot.__cast(self.options.content , ui.model.UrlContent);
+			postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
+		} else ui.AgentUi.LOGGER.error("Dont know how to handle " + self.options.content.type);
 		var postConnections = new ui.jq.JQ("<aside class='postConnections'></aside>");
 		postWr.append(postConnections);
 		var connIter = self.options.content.connectionSet.iterator();
@@ -6708,6 +6731,32 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.filterComp",defineWidget());
+ui.widget.InviteComp = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of InviteComp must be a div element");
+		selfElement.addClass("inviteComp ui-helper-clearfix " + ui.widget.Widgets.getWidgetClasses());
+		var input = new ui.jq.JQ("<input id=\"sideRightInviteInput\" style=\"display: none;\" class=\"ui-widget-content boxsizingBorder textInput\"/>");
+		var input_placeHolder = new ui.jq.JQ("<input id=\"sideRightInviteInput_PH\" class=\"placeholder ui-widget-content boxsizingBorder textInput\" value=\"Enter Email Address\"/>");
+		var btn = new ui.jq.JQ("<button class='fright'>Invite</button>").button();
+		selfElement.append(input).append(input_placeHolder).append(btn);
+		input_placeHolder.focus(function(evt) {
+			input_placeHolder.hide();
+			input.show().focus();
+		});
+		input.blur(function(evt) {
+			if(ui.helper.StringHelper.isBlank(input.val())) {
+				input_placeHolder.show();
+				input.hide();
+			}
+		});
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.inviteComp",defineWidget());
 ui.widget.LabelTreeBranch = window.jQuery;
 var defineWidget = function() {
 	return { options : { label : null, children : null, classes : null}, _create : function() {
@@ -6967,6 +7016,24 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.messagingComp",defineWidget());
+ui.widget.UrlComp = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of UrlComp must be a div element");
+		selfElement.addClass("urlComp container " + ui.widget.Widgets.getWidgetClasses());
+		new ui.jq.JQ("<label class='fleft ui-helper-clearfix' style='margin-left: 5px;'>Enter URL</label>").appendTo(selfElement);
+		self.urlInput = new ui.jq.JQ("<input id='' class='clear textInput boxsizingBorder' style='float: left;margin-top: 5px;'/>").appendTo(selfElement);
+	}, _post : function() {
+		var self = this;
+		var selfElement = this.element;
+		ui.AgentUi.LOGGER.debug("post " + self.urlInput.val());
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.urlComp",defineWidget());
 ui.widget.UploadComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7041,6 +7108,8 @@ var defineWidget = function() {
 		var section = new ui.jq.JQ("<section id='postSection'></section>").appendTo(selfElement);
 		var textInput = new ui.jq.JQ("<div class='postContainer'></div>").appendTo(section);
 		var ta = new ui.jq.JQ("<textarea class='boxsizingBorder ui-corner-all container' style='resize: none;'></textarea>").appendTo(textInput);
+		var urlInput = new ui.widget.UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
+		urlInput.appendTo(section);
 		var mediaInput = new ui.widget.UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp();
 		mediaInput.appendTo(section);
 		var label = new ui.jq.JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
@@ -7053,14 +7122,24 @@ var defineWidget = function() {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.show();
+			urlInput.hide();
 			mediaInput.hide();
 		});
-		var imgTab = new ui.jq.JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs).appendTo(tabs).click(function(evt) {
+		var urlTab = new ui.jq.JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.hide();
+			urlInput.show();
+			mediaInput.hide();
+		});
+		var imgTab = new ui.jq.JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
+			tabs.children(".active").removeClass("active");
+			$(this).addClass("active");
+			textInput.hide();
+			urlInput.hide();
 			mediaInput.show();
 		});
+		urlInput.hide();
 		mediaInput.hide();
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
@@ -7173,6 +7252,7 @@ ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\
 ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"138\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"146\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"152\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"155\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
 ui.observable.OSet.__rtti = "<class path=\"ui.observable.OSet\" params=\"T\" interface=\"1\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"ui.observable.OSet.T\"/>\n\t\t<c path=\"ui.observable.EventType\"/>\n\t\t<e path=\"Void\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></listen>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.OSet.T\"/></c></f></delegate>\n</class>";
 ui.observable.EventManager.__rtti = "<class path=\"ui.observable.EventManager\" params=\"T\" module=\"ui.observable.OSet\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"ui.observable.EventManager.T\"/>\n\t<c path=\"ui.observable.EventType\"/>\n\t<e path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"ui.observable.OSet\"><c path=\"ui.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"42\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"ui.observable.EventManager.T\"/>\n\t\t<c path=\"ui.observable.EventType\"/>\n\t\t<e path=\"Void\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></add>\n\t<fire public=\"1\" set=\"method\" line=\"50\"><f a=\"t:type\">\n\t<c path=\"ui.observable.EventManager.T\"/>\n\t<c path=\"ui.observable.EventType\"/>\n\t<e path=\"Void\"/>\n</f></fire>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"set\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.EventManager.T\"/></c>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);

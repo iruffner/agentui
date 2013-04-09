@@ -209,6 +209,21 @@ class TestDao {
 	    }
         content.push(img);
 
+        var urlContent = new UrlContent();
+        urlContent.uid = UidGenerator.create();
+        urlContent.type = "URL";
+        urlContent.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
+        urlContent.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        urlContent.text = "Check out this link";
+        urlContent.url = "http://www.bing.com";
+        if(availableConnections.hasValues()) {
+            addConnections(availableConnections, urlContent, 1);
+        }
+        if(availableLabels.hasValues()) {
+            addLabels(availableLabels, urlContent, 2);
+        }
+        content.push(urlContent);
+
         return content;
 	}
 
