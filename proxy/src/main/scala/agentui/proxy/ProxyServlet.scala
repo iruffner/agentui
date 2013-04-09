@@ -27,9 +27,15 @@ class ProxyServlet extends HttpServlet with Logging {
     "Content-Length",
     "Host"
   )
+  
+  override def init = {
+    logger.debug("init")
+  }
 
   override def doPost(req: HttpServletRequest, resp: HttpServletResponse) = {
     
+    logger.debug("received request " + req.getRequestURL)
+
     try {
       val client = new DefaultHttpClient()
       val post = new HttpPost("http://64.27.3.17:9876/api")
@@ -45,6 +51,7 @@ class ProxyServlet extends HttpServlet with Logging {
 //      }
       post.setEntity(new ByteArrayEntity(reqBody))
 
+      logger.debug("proxying to upstream server")
       val response = client.execute(post)
 
       response.getAllHeaders().foreach { header =>
@@ -52,7 +59,10 @@ class ProxyServlet extends HttpServlet with Logging {
       }
 
       val in = response.getEntity.getContent
+      logger.debug("piping response to client")
       new Pipe(in, resp.getOutputStream).run
+      logger.debug("request complete")
+
     } catch {
       case e => logger.error(e)
     }

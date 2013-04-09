@@ -18,10 +18,7 @@ class GuiceModule extends ScalaModule with Provider[Module] {
       ServletModule
   )
 
-  def configure = {
-    
-    
-    
+  def configure = {    
   }
 
   object ServletModule extends M3ServletModule {
