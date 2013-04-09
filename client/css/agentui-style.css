@@ -479,6 +479,29 @@ body {
 	position: relative;
 }
 
+	/* #sideRightInvite
+	-----------------------------------------------------------------------------*/
+	#sideRightInvite {	
+		margin-bottom: 15px;
+	}
+
+		#sideRightInviteInput, #sideRightInviteInput_PH {
+			float: left;
+			margin-top: 9px; 
+		}
+
+		#sideRightInviteInput_PH {
+			color: gray;
+		}
+
+		#sideRightInviteInput:focus {
+			outline: none;
+		}
+
+		#sideRightInvite button span {
+			padding: .1em 1em;
+		}
+
 	/* #sideRightSearch
 	-----------------------------------------------------------------------------*/
 	#sideRightSearch {
@@ -531,7 +554,6 @@ body {
 				/*border-radius: 50%; */
 				max-width: 60px;
 				margin-top: -10px;
-				
 			}
 
 			#connections .connection div.avatar img, .connectionDraggingImg, .connectionAvatar img {
@@ -789,6 +811,18 @@ body {
 
 .shadowRight {
 	box-shadow: 7px 5px 10px -2px gray	;
+}
+
+.textInput {
+	padding: 3px 3px 3px 5px !important; 
+	border: 2px solid #5c9ccc !important;
+	border-radius: 12px;
+	width: 100%;
+	font-size: .9em !important;
+}
+
+.textInput:focus {
+	outline: none;
 }
 
 

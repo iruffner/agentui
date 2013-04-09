@@ -37,6 +37,9 @@ extern class PostComp extends JQ {
 		        	var textInput: JQ = new JQ("<div class='postContainer'></div>").appendTo(section);
 		        	var ta: JQ = new JQ("<textarea class='boxsizingBorder ui-corner-all container' style='resize: none;'></textarea>").appendTo(textInput);
 
+		        	var urlInput: JQ = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
+		        	urlInput.appendTo(section);
+
 		        	var mediaInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp();
 		        	mediaInput.appendTo(section);
 
@@ -53,16 +56,28 @@ extern class PostComp extends JQ {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.show();
+							        			urlInput.hide();
 							        			mediaInput.hide();
 							        		});
-		        	var imgTab: JQ = new JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs)
+		        	var urlTab: JQ = new JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>")
 		        						.appendTo(tabs)
 		        						.click(function(evt: JqEvent): Void {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.hide();
+							        			urlInput.show();
+							        			mediaInput.hide();
+							        		});
+		        	var imgTab: JQ = new JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>")
+		        						.appendTo(tabs)
+		        						.click(function(evt: JqEvent): Void {
+							        			tabs.children(".active").removeClass("active");
+							        			JQ.cur.addClass("active");
+							        			textInput.hide();
+							        			urlInput.hide();
 							        			mediaInput.show();
 							        		});
+					urlInput.hide();
 					mediaInput.hide();
 		        },
 

@@ -27,8 +27,8 @@ class StandardRequest implements Requester {
 		JQ.ajax( { 
 			async: true,
 			url: AgentUi.URL + "/api", 
-	        // dataType: "jsonp", 
-	        jsonp: false,
+	        // dataType: "json", 
+	        // jsonp: "blah",
 	        data: AgentUi.SERIALIZER.toJsonString(request),
 	        type: "POST",
 			success: successFcn,
