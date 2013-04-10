@@ -115,10 +115,10 @@ class AgentUi {
 
 
         var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
-        if(urlVars.id.isNotBlank()) {
-            LOGGER.info("Login via id | " + urlVars.id);
+        if(urlVars.uuid.isNotBlank()) {
+            LOGGER.info("Login via id | " + urlVars.uuid);
             var login: LoginById = new LoginById();
-            login.id = urlVars.id;
+            login.id = urlVars.uuid;
             EventModel.change(ModelEvents.Login, login);
         } else {
             var loginComp: LoginComp = new LoginComp("<div></div>");
