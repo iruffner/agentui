@@ -15,11 +15,29 @@ class ModelObj<T> implements haxe.rtti.Infos  {
 }
 
 class Login extends ModelObj<Login> {
+	public function new () {}
+
+	public function getUri(): String {
+		return throw new ui.exception.Exception("don't call me!");
+	}
+}
+
+class LoginByUn extends Login {
 	public var username: String;
 	public var password: String;
 	public var agency: String;
 
-	public function new () {}
+	override public function getUri(): String {
+		return "agent://" + username + ":" + password + "@server:9876/" + agency;
+	}
+}
+
+class LoginById extends Login {
+	public var id: String;
+
+	override public function getUri(): String {
+		return "agent://calpop/" + id;
+	}
 }
 
 class User extends ModelObj<User> {

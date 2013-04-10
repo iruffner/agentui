@@ -95,6 +95,7 @@ class TestDao {
         alias = new Alias();
         alias.uid = UidGenerator.create();
         alias.label = "Private";
+        alias.imgSrc = "media/default_avatar.jpg";
         aliases.push(alias);
 	}
 

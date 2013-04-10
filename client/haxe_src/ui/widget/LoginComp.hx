@@ -131,7 +131,7 @@ extern class LoginComp extends JQ {
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
-    				var login: Login = new Login();
+    				var login: LoginByUn = new LoginByUn();
     				login.username = self.input_un.val();
     				if(login.username.isBlank()) {
     					self.placeholder_un.addClass("ui-state-error");

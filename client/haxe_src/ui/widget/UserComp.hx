@@ -62,6 +62,10 @@ extern class UserComp extends JQ {
 					} else {
 						imgSrc = user.imgSrc;
 					}
+
+					if(imgSrc.isBlank()) {
+						imgSrc = "media/default_avatar.jpg";
+					}
 		        	var img: JQ = new JQ("<img alt='user' src='" + imgSrc + "' class='shadow'/>");
 		        	container.append(img);
 		        	var userIdTxt: JQ = new JQ("<div class='userIdTxt'></div>");

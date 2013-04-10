@@ -16,6 +16,7 @@ import ui.api.ProtocolHandler;
 import ui.observable.OSet;
 
 import ui.util.UidGenerator;
+import ui.util.HtmlUtil;
 
 import ui.widget.ConnectionsList;
 import ui.widget.LabelsList;
@@ -112,9 +113,18 @@ class AgentUi {
             new JQ(".nonmodalPopup").hide();
         });
 
-        var loginComp: LoginComp = new LoginComp("<div></div>");
-        loginComp.appendTo(new JQ("body"));
-        loginComp.loginComp();
-        loginComp.loginComp("open");
+
+        var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
+        if(urlVars.id.isNotBlank()) {
+            LOGGER.info("Login via id | " + urlVars.id);
+            var login: LoginById = new LoginById();
+            login.id = urlVars.id;
+            EventModel.change(ModelEvents.Login, login);
+        } else {
+            var loginComp: LoginComp = new LoginComp("<div></div>");
+            loginComp.appendTo(new JQ("body"));
+            loginComp.loginComp();
+            loginComp.loginComp("open");            
+        }
     }
 }

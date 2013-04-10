@@ -95,7 +95,7 @@ class ProtocolHandler {
 			var request: InitializeSessionRequest = new InitializeSessionRequest();
 			var requestData: InitializeSessionRequestData = new InitializeSessionRequestData();
 			request.content = requestData;
-			requestData.agentURI = "agent://" + login.username + ":" + login.password + "@server:9876/" + login.agency;
+			requestData.agentURI = login.getUri();
 			try {
 				var loginRequest: StandardRequest = new StandardRequest(request, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
 						if(data.msgType == MsgType.initializeSessionResponse) {
