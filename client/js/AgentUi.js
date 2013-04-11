@@ -3294,10 +3294,10 @@ ui.AgentUi.start = function() {
 		new ui.jq.JQ(".nonmodalPopup").hide();
 	});
 	var urlVars = ui.util.HtmlUtil.getUrlVars();
-	if(ui.helper.StringHelper.isNotBlank(urlVars.id)) {
-		ui.AgentUi.LOGGER.info("Login via id | " + urlVars.id);
+	if(ui.helper.StringHelper.isNotBlank(urlVars.uuid)) {
+		ui.AgentUi.LOGGER.info("Login via id | " + urlVars.uuid);
 		var login = new ui.model.LoginById();
-		login.id = urlVars.id;
+		login.id = urlVars.uuid;
 		ui.model.EventModel.change(ui.model.ModelEvents.Login,login);
 	} else {
 		var loginComp = new ui.widget.LoginComp("<div></div>");
