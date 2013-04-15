@@ -188,6 +188,7 @@ body {
 
 			#feed #postSection {
 				margin-left: 75px;
+				margin-right: 155px;
 				height: 100%;
 			}
 
@@ -234,11 +235,20 @@ body {
 					}
 
 					#feed #postSection aside.tabs .active {
-						/*border-top-color: blue !important;
-						border-left-color: blue !important;
-						border-bottom-color: blue !important;*/
 						border-right-color: white !important;
 						background-color: white !important;
+					}
+
+				#feed #postSection aside.tags {
+					float: right;
+					margin-right: -150px;
+					width: 150px;
+					height: 100%;
+					position: relative;
+				}
+					#feed #postSection aside.tags img {
+						max-height: 35px;
+						max-width: 35px;
 					}
 
 		#feed .post {
@@ -358,7 +368,6 @@ body {
 	}
 
 	#labels {
-		/*overflow: auto; */
 		padding: 5px;
 	}
 
@@ -367,8 +376,14 @@ body {
 		max-height: 40px;
 		min-width: 100px; 
 		padding: 0;
-		/*margin-bottom: 5px;*/
 	}
+
+		.label.small {
+			min-height: 16px;
+			max-height: 16px;
+			min-width: 30px;
+			font-size: .5em;
+		}
 
 		.labelTreeExpander {
 			margin-top: 8px;
@@ -377,7 +392,7 @@ body {
 			cursor: default;
 		}
 
-		.labelTail {
+		.label .labelTail {
 			width: 0;
 			height: 0;
 			border-top: 15px solid transparent;
@@ -386,28 +401,41 @@ body {
 			border-right-style: solid;
 			background: none; 
 			display: table-cell;
-			/*float: left; */
 		}
 
-		.labelBox {
+		.label.small .labelTail {
+			border-top: 9px solid transparent;
+			border-bottom: 9px solid transparent;
+			border-right-width: 14px;
+		}
+
+		.label .labelBox {
 			border-bottom-right-radius: 5px; 
 			border-top-right-radius: 5px; 
 			display: table-cell;
-			/*float: left; */
 			min-width: 75px; 
-			/*min-height: 46px; 
-			max-heigh*/t: 46px;
 			cursor: default;
 		}
 
-		.labelBody {
+		.label.small .labelBox {
+			min-width: 50px; 
+		}
+
+		.label .labelBody {
 			margin: 3px;
 			border-radius: 4px;
 			background: white;
-			/*min-height: 35px;*/
 			min-width: 70px;
 			border: 2px solid black;
 			padding: 3px 4px;
+		}
+
+		.label.small .labelBody {
+			min-width: 50px; 
+		}
+
+		.labelBox.small .labelBody {
+			min-width: 45px;
 		}
 
 			.labelBody div {

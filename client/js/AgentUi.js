@@ -7343,7 +7343,7 @@ var defineWidget = function() {
 		selfElement.addClass("postComp container shadow " + ui.widget.Widgets.getWidgetClasses());
 		var section = new ui.jq.JQ("<section id='postSection'></section>").appendTo(selfElement);
 		var textInput = new ui.jq.JQ("<div class='postContainer'></div>").appendTo(section);
-		var ta = new ui.jq.JQ("<textarea class='boxsizingBorder ui-corner-all container' style='resize: none;'></textarea>").appendTo(textInput);
+		var ta = new ui.jq.JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput);
 		var urlInput = new ui.widget.UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		urlInput.appendTo(section);
 		var mediaInput = new ui.widget.UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp();
@@ -7377,6 +7377,18 @@ var defineWidget = function() {
 		});
 		urlInput.hide();
 		mediaInput.hide();
+		var tags = new ui.jq.JQDroppable("<aside class='tags container boxsizingBorder'></aside>");
+		tags.appendTo(section);
+		tags.droppable({ accept : function(d) {
+			return d["is"](".filterable");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,".tags");
+			clone.addClass("small");
+			var cloneOffset = clone.offset();
+			$(this).append(clone);
+			clone.css({ position : "absolute"});
+			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : ".tags"});
+		}});
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};

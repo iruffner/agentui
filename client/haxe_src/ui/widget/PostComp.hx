@@ -1,6 +1,7 @@
 package ui.widget;
 
 import ui.jq.JQ;
+import ui.jq.JQDroppable;
 import js.JQuery;
 import ui.widget.UploadComp;
 
@@ -35,7 +36,7 @@ extern class PostComp extends JQ {
 		        	var section: JQ = new JQ("<section id='postSection'></section>").appendTo(selfElement);
 
 		        	var textInput: JQ = new JQ("<div class='postContainer'></div>").appendTo(section);
-		        	var ta: JQ = new JQ("<textarea class='boxsizingBorder ui-corner-all container' style='resize: none;'></textarea>").appendTo(textInput);
+		        	var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput);
 
 		        	var urlInput: JQ = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		        	urlInput.appendTo(section);
@@ -79,6 +80,38 @@ extern class PostComp extends JQ {
 							        		});
 					urlInput.hide();
 					mediaInput.hide();
+
+					var tags: JQDroppable = new JQDroppable("<aside class='tags container boxsizingBorder'></aside>");
+					tags.appendTo(section);
+					tags.droppable({
+							accept: function(d) {
+				    			return d.is(".filterable");
+				    		},
+							activeClass: "ui-state-hover",
+					      	hoverClass: "ui-state-active",
+					      	drop: function( event: JqEvent, _ui: UIDroppable ) {
+				                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, ".tags");
+				                clone.addClass("small");
+				                var cloneOffset: {top: Int, left: Int} = clone.offset();
+				                
+			                	JQ.cur.append(clone);
+				                clone.css({
+				                        "position": "absolute"
+				                    });
+				                if(cloneOffset.top != 0) {
+				                	clone.offset(cloneOffset);
+			                	} else {
+				                	clone.position({
+				                    	my: "left top",
+				                    	at: "left top",
+				                    	of: _ui.helper, //event, // _ui.helper can be smoother, but since we don't always use a helper, sometimes we're trying to position of ourselves
+				                    	collision: "flipfit",
+				                    	within: ".tags"
+		                    		});
+				                }
+				                // self.fireFilter();
+					      	}
+						});
 		        },
 
 		        destroy: function() {
