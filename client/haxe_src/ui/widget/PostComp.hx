@@ -4,6 +4,13 @@ import ui.jq.JQ;
 import ui.jq.JQDroppable;
 import js.JQuery;
 import ui.widget.UploadComp;
+import ui.model.EventModel;
+import ui.model.ModelEvents;
+import ui.model.ModelObj;
+import ui.observable.OSet;
+import ui.util.UidGenerator;
+
+using ui.helper.OSetHelper;
 
 typedef PostCompOptions = {
 }
@@ -35,8 +42,26 @@ extern class PostComp extends JQ {
 
 		        	var section: JQ = new JQ("<section id='postSection'></section>").appendTo(selfElement);
 
+		        	var addConnectionsAndLabels: Content->Void = null;
+
 		        	var textInput: JQ = new JQ("<div class='postContainer'></div>").appendTo(section);
-		        	var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput);
+		        	var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
+		        			.appendTo(textInput)
+		        			.keypress(function(evt: JQEvent): Void {
+		        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
+		        						ui.AgentUi.LOGGER.debug("Post new text content");
+		        						evt.preventDefault();
+		        						var msg: MessageContent = new MessageContent();
+		        						msg.text = JQ.cur.val();
+		        						msg.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+		        						msg.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+		        						addConnectionsAndLabels(msg);
+		        						msg.type = "TEXT";
+		        						msg.uid = UidGenerator.create();
+		        						EventModel.change(ModelEvents.NewContentCreated, msg);
+		        						JQ.cur.val("");
+		        					}
+		        				});
 
 		        	var urlInput: JQ = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		        	urlInput.appendTo(section);
@@ -112,6 +137,16 @@ extern class PostComp extends JQ {
 				                // self.fireFilter();
 					      	}
 						});
+					addConnectionsAndLabels = function(content: Content): Void {
+						tags.children(".label").each(function(i: Int, dom: js.Dom.HtmlDom): Void {
+								var label: LabelComp = new LabelComp(dom);
+								content.labelSet.add( cast(label.labelComp("option", "label"), Label).uid );
+							});
+						tags.children(".connectionAvatar").each(function(i: Int, dom: js.Dom.HtmlDom): Void {
+								var conn: ConnectionAvatar = new ConnectionAvatar(dom);
+								content.connectionSet.add( cast(conn.connectionAvatar("option", "connection"), Connection).uid );
+							});
+					}
 		        },
 
 		        destroy: function() {

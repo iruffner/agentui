@@ -5,6 +5,8 @@ import ui.observable.OSet;
 import ui.serialization.Serialization;
 
 using ui.helper.ArrayHelper;
+using ui.helper.OSetHelper;
+using ui.helper.StringHelper;
 
 class ModelObj<T> implements haxe.rtti.Infos  {
 	public var uid: String;
@@ -133,19 +135,50 @@ class Connection extends ModelObj<Connection>, implements Filterable {
 
 class Content extends ModelObj<Content> {
 	public var type: String;
-	@:transient public var labelSet: ObservableSet<Label>;
-	private var labels: Array<Label>;
-	@:transient public var connectionSet: ObservableSet<Connection>;
-	private var connections: Array<Connection>;
+	@:transient public var labelSet: ObservableSet<String>;
+	private var labels: Array<String>;
+	@:transient public var connectionSet: ObservableSet<String>;
+	private var connections: Array<String>;
 
 	private function readResolve(): Void {
-		labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
-		connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+		labelSet = new ObservableSet<String>(OSetHelper.strIdentifier, labels);
+		connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier, connections);
 	}
 
 	private function writeResolve(): Void {
 		labels = labelSet.asArray();
 		connections = connectionSet.asArray();
+	}
+
+	public function toInsertExpression(): String {
+		var str: String = "InsertContent(";
+		var labels = labelSet.joinX(",");
+		if(labels.isNotBlank()) {
+			if(labels.contains(",")) {
+				str += "any(" + labels + ")";
+			} else {
+				str += labels;
+			}
+		} else {
+			str += "_";
+		}
+		str += ",";
+
+		var conns = connectionSet.joinX(",");
+		if(conns.isNotBlank()) {
+			if(conns.contains(",")) {
+				str += "any(" + conns + "," + AgentUi.USER.uid + ")";
+			} else {
+				str += conns + "," + AgentUi.USER.uid;
+			}
+		} else {
+			str += AgentUi.USER.uid;
+		}
+		str += ",";
+
+		str += AgentUi.SERIALIZER.toJsonString(this);
+
+		return str + ")";
 	}
 }
 

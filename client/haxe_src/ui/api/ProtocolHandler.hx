@@ -71,6 +71,11 @@ class ProtocolHandler {
             })
         );
 
+        EventModel.addListener(ModelEvents.NewContentCreated, new EventListener(function(content: Content): Void {
+        		post(content);
+    		})
+        );
+
         processHash = new Hash<Dynamic->Void>();
         processHash.set(Std.string(MsgType.evalResponse), function(data: Dynamic){
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
@@ -203,6 +208,21 @@ class ProtocolHandler {
 		listeningChannel.start();
 	}
 
-
+	public function post(content: Content): Void {
+		var evalRequest: EvalRequest = new EvalRequest();
+		var data: EvalRequestData = new EvalRequestData();
+		evalRequest.content = data;
+		data.sessionURI = AgentUi.USER.sessionURI;
+		data.expression = content.toInsertExpression();
+		try {
+			//we don't expect anything back here
+			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("content successfully submitted");
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing content post", ex);
+		}
+	}
 
 }

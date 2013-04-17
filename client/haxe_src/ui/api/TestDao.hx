@@ -7,6 +7,7 @@ import ui.observable.OSet.ObservableSet;
 import ui.util.UidGenerator;
 
 using ui.helper.ArrayHelper;
+using ui.helper.OSetHelper;
 
 class TestDao {
 
@@ -109,8 +110,8 @@ class TestDao {
         audioContent.type = "AUDIO";
         audioContent.audioSrc = "media/test/hello_newman.mp3";
         audioContent.audioType = "audio/mpeg";
-        audioContent.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-        audioContent.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        audioContent.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        audioContent.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, audioContent, 2);
 	    }
@@ -125,8 +126,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/soupkitchen.jpg";
         img.caption = "Soup Kitchen";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -140,8 +141,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/apt.jpg";
         img.caption = "Apartment";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -155,8 +156,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/jrmint.jpg";
         img.caption = "The Junior Mint!";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 3);
 	    }
@@ -170,8 +171,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/oldschool.jpg";
         img.caption = "Retro";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 3);
 	    }
@@ -185,8 +186,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/mailman.jpg";
         img.caption = "Jerry Delivering the mail";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -200,8 +201,8 @@ class TestDao {
         img.type = "IMAGE";
         img.imgSrc = "media/test/closet.jpg";
         img.caption = "Stuck in the closet!";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -213,8 +214,8 @@ class TestDao {
         var urlContent = new UrlContent();
         urlContent.uid = UidGenerator.create();
         urlContent.type = "URL";
-        urlContent.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-        urlContent.labelSet = new ObservableSet<Label>(ModelObj.identifier);
+        urlContent.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        urlContent.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         urlContent.text = "Check out this link";
         urlContent.url = "http://www.bing.com";
         if(availableConnections.hasValues()) {
@@ -252,25 +253,25 @@ class TestDao {
 	    }
 	}
 
-	private static function addOne<T>(available: Array<T>, arr: ObservableSet<T>) {
+	private static function addOne(available: Array<Dynamic>, arr: ObservableSet<String>): Void {
 		// if(available.length == 1) {
   //       	arr.add(available[0]);
 		// } else {
-        	arr.add(getRandomFromArray(available));
+        	arr.add(arr.identifier()(getRandomFromArray(available)));
     	// }
 	}
 
-	private static function addTwo<T>(available: Array<T>, arr: ObservableSet<T>) {
+	private static function addTwo(available: Array<Dynamic>, arr: ObservableSet<String>) {
 		if(available.length == 1) {
         	// arr.add(available[0]);
-        	arr.add(getRandomFromArray(available));
+        	arr.add(arr.identifier()(getRandomFromArray(available)));
 		} else {
         	arr.add(getRandomFromArray(available));
         	arr.add(getRandomFromArray(available));
     	}
 	}
 
-	private static function addAll<T>(available: Array<T>, arr: ObservableSet<T>) {
+	private static function addAll(available: Array<Dynamic>, arr: ObservableSet<String>) {
 		for(t_ in 0...available.length) {
 			arr.add(available[t_]);
 		}

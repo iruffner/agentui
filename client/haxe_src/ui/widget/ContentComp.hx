@@ -7,6 +7,8 @@ import ui.model.ModelObj;
 import ui.observable.OSet;
 import ui.widget.LabelComp;
 
+using ui.helper.OSetHelper;
+
 typedef ContentCompOptions = {
 	var content: Content;
 }
@@ -59,9 +61,9 @@ extern class ContentComp extends JQ {
 		        	
 		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>");
 		        	postWr.append(postConnections);
-		        	var connIter: Iterator<Connection> = self.options.content.connectionSet.iterator();
+		        	var connIter: Iterator<String> = self.options.content.connectionSet.iterator();
 		        	while(connIter.hasNext()) {
-		        		var connection: Connection = connIter.next();
+		        		var connection: Connection = AgentUi.USER.currentAlias.connectionSet.getElementComplex(connIter.next());
 		        		var connAvatar: ConnectionAvatar = new ConnectionAvatar("<div></div>").connectionAvatar({
 		        				dndEnabled: false,
 		        				connection: connection
@@ -71,9 +73,9 @@ extern class ContentComp extends JQ {
 
 		        	var postLabels: JQ = new JQ("<aside class='postLabels'></div>");
 		        	postWr.append(postLabels);
-		        	var labelIter: Iterator<Label> = self.options.content.labelSet.iterator();
+		        	var labelIter: Iterator<String> = self.options.content.labelSet.iterator();
 		        	while(labelIter.hasNext()) {
-		        		var label: Label = labelIter.next();
+		        		var label: Label = AgentUi.USER.currentAlias.labelSet.getElementComplex(labelIter.next());
 		        		var labelComp: LabelComp = new LabelComp("<div></div>").labelComp({
 		        				dndEnabled: false,
 		        				label: label

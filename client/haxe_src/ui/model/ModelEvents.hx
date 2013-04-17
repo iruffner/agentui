@@ -5,6 +5,7 @@ enum ModelEvents {
 	MoreContent;
 	NextContent;
 	EndOfContent;
+	NewContentCreated;
 
 	LoadAlias;
 	AliasLoaded;
