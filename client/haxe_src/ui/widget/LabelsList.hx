@@ -6,6 +6,7 @@ import ui.model.EventModel;
 import ui.model.ModelEvents;
 import ui.observable.OSet;
 import ui.widget.LabelComp;
+import ui.util.UidGenerator;
 
 using ui.helper.StringHelper;
 
@@ -42,22 +43,56 @@ extern class LabelsList extends JQ {
 		        	var newLabelButton: JQ = new JQ("<button class='newLabelButton'>New Label</button>");
 		        	selfElement.append(newLabelButton).append("<div class='clear'></div>");
 		        	newLabelButton.button().click(function(evt: JQEvent): Void {
-		        			var popup: Popup = new Popup("<div style='position: absolute;'></div>");
+		        			evt.stopPropagation();
+		        			var popup: Popup = new Popup("<div style='position: absolute;width:300px;'></div>");
 		        			popup.appendTo(selfElement);
 		        			popup = popup.popup({
 		        					createFcn: function(el: JQ): Void {
-		        						var input: JQ = new JQ("<input value='New Label'/>").appendTo(el);
-		        						input.keypress(function(evt: JQEvent): Void {
-		        								if(evt.keyCode == 13) {
-		        									AgentUi.LOGGER.info("Create new label | " + JQ.cur.val());
-		        									//create new label
-		        									JQ.cur.val("New Label");
-		        								}
-		        							}).click(function(evt: JQEvent): Void {
+		        						var createLabel: Void->Void = null;
+		        						var stopFcn: JQEvent->Void = function (evt: JQEvent): Void { evt.stopPropagation(); };
+		        						var enterFcn: JQEvent->Void = function (evt: JQEvent): Void { 
+		        							if(evt.keyCode == 13) {
+		        								createLabel();
+	        								}
+		        						};
+
+
+		        						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
+		        						container.click(stopFcn).keypress(enterFcn);
+		        						container.append("<label for='labelParent'>Parent: </label> ");
+		        						var parent: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option>No Parent</option></select>").appendTo(container);
+		        						parent.click(stopFcn);
+		        						var iter: Iterator<Label> = ui.AgentUi.USER.currentAlias.labelSet.iterator();
+		        						while(iter.hasNext()) {
+		        							var label: Label = iter.next();
+		        							parent.append("<option value='" + label.uid + "'>" + label.text + "</option>");
+		        						}
+		        						container.append("<br/><label for='labelName'>Name: </label> ");
+		        						var input: JQ = new JQ("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
+		        						input.keypress(enterFcn).click(function(evt: JQEvent): Void {
+		        								evt.stopPropagation();
 		        								if(JQ.cur.val() == "New Label") {
 		        									JQ.cur.val("");
 		        								}
-	        								});
+	        								}).focus();
+		        						container.append("<br/>");
+		        						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Label</button>")
+		        							.button()
+		        							.appendTo(container)
+		        							.click(function(evt: JQEvent): Void {
+		        									createLabel();
+		        								});
+
+		        						createLabel = function(): Void {
+        									AgentUi.LOGGER.info("Create new label | " + input.val());
+        									//create new label
+        									var label: Label = new Label();
+        									label.parentUid = parent.val();
+        									label.text = input.val();
+        									label.uid = UidGenerator.create();
+        									EventModel.change(ModelEvents.CreateLabel, label);
+        									new JQ("body").click();
+		        						};
 		        					},
 		        					positionalElement: newLabelButton
 		        				});

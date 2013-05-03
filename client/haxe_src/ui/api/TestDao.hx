@@ -257,23 +257,23 @@ class TestDao {
 		// if(available.length == 1) {
   //       	arr.add(available[0]);
 		// } else {
-        	arr.add(arr.identifier()(getRandomFromArray(available)));
+        	arr.add(getRandomFromArray(available).uid);
     	// }
 	}
 
 	private static function addTwo(available: Array<Dynamic>, arr: ObservableSet<String>) {
 		if(available.length == 1) {
         	// arr.add(available[0]);
-        	arr.add(arr.identifier()(getRandomFromArray(available)));
+        	arr.add(getRandomFromArray(available).uid);
 		} else {
-        	arr.add(getRandomFromArray(available));
-        	arr.add(getRandomFromArray(available));
+        	arr.add(getRandomFromArray(available).uid);
+        	arr.add(getRandomFromArray(available).uid);
     	}
 	}
 
 	private static function addAll(available: Array<Dynamic>, arr: ObservableSet<String>) {
 		for(t_ in 0...available.length) {
-			arr.add(available[t_]);
+			arr.add(available[t_].uid);
 		}
 	}
 

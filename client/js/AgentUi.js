@@ -3258,13 +3258,24 @@ ui.AgentUi.CONTENT = null;
 ui.AgentUi.USER = null;
 ui.AgentUi.SERIALIZER = null;
 ui.AgentUi.PROTOCOL = null;
+ui.AgentUi.HOT_KEY_ACTIONS = null;
 ui.AgentUi.main = function() {
 	ui.AgentUi.LOGGER = new ui.log.Logga(ui.log.LogLevel.DEBUG);
 	ui.AgentUi.CONTENT = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
 	ui.AgentUi.PROTOCOL = new ui.api.ProtocolHandler();
 	ui.AgentUi.SERIALIZER = new ui.serialization.Serializer();
+	ui.AgentUi.HOT_KEY_ACTIONS = new Array();
 }
 ui.AgentUi.start = function() {
+	new ui.jq.JQ("body").keyup(function(evt) {
+		if(ui.helper.ArrayHelper.hasValues(ui.AgentUi.HOT_KEY_ACTIONS)) {
+			var _g1 = 0, _g = ui.AgentUi.HOT_KEY_ACTIONS.length;
+			while(_g1 < _g) {
+				var action_ = _g1++;
+				ui.AgentUi.HOT_KEY_ACTIONS[action_](evt);
+			}
+		}
+	});
 	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
 	new ui.widget.MessagingComp("#sideRight #chat").messagingComp();
 	new ui.widget.ConnectionsList("#connections").connectionsList({ });
@@ -3323,7 +3334,7 @@ if(!ui.api) ui.api = {}
 ui.api.ProtocolHandler = $hxClasses["ui.api.ProtocolHandler"] = function() {
 	this.filterIsRunning = false;
 	var _g = this;
-	ui.model.EventModel.addListener(ui.model.ModelEvents.RunFilter,new ui.model.EventListener(function(filter) {
+	ui.model.EventModel.addListener(ui.model.ModelEvents.FILTER_RUN,new ui.model.EventListener(function(filter) {
 		if(_g.filterIsRunning) try {
 			var stopEval = new ui.api.StopEvalRequest();
 			var stopData = new ui.api.StopMsgData();
@@ -3356,6 +3367,9 @@ ui.api.ProtocolHandler = $hxClasses["ui.api.ProtocolHandler"] = function() {
 	ui.model.EventModel.addListener(ui.model.ModelEvents.NewContentCreated,new ui.model.EventListener(function(content) {
 		_g.post(content);
 	}));
+	ui.model.EventModel.addListener(ui.model.ModelEvents.CreateLabel,new ui.model.EventListener(function(label) {
+		_g.createLabel(label);
+	}));
 	this.processHash = new Hash();
 	this.processHash.set(Std.string(ui.api.MsgType.evalResponse),function(data) {
 		var evalResponse = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.EvalResponse);
@@ -3370,7 +3384,23 @@ ui.api.ProtocolHandler = $hxClasses["ui.api.ProtocolHandler"] = function() {
 };
 ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
 ui.api.ProtocolHandler.prototype = {
-	post: function(content) {
+	createLabel: function(label) {
+		var evalRequest = new ui.api.EvalRequest();
+		var data = new ui.api.EvalRequestData();
+		evalRequest.content = data;
+		data.sessionURI = ui.AgentUi.USER.sessionURI;
+		data.expression = label.uid;
+		try {
+			new ui.api.StandardRequest(evalRequest,function(data1,textStatus,jqXHR) {
+				ui.AgentUi.LOGGER.debug("label successfully submitted");
+				ui.AgentUi.USER._getCurrentAlias().labelSet.add(label);
+			}).start();
+		} catch( err ) {
+			var ex = ui.log.Logga.getExceptionInst(err);
+			ui.AgentUi.LOGGER.error("Error executing label post",ex);
+		}
+	}
+	,post: function(content) {
 		var evalRequest = new ui.api.EvalRequest();
 		var data = new ui.api.EvalRequestData();
 		evalRequest.content = data;
@@ -3859,9 +3889,17 @@ ui.api.StandardRequest.prototype = {
 }
 ui.api.LongPollingRequest = $hxClasses["ui.api.LongPollingRequest"] = function(requestToRepeat,successFcn) {
 	this.stop = false;
+	var _g = this;
 	this.request = requestToRepeat;
 	this.requestJson = ui.AgentUi.SERIALIZER.toJsonString(this.request);
 	this.successFcn = successFcn;
+	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
+		if(evt.altKey && evt.shiftKey && evt.keyCode == 80) {
+			_g.stop = !_g.stop;
+			ui.AgentUi.LOGGER.debug("Long Polling is paused? " + Std.string(_g.stop));
+			if(!_g.stop) _g.poll();
+		}
+	});
 };
 ui.api.LongPollingRequest.__name__ = ["ui","api","LongPollingRequest"];
 ui.api.LongPollingRequest.__interfaces__ = [ui.api.Requester];
@@ -4062,19 +4100,19 @@ ui.api.TestDao.addLabels = function(availableConnections,content,numToAdd) {
 	}
 }
 ui.api.TestDao.addOne = function(available,arr) {
-	arr.add((arr.identifier())(ui.api.TestDao.getRandomFromArray(available)));
+	arr.add(ui.api.TestDao.getRandomFromArray(available).uid);
 }
 ui.api.TestDao.addTwo = function(available,arr) {
-	if(available.length == 1) arr.add((arr.identifier())(ui.api.TestDao.getRandomFromArray(available))); else {
-		arr.add(ui.api.TestDao.getRandomFromArray(available));
-		arr.add(ui.api.TestDao.getRandomFromArray(available));
+	if(available.length == 1) arr.add(ui.api.TestDao.getRandomFromArray(available).uid); else {
+		arr.add(ui.api.TestDao.getRandomFromArray(available).uid);
+		arr.add(ui.api.TestDao.getRandomFromArray(available).uid);
 	}
 }
 ui.api.TestDao.addAll = function(available,arr) {
 	var _g1 = 0, _g = available.length;
 	while(_g1 < _g) {
 		var t_ = _g1++;
-		arr.add(available[t_]);
+		arr.add(available[t_].uid);
 	}
 }
 ui.api.TestDao.getRandomFromArray = function(arr) {
@@ -4743,37 +4781,43 @@ ui.model.Filter.prototype = {
 	,labelNodes: null
 	,__class__: ui.model.Filter
 }
-ui.model.ModelEvents = $hxClasses["ui.model.ModelEvents"] = { __ename__ : ["ui","model","ModelEvents"], __constructs__ : ["RunFilter","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","Login","User","FitWindow"] }
-ui.model.ModelEvents.RunFilter = ["RunFilter",0];
-ui.model.ModelEvents.RunFilter.toString = $estr;
-ui.model.ModelEvents.RunFilter.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.MoreContent = ["MoreContent",1];
+ui.model.ModelEvents = $hxClasses["ui.model.ModelEvents"] = { __ename__ : ["ui","model","ModelEvents"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","Login","User","FitWindow","CreateLabel"] }
+ui.model.ModelEvents.FILTER_RUN = ["FILTER_RUN",0];
+ui.model.ModelEvents.FILTER_RUN.toString = $estr;
+ui.model.ModelEvents.FILTER_RUN.__enum__ = ui.model.ModelEvents;
+ui.model.ModelEvents.FILTER_CHANGE = ["FILTER_CHANGE",1];
+ui.model.ModelEvents.FILTER_CHANGE.toString = $estr;
+ui.model.ModelEvents.FILTER_CHANGE.__enum__ = ui.model.ModelEvents;
+ui.model.ModelEvents.MoreContent = ["MoreContent",2];
 ui.model.ModelEvents.MoreContent.toString = $estr;
 ui.model.ModelEvents.MoreContent.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.NextContent = ["NextContent",2];
+ui.model.ModelEvents.NextContent = ["NextContent",3];
 ui.model.ModelEvents.NextContent.toString = $estr;
 ui.model.ModelEvents.NextContent.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.EndOfContent = ["EndOfContent",3];
+ui.model.ModelEvents.EndOfContent = ["EndOfContent",4];
 ui.model.ModelEvents.EndOfContent.toString = $estr;
 ui.model.ModelEvents.EndOfContent.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.NewContentCreated = ["NewContentCreated",4];
+ui.model.ModelEvents.NewContentCreated = ["NewContentCreated",5];
 ui.model.ModelEvents.NewContentCreated.toString = $estr;
 ui.model.ModelEvents.NewContentCreated.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.LoadAlias = ["LoadAlias",5];
+ui.model.ModelEvents.LoadAlias = ["LoadAlias",6];
 ui.model.ModelEvents.LoadAlias.toString = $estr;
 ui.model.ModelEvents.LoadAlias.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.AliasLoaded = ["AliasLoaded",6];
+ui.model.ModelEvents.AliasLoaded = ["AliasLoaded",7];
 ui.model.ModelEvents.AliasLoaded.toString = $estr;
 ui.model.ModelEvents.AliasLoaded.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.Login = ["Login",7];
+ui.model.ModelEvents.Login = ["Login",8];
 ui.model.ModelEvents.Login.toString = $estr;
 ui.model.ModelEvents.Login.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.User = ["User",8];
+ui.model.ModelEvents.User = ["User",9];
 ui.model.ModelEvents.User.toString = $estr;
 ui.model.ModelEvents.User.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.FitWindow = ["FitWindow",9];
+ui.model.ModelEvents.FitWindow = ["FitWindow",10];
 ui.model.ModelEvents.FitWindow.toString = $estr;
 ui.model.ModelEvents.FitWindow.__enum__ = ui.model.ModelEvents;
+ui.model.ModelEvents.CreateLabel = ["CreateLabel",11];
+ui.model.ModelEvents.CreateLabel.toString = $estr;
+ui.model.ModelEvents.CreateLabel.__enum__ = ui.model.ModelEvents;
 ui.model.ModelObj = $hxClasses["ui.model.ModelObj"] = function() { }
 ui.model.ModelObj.__name__ = ["ui","model","ModelObj"];
 ui.model.ModelObj.__interfaces__ = [haxe.rtti.Infos];
@@ -7029,7 +7073,6 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		var liveToggle = js.Boot.__cast(selfElement.children(".liveBuildToggle") , ui.widget.LiveBuildToggle);
-		if(!js.Boot.__cast(liveToggle.liveBuildToggle("isLive") , Bool)) return;
 		var root = (selfElement.children(".rootToggle").data("getNode"))();
 		root.type = "ROOT";
 		var filterables = selfElement.children(".filterable");
@@ -7038,7 +7081,7 @@ var defineWidget = function() {
 			var node = (filterable.data("getNode"))();
 			root.addNode(node);
 		});
-		ui.model.EventModel.change(ui.model.ModelEvents.RunFilter,new ui.model.Filter(root));
+		if(!js.Boot.__cast(liveToggle.liveBuildToggle("isLive") , Bool)) ui.model.EventModel.change(ui.model.ModelEvents.FILTER_CHANGE,new ui.model.Filter(root)); else ui.model.EventModel.change(ui.model.ModelEvents.FILTER_RUN,new ui.model.Filter(root));
 	}, destroy : function() {
 		ui.jq.JQ.Widget.prototype.destroy.call(this);
 	}};
@@ -7131,7 +7174,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of Popup must be a div element");
 		selfElement.addClass("ocontainer shadow popup");
-		if(!self.options.modal) new ui.jq.JQ("body").click(function(evt) {
+		if(!self.options.modal) new ui.jq.JQ("body").one("click",function(evt) {
 			selfElement.remove();
 			self.destroy();
 		});
@@ -7155,18 +7198,46 @@ var defineWidget = function() {
 		var newLabelButton = new ui.jq.JQ("<button class='newLabelButton'>New Label</button>");
 		selfElement.append(newLabelButton).append("<div class='clear'></div>");
 		newLabelButton.button().click(function(evt) {
-			var popup = new ui.widget.Popup("<div style='position: absolute;'></div>");
+			evt.stopPropagation();
+			var popup = new ui.widget.Popup("<div style='position: absolute;width:300px;'></div>");
 			popup.appendTo(selfElement);
 			popup = popup.popup({ createFcn : function(el) {
-				var input = new ui.jq.JQ("<input value='New Label'/>").appendTo(el);
-				input.keypress(function(evt1) {
-					if(evt1.keyCode == 13) {
-						ui.AgentUi.LOGGER.info("Create new label | " + $(this).val());
-						$(this).val("New Label");
-					}
-				}).click(function(evt1) {
+				var createLabel = null;
+				var stopFcn = function(evt1) {
+					evt1.stopPropagation();
+				};
+				var enterFcn = function(evt1) {
+					if(evt1.keyCode == 13) createLabel();
+				};
+				var container = new ui.jq.JQ("<div class='icontainer'></div>").appendTo(el);
+				container.click(stopFcn).keypress(enterFcn);
+				container.append("<label for='labelParent'>Parent: </label> ");
+				var parent = new ui.jq.JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option>No Parent</option></select>").appendTo(container);
+				parent.click(stopFcn);
+				var iter = ui.AgentUi.USER._getCurrentAlias().labelSet.iterator();
+				while(iter.hasNext()) {
+					var label = iter.next();
+					parent.append("<option value='" + label.uid + "'>" + label.text + "</option>");
+				}
+				container.append("<br/><label for='labelName'>Name: </label> ");
+				var input = new ui.jq.JQ("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
+				input.keypress(enterFcn).click(function(evt1) {
+					evt1.stopPropagation();
 					if($(this).val() == "New Label") $(this).val("");
+				}).focus();
+				container.append("<br/>");
+				new ui.jq.JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Label</button>").button().appendTo(container).click(function(evt1) {
+					createLabel();
 				});
+				createLabel = function() {
+					ui.AgentUi.LOGGER.info("Create new label | " + input.val());
+					var label = new ui.model.Label();
+					label.parentUid = parent.val();
+					label.text = input.val();
+					label.uid = ui.util.UidGenerator.create();
+					ui.model.EventModel.change(ui.model.ModelEvents.CreateLabel,label);
+					new ui.jq.JQ("body").click();
+				};
 			}, positionalElement : newLabelButton});
 		});
 	}, _setLabels : function(labels) {

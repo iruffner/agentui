@@ -158,9 +158,6 @@ extern class FilterComp extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					var liveToggle: LiveBuildToggle = cast(selfElement.children(".liveBuildToggle"), LiveBuildToggle);
-					if(!cast(liveToggle.liveBuildToggle("isLive"), Bool)) {
-						return;
-					}
 
 		        	var root: Node = selfElement.children(".rootToggle").data("getNode")();//new And();//determine this
 		        	root.type = "ROOT";
@@ -171,7 +168,12 @@ extern class FilterComp extends JQ {
 		        			var node: Node = filterable.data("getNode")();
 		        			root.addNode(node);
 		        		});
-		        	EventModel.change(ModelEvents.RunFilter, new Filter(root));
+					
+					if(!cast(liveToggle.liveBuildToggle("isLive"), Bool)) {
+						EventModel.change(ModelEvents.FILTER_CHANGE, new Filter(root));
+					} else {
+		        		EventModel.change(ModelEvents.FILTER_RUN, new Filter(root));
+		        	}
 	        	},
 
 		        destroy: function() {

@@ -54,6 +54,18 @@ class LongPollingRequest implements Requester {
 		this.request = requestToRepeat;
 		this.requestJson = AgentUi.SERIALIZER.toJsonString(this.request);
 		this.successFcn = successFcn;
+		ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
+            if(evt.altKey && evt.shiftKey && evt.keyCode == 80 /* ALT+SHIFT+P */) {
+                stop = !stop;
+                ui.AgentUi.LOGGER.debug("Long Polling is paused? " + stop);
+                if(!stop) {
+                	poll();
+                }
+            // } else if (evt.altKey && evt.shiftKey && evt.keyCode == 82 /* ALT+SHIFT+R */) {
+            //     ui.AgentUi.LOGGER.debug("Manual timer run");
+            //     _run();
+            }
+        });
 	}
 
 	public function start(): Void {

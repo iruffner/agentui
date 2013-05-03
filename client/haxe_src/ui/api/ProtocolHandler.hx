@@ -27,7 +27,7 @@ class ProtocolHandler {
 	private var processHash: Hash<Dynamic->Void>;
 
 	public function new() {
-		EventModel.addListener(ModelEvents.RunFilter, new EventListener(function(filter: Filter): Void {
+		EventModel.addListener(ModelEvents.FILTER_RUN, new EventListener(function(filter: Filter): Void {
 				if(filterIsRunning) {
 					try {
 						var stopEval: StopEvalRequest = new StopEvalRequest();
@@ -73,6 +73,11 @@ class ProtocolHandler {
 
         EventModel.addListener(ModelEvents.NewContentCreated, new EventListener(function(content: Content): Void {
         		post(content);
+    		})
+        );
+
+        EventModel.addListener(ModelEvents.CreateLabel, new EventListener(function(label: Label): Void {
+        		createLabel(label);
     		})
         );
 
@@ -225,4 +230,21 @@ class ProtocolHandler {
 		}
 	}
 
+	public function createLabel(label: Label): Void {
+		var evalRequest: EvalRequest = new EvalRequest();
+		var data: EvalRequestData = new EvalRequestData();
+		evalRequest.content = data;
+		data.sessionURI = AgentUi.USER.sessionURI;
+		data.expression = label.uid;
+		try {
+			//we don't expect anything back here
+			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("label successfully submitted");
+					AgentUi.USER.currentAlias.labelSet.add(label);
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing label post", ex);
+		}
+	}
 }

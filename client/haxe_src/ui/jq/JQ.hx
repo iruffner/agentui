@@ -214,6 +214,8 @@ extern class JQ extends js.JQuery {
 	@:overload(function(events : String, callb : Void -> Bool):JQ { } )
 	override function bind( events : String, callb : JQEvent -> Void ) : JQ;
 
+	override function one( events : String, callb : JQEvent -> Void ) : JQ;
+
 	@:overload(function( events: String, ?callb: JQEvent->Dynamic -> Void ) : Void{})
 	function on(events: String, ?selector: String, ?callb: JQEvent->Dynamic -> Void) : Void;
 

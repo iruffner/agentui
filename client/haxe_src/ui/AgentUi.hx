@@ -44,13 +44,15 @@ class AgentUi {
     public static var SERIALIZER: Serializer;
     public static var PROTOCOL: ProtocolHandler;
     public static var URL: String = "";//"http://64.27.3.17";
-
+    public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
         CONTENT = new ObservableSet<Content>(ModelObj.identifier);
         PROTOCOL = new ProtocolHandler();
         SERIALIZER = new Serializer();
+
+        HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
 
         // SERIALIZER.addHandler(ObservableSet, new ObservableSetHandler());
 
@@ -65,6 +67,14 @@ class AgentUi {
     }
 
     public static function start(): Void {
+        new JQ("body").keyup(function(evt: JQEvent) {
+            if(HOT_KEY_ACTIONS.hasValues()) {
+                for(action_ in 0...HOT_KEY_ACTIONS.length) {
+                    HOT_KEY_ACTIONS[action_](evt);
+                }
+            }
+        });
+
         new JQ("#middleContainer #content #tabs").tabs();
     	new MessagingComp("#sideRight #chat").messagingComp();
 

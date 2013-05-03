@@ -188,7 +188,7 @@ body {
 
 			#feed #postSection {
 				margin-left: 75px;
-				margin-right: 155px;
+				margin-right: 205px;
 				height: 100%;
 			}
 
@@ -241,8 +241,8 @@ body {
 
 				#feed #postSection aside.tags {
 					float: right;
-					margin-right: -150px;
-					width: 150px;
+					margin-right: -200px;
+					width: 200px;
 					height: 100%;
 					position: relative;
 				}

@@ -45,7 +45,7 @@ extern class Popup extends JQ {
 
 		        	selfElement.addClass("ocontainer shadow popup");
 		        	if(!self.options.modal) {
-		        		new JQ("body").click(function(evt: JQEvent): Void {
+		        		new JQ("body").one("click", function(evt: JQEvent): Void {
 		        			selfElement.remove();
 				            self.destroy();
 				        });
