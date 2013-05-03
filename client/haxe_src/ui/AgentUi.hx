@@ -27,6 +27,7 @@ import ui.widget.PostComp;
 import ui.widget.LoginComp;
 import ui.widget.MessagingComp;
 import ui.widget.InviteComp;
+import ui.widget.NewUserComp;
 
 import ui.serialization.Serialization;
 
@@ -131,10 +132,31 @@ class AgentUi {
             login.id = urlVars.uuid;
             EventModel.change(ModelEvents.Login, login);
         } else {
-            var loginComp: LoginComp = new LoginComp("<div></div>");
+            showLogin();
+        }
+    }
+
+    public static function showLogin(): Void {
+        var loginComp: LoginComp = new LoginComp(".loginComp");
+        if(loginComp.exists()) {
+            loginComp.loginComp("open");
+        } else {
+            loginComp = new LoginComp("<div></div>");
             loginComp.appendTo(new JQ("body"));
             loginComp.loginComp();
-            loginComp.loginComp("open");            
+            loginComp.loginComp("open");
+        }
+    }
+
+    public static function showNewUser(): Void {
+        var newUserComp: NewUserComp = new NewUserComp(".newUserComp");
+        if(newUserComp.exists()) {
+            newUserComp.newUserComp("open");
+        } else {
+            newUserComp = new NewUserComp("<div></div>");
+            newUserComp.appendTo(new JQ("body"));
+            newUserComp.newUserComp();
+            newUserComp.newUserComp("open");
         }
     }
 }

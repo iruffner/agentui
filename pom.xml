@@ -463,13 +463,13 @@
         <repository>
             <id>releases</id>
             <name>nexus releases</name>
-            <url>http://ratchet:8081/nexus/content/repositories/releases</url>
+            <url>http://ratchet.model3.net:8081/nexus/content/repositories/releases</url>
         </repository>
         <!-- use the following if you ARE using a snapshot version. -->
         <snapshotRepository>
             <id>ratchet</id>
             <name>ratchet-snapshots</name>
-            <url>http://ratchet:8081/artifactory/libs-snapshot-local</url>
+            <url>http://ratchet.model3.net:8081/artifactory/libs-snapshot-local</url>
         </snapshotRepository>
     </distributionManagement>
 

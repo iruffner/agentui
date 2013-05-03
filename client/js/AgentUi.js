@@ -3310,11 +3310,24 @@ ui.AgentUi.start = function() {
 		var login = new ui.model.LoginById();
 		login.id = urlVars.uuid;
 		ui.model.EventModel.change(ui.model.ModelEvents.Login,login);
-	} else {
-		var loginComp = new ui.widget.LoginComp("<div></div>");
+	} else ui.AgentUi.showLogin();
+}
+ui.AgentUi.showLogin = function() {
+	var loginComp = new ui.widget.LoginComp(".loginComp");
+	if(loginComp.exists()) loginComp.loginComp("open"); else {
+		loginComp = new ui.widget.LoginComp("<div></div>");
 		loginComp.appendTo(new ui.jq.JQ("body"));
 		loginComp.loginComp();
 		loginComp.loginComp("open");
+	}
+}
+ui.AgentUi.showNewUser = function() {
+	var newUserComp = new ui.widget.NewUserComp(".newUserComp");
+	if(newUserComp.exists()) newUserComp.newUserComp("open"); else {
+		newUserComp = new ui.widget.NewUserComp("<div></div>");
+		newUserComp.appendTo(new ui.jq.JQ("body"));
+		newUserComp.newUserComp();
+		newUserComp.newUserComp("open");
 	}
 }
 ui.CrossMojo = $hxClasses["ui.CrossMojo"] = function() { }
@@ -7253,18 +7266,144 @@ var defineWidget = function() {
 	}};
 };
 ui.jq.JQ.widget("ui.labelsList",defineWidget());
+ui.widget.NewUserComp = window.jQuery;
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of NewUserComp must be a div element");
+		self._cancelled = false;
+		selfElement.addClass("newUserComp").hide();
+		var labels = new ui.jq.JQ("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new ui.jq.JQ("<div class='fleft'></div>").appendTo(selfElement);
+		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
+		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
+		labels.append("<div class='labelDiv'><label id='un_label' for='newu_un'>Username</label></div>");
+		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
+		self.input_n = new ui.jq.JQ("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_n = new ui.jq.JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_em = new ui.jq.JQ("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_em = new ui.jq.JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_un = new ui.jq.JQ("<input id='newu_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_un = new ui.jq.JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_pw = new ui.jq.JQ("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new ui.jq.JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		inputs.append("<br/>");
+		inputs.children("input").keypress(function(evt) {
+			if(evt.keyCode == 13) self._createNewUser();
+		});
+		self.placeholder_n.focus(function(evt) {
+			self.placeholder_n.hide();
+			self.input_n.show().focus();
+		});
+		self.input_n.blur(function(evt) {
+			if(ui.helper.StringHelper.isBlank(self.input_n.val())) {
+				self.placeholder_n.show();
+				self.input_n.hide();
+			}
+		});
+		self.placeholder_un.focus(function(evt) {
+			self.placeholder_un.hide();
+			self.input_un.show().focus();
+		});
+		self.input_un.blur(function(evt) {
+			if(ui.helper.StringHelper.isBlank(self.input_un.val())) {
+				self.placeholder_un.show();
+				self.input_un.hide();
+			}
+		});
+		self.placeholder_pw.focus(function(evt) {
+			self.placeholder_pw.hide();
+			self.input_pw.show().focus();
+		});
+		self.input_pw.blur(function(evt) {
+			if(ui.helper.StringHelper.isBlank(self.input_pw.val())) {
+				self.placeholder_pw.show();
+				self.input_pw.hide();
+			}
+		});
+		self.placeholder_em.focus(function(evt) {
+			self.placeholder_em.hide();
+			self.input_em.show().focus();
+		});
+		self.input_em.blur(function(evt) {
+			if(ui.helper.StringHelper.isBlank(self.input_em.val())) {
+				self.placeholder_em.show();
+				self.input_em.hide();
+			}
+		});
+		ui.model.EventModel.addListener(ui.model.ModelEvents.User,new ui.model.EventListener(function(user) {
+			self._setUser(user);
+		}));
+	}, initialized : false, _createNewUser : function() {
+		var self = this;
+		var selfElement = this.element;
+		var valid = true;
+		var login = new ui.model.LoginByUn();
+		login.username = self.input_un.val();
+		if(ui.helper.StringHelper.isBlank(login.username)) {
+			self.placeholder_un.addClass("ui-state-error");
+			valid = false;
+		}
+		login.password = self.input_pw.val();
+		if(ui.helper.StringHelper.isBlank(login.password)) {
+			self.placeholder_pw.addClass("ui-state-error");
+			valid = false;
+		}
+		login.agency = self.input_em.val();
+		if(ui.helper.StringHelper.isBlank(login.agency)) {
+			self.placeholder_em.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EventModel.change(ui.model.ModelEvents.Login,login);
+		selfElement.jdialog("close");
+	}, _buildDialog : function() {
+		var self = this;
+		var selfElement = this.element;
+		self.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, buttons : { 'Create my Agent' : function() {
+			self._createNewUser();
+		}, Cancel : function() {
+			self._cancelled = true;
+			$(this).jdialog("close");
+		}}, close : function(evt,ui1) {
+			if(self.user == null || !self.user.hasValidSession()) ui.AgentUi.showLogin();
+		}};
+		selfElement.jdialog(dlgOptions);
+	}, _setUser : function(user) {
+		var self = this;
+		self.user = user;
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		self._cancelled = false;
+		if(!self.initialized) self._buildDialog();
+		selfElement.children("#n_label").focus();
+		self.input_n.blur();
+		selfElement.jdialog("open");
+	}, destroy : function() {
+		ui.jq.JQ.Widget.prototype.destroy.call(this);
+	}};
+};
+ui.jq.JQ.widget("ui.newUserComp",defineWidget());
 ui.widget.LoginComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LoginComp must be a div element");
+		self._newUser = false;
 		selfElement.addClass("loginComp").hide();
 		var labels = new ui.jq.JQ("<div class='fleft'></div>").appendTo(selfElement);
 		var inputs = new ui.jq.JQ("<div class='fleft'></div>").appendTo(selfElement);
 		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Username</label></div>");
 		labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
-		labels.append("<div class='labelDiv'><label for='login_pw'>Agency</label></div>");
+		labels.append("<div class='labelDiv'><label for='login_ag'>Agency</label></div>");
 		self.input_un = new ui.jq.JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		self.placeholder_un = new ui.jq.JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
 		inputs.append("<br/>");
@@ -7346,13 +7485,15 @@ var defineWidget = function() {
 		var dlgOptions = { autoOpen : false, title : "Login", height : 280, width : 400, buttons : { Login : function() {
 			self._login();
 		}, 'I\'m New' : function() {
+			self._newUser = true;
 			$(this).jdialog("close");
+			ui.AgentUi.showNewUser();
 		}}, beforeClose : function(evt,ui1) {
-			if(self.user == null || !self.user.hasValidSession()) {
+			if(!self._newUser && (self.user == null || !self.user.hasValidSession())) {
 				js.Lib.alert("A valid user is required to use the app");
 				return false;
 			}
-			return null;
+			return true;
 		}};
 		selfElement.jdialog(dlgOptions);
 	}, _setUser : function(user) {
@@ -7361,6 +7502,7 @@ var defineWidget = function() {
 	}, open : function() {
 		var self = this;
 		var selfElement = this.element;
+		self._newUser = false;
 		if(!self.initialized) self._buildDialog();
 		selfElement.children("#un_label").focus();
 		self.input_un.blur();

@@ -14,6 +14,7 @@ typedef LoginCompOptions = {
 typedef LoginCompWidgetDef = {
 	@:optional var options: LoginCompOptions;
 	@:optional var user: User;
+	@:optional var _newUser: Bool;
 
 	@:optional var input_un: JQ;
 	@:optional var input_pw: JQ;
@@ -50,6 +51,8 @@ extern class LoginComp extends JQ {
 		        		throw new ui.exception.Exception("Root of LoginComp must be a div element");
 		        	}
 
+		        	self._newUser = false;
+
 		        	selfElement.addClass("loginComp").hide();
 
 		        	var labels: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
@@ -57,7 +60,7 @@ extern class LoginComp extends JQ {
 
 		        	labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Username</label></div>");
 		        	labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
-		        	labels.append("<div class='labelDiv'><label for='login_pw'>Agency</label></div>");
+		        	labels.append("<div class='labelDiv'><label for='login_ag'>Agency</label></div>");
 		        	self.input_un = new JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
 		        	inputs.append("<br/>");
@@ -169,16 +172,17 @@ extern class LoginComp extends JQ {
 		        				self._login();
 		        			},
 		        			"I\\\'m New": function() {
-
-		        				JDialog.cur.jdialog("close");	
+		        				self._newUser = true;
+		        				JDialog.cur.jdialog("close");
+		        				AgentUi.showNewUser();
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJDialog): Dynamic {
-		        			if(self.user == null || !self.user.hasValidSession()) {
+		        			if(!self._newUser && (self.user == null || !self.user.hasValidSession())) {
 		        				js.Lib.alert("A valid user is required to use the app");
 		        				return false;
 		        			}
-		        			return null;
+		        			return true;
 		        		}
 		        	};
 		        	selfElement.jdialog(dlgOptions);
@@ -193,6 +197,8 @@ extern class LoginComp extends JQ {
 	        	open: function(): Void {
 		        	var self: LoginCompWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
+
+					self._newUser = false;
 
 		        	if(!self.initialized) {
 		        		self._buildDialog();
