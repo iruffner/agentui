@@ -42,6 +42,15 @@ class LoginById extends Login {
 	}
 }
 
+class NewUser extends ModelObj<NewUser> {
+	public var name: String;
+	public var userName: String;
+	public var email: String;
+	public var pwd: String;
+
+	public function new () {}
+}
+
 class User extends ModelObj<User> {
 	public var sessionURI: String;
 	public var fname: String;
@@ -139,6 +148,7 @@ class Content extends ModelObj<Content> {
 	private var labels: Array<String>;
 	@:transient public var connectionSet: ObservableSet<String>;
 	private var connections: Array<String>;
+	public var creator: String;
 
 	private function readResolve(): Void {
 		labelSet = new ObservableSet<String>(OSetHelper.strIdentifier, labels);

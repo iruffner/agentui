@@ -105,9 +105,10 @@ class AgentUi {
 
         EventModel.addListener(ModelEvents.MoreContent, fireFitWindow);
 
-        EventModel.addListener(ModelEvents.Login, fireFitWindow);
+        EventModel.addListener(ModelEvents.USER_LOGIN, fireFitWindow);
+        EventModel.addListener(ModelEvents.USER_CREATE, fireFitWindow);
 
-        EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
+        EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User) {
                 USER = user;
                 EventModel.change(ModelEvents.AliasLoaded, user.currentAlias);
             })
@@ -130,7 +131,7 @@ class AgentUi {
             LOGGER.info("Login via id | " + urlVars.uuid);
             var login: LoginById = new LoginById();
             login.id = urlVars.uuid;
-            EventModel.change(ModelEvents.Login, login);
+            EventModel.change(ModelEvents.USER_LOGIN, login);
         } else {
             showLogin();
         }

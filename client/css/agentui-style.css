@@ -253,13 +253,14 @@ body {
 
 		#feed .post {
 			margin-top: 10px;
+			margin-left: 70px;
 			height: 100px;
 		}
 
 			#feed .postWr {
 				height: 100%;
 				max-height: 100%;
-				margin-left: 100px;
+				margin-left: 10px;
 				margin-right: 70px;
 				position: relative;
 			}
@@ -279,12 +280,30 @@ body {
 						padding: 0 20px;
 					}
 
-				#feed .postWr .postConnections {
+				#feed .postWr .postCreator {
 					float: left;
 					width: 100px;
 					position: relative;
 					left: -100px;
 				}
+					#feed .postWr .postCreator div {
+						display: inline;
+					}
+
+					#feed .postWr .postCreator img {
+						max-height: 75px;
+						max-width: 75px;
+						margin-right: 5px;
+						border-radius: 50%;
+						border: 1px solid #5c9ccc;
+					}
+
+				#feed .postWr .postConnections {
+					float: right;
+					width: 100px;
+					position: relative;
+				}
+
 					#feed .postWr .postConnections div {
 						display: inline;
 					}
@@ -299,13 +318,15 @@ body {
 
 				#feed .postWr .postLabels {
 					float: right;
-					margin-right: -70px;
+					margin-right: -90px;
 					right: -20px;
 					width: 105px;
 					position: relative;
 				}
 
-
+					#feed .postWr .postLabels .label:not(:first-child) {
+						margin-top: 15px;
+					}
 
 /* Sidebar Left
 -----------------------------------------------------------------------------*/

@@ -5,6 +5,7 @@ import ui.jq.JQ;
 import ui.model.ModelObj;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
+import ui.util.M;
 
 using ui.helper.StringHelper;
 
@@ -38,7 +39,8 @@ extern class UserComp extends JQ {
 
 		        	selfElement.addClass("ocontainer shadow ");
 		        	selfElement.append(new JQ("<div class='container'></div>"));
-		        	EventModel.addListener(ModelEvents.User, new EventListener(function(user: User): Void {
+		        	self._setUser();//init the components
+		        	EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User): Void {
 		        			self.user = user;
 		        			self._setUser();
 		        		})
@@ -56,11 +58,13 @@ extern class UserComp extends JQ {
 		        	var user = self.user;
 
 					var container = selfElement.children(".container").empty();
-					var imgSrc: String;
-					if(user.currentAlias.imgSrc.isNotBlank()) {
-						imgSrc = user.currentAlias.imgSrc;
-					} else {
-						imgSrc = user.imgSrc;
+					var imgSrc: String = "";
+					if(user != null && user.currentAlias != null) {
+						if(user.currentAlias.imgSrc.isNotBlank()) {
+							imgSrc = user.currentAlias.imgSrc;
+						} else {
+							imgSrc = user.imgSrc;
+						}
 					}
 
 					if(imgSrc.isBlank()) {
@@ -70,34 +74,38 @@ extern class UserComp extends JQ {
 		        	container.append(img);
 		        	var userIdTxt: JQ = new JQ("<div class='userIdTxt'></div>");
 		        	container.append(userIdTxt);
+		        	var name: String = M.getX(user.fname, "") + " " + M.getX(user.lname, "");
+		        	var aliasLabel: String = M.getX(user.currentAlias.label, "");
 		        	userIdTxt
-		        		.append("<strong>" + user.fname + " " + user.lname + "</strong>")
+		        		.append("<strong>" + name + "</strong>")
 		        		.append("<br/>")
-		        		.append("<font style='font-size:12px'>" + user.currentAlias.label + "</font>");
+		        		.append("<font style='font-size:12px'>" + aliasLabel + "</font>");
 		        	var changeDiv: JQ = new JQ("<div class='ui-helper-clearfix'></div>");
 		        	var change: JQ = new JQ("<a class='aliasToggle'>Change Alias</a>");
 	        		changeDiv.append(change);
 	        		container.append(changeDiv);
 		        	var aliases: JQ = new JQ("<div class='aliases ocontainer nonmodalPopup' style='position: absolute;'></div>");
 		        	container.append(aliases);
-		        	var iter: Iterator<Alias> = user.aliasSet.iterator();
-		        	while(iter.hasNext()) {
-		        		var alias: Alias = iter.next();
-		        		var btn: JQ = new JQ("<div id='" + alias.uid + "' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>" + alias.label + "</div>");
-		        		if(alias.uid == user.currentAlias.uid) {
-		        			btn.addClass("ui-state-active");
-		        		}
-		        		aliases.append(btn);
-		        		btn
-		        			.hover(function(){
-		        					JQ.cur.addClass("ui-state-hover");
-		        				}, function(){
-		        					JQ.cur.removeClass("ui-state-hover");	
-	        					})
-		        			.click(function(evt: JqEvent) {
-		        					EventModel.change(ModelEvents.LoadAlias, alias.uid);
-		        				});
-		        	}
+		        	var iter: Iterator<Alias> = M.getX(user.aliasSet.iterator());
+		        	if(iter != null) {
+			        	while(iter.hasNext()) {
+			        		var alias: Alias = iter.next();
+			        		var btn: JQ = new JQ("<div id='" + alias.uid + "' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>" + alias.label + "</div>");
+			        		if(alias.uid == user.currentAlias.uid) {
+			        			btn.addClass("ui-state-active");
+			        		}
+			        		aliases.append(btn);
+			        		btn
+			        			.hover(function(){
+			        					JQ.cur.addClass("ui-state-hover");
+			        				}, function(){
+			        					JQ.cur.removeClass("ui-state-hover");	
+		        					})
+			        			.click(function(evt: JqEvent) {
+			        					EventModel.change(ModelEvents.LoadAlias, alias.uid);
+			        				});
+			        	}
+			        }
 
 		        	aliases.position({
 		        			my: "left top",

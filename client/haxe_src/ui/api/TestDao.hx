@@ -113,6 +113,11 @@ class TestDao {
         audioContent.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         audioContent.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
+            audioContent.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            audioContent.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
         	addConnections(availableConnections, audioContent, 2);
 	    }
         if(availableLabels.hasValues()) {
@@ -129,6 +134,11 @@ class TestDao {
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
         if(availableLabels.hasValues()) {
@@ -143,6 +153,11 @@ class TestDao {
         img.caption = "Apartment";
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
@@ -159,6 +174,11 @@ class TestDao {
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 3);
 	    }
         if(availableLabels.hasValues()) {
@@ -173,6 +193,11 @@ class TestDao {
         img.caption = "Retro";
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+        if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 3);
 	    }
@@ -189,6 +214,11 @@ class TestDao {
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
         if(availableLabels.hasValues()) {
@@ -204,6 +234,11 @@ class TestDao {
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
         	addConnections(availableConnections, img, 1);
 	    }
         if(availableLabels.hasValues()) {
@@ -218,6 +253,11 @@ class TestDao {
         urlContent.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         urlContent.text = "Check out this link";
         urlContent.url = "http://www.bing.com";
+        if(availableConnections.hasValues()) {
+            urlContent.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            urlContent.creator = AgentUi.USER.currentAlias.uid;
+        }
         if(availableConnections.hasValues()) {
             addConnections(availableConnections, urlContent, 1);
         }

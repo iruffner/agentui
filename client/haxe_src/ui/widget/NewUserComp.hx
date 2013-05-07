@@ -134,7 +134,7 @@ extern class NewUserComp extends JQ {
 		        			}
 		        		});
 
-		        	EventModel.addListener(ModelEvents.User, new EventListener(function(user: User): Void {
+		        	EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User): Void {
 	        				self._setUser(user);
 		        		})
 		        	);
@@ -147,25 +147,30 @@ extern class NewUserComp extends JQ {
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
-    				var login: LoginByUn = new LoginByUn();
-    				login.username = self.input_un.val();
-    				if(login.username.isBlank()) {
+    				var newUser: NewUser = new NewUser();
+    				newUser.userName = self.input_un.val();
+    				if(newUser.userName.isBlank()) {
     					self.placeholder_un.addClass("ui-state-error");
     					valid = false;
     				}
-    				login.password = self.input_pw.val();
-    				if(login.password.isBlank()) {
+    				newUser.pwd = self.input_pw.val();
+    				if(newUser.pwd.isBlank()) {
     					self.placeholder_pw.addClass("ui-state-error");
     					valid = false;
     				}
-    				login.agency = self.input_em.val();
-    				if(login.agency.isBlank()) {
+    				newUser.email = self.input_em.val();
+    				if(newUser.email.isBlank()) {
     					self.placeholder_em.addClass("ui-state-error");
+    					valid = false;
+    				}
+    				newUser.name = self.input_n.val();
+    				if(newUser.name.isBlank()) {
+    					self.placeholder_n.addClass("ui-state-error");
     					valid = false;
     				}
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EventModel.change(ModelEvents.Login, login);
+    				EventModel.change(ModelEvents.USER_CREATE, newUser);
     				selfElement.jdialog("close");
 	        	},
 
@@ -190,6 +195,7 @@ extern class NewUserComp extends JQ {
 		        			}
 		        		},
 		        		close: function(evt: JQEvent, ui: UIJDialog): Dynamic {
+		        			selfElement.find(".placeholder").removeClass("ui-state-error");
 		        			if(self.user == null || !self.user.hasValidSession()) {
 		        				AgentUi.showLogin();
 		        			}

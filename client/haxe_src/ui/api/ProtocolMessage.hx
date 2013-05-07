@@ -21,6 +21,25 @@ class Payload implements haxe.rtti.Infos {
 }
 
 /** 
+	Create User Request/Response 
+**/
+class CreateUserRequest extends ProtocolMessage<CreateUserRequestData> {
+	public var content: CreateUserRequestData;
+
+	public function new() {
+		this.msgType = MsgType.evalRequest;
+	}
+
+	override public function getContent(): CreateUserRequestData {
+		return this.content;
+	}
+}
+
+class CreateUserRequestData extends Payload {
+	public var expression: Dynamic;
+}
+
+/** 
 	Initialize Session Request/Response 
 **/
 class InitializeSessionRequest extends ProtocolMessage<InitializeSessionRequestData> {
@@ -271,6 +290,7 @@ enum MsgType {
 	evalError;
 	stopEvalRequest;
 	stopEvalResponse;
+	createAgentRequest;
 }
 
 enum Reason {

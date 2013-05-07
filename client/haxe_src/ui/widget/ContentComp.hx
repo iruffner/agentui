@@ -8,6 +8,7 @@ import ui.observable.OSet;
 import ui.widget.LabelComp;
 
 using ui.helper.OSetHelper;
+using ui.helper.ModelHelper;
 
 typedef ContentCompOptions = {
 	var content: Content;
@@ -59,28 +60,36 @@ extern class ContentComp extends JQ {
 		        		ui.AgentUi.LOGGER.error("Dont know how to handle " + self.options.content.type);
 		        	}
 		        	
-		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>");
-		        	postWr.append(postConnections);
-		        	var connIter: Iterator<String> = self.options.content.connectionSet.iterator();
-		        	while(connIter.hasNext()) {
-		        		var connection: Connection = AgentUi.USER.currentAlias.connectionSet.getElementComplex(connIter.next());
-		        		var connAvatar: ConnectionAvatar = new ConnectionAvatar("<div></div>").connectionAvatar({
-		        				dndEnabled: false,
-		        				connection: connection
-		        			});
-		        		postConnections.append(connAvatar);
+		        	var postCreator: JQ = new JQ("<aside class='postCreator'></aside>").appendTo(postWr);
+		        	var connection: Connection = AgentUi.USER.currentAlias.connectionSet.getElementComplex(self.options.content.creator);
+		        	if(connection == null) {
+		        		connection = AgentUi.USER.currentAlias.asConnection();
 		        	}
+	        		new ConnectionAvatar("<div></div>").connectionAvatar({
+	        				dndEnabled: false,
+	        				connection: connection
+	        			}).appendTo(postCreator);
+
 
 		        	var postLabels: JQ = new JQ("<aside class='postLabels'></div>");
 		        	postWr.append(postLabels);
 		        	var labelIter: Iterator<String> = self.options.content.labelSet.iterator();
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = AgentUi.USER.currentAlias.labelSet.getElementComplex(labelIter.next());
-		        		var labelComp: LabelComp = new LabelComp("<div></div>").labelComp({
+		        		new LabelComp("<div class='small'></div>").labelComp({
 		        				dndEnabled: false,
 		        				label: label
-		        			});
-		        		postLabels.append(labelComp);
+		        			}).appendTo(postLabels);
+		        	}
+		        	
+		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>").appendTo(postWr);
+		        	var connIter: Iterator<String> = self.options.content.connectionSet.iterator();
+		        	while(connIter.hasNext()) {
+		        		var connection: Connection = AgentUi.USER.currentAlias.connectionSet.getElementComplex(connIter.next());
+		        		new ConnectionAvatar("<div></div>").connectionAvatar({
+		        				dndEnabled: false,
+		        				connection: connection
+		        			}).appendTo(postConnections);
 		        	}
 		        },
 		        

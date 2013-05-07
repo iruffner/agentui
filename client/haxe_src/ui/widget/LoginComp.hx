@@ -118,7 +118,7 @@ extern class LoginComp extends JQ {
 		        			}
 		        		});
 
-		        	EventModel.addListener(ModelEvents.User, new EventListener(function(user: User): Void {
+		        	EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User): Void {
 	        				self._setUser(user);
 		        			if(user == null) {
 		        				self.open();
@@ -152,7 +152,7 @@ extern class LoginComp extends JQ {
     				}
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EventModel.change(ModelEvents.Login, login);
+    				EventModel.change(ModelEvents.USER_LOGIN, login);
     				selfElement.jdialog("close");
 	        	},
 

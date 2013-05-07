@@ -66,8 +66,13 @@ class ProtocolHandler {
             })
         );
 
-        EventModel.addListener(ModelEvents.Login, new EventListener(function(login: Login): Void {
+        EventModel.addListener(ModelEvents.USER_LOGIN, new EventListener(function(login: Login): Void {
                 getUser(login);
+            })
+        );
+
+        EventModel.addListener(ModelEvents.USER_LOGIN, new EventListener(function(user: NewUser): Void {
+                createUser(user);
             })
         );
 
@@ -99,7 +104,7 @@ class ProtocolHandler {
 
 	public function getUser(login: Login): Void {
 		if(AgentUi.DEMO) {
-			EventModel.change(ModelEvents.User, TestDao.getUser(null));
+			EventModel.change(ModelEvents.USER, TestDao.getUser(null));
 		} 
 		// else {
 			var request: InitializeSessionRequest = new InitializeSessionRequest();
@@ -211,6 +216,22 @@ class ProtocolHandler {
 				}
 			});
 		listeningChannel.start();
+	}
+
+	public function createUser(newUser: NewUser): Void {
+		var evalRequest: CreateUserRequest = new CreateUserRequest();
+		var data: CreateUserRequestData = new CreateUserRequestData();
+		evalRequest.content = data;
+		data.expression = ui.AgentUi.SERIALIZER.toJsonString(newUser);
+		try {
+			//we don't expect anything back here
+			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("new user succesfully created");
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing user creation", ex);
+		}
 	}
 
 	public function post(content: Content): Void {

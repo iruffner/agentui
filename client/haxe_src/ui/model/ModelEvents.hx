@@ -12,8 +12,9 @@ enum ModelEvents {
 	LoadAlias;
 	AliasLoaded;
 
-	Login;
-	User;
+	USER_LOGIN;
+	USER_CREATE;
+	USER;
 
 	FitWindow;
 
