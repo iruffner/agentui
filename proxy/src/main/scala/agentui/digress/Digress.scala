@@ -14,16 +14,16 @@ import net.model3.collections.PropertiesX
 import scala.collection.JavaConverters._
 
 object Digress extends App {
-  
-  
+
+
   new SimpleLoggingConfigurator().addEclipseConsoleAppender()
-  
+
   val logger = Logger.getLogger
 
   val apiUrl = "http://calpop:9876/api"
-  
+
   val httpClient = new DefaultHttpClient
-  
+
   def post(parms: Map[String,String], reqBody: String) = {
     val httpPost = new HttpPost(apiUrl)
     val reqBodyWithParms = PropertiesX.processStringForVariables(parms.asJava, reqBody, true)
@@ -32,7 +32,7 @@ object Digress extends App {
     val resp = IOHelper.readFully(new InputStreamReader(httpResp.getEntity.getContent))
     net.liftweb.json.parse(resp)
   }
-  
+
   val resp_0 = post(Map(), """
 {
   "msgType": "initializeSessionRequest", 
@@ -83,6 +83,6 @@ object Digress extends App {
 """)
 
 
-  
+
 }
 
