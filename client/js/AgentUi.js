@@ -4342,6 +4342,15 @@ ui.exception.Exception.prototype = {
 	,callStack: null
 	,__class__: ui.exception.Exception
 }
+ui.exception.AjaxException = $hxClasses["ui.exception.AjaxException"] = function(message,cause) {
+	ui.exception.Exception.call(this,message,cause);
+};
+ui.exception.AjaxException.__name__ = ["ui","exception","AjaxException"];
+ui.exception.AjaxException.__super__ = ui.exception.Exception;
+ui.exception.AjaxException.prototype = $extend(ui.exception.Exception.prototype,{
+	statusCode: null
+	,__class__: ui.exception.AjaxException
+});
 ui.exception.InitializeSessionException = $hxClasses["ui.exception.InitializeSessionException"] = function(error,message,cause) {
 	ui.exception.Exception.call(this,message,cause);
 	this.error = error;

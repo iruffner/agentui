@@ -54,3 +54,9 @@ class Exception {
 	}
 
 }
+
+
+class AjaxException extends Exception {
+	public var statusCode: Int;
+
+}
