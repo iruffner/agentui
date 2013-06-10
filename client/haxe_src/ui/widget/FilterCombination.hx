@@ -1,5 +1,7 @@
 package ui.widget;
 
+import js.html.Element;
+
 import js.JQuery;
 import ui.jq.JQ;
 import ui.jq.JQDroppable;
@@ -53,7 +55,7 @@ extern class FilterCombination extends FilterableComponent {
 		            		var root: Node = selfElement.children(".andOrToggle").data("getNode")();
 		            		root.type = self.options.type;
 		            		var filterables: JQ = selfElement.children(".filterable");
-				        	filterables.each(function (idx: Int, el: js.Dom.HtmlDom): Void {
+				        	filterables.each(function (idx: Int, el: Element): Void {
 				        			var filterable: FilterableComponent = new FilterableComponent(el);
 				        			var node: Node = filterable.data("getNode")();
 				        			root.addNode(node);

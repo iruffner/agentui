@@ -3,10 +3,10 @@ package ui.serialization;
 import ui.exception.Exception;
 
 import haxe.Json;
-import haxe.rtti.Infos;
+// import haxe.rtti.Infos;
 import Type;
 import haxe.rtti.CType;
-import haxe.Stack;
+import haxe.CallStack;
 import ui.observable.OSet;
 
 using ui.serialization.TypeTools;
@@ -33,10 +33,10 @@ using Lambda;
 
 class Serializer {
 	
-	var _handlersMap: Hash<TypeHandler>;
+	var _handlersMap: Map<String,TypeHandler>;
 
 	public function new() {
-		_handlersMap = new Hash();
+		_handlersMap = new Map();
 		addHandlerViaName("Array<Dynamic>", new DynamicArrayHandler());
 	}
 
@@ -98,7 +98,7 @@ class Serializer {
 			case CEnum(path, parms): 
 				if ( path == "Bool" ) new BoolHandler();
 				else new EnumHandler(path, parms);
-			case CClass(path, parms):
+			case CClass(path, parms), CAbstract(path, parms):
 				switch(path) {
 	  				case "Bool": new BoolHandler();
 					case "Float": new FloatHandler();
@@ -232,14 +232,12 @@ class EnumHandler implements TypeHandler {
 	public function read(fromJson: Dynamic, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
 		if ( instance != null ) reader.error("enum type can not populate a passed in instance");
 		var type = Type.getClass(fromJson);
-		if ( type == String ) {
-			return Type.createEnum(_enum, fromJson);
-		} else if ( type == Int ) {
-			return Type.createEnumIndex(_enum, fromJson);
-		} else {
-			reader.error(fromJson + " is a(n) " + type + " not a String");
-			return null;
+		var result = switch(type) {
+			case String: Type.createEnum(_enum, fromJson);
+			case Int: Type.createEnumIndex(_enum, fromJson);
+			case _: reader.error(fromJson + " is a(n) " + type + " not a String"); null;
 		}
+		return result;
 	}
 	public function write(value: Dynamic, writer: JsonWriter) {
 		return Std.string(value);
@@ -373,7 +371,7 @@ class ClassHandler<T> implements TypeHandler {
     var _classDef: Classdef;
     var _fields: Array<Field>;
     var _serializer: Serializer;
-    var _fieldsByName: Hash<Field>;
+    var _fieldsByName: Map<String,Field>;
 
 	public function new(clazz: Class<T>, typename: String, serializer: Serializer) {
 		_clazz = clazz;
@@ -390,7 +388,7 @@ class ClassHandler<T> implements TypeHandler {
 		}
 
 		var x = Xml.parse(rtti).firstElement();
-        var typeTree: Dynamic = new haxe.rtti.XmlParser().processElement(x);
+        var typeTree: TypeTree = new haxe.rtti.XmlParser().processElement(x);
         _classDef = switch ( typeTree ) {
         	case TClassdecl(c): c;
         	default: throw new JsonException("expected a class got " + typeTree);
@@ -414,28 +412,14 @@ class ClassHandler<T> implements TypeHandler {
  			for( meta in fieldXml.elementsNamed("meta") ) {
  				for ( m in meta.elementsNamed("m") ) {
  					switch( m.get("n") ) {
- 						case ":optional": field.required = false;
- 						case "optional": field.required = false;
- 						case ":transient": transient = true;
- 						case "transient": transient = true;
+ 						case ":optional", "optional": field.required = false;
+ 						case ":transient", "transient": transient = true;
  					}
  				}
  			}
  			if ( !transient && set != "method") {
 	 			switch (f.type) {
-	 				case CClass(_, _): 
-			 			field.name = f.name;
-			 			field.type = f.type;
-			 			field.typename = f.type.typename();
-			 			field.handler = _serializer.getHandler(field.type);
-	 					_fields.push(field);
-	 				case CEnum(_, _): 
-			 			field.name = f.name;
-			 			field.type = f.type;
-			 			field.typename = f.type.typename();
-			 			field.handler = _serializer.getHandler(field.type);
-	 					_fields.push(field);
-	 				case CDynamic(_):
+	 				case CClass(_, _), CEnum(_, _), CDynamic(_), CFunction(_,_), CAbstract(_,_): 
 			 			field.name = f.name;
 			 			field.type = f.type;
 			 			field.typename = f.type.typename();
@@ -447,18 +431,12 @@ class ClassHandler<T> implements TypeHandler {
 			 			field.typename = field.type.typename();
 			 			field.handler = _serializer.getHandler(field.type);
 	 					_fields.push(field);
-	 				case CFunction(_,_):
-			 			field.name = f.name;
-			 			field.type = f.type;
-			 			field.typename = field.type.typename();
-			 			field.handler = _serializer.getHandler(field.type);
-	 					_fields.push(field);
 	 				default:
 	 			}
 	 		}
  		}
 
- 		_fieldsByName = new Hash();
+ 		_fieldsByName = new Map();
  		for ( f in _fields ) {
  			_fieldsByName.set(f.name, f);
  		}
@@ -582,11 +560,11 @@ class JsonReader<T> {
  		this.instance = handler.read(fromJson, this, instance);
  	}
 
- 	public function error(msg: String, ?cause: Exception) {
+ 	public function error(msg: String, ?cause: Exception): Dynamic {
  		if ( strict ) {
  			throw new JsonException(msg, cause);
  		} else {
-
+ 			return null;
  		}
  	}
 
@@ -608,4 +586,3 @@ class JsonWriter {
  	}
 
 }
-

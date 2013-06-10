@@ -6,32 +6,32 @@ using Lambda;
 
 class M {
 
-    @:macro public static function printExpr(e: Expr) {
-    	trace(e);
-    	return e;
+    macro public static function printExpr(e: Expr) {
+        trace(e);
+        return e;
     }
 
-    @:macro public static function getX<T>(e: ExprOf<T>, ?default0: ExprOf<T>): ExprOf<T> {
-    	return makeSafeGetExpression(e, default0, Context.currentPos());
+    macro public static function getX<T>(e: ExprOf<T>, ?default0: ExprOf<T>): ExprOf<T> {
+        return makeSafeGetExpression(e, default0, Context.currentPos());
     }
 
     /**
-  		takes e and default0 and wraps it as follows
+        takes e and default0 and wraps it as follows
 
-  		try { 
-  		  e; 
-  		} catch ( __e: Dynamic ) {
-	      default0;
-  		}
+        try { 
+          e; 
+        } catch ( __e: Dynamic ) {
+          default0;
+        }
 
     */
     static function makeSafeGetExpression<T>(e: ExprOf<T>, ?default0: ExprOf<T>, pos: Position): ExprOf<T> {
         if ( default0 == null ) {
             default0 = expr(EConst(CIdent("null")), pos);
         }
-    	var dynamicType = TPath({ sub: null, name: "Dynamic", pack:[], params:[] });
+        var dynamicType = TPath({ sub: null, name: "Dynamic", pack:[], params:[] });
         var catches = [{ type : dynamicType, name : "__e", expr: default0 }];
-    	var result = ETry(e, catches);
+        var result = ETry(e, catches);
         return { expr: result, pos: pos };
     }
 
@@ -49,7 +49,7 @@ class M {
         return arr;
     }
 
-    @:macro public static function notNullX(e: ExprOf<Dynamic>): ExprOf<Bool> {
+    macro public static function notNullX(e: ExprOf<Dynamic>): ExprOf<Bool> {
         var pos = Context.currentPos();
         var getExpr = makeSafeGetExpression(e, null, pos);
         return expr(EBinop(OpNotEq, getExpr, expr(EConst(CIdent("null")), pos)),pos);
@@ -63,7 +63,7 @@ class M {
             function(it) { return it + 10; }
         
     */
-    @:macro public static function fn1(e: Expr): Expr {
+    macro public static function fn1(e: Expr): Expr {
         function expr(exprDef: ExprDef) {
             return { expr: exprDef, pos: Context.currentPos() };
         }
@@ -93,7 +93,7 @@ class M {
             function(_0,_1) { return _0 + 10 + _1; }
         
     */
-    @:macro public static function fn2(e: Expr): Expr {
+    macro public static function fn2(e: Expr): Expr {
         function expr(exprDef: ExprDef) {
             return { expr: exprDef, pos: Context.currentPos() };
         }

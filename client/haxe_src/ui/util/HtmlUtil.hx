@@ -16,7 +16,7 @@ class HtmlUtil {
 	public static function getUrlVars(): Dynamic<String> {
 		var vars:Dynamic<String> = cast {};
 		var hash:Array<String>;
-	    var hashes = js.Lib.window.location.search.substr(1).split('&');
+	    var hashes = js.Browser.window.location.search.substr(1).split('&');
 	    for(i_ in 0...hashes.length) {
 	        hash = hashes[i_].split('=');
 	        Reflect.setField(vars, hash[0], hash[1]);

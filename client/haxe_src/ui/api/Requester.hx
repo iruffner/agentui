@@ -87,25 +87,26 @@ class LongPollingRequest implements Requester {
 
 	private function poll(): Void {
 		if(!stop) {
-			jqXHR = JQ.ajax( { 
+			var ajaxOpts: AjaxOptions = { 
 				url: AgentUi.URL + "/api", 
 		        // dataType: "json", 
 		        data: this.requestJson,
 		        type: "POST",
-				success: function(data: Dynamic, textStatus: String, jqXHR: JQXHR) {
+				success: function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {
 			        if(!stop) {
 			        	//broadcast results
 			        	this.successFcn(data,textStatus,jqXHR);
 			        }
 			    },
-			    error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
+			    error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String): Void {
 	   				AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 				},
 		        complete: function(jqXHR:JQXHR, textStatus:String): Void {
 		        	poll(); //to keep this going
 	        	}, 
 		        timeout: 30000 
-	        } );
+	        };
+			jqXHR = JQ.ajax( ajaxOpts );
 		}
 	}
 }

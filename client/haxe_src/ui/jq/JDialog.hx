@@ -35,8 +35,8 @@ extern class JDialog extends JQ {
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function jdialog(opts: JDialogOptions): JDialog;
 
-	static var cur(getCurrent, null): JDialog;
-	private static inline function getCurrent() : JDialog {
+	static var cur(get, null): JDialog;
+	private static inline function get_cur() : JDialog {
 		return untyped __js__("$(this)");
 	}
 
@@ -69,7 +69,7 @@ extern class JDialog extends JQ {
 							var helpIcon: JQ = new JQ("<span class='ui-icon ui-icon-help'>close</span>");
 							helpIconWrapper.hover(function(evt: js.JQuery.JqEvent) {
 									JQ.cur.addClass("ui-state-hover");
-								}, function() {
+								}, function(evt: js.JQuery.JqEvent) {
 									JQ.cur.removeClass("ui-state-hover");
 								}
 							);

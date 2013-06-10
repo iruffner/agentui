@@ -8,15 +8,17 @@ interface HasContent<T> {
 	function getContent(): T;
 }
 
-class ProtocolMessage<T> implements haxe.rtti.Infos, implements HasContent<T> {
+@:rtti
+class ProtocolMessage<T> implements HasContent<T> {
 	public var msgType(default, null): MsgType;
 
-	public function getContent() {
+	public function getContent(): T {
 		return throw new Exception("don't call me");
 	}
 }
 
-class Payload implements haxe.rtti.Infos {
+@:rtti
+class Payload {
 	public function new() {}
 }
 

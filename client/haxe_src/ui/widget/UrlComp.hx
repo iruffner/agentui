@@ -21,7 +21,7 @@ typedef UrlCompWidgetDef = {
 
 extern class UrlComp extends JQ {
 
-	private static var API_KEY: String = "2e63db21c89b06a54fd2eac5fd96e488";
+	private static var API_KEY: String;
 
 
 	@:overload(function(cmd : String):Bool{})
@@ -29,6 +29,7 @@ extern class UrlComp extends JQ {
 	function urlComp(?opts: UrlCompOptions): UrlComp;
 
 	private static function __init__(): Void {
+		API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
 		untyped UrlComp = window.jQuery;
 		var defineWidget: Void->UrlCompWidgetDef = function(): UrlCompWidgetDef {
 			return {

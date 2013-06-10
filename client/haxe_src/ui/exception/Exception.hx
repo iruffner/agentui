@@ -1,7 +1,7 @@
 package ui.exception;
 
 
-import haxe.Stack;
+import haxe.CallStack;
 using Lambda;
 
 class Exception {
@@ -13,7 +13,7 @@ class Exception {
 	public function new(?message: String, ?cause: Exception) {
 		this.message = message;
 		this.cause = cause;
-		this.callStack = Stack.callStack();
+		this.callStack = CallStack.callStack();
 	}
 
 	public function rootCause(): Exception {
@@ -49,7 +49,7 @@ class Exception {
 		return l.join("\n");
 	}
 
-	public function messageList(): List<String> {
+	public function messageList(): Array<String> {
 		return chain().map(function(e) { return e.message; });
 	}
 

@@ -5,10 +5,10 @@ import ui.util.UidGenerator;
 using ui.helper.ArrayHelper;
 
 class EventModel {
-	private static var hash: Hash<Array<EventListener>>;
+	private static var hash: Map<String,Array<EventListener>>;
 
 	private static function __init__(): Void {
-		hash = new Hash<Array<EventListener>>();
+		hash = new Map<String,Array<EventListener>>();
 	}
 
 	public static function addListener<T>(id: ModelEvents, listener: EventListener) {

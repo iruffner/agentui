@@ -1,5 +1,9 @@
 package ui.jq;
 
+import js.html.DOMWindow;
+import js.html.Document;
+import js.html.Element;
+
 typedef JQEvent = {> js.JQuery.JqEvent,
 	@:optional var originalEvent: Dynamic;
 }
@@ -15,7 +19,7 @@ typedef JQXHR = {
 typedef AjaxOptions = {
 	@:optional var url:String;
 	@:optional var async:Bool;
-	@:optional var type:String;
+	@:optional var type:String; //"GET", "POST", etc..
 	/**
 		function(data:Dynamic, textStatus:String, jqXHR:JQXHR)
 	**/
@@ -30,12 +34,14 @@ typedef AjaxOptions = {
 	@:optional var complete:JQXHR->String->Void;
 	@:optional var dataType:String;
 	@:optional var cache:Bool;
-	@:optional var isLocal:Bool;
-	@:optional var processData:Bool;
+	@:optional var contentType:Dynamic;
 	@:optional var crossDomain:Bool;
 	@:optional var data:Dynamic;
-	@:optional var timeout:Dynamic;
+	@:optional var isLocal:Bool;
 	@:optional var jsonp:Dynamic;
+	@:optional var processData:Bool;
+	@:optional var timeout:Dynamic;
+
 }
 
 // typedef PositionOpts = {
@@ -52,12 +58,20 @@ typedef UIPosition = {
 	left: Int
 }
 
+@:native("$")
 extern class JQ extends js.JQuery {
 
 	static var ui: Dynamic;
 	static var fn: Dynamic;
 	static var browser: Dynamic;
 	static var noop: Void->Void;
+
+	@:overload(function(j:js.JQuery):Void{})
+	@:overload(function(j:Document):Void{})
+	@:overload(function(j:DOMWindow):Void{})
+	@:overload(function(j:Element):Void{})
+	@:overload(function(selector:String, content:JQ):Void{})
+	function new( html : String ) : Void;
 
 	// attributes
 	@:overload(function(clazz: String,?duration: Int):JQ{})
@@ -95,70 +109,73 @@ extern class JQ extends js.JQuery {
 
 	// current group manipulation
 	@:overload(function(value:js.JQuery):JQ{})
-	@:overload(function(value:js.Dom.HtmlDom):JQ{})
-	@:overload(function(value:Array<js.Dom.HtmlDom>):JQ{})
+	@:overload(function(value:Element):JQ{})
+	@:overload(function(value:Array<Element>):JQ{})
 	override function add( selector : String, ?context : js.JQuery ) : JQ;
 	
 	@:overload(function(j:js.JQuery):JQ{})
-	@:overload(function(j:js.Dom.Window):JQ{})
-	@:overload(function(j:js.Dom.HtmlDom):JQ{})
+	@:overload(function(j:DOMWindow):JQ{})
+	@:overload(function(j:Element):JQ{})
 	override function children( ?selector : String ) : JQ;
 	override function clone( ?withDataAndEvents : Bool ) : JQ;
+
+	@:overload(function( f : Int -> Element -> Void ):JQ{})
+	override function each( f : Void -> Void ) : JQ;
 
 	@:overload(function(fcn : Void->Bool):JQ{})
 	override function filter( selector : String ) : JQ;
 
 	@:overload(function(j:js.JQuery):JQ{})
-	@:overload(function(j:js.Dom.Window):JQ{})
-	@:overload(function(j:js.Dom.HtmlDom):JQ{})
+	@:overload(function(j:DOMWindow):JQ{})
+	@:overload(function(j:Element):JQ{})
 	override function find( selector : String ) : JQ;
 
 	@:overload(function(selector:js.JQuery):Int{})
-	@:overload(function(selector:js.Dom.Window):Int{})
-	@:overload(function(selector:js.Dom.HtmlDom):Int{})
+	@:overload(function(selector:DOMWindow):Int{})
+	@:overload(function(selector:Element):Int{})
 	override function index( ?selector : String ) : Int;
 	override function next( ?selector : String ) : JQ;
 
 	@:overload(function(j:js.JQuery):JQ{})
-	@:overload(function(j:js.Dom.Window):JQ{})
-	@:overload(function(j:js.Dom.HtmlDom):JQ{})
+	@:overload(function(j:DOMWindow):JQ{})
+	@:overload(function(j:Element):JQ{})
 	override function parent( ?selector : String ) : JQ;
 
 	@:overload(function(j:js.JQuery):JQ{})
-	@:overload(function(j:js.Dom.Window):JQ{})
-	@:overload(function(j:js.Dom.HtmlDom):JQ{})
+	@:overload(function(j:DOMWindow):JQ{})
+	@:overload(function(j:Element):JQ{})
 	override function prev( ?selector : String ) : JQ;
 
 	@:overload(function(j:js.JQuery):JQ{})
-	@:overload(function(j:js.Dom.Window):JQ{})
-	@:overload(function(j:js.Dom.HtmlDom):JQ{})
+	@:overload(function(j:DOMWindow):JQ{})
+	@:overload(function(j:Element):JQ{})
 	override function siblings( ?selector : String ) : JQ;
 
 
 	// DOM changes
 	@:overload(function(value:js.JQuery):JQ{})
-	@:overload(function(value:js.Dom.HtmlDom):JQ{})
+	@:overload(function(value:Element):JQ{})
 	override function append( html : String ) : JQ;
 
 	@:overload(function( selector: js.JQuery ) : JQ{})
-	@:overload(function( selector: js.Dom.HtmlDom ) : JQ{})
+	@:overload(function( selector: Element ) : JQ{})
 	override function appendTo( selector: String ): JQ;
 	override function empty() : JQ;
 
 	@:overload(function(value:js.JQuery):JQ{})
-	@:overload(function(value:js.Dom.HtmlDom):JQ{})
+	@:overload(function(value:Element):JQ{})
 	override function insertBefore( html : String ) : JQ;
 
 	@:overload(function(value:js.JQuery):JQ{})
-	@:overload(function(value:js.Dom.HtmlDom):JQ{})
+	@:overload(function(value:Element):JQ{})
 	override function insertAfter( html : String ) : JQ;
 
 	@:overload(function(value:js.JQuery):JQ{})
-	@:overload(function(value:js.Dom.HtmlDom):JQ{})
+	@:overload(function(value:Element):JQ{})
 	override function prepend( html : String ) : JQ;
 
 	@:overload(function(value:js.JQuery):JQ{})
-	@:overload(function(value:js.Dom.HtmlDom):JQ{})
+	@:overload(function(value:Element):JQ{})
 	override function prependTo( html : String ) : JQ;
 
 
@@ -191,9 +208,10 @@ extern class JQ extends js.JQuery {
 	override function focus( ?callb : JQEvent -> Void ) : JQ;
 	override function focusin( ?callb : JQEvent -> Void ) : JQ;
 	override function focusout( ?callb : JQEvent -> Void ) : JQ;
-	
+
 	@:overload(function( onOver : Void -> Void, ?onOut : Void -> Void ) : JQ{})
-	override function hover( onOver : JQEvent -> Void, ?onOut : Void -> Void ) : JQ;
+	@:overload(function( onInOut:JQEvent->Void ) : JQ{})
+	override function hover( onIn : JQEvent -> Void, ?onOut : JQEvent -> Void ) : JQ;
 
 	@:overload(function( callb : JQEvent -> Bool ) : JQ {})
 	override function keydown( ?callb : JQEvent -> Void ) : JQ;
@@ -217,13 +235,14 @@ extern class JQ extends js.JQuery {
 	override function one( events : String, callb : JQEvent -> Void ) : JQ;
 
 	@:overload(function( events: String, ?callb: JQEvent->Dynamic -> Void ) : Void{})
-	function on(events: String, ?selector: String, ?callb: JQEvent->Dynamic -> Void) : Void;
+	@:overload(function( events: String, ?selector: String, ?callb: JQEvent->Dynamic -> Void) : Void{})
+	override function on( events : String, callb : JQEvent -> Void ) : JQ;
 
 
 	// Other
 	function destroy():Void;
 	function fnDestroy():Void;
-	function map(fcn: JQ->Int->Dynamic): Void;
+	static function map(fcn: JQ->Int->Dynamic): Void;
 	
 	
 	//my custom jQuery functions
@@ -261,12 +280,12 @@ extern class JQ extends js.JQuery {
 	public static function isNumeric(val:Dynamic):Bool;
 	public static function trim(str:String):String;
 
-	public static function ajax(ajaxOptions:AjaxOptions):Void;
+	public static function ajax(ajaxOptions:AjaxOptions): JQXHR;
 	public static function getJSON(url:String, ?data:Dynamic, ?success:Dynamic->Dynamic->Dynamic->Void):Void;
 
 	@:overload(function(parent: js.JQuery, child: js.JQuery): Bool{})
-	@:overload(function(parent: js.Dom.HtmlDom, child: js.JQuery): Bool{})
-	public static function contains( parent : js.Dom.HtmlDom, child : js.Dom.HtmlDom ) : Bool;
+	@:overload(function(parent: Element, child: js.JQuery): Bool{})
+	public static function contains( parent : Element, child : Element ) : Bool;
 
 	@:overload(function(qualifiedName: String, parent: Dynamic, definition: Dynamic):Void{})
 	public static function widget(qualifiedName: String, definition: Dynamic): Void;
@@ -275,18 +294,19 @@ extern class JQ extends js.JQuery {
 	/**
 		Return the current JQuery element (in a callback), similar to $(this) in JS.
 	**/
-	static var cur(getCurrent, null) : JQ;
-	static var curNoWrap(getCurrent2, null) : js.Dom.HtmlDom;
-	private static inline function getCurrent() : JQ {
+	static var cur(get, null) : JQ;
+	static var curNoWrap(get, null) : Element;
+
+	private static inline function get_cur() : JQ {
 		return untyped __js__("$(this)");
 	}
-	private static inline function getCurrent2() : js.Dom.HtmlDom {
+	private static inline function get_curNoWrap() : Element {
 		return untyped __js__("this");
 	}
 
 	private static function __init__() : Void untyped {
 		untyped __js__ ("ui.jq = function() {}");
-		JQ = window.jQuery;
+		// JQ = window.jQuery;
 
 		JQ.fn.exists = function(){
 		    return JQ.cur.length>0;

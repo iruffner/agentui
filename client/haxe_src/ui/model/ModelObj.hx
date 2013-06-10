@@ -8,7 +8,8 @@ using ui.helper.ArrayHelper;
 using ui.helper.OSetHelper;
 using ui.helper.StringHelper;
 
-class ModelObj<T> implements haxe.rtti.Infos  {
+@:rtti
+class ModelObj<T> {
 	public var uid: String;
 
 	public static function identifier<T>(t: {uid: String}): String {
@@ -58,11 +59,11 @@ class User extends ModelObj<User> {
 	@:optional public var imgSrc: String;
 	@:transient public var aliasSet: ObservableSet<Alias>;
 	private var aliases: Array<Alias>;
-	public var currentAlias (_getCurrentAlias,_setCurrentAlias): Alias;
+	@:isVar public var currentAlias (get,set): Alias;
 
 	public function new () {}
 
-	private function _getCurrentAlias(): Alias {
+	private function get_currentAlias(): Alias {
 		if(currentAlias == null && aliasSet != null) {
 			currentAlias = aliasSet.iterator().next();
 		} else if (currentAlias == null) {
@@ -72,7 +73,7 @@ class User extends ModelObj<User> {
 		return currentAlias;
 	}
 
-	private function _setCurrentAlias(alias: Alias): Alias {
+	private function set_currentAlias(alias: Alias): Alias {
 		currentAlias = alias;
 		return currentAlias;
 	}
@@ -118,7 +119,7 @@ interface Filterable {
 
 }
 
-class Label extends ModelObj<Connection>, implements Filterable {
+class Label extends ModelObj<Connection> implements Filterable {
 	public var text: String;
 	@:optional public var parentUid: String;
 
@@ -130,7 +131,7 @@ class Label extends ModelObj<Connection>, implements Filterable {
 	}
 }
 
-class Connection extends ModelObj<Connection>, implements Filterable {
+class Connection extends ModelObj<Connection> implements Filterable {
 	public var fname: String;
 	public var lname: String;
 	public var imgSrc: String;
