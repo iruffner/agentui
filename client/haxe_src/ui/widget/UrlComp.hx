@@ -29,11 +29,12 @@ extern class UrlComp extends JQ {
 	function urlComp(?opts: UrlCompOptions): UrlComp;
 
 	private static function __init__(): Void {
-		API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
+		
 		untyped UrlComp = window.jQuery;
 		var defineWidget: Void->UrlCompWidgetDef = function(): UrlCompWidgetDef {
 			return {
 		        _create: function(): Void {
+		        	UrlComp.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
 		        	var self: UrlCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {

@@ -29,7 +29,7 @@ class CreateUserRequest extends ProtocolMessage<CreateUserRequestData> {
 	public var content: CreateUserRequestData;
 
 	public function new() {
-		this.msgType = MsgType.evalRequest;
+		this.msgType = MsgType.evalSubscribeRequest;
 	}
 
 	override public function getContent(): CreateUserRequestData {
@@ -171,7 +171,7 @@ class EvalRequest extends ProtocolMessage<EvalRequestData> {
 	public var content: EvalRequestData;
 
 	public function new() {
-		this.msgType = MsgType.evalRequest;
+		this.msgType = MsgType.evalSubscribeRequest;
 	}
 
 	override public function getContent(): EvalRequestData {
@@ -188,7 +188,7 @@ class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
 	public var content: EvalNextPageRequestData;
 
 	public function new() {
-		this.msgType = MsgType.evalRequest;
+		this.msgType = MsgType.evalSubscribeRequest;
 	}
 
 	override public function getContent(): EvalNextPageRequestData {
@@ -286,7 +286,7 @@ enum MsgType {
 	sessionPong;
 	closeSessionRequest;
 	closeSessionResponse;
-	evalRequest;
+	evalSubscribeRequest;
 	evalResponse;
 	evalComplete;
 	evalError;

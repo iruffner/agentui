@@ -1872,6 +1872,7 @@ js.Lib.alert = function(v) {
 var ui = {}
 ui.AgentUi = function() { }
 $hxClasses["ui.AgentUi"] = ui.AgentUi;
+$hxExpose(ui.AgentUi, "ui.AgentUi");
 ui.AgentUi.__name__ = ["ui","AgentUi"];
 ui.AgentUi.main = function() {
 	ui.AgentUi.LOGGER = new ui.log.Logga(ui.log.LogLevel.DEBUG);
@@ -1993,7 +1994,7 @@ ui.api.ProtocolHandler = function() {
 	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_LOGIN,new ui.model.EventListener(function(login) {
 		_g.getUser(login);
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_LOGIN,new ui.model.EventListener(function(user) {
+	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_CREATE,new ui.model.EventListener(function(user) {
 		_g.createUser(user);
 	}));
 	ui.model.EventModel.addListener(ui.model.ModelEvents.NewContentCreated,new ui.model.EventListener(function(content) {
@@ -2194,7 +2195,7 @@ ui.api.Payload.prototype = {
 	__class__: ui.api.Payload
 }
 ui.api.CreateUserRequest = function() {
-	this.msgType = ui.api.MsgType.evalRequest;
+	this.msgType = ui.api.MsgType.evalSubscribeRequest;
 };
 $hxClasses["ui.api.CreateUserRequest"] = ui.api.CreateUserRequest;
 ui.api.CreateUserRequest.__name__ = ["ui","api","CreateUserRequest"];
@@ -2353,7 +2354,7 @@ ui.api.CloseSessionData.prototype = $extend(ui.api.Payload.prototype,{
 	__class__: ui.api.CloseSessionData
 });
 ui.api.EvalRequest = function() {
-	this.msgType = ui.api.MsgType.evalRequest;
+	this.msgType = ui.api.MsgType.evalSubscribeRequest;
 };
 $hxClasses["ui.api.EvalRequest"] = ui.api.EvalRequest;
 ui.api.EvalRequest.__name__ = ["ui","api","EvalRequest"];
@@ -2374,7 +2375,7 @@ ui.api.EvalRequestData.prototype = $extend(ui.api.Payload.prototype,{
 	__class__: ui.api.EvalRequestData
 });
 ui.api.EvalNextPageRequest = function() {
-	this.msgType = ui.api.MsgType.evalRequest;
+	this.msgType = ui.api.MsgType.evalSubscribeRequest;
 };
 $hxClasses["ui.api.EvalNextPageRequest"] = ui.api.EvalNextPageRequest;
 ui.api.EvalNextPageRequest.__name__ = ["ui","api","EvalNextPageRequest"];
@@ -2481,7 +2482,7 @@ ui.api.StopMsgData.__super__ = ui.api.Payload;
 ui.api.StopMsgData.prototype = $extend(ui.api.Payload.prototype,{
 	__class__: ui.api.StopMsgData
 });
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createAgentRequest"] }
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createAgentRequest"] }
 ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
 ui.api.MsgType.initializeSessionRequest.toString = $estr;
 ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
@@ -2503,9 +2504,9 @@ ui.api.MsgType.closeSessionRequest.__enum__ = ui.api.MsgType;
 ui.api.MsgType.closeSessionResponse = ["closeSessionResponse",6];
 ui.api.MsgType.closeSessionResponse.toString = $estr;
 ui.api.MsgType.closeSessionResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.evalRequest = ["evalRequest",7];
-ui.api.MsgType.evalRequest.toString = $estr;
-ui.api.MsgType.evalRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.evalSubscribeRequest = ["evalSubscribeRequest",7];
+ui.api.MsgType.evalSubscribeRequest.toString = $estr;
+ui.api.MsgType.evalSubscribeRequest.__enum__ = ui.api.MsgType;
 ui.api.MsgType.evalResponse = ["evalResponse",8];
 ui.api.MsgType.evalResponse.toString = $estr;
 ui.api.MsgType.evalResponse.__enum__ = ui.api.MsgType;
@@ -3535,7 +3536,7 @@ ui.model.LoginByUn.__name__ = ["ui","model","LoginByUn"];
 ui.model.LoginByUn.__super__ = ui.model.Login;
 ui.model.LoginByUn.prototype = $extend(ui.model.Login.prototype,{
 	getUri: function() {
-		return "agent://" + this.username + ":" + this.password + "@server:9876/" + this.agency;
+		return "agent://" + this.username + ":" + this.password + "@server:9876/" + this.agency + "?email=george@costanza.com&fullname=George+Costanza";
 	}
 	,__class__: ui.model.LoginByUn
 });
@@ -6170,10 +6171,10 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.messagingComp",defineWidget());
-ui.widget.UrlComp.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
 ui.widget.UrlComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
+		ui.widget.UrlComp.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of UrlComp must be a div element");
@@ -6516,6 +6517,16 @@ ui.util.ColorProvider._INDEX = 0;
 ui.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 ui.util.UidGenerator.nums = "0123456789";
 ui.AgentUi.main();
+function $hxExpose(src, path) {
+	var o = typeof window != "undefined" ? window : exports;
+	var parts = path.split(".");
+	for(var ii = 0; ii < parts.length-1; ++ii) {
+		var p = parts[ii];
+		if(typeof o[p] == "undefined") o[p] = {};
+		o = o[p];
+	}
+	o[parts[parts.length-1]] = src;
+}
 })();
 
 //@ sourceMappingURL=AgentUi.js.map

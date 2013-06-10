@@ -71,7 +71,7 @@ class ProtocolHandler {
             })
         );
 
-        EventModel.addListener(ModelEvents.USER_LOGIN, new EventListener(function(user: NewUser): Void {
+        EventModel.addListener(ModelEvents.USER_CREATE, new EventListener(function(user: NewUser): Void {
                 createUser(user);
             })
         );

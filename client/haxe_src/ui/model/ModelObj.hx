@@ -31,7 +31,7 @@ class LoginByUn extends Login {
 	public var agency: String;
 
 	override public function getUri(): String {
-		return "agent://" + username + ":" + password + "@server:9876/" + agency;
+		return "agent://" + username + ":" + password + "@server:9876/" + agency + "?email=george@costanza.com&fullname=George+Costanza";
 	}
 }
 
