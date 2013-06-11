@@ -30,12 +30,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>uk.me.lings</groupId>
-			<artifactId>scala-guice_2.9.2</artifactId>
-			<version>0.1</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.2.3</version>

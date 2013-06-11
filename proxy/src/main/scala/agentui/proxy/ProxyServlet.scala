@@ -65,7 +65,7 @@ class ProxyServlet extends HttpServlet with Logging {
       logger.debug("request complete")
 
     } catch {
-      case e => logger.error(e)
+      case e: Throwable => logger.error(e)
     }
     
   }
