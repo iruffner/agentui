@@ -20,24 +20,24 @@ class Payload implements haxe.rtti.Infos {
 	public function new() {}
 }
 
-/** 
-	Create User Request/Response 
-**/
-class CreateUserRequest extends ProtocolMessage<CreateUserRequestData> {
-	public var content: CreateUserRequestData;
+// /** 
+// 	Create User Request/Response 
+// **/
+// class CreateUserRequest extends ProtocolMessage<CreateUserRequestData> {
+// 	public var content: CreateUserRequestData;
 
-	public function new() {
-		this.msgType = MsgType.evalRequest;
-	}
+// 	public function new() {
+// 		this.msgType = MsgType.createAgentRequest;
+// 	}
 
-	override public function getContent(): CreateUserRequestData {
-		return this.content;
-	}
-}
+// 	override public function getContent(): CreateUserRequestData {
+// 		return this.content;
+// 	}
+// }
 
-class CreateUserRequestData extends Payload {
-	public var expression: Dynamic;
-}
+// class CreateUserRequestData extends Payload {
+// 	public var expression: Dynamic;
+// }
 
 /** 
 	Initialize Session Request/Response 

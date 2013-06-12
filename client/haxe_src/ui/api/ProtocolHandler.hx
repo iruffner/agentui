@@ -71,7 +71,7 @@ class ProtocolHandler {
             })
         );
 
-        EventModel.addListener(ModelEvents.USER_LOGIN, new EventListener(function(user: NewUser): Void {
+        EventModel.addListener(ModelEvents.USER_CREATE, new EventListener(function(user: NewUser): Void {
                 createUser(user);
             })
         );
@@ -219,14 +219,41 @@ class ProtocolHandler {
 	}
 
 	public function createUser(newUser: NewUser): Void {
-		var evalRequest: CreateUserRequest = new CreateUserRequest();
-		var data: CreateUserRequestData = new CreateUserRequestData();
-		evalRequest.content = data;
-		data.expression = ui.AgentUi.SERIALIZER.toJsonString(newUser);
+		var request: InitializeSessionRequest = new InitializeSessionRequest();
+		var data: InitializeSessionRequestData = new InitializeSessionRequestData();
+		request.content = data;
+		data.agentURI = "agent://" + newUser.userName + ":" + newUser.pwd + "@host?email=" + newUser.email + "&name=" + newUser.name;
 		try {
 			//we don't expect anything back here
-			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("new user succesfully created");
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					if(data.msgType == MsgType.initializeSessionResponse) {
+						try {
+				        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
+
+				        	var user: User = new User();
+							user.currentAlias = response.content.defaultAlias;
+							user.sessionURI = response.content.sessionURI;
+							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.content.listOfCnxns);
+							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.content.listOfLabels);
+							user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier, response.content.listOfAliases);
+							//TODO user.imgSrc
+							//TODO user.fname
+
+							//open comm's with server
+							_startPolling(user.sessionURI);
+
+							// EventModel.change(ModelEvents.User, user);
+							AgentUi.LOGGER.error("Enable firing new user event");
+						} catch (e: JsonException) {
+							AgentUi.LOGGER.error("Serialization error", e);
+						}
+			        } else if(data.msgType == MsgType.initializeSessionError) {
+			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        	throw new InitializeSessionException(error, "Login error");
+			        } else {
+			        	//something unexpected..
+			        	throw new Exception("Unknown login error");
+			        }
 				}).start();
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
