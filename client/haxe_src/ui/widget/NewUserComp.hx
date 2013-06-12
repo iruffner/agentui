@@ -194,7 +194,7 @@ extern class NewUserComp extends JQ {
 		        				JDialog.cur.jdialog("close");
 		        			}
 		        		},
-		        		close: function(evt: JQEvent, ui: UIJDialog): Dynamic {
+		        		close: function(evt: JQEvent, ui: UIJDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");
 		        			if(self.user == null || !self.user.hasValidSession()) {
 		        				AgentUi.showLogin();

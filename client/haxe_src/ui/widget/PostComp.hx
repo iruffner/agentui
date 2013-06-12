@@ -1,5 +1,7 @@
 package ui.widget;
 
+import js.html.Element;
+
 import ui.jq.JQ;
 import ui.jq.JQDroppable;
 import js.JQuery;
@@ -138,11 +140,11 @@ extern class PostComp extends JQ {
 					      	}
 						});
 					addConnectionsAndLabels = function(content: Content): Void {
-						tags.children(".label").each(function(i: Int, dom: js.Dom.HtmlDom): Void {
+						tags.children(".label").each(function(i: Int, dom: Element): Void {
 								var label: LabelComp = new LabelComp(dom);
 								content.labelSet.add( cast(label.labelComp("option", "label"), Label).uid );
 							});
-						tags.children(".connectionAvatar").each(function(i: Int, dom: js.Dom.HtmlDom): Void {
+						tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
 								var conn: ConnectionAvatar = new ConnectionAvatar(dom);
 								content.connectionSet.add( cast(conn.connectionAvatar("option", "connection"), Connection).uid );
 							});

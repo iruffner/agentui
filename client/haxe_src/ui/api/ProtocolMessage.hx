@@ -8,36 +8,39 @@ interface HasContent<T> {
 	function getContent(): T;
 }
 
-class ProtocolMessage<T> implements haxe.rtti.Infos, implements HasContent<T> {
+@:rtti
+class ProtocolMessage<T> implements HasContent<T> {
 	public var msgType(default, null): MsgType;
 
-	public function getContent() {
+	public function getContent(): T {
 		return throw new Exception("don't call me");
 	}
 }
 
-class Payload implements haxe.rtti.Infos {
+@:rtti
+class Payload {
 	public function new() {}
 }
 
-// /** 
-// 	Create User Request/Response 
-// **/
-// class CreateUserRequest extends ProtocolMessage<CreateUserRequestData> {
-// 	public var content: CreateUserRequestData;
+/** 
+	Create User Request/Response 
+**/
+class CreateUserRequest extends ProtocolMessage<CreateUserRequestData> {
+	public var content: CreateUserRequestData;
 
-// 	public function new() {
-// 		this.msgType = MsgType.createAgentRequest;
-// 	}
+	public function new() {
+		this.msgType = MsgType.evalSubscribeRequest;
+	}
 
-// 	override public function getContent(): CreateUserRequestData {
-// 		return this.content;
-// 	}
-// }
+	override public function getContent(): CreateUserRequestData {
+		return this.content;
+	}
+}
 
-// class CreateUserRequestData extends Payload {
-// 	public var expression: Dynamic;
-// }
+class CreateUserRequestData extends Payload {
+	public var expression: Dynamic;
+}
+
 
 /** 
 	Initialize Session Request/Response 
@@ -169,7 +172,7 @@ class EvalRequest extends ProtocolMessage<EvalRequestData> {
 	public var content: EvalRequestData;
 
 	public function new() {
-		this.msgType = MsgType.evalRequest;
+		this.msgType = MsgType.evalSubscribeRequest;
 	}
 
 	override public function getContent(): EvalRequestData {
@@ -186,7 +189,7 @@ class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
 	public var content: EvalNextPageRequestData;
 
 	public function new() {
-		this.msgType = MsgType.evalRequest;
+		this.msgType = MsgType.evalSubscribeRequest;
 	}
 
 	override public function getContent(): EvalNextPageRequestData {
@@ -284,7 +287,7 @@ enum MsgType {
 	sessionPong;
 	closeSessionRequest;
 	closeSessionResponse;
-	evalRequest;
+	evalSubscribeRequest;
 	evalResponse;
 	evalComplete;
 	evalError;

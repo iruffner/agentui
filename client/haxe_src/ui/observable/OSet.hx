@@ -4,7 +4,7 @@ package ui.observable;
 import ui.helper.StringHelper;
 import ui.exception.Exception;
 import ui.util.M;
-import ui.util.SizedHash;
+import ui.util.SizedMap;
 
 using Lambda;
 /*
@@ -22,15 +22,16 @@ Needs
 Upon listening do you get a bunch of adds?
 
 */
-
-interface OSet<T> implements haxe.rtti.Infos {
+@:rtti
+interface OSet<T> {
 	function identifier(): T->String;
 	function listen(l: T->EventType->Void): Void;
 	function iterator(): Iterator<T>;
-	function delegate(): Hash<T>;
+	function delegate(): Map<String,T>;
 }
 
-class EventManager<T> implements haxe.rtti.Infos {
+@:rtti
+class EventManager<T> {
 
 	var _listeners: Array<T->EventType->Void>;
 	var _set: OSet<T>;
@@ -93,7 +94,8 @@ class EventType {
 	}
 }
 
-class AbstractSet<T> implements OSet<T>, implements haxe.rtti.Infos {
+@:rtti
+class AbstractSet<T> implements OSet<T> {
 
 	var _eventManager: EventManager<T>;
 
@@ -125,20 +127,21 @@ class AbstractSet<T> implements OSet<T>, implements haxe.rtti.Infos {
 		return throw new Exception("implement me");
 	}
 
-	public function delegate(): Hash<T> {
+	public function delegate(): Map<String,T> {
 		return throw new Exception("implement me");
 	}
 }
 
-class ObservableSet<T> extends AbstractSet<T>, implements haxe.rtti.Infos {
+@:rtti
+class ObservableSet<T> extends AbstractSet<T> {
 
-	var _delegate: SizedHash<T>;
+	var _delegate: SizedMap<T>;
 	var _identifier: T->String;
 
 	public function new(identifier: T->String, ?tArr: Array<T>) {
 		super();
 		_identifier = identifier;
-		_delegate = new SizedHash();
+		_delegate = new SizedMap<T>();
 		if(tArr != null) {
 			addAll(tArr);
 		}
@@ -176,7 +179,7 @@ class ObservableSet<T> extends AbstractSet<T>, implements haxe.rtti.Infos {
 		fire(t, type);
 	}
 
-	public override function delegate(): Hash<T>{
+	public override function delegate(): Map<String,T>{
 		return _delegate;
 	}
 
@@ -221,11 +224,11 @@ class MappedSet<T,U> extends AbstractSet<U> {
 
 	var _source: OSet<T>;
 	var _mapper: T->U;
-	var _mappedSet: Hash<U>;
+	var _mappedSet: Map<String,U>;
 
 	public function new(source: OSet<T>, mapper: T->U) {
 		super();
-		_mappedSet = new Hash();
+		_mappedSet = new Map();
 		_source = source;
 		_source.listen(function(t, type) {
 			var key = _source.identifier()(t);
@@ -267,14 +270,14 @@ class MappedSet<T,U> extends AbstractSet<U> {
 
 class FilteredSet<T> extends AbstractSet<T> {
 
-	var _filteredSet: Hash<T>;
+	var _filteredSet: Map<String,T>;
 	var _source: OSet<T>;
 	var _filter: T -> Bool;
 	var _identifier: T->String;
 
 	public function new(source: OSet<T>, filter: T -> Bool) {
 		super();		
-		_filteredSet = new Hash();
+		_filteredSet = new Map();
 		_source = source;
 		_filter = filter;
 		_identifier = source.identifier();
@@ -331,15 +334,15 @@ class GroupedSet<T> extends AbstractSet<OSet<T>> {
 
 	var _source: OSet<T>;
 	var _groupingFn: T->String;
-	var _groupedSets: Hash<ObservableSet<T>>;
-	var _identityToGrouping: Hash<String>;
+	var _groupedSets: Map<String,ObservableSet<T>>;
+	var _identityToGrouping: Map<String,String>;
 
 	public function new(source: OSet<T>, groupingFn: T->String) {
 		super();
 		_source = source;
 		_groupingFn = groupingFn;
-		_groupedSets = new Hash();
-		_identityToGrouping = new Hash();
+		_groupedSets = new Map();
+		_identityToGrouping = new Map();
 		source.listen(function(t, type) {
 			var groupingKey = groupingFn(t);
 			var previousGroupingKey = _identityToGrouping.get(groupingKey);
@@ -416,7 +419,7 @@ class GroupedSet<T> extends AbstractSet<OSet<T>> {
 		return _groupedSets.iterator();
 	}
 	
-	public override function delegate(): Hash<OSet<T>> {
+	public override function delegate(): Map<String,OSet<T>> {
 		return cast _groupedSets;
 	}
 }
@@ -517,10 +520,8 @@ class SortedSet<T> extends AbstractSet<T> {
 		return sorted().iterator();
 	}
 	
-	public override function delegate(): Hash<T> {
+	public override function delegate(): Map<String,T> {
 		throw new Exception("not implemented");
 		return null;
 	}
 }
-
-

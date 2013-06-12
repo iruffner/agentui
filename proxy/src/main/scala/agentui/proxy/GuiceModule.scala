@@ -1,6 +1,6 @@
 package agentui.proxy
 
-import uk.me.lings.scalaguice.ScalaModule
+import net.codingwell.scalaguice.ScalaModule
 import com.google.inject.Provider
 import net.model3.guice.M3GuiceModule
 import com.google.inject.util.Modules

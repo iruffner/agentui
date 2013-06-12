@@ -12,7 +12,7 @@ class TypeTools {
 		try {
 			return Type.getClassName(clazz);
 		} catch (err:Dynamic) {
-			AgentUi.LOGGER.error(err);
+			ui.AgentUi.LOGGER.error(err);
 			throw new Exception(Std.string(err));
 		}
 	}
@@ -29,8 +29,7 @@ class CTypeTools {
 
 	public static function classname(type: CType): String {
 		return switch ( type ) {
-			case CClass(path, parms): path;
-			case CEnum(path, parms): path;
+			case CClass(path, parms), CEnum(path, parms): path;
 			case CDynamic(_): "Dynamic";
 			default: throw new Exception("don't know how to handle " + type);
 		}				
@@ -38,8 +37,7 @@ class CTypeTools {
 
 	public static function typename(type: CType): String {
 		return switch ( type ) {
-			case CClass(path, parms): makeTypename(path, parms);
-			case CEnum(path, parms): makeTypename(path, parms);
+			case CClass(path, parms), CEnum(path, parms), CAbstract(path, parms): makeTypename(path, parms);
 			case CDynamic(_): "Dynamic";
 			case CFunction(_,_): "Function";
 			default: throw new Exception("don't know how to handle " + type);
@@ -67,7 +65,7 @@ class ValueTypeTools {
 			case TBool: "Bool";
 			case TEnum(e): Type.getEnumName(e);
 			case TClass(c): Type.getClassName(c);
-			default: throw new Exception("don't know how to handle " + type);
+			// default: throw new Exception("don't know how to handle " + type);
 		}				
 	}
 
@@ -82,7 +80,7 @@ class ValueTypeTools {
 			case TBool: "Bool";
 			case TEnum(e): "TEnum";
 			case TClass(c): "TClass";
-			default: throw new Exception("don't know how to handle " + type);
+			// default: throw new Exception("don't know how to handle " + type);
 		}				
 	}
 

@@ -35,7 +35,7 @@ using ui.helper.ArrayHelper;
 using ui.helper.StringHelper;
 using Lambda;
 
-
+@:expose
 class AgentUi {
     
     public static var LOGGER: Logga;

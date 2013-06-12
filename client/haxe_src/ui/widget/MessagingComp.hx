@@ -11,7 +11,7 @@ typedef MessagingCompOptions = {
 
 typedef MessagingCompWidgetDef = {
 	@:optional var options: MessagingCompOptions;
-	@:optional var connectionIdToChat: Hash<ChatComp>;
+	@:optional var connectionIdToChat: Map<String,ChatComp>;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }

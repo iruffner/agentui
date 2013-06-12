@@ -43,7 +43,7 @@ extern class LiveBuildToggle extends JQ {
 			        		function(evt: JqEvent): Void {
 			        			JQ.cur.addClass("ui-state-hover");
 		        			},
-			        		function(): Void {
+			        		function(evt: JqEvent): Void {
 			        			JQ.cur.removeClass("ui-state-hover");
 			        		}
 		        		)

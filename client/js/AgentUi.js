@@ -1,114 +1,14 @@
-var $hxClasses = $hxClasses || {},$estr = function() { return js.Boot.__string_rec(this,''); };
+(function () { "use strict";
+var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
 function $extend(from, fields) {
 	function inherit() {}; inherit.prototype = from; var proto = new inherit();
 	for (var name in fields) proto[name] = fields[name];
+	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
-var DateTools = $hxClasses["DateTools"] = function() { }
+var DateTools = function() { }
+$hxClasses["DateTools"] = DateTools;
 DateTools.__name__ = ["DateTools"];
-DateTools.__format_get = function(d,e) {
-	return (function($this) {
-		var $r;
-		switch(e) {
-		case "%":
-			$r = "%";
-			break;
-		case "C":
-			$r = StringTools.lpad(Std.string(d.getFullYear() / 100 | 0),"0",2);
-			break;
-		case "d":
-			$r = StringTools.lpad(Std.string(d.getDate()),"0",2);
-			break;
-		case "D":
-			$r = DateTools.__format(d,"%m/%d/%y");
-			break;
-		case "e":
-			$r = Std.string(d.getDate());
-			break;
-		case "H":case "k":
-			$r = StringTools.lpad(Std.string(d.getHours()),e == "H"?"0":" ",2);
-			break;
-		case "I":case "l":
-			$r = (function($this) {
-				var $r;
-				var hour = d.getHours() % 12;
-				$r = StringTools.lpad(Std.string(hour == 0?12:hour),e == "I"?"0":" ",2);
-				return $r;
-			}($this));
-			break;
-		case "m":
-			$r = StringTools.lpad(Std.string(d.getMonth() + 1),"0",2);
-			break;
-		case "M":
-			$r = StringTools.lpad(Std.string(d.getMinutes()),"0",2);
-			break;
-		case "n":
-			$r = "\n";
-			break;
-		case "p":
-			$r = d.getHours() > 11?"PM":"AM";
-			break;
-		case "r":
-			$r = DateTools.__format(d,"%I:%M:%S %p");
-			break;
-		case "R":
-			$r = DateTools.__format(d,"%H:%M");
-			break;
-		case "s":
-			$r = Std.string(d.getTime() / 1000 | 0);
-			break;
-		case "S":
-			$r = StringTools.lpad(Std.string(d.getSeconds()),"0",2);
-			break;
-		case "t":
-			$r = "\t";
-			break;
-		case "T":
-			$r = DateTools.__format(d,"%H:%M:%S");
-			break;
-		case "u":
-			$r = (function($this) {
-				var $r;
-				var t = d.getDay();
-				$r = t == 0?"7":Std.string(t);
-				return $r;
-			}($this));
-			break;
-		case "w":
-			$r = Std.string(d.getDay());
-			break;
-		case "y":
-			$r = StringTools.lpad(Std.string(d.getFullYear() % 100),"0",2);
-			break;
-		case "Y":
-			$r = Std.string(d.getFullYear());
-			break;
-		default:
-			$r = (function($this) {
-				var $r;
-				throw "Date.format %" + e + "- not implemented yet.";
-				return $r;
-			}($this));
-		}
-		return $r;
-	}(this));
-}
-DateTools.__format = function(d,f) {
-	var r = new StringBuf();
-	var p = 0;
-	while(true) {
-		var np = f.indexOf("%",p);
-		if(np < 0) break;
-		r.b += HxOverrides.substr(f,p,np - p);
-		r.b += Std.string(DateTools.__format_get(d,HxOverrides.substr(f,np + 1,1)));
-		p = np + 2;
-	}
-	r.b += HxOverrides.substr(f,p,f.length - p);
-	return r.b;
-}
-DateTools.format = function(d,f) {
-	return DateTools.__format(d,f);
-}
 DateTools.delta = function(d,t) {
 	return (function($this) {
 		var $r;
@@ -118,77 +18,19 @@ DateTools.delta = function(d,t) {
 		return $r;
 	}(this));
 }
-DateTools.getMonthDays = function(d) {
-	var month = d.getMonth();
-	var year = d.getFullYear();
-	if(month != 1) return DateTools.DAYS_OF_MONTH[month];
-	var isB = year % 4 == 0 && year % 100 != 0 || year % 400 == 0;
-	return isB?29:28;
-}
-DateTools.seconds = function(n) {
-	return n * 1000.0;
-}
-DateTools.minutes = function(n) {
-	return n * 60.0 * 1000.0;
-}
-DateTools.hours = function(n) {
-	return n * 60.0 * 60.0 * 1000.0;
-}
-DateTools.days = function(n) {
-	return n * 24.0 * 60.0 * 60.0 * 1000.0;
-}
-DateTools.parse = function(t) {
-	var s = t / 1000;
-	var m = s / 60;
-	var h = m / 60;
-	return { ms : t % 1000, seconds : s % 60 | 0, minutes : m % 60 | 0, hours : h % 24 | 0, days : h / 24 | 0};
-}
-DateTools.make = function(o) {
-	return o.ms + 1000.0 * (o.seconds + 60.0 * (o.minutes + 60.0 * (o.hours + 24.0 * o.days)));
-}
-var EReg = $hxClasses["EReg"] = function(r,opt) {
+var EReg = function(r,opt) {
 	opt = opt.split("u").join("");
 	this.r = new RegExp(r,opt);
 };
+$hxClasses["EReg"] = EReg;
 EReg.__name__ = ["EReg"];
 EReg.prototype = {
-	customReplace: function(s,f) {
-		var buf = new StringBuf();
-		while(true) {
-			if(!this.match(s)) break;
-			buf.b += Std.string(this.matchedLeft());
-			buf.b += Std.string(f(this));
-			s = this.matchedRight();
-		}
-		buf.b += Std.string(s);
-		return buf.b;
-	}
-	,replace: function(s,by) {
+	replace: function(s,by) {
 		return s.replace(this.r,by);
 	}
 	,split: function(s) {
 		var d = "#__delim__#";
 		return s.replace(this.r,d).split(d);
-	}
-	,matchedPos: function() {
-		if(this.r.m == null) throw "No string matched";
-		return { pos : this.r.m.index, len : this.r.m[0].length};
-	}
-	,matchedRight: function() {
-		if(this.r.m == null) throw "No string matched";
-		var sz = this.r.m.index + this.r.m[0].length;
-		return this.r.s.substr(sz,this.r.s.length - sz);
-	}
-	,matchedLeft: function() {
-		if(this.r.m == null) throw "No string matched";
-		return this.r.s.substr(0,this.r.m.index);
-	}
-	,matched: function(n) {
-		return this.r.m != null && n >= 0 && n < this.r.m.length?this.r.m[n]:(function($this) {
-			var $r;
-			throw "EReg::matched";
-			return $r;
-		}(this));
 	}
 	,match: function(s) {
 		if(this.r.global) this.r.lastIndex = 0;
@@ -196,93 +38,11 @@ EReg.prototype = {
 		this.r.s = s;
 		return this.r.m != null;
 	}
-	,r: null
 	,__class__: EReg
 }
-var Hash = $hxClasses["Hash"] = function() {
-	this.h = { };
-};
-Hash.__name__ = ["Hash"];
-Hash.prototype = {
-	toString: function() {
-		var s = new StringBuf();
-		s.b += Std.string("{");
-		var it = this.keys();
-		while( it.hasNext() ) {
-			var i = it.next();
-			s.b += Std.string(i);
-			s.b += Std.string(" => ");
-			s.b += Std.string(Std.string(this.get(i)));
-			if(it.hasNext()) s.b += Std.string(", ");
-		}
-		s.b += Std.string("}");
-		return s.b;
-	}
-	,iterator: function() {
-		return { ref : this.h, it : this.keys(), hasNext : function() {
-			return this.it.hasNext();
-		}, next : function() {
-			var i = this.it.next();
-			return this.ref["$" + i];
-		}};
-	}
-	,keys: function() {
-		var a = [];
-		for( var key in this.h ) {
-		if(this.h.hasOwnProperty(key)) a.push(key.substr(1));
-		}
-		return HxOverrides.iter(a);
-	}
-	,remove: function(key) {
-		key = "$" + key;
-		if(!this.h.hasOwnProperty(key)) return false;
-		delete(this.h[key]);
-		return true;
-	}
-	,exists: function(key) {
-		return this.h.hasOwnProperty("$" + key);
-	}
-	,get: function(key) {
-		return this.h["$" + key];
-	}
-	,set: function(key,value) {
-		this.h["$" + key] = value;
-	}
-	,h: null
-	,__class__: Hash
-}
-var HxOverrides = $hxClasses["HxOverrides"] = function() { }
+var HxOverrides = function() { }
+$hxClasses["HxOverrides"] = HxOverrides;
 HxOverrides.__name__ = ["HxOverrides"];
-HxOverrides.dateStr = function(date) {
-	var m = date.getMonth() + 1;
-	var d = date.getDate();
-	var h = date.getHours();
-	var mi = date.getMinutes();
-	var s = date.getSeconds();
-	return date.getFullYear() + "-" + (m < 10?"0" + m:"" + m) + "-" + (d < 10?"0" + d:"" + d) + " " + (h < 10?"0" + h:"" + h) + ":" + (mi < 10?"0" + mi:"" + mi) + ":" + (s < 10?"0" + s:"" + s);
-}
-HxOverrides.strDate = function(s) {
-	switch(s.length) {
-	case 8:
-		var k = s.split(":");
-		var d = new Date();
-		d.setTime(0);
-		d.setUTCHours(k[0]);
-		d.setUTCMinutes(k[1]);
-		d.setUTCSeconds(k[2]);
-		return d;
-	case 10:
-		var k = s.split("-");
-		return new Date(k[0],k[1] - 1,k[2],0,0,0);
-	case 19:
-		var k = s.split(" ");
-		var y = k[0].split("-");
-		var t = k[1].split(":");
-		return new Date(y[0],y[1] - 1,y[2],t[0],t[1],t[2]);
-	default:
-		throw "Invalid date format : " + s;
-	}
-}
 HxOverrides.cca = function(s,index) {
 	var x = s.charCodeAt(index);
 	if(x != x) return undefined;
@@ -316,23 +76,8 @@ HxOverrides.iter = function(a) {
 		return this.arr[this.cur++];
 	}};
 }
-var IntIter = $hxClasses["IntIter"] = function(min,max) {
-	this.min = min;
-	this.max = max;
-};
-IntIter.__name__ = ["IntIter"];
-IntIter.prototype = {
-	next: function() {
-		return this.min++;
-	}
-	,hasNext: function() {
-		return this.min < this.max;
-	}
-	,max: null
-	,min: null
-	,__class__: IntIter
-}
-var Lambda = $hxClasses["Lambda"] = function() { }
+var Lambda = function() { }
+$hxClasses["Lambda"] = Lambda;
 Lambda.__name__ = ["Lambda"];
 Lambda.array = function(it) {
 	var a = new Array();
@@ -343,106 +88,12 @@ Lambda.array = function(it) {
 	}
 	return a;
 }
-Lambda.list = function(it) {
-	var l = new List();
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var i = $it0.next();
-		l.add(i);
-	}
-	return l;
-}
-Lambda.map = function(it,f) {
-	var l = new List();
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var x = $it0.next();
-		l.add(f(x));
-	}
-	return l;
-}
-Lambda.mapi = function(it,f) {
-	var l = new List();
-	var i = 0;
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var x = $it0.next();
-		l.add(f(i++,x));
-	}
-	return l;
-}
-Lambda.has = function(it,elt,cmp) {
-	if(cmp == null) {
-		var $it0 = $iterator(it)();
-		while( $it0.hasNext() ) {
-			var x = $it0.next();
-			if(x == elt) return true;
-		}
-	} else {
-		var $it1 = $iterator(it)();
-		while( $it1.hasNext() ) {
-			var x = $it1.next();
-			if(cmp(x,elt)) return true;
-		}
-	}
-	return false;
-}
-Lambda.exists = function(it,f) {
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var x = $it0.next();
-		if(f(x)) return true;
-	}
-	return false;
-}
-Lambda.foreach = function(it,f) {
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var x = $it0.next();
-		if(!f(x)) return false;
-	}
-	return true;
-}
 Lambda.iter = function(it,f) {
 	var $it0 = $iterator(it)();
 	while( $it0.hasNext() ) {
 		var x = $it0.next();
 		f(x);
 	}
-}
-Lambda.filter = function(it,f) {
-	var l = new List();
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var x = $it0.next();
-		if(f(x)) l.add(x);
-	}
-	return l;
-}
-Lambda.fold = function(it,f,first) {
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var x = $it0.next();
-		first = f(x,first);
-	}
-	return first;
-}
-Lambda.count = function(it,pred) {
-	var n = 0;
-	if(pred == null) {
-		var $it0 = $iterator(it)();
-		while( $it0.hasNext() ) {
-			var _ = $it0.next();
-			n++;
-		}
-	} else {
-		var $it1 = $iterator(it)();
-		while( $it1.hasNext() ) {
-			var x = $it1.next();
-			if(pred(x)) n++;
-		}
-	}
-	return n;
 }
 Lambda.empty = function(it) {
 	return !$iterator(it)().hasNext();
@@ -457,23 +108,10 @@ Lambda.indexOf = function(it,v) {
 	}
 	return -1;
 }
-Lambda.concat = function(a,b) {
-	var l = new List();
-	var $it0 = $iterator(a)();
-	while( $it0.hasNext() ) {
-		var x = $it0.next();
-		l.add(x);
-	}
-	var $it1 = $iterator(b)();
-	while( $it1.hasNext() ) {
-		var x = $it1.next();
-		l.add(x);
-	}
-	return l;
-}
-var List = $hxClasses["List"] = function() {
+var List = function() {
 	this.length = 0;
 };
+$hxClasses["List"] = List;
 List.__name__ = ["List"];
 List.prototype = {
 	map: function(f) {
@@ -486,38 +124,17 @@ List.prototype = {
 		}
 		return b;
 	}
-	,filter: function(f) {
-		var l2 = new List();
-		var l = this.h;
-		while(l != null) {
-			var v = l[0];
-			l = l[1];
-			if(f(v)) l2.add(v);
-		}
-		return l2;
-	}
-	,join: function(sep) {
-		var s = new StringBuf();
-		var first = true;
-		var l = this.h;
-		while(l != null) {
-			if(first) first = false; else s.b += Std.string(sep);
-			s.b += Std.string(l[0]);
-			l = l[1];
-		}
-		return s.b;
-	}
 	,toString: function() {
 		var s = new StringBuf();
 		var first = true;
 		var l = this.h;
-		s.b += Std.string("{");
+		s.b += "{";
 		while(l != null) {
-			if(first) first = false; else s.b += Std.string(", ");
+			if(first) first = false; else s.b += ", ";
 			s.b += Std.string(Std.string(l[0]));
 			l = l[1];
 		}
-		s.b += Std.string("}");
+		s.b += "}";
 		return s.b;
 	}
 	,iterator: function() {
@@ -545,21 +162,8 @@ List.prototype = {
 		}
 		return false;
 	}
-	,clear: function() {
-		this.h = null;
-		this.q = null;
-		this.length = 0;
-	}
 	,isEmpty: function() {
 		return this.h == null;
-	}
-	,pop: function() {
-		if(this.h == null) return null;
-		var x = this.h[0];
-		this.h = this.h[1];
-		if(this.h == null) this.q = null;
-		this.length--;
-		return x;
 	}
 	,last: function() {
 		return this.q == null?null:this.q[0];
@@ -567,24 +171,19 @@ List.prototype = {
 	,first: function() {
 		return this.h == null?null:this.h[0];
 	}
-	,push: function(item) {
-		var x = [item,this.h];
-		this.h = x;
-		if(this.q == null) this.q = x;
-		this.length++;
-	}
 	,add: function(item) {
 		var x = [item];
 		if(this.h == null) this.h = x; else this.q[1] = x;
 		this.q = x;
 		this.length++;
 	}
-	,length: null
-	,q: null
-	,h: null
 	,__class__: List
 }
-var Reflect = $hxClasses["Reflect"] = function() { }
+var IMap = function() { }
+$hxClasses["IMap"] = IMap;
+IMap.__name__ = ["IMap"];
+var Reflect = function() { }
+$hxClasses["Reflect"] = Reflect;
 Reflect.__name__ = ["Reflect"];
 Reflect.hasField = function(o,field) {
 	return Object.prototype.hasOwnProperty.call(o,field);
@@ -597,26 +196,12 @@ Reflect.field = function(o,field) {
 	}
 	return v;
 }
-Reflect.setField = function(o,field,value) {
-	o[field] = value;
-}
-Reflect.getProperty = function(o,field) {
-	var tmp;
-	return o == null?null:o.__properties__ && (tmp = o.__properties__["get_" + field])?o[tmp]():o[field];
-}
-Reflect.setProperty = function(o,field,value) {
-	var tmp;
-	if(o.__properties__ && (tmp = o.__properties__["set_" + field])) o[tmp](value); else o[field] = value;
-}
-Reflect.callMethod = function(o,func,args) {
-	return func.apply(o,args);
-}
 Reflect.fields = function(o) {
 	var a = [];
 	if(o != null) {
 		var hasOwnProperty = Object.prototype.hasOwnProperty;
 		for( var f in o ) {
-		if(hasOwnProperty.call(o,f)) a.push(f);
+		if(f != "__id__" && f != "hx__closures__" && hasOwnProperty.call(o,f)) a.push(f);
 		}
 	}
 	return a;
@@ -624,50 +209,11 @@ Reflect.fields = function(o) {
 Reflect.isFunction = function(f) {
 	return typeof(f) == "function" && !(f.__name__ || f.__ename__);
 }
-Reflect.compare = function(a,b) {
-	return a == b?0:a > b?1:-1;
-}
-Reflect.compareMethods = function(f1,f2) {
-	if(f1 == f2) return true;
-	if(!Reflect.isFunction(f1) || !Reflect.isFunction(f2)) return false;
-	return f1.scope == f2.scope && f1.method == f2.method && f1.method != null;
-}
-Reflect.isObject = function(v) {
-	if(v == null) return false;
-	var t = typeof(v);
-	return t == "string" || t == "object" && !v.__enum__ || t == "function" && (v.__name__ || v.__ename__);
-}
-Reflect.deleteField = function(o,f) {
-	if(!Reflect.hasField(o,f)) return false;
-	delete(o[f]);
-	return true;
-}
-Reflect.copy = function(o) {
-	var o2 = { };
-	var _g = 0, _g1 = Reflect.fields(o);
-	while(_g < _g1.length) {
-		var f = _g1[_g];
-		++_g;
-		o2[f] = Reflect.field(o,f);
-	}
-	return o2;
-}
-Reflect.makeVarArgs = function(f) {
-	return function() {
-		var a = Array.prototype.slice.call(arguments);
-		return f(a);
-	};
-}
-var Std = $hxClasses["Std"] = function() { }
+var Std = function() { }
+$hxClasses["Std"] = Std;
 Std.__name__ = ["Std"];
-Std["is"] = function(v,t) {
-	return js.Boot.__instanceof(v,t);
-}
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
-}
-Std["int"] = function(x) {
-	return x | 0;
 }
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
@@ -675,33 +221,22 @@ Std.parseInt = function(x) {
 	if(isNaN(v)) return null;
 	return v;
 }
-Std.parseFloat = function(x) {
-	return parseFloat(x);
-}
 Std.random = function(x) {
-	return Math.floor(Math.random() * x);
+	return x <= 0?0:Math.floor(Math.random() * x);
 }
-var StringBuf = $hxClasses["StringBuf"] = function() {
+var StringBuf = function() {
 	this.b = "";
 };
+$hxClasses["StringBuf"] = StringBuf;
 StringBuf.__name__ = ["StringBuf"];
 StringBuf.prototype = {
-	toString: function() {
-		return this.b;
+	addSub: function(s,pos,len) {
+		this.b += len == null?HxOverrides.substr(s,pos,null):HxOverrides.substr(s,pos,len);
 	}
-	,addSub: function(s,pos,len) {
-		this.b += HxOverrides.substr(s,pos,len);
-	}
-	,addChar: function(c) {
-		this.b += String.fromCharCode(c);
-	}
-	,add: function(x) {
-		this.b += Std.string(x);
-	}
-	,b: null
 	,__class__: StringBuf
 }
-var StringTools = $hxClasses["StringTools"] = function() { }
+var StringTools = function() { }
+$hxClasses["StringTools"] = StringTools;
 StringTools.__name__ = ["StringTools"];
 StringTools.urlEncode = function(s) {
 	return encodeURIComponent(s);
@@ -709,23 +244,13 @@ StringTools.urlEncode = function(s) {
 StringTools.urlDecode = function(s) {
 	return decodeURIComponent(s.split("+").join(" "));
 }
-StringTools.htmlEscape = function(s) {
-	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
-}
-StringTools.htmlUnescape = function(s) {
-	return s.split("&gt;").join(">").split("&lt;").join("<").split("&amp;").join("&");
-}
-StringTools.startsWith = function(s,start) {
-	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
-}
-StringTools.endsWith = function(s,end) {
-	var elen = end.length;
-	var slen = s.length;
-	return slen >= elen && HxOverrides.substr(s,slen - elen,elen) == end;
+StringTools.htmlEscape = function(s,quotes) {
+	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+	return quotes?s.split("\"").join("&quot;").split("'").join("&#039;"):s;
 }
 StringTools.isSpace = function(s,pos) {
 	var c = HxOverrides.cca(s,pos);
-	return c >= 9 && c <= 13 || c == 32;
+	return c > 8 && c < 14 || c == 32;
 }
 StringTools.ltrim = function(s) {
 	var l = s.length;
@@ -742,50 +267,8 @@ StringTools.rtrim = function(s) {
 StringTools.trim = function(s) {
 	return StringTools.ltrim(StringTools.rtrim(s));
 }
-StringTools.rpad = function(s,c,l) {
-	var sl = s.length;
-	var cl = c.length;
-	while(sl < l) if(l - sl < cl) {
-		s += HxOverrides.substr(c,0,l - sl);
-		sl = l;
-	} else {
-		s += c;
-		sl += cl;
-	}
-	return s;
-}
-StringTools.lpad = function(s,c,l) {
-	var ns = "";
-	var sl = s.length;
-	if(sl >= l) return s;
-	var cl = c.length;
-	while(sl < l) if(l - sl < cl) {
-		ns += HxOverrides.substr(c,0,l - sl);
-		sl = l;
-	} else {
-		ns += c;
-		sl += cl;
-	}
-	return ns + s;
-}
 StringTools.replace = function(s,sub,by) {
 	return s.split(sub).join(by);
-}
-StringTools.hex = function(n,digits) {
-	var s = "";
-	var hexChars = "0123456789ABCDEF";
-	do {
-		s = hexChars.charAt(n & 15) + s;
-		n >>>= 4;
-	} while(n > 0);
-	if(digits != null) while(s.length < digits) s = "0" + s;
-	return s;
-}
-StringTools.fastCodeAt = function(s,index) {
-	return s.charCodeAt(index);
-}
-StringTools.isEOF = function(c) {
-	return c != c;
 }
 var ValueType = $hxClasses["ValueType"] = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] }
 ValueType.TNull = ["TNull",0];
@@ -811,15 +294,12 @@ ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType;
 ValueType.TUnknown = ["TUnknown",8];
 ValueType.TUnknown.toString = $estr;
 ValueType.TUnknown.__enum__ = ValueType;
-var Type = $hxClasses["Type"] = function() { }
+var Type = function() { }
+$hxClasses["Type"] = Type;
 Type.__name__ = ["Type"];
 Type.getClass = function(o) {
 	if(o == null) return null;
 	return o.__class__;
-}
-Type.getEnum = function(o) {
-	if(o == null) return null;
-	return o.__enum__;
 }
 Type.getSuperClass = function(c) {
 	return c.__super__;
@@ -867,10 +347,6 @@ Type.createInstance = function(cl,args) {
 	}
 	return null;
 }
-Type.createEmptyInstance = function(cl) {
-	function empty() {}; empty.prototype = cl.prototype;
-	return new empty();
-}
 Type.createEnum = function(e,constr,params) {
 	var f = Reflect.field(e,constr);
 	if(f == null) throw "No such constructor " + constr;
@@ -886,28 +362,9 @@ Type.createEnumIndex = function(e,index,params) {
 	if(c == null) throw index + " is not a valid enum constructor index";
 	return Type.createEnum(e,c,params);
 }
-Type.getInstanceFields = function(c) {
-	var a = [];
-	for(var i in c.prototype) a.push(i);
-	HxOverrides.remove(a,"__class__");
-	HxOverrides.remove(a,"__properties__");
-	return a;
-}
-Type.getClassFields = function(c) {
-	var a = Reflect.fields(c);
-	HxOverrides.remove(a,"__name__");
-	HxOverrides.remove(a,"__interfaces__");
-	HxOverrides.remove(a,"__properties__");
-	HxOverrides.remove(a,"__super__");
-	HxOverrides.remove(a,"prototype");
-	return a;
-}
-Type.getEnumConstructs = function(e) {
-	var a = e.__constructs__;
-	return a.slice();
-}
 Type["typeof"] = function(v) {
-	switch(typeof(v)) {
+	var _g = typeof(v);
+	switch(_g) {
 	case "boolean":
 		return ValueType.TBool;
 	case "string":
@@ -947,12 +404,6 @@ Type.enumEq = function(a,b) {
 	}
 	return true;
 }
-Type.enumConstructor = function(e) {
-	return e[0];
-}
-Type.enumParameters = function(e) {
-	return e.slice(2);
-}
 Type.enumIndex = function(e) {
 	return e[1];
 }
@@ -968,16 +419,11 @@ Type.allEnums = function(e) {
 	}
 	return all;
 }
-var Xml = $hxClasses["Xml"] = function() {
+var XmlType = $hxClasses["XmlType"] = { __ename__ : ["XmlType"], __constructs__ : [] }
+var Xml = function() {
 };
+$hxClasses["Xml"] = Xml;
 Xml.__name__ = ["Xml"];
-Xml.Element = null;
-Xml.PCData = null;
-Xml.CData = null;
-Xml.Comment = null;
-Xml.DocType = null;
-Xml.Prolog = null;
-Xml.Document = null;
 Xml.parse = function(str) {
 	return haxe.xml.Parser.parse(str);
 }
@@ -985,38 +431,38 @@ Xml.createElement = function(name) {
 	var r = new Xml();
 	r.nodeType = Xml.Element;
 	r._children = new Array();
-	r._attributes = new Hash();
-	r.setNodeName(name);
+	r._attributes = new haxe.ds.StringMap();
+	r.set_nodeName(name);
 	return r;
 }
 Xml.createPCData = function(data) {
 	var r = new Xml();
 	r.nodeType = Xml.PCData;
-	r.setNodeValue(data);
+	r.set_nodeValue(data);
 	return r;
 }
 Xml.createCData = function(data) {
 	var r = new Xml();
 	r.nodeType = Xml.CData;
-	r.setNodeValue(data);
+	r.set_nodeValue(data);
 	return r;
 }
 Xml.createComment = function(data) {
 	var r = new Xml();
 	r.nodeType = Xml.Comment;
-	r.setNodeValue(data);
+	r.set_nodeValue(data);
 	return r;
 }
 Xml.createDocType = function(data) {
 	var r = new Xml();
 	r.nodeType = Xml.DocType;
-	r.setNodeValue(data);
+	r.set_nodeValue(data);
 	return r;
 }
-Xml.createProlog = function(data) {
+Xml.createProcessingInstruction = function(data) {
 	var r = new Xml();
-	r.nodeType = Xml.Prolog;
-	r.setNodeValue(data);
+	r.nodeType = Xml.ProcessingInstruction;
+	r.set_nodeValue(data);
 	return r;
 }
 Xml.createDocument = function() {
@@ -1027,29 +473,29 @@ Xml.createDocument = function() {
 }
 Xml.prototype = {
 	toString: function() {
-		if(this.nodeType == Xml.PCData) return this._nodeValue;
+		if(this.nodeType == Xml.PCData) return StringTools.htmlEscape(this._nodeValue);
 		if(this.nodeType == Xml.CData) return "<![CDATA[" + this._nodeValue + "]]>";
 		if(this.nodeType == Xml.Comment) return "<!--" + this._nodeValue + "-->";
 		if(this.nodeType == Xml.DocType) return "<!DOCTYPE " + this._nodeValue + ">";
-		if(this.nodeType == Xml.Prolog) return "<?" + this._nodeValue + "?>";
+		if(this.nodeType == Xml.ProcessingInstruction) return "<?" + this._nodeValue + "?>";
 		var s = new StringBuf();
 		if(this.nodeType == Xml.Element) {
-			s.b += Std.string("<");
+			s.b += "<";
 			s.b += Std.string(this._nodeName);
 			var $it0 = this._attributes.keys();
 			while( $it0.hasNext() ) {
 				var k = $it0.next();
-				s.b += Std.string(" ");
+				s.b += " ";
 				s.b += Std.string(k);
-				s.b += Std.string("=\"");
+				s.b += "=\"";
 				s.b += Std.string(this._attributes.get(k));
-				s.b += Std.string("\"");
+				s.b += "\"";
 			}
 			if(this._children.length == 0) {
-				s.b += Std.string("/>");
+				s.b += "/>";
 				return s.b;
 			}
-			s.b += Std.string(">");
+			s.b += ">";
 		}
 		var $it1 = this.iterator();
 		while( $it1.hasNext() ) {
@@ -1057,23 +503,11 @@ Xml.prototype = {
 			s.b += Std.string(x.toString());
 		}
 		if(this.nodeType == Xml.Element) {
-			s.b += Std.string("</");
+			s.b += "</";
 			s.b += Std.string(this._nodeName);
-			s.b += Std.string(">");
+			s.b += ">";
 		}
 		return s.b;
-	}
-	,insertChild: function(x,pos) {
-		if(this._children == null) throw "bad nodetype";
-		if(x._parent != null) HxOverrides.remove(x._parent._children,x);
-		x._parent = this;
-		this._children.splice(pos,0,x);
-	}
-	,removeChild: function(x) {
-		if(this._children == null) throw "bad nodetype";
-		var b = HxOverrides.remove(this._children,x);
-		if(b) x._parent = null;
-		return b;
 	}
 	,addChild: function(x) {
 		if(this._children == null) throw "bad nodetype";
@@ -1091,10 +525,6 @@ Xml.prototype = {
 			cur++;
 		}
 		return null;
-	}
-	,firstChild: function() {
-		if(this._children == null) throw "bad nodetype";
-		return this._children[0];
 	}
 	,elementsNamed: function(name) {
 		if(this._children == null) throw "bad nodetype";
@@ -1155,17 +585,9 @@ Xml.prototype = {
 			return this.x[this.cur++];
 		}};
 	}
-	,attributes: function() {
-		if(this.nodeType != Xml.Element) throw "bad nodeType";
-		return this._attributes.keys();
-	}
 	,exists: function(att) {
 		if(this.nodeType != Xml.Element) throw "bad nodeType";
 		return this._attributes.exists(att);
-	}
-	,remove: function(att) {
-		if(this.nodeType != Xml.Element) throw "bad nodeType";
-		this._attributes.remove(att);
 	}
 	,set: function(att,value) {
 		if(this.nodeType != Xml.Element) throw "bad nodeType";
@@ -1175,544 +597,25 @@ Xml.prototype = {
 		if(this.nodeType != Xml.Element) throw "bad nodeType";
 		return this._attributes.get(att);
 	}
-	,getParent: function() {
-		return this._parent;
-	}
-	,setNodeValue: function(v) {
+	,set_nodeValue: function(v) {
 		if(this.nodeType == Xml.Element || this.nodeType == Xml.Document) throw "bad nodeType";
 		return this._nodeValue = v;
 	}
-	,getNodeValue: function() {
+	,get_nodeValue: function() {
 		if(this.nodeType == Xml.Element || this.nodeType == Xml.Document) throw "bad nodeType";
 		return this._nodeValue;
 	}
-	,setNodeName: function(n) {
+	,set_nodeName: function(n) {
 		if(this.nodeType != Xml.Element) throw "bad nodeType";
 		return this._nodeName = n;
 	}
-	,getNodeName: function() {
+	,get_nodeName: function() {
 		if(this.nodeType != Xml.Element) throw "bad nodeType";
 		return this._nodeName;
 	}
-	,_parent: null
-	,_children: null
-	,_attributes: null
-	,_nodeValue: null
-	,_nodeName: null
-	,parent: null
-	,nodeValue: null
-	,nodeName: null
-	,nodeType: null
 	,__class__: Xml
-	,__properties__: {set_nodeName:"setNodeName",get_nodeName:"getNodeName",set_nodeValue:"setNodeValue",get_nodeValue:"getNodeValue",get_parent:"getParent"}
 }
-var haxe = haxe || {}
-haxe.Int32 = $hxClasses["haxe.Int32"] = function() { }
-haxe.Int32.__name__ = ["haxe","Int32"];
-haxe.Int32.make = function(a,b) {
-	return a << 16 | b;
-}
-haxe.Int32.ofInt = function(x) {
-	return x | 0;
-}
-haxe.Int32.clamp = function(x) {
-	return x | 0;
-}
-haxe.Int32.toInt = function(x) {
-	if((x >> 30 & 1) != x >>> 31) throw "Overflow " + Std.string(x);
-	return x;
-}
-haxe.Int32.toNativeInt = function(x) {
-	return x;
-}
-haxe.Int32.add = function(a,b) {
-	return a + b | 0;
-}
-haxe.Int32.sub = function(a,b) {
-	return a - b | 0;
-}
-haxe.Int32.mul = function(a,b) {
-	return a * (b & 65535) + (a * (b >>> 16) << 16 | 0) | 0;
-}
-haxe.Int32.div = function(a,b) {
-	return a / b | 0;
-}
-haxe.Int32.mod = function(a,b) {
-	return a % b;
-}
-haxe.Int32.shl = function(a,b) {
-	return a << b;
-}
-haxe.Int32.shr = function(a,b) {
-	return a >> b;
-}
-haxe.Int32.ushr = function(a,b) {
-	return a >>> b;
-}
-haxe.Int32.and = function(a,b) {
-	return a & b;
-}
-haxe.Int32.or = function(a,b) {
-	return a | b;
-}
-haxe.Int32.xor = function(a,b) {
-	return a ^ b;
-}
-haxe.Int32.neg = function(a) {
-	return -a;
-}
-haxe.Int32.isNeg = function(a) {
-	return a < 0;
-}
-haxe.Int32.isZero = function(a) {
-	return a == 0;
-}
-haxe.Int32.complement = function(a) {
-	return ~a;
-}
-haxe.Int32.compare = function(a,b) {
-	return a - b;
-}
-haxe.Int32.ucompare = function(a,b) {
-	if(a < 0) return b < 0?~b - ~a:1;
-	return b < 0?-1:a - b;
-}
-haxe.Int64 = $hxClasses["haxe.Int64"] = function(high,low) {
-	this.high = high;
-	this.low = low;
-};
-haxe.Int64.__name__ = ["haxe","Int64"];
-haxe.Int64.make = function(high,low) {
-	return new haxe.Int64(high,low);
-}
-haxe.Int64.ofInt = function(x) {
-	return new haxe.Int64(x >> 31 | 0,x | 0);
-}
-haxe.Int64.ofInt32 = function(x) {
-	return new haxe.Int64(x >> 31,x);
-}
-haxe.Int64.toInt = function(x) {
-	if(haxe.Int32.toInt(x.high) != 0) {
-		if(x.high < 0) return -haxe.Int64.toInt(haxe.Int64.neg(x));
-		throw "Overflow";
-	}
-	return haxe.Int32.toInt(x.low);
-}
-haxe.Int64.getLow = function(x) {
-	return x.low;
-}
-haxe.Int64.getHigh = function(x) {
-	return x.high;
-}
-haxe.Int64.add = function(a,b) {
-	var high = a.high + b.high | 0;
-	var low = a.low + b.low | 0;
-	if(haxe.Int32.ucompare(low,a.low) < 0) high = high + (1 | 0) | 0;
-	return new haxe.Int64(high,low);
-}
-haxe.Int64.sub = function(a,b) {
-	var high = a.high - b.high | 0;
-	var low = a.low - b.low | 0;
-	if(haxe.Int32.ucompare(a.low,b.low) < 0) high = high - (1 | 0) | 0;
-	return new haxe.Int64(high,low);
-}
-haxe.Int64.mul = function(a,b) {
-	var mask = 65535 | 0;
-	var al = a.low & mask, ah = a.low >>> 16;
-	var bl = b.low & mask, bh = b.low >>> 16;
-	var p00 = al * (bl & 65535) + (al * (bl >>> 16) << 16 | 0) | 0;
-	var p10 = ah * (bl & 65535) + (ah * (bl >>> 16) << 16 | 0) | 0;
-	var p01 = al * (bh & 65535) + (al * (bh >>> 16) << 16 | 0) | 0;
-	var p11 = ah * (bh & 65535) + (ah * (bh >>> 16) << 16 | 0) | 0;
-	var low = p00;
-	var high = (p11 + (p01 >>> 16) | 0) + (p10 >>> 16) | 0;
-	p01 = p01 << 16;
-	low = low + p01 | 0;
-	if(haxe.Int32.ucompare(low,p01) < 0) high = high + (1 | 0) | 0;
-	p10 = p10 << 16;
-	low = low + p10 | 0;
-	if(haxe.Int32.ucompare(low,p10) < 0) high = high + (1 | 0) | 0;
-	high = high + haxe.Int32.mul(a.low,b.high) | 0;
-	high = high + haxe.Int32.mul(a.high,b.low) | 0;
-	return new haxe.Int64(high,low);
-}
-haxe.Int64.divMod = function(modulus,divisor) {
-	var quotient = new haxe.Int64(0 | 0,0 | 0);
-	var mask = new haxe.Int64(0 | 0,1 | 0);
-	divisor = new haxe.Int64(divisor.high,divisor.low);
-	while(!(divisor.high < 0)) {
-		var cmp = haxe.Int64.ucompare(divisor,modulus);
-		divisor.high = divisor.high << 1 | divisor.low >>> 31;
-		divisor.low = divisor.low << 1;
-		mask.high = mask.high << 1 | mask.low >>> 31;
-		mask.low = mask.low << 1;
-		if(cmp >= 0) break;
-	}
-	while(!((mask.low | mask.high) == 0)) {
-		if(haxe.Int64.ucompare(modulus,divisor) >= 0) {
-			quotient.high = quotient.high | mask.high;
-			quotient.low = quotient.low | mask.low;
-			modulus = haxe.Int64.sub(modulus,divisor);
-		}
-		mask.low = mask.low >>> 1 | mask.high << 31;
-		mask.high = mask.high >>> 1;
-		divisor.low = divisor.low >>> 1 | divisor.high << 31;
-		divisor.high = divisor.high >>> 1;
-	}
-	return { quotient : quotient, modulus : modulus};
-}
-haxe.Int64.div = function(a,b) {
-	var sign = (a.high | b.high) < 0;
-	if(a.high < 0) a = haxe.Int64.neg(a);
-	if(b.high < 0) b = haxe.Int64.neg(b);
-	var q = haxe.Int64.divMod(a,b).quotient;
-	return sign?haxe.Int64.neg(q):q;
-}
-haxe.Int64.mod = function(a,b) {
-	var sign = (a.high | b.high) < 0;
-	if(a.high < 0) a = haxe.Int64.neg(a);
-	if(b.high < 0) b = haxe.Int64.neg(b);
-	var m = haxe.Int64.divMod(a,b).modulus;
-	return sign?haxe.Int64.neg(m):m;
-}
-haxe.Int64.shl = function(a,b) {
-	return (b & 63) == 0?a:(b & 63) < 32?new haxe.Int64(a.high << b | a.low >>> 32 - (b & 63),a.low << b):new haxe.Int64(a.low << b - 32,0 | 0);
-}
-haxe.Int64.shr = function(a,b) {
-	return (b & 63) == 0?a:(b & 63) < 32?new haxe.Int64(a.high >> b,a.low >>> b | a.high << 32 - (b & 63)):new haxe.Int64(a.high >> 31,a.high >> b - 32);
-}
-haxe.Int64.ushr = function(a,b) {
-	return (b & 63) == 0?a:(b & 63) < 32?new haxe.Int64(a.high >>> b,a.low >>> b | a.high << 32 - (b & 63)):new haxe.Int64(0 | 0,a.high >>> b - 32);
-}
-haxe.Int64.and = function(a,b) {
-	return new haxe.Int64(a.high & b.high,a.low & b.low);
-}
-haxe.Int64.or = function(a,b) {
-	return new haxe.Int64(a.high | b.high,a.low | b.low);
-}
-haxe.Int64.xor = function(a,b) {
-	return new haxe.Int64(a.high ^ b.high,a.low ^ b.low);
-}
-haxe.Int64.neg = function(a) {
-	var high = ~a.high;
-	var low = -a.low;
-	if(low == 0) high = high + (1 | 0) | 0;
-	return new haxe.Int64(high,low);
-}
-haxe.Int64.isNeg = function(a) {
-	return a.high < 0;
-}
-haxe.Int64.isZero = function(a) {
-	return (a.high | a.low) == 0;
-}
-haxe.Int64.compare = function(a,b) {
-	var v = a.high - b.high;
-	return v != 0?v:haxe.Int32.ucompare(a.low,b.low);
-}
-haxe.Int64.ucompare = function(a,b) {
-	var v = haxe.Int32.ucompare(a.high,b.high);
-	return v != 0?v:haxe.Int32.ucompare(a.low,b.low);
-}
-haxe.Int64.toStr = function(a) {
-	return a.toString();
-}
-haxe.Int64.prototype = {
-	toString: function() {
-		if(this.high == 0 && this.low == 0) return "0";
-		var str = "";
-		var neg = false;
-		var i = this;
-		if(i.high < 0) {
-			neg = true;
-			i = haxe.Int64.neg(i);
-		}
-		var ten = new haxe.Int64(0 | 0,10 | 0);
-		while(!((i.high | i.low) == 0)) {
-			var r = haxe.Int64.divMod(i,ten);
-			str = haxe.Int32.toInt(r.modulus.low) + str;
-			i = r.quotient;
-		}
-		if(neg) str = "-" + str;
-		return str;
-	}
-	,low: null
-	,high: null
-	,__class__: haxe.Int64
-}
-haxe.Json = $hxClasses["haxe.Json"] = function() {
-};
-haxe.Json.__name__ = ["haxe","Json"];
-haxe.Json.parse = function(text) {
-	return new haxe.Json().doParse(text);
-}
-haxe.Json.stringify = function(value) {
-	return new haxe.Json().toString(value);
-}
-haxe.Json.prototype = {
-	parseString: function() {
-		var start = this.pos;
-		var buf = new StringBuf();
-		while(true) {
-			var c = this.str.charCodeAt(this.pos++);
-			if(c == 34) break;
-			if(c == 92) {
-				buf.b += HxOverrides.substr(this.str,start,this.pos - start - 1);
-				c = this.str.charCodeAt(this.pos++);
-				switch(c) {
-				case 114:
-					buf.b += String.fromCharCode(13);
-					break;
-				case 110:
-					buf.b += String.fromCharCode(10);
-					break;
-				case 116:
-					buf.b += String.fromCharCode(9);
-					break;
-				case 98:
-					buf.b += String.fromCharCode(8);
-					break;
-				case 102:
-					buf.b += String.fromCharCode(12);
-					break;
-				case 47:case 92:case 34:
-					buf.b += String.fromCharCode(c);
-					break;
-				case 117:
-					var uc = Std.parseInt("0x" + HxOverrides.substr(this.str,this.pos,4));
-					this.pos += 4;
-					buf.b += String.fromCharCode(uc);
-					break;
-				default:
-					throw "Invalid escape sequence \\" + String.fromCharCode(c) + " at position " + (this.pos - 1);
-				}
-				start = this.pos;
-			} else if(c != c) throw "Unclosed string";
-		}
-		buf.b += HxOverrides.substr(this.str,start,this.pos - start - 1);
-		return buf.b;
-	}
-	,parseRec: function() {
-		while(true) {
-			var c = this.str.charCodeAt(this.pos++);
-			switch(c) {
-			case 32:case 13:case 10:case 9:
-				break;
-			case 123:
-				var obj = { }, field = null, comma = null;
-				while(true) {
-					var c1 = this.str.charCodeAt(this.pos++);
-					switch(c1) {
-					case 32:case 13:case 10:case 9:
-						break;
-					case 125:
-						if(field != null || comma == false) this.invalidChar();
-						return obj;
-					case 58:
-						if(field == null) this.invalidChar();
-						obj[field] = this.parseRec();
-						field = null;
-						comma = true;
-						break;
-					case 44:
-						if(comma) comma = false; else this.invalidChar();
-						break;
-					case 34:
-						if(comma) this.invalidChar();
-						field = this.parseString();
-						break;
-					default:
-						this.invalidChar();
-					}
-				}
-				break;
-			case 91:
-				var arr = [], comma = null;
-				while(true) {
-					var c1 = this.str.charCodeAt(this.pos++);
-					switch(c1) {
-					case 32:case 13:case 10:case 9:
-						break;
-					case 93:
-						if(comma == false) this.invalidChar();
-						return arr;
-					case 44:
-						if(comma) comma = false; else this.invalidChar();
-						break;
-					default:
-						if(comma) this.invalidChar();
-						this.pos--;
-						arr.push(this.parseRec());
-						comma = true;
-					}
-				}
-				break;
-			case 116:
-				var save = this.pos;
-				if(this.str.charCodeAt(this.pos++) != 114 || this.str.charCodeAt(this.pos++) != 117 || this.str.charCodeAt(this.pos++) != 101) {
-					this.pos = save;
-					this.invalidChar();
-				}
-				return true;
-			case 102:
-				var save = this.pos;
-				if(this.str.charCodeAt(this.pos++) != 97 || this.str.charCodeAt(this.pos++) != 108 || this.str.charCodeAt(this.pos++) != 115 || this.str.charCodeAt(this.pos++) != 101) {
-					this.pos = save;
-					this.invalidChar();
-				}
-				return false;
-			case 110:
-				var save = this.pos;
-				if(this.str.charCodeAt(this.pos++) != 117 || this.str.charCodeAt(this.pos++) != 108 || this.str.charCodeAt(this.pos++) != 108) {
-					this.pos = save;
-					this.invalidChar();
-				}
-				return null;
-			case 34:
-				return this.parseString();
-			case 48:case 49:case 50:case 51:case 52:case 53:case 54:case 55:case 56:case 57:case 45:
-				this.pos--;
-				if(!this.reg_float.match(HxOverrides.substr(this.str,this.pos,null))) throw "Invalid float at position " + this.pos;
-				var v = this.reg_float.matched(0);
-				this.pos += v.length;
-				var f = Std.parseFloat(v);
-				var i = f | 0;
-				return i == f?i:f;
-			default:
-				this.invalidChar();
-			}
-		}
-	}
-	,nextChar: function() {
-		return this.str.charCodeAt(this.pos++);
-	}
-	,invalidChar: function() {
-		this.pos--;
-		throw "Invalid char " + this.str.charCodeAt(this.pos) + " at position " + this.pos;
-	}
-	,doParse: function(str) {
-		this.reg_float = new EReg("^-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?","");
-		this.str = str;
-		this.pos = 0;
-		return this.parseRec();
-	}
-	,quote: function(s) {
-		this.buf.b += Std.string("\"");
-		var i = 0;
-		while(true) {
-			var c = s.charCodeAt(i++);
-			if(c != c) break;
-			switch(c) {
-			case 34:
-				this.buf.b += Std.string("\\\"");
-				break;
-			case 92:
-				this.buf.b += Std.string("\\\\");
-				break;
-			case 10:
-				this.buf.b += Std.string("\\n");
-				break;
-			case 13:
-				this.buf.b += Std.string("\\r");
-				break;
-			case 9:
-				this.buf.b += Std.string("\\t");
-				break;
-			case 8:
-				this.buf.b += Std.string("\\b");
-				break;
-			case 12:
-				this.buf.b += Std.string("\\f");
-				break;
-			default:
-				this.buf.b += String.fromCharCode(c);
-			}
-		}
-		this.buf.b += Std.string("\"");
-	}
-	,toStringRec: function(v) {
-		var $e = (Type["typeof"](v));
-		switch( $e[1] ) {
-		case 8:
-			this.buf.b += Std.string("\"???\"");
-			break;
-		case 4:
-			this.objString(v);
-			break;
-		case 1:
-		case 2:
-			this.buf.b += Std.string(v);
-			break;
-		case 5:
-			this.buf.b += Std.string("\"<fun>\"");
-			break;
-		case 6:
-			var c = $e[2];
-			if(c == String) this.quote(v); else if(c == Array) {
-				var v1 = v;
-				this.buf.b += Std.string("[");
-				var len = v1.length;
-				if(len > 0) {
-					this.toStringRec(v1[0]);
-					var i = 1;
-					while(i < len) {
-						this.buf.b += Std.string(",");
-						this.toStringRec(v1[i++]);
-					}
-				}
-				this.buf.b += Std.string("]");
-			} else if(c == Hash) {
-				var v1 = v;
-				var o = { };
-				var $it0 = v1.keys();
-				while( $it0.hasNext() ) {
-					var k = $it0.next();
-					o[k] = v1.get(k);
-				}
-				this.objString(o);
-			} else this.objString(v);
-			break;
-		case 7:
-			var e = $e[2];
-			this.buf.b += Std.string(v[1]);
-			break;
-		case 3:
-			this.buf.b += Std.string(v?"true":"false");
-			break;
-		case 0:
-			this.buf.b += Std.string("null");
-			break;
-		}
-	}
-	,objString: function(v) {
-		this.fieldsString(v,Reflect.fields(v));
-	}
-	,fieldsString: function(v,fields) {
-		var first = true;
-		this.buf.b += Std.string("{");
-		var _g = 0;
-		while(_g < fields.length) {
-			var f = fields[_g];
-			++_g;
-			var value = Reflect.field(v,f);
-			if(Reflect.isFunction(value)) continue;
-			if(first) first = false; else this.buf.b += Std.string(",");
-			this.quote(f);
-			this.buf.b += Std.string(":");
-			this.toStringRec(value);
-		}
-		this.buf.b += Std.string("}");
-	}
-	,toString: function(v) {
-		this.buf = new StringBuf();
-		this.toStringRec(v);
-		return this.buf.b;
-	}
-	,reg_float: null
-	,pos: null
-	,str: null
-	,buf: null
-	,__class__: haxe.Json
-}
+var haxe = {}
 haxe.StackItem = $hxClasses["haxe.StackItem"] = { __ename__ : ["haxe","StackItem"], __constructs__ : ["CFunction","Module","FilePos","Method","Lambda"] }
 haxe.StackItem.CFunction = ["CFunction",0];
 haxe.StackItem.CFunction.toString = $estr;
@@ -1721,9 +624,10 @@ haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = hax
 haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; }
 haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; }
 haxe.StackItem.Lambda = function(v) { var $x = ["Lambda",4,v]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; }
-haxe.Stack = $hxClasses["haxe.Stack"] = function() { }
-haxe.Stack.__name__ = ["haxe","Stack"];
-haxe.Stack.callStack = function() {
+haxe.CallStack = function() { }
+$hxClasses["haxe.CallStack"] = haxe.CallStack;
+haxe.CallStack.__name__ = ["haxe","CallStack"];
+haxe.CallStack.callStack = function() {
 	var oldValue = Error.prepareStackTrace;
 	Error.prepareStackTrace = function(error,callsites) {
 		var stack = [];
@@ -1745,61 +649,12 @@ haxe.Stack.callStack = function() {
 		}
 		return stack;
 	};
-	var a = haxe.Stack.makeStack(new Error().stack);
+	var a = haxe.CallStack.makeStack(new Error().stack);
 	a.shift();
 	Error.prepareStackTrace = oldValue;
 	return a;
 }
-haxe.Stack.exceptionStack = function() {
-	return [];
-}
-haxe.Stack.toString = function(stack) {
-	var b = new StringBuf();
-	var _g = 0;
-	while(_g < stack.length) {
-		var s = stack[_g];
-		++_g;
-		b.b += Std.string("\nCalled from ");
-		haxe.Stack.itemToString(b,s);
-	}
-	return b.b;
-}
-haxe.Stack.itemToString = function(b,s) {
-	var $e = (s);
-	switch( $e[1] ) {
-	case 0:
-		b.b += Std.string("a C function");
-		break;
-	case 1:
-		var m = $e[2];
-		b.b += Std.string("module ");
-		b.b += Std.string(m);
-		break;
-	case 2:
-		var line = $e[4], file = $e[3], s1 = $e[2];
-		if(s1 != null) {
-			haxe.Stack.itemToString(b,s1);
-			b.b += Std.string(" (");
-		}
-		b.b += Std.string(file);
-		b.b += Std.string(" line ");
-		b.b += Std.string(line);
-		if(s1 != null) b.b += Std.string(")");
-		break;
-	case 3:
-		var meth = $e[3], cname = $e[2];
-		b.b += Std.string(cname);
-		b.b += Std.string(".");
-		b.b += Std.string(meth);
-		break;
-	case 4:
-		var n = $e[2];
-		b.b += Std.string("local function #");
-		b.b += Std.string(n);
-		break;
-	}
-}
-haxe.Stack.makeStack = function(s) {
+haxe.CallStack.makeStack = function(s) {
 	if(typeof(s) == "string") {
 		var stack = s.split("\n");
 		var m = [];
@@ -1812,17 +667,198 @@ haxe.Stack.makeStack = function(s) {
 		return m;
 	} else return s;
 }
-if(!haxe.macro) haxe.macro = {}
-haxe.macro.Context = $hxClasses["haxe.macro.Context"] = function() { }
-haxe.macro.Context.__name__ = ["haxe","macro","Context"];
-haxe.macro.Constant = $hxClasses["haxe.macro.Constant"] = { __ename__ : ["haxe","macro","Constant"], __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp","CType"] }
+haxe.Json = function() {
+};
+$hxClasses["haxe.Json"] = haxe.Json;
+haxe.Json.__name__ = ["haxe","Json"];
+haxe.Json.stringify = function(value,replacer) {
+	return new haxe.Json().toString(value,replacer);
+}
+haxe.Json.prototype = {
+	quote: function(s) {
+		this.buf.b += "\"";
+		var i = 0;
+		while(true) {
+			var c = s.charCodeAt(i++);
+			if(c != c) break;
+			switch(c) {
+			case 34:
+				this.buf.b += "\\\"";
+				break;
+			case 92:
+				this.buf.b += "\\\\";
+				break;
+			case 10:
+				this.buf.b += "\\n";
+				break;
+			case 13:
+				this.buf.b += "\\r";
+				break;
+			case 9:
+				this.buf.b += "\\t";
+				break;
+			case 8:
+				this.buf.b += "\\b";
+				break;
+			case 12:
+				this.buf.b += "\\f";
+				break;
+			default:
+				this.buf.b += String.fromCharCode(c);
+			}
+		}
+		this.buf.b += "\"";
+	}
+	,toStringRec: function(k,v) {
+		if(this.replacer != null) v = this.replacer(k,v);
+		var _g = Type["typeof"](v);
+		var $e = (_g);
+		switch( $e[1] ) {
+		case 8:
+			this.buf.b += "\"???\"";
+			break;
+		case 4:
+			this.objString(v);
+			break;
+		case 1:
+			var v1 = v;
+			this.buf.b += Std.string(v1);
+			break;
+		case 2:
+			this.buf.b += Std.string(Math.isFinite(v)?v:"null");
+			break;
+		case 5:
+			this.buf.b += "\"<fun>\"";
+			break;
+		case 6:
+			var c = $e[2];
+			if(c == String) this.quote(v); else if(c == Array) {
+				var v1 = v;
+				this.buf.b += "[";
+				var len = v1.length;
+				if(len > 0) {
+					this.toStringRec(0,v1[0]);
+					var i = 1;
+					while(i < len) {
+						this.buf.b += ",";
+						this.toStringRec(i,v1[i++]);
+					}
+				}
+				this.buf.b += "]";
+			} else if(c == haxe.ds.StringMap) {
+				var v1 = v;
+				var o = { };
+				var $it0 = v1.keys();
+				while( $it0.hasNext() ) {
+					var k1 = $it0.next();
+					o[k1] = v1.get(k1);
+				}
+				this.objString(o);
+			} else this.objString(v);
+			break;
+		case 7:
+			var i = Type.enumIndex(v);
+			var v1 = i;
+			this.buf.b += Std.string(v1);
+			break;
+		case 3:
+			var v1 = v;
+			this.buf.b += Std.string(v1);
+			break;
+		case 0:
+			this.buf.b += "null";
+			break;
+		}
+	}
+	,objString: function(v) {
+		this.fieldsString(v,Reflect.fields(v));
+	}
+	,fieldsString: function(v,fields) {
+		var first = true;
+		this.buf.b += "{";
+		var _g = 0;
+		while(_g < fields.length) {
+			var f = fields[_g];
+			++_g;
+			var value = Reflect.field(v,f);
+			if(Reflect.isFunction(value)) continue;
+			if(first) first = false; else this.buf.b += ",";
+			this.quote(f);
+			this.buf.b += ":";
+			this.toStringRec(f,value);
+		}
+		this.buf.b += "}";
+	}
+	,toString: function(v,replacer) {
+		this.buf = new StringBuf();
+		this.replacer = replacer;
+		this.toStringRec("",v);
+		return this.buf.b;
+	}
+	,__class__: haxe.Json
+}
+haxe.ds = {}
+haxe.ds.StringMap = function() {
+	this.h = { };
+};
+$hxClasses["haxe.ds.StringMap"] = haxe.ds.StringMap;
+haxe.ds.StringMap.__name__ = ["haxe","ds","StringMap"];
+haxe.ds.StringMap.__interfaces__ = [IMap];
+haxe.ds.StringMap.prototype = {
+	toString: function() {
+		var s = new StringBuf();
+		s.b += "{";
+		var it = this.keys();
+		while( it.hasNext() ) {
+			var i = it.next();
+			s.b += Std.string(i);
+			s.b += " => ";
+			s.b += Std.string(Std.string(this.get(i)));
+			if(it.hasNext()) s.b += ", ";
+		}
+		s.b += "}";
+		return s.b;
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref["$" + i];
+		}};
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) a.push(key.substr(1));
+		}
+		return HxOverrides.iter(a);
+	}
+	,remove: function(key) {
+		key = "$" + key;
+		if(!this.h.hasOwnProperty(key)) return false;
+		delete(this.h[key]);
+		return true;
+	}
+	,exists: function(key) {
+		return this.h.hasOwnProperty("$" + key);
+	}
+	,get: function(key) {
+		return this.h["$" + key];
+	}
+	,set: function(key,value) {
+		this.h["$" + key] = value;
+	}
+	,__class__: haxe.ds.StringMap
+}
+haxe.macro = {}
+haxe.macro.Constant = $hxClasses["haxe.macro.Constant"] = { __ename__ : ["haxe","macro","Constant"], __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp"] }
 haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; }
 haxe.macro.Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; }
 haxe.macro.Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; }
 haxe.macro.Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; }
 haxe.macro.Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; }
-haxe.macro.Constant.CType = function(s) { var $x = ["CType",5,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; }
-haxe.macro.Binop = $hxClasses["haxe.macro.Binop"] = { __ename__ : ["haxe","macro","Binop"], __constructs__ : ["OpAdd","OpMult","OpDiv","OpSub","OpAssign","OpEq","OpNotEq","OpGt","OpGte","OpLt","OpLte","OpAnd","OpOr","OpXor","OpBoolAnd","OpBoolOr","OpShl","OpShr","OpUShr","OpMod","OpAssignOp","OpInterval"] }
+haxe.macro.Binop = $hxClasses["haxe.macro.Binop"] = { __ename__ : ["haxe","macro","Binop"], __constructs__ : ["OpAdd","OpMult","OpDiv","OpSub","OpAssign","OpEq","OpNotEq","OpGt","OpGte","OpLt","OpLte","OpAnd","OpOr","OpXor","OpBoolAnd","OpBoolOr","OpShl","OpShr","OpUShr","OpMod","OpAssignOp","OpInterval","OpArrow"] }
 haxe.macro.Binop.OpAdd = ["OpAdd",0];
 haxe.macro.Binop.OpAdd.toString = $estr;
 haxe.macro.Binop.OpAdd.__enum__ = haxe.macro.Binop;
@@ -1887,6 +923,9 @@ haxe.macro.Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x._
 haxe.macro.Binop.OpInterval = ["OpInterval",21];
 haxe.macro.Binop.OpInterval.toString = $estr;
 haxe.macro.Binop.OpInterval.__enum__ = haxe.macro.Binop;
+haxe.macro.Binop.OpArrow = ["OpArrow",22];
+haxe.macro.Binop.OpArrow.toString = $estr;
+haxe.macro.Binop.OpArrow.__enum__ = haxe.macro.Binop;
 haxe.macro.Unop = $hxClasses["haxe.macro.Unop"] = { __ename__ : ["haxe","macro","Unop"], __constructs__ : ["OpIncrement","OpDecrement","OpNot","OpNeg","OpNegBits"] }
 haxe.macro.Unop.OpIncrement = ["OpIncrement",0];
 haxe.macro.Unop.OpIncrement.toString = $estr;
@@ -1903,7 +942,7 @@ haxe.macro.Unop.OpNeg.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNegBits = ["OpNegBits",4];
 haxe.macro.Unop.OpNegBits.toString = $estr;
 haxe.macro.Unop.OpNegBits.__enum__ = haxe.macro.Unop;
-haxe.macro.ExprDef = $hxClasses["haxe.macro.ExprDef"] = { __ename__ : ["haxe","macro","ExprDef"], __constructs__ : ["EConst","EArray","EBinop","EField","EParenthesis","EObjectDecl","EArrayDecl","ECall","ENew","EUnop","EVars","EFunction","EBlock","EFor","EIn","EIf","EWhile","ESwitch","ETry","EReturn","EBreak","EContinue","EUntyped","EThrow","ECast","EDisplay","EDisplayNew","ETernary","ECheckType","EType"] }
+haxe.macro.ExprDef = $hxClasses["haxe.macro.ExprDef"] = { __ename__ : ["haxe","macro","ExprDef"], __constructs__ : ["EConst","EArray","EBinop","EField","EParenthesis","EObjectDecl","EArrayDecl","ECall","ENew","EUnop","EVars","EFunction","EBlock","EFor","EIn","EIf","EWhile","ESwitch","ETry","EReturn","EBreak","EContinue","EUntyped","EThrow","ECast","EDisplay","EDisplayNew","ETernary","ECheckType","EMeta"] }
 haxe.macro.ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; }
 haxe.macro.ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; }
 haxe.macro.ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; }
@@ -1937,7 +976,7 @@ haxe.macro.ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isC
 haxe.macro.ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; }
 haxe.macro.ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; }
 haxe.macro.ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; }
-haxe.macro.ExprDef.EType = function(e,field) { var $x = ["EType",29,e,field]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; }
+haxe.macro.ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; }
 haxe.macro.ComplexType = $hxClasses["haxe.macro.ComplexType"] = { __ename__ : ["haxe","macro","ComplexType"], __constructs__ : ["TPath","TFunction","TAnonymous","TParent","TExtend","TOptional"] }
 haxe.macro.ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; }
 haxe.macro.ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; }
@@ -1948,49 +987,8 @@ haxe.macro.ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.
 haxe.macro.TypeParam = $hxClasses["haxe.macro.TypeParam"] = { __ename__ : ["haxe","macro","TypeParam"], __constructs__ : ["TPType","TPExpr"] }
 haxe.macro.TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe.macro.TypeParam; $x.toString = $estr; return $x; }
 haxe.macro.TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe.macro.TypeParam; $x.toString = $estr; return $x; }
-haxe.macro.Access = $hxClasses["haxe.macro.Access"] = { __ename__ : ["haxe","macro","Access"], __constructs__ : ["APublic","APrivate","AStatic","AOverride","ADynamic","AInline"] }
-haxe.macro.Access.APublic = ["APublic",0];
-haxe.macro.Access.APublic.toString = $estr;
-haxe.macro.Access.APublic.__enum__ = haxe.macro.Access;
-haxe.macro.Access.APrivate = ["APrivate",1];
-haxe.macro.Access.APrivate.toString = $estr;
-haxe.macro.Access.APrivate.__enum__ = haxe.macro.Access;
-haxe.macro.Access.AStatic = ["AStatic",2];
-haxe.macro.Access.AStatic.toString = $estr;
-haxe.macro.Access.AStatic.__enum__ = haxe.macro.Access;
-haxe.macro.Access.AOverride = ["AOverride",3];
-haxe.macro.Access.AOverride.toString = $estr;
-haxe.macro.Access.AOverride.__enum__ = haxe.macro.Access;
-haxe.macro.Access.ADynamic = ["ADynamic",4];
-haxe.macro.Access.ADynamic.toString = $estr;
-haxe.macro.Access.ADynamic.__enum__ = haxe.macro.Access;
-haxe.macro.Access.AInline = ["AInline",5];
-haxe.macro.Access.AInline.toString = $estr;
-haxe.macro.Access.AInline.__enum__ = haxe.macro.Access;
-haxe.macro.FieldType = $hxClasses["haxe.macro.FieldType"] = { __ename__ : ["haxe","macro","FieldType"], __constructs__ : ["FVar","FFun","FProp"] }
-haxe.macro.FieldType.FVar = function(t,e) { var $x = ["FVar",0,t,e]; $x.__enum__ = haxe.macro.FieldType; $x.toString = $estr; return $x; }
-haxe.macro.FieldType.FFun = function(f) { var $x = ["FFun",1,f]; $x.__enum__ = haxe.macro.FieldType; $x.toString = $estr; return $x; }
-haxe.macro.FieldType.FProp = function(get,set,t,e) { var $x = ["FProp",2,get,set,t,e]; $x.__enum__ = haxe.macro.FieldType; $x.toString = $estr; return $x; }
-haxe.macro.TypeDefKind = $hxClasses["haxe.macro.TypeDefKind"] = { __ename__ : ["haxe","macro","TypeDefKind"], __constructs__ : ["TDEnum","TDStructure","TDClass"] }
-haxe.macro.TypeDefKind.TDEnum = ["TDEnum",0];
-haxe.macro.TypeDefKind.TDEnum.toString = $estr;
-haxe.macro.TypeDefKind.TDEnum.__enum__ = haxe.macro.TypeDefKind;
-haxe.macro.TypeDefKind.TDStructure = ["TDStructure",1];
-haxe.macro.TypeDefKind.TDStructure.toString = $estr;
-haxe.macro.TypeDefKind.TDStructure.__enum__ = haxe.macro.TypeDefKind;
-haxe.macro.TypeDefKind.TDClass = function(extend,implement,isInterface) { var $x = ["TDClass",2,extend,implement,isInterface]; $x.__enum__ = haxe.macro.TypeDefKind; $x.toString = $estr; return $x; }
-haxe.macro.Error = $hxClasses["haxe.macro.Error"] = function(m,p) {
-	this.message = m;
-	this.pos = p;
-};
-haxe.macro.Error.__name__ = ["haxe","macro","Error"];
-haxe.macro.Error.prototype = {
-	pos: null
-	,message: null
-	,__class__: haxe.macro.Error
-}
-if(!haxe.rtti) haxe.rtti = {}
-haxe.rtti.CType = $hxClasses["haxe.rtti.CType"] = { __ename__ : ["haxe","rtti","CType"], __constructs__ : ["CUnknown","CEnum","CClass","CTypedef","CFunction","CAnonymous","CDynamic"] }
+haxe.rtti = {}
+haxe.rtti.CType = $hxClasses["haxe.rtti.CType"] = { __ename__ : ["haxe","rtti","CType"], __constructs__ : ["CUnknown","CEnum","CClass","CTypedef","CFunction","CAnonymous","CDynamic","CAbstract"] }
 haxe.rtti.CType.CUnknown = ["CUnknown",0];
 haxe.rtti.CType.CUnknown.toString = $estr;
 haxe.rtti.CType.CUnknown.__enum__ = haxe.rtti.CType;
@@ -2000,6 +998,7 @@ haxe.rtti.CType.CTypedef = function(name,params) { var $x = ["CTypedef",3,name,p
 haxe.rtti.CType.CFunction = function(args,ret) { var $x = ["CFunction",4,args,ret]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; }
 haxe.rtti.CType.CAnonymous = function(fields) { var $x = ["CAnonymous",5,fields]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; }
 haxe.rtti.CType.CDynamic = function(t) { var $x = ["CDynamic",6,t]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; }
+haxe.rtti.CType.CAbstract = function(name,params) { var $x = ["CAbstract",7,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; }
 haxe.rtti.Rights = $hxClasses["haxe.rtti.Rights"] = { __ename__ : ["haxe","rtti","Rights"], __constructs__ : ["RNormal","RNo","RCall","RMethod","RDynamic","RInline"] }
 haxe.rtti.Rights.RNormal = ["RNormal",0];
 haxe.rtti.Rights.RNormal.toString = $estr;
@@ -2017,176 +1016,16 @@ haxe.rtti.Rights.RDynamic.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RInline = ["RInline",5];
 haxe.rtti.Rights.RInline.toString = $estr;
 haxe.rtti.Rights.RInline.__enum__ = haxe.rtti.Rights;
-haxe.rtti.TypeTree = $hxClasses["haxe.rtti.TypeTree"] = { __ename__ : ["haxe","rtti","TypeTree"], __constructs__ : ["TPackage","TClassdecl","TEnumdecl","TTypedecl"] }
+haxe.rtti.TypeTree = $hxClasses["haxe.rtti.TypeTree"] = { __ename__ : ["haxe","rtti","TypeTree"], __constructs__ : ["TPackage","TClassdecl","TEnumdecl","TTypedecl","TAbstractdecl"] }
 haxe.rtti.TypeTree.TPackage = function(name,full,subs) { var $x = ["TPackage",0,name,full,subs]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; }
 haxe.rtti.TypeTree.TClassdecl = function(c) { var $x = ["TClassdecl",1,c]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; }
 haxe.rtti.TypeTree.TEnumdecl = function(e) { var $x = ["TEnumdecl",2,e]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; }
 haxe.rtti.TypeTree.TTypedecl = function(t) { var $x = ["TTypedecl",3,t]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; }
-haxe.rtti.TypeApi = $hxClasses["haxe.rtti.TypeApi"] = function() { }
-haxe.rtti.TypeApi.__name__ = ["haxe","rtti","TypeApi"];
-haxe.rtti.TypeApi.typeInfos = function(t) {
-	var inf;
-	var $e = (t);
-	switch( $e[1] ) {
-	case 1:
-		var c = $e[2];
-		inf = c;
-		break;
-	case 2:
-		var e = $e[2];
-		inf = e;
-		break;
-	case 3:
-		var t1 = $e[2];
-		inf = t1;
-		break;
-	case 0:
-		throw "Unexpected Package";
-		break;
-	}
-	return inf;
-}
-haxe.rtti.TypeApi.isVar = function(t) {
-	return (function($this) {
-		var $r;
-		switch( (t)[1] ) {
-		case 4:
-			$r = false;
-			break;
-		default:
-			$r = true;
-		}
-		return $r;
-	}(this));
-}
-haxe.rtti.TypeApi.leq = function(f,l1,l2) {
-	var it = l2.iterator();
-	var $it0 = l1.iterator();
-	while( $it0.hasNext() ) {
-		var e1 = $it0.next();
-		if(!it.hasNext()) return false;
-		var e2 = it.next();
-		if(!f(e1,e2)) return false;
-	}
-	if(it.hasNext()) return false;
-	return true;
-}
-haxe.rtti.TypeApi.rightsEq = function(r1,r2) {
-	if(r1 == r2) return true;
-	var $e = (r1);
-	switch( $e[1] ) {
-	case 2:
-		var m1 = $e[2];
-		var $e = (r2);
-		switch( $e[1] ) {
-		case 2:
-			var m2 = $e[2];
-			return m1 == m2;
-		default:
-		}
-		break;
-	default:
-	}
-	return false;
-}
-haxe.rtti.TypeApi.typeEq = function(t1,t2) {
-	var $e = (t1);
-	switch( $e[1] ) {
-	case 0:
-		return t2 == haxe.rtti.CType.CUnknown;
-	case 1:
-		var params = $e[3], name = $e[2];
-		var $e = (t2);
-		switch( $e[1] ) {
-		case 1:
-			var params2 = $e[3], name2 = $e[2];
-			return name == name2 && haxe.rtti.TypeApi.leq(haxe.rtti.TypeApi.typeEq,params,params2);
-		default:
-		}
-		break;
-	case 2:
-		var params = $e[3], name = $e[2];
-		var $e = (t2);
-		switch( $e[1] ) {
-		case 2:
-			var params2 = $e[3], name2 = $e[2];
-			return name == name2 && haxe.rtti.TypeApi.leq(haxe.rtti.TypeApi.typeEq,params,params2);
-		default:
-		}
-		break;
-	case 3:
-		var params = $e[3], name = $e[2];
-		var $e = (t2);
-		switch( $e[1] ) {
-		case 3:
-			var params2 = $e[3], name2 = $e[2];
-			return name == name2 && haxe.rtti.TypeApi.leq(haxe.rtti.TypeApi.typeEq,params,params2);
-		default:
-		}
-		break;
-	case 4:
-		var ret = $e[3], args = $e[2];
-		var $e = (t2);
-		switch( $e[1] ) {
-		case 4:
-			var ret2 = $e[3], args2 = $e[2];
-			return haxe.rtti.TypeApi.leq(function(a,b) {
-				return a.name == b.name && a.opt == b.opt && haxe.rtti.TypeApi.typeEq(a.t,b.t);
-			},args,args2) && haxe.rtti.TypeApi.typeEq(ret,ret2);
-		default:
-		}
-		break;
-	case 5:
-		var fields = $e[2];
-		var $e = (t2);
-		switch( $e[1] ) {
-		case 5:
-			var fields2 = $e[2];
-			return haxe.rtti.TypeApi.leq(function(a,b) {
-				return a.name == b.name && haxe.rtti.TypeApi.typeEq(a.t,b.t);
-			},fields,fields2);
-		default:
-		}
-		break;
-	case 6:
-		var t = $e[2];
-		var $e = (t2);
-		switch( $e[1] ) {
-		case 6:
-			var t21 = $e[2];
-			if(t == null != (t21 == null)) return false;
-			return t == null || haxe.rtti.TypeApi.typeEq(t,t21);
-		default:
-		}
-		break;
-	}
-	return false;
-}
-haxe.rtti.TypeApi.fieldEq = function(f1,f2) {
-	if(f1.name != f2.name) return false;
-	if(!haxe.rtti.TypeApi.typeEq(f1.type,f2.type)) return false;
-	if(f1.isPublic != f2.isPublic) return false;
-	if(f1.doc != f2.doc) return false;
-	if(!haxe.rtti.TypeApi.rightsEq(f1.get,f2.get)) return false;
-	if(!haxe.rtti.TypeApi.rightsEq(f1.set,f2.set)) return false;
-	if(f1.params == null != (f2.params == null)) return false;
-	if(f1.params != null && f1.params.join(":") != f2.params.join(":")) return false;
-	return true;
-}
-haxe.rtti.TypeApi.constructorEq = function(c1,c2) {
-	if(c1.name != c2.name) return false;
-	if(c1.doc != c2.doc) return false;
-	if(c1.args == null != (c2.args == null)) return false;
-	if(c1.args != null && !haxe.rtti.TypeApi.leq(function(a,b) {
-		return a.name == b.name && a.opt == b.opt && haxe.rtti.TypeApi.typeEq(a.t,b.t);
-	},c1.args,c2.args)) return false;
-	return true;
-}
-haxe.rtti.Infos = $hxClasses["haxe.rtti.Infos"] = function() { }
-haxe.rtti.Infos.__name__ = ["haxe","rtti","Infos"];
-haxe.rtti.XmlParser = $hxClasses["haxe.rtti.XmlParser"] = function() {
+haxe.rtti.TypeTree.TAbstractdecl = function(a) { var $x = ["TAbstractdecl",4,a]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; }
+haxe.rtti.XmlParser = function() {
 	this.root = new Array();
 };
+$hxClasses["haxe.rtti.XmlParser"] = haxe.rtti.XmlParser;
 haxe.rtti.XmlParser.__name__ = ["haxe","rtti","XmlParser"];
 haxe.rtti.XmlParser.prototype = {
 	defplat: function() {
@@ -2196,7 +1035,7 @@ haxe.rtti.XmlParser.prototype = {
 	}
 	,xtypeparams: function(x) {
 		var p = new List();
-		var $it0 = x.getElements();
+		var $it0 = x.get_elements();
 		while( $it0.hasNext() ) {
 			var c = $it0.next();
 			p.add(this.xtype(c));
@@ -2206,91 +1045,136 @@ haxe.rtti.XmlParser.prototype = {
 	,xtype: function(x) {
 		return (function($this) {
 			var $r;
-			switch(x.getName()) {
-			case "unknown":
-				$r = haxe.rtti.CType.CUnknown;
-				break;
-			case "e":
-				$r = haxe.rtti.CType.CEnum($this.mkPath(x.att.resolve("path")),$this.xtypeparams(x));
-				break;
-			case "c":
-				$r = haxe.rtti.CType.CClass($this.mkPath(x.att.resolve("path")),$this.xtypeparams(x));
-				break;
-			case "t":
-				$r = haxe.rtti.CType.CTypedef($this.mkPath(x.att.resolve("path")),$this.xtypeparams(x));
-				break;
-			case "f":
-				$r = (function($this) {
-					var $r;
-					var args = new List();
-					var aname = x.att.resolve("a").split(":");
-					var eargs = HxOverrides.iter(aname);
-					var $it0 = x.getElements();
-					while( $it0.hasNext() ) {
-						var e = $it0.next();
-						var opt = false;
-						var a = eargs.next();
-						if(a == null) a = "";
-						if(a.charAt(0) == "?") {
-							opt = true;
-							a = HxOverrides.substr(a,1,null);
+			var _g = x.get_name();
+			$r = (function($this) {
+				var $r;
+				switch(_g) {
+				case "unknown":
+					$r = haxe.rtti.CType.CUnknown;
+					break;
+				case "e":
+					$r = haxe.rtti.CType.CEnum($this.mkPath(x.att.resolve("path")),$this.xtypeparams(x));
+					break;
+				case "c":
+					$r = haxe.rtti.CType.CClass($this.mkPath(x.att.resolve("path")),$this.xtypeparams(x));
+					break;
+				case "t":
+					$r = haxe.rtti.CType.CTypedef($this.mkPath(x.att.resolve("path")),$this.xtypeparams(x));
+					break;
+				case "x":
+					$r = haxe.rtti.CType.CAbstract($this.mkPath(x.att.resolve("path")),$this.xtypeparams(x));
+					break;
+				case "f":
+					$r = (function($this) {
+						var $r;
+						var args = new List();
+						var aname = x.att.resolve("a").split(":");
+						var eargs = HxOverrides.iter(aname);
+						var $it0 = x.get_elements();
+						while( $it0.hasNext() ) {
+							var e = $it0.next();
+							var opt = false;
+							var a = eargs.next();
+							if(a == null) a = "";
+							if(a.charAt(0) == "?") {
+								opt = true;
+								a = HxOverrides.substr(a,1,null);
+							}
+							args.add({ name : a, opt : opt, t : $this.xtype(e)});
 						}
-						args.add({ name : a, opt : opt, t : $this.xtype(e)});
-					}
-					var ret = args.last();
-					args.remove(ret);
-					$r = haxe.rtti.CType.CFunction(args,ret.t);
-					return $r;
-				}($this));
-				break;
-			case "a":
-				$r = (function($this) {
-					var $r;
-					var fields = new List();
-					var $it1 = x.getElements();
-					while( $it1.hasNext() ) {
-						var f = $it1.next();
-						fields.add({ name : f.getName(), t : $this.xtype(new haxe.xml.Fast(f.x.firstElement()))});
-					}
-					$r = haxe.rtti.CType.CAnonymous(fields);
-					return $r;
-				}($this));
-				break;
-			case "d":
-				$r = (function($this) {
-					var $r;
-					var t = null;
-					var tx = x.x.firstElement();
-					if(tx != null) t = $this.xtype(new haxe.xml.Fast(tx));
-					$r = haxe.rtti.CType.CDynamic(t);
-					return $r;
-				}($this));
-				break;
-			default:
-				$r = $this.xerror(x);
-			}
+						var ret = args.last();
+						args.remove(ret);
+						$r = haxe.rtti.CType.CFunction(args,ret.t);
+						return $r;
+					}($this));
+					break;
+				case "a":
+					$r = (function($this) {
+						var $r;
+						var fields = new List();
+						var $it1 = x.get_elements();
+						while( $it1.hasNext() ) {
+							var f = $it1.next();
+							var f1 = $this.xclassfield(f,true);
+							f1.platforms = new List();
+							fields.add(f1);
+						}
+						$r = haxe.rtti.CType.CAnonymous(fields);
+						return $r;
+					}($this));
+					break;
+				case "d":
+					$r = (function($this) {
+						var $r;
+						var t = null;
+						var tx = x.x.firstElement();
+						if(tx != null) t = $this.xtype(new haxe.xml.Fast(tx));
+						$r = haxe.rtti.CType.CDynamic(t);
+						return $r;
+					}($this));
+					break;
+				default:
+					$r = $this.xerror(x);
+				}
+				return $r;
+			}($this));
 			return $r;
 		}(this));
 	}
 	,xtypedef: function(x) {
 		var doc = null;
 		var t = null;
-		var $it0 = x.getElements();
+		var meta = [];
+		var $it0 = x.get_elements();
 		while( $it0.hasNext() ) {
 			var c = $it0.next();
-			if(c.getName() == "haxe_doc") doc = c.getInnerData(); else if(c.getName() == "meta") {
-			} else t = this.xtype(c);
+			if(c.get_name() == "haxe_doc") doc = c.get_innerData(); else if(c.get_name() == "meta") meta = this.xmeta(c); else t = this.xtype(c);
 		}
-		var types = new Hash();
+		var types = new haxe.ds.StringMap();
 		if(this.curplatform != null) types.set(this.curplatform,t);
-		return { path : this.mkPath(x.att.resolve("path")), module : x.has.resolve("module")?this.mkPath(x.att.resolve("module")):null, doc : doc, isPrivate : x.x.exists("private"), params : this.mkTypeParams(x.att.resolve("params")), type : t, types : types, platforms : this.defplat()};
+		return { file : x.has.resolve("file")?x.att.resolve("file"):null, path : this.mkPath(x.att.resolve("path")), module : x.has.resolve("module")?this.mkPath(x.att.resolve("module")):null, doc : doc, isPrivate : x.x.exists("private"), params : this.mkTypeParams(x.att.resolve("params")), type : t, types : types, platforms : this.defplat(), meta : meta};
+	}
+	,xabstract: function(x) {
+		var doc = null;
+		var meta = [], subs = [], supers = [];
+		var $it0 = x.get_elements();
+		while( $it0.hasNext() ) {
+			var c = $it0.next();
+			var _g = c.get_name();
+			switch(_g) {
+			case "haxe_doc":
+				doc = c.get_innerData();
+				break;
+			case "meta":
+				meta = this.xmeta(c);
+				break;
+			case "to":
+				var $it1 = c.get_elements();
+				while( $it1.hasNext() ) {
+					var t = $it1.next();
+					subs.push(this.xtype(t));
+				}
+				break;
+			case "from":
+				var $it2 = c.get_elements();
+				while( $it2.hasNext() ) {
+					var t = $it2.next();
+					supers.push(this.xtype(t));
+				}
+				break;
+			default:
+				this.xerror(c);
+			}
+		}
+		return { file : x.has.resolve("file")?x.att.resolve("file"):null, path : this.mkPath(x.att.resolve("path")), module : x.has.resolve("module")?this.mkPath(x.att.resolve("module")):null, doc : doc, isPrivate : x.x.exists("private"), params : this.mkTypeParams(x.att.resolve("params")), platforms : this.defplat(), meta : meta, subs : subs, supers : supers};
 	}
 	,xenumfield: function(x) {
 		var args = null;
 		var xdoc = x.x.elementsNamed("haxe_doc").next();
+		var meta = x.hasNode.resolve("meta")?this.xmeta(x.node.resolve("meta")):[];
 		if(x.has.resolve("a")) {
 			var names = x.att.resolve("a").split(":");
-			var elts = x.getElements();
+			var elts = x.get_elements();
 			args = new List();
 			var _g = 0;
 			while(_g < names.length) {
@@ -2304,36 +1188,39 @@ haxe.rtti.XmlParser.prototype = {
 				args.add({ name : c, opt : opt, t : this.xtype(elts.next())});
 			}
 		}
-		return { name : x.getName(), args : args, doc : xdoc == null?null:new haxe.xml.Fast(xdoc).getInnerData(), platforms : this.defplat()};
+		return { name : x.get_name(), args : args, doc : xdoc == null?null:new haxe.xml.Fast(xdoc).get_innerData(), meta : meta, platforms : this.defplat()};
 	}
 	,xenum: function(x) {
 		var cl = new List();
 		var doc = null;
-		var $it0 = x.getElements();
+		var meta = [];
+		var $it0 = x.get_elements();
 		while( $it0.hasNext() ) {
 			var c = $it0.next();
-			if(c.getName() == "haxe_doc") doc = c.getInnerData(); else if(c.getName() == "meta") {
-			} else cl.add(this.xenumfield(c));
+			if(c.get_name() == "haxe_doc") doc = c.get_innerData(); else if(c.get_name() == "meta") meta = this.xmeta(c); else cl.add(this.xenumfield(c));
 		}
-		return { path : this.mkPath(x.att.resolve("path")), module : x.has.resolve("module")?this.mkPath(x.att.resolve("module")):null, doc : doc, isPrivate : x.x.exists("private"), isExtern : x.x.exists("extern"), params : this.mkTypeParams(x.att.resolve("params")), constructors : cl, platforms : this.defplat()};
+		return { file : x.has.resolve("file")?x.att.resolve("file"):null, path : this.mkPath(x.att.resolve("path")), module : x.has.resolve("module")?this.mkPath(x.att.resolve("module")):null, doc : doc, isPrivate : x.x.exists("private"), isExtern : x.x.exists("extern"), params : this.mkTypeParams(x.att.resolve("params")), constructors : cl, platforms : this.defplat(), meta : meta};
 	}
-	,xclassfield: function(x) {
-		var e = x.getElements();
+	,xclassfield: function(x,defPublic) {
+		var e = x.get_elements();
 		var t = this.xtype(e.next());
 		var doc = null;
+		var meta = [];
 		while( e.hasNext() ) {
 			var c = e.next();
-			switch(c.getName()) {
+			var _g = c.get_name();
+			switch(_g) {
 			case "haxe_doc":
-				doc = c.getInnerData();
+				doc = c.get_innerData();
 				break;
 			case "meta":
+				meta = this.xmeta(c);
 				break;
 			default:
 				this.xerror(c);
 			}
 		}
-		return { name : x.getName(), type : t, isPublic : x.x.exists("public"), isOverride : x.x.exists("override"), doc : doc, get : x.has.resolve("get")?this.mkRights(x.att.resolve("get")):haxe.rtti.Rights.RNormal, set : x.has.resolve("set")?this.mkRights(x.att.resolve("set")):haxe.rtti.Rights.RNormal, params : x.has.resolve("params")?this.mkTypeParams(x.att.resolve("params")):null, platforms : this.defplat()};
+		return { name : x.get_name(), type : t, isPublic : x.x.exists("public") || defPublic, isOverride : x.x.exists("override"), line : x.has.resolve("line")?Std.parseInt(x.att.resolve("line")):null, doc : doc, get : x.has.resolve("get")?this.mkRights(x.att.resolve("get")):haxe.rtti.Rights.RNormal, set : x.has.resolve("set")?this.mkRights(x.att.resolve("set")):haxe.rtti.Rights.RNormal, params : x.has.resolve("params")?this.mkTypeParams(x.att.resolve("params")):null, platforms : this.defplat(), meta : meta};
 	}
 	,xclass: function(x) {
 		var csuper = null;
@@ -2342,12 +1229,14 @@ haxe.rtti.XmlParser.prototype = {
 		var interfaces = new List();
 		var fields = new List();
 		var statics = new List();
-		var $it0 = x.getElements();
+		var meta = [];
+		var $it0 = x.get_elements();
 		while( $it0.hasNext() ) {
 			var c = $it0.next();
-			switch(c.getName()) {
+			var _g = c.get_name();
+			switch(_g) {
 			case "haxe_doc":
-				doc = c.getInnerData();
+				doc = c.get_innerData();
 				break;
 			case "extends":
 				csuper = this.xpath(c);
@@ -2359,54 +1248,71 @@ haxe.rtti.XmlParser.prototype = {
 				tdynamic = this.xtype(new haxe.xml.Fast(c.x.firstElement()));
 				break;
 			case "meta":
+				meta = this.xmeta(c);
 				break;
 			default:
 				if(c.x.exists("static")) statics.add(this.xclassfield(c)); else fields.add(this.xclassfield(c));
 			}
 		}
-		return { path : this.mkPath(x.att.resolve("path")), module : x.has.resolve("module")?this.mkPath(x.att.resolve("module")):null, doc : doc, isPrivate : x.x.exists("private"), isExtern : x.x.exists("extern"), isInterface : x.x.exists("interface"), params : this.mkTypeParams(x.att.resolve("params")), superClass : csuper, interfaces : interfaces, fields : fields, statics : statics, tdynamic : tdynamic, platforms : this.defplat()};
+		return { file : x.has.resolve("file")?x.att.resolve("file"):null, path : this.mkPath(x.att.resolve("path")), module : x.has.resolve("module")?this.mkPath(x.att.resolve("module")):null, doc : doc, isPrivate : x.x.exists("private"), isExtern : x.x.exists("extern"), isInterface : x.x.exists("interface"), params : this.mkTypeParams(x.att.resolve("params")), superClass : csuper, interfaces : interfaces, fields : fields, statics : statics, tdynamic : tdynamic, platforms : this.defplat(), meta : meta};
 	}
 	,xpath: function(x) {
 		var path = this.mkPath(x.att.resolve("path"));
 		var params = new List();
-		var $it0 = x.getElements();
+		var $it0 = x.get_elements();
 		while( $it0.hasNext() ) {
 			var c = $it0.next();
 			params.add(this.xtype(c));
 		}
 		return { path : path, params : params};
 	}
+	,xmeta: function(x) {
+		var ml = [];
+		var $it0 = x.nodes.resolve("m").iterator();
+		while( $it0.hasNext() ) {
+			var m = $it0.next();
+			var pl = [];
+			var $it1 = m.nodes.resolve("e").iterator();
+			while( $it1.hasNext() ) {
+				var p = $it1.next();
+				pl.push(p.get_innerHTML());
+			}
+			ml.push({ name : m.att.resolve("n"), params : pl});
+		}
+		return ml;
+	}
 	,processElement: function(x) {
 		var c = new haxe.xml.Fast(x);
 		return (function($this) {
 			var $r;
-			switch(c.getName()) {
-			case "class":
-				$r = haxe.rtti.TypeTree.TClassdecl($this.xclass(c));
-				break;
-			case "enum":
-				$r = haxe.rtti.TypeTree.TEnumdecl($this.xenum(c));
-				break;
-			case "typedef":
-				$r = haxe.rtti.TypeTree.TTypedecl($this.xtypedef(c));
-				break;
-			default:
-				$r = $this.xerror(c);
-			}
+			var _g = c.get_name();
+			$r = (function($this) {
+				var $r;
+				switch(_g) {
+				case "class":
+					$r = haxe.rtti.TypeTree.TClassdecl($this.xclass(c));
+					break;
+				case "enum":
+					$r = haxe.rtti.TypeTree.TEnumdecl($this.xenum(c));
+					break;
+				case "typedef":
+					$r = haxe.rtti.TypeTree.TTypedecl($this.xtypedef(c));
+					break;
+				case "abstract":
+					$r = haxe.rtti.TypeTree.TAbstractdecl($this.xabstract(c));
+					break;
+				default:
+					$r = $this.xerror(c);
+				}
+				return $r;
+			}($this));
 			return $r;
 		}(this));
-	}
-	,xroot: function(x) {
-		var $it0 = x.x.elements();
-		while( $it0.hasNext() ) {
-			var c = $it0.next();
-			this.merge(this.processElement(c));
-		}
 	}
 	,xerror: function(c) {
 		return (function($this) {
 			var $r;
-			throw "Invalid " + c.getName();
+			throw "Invalid " + c.get_name();
 			return $r;
 		}(this));
 	}
@@ -2440,326 +1346,67 @@ haxe.rtti.XmlParser.prototype = {
 	,mkPath: function(p) {
 		return p;
 	}
-	,merge: function(t) {
-		var inf = haxe.rtti.TypeApi.typeInfos(t);
-		var pack = inf.path.split(".");
-		var cur = this.root;
-		var curpack = new Array();
-		pack.pop();
-		var _g = 0;
-		while(_g < pack.length) {
-			var p = pack[_g];
-			++_g;
-			var found = false;
-			var _g1 = 0;
-			try {
-				while(_g1 < cur.length) {
-					var pk = cur[_g1];
-					++_g1;
-					var $e = (pk);
-					switch( $e[1] ) {
-					case 0:
-						var subs = $e[4], pname = $e[2];
-						if(pname == p) {
-							found = true;
-							cur = subs;
-							throw "__break__";
-						}
-						break;
-					default:
-					}
-				}
-			} catch( e ) { if( e != "__break__" ) throw e; }
-			curpack.push(p);
-			if(!found) {
-				var pk = new Array();
-				cur.push(haxe.rtti.TypeTree.TPackage(p,curpack.join("."),pk));
-				cur = pk;
-			}
-		}
-		var prev = null;
-		var _g = 0;
-		while(_g < cur.length) {
-			var ct = cur[_g];
-			++_g;
-			var tinf;
-			try {
-				tinf = haxe.rtti.TypeApi.typeInfos(ct);
-			} catch( e ) {
-				continue;
-			}
-			if(tinf.path == inf.path) {
-				var sameType = true;
-				if(tinf.doc == null != (inf.doc == null)) {
-					if(inf.doc == null) inf.doc = tinf.doc; else tinf.doc = inf.doc;
-				}
-				if(tinf.module == inf.module && tinf.doc == inf.doc && tinf.isPrivate == inf.isPrivate) {
-					var $e = (ct);
-					switch( $e[1] ) {
-					case 1:
-						var c = $e[2];
-						var $e = (t);
-						switch( $e[1] ) {
-						case 1:
-							var c2 = $e[2];
-							if(this.mergeClasses(c,c2)) return;
-							break;
-						default:
-							sameType = false;
-						}
-						break;
-					case 2:
-						var e = $e[2];
-						var $e = (t);
-						switch( $e[1] ) {
-						case 2:
-							var e2 = $e[2];
-							if(this.mergeEnums(e,e2)) return;
-							break;
-						default:
-							sameType = false;
-						}
-						break;
-					case 3:
-						var td = $e[2];
-						var $e = (t);
-						switch( $e[1] ) {
-						case 3:
-							var td2 = $e[2];
-							if(this.mergeTypedefs(td,td2)) return;
-							break;
-						default:
-						}
-						break;
-					case 0:
-						sameType = false;
-						break;
-					}
-				}
-				var msg = tinf.module != inf.module?"module " + inf.module + " should be " + tinf.module:tinf.doc != inf.doc?"documentation is different":tinf.isPrivate != inf.isPrivate?"private flag is different":!sameType?"type kind is different":"could not merge definition";
-				throw "Incompatibilities between " + tinf.path + " in " + tinf.platforms.join(",") + " and " + this.curplatform + " (" + msg + ")";
-			}
-		}
-		cur.push(t);
-	}
-	,mergeTypedefs: function(t,t2) {
-		if(this.curplatform == null) return false;
-		t.platforms.add(this.curplatform);
-		t.types.set(this.curplatform,t2.type);
-		return true;
-	}
-	,mergeEnums: function(e,e2) {
-		if(e.isExtern != e2.isExtern) return false;
-		if(this.curplatform != null) e.platforms.add(this.curplatform);
-		var $it0 = e2.constructors.iterator();
-		while( $it0.hasNext() ) {
-			var c2 = $it0.next();
-			var found = null;
-			var $it1 = e.constructors.iterator();
-			while( $it1.hasNext() ) {
-				var c = $it1.next();
-				if(haxe.rtti.TypeApi.constructorEq(c,c2)) {
-					found = c;
-					break;
-				}
-			}
-			if(found == null) return false;
-			if(this.curplatform != null) found.platforms.add(this.curplatform);
-		}
-		return true;
-	}
-	,mergeClasses: function(c,c2) {
-		if(c.isInterface != c2.isInterface) return false;
-		if(this.curplatform != null) c.platforms.add(this.curplatform);
-		if(c.isExtern != c2.isExtern) c.isExtern = false;
-		var $it0 = c2.fields.iterator();
-		while( $it0.hasNext() ) {
-			var f2 = $it0.next();
-			var found = null;
-			var $it1 = c.fields.iterator();
-			while( $it1.hasNext() ) {
-				var f = $it1.next();
-				if(this.mergeFields(f,f2)) {
-					found = f;
-					break;
-				}
-			}
-			if(found == null) {
-				this.newField(c,f2);
-				c.fields.add(f2);
-			} else if(this.curplatform != null) found.platforms.add(this.curplatform);
-		}
-		var $it2 = c2.statics.iterator();
-		while( $it2.hasNext() ) {
-			var f2 = $it2.next();
-			var found = null;
-			var $it3 = c.statics.iterator();
-			while( $it3.hasNext() ) {
-				var f = $it3.next();
-				if(this.mergeFields(f,f2)) {
-					found = f;
-					break;
-				}
-			}
-			if(found == null) {
-				this.newField(c,f2);
-				c.statics.add(f2);
-			} else if(this.curplatform != null) found.platforms.add(this.curplatform);
-		}
-		return true;
-	}
-	,newField: function(c,f) {
-	}
-	,mergeFields: function(f,f2) {
-		return haxe.rtti.TypeApi.fieldEq(f,f2) || f.name == f2.name && (this.mergeRights(f,f2) || this.mergeRights(f2,f)) && this.mergeDoc(f,f2) && haxe.rtti.TypeApi.fieldEq(f,f2);
-	}
-	,mergeDoc: function(f1,f2) {
-		if(f1.doc == null) f2.doc = f2.doc; else if(f2.doc == null) f2.doc = f1.doc;
-		return true;
-	}
-	,mergeRights: function(f1,f2) {
-		if(f1.get == haxe.rtti.Rights.RInline && f1.set == haxe.rtti.Rights.RNo && f2.get == haxe.rtti.Rights.RNormal && f2.set == haxe.rtti.Rights.RMethod) {
-			f1.get = haxe.rtti.Rights.RNormal;
-			f1.set = haxe.rtti.Rights.RMethod;
-			return true;
-		}
-		return false;
-	}
-	,process: function(x,platform) {
-		this.curplatform = platform;
-		this.xroot(new haxe.xml.Fast(x));
-	}
-	,sortFields: function(fl) {
-		var a = Lambda.array(fl);
-		a.sort(function(f1,f2) {
-			var v1 = haxe.rtti.TypeApi.isVar(f1.type);
-			var v2 = haxe.rtti.TypeApi.isVar(f2.type);
-			if(v1 && !v2) return -1;
-			if(v2 && !v1) return 1;
-			if(f1.name == "new") return -1;
-			if(f2.name == "new") return 1;
-			if(f1.name > f2.name) return 1;
-			return -1;
-		});
-		return Lambda.list(a);
-	}
-	,sort: function(l) {
-		if(l == null) l = this.root;
-		l.sort(function(e1,e2) {
-			var n1 = (function($this) {
-				var $r;
-				var $e = (e1);
-				switch( $e[1] ) {
-				case 0:
-					var p = $e[2];
-					$r = " " + p;
-					break;
-				default:
-					$r = haxe.rtti.TypeApi.typeInfos(e1).path;
-				}
-				return $r;
-			}(this));
-			var n2 = (function($this) {
-				var $r;
-				var $e = (e2);
-				switch( $e[1] ) {
-				case 0:
-					var p = $e[2];
-					$r = " " + p;
-					break;
-				default:
-					$r = haxe.rtti.TypeApi.typeInfos(e2).path;
-				}
-				return $r;
-			}(this));
-			if(n1 > n2) return 1;
-			return -1;
-		});
-		var _g = 0;
-		while(_g < l.length) {
-			var x = l[_g];
-			++_g;
-			var $e = (x);
-			switch( $e[1] ) {
-			case 0:
-				var l1 = $e[4];
-				this.sort(l1);
-				break;
-			case 1:
-				var c = $e[2];
-				c.fields = this.sortFields(c.fields);
-				c.statics = this.sortFields(c.statics);
-				break;
-			case 2:
-				var e = $e[2];
-				break;
-			case 3:
-				break;
-			}
-		}
-	}
-	,curplatform: null
-	,root: null
 	,__class__: haxe.rtti.XmlParser
 }
-if(!haxe.xml) haxe.xml = {}
-if(!haxe.xml._Fast) haxe.xml._Fast = {}
-haxe.xml._Fast.NodeAccess = $hxClasses["haxe.xml._Fast.NodeAccess"] = function(x) {
+haxe.xml = {}
+haxe.xml._Fast = {}
+haxe.xml._Fast.NodeAccess = function(x) {
 	this.__x = x;
 };
+$hxClasses["haxe.xml._Fast.NodeAccess"] = haxe.xml._Fast.NodeAccess;
 haxe.xml._Fast.NodeAccess.__name__ = ["haxe","xml","_Fast","NodeAccess"];
 haxe.xml._Fast.NodeAccess.prototype = {
 	resolve: function(name) {
 		var x = this.__x.elementsNamed(name).next();
 		if(x == null) {
-			var xname = this.__x.nodeType == Xml.Document?"Document":this.__x.getNodeName();
+			var xname = this.__x.nodeType == Xml.Document?"Document":this.__x.get_nodeName();
 			throw xname + " is missing element " + name;
 		}
 		return new haxe.xml.Fast(x);
 	}
-	,__x: null
 	,__class__: haxe.xml._Fast.NodeAccess
 }
-haxe.xml._Fast.AttribAccess = $hxClasses["haxe.xml._Fast.AttribAccess"] = function(x) {
+haxe.xml._Fast.AttribAccess = function(x) {
 	this.__x = x;
 };
+$hxClasses["haxe.xml._Fast.AttribAccess"] = haxe.xml._Fast.AttribAccess;
 haxe.xml._Fast.AttribAccess.__name__ = ["haxe","xml","_Fast","AttribAccess"];
 haxe.xml._Fast.AttribAccess.prototype = {
 	resolve: function(name) {
 		if(this.__x.nodeType == Xml.Document) throw "Cannot access document attribute " + name;
 		var v = this.__x.get(name);
-		if(v == null) throw this.__x.getNodeName() + " is missing attribute " + name;
+		if(v == null) throw this.__x.get_nodeName() + " is missing attribute " + name;
 		return v;
 	}
-	,__x: null
 	,__class__: haxe.xml._Fast.AttribAccess
 }
-haxe.xml._Fast.HasAttribAccess = $hxClasses["haxe.xml._Fast.HasAttribAccess"] = function(x) {
+haxe.xml._Fast.HasAttribAccess = function(x) {
 	this.__x = x;
 };
+$hxClasses["haxe.xml._Fast.HasAttribAccess"] = haxe.xml._Fast.HasAttribAccess;
 haxe.xml._Fast.HasAttribAccess.__name__ = ["haxe","xml","_Fast","HasAttribAccess"];
 haxe.xml._Fast.HasAttribAccess.prototype = {
 	resolve: function(name) {
 		if(this.__x.nodeType == Xml.Document) throw "Cannot access document attribute " + name;
 		return this.__x.exists(name);
 	}
-	,__x: null
 	,__class__: haxe.xml._Fast.HasAttribAccess
 }
-haxe.xml._Fast.HasNodeAccess = $hxClasses["haxe.xml._Fast.HasNodeAccess"] = function(x) {
+haxe.xml._Fast.HasNodeAccess = function(x) {
 	this.__x = x;
 };
+$hxClasses["haxe.xml._Fast.HasNodeAccess"] = haxe.xml._Fast.HasNodeAccess;
 haxe.xml._Fast.HasNodeAccess.__name__ = ["haxe","xml","_Fast","HasNodeAccess"];
 haxe.xml._Fast.HasNodeAccess.prototype = {
 	resolve: function(name) {
 		return this.__x.elementsNamed(name).hasNext();
 	}
-	,__x: null
 	,__class__: haxe.xml._Fast.HasNodeAccess
 }
-haxe.xml._Fast.NodeListAccess = $hxClasses["haxe.xml._Fast.NodeListAccess"] = function(x) {
+haxe.xml._Fast.NodeListAccess = function(x) {
 	this.__x = x;
 };
+$hxClasses["haxe.xml._Fast.NodeListAccess"] = haxe.xml._Fast.NodeListAccess;
 haxe.xml._Fast.NodeListAccess.__name__ = ["haxe","xml","_Fast","NodeListAccess"];
 haxe.xml._Fast.NodeListAccess.prototype = {
 	resolve: function(name) {
@@ -2771,10 +1418,9 @@ haxe.xml._Fast.NodeListAccess.prototype = {
 		}
 		return l;
 	}
-	,__x: null
 	,__class__: haxe.xml._Fast.NodeListAccess
 }
-haxe.xml.Fast = $hxClasses["haxe.xml.Fast"] = function(x) {
+haxe.xml.Fast = function(x) {
 	if(x.nodeType != Xml.Document && x.nodeType != Xml.Element) throw "Invalid nodeType " + Std.string(x.nodeType);
 	this.x = x;
 	this.node = new haxe.xml._Fast.NodeAccess(x);
@@ -2783,9 +1429,10 @@ haxe.xml.Fast = $hxClasses["haxe.xml.Fast"] = function(x) {
 	this.has = new haxe.xml._Fast.HasAttribAccess(x);
 	this.hasNode = new haxe.xml._Fast.HasNodeAccess(x);
 };
+$hxClasses["haxe.xml.Fast"] = haxe.xml.Fast;
 haxe.xml.Fast.__name__ = ["haxe","xml","Fast"];
 haxe.xml.Fast.prototype = {
-	getElements: function() {
+	get_elements: function() {
 		var it = this.x.elements();
 		return { hasNext : $bind(it,it.hasNext), next : function() {
 			var x = it.next();
@@ -2793,7 +1440,7 @@ haxe.xml.Fast.prototype = {
 			return new haxe.xml.Fast(x);
 		}};
 	}
-	,getInnerHTML: function() {
+	,get_innerHTML: function() {
 		var s = new StringBuf();
 		var $it0 = this.x.iterator();
 		while( $it0.hasNext() ) {
@@ -2802,38 +1449,28 @@ haxe.xml.Fast.prototype = {
 		}
 		return s.b;
 	}
-	,getInnerData: function() {
+	,get_innerData: function() {
 		var it = this.x.iterator();
-		if(!it.hasNext()) throw this.getName() + " does not have data";
+		if(!it.hasNext()) throw this.get_name() + " does not have data";
 		var v = it.next();
 		var n = it.next();
 		if(n != null) {
-			if(v.nodeType == Xml.PCData && n.nodeType == Xml.CData && StringTools.trim(v.getNodeValue()) == "") {
+			if(v.nodeType == Xml.PCData && n.nodeType == Xml.CData && StringTools.trim(v.get_nodeValue()) == "") {
 				var n2 = it.next();
-				if(n2 == null || n2.nodeType == Xml.PCData && StringTools.trim(n2.getNodeValue()) == "" && it.next() == null) return n.getNodeValue();
+				if(n2 == null || n2.nodeType == Xml.PCData && StringTools.trim(n2.get_nodeValue()) == "" && it.next() == null) return n.get_nodeValue();
 			}
-			throw this.getName() + " does not only have data";
+			throw this.get_name() + " does not only have data";
 		}
-		if(v.nodeType != Xml.PCData && v.nodeType != Xml.CData) throw this.getName() + " does not have data";
-		return v.getNodeValue();
+		if(v.nodeType != Xml.PCData && v.nodeType != Xml.CData) throw this.get_name() + " does not have data";
+		return v.get_nodeValue();
 	}
-	,getName: function() {
-		return this.x.nodeType == Xml.Document?"Document":this.x.getNodeName();
+	,get_name: function() {
+		return this.x.nodeType == Xml.Document?"Document":this.x.get_nodeName();
 	}
-	,elements: null
-	,hasNode: null
-	,has: null
-	,att: null
-	,nodes: null
-	,node: null
-	,innerHTML: null
-	,innerData: null
-	,name: null
-	,x: null
 	,__class__: haxe.xml.Fast
-	,__properties__: {get_name:"getName",get_innerData:"getInnerData",get_innerHTML:"getInnerHTML",get_elements:"getElements"}
 }
-haxe.xml.Parser = $hxClasses["haxe.xml.Parser"] = function() { }
+haxe.xml.Parser = function() { }
+$hxClasses["haxe.xml.Parser"] = haxe.xml.Parser;
 haxe.xml.Parser.__name__ = ["haxe","xml","Parser"];
 haxe.xml.Parser.parse = function(str) {
 	var doc = Xml.createDocument();
@@ -2850,6 +1487,7 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 	var nsubs = 0;
 	var nbrackets = 0;
 	var c = str.charCodeAt(p);
+	var buf = new StringBuf();
 	while(!(c != c)) {
 		switch(state) {
 		case 0:
@@ -2875,11 +1513,17 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 			break;
 		case 13:
 			if(c == 60) {
-				var child = Xml.createPCData(HxOverrides.substr(str,start,p - start));
+				var child = Xml.createPCData(buf.b + HxOverrides.substr(str,start,p - start));
+				buf = new StringBuf();
 				parent.addChild(child);
 				nsubs++;
 				state = 0;
 				next = 2;
+			} else if(c == 38) {
+				buf.addSub(str,start,p - start);
+				state = 18;
+				next = 13;
+				start = p + 1;
 			}
 			break;
 		case 17:
@@ -3020,7 +1664,7 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 			if(!(c >= 97 && c <= 122 || c >= 65 && c <= 90 || c >= 48 && c <= 57 || c == 58 || c == 46 || c == 95 || c == 45)) {
 				if(start == p) throw "Expected node name";
 				var v = HxOverrides.substr(str,start,p - start);
-				if(v != parent.getNodeName()) throw "Expected </" + parent.getNodeName() + ">";
+				if(v != parent.get_nodeName()) throw "Expected </" + parent.get_nodeName() + ">";
 				state = 0;
 				next = 12;
 				continue;
@@ -3043,8 +1687,19 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 			if(c == 63 && str.charCodeAt(p + 1) == 62) {
 				p++;
 				var str1 = HxOverrides.substr(str,start + 1,p - start - 2);
-				parent.addChild(Xml.createProlog(str1));
+				parent.addChild(Xml.createProcessingInstruction(str1));
 				state = 1;
+			}
+			break;
+		case 18:
+			if(c == 59) {
+				var s = HxOverrides.substr(str,start,p - start);
+				if(s.charCodeAt(0) == 35) {
+					var i = s.charCodeAt(1) == 120?Std.parseInt("0" + HxOverrides.substr(s,1,s.length - 1)):Std.parseInt(HxOverrides.substr(s,1,s.length - 1));
+					buf.b += Std.string(String.fromCharCode(i));
+				} else if(!haxe.xml.Parser.escapes.exists(s)) buf.b += Std.string("&" + s + ";"); else buf.b += Std.string(haxe.xml.Parser.escapes.get(s));
+				start = p + 1;
+				state = next;
 			}
 			break;
 		}
@@ -3055,39 +1710,15 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 		state = 13;
 	}
 	if(state == 13) {
-		if(p != start || nsubs == 0) parent.addChild(Xml.createPCData(HxOverrides.substr(str,start,p - start)));
+		if(p != start || nsubs == 0) parent.addChild(Xml.createPCData(buf.b + HxOverrides.substr(str,start,p - start)));
 		return p;
 	}
 	throw "Unexpected end";
 }
-haxe.xml.Parser.isValidChar = function(c) {
-	return c >= 97 && c <= 122 || c >= 65 && c <= 90 || c >= 48 && c <= 57 || c == 58 || c == 46 || c == 95 || c == 45;
-}
-var js = js || {}
-js.Boot = $hxClasses["js.Boot"] = function() { }
+var js = {}
+js.Boot = function() { }
+$hxClasses["js.Boot"] = js.Boot;
 js.Boot.__name__ = ["js","Boot"];
-js.Boot.__unhtml = function(s) {
-	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
-}
-js.Boot.__trace = function(v,i) {
-	var msg = i != null?i.fileName + ":" + i.lineNumber + ": ":"";
-	msg += js.Boot.__string_rec(v,"");
-	var d;
-	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js.Boot.__unhtml(msg) + "<br/>"; else if(typeof(console) != "undefined" && console.log != null) console.log(msg);
-}
-js.Boot.__clear_trace = function() {
-	var d = document.getElementById("haxe:trace");
-	if(d != null) d.innerHTML = "";
-}
-js.Boot.isClass = function(o) {
-	return o.__name__;
-}
-js.Boot.isEnum = function(e) {
-	return e.__ename__;
-}
-js.Boot.getClass = function(o) {
-	return o.__class__;
-}
 js.Boot.__string_rec = function(o,s) {
 	if(o == null) return "null";
 	if(s.length >= 5) return "<...>";
@@ -3169,37 +1800,41 @@ js.Boot.__interfLoop = function(cc,cl) {
 	return js.Boot.__interfLoop(cc.__super__,cl);
 }
 js.Boot.__instanceof = function(o,cl) {
-	try {
-		if(o instanceof cl) {
-			if(cl == Array) return o.__enum__ == null;
-			return true;
-		}
-		if(js.Boot.__interfLoop(o.__class__,cl)) return true;
-	} catch( e ) {
-		if(cl == null) return false;
-	}
+	if(cl == null) return false;
 	switch(cl) {
 	case Int:
-		return Math.ceil(o%2147483648.0) === o;
+		return (o|0) === o;
 	case Float:
 		return typeof(o) == "number";
 	case Bool:
-		return o === true || o === false;
+		return typeof(o) == "boolean";
 	case String:
 		return typeof(o) == "string";
 	case Dynamic:
 		return true;
 	default:
-		if(o == null) return false;
-		if(cl == Class && o.__name__ != null) return true; else null;
-		if(cl == Enum && o.__ename__ != null) return true; else null;
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(o instanceof cl) {
+					if(cl == Array) return o.__enum__ == null;
+					return true;
+				}
+				if(js.Boot.__interfLoop(o.__class__,cl)) return true;
+			}
+		} else return false;
+		if(cl == Class && o.__name__ != null) return true;
+		if(cl == Enum && o.__ename__ != null) return true;
 		return o.__enum__ == cl;
 	}
 }
 js.Boot.__cast = function(o,t) {
 	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
 }
-js.Cookie = $hxClasses["js.Cookie"] = function() { }
+js.Browser = function() { }
+$hxClasses["js.Browser"] = js.Browser;
+js.Browser.__name__ = ["js","Browser"];
+js.Cookie = function() { }
+$hxClasses["js.Cookie"] = js.Cookie;
 js.Cookie.__name__ = ["js","Cookie"];
 js.Cookie.set = function(name,value,expireDelay,path,domain) {
 	var s = name + "=" + StringTools.urlEncode(value);
@@ -3209,11 +1844,11 @@ js.Cookie.set = function(name,value,expireDelay,path,domain) {
 	}
 	if(path != null) s += ";path=" + path;
 	if(domain != null) s += ";domain=" + domain;
-	js.Lib.document.cookie = s;
+	js.Browser.document.cookie = s;
 }
 js.Cookie.all = function() {
-	var h = new Hash();
-	var a = js.Lib.document.cookie.split(";");
+	var h = new haxe.ds.StringMap();
+	var a = js.Browser.document.cookie.split(";");
 	var _g = 0;
 	while(_g < a.length) {
 		var e = a[_g];
@@ -3228,37 +1863,17 @@ js.Cookie.all = function() {
 js.Cookie.get = function(name) {
 	return js.Cookie.all().get(name);
 }
-js.Cookie.exists = function(name) {
-	return js.Cookie.all().exists(name);
-}
-js.Cookie.remove = function(name,path,domain) {
-	js.Cookie.set(name,"",-10,path,domain);
-}
-js.Lib = $hxClasses["js.Lib"] = function() { }
+js.Lib = function() { }
+$hxClasses["js.Lib"] = js.Lib;
 js.Lib.__name__ = ["js","Lib"];
-js.Lib.document = null;
-js.Lib.window = null;
-js.Lib.debug = function() {
-	debugger;
-}
 js.Lib.alert = function(v) {
 	alert(js.Boot.__string_rec(v,""));
 }
-js.Lib.eval = function(code) {
-	return eval(code);
-}
-js.Lib.setErrorHandler = function(f) {
-	js.Lib.onerror = f;
-}
-var ui = ui || {}
-ui.AgentUi = $hxClasses["ui.AgentUi"] = function() { }
+var ui = {}
+ui.AgentUi = function() { }
+$hxClasses["ui.AgentUi"] = ui.AgentUi;
+$hxExpose(ui.AgentUi, "ui.AgentUi");
 ui.AgentUi.__name__ = ["ui","AgentUi"];
-ui.AgentUi.LOGGER = null;
-ui.AgentUi.CONTENT = null;
-ui.AgentUi.USER = null;
-ui.AgentUi.SERIALIZER = null;
-ui.AgentUi.PROTOCOL = null;
-ui.AgentUi.HOT_KEY_ACTIONS = null;
 ui.AgentUi.main = function() {
 	ui.AgentUi.LOGGER = new ui.log.Logga(ui.log.LogLevel.DEBUG);
 	ui.AgentUi.CONTENT = new ui.observable.ObservableSet(ui.model.ModelObj.identifier);
@@ -3267,7 +1882,7 @@ ui.AgentUi.main = function() {
 	ui.AgentUi.HOT_KEY_ACTIONS = new Array();
 }
 ui.AgentUi.start = function() {
-	new ui.jq.JQ("body").keyup(function(evt) {
+	new $("body").keyup(function(evt) {
 		if(ui.helper.ArrayHelper.hasValues(ui.AgentUi.HOT_KEY_ACTIONS)) {
 			var _g1 = 0, _g = ui.AgentUi.HOT_KEY_ACTIONS.length;
 			while(_g1 < _g) {
@@ -3276,7 +1891,7 @@ ui.AgentUi.start = function() {
 			}
 		}
 	});
-	new ui.jq.JQ("#middleContainer #content #tabs").tabs();
+	new $("#middleContainer #content #tabs").tabs();
 	new ui.widget.MessagingComp("#sideRight #chat").messagingComp();
 	new ui.widget.ConnectionsList("#connections").connectionsList({ });
 	new ui.widget.LabelsList("#labelsList").labelsList();
@@ -3296,14 +1911,14 @@ ui.AgentUi.start = function() {
 	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_CREATE,fireFitWindow);
 	ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(user) {
 		ui.AgentUi.USER = user;
-		ui.model.EventModel.change(ui.model.ModelEvents.AliasLoaded,user._getCurrentAlias());
+		ui.model.EventModel.change(ui.model.ModelEvents.AliasLoaded,user.get_currentAlias());
 	}));
 	ui.model.EventModel.addListener(ui.model.ModelEvents.AliasLoaded,new ui.model.EventListener(function(alias) {
-		ui.AgentUi.USER._setCurrentAlias(alias);
+		ui.AgentUi.USER.set_currentAlias(alias);
 	}));
 	ui.model.EventModel.addListener(ui.model.ModelEvents.FitWindow,fitWindowListener);
-	new ui.jq.JQ("body").click(function(evt) {
-		new ui.jq.JQ(".nonmodalPopup").hide();
+	new $("body").click(function(evt) {
+		new $(".nonmodalPopup").hide();
 	});
 	var urlVars = ui.util.HtmlUtil.getUrlVars();
 	if(ui.helper.StringHelper.isNotBlank(urlVars.uuid)) {
@@ -3317,7 +1932,7 @@ ui.AgentUi.showLogin = function() {
 	var loginComp = new ui.widget.LoginComp(".loginComp");
 	if(loginComp.exists()) loginComp.loginComp("open"); else {
 		loginComp = new ui.widget.LoginComp("<div></div>");
-		loginComp.appendTo(new ui.jq.JQ("body"));
+		loginComp.appendTo(new $("body"));
 		loginComp.loginComp();
 		loginComp.loginComp("open");
 	}
@@ -3326,12 +1941,13 @@ ui.AgentUi.showNewUser = function() {
 	var newUserComp = new ui.widget.NewUserComp(".newUserComp");
 	if(newUserComp.exists()) newUserComp.newUserComp("open"); else {
 		newUserComp = new ui.widget.NewUserComp("<div></div>");
-		newUserComp.appendTo(new ui.jq.JQ("body"));
+		newUserComp.appendTo(new $("body"));
 		newUserComp.newUserComp();
 		newUserComp.newUserComp("open");
 	}
 }
-ui.CrossMojo = $hxClasses["ui.CrossMojo"] = function() { }
+ui.CrossMojo = function() { }
+$hxClasses["ui.CrossMojo"] = ui.CrossMojo;
 ui.CrossMojo.__name__ = ["ui","CrossMojo"];
 ui.CrossMojo.jq = function(selector,arg2) {
 	var v;
@@ -3344,8 +1960,8 @@ ui.CrossMojo.windowConsole = function() {
 ui.CrossMojo.confirm = function() {
 	return confirm;
 }
-if(!ui.api) ui.api = {}
-ui.api.ProtocolHandler = $hxClasses["ui.api.ProtocolHandler"] = function() {
+ui.api = {}
+ui.api.ProtocolHandler = function() {
 	this.filterIsRunning = false;
 	var _g = this;
 	ui.model.EventModel.addListener(ui.model.ModelEvents.FILTER_RUN,new ui.model.EventListener(function(filter) {
@@ -3387,7 +2003,7 @@ ui.api.ProtocolHandler = $hxClasses["ui.api.ProtocolHandler"] = function() {
 	ui.model.EventModel.addListener(ui.model.ModelEvents.CreateLabel,new ui.model.EventListener(function(label) {
 		_g.createLabel(label);
 	}));
-	this.processHash = new Hash();
+	this.processHash = new haxe.ds.StringMap();
 	this.processHash.set(Std.string(ui.api.MsgType.evalResponse),function(data) {
 		var evalResponse = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.EvalResponse);
 		ui.model.EventModel.change(ui.model.ModelEvents.MoreContent,evalResponse.content.pageOfPosts);
@@ -3399,6 +2015,7 @@ ui.api.ProtocolHandler = $hxClasses["ui.api.ProtocolHandler"] = function() {
 	this.processHash.set(Std.string(ui.api.MsgType.sessionPong),function(data) {
 	});
 };
+$hxClasses["ui.api.ProtocolHandler"] = ui.api.ProtocolHandler;
 ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
 ui.api.ProtocolHandler.prototype = {
 	createLabel: function(label) {
@@ -3410,7 +2027,7 @@ ui.api.ProtocolHandler.prototype = {
 		try {
 			new ui.api.StandardRequest(evalRequest,function(data1,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("label successfully submitted");
-				ui.AgentUi.USER._getCurrentAlias().labelSet.add(label);
+				ui.AgentUi.USER.get_currentAlias().labelSet.add(label);
 			}).start();
 		} catch( err ) {
 			var ex = ui.log.Logga.getExceptionInst(err);
@@ -3443,10 +2060,10 @@ ui.api.ProtocolHandler.prototype = {
 				if(data1.msgType == ui.api.MsgType.initializeSessionResponse) try {
 					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.InitializeSessionResponse,false);
 					var user = new ui.model.User();
-					user._setCurrentAlias(response.content.defaultAlias);
+					user.set_currentAlias(response.content.defaultAlias);
 					user.sessionURI = response.content.sessionURI;
-					user._getCurrentAlias().connectionSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfCnxns);
-					user._getCurrentAlias().labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfLabels);
+					user.get_currentAlias().connectionSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfCnxns);
+					user.get_currentAlias().labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfLabels);
 					user.aliasSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfAliases);
 					_g._startPolling(user.sessionURI);
 					ui.AgentUi.LOGGER.error("Enable firing new user event");
@@ -3470,7 +2087,12 @@ ui.api.ProtocolHandler.prototype = {
 		ping.content = new ui.api.SessionPingRequestData();
 		ping.content.sessionURI = sessionURI;
 		this.listeningChannel = new ui.api.LongPollingRequest(ping,function(data,textStatus,jqXHR) {
-			var processor = _g.processHash.get(data.msgType);
+			var processor = (function($this) {
+				var $r;
+				var key = data.msgType;
+				$r = _g.processHash.get(key);
+				return $r;
+			}(this));
 			if(processor == null) {
 				ui.AgentUi.LOGGER.info("long poll response was empty");
 				return;
@@ -3534,10 +2156,10 @@ ui.api.ProtocolHandler.prototype = {
 				if(data.msgType == ui.api.MsgType.initializeSessionResponse) try {
 					var response = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionResponse,false);
 					var user = new ui.model.User();
-					user._setCurrentAlias(response.content.defaultAlias);
+					user.set_currentAlias(response.content.defaultAlias);
 					user.sessionURI = response.content.sessionURI;
-					user._getCurrentAlias().connectionSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfCnxns);
-					user._getCurrentAlias().labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfLabels);
+					user.get_currentAlias().connectionSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfCnxns);
+					user.get_currentAlias().labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfLabels);
 					user.aliasSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfAliases);
 					_g._startPolling(user.sessionURI);
 					ui.AgentUi.LOGGER.error("Enable firing new user event");
@@ -3561,20 +2183,18 @@ ui.api.ProtocolHandler.prototype = {
 			}
 		}
 	}
-	,processHash: null
-	,listeningChannel: null
-	,filterIsRunning: null
 	,__class__: ui.api.ProtocolHandler
 }
-ui.api.HasContent = $hxClasses["ui.api.HasContent"] = function() { }
+ui.api.HasContent = function() { }
+$hxClasses["ui.api.HasContent"] = ui.api.HasContent;
 ui.api.HasContent.__name__ = ["ui","api","HasContent"];
 ui.api.HasContent.prototype = {
-	getContent: null
-	,__class__: ui.api.HasContent
+	__class__: ui.api.HasContent
 }
-ui.api.ProtocolMessage = $hxClasses["ui.api.ProtocolMessage"] = function() { }
+ui.api.ProtocolMessage = function() { }
+$hxClasses["ui.api.ProtocolMessage"] = ui.api.ProtocolMessage;
 ui.api.ProtocolMessage.__name__ = ["ui","api","ProtocolMessage"];
-ui.api.ProtocolMessage.__interfaces__ = [ui.api.HasContent,haxe.rtti.Infos];
+ui.api.ProtocolMessage.__interfaces__ = [ui.api.HasContent];
 ui.api.ProtocolMessage.prototype = {
 	getContent: function() {
 		return (function($this) {
@@ -3583,294 +2203,304 @@ ui.api.ProtocolMessage.prototype = {
 			return $r;
 		}(this));
 	}
-	,msgType: null
 	,__class__: ui.api.ProtocolMessage
 }
-ui.api.Payload = $hxClasses["ui.api.Payload"] = function() {
+ui.api.Payload = function() {
 };
+$hxClasses["ui.api.Payload"] = ui.api.Payload;
 ui.api.Payload.__name__ = ["ui","api","Payload"];
-ui.api.Payload.__interfaces__ = [haxe.rtti.Infos];
 ui.api.Payload.prototype = {
 	__class__: ui.api.Payload
 }
-ui.api.InitializeSessionRequest = $hxClasses["ui.api.InitializeSessionRequest"] = function() {
+ui.api.CreateUserRequest = function() {
+	this.msgType = ui.api.MsgType.evalSubscribeRequest;
+};
+$hxClasses["ui.api.CreateUserRequest"] = ui.api.CreateUserRequest;
+ui.api.CreateUserRequest.__name__ = ["ui","api","CreateUserRequest"];
+ui.api.CreateUserRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.CreateUserRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	getContent: function() {
+		return this.content;
+	}
+	,__class__: ui.api.CreateUserRequest
+});
+ui.api.CreateUserRequestData = function() {
+	ui.api.Payload.call(this);
+};
+$hxClasses["ui.api.CreateUserRequestData"] = ui.api.CreateUserRequestData;
+ui.api.CreateUserRequestData.__name__ = ["ui","api","CreateUserRequestData"];
+ui.api.CreateUserRequestData.__super__ = ui.api.Payload;
+ui.api.CreateUserRequestData.prototype = $extend(ui.api.Payload.prototype,{
+	__class__: ui.api.CreateUserRequestData
+});
+ui.api.InitializeSessionRequest = function() {
 	this.msgType = ui.api.MsgType.initializeSessionRequest;
 };
+$hxClasses["ui.api.InitializeSessionRequest"] = ui.api.InitializeSessionRequest;
 ui.api.InitializeSessionRequest.__name__ = ["ui","api","InitializeSessionRequest"];
 ui.api.InitializeSessionRequest.__super__ = ui.api.ProtocolMessage;
 ui.api.InitializeSessionRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.InitializeSessionRequest
 });
-ui.api.InitializeSessionRequestData = $hxClasses["ui.api.InitializeSessionRequestData"] = function() {
+ui.api.InitializeSessionRequestData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.InitializeSessionRequestData"] = ui.api.InitializeSessionRequestData;
 ui.api.InitializeSessionRequestData.__name__ = ["ui","api","InitializeSessionRequestData"];
 ui.api.InitializeSessionRequestData.__super__ = ui.api.Payload;
 ui.api.InitializeSessionRequestData.prototype = $extend(ui.api.Payload.prototype,{
-	agentURI: null
-	,__class__: ui.api.InitializeSessionRequestData
+	__class__: ui.api.InitializeSessionRequestData
 });
-ui.api.InitializeSessionResponse = $hxClasses["ui.api.InitializeSessionResponse"] = function() {
+ui.api.InitializeSessionResponse = function() {
 	this.msgType = ui.api.MsgType.initializeSessionResponse;
 };
+$hxClasses["ui.api.InitializeSessionResponse"] = ui.api.InitializeSessionResponse;
 ui.api.InitializeSessionResponse.__name__ = ["ui","api","InitializeSessionResponse"];
 ui.api.InitializeSessionResponse.__super__ = ui.api.ProtocolMessage;
 ui.api.InitializeSessionResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.InitializeSessionResponse
 });
-ui.api.InitializeSessionResponseData = $hxClasses["ui.api.InitializeSessionResponseData"] = function() {
+ui.api.InitializeSessionResponseData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.InitializeSessionResponseData"] = ui.api.InitializeSessionResponseData;
 ui.api.InitializeSessionResponseData.__name__ = ["ui","api","InitializeSessionResponseData"];
 ui.api.InitializeSessionResponseData.__super__ = ui.api.Payload;
 ui.api.InitializeSessionResponseData.prototype = $extend(ui.api.Payload.prototype,{
-	lastActiveFilter: null
-	,listOfCnxns: null
-	,listOfLabels: null
-	,defaultAlias: null
-	,listOfAliases: null
-	,sessionURI: null
-	,__class__: ui.api.InitializeSessionResponseData
+	__class__: ui.api.InitializeSessionResponseData
 });
-ui.api.InitializeSessionError = $hxClasses["ui.api.InitializeSessionError"] = function() {
+ui.api.InitializeSessionError = function() {
 	this.msgType = ui.api.MsgType.initializeSessionError;
 };
+$hxClasses["ui.api.InitializeSessionError"] = ui.api.InitializeSessionError;
 ui.api.InitializeSessionError.__name__ = ["ui","api","InitializeSessionError"];
 ui.api.InitializeSessionError.__super__ = ui.api.ProtocolMessage;
 ui.api.InitializeSessionError.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.InitializeSessionError
 });
-ui.api.InitializeSessionErrorData = $hxClasses["ui.api.InitializeSessionErrorData"] = function() {
+ui.api.InitializeSessionErrorData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.InitializeSessionErrorData"] = ui.api.InitializeSessionErrorData;
 ui.api.InitializeSessionErrorData.__name__ = ["ui","api","InitializeSessionErrorData"];
 ui.api.InitializeSessionErrorData.__super__ = ui.api.Payload;
 ui.api.InitializeSessionErrorData.prototype = $extend(ui.api.Payload.prototype,{
-	reason: null
-	,agentURI: null
-	,__class__: ui.api.InitializeSessionErrorData
+	__class__: ui.api.InitializeSessionErrorData
 });
-ui.api.SessionPingRequest = $hxClasses["ui.api.SessionPingRequest"] = function() {
+ui.api.SessionPingRequest = function() {
 	this.msgType = ui.api.MsgType.sessionPing;
 };
+$hxClasses["ui.api.SessionPingRequest"] = ui.api.SessionPingRequest;
 ui.api.SessionPingRequest.__name__ = ["ui","api","SessionPingRequest"];
 ui.api.SessionPingRequest.__super__ = ui.api.ProtocolMessage;
 ui.api.SessionPingRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.SessionPingRequest
 });
-ui.api.SessionPingRequestData = $hxClasses["ui.api.SessionPingRequestData"] = function() {
+ui.api.SessionPingRequestData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.SessionPingRequestData"] = ui.api.SessionPingRequestData;
 ui.api.SessionPingRequestData.__name__ = ["ui","api","SessionPingRequestData"];
 ui.api.SessionPingRequestData.__super__ = ui.api.Payload;
 ui.api.SessionPingRequestData.prototype = $extend(ui.api.Payload.prototype,{
-	sessionURI: null
-	,__class__: ui.api.SessionPingRequestData
+	__class__: ui.api.SessionPingRequestData
 });
-ui.api.SessionPongResponse = $hxClasses["ui.api.SessionPongResponse"] = function() {
+ui.api.SessionPongResponse = function() {
 	this.msgType = ui.api.MsgType.sessionPong;
 };
+$hxClasses["ui.api.SessionPongResponse"] = ui.api.SessionPongResponse;
 ui.api.SessionPongResponse.__name__ = ["ui","api","SessionPongResponse"];
 ui.api.SessionPongResponse.__super__ = ui.api.ProtocolMessage;
 ui.api.SessionPongResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.SessionPongResponse
 });
-ui.api.SessionPongResponseData = $hxClasses["ui.api.SessionPongResponseData"] = function() {
+ui.api.SessionPongResponseData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.SessionPongResponseData"] = ui.api.SessionPongResponseData;
 ui.api.SessionPongResponseData.__name__ = ["ui","api","SessionPongResponseData"];
 ui.api.SessionPongResponseData.__super__ = ui.api.Payload;
 ui.api.SessionPongResponseData.prototype = $extend(ui.api.Payload.prototype,{
-	sessionURI: null
-	,__class__: ui.api.SessionPongResponseData
+	__class__: ui.api.SessionPongResponseData
 });
-ui.api.CloseSessionRequest = $hxClasses["ui.api.CloseSessionRequest"] = function() {
+ui.api.CloseSessionRequest = function() {
 	this.msgType = ui.api.MsgType.closeSessionRequest;
 };
+$hxClasses["ui.api.CloseSessionRequest"] = ui.api.CloseSessionRequest;
 ui.api.CloseSessionRequest.__name__ = ["ui","api","CloseSessionRequest"];
 ui.api.CloseSessionRequest.__super__ = ui.api.ProtocolMessage;
 ui.api.CloseSessionRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.CloseSessionRequest
 });
-ui.api.CloseSessionResponse = $hxClasses["ui.api.CloseSessionResponse"] = function() {
+ui.api.CloseSessionResponse = function() {
 	this.msgType = ui.api.MsgType.closeSessionResponse;
 };
+$hxClasses["ui.api.CloseSessionResponse"] = ui.api.CloseSessionResponse;
 ui.api.CloseSessionResponse.__name__ = ["ui","api","CloseSessionResponse"];
 ui.api.CloseSessionResponse.__super__ = ui.api.ProtocolMessage;
 ui.api.CloseSessionResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.CloseSessionResponse
 });
-ui.api.CloseSessionData = $hxClasses["ui.api.CloseSessionData"] = function() {
+ui.api.CloseSessionData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.CloseSessionData"] = ui.api.CloseSessionData;
 ui.api.CloseSessionData.__name__ = ["ui","api","CloseSessionData"];
 ui.api.CloseSessionData.__super__ = ui.api.Payload;
 ui.api.CloseSessionData.prototype = $extend(ui.api.Payload.prototype,{
-	sessionURI: null
-	,__class__: ui.api.CloseSessionData
+	__class__: ui.api.CloseSessionData
 });
-ui.api.EvalRequest = $hxClasses["ui.api.EvalRequest"] = function() {
-	this.msgType = ui.api.MsgType.evalRequest;
+ui.api.EvalRequest = function() {
+	this.msgType = ui.api.MsgType.evalSubscribeRequest;
 };
+$hxClasses["ui.api.EvalRequest"] = ui.api.EvalRequest;
 ui.api.EvalRequest.__name__ = ["ui","api","EvalRequest"];
 ui.api.EvalRequest.__super__ = ui.api.ProtocolMessage;
 ui.api.EvalRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.EvalRequest
 });
-ui.api.EvalRequestData = $hxClasses["ui.api.EvalRequestData"] = function() {
+ui.api.EvalRequestData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.EvalRequestData"] = ui.api.EvalRequestData;
 ui.api.EvalRequestData.__name__ = ["ui","api","EvalRequestData"];
 ui.api.EvalRequestData.__super__ = ui.api.Payload;
 ui.api.EvalRequestData.prototype = $extend(ui.api.Payload.prototype,{
-	expression: null
-	,sessionURI: null
-	,__class__: ui.api.EvalRequestData
+	__class__: ui.api.EvalRequestData
 });
-ui.api.EvalNextPageRequest = $hxClasses["ui.api.EvalNextPageRequest"] = function() {
-	this.msgType = ui.api.MsgType.evalRequest;
+ui.api.EvalNextPageRequest = function() {
+	this.msgType = ui.api.MsgType.evalSubscribeRequest;
 };
+$hxClasses["ui.api.EvalNextPageRequest"] = ui.api.EvalNextPageRequest;
 ui.api.EvalNextPageRequest.__name__ = ["ui","api","EvalNextPageRequest"];
 ui.api.EvalNextPageRequest.__super__ = ui.api.ProtocolMessage;
 ui.api.EvalNextPageRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.EvalNextPageRequest
 });
-ui.api.EvalNextPageRequestData = $hxClasses["ui.api.EvalNextPageRequestData"] = function() {
+ui.api.EvalNextPageRequestData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.EvalNextPageRequestData"] = ui.api.EvalNextPageRequestData;
 ui.api.EvalNextPageRequestData.__name__ = ["ui","api","EvalNextPageRequestData"];
 ui.api.EvalNextPageRequestData.__super__ = ui.api.Payload;
 ui.api.EvalNextPageRequestData.prototype = $extend(ui.api.Payload.prototype,{
-	nextPage: null
-	,sessionURI: null
-	,__class__: ui.api.EvalNextPageRequestData
+	__class__: ui.api.EvalNextPageRequestData
 });
-ui.api.EvalResponse = $hxClasses["ui.api.EvalResponse"] = function() {
+ui.api.EvalResponse = function() {
 	this.msgType = ui.api.MsgType.evalResponse;
 };
+$hxClasses["ui.api.EvalResponse"] = ui.api.EvalResponse;
 ui.api.EvalResponse.__name__ = ["ui","api","EvalResponse"];
 ui.api.EvalResponse.__super__ = ui.api.ProtocolMessage;
 ui.api.EvalResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.EvalResponse
 });
-ui.api.EvalComplete = $hxClasses["ui.api.EvalComplete"] = function() {
+ui.api.EvalComplete = function() {
 	this.msgType = ui.api.MsgType.evalComplete;
 };
+$hxClasses["ui.api.EvalComplete"] = ui.api.EvalComplete;
 ui.api.EvalComplete.__name__ = ["ui","api","EvalComplete"];
 ui.api.EvalComplete.__super__ = ui.api.ProtocolMessage;
 ui.api.EvalComplete.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.EvalComplete
 });
-ui.api.EvalResponseData = $hxClasses["ui.api.EvalResponseData"] = function() {
+ui.api.EvalResponseData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.EvalResponseData"] = ui.api.EvalResponseData;
 ui.api.EvalResponseData.__name__ = ["ui","api","EvalResponseData"];
 ui.api.EvalResponseData.__super__ = ui.api.Payload;
 ui.api.EvalResponseData.prototype = $extend(ui.api.Payload.prototype,{
-	pageOfPosts: null
-	,sessionURI: null
-	,__class__: ui.api.EvalResponseData
+	__class__: ui.api.EvalResponseData
 });
-ui.api.EvalError = $hxClasses["ui.api.EvalError"] = function() {
+ui.api.EvalError = function() {
 	this.msgType = ui.api.MsgType.evalError;
 };
+$hxClasses["ui.api.EvalError"] = ui.api.EvalError;
 ui.api.EvalError.__name__ = ["ui","api","EvalError"];
 ui.api.EvalError.__super__ = ui.api.ProtocolMessage;
 ui.api.EvalError.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.EvalError
 });
-ui.api.EvalErrorData = $hxClasses["ui.api.EvalErrorData"] = function() {
+ui.api.EvalErrorData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.EvalErrorData"] = ui.api.EvalErrorData;
 ui.api.EvalErrorData.__name__ = ["ui","api","EvalErrorData"];
 ui.api.EvalErrorData.__super__ = ui.api.Payload;
 ui.api.EvalErrorData.prototype = $extend(ui.api.Payload.prototype,{
-	errorMsg: null
-	,sessionURI: null
-	,__class__: ui.api.EvalErrorData
+	__class__: ui.api.EvalErrorData
 });
-ui.api.StopEvalRequest = $hxClasses["ui.api.StopEvalRequest"] = function() {
+ui.api.StopEvalRequest = function() {
 	this.msgType = ui.api.MsgType.stopEvalRequest;
 };
+$hxClasses["ui.api.StopEvalRequest"] = ui.api.StopEvalRequest;
 ui.api.StopEvalRequest.__name__ = ["ui","api","StopEvalRequest"];
 ui.api.StopEvalRequest.__super__ = ui.api.ProtocolMessage;
 ui.api.StopEvalRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.StopEvalRequest
 });
-ui.api.StopEvalResponse = $hxClasses["ui.api.StopEvalResponse"] = function() {
+ui.api.StopEvalResponse = function() {
 	this.msgType = ui.api.MsgType.stopEvalResponse;
 };
+$hxClasses["ui.api.StopEvalResponse"] = ui.api.StopEvalResponse;
 ui.api.StopEvalResponse.__name__ = ["ui","api","StopEvalResponse"];
 ui.api.StopEvalResponse.__super__ = ui.api.ProtocolMessage;
 ui.api.StopEvalResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	getContent: function() {
 		return this.content;
 	}
-	,content: null
 	,__class__: ui.api.StopEvalResponse
 });
-ui.api.StopMsgData = $hxClasses["ui.api.StopMsgData"] = function() {
+ui.api.StopMsgData = function() {
 	ui.api.Payload.call(this);
 };
+$hxClasses["ui.api.StopMsgData"] = ui.api.StopMsgData;
 ui.api.StopMsgData.__name__ = ["ui","api","StopMsgData"];
 ui.api.StopMsgData.__super__ = ui.api.Payload;
 ui.api.StopMsgData.prototype = $extend(ui.api.Payload.prototype,{
-	sessionURI: null
-	,__class__: ui.api.StopMsgData
+	__class__: ui.api.StopMsgData
 });
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createAgentRequest"] }
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createAgentRequest"] }
 ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
 ui.api.MsgType.initializeSessionRequest.toString = $estr;
 ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
@@ -3892,9 +2522,9 @@ ui.api.MsgType.closeSessionRequest.__enum__ = ui.api.MsgType;
 ui.api.MsgType.closeSessionResponse = ["closeSessionResponse",6];
 ui.api.MsgType.closeSessionResponse.toString = $estr;
 ui.api.MsgType.closeSessionResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.evalRequest = ["evalRequest",7];
-ui.api.MsgType.evalRequest.toString = $estr;
-ui.api.MsgType.evalRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.evalSubscribeRequest = ["evalSubscribeRequest",7];
+ui.api.MsgType.evalSubscribeRequest.toString = $estr;
+ui.api.MsgType.evalSubscribeRequest.__enum__ = ui.api.MsgType;
 ui.api.MsgType.evalResponse = ["evalResponse",8];
 ui.api.MsgType.evalResponse.toString = $estr;
 ui.api.MsgType.evalResponse.__enum__ = ui.api.MsgType;
@@ -3913,17 +2543,18 @@ ui.api.MsgType.stopEvalResponse.__enum__ = ui.api.MsgType;
 ui.api.MsgType.createAgentRequest = ["createAgentRequest",13];
 ui.api.MsgType.createAgentRequest.toString = $estr;
 ui.api.MsgType.createAgentRequest.__enum__ = ui.api.MsgType;
-ui.api.Requester = $hxClasses["ui.api.Requester"] = function() { }
+ui.api.Reason = $hxClasses["ui.api.Reason"] = { __ename__ : ["ui","api","Reason"], __constructs__ : [] }
+ui.api.Requester = function() { }
+$hxClasses["ui.api.Requester"] = ui.api.Requester;
 ui.api.Requester.__name__ = ["ui","api","Requester"];
 ui.api.Requester.prototype = {
-	abort: null
-	,start: null
-	,__class__: ui.api.Requester
+	__class__: ui.api.Requester
 }
-ui.api.StandardRequest = $hxClasses["ui.api.StandardRequest"] = function(request,successFcn) {
+ui.api.StandardRequest = function(request,successFcn) {
 	this.request = request;
 	this.successFcn = successFcn;
 };
+$hxClasses["ui.api.StandardRequest"] = ui.api.StandardRequest;
 ui.api.StandardRequest.__name__ = ["ui","api","StandardRequest"];
 ui.api.StandardRequest.__interfaces__ = [ui.api.Requester];
 ui.api.StandardRequest.prototype = {
@@ -3931,15 +2562,13 @@ ui.api.StandardRequest.prototype = {
 	}
 	,start: function() {
 		ui.AgentUi.LOGGER.debug("send " + Std.string(this.request.msgType));
-		ui.jq.JQ.ajax({ async : true, url : ui.AgentUi.URL + "/api", data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
+		$.ajax({ async : true, url : ui.AgentUi.URL + "/api", data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
 			throw new ui.exception.Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 		}});
 	}
-	,successFcn: null
-	,request: null
 	,__class__: ui.api.StandardRequest
 }
-ui.api.LongPollingRequest = $hxClasses["ui.api.LongPollingRequest"] = function(requestToRepeat,successFcn) {
+ui.api.LongPollingRequest = function(requestToRepeat,successFcn) {
 	this.stop = false;
 	var _g = this;
 	this.request = requestToRepeat;
@@ -3953,18 +2582,22 @@ ui.api.LongPollingRequest = $hxClasses["ui.api.LongPollingRequest"] = function(r
 		}
 	});
 };
+$hxClasses["ui.api.LongPollingRequest"] = ui.api.LongPollingRequest;
 ui.api.LongPollingRequest.__name__ = ["ui","api","LongPollingRequest"];
 ui.api.LongPollingRequest.__interfaces__ = [ui.api.Requester];
 ui.api.LongPollingRequest.prototype = {
 	poll: function() {
 		var _g = this;
-		if(!this.stop) this.jqXHR = ui.jq.JQ.ajax({ url : ui.AgentUi.URL + "/api", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
-			if(!_g.stop) _g.successFcn(data,textStatus,jqXHR);
-		}, error : function(jqXHR,textStatus,errorThrown) {
-			ui.AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
-		}, complete : function(jqXHR,textStatus) {
-			_g.poll();
-		}, timeout : 30000});
+		if(!this.stop) {
+			var ajaxOpts = { url : ui.AgentUi.URL + "/api", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
+				if(!_g.stop) _g.successFcn(data,textStatus,jqXHR);
+			}, error : function(jqXHR,textStatus,errorThrown) {
+				ui.AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+			}, complete : function(jqXHR,textStatus) {
+				_g.poll();
+			}, timeout : 30000};
+			this.jqXHR = $.ajax(ajaxOpts);
+		}
 	}
 	,abort: function() {
 		this.stop = true;
@@ -3978,18 +2611,11 @@ ui.api.LongPollingRequest.prototype = {
 	,start: function() {
 		this.poll();
 	}
-	,successFcn: null
-	,stop: null
-	,requestJson: null
-	,request: null
-	,jqXHR: null
 	,__class__: ui.api.LongPollingRequest
 }
-ui.api.TestDao = $hxClasses["ui.api.TestDao"] = function() { }
+ui.api.TestDao = function() { }
+$hxClasses["ui.api.TestDao"] = ui.api.TestDao;
 ui.api.TestDao.__name__ = ["ui","api","TestDao"];
-ui.api.TestDao.connections = null;
-ui.api.TestDao.labels = null;
-ui.api.TestDao.aliases = null;
 ui.api.TestDao.buildConnections = function() {
 	ui.api.TestDao.connections = new Array();
 	var george = new ui.model.Connection("George","Costanza","media/test/george.jpg");
@@ -4065,7 +2691,7 @@ ui.api.TestDao.generateContent = function(node) {
 	audioContent.audioType = "audio/mpeg";
 	audioContent.connectionSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
 	audioContent.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) audioContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else audioContent.creator = ui.AgentUi.USER._getCurrentAlias().uid;
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) audioContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else audioContent.creator = ui.AgentUi.USER.get_currentAlias().uid;
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,audioContent,2);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,audioContent,2);
 	audioContent.title = "Hello Newman Compilation";
@@ -4077,7 +2703,7 @@ ui.api.TestDao.generateContent = function(node) {
 	img.caption = "Soup Kitchen";
 	img.connectionSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
 	img.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER._getCurrentAlias().uid;
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER.get_currentAlias().uid;
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
 	content.push(img);
@@ -4088,7 +2714,7 @@ ui.api.TestDao.generateContent = function(node) {
 	img.caption = "Apartment";
 	img.connectionSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
 	img.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER._getCurrentAlias().uid;
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER.get_currentAlias().uid;
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
 	content.push(img);
@@ -4099,7 +2725,7 @@ ui.api.TestDao.generateContent = function(node) {
 	img.caption = "The Junior Mint!";
 	img.connectionSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
 	img.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER._getCurrentAlias().uid;
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER.get_currentAlias().uid;
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,3);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
 	content.push(img);
@@ -4110,7 +2736,7 @@ ui.api.TestDao.generateContent = function(node) {
 	img.caption = "Retro";
 	img.connectionSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
 	img.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER._getCurrentAlias().uid;
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER.get_currentAlias().uid;
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,3);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
 	content.push(img);
@@ -4121,7 +2747,7 @@ ui.api.TestDao.generateContent = function(node) {
 	img.caption = "Jerry Delivering the mail";
 	img.connectionSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
 	img.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER._getCurrentAlias().uid;
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER.get_currentAlias().uid;
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
 	content.push(img);
@@ -4132,7 +2758,7 @@ ui.api.TestDao.generateContent = function(node) {
 	img.caption = "Stuck in the closet!";
 	img.connectionSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
 	img.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER._getCurrentAlias().uid;
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else img.creator = ui.AgentUi.USER.get_currentAlias().uid;
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
 	content.push(img);
@@ -4143,7 +2769,7 @@ ui.api.TestDao.generateContent = function(node) {
 	urlContent.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier);
 	urlContent.text = "Check out this link";
 	urlContent.url = "http://www.bing.com";
-	if(ui.helper.ArrayHelper.hasValues(availableConnections)) urlContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else urlContent.creator = ui.AgentUi.USER._getCurrentAlias().uid;
+	if(ui.helper.ArrayHelper.hasValues(availableConnections)) urlContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).uid; else urlContent.creator = ui.AgentUi.USER.get_currentAlias().uid;
 	if(ui.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,urlContent,1);
 	if(ui.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,urlContent,2);
 	content.push(urlContent);
@@ -4273,7 +2899,7 @@ ui.api.TestDao.getUser = function(uid) {
 	var alias = ui.api.TestDao.aliases[0];
 	alias.connectionSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,ui.api.TestDao.connections);
 	alias.labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,ui.api.TestDao.labels);
-	user._setCurrentAlias(alias);
+	user.set_currentAlias(alias);
 	return user;
 }
 ui.api.TestDao.getAlias = function(uid) {
@@ -4283,16 +2909,17 @@ ui.api.TestDao.getAlias = function(uid) {
 	alias.labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,ui.api.TestDao.labels);
 	return alias;
 }
-if(!ui.exception) ui.exception = {}
-ui.exception.Exception = $hxClasses["ui.exception.Exception"] = function(message,cause) {
+ui.exception = {}
+ui.exception.Exception = function(message,cause) {
 	this.message = message;
 	this.cause = cause;
-	this.callStack = haxe.Stack.callStack();
+	this.callStack = haxe.CallStack.callStack();
 };
+$hxClasses["ui.exception.Exception"] = ui.exception.Exception;
 ui.exception.Exception.__name__ = ["ui","exception","Exception"];
 ui.exception.Exception.prototype = {
 	messageList: function() {
-		return Lambda.map(this.chain(),function(e) {
+		return this.chain().map(function(e) {
 			return e.message;
 		});
 	}
@@ -4334,32 +2961,30 @@ ui.exception.Exception.prototype = {
 		var ch = this.chain();
 		return ch[ch.length - 1];
 	}
-	,message: null
-	,cause: null
-	,callStack: null
 	,__class__: ui.exception.Exception
 }
-ui.exception.AjaxException = $hxClasses["ui.exception.AjaxException"] = function(message,cause) {
+ui.exception.AjaxException = function(message,cause) {
 	ui.exception.Exception.call(this,message,cause);
 };
+$hxClasses["ui.exception.AjaxException"] = ui.exception.AjaxException;
 ui.exception.AjaxException.__name__ = ["ui","exception","AjaxException"];
 ui.exception.AjaxException.__super__ = ui.exception.Exception;
 ui.exception.AjaxException.prototype = $extend(ui.exception.Exception.prototype,{
-	statusCode: null
-	,__class__: ui.exception.AjaxException
+	__class__: ui.exception.AjaxException
 });
-ui.exception.InitializeSessionException = $hxClasses["ui.exception.InitializeSessionException"] = function(error,message,cause) {
+ui.exception.InitializeSessionException = function(error,message,cause) {
 	ui.exception.Exception.call(this,message,cause);
 	this.error = error;
 };
+$hxClasses["ui.exception.InitializeSessionException"] = ui.exception.InitializeSessionException;
 ui.exception.InitializeSessionException.__name__ = ["ui","exception","InitializeSessionException"];
 ui.exception.InitializeSessionException.__super__ = ui.exception.Exception;
 ui.exception.InitializeSessionException.prototype = $extend(ui.exception.Exception.prototype,{
-	error: null
-	,__class__: ui.exception.InitializeSessionException
+	__class__: ui.exception.InitializeSessionException
 });
-if(!ui.helper) ui.helper = {}
-ui.helper.ArrayHelper = $hxClasses["ui.helper.ArrayHelper"] = function() { }
+ui.helper = {}
+ui.helper.ArrayHelper = function() { }
+$hxClasses["ui.helper.ArrayHelper"] = ui.helper.ArrayHelper;
 ui.helper.ArrayHelper.__name__ = ["ui","helper","ArrayHelper"];
 ui.helper.ArrayHelper.indexOf = function(array,t) {
 	if(array == null) return -1;
@@ -4557,7 +3182,8 @@ ui.helper.ArrayHelper.joinX = function(array,sep) {
 	}
 	return s;
 }
-ui.helper.ModelHelper = $hxClasses["ui.helper.ModelHelper"] = function() { }
+ui.helper.ModelHelper = function() { }
+$hxClasses["ui.helper.ModelHelper"] = ui.helper.ModelHelper;
 ui.helper.ModelHelper.__name__ = ["ui","helper","ModelHelper"];
 ui.helper.ModelHelper.asConnection = function(alias) {
 	var conn = new ui.model.Connection();
@@ -4566,7 +3192,8 @@ ui.helper.ModelHelper.asConnection = function(alias) {
 	conn.fname = alias.label;
 	return conn;
 }
-ui.helper.OSetHelper = $hxClasses["ui.helper.OSetHelper"] = function() { }
+ui.helper.OSetHelper = function() { }
+$hxClasses["ui.helper.OSetHelper"] = ui.helper.OSetHelper;
 ui.helper.OSetHelper.__name__ = ["ui","helper","OSetHelper"];
 ui.helper.OSetHelper.getElementComplex = function(oset,value,propOrFcn,startingIndex) {
 	if(startingIndex == null) startingIndex = 0;
@@ -4607,7 +3234,8 @@ ui.helper.OSetHelper.joinX = function(oset,sep,getString) {
 ui.helper.OSetHelper.strIdentifier = function(str) {
 	return str;
 }
-ui.helper.StringHelper = $hxClasses["ui.helper.StringHelper"] = function() { }
+ui.helper.StringHelper = function() { }
+$hxClasses["ui.helper.StringHelper"] = ui.helper.StringHelper;
 ui.helper.StringHelper.__name__ = ["ui","helper","StringHelper"];
 ui.helper.StringHelper.compare = function(left,right) {
 	if(left < right) return -1; else if(left > right) return 1; else return 0;
@@ -4634,7 +3262,7 @@ ui.helper.StringHelper.capitalizeFirstLetter = function(str) {
 	return HxOverrides.substr(str,0,1).toUpperCase() + HxOverrides.substr(str,1,str.length);
 }
 ui.helper.StringHelper.isBlank = function(str) {
-	return str == null || ui.jq.JQ.trim(str) == "";
+	return str == null || $.trim(str) == "";
 }
 ui.helper.StringHelper.isNotBlank = function(str) {
 	return !ui.helper.StringHelper.isBlank(str);
@@ -4702,7 +3330,7 @@ ui.helper.StringHelper.splitByReg = function(baseString,reg) {
 	if(baseString != null && reg != null) result = reg.split(baseString);
 	return result;
 }
-if(!ui.log) ui.log = {}
+ui.log = {}
 ui.log.LogLevel = $hxClasses["ui.log.LogLevel"] = { __ename__ : ["ui","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] }
 ui.log.LogLevel.TRACE = ["TRACE",0];
 ui.log.LogLevel.TRACE.toString = $estr;
@@ -4719,10 +3347,11 @@ ui.log.LogLevel.WARN.__enum__ = ui.log.LogLevel;
 ui.log.LogLevel.ERROR = ["ERROR",4];
 ui.log.LogLevel.ERROR.toString = $estr;
 ui.log.LogLevel.ERROR.__enum__ = ui.log.LogLevel;
-ui.log.Logga = $hxClasses["ui.log.Logga"] = function(logLevel) {
+ui.log.Logga = function(logLevel) {
 	this.initialized = false;
 	this.loggerLevel = logLevel;
 };
+$hxClasses["ui.log.Logga"] = ui.log.Logga;
 ui.log.Logga.__name__ = ["ui","log","Logga"];
 ui.log.Logga.getExceptionInst = function(err) {
 	if(js.Boot.__instanceof(err,ui.exception.Exception)) return err; else return new ui.exception.Exception(err);
@@ -4778,15 +3407,12 @@ ui.log.Logga.prototype = {
 		this.console = window.console;
 		this.initialized = true;
 	}
-	,initialized: null
-	,console: null
-	,loggerLevel: null
 	,__class__: ui.log.Logga
 }
-if(!ui.model) ui.model = {}
-ui.model.EventModel = $hxClasses["ui.model.EventModel"] = function() { }
+ui.model = {}
+ui.model.EventModel = function() { }
+$hxClasses["ui.model.EventModel"] = ui.model.EventModel;
 ui.model.EventModel.__name__ = ["ui","model","EventModel"];
-ui.model.EventModel.hash = null;
 ui.model.EventModel.addListener = function(id,listener) {
 	var arr = ui.model.EventModel.hash.get(Std.string(id));
 	if(arr == null) {
@@ -4806,20 +3432,19 @@ ui.model.EventModel.change = function(id,t) {
 		}
 	}
 }
-ui.model.EventListener = $hxClasses["ui.model.EventListener"] = function(fcn) {
+ui.model.EventListener = function(fcn) {
 	this.fcn = fcn;
 	this.uid = ui.util.UidGenerator.create(10);
 };
+$hxClasses["ui.model.EventListener"] = ui.model.EventListener;
 ui.model.EventListener.__name__ = ["ui","model","EventListener"];
 ui.model.EventListener.prototype = {
 	change: function(t) {
 		this.fcn(t);
 	}
-	,uid: null
-	,fcn: null
 	,__class__: ui.model.EventListener
 }
-ui.model.Filter = $hxClasses["ui.model.Filter"] = function(node) {
+ui.model.Filter = function(node) {
 	this.rootNode = node;
 	this.connectionNodes = new Array();
 	this.labelNodes = new Array();
@@ -4831,6 +3456,7 @@ ui.model.Filter = $hxClasses["ui.model.Filter"] = function(node) {
 		}
 	}
 };
+$hxClasses["ui.model.Filter"] = ui.model.Filter;
 ui.model.Filter.__name__ = ["ui","model","Filter"];
 ui.model.Filter.prototype = {
 	_kdbxify: function(nodes) {
@@ -4854,9 +3480,6 @@ ui.model.Filter.prototype = {
 		var query = ui.helper.ArrayHelper.joinX(queries,",");
 		return query;
 	}
-	,rootNode: null
-	,connectionNodes: null
-	,labelNodes: null
 	,__class__: ui.model.Filter
 }
 ui.model.ModelEvents = $hxClasses["ui.model.ModelEvents"] = { __ename__ : ["ui","model","ModelEvents"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","USER_LOGIN","USER_CREATE","USER","FitWindow","CreateLabel"] }
@@ -4899,18 +3522,18 @@ ui.model.ModelEvents.FitWindow.__enum__ = ui.model.ModelEvents;
 ui.model.ModelEvents.CreateLabel = ["CreateLabel",12];
 ui.model.ModelEvents.CreateLabel.toString = $estr;
 ui.model.ModelEvents.CreateLabel.__enum__ = ui.model.ModelEvents;
-ui.model.ModelObj = $hxClasses["ui.model.ModelObj"] = function() { }
+ui.model.ModelObj = function() { }
+$hxClasses["ui.model.ModelObj"] = ui.model.ModelObj;
 ui.model.ModelObj.__name__ = ["ui","model","ModelObj"];
-ui.model.ModelObj.__interfaces__ = [haxe.rtti.Infos];
 ui.model.ModelObj.identifier = function(t) {
 	return t.uid;
 }
 ui.model.ModelObj.prototype = {
-	uid: null
-	,__class__: ui.model.ModelObj
+	__class__: ui.model.ModelObj
 }
-ui.model.Login = $hxClasses["ui.model.Login"] = function() {
+ui.model.Login = function() {
 };
+$hxClasses["ui.model.Login"] = ui.model.Login;
 ui.model.Login.__name__ = ["ui","model","Login"];
 ui.model.Login.__super__ = ui.model.ModelObj;
 ui.model.Login.prototype = $extend(ui.model.ModelObj.prototype,{
@@ -4923,45 +3546,41 @@ ui.model.Login.prototype = $extend(ui.model.ModelObj.prototype,{
 	}
 	,__class__: ui.model.Login
 });
-ui.model.LoginByUn = $hxClasses["ui.model.LoginByUn"] = function() {
+ui.model.LoginByUn = function() {
 	ui.model.Login.call(this);
 };
+$hxClasses["ui.model.LoginByUn"] = ui.model.LoginByUn;
 ui.model.LoginByUn.__name__ = ["ui","model","LoginByUn"];
 ui.model.LoginByUn.__super__ = ui.model.Login;
 ui.model.LoginByUn.prototype = $extend(ui.model.Login.prototype,{
 	getUri: function() {
-		return "agent://" + this.username + ":" + this.password + "@server:9876/" + this.agency;
+		return "agent://" + this.username + ":" + this.password + "@server:9876/" + this.agency + "?email=george@costanza.com&fullname=George+Costanza";
 	}
-	,agency: null
-	,password: null
-	,username: null
 	,__class__: ui.model.LoginByUn
 });
-ui.model.LoginById = $hxClasses["ui.model.LoginById"] = function() {
+ui.model.LoginById = function() {
 	ui.model.Login.call(this);
 };
+$hxClasses["ui.model.LoginById"] = ui.model.LoginById;
 ui.model.LoginById.__name__ = ["ui","model","LoginById"];
 ui.model.LoginById.__super__ = ui.model.Login;
 ui.model.LoginById.prototype = $extend(ui.model.Login.prototype,{
 	getUri: function() {
 		return "agent://calpop/" + this.id;
 	}
-	,id: null
 	,__class__: ui.model.LoginById
 });
-ui.model.NewUser = $hxClasses["ui.model.NewUser"] = function() {
+ui.model.NewUser = function() {
 };
+$hxClasses["ui.model.NewUser"] = ui.model.NewUser;
 ui.model.NewUser.__name__ = ["ui","model","NewUser"];
 ui.model.NewUser.__super__ = ui.model.ModelObj;
 ui.model.NewUser.prototype = $extend(ui.model.ModelObj.prototype,{
-	pwd: null
-	,email: null
-	,userName: null
-	,name: null
-	,__class__: ui.model.NewUser
+	__class__: ui.model.NewUser
 });
-ui.model.User = $hxClasses["ui.model.User"] = function() {
+ui.model.User = function() {
 };
+$hxClasses["ui.model.User"] = ui.model.User;
 ui.model.User.__name__ = ["ui","model","User"];
 ui.model.User.__super__ = ui.model.ModelObj;
 ui.model.User.prototype = $extend(ui.model.ModelObj.prototype,{
@@ -4975,29 +3594,22 @@ ui.model.User.prototype = $extend(ui.model.ModelObj.prototype,{
 		ui.AgentUi.LOGGER.warn("implement User.hasValidSession");
 		return true;
 	}
-	,_setCurrentAlias: function(alias) {
+	,set_currentAlias: function(alias) {
 		this.currentAlias = alias;
-		return this._getCurrentAlias();
+		return this.get_currentAlias();
 	}
-	,_getCurrentAlias: function() {
-		if(this.currentAlias == null && this.aliasSet != null) this._setCurrentAlias(this.aliasSet.iterator().next()); else if(this.currentAlias == null) {
-			this._setCurrentAlias(new ui.model.Alias());
+	,get_currentAlias: function() {
+		if(this.currentAlias == null && this.aliasSet != null) this.set_currentAlias(this.aliasSet.iterator().next()); else if(this.currentAlias == null) {
+			this.set_currentAlias(new ui.model.Alias());
 			ui.AgentUi.LOGGER.warn("No aliases found for user.");
 		}
 		return this.currentAlias;
 	}
-	,currentAlias: null
-	,aliases: null
-	,aliasSet: null
-	,imgSrc: null
-	,lname: null
-	,fname: null
-	,sessionURI: null
 	,__class__: ui.model.User
-	,__properties__: {set_currentAlias:"_setCurrentAlias",get_currentAlias:"_getCurrentAlias"}
 });
-ui.model.Alias = $hxClasses["ui.model.Alias"] = function() {
+ui.model.Alias = function() {
 };
+$hxClasses["ui.model.Alias"] = ui.model.Alias;
 ui.model.Alias.__name__ = ["ui","model","Alias"];
 ui.model.Alias.__super__ = ui.model.ModelObj;
 ui.model.Alias.prototype = $extend(ui.model.ModelObj.prototype,{
@@ -5009,44 +3621,36 @@ ui.model.Alias.prototype = $extend(ui.model.ModelObj.prototype,{
 		this.labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,this.labels);
 		this.connectionSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,this.connections);
 	}
-	,connections: null
-	,connectionSet: null
-	,labels: null
-	,labelSet: null
-	,label: null
-	,imgSrc: null
 	,__class__: ui.model.Alias
 });
-ui.model.Filterable = $hxClasses["ui.model.Filterable"] = function() { }
+ui.model.Filterable = function() { }
+$hxClasses["ui.model.Filterable"] = ui.model.Filterable;
 ui.model.Filterable.__name__ = ["ui","model","Filterable"];
-ui.model.Label = $hxClasses["ui.model.Label"] = function(text) {
+ui.model.Label = function(text) {
 	this.text = text;
 	this.color = ui.util.ColorProvider.getNextColor();
 };
+$hxClasses["ui.model.Label"] = ui.model.Label;
 ui.model.Label.__name__ = ["ui","model","Label"];
 ui.model.Label.__interfaces__ = [ui.model.Filterable];
 ui.model.Label.__super__ = ui.model.ModelObj;
 ui.model.Label.prototype = $extend(ui.model.ModelObj.prototype,{
-	color: null
-	,parentUid: null
-	,text: null
-	,__class__: ui.model.Label
+	__class__: ui.model.Label
 });
-ui.model.Connection = $hxClasses["ui.model.Connection"] = function(fname,lname,imgSrc) {
+ui.model.Connection = function(fname,lname,imgSrc) {
 	this.fname = fname;
 	this.lname = lname;
 	this.imgSrc = imgSrc;
 };
+$hxClasses["ui.model.Connection"] = ui.model.Connection;
 ui.model.Connection.__name__ = ["ui","model","Connection"];
 ui.model.Connection.__interfaces__ = [ui.model.Filterable];
 ui.model.Connection.__super__ = ui.model.ModelObj;
 ui.model.Connection.prototype = $extend(ui.model.ModelObj.prototype,{
-	imgSrc: null
-	,lname: null
-	,fname: null
-	,__class__: ui.model.Connection
+	__class__: ui.model.Connection
 });
-ui.model.Content = $hxClasses["ui.model.Content"] = function() { }
+ui.model.Content = function() { }
+$hxClasses["ui.model.Content"] = ui.model.Content;
 ui.model.Content.__name__ = ["ui","model","Content"];
 ui.model.Content.__super__ = ui.model.ModelObj;
 ui.model.Content.prototype = $extend(ui.model.ModelObj.prototype,{
@@ -5073,53 +3677,45 @@ ui.model.Content.prototype = $extend(ui.model.ModelObj.prototype,{
 		this.labelSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier,this.labels);
 		this.connectionSet = new ui.observable.ObservableSet(ui.helper.OSetHelper.strIdentifier,this.connections);
 	}
-	,creator: null
-	,connections: null
-	,connectionSet: null
-	,labels: null
-	,labelSet: null
-	,type: null
 	,__class__: ui.model.Content
 });
-ui.model.ImageContent = $hxClasses["ui.model.ImageContent"] = function() {
+ui.model.ImageContent = function() {
 };
+$hxClasses["ui.model.ImageContent"] = ui.model.ImageContent;
 ui.model.ImageContent.__name__ = ["ui","model","ImageContent"];
 ui.model.ImageContent.__super__ = ui.model.Content;
 ui.model.ImageContent.prototype = $extend(ui.model.Content.prototype,{
-	caption: null
-	,imgSrc: null
-	,__class__: ui.model.ImageContent
+	__class__: ui.model.ImageContent
 });
-ui.model.AudioContent = $hxClasses["ui.model.AudioContent"] = function() {
+ui.model.AudioContent = function() {
 };
+$hxClasses["ui.model.AudioContent"] = ui.model.AudioContent;
 ui.model.AudioContent.__name__ = ["ui","model","AudioContent"];
 ui.model.AudioContent.__super__ = ui.model.Content;
 ui.model.AudioContent.prototype = $extend(ui.model.Content.prototype,{
-	title: null
-	,audioType: null
-	,audioSrc: null
-	,__class__: ui.model.AudioContent
+	__class__: ui.model.AudioContent
 });
-ui.model.MessageContent = $hxClasses["ui.model.MessageContent"] = function() {
+ui.model.MessageContent = function() {
 };
+$hxClasses["ui.model.MessageContent"] = ui.model.MessageContent;
 ui.model.MessageContent.__name__ = ["ui","model","MessageContent"];
 ui.model.MessageContent.__super__ = ui.model.Content;
 ui.model.MessageContent.prototype = $extend(ui.model.Content.prototype,{
-	text: null
-	,__class__: ui.model.MessageContent
+	__class__: ui.model.MessageContent
 });
-ui.model.UrlContent = $hxClasses["ui.model.UrlContent"] = function() {
+ui.model.UrlContent = function() {
 	ui.model.MessageContent.call(this);
 };
+$hxClasses["ui.model.UrlContent"] = ui.model.UrlContent;
 ui.model.UrlContent.__name__ = ["ui","model","UrlContent"];
 ui.model.UrlContent.__super__ = ui.model.MessageContent;
 ui.model.UrlContent.prototype = $extend(ui.model.MessageContent.prototype,{
-	url: null
-	,__class__: ui.model.UrlContent
+	__class__: ui.model.UrlContent
 });
-ui.model.Node = $hxClasses["ui.model.Node"] = function() {
+ui.model.Node = function() {
 	this.type = "ROOT";
 };
+$hxClasses["ui.model.Node"] = ui.model.Node;
 ui.model.Node.__name__ = ["ui","model","Node"];
 ui.model.Node.prototype = {
 	getKdbxName: function() {
@@ -5154,13 +3750,12 @@ ui.model.Node.prototype = {
 		ui.AgentUi.LOGGER.debug(msg);
 		ui.AgentUi.LOGGER.debug("===================");
 	}
-	,type: null
-	,nodes: null
 	,__class__: ui.model.Node
 }
-ui.model.And = $hxClasses["ui.model.And"] = function() {
+ui.model.And = function() {
 	this.nodes = new Array();
 };
+$hxClasses["ui.model.And"] = ui.model.And;
 ui.model.And.__name__ = ["ui","model","And"];
 ui.model.And.__super__ = ui.model.Node;
 ui.model.And.prototype = $extend(ui.model.Node.prototype,{
@@ -5172,9 +3767,10 @@ ui.model.And.prototype = $extend(ui.model.Node.prototype,{
 	}
 	,__class__: ui.model.And
 });
-ui.model.Or = $hxClasses["ui.model.Or"] = function() {
+ui.model.Or = function() {
 	this.nodes = new Array();
 };
+$hxClasses["ui.model.Or"] = ui.model.Or;
 ui.model.Or.__name__ = ["ui","model","Or"];
 ui.model.Or.__super__ = ui.model.Node;
 ui.model.Or.prototype = $extend(ui.model.Node.prototype,{
@@ -5186,8 +3782,9 @@ ui.model.Or.prototype = $extend(ui.model.Node.prototype,{
 	}
 	,__class__: ui.model.Or
 });
-ui.model.ContentNode = $hxClasses["ui.model.ContentNode"] = function() {
+ui.model.ContentNode = function() {
 };
+$hxClasses["ui.model.ContentNode"] = ui.model.ContentNode;
 ui.model.ContentNode.__name__ = ["ui","model","ContentNode"];
 ui.model.ContentNode.__super__ = ui.model.Node;
 ui.model.ContentNode.prototype = $extend(ui.model.Node.prototype,{
@@ -5200,27 +3797,21 @@ ui.model.ContentNode.prototype = $extend(ui.model.Node.prototype,{
 	,hasChildren: function() {
 		return false;
 	}
-	,filterable: null
-	,contentUid: null
 	,__class__: ui.model.ContentNode
 });
-if(!ui.observable) ui.observable = {}
-ui.observable.OSet = $hxClasses["ui.observable.OSet"] = function() { }
+ui.observable = {}
+ui.observable.OSet = function() { }
+$hxClasses["ui.observable.OSet"] = ui.observable.OSet;
 ui.observable.OSet.__name__ = ["ui","observable","OSet"];
-ui.observable.OSet.__interfaces__ = [haxe.rtti.Infos];
 ui.observable.OSet.prototype = {
-	delegate: null
-	,iterator: null
-	,listen: null
-	,identifier: null
-	,__class__: ui.observable.OSet
+	__class__: ui.observable.OSet
 }
-ui.observable.EventManager = $hxClasses["ui.observable.EventManager"] = function(set) {
+ui.observable.EventManager = function(set) {
 	this._set = set;
 	this._listeners = [];
 };
+$hxClasses["ui.observable.EventManager"] = ui.observable.EventManager;
 ui.observable.EventManager.__name__ = ["ui","observable","EventManager"];
-ui.observable.EventManager.__interfaces__ = [haxe.rtti.Infos];
 ui.observable.EventManager.prototype = {
 	fire: function(t,type) {
 		Lambda.iter(this._listeners,function(it) {
@@ -5233,15 +3824,14 @@ ui.observable.EventManager.prototype = {
 		});
 		this._listeners.push(l);
 	}
-	,_set: null
-	,_listeners: null
 	,__class__: ui.observable.EventManager
 }
-ui.observable.EventType = $hxClasses["ui.observable.EventType"] = function(name,add,update) {
+ui.observable.EventType = function(name,add,update) {
 	this._name = name;
 	this._add = add;
 	this._update = update;
 };
+$hxClasses["ui.observable.EventType"] = ui.observable.EventType;
 ui.observable.EventType.__name__ = ["ui","observable","EventType"];
 ui.observable.EventType.prototype = {
 	isDelete: function() {
@@ -5259,16 +3849,14 @@ ui.observable.EventType.prototype = {
 	,name: function() {
 		return this._name;
 	}
-	,_update: null
-	,_add: null
-	,_name: null
 	,__class__: ui.observable.EventType
 }
-ui.observable.AbstractSet = $hxClasses["ui.observable.AbstractSet"] = function() {
+ui.observable.AbstractSet = function() {
 	this._eventManager = new ui.observable.EventManager(this);
 };
+$hxClasses["ui.observable.AbstractSet"] = ui.observable.AbstractSet;
 ui.observable.AbstractSet.__name__ = ["ui","observable","AbstractSet"];
-ui.observable.AbstractSet.__interfaces__ = [haxe.rtti.Infos,ui.observable.OSet];
+ui.observable.AbstractSet.__interfaces__ = [ui.observable.OSet];
 ui.observable.AbstractSet.prototype = {
 	delegate: function() {
 		return (function($this) {
@@ -5303,17 +3891,16 @@ ui.observable.AbstractSet.prototype = {
 	,listen: function(l) {
 		this._eventManager.add(l);
 	}
-	,_eventManager: null
 	,__class__: ui.observable.AbstractSet
 }
-ui.observable.ObservableSet = $hxClasses["ui.observable.ObservableSet"] = function(identifier,tArr) {
+ui.observable.ObservableSet = function(identifier,tArr) {
 	ui.observable.AbstractSet.call(this);
 	this._identifier = identifier;
-	this._delegate = new ui.util.SizedHash();
+	this._delegate = new ui.util.SizedMap();
 	if(tArr != null) this.addAll(tArr);
 };
+$hxClasses["ui.observable.ObservableSet"] = ui.observable.ObservableSet;
 ui.observable.ObservableSet.__name__ = ["ui","observable","ObservableSet"];
-ui.observable.ObservableSet.__interfaces__ = [haxe.rtti.Infos];
 ui.observable.ObservableSet.__super__ = ui.observable.AbstractSet;
 ui.observable.ObservableSet.prototype = $extend(ui.observable.AbstractSet.prototype,{
 	asArray: function() {
@@ -5370,14 +3957,12 @@ ui.observable.ObservableSet.prototype = $extend(ui.observable.AbstractSet.protot
 	,add: function(t) {
 		this.addOrUpdate(t);
 	}
-	,_identifier: null
-	,_delegate: null
 	,__class__: ui.observable.ObservableSet
 });
-ui.observable.MappedSet = $hxClasses["ui.observable.MappedSet"] = function(source,mapper) {
+ui.observable.MappedSet = function(source,mapper) {
 	var _g = this;
 	ui.observable.AbstractSet.call(this);
-	this._mappedSet = new Hash();
+	this._mappedSet = new haxe.ds.StringMap();
 	this._source = source;
 	this._source.listen(function(t,type) {
 		var key = (_g._source.identifier())(t);
@@ -5392,6 +3977,7 @@ ui.observable.MappedSet = $hxClasses["ui.observable.MappedSet"] = function(sourc
 		_g.fire(mappedValue,type);
 	});
 };
+$hxClasses["ui.observable.MappedSet"] = ui.observable.MappedSet;
 ui.observable.MappedSet.__name__ = ["ui","observable","MappedSet"];
 ui.observable.MappedSet.__super__ = ui.observable.AbstractSet;
 ui.observable.MappedSet.prototype = $extend(ui.observable.AbstractSet.prototype,{
@@ -5412,15 +3998,12 @@ ui.observable.MappedSet.prototype = $extend(ui.observable.AbstractSet.prototype,
 	,identifier: function() {
 		return $bind(this,this.identify);
 	}
-	,_mappedSet: null
-	,_mapper: null
-	,_source: null
 	,__class__: ui.observable.MappedSet
 });
-ui.observable.FilteredSet = $hxClasses["ui.observable.FilteredSet"] = function(source,filter) {
+ui.observable.FilteredSet = function(source,filter) {
 	var _g = this;
 	ui.observable.AbstractSet.call(this);
-	this._filteredSet = new Hash();
+	this._filteredSet = new haxe.ds.StringMap();
 	this._source = source;
 	this._filter = filter;
 	this._identifier = source.identifier();
@@ -5434,6 +4017,7 @@ ui.observable.FilteredSet = $hxClasses["ui.observable.FilteredSet"] = function(s
 		}
 	});
 };
+$hxClasses["ui.observable.FilteredSet"] = ui.observable.FilteredSet;
 ui.observable.FilteredSet.__name__ = ["ui","observable","FilteredSet"];
 ui.observable.FilteredSet.__super__ = ui.observable.AbstractSet;
 ui.observable.FilteredSet.prototype = $extend(ui.observable.AbstractSet.prototype,{
@@ -5466,19 +4050,15 @@ ui.observable.FilteredSet.prototype = $extend(ui.observable.AbstractSet.prototyp
 	,delegate: function() {
 		return this._filteredSet;
 	}
-	,_identifier: null
-	,_filter: null
-	,_source: null
-	,_filteredSet: null
 	,__class__: ui.observable.FilteredSet
 });
-ui.observable.GroupedSet = $hxClasses["ui.observable.GroupedSet"] = function(source,groupingFn) {
+ui.observable.GroupedSet = function(source,groupingFn) {
 	var _g = this;
 	ui.observable.AbstractSet.call(this);
 	this._source = source;
 	this._groupingFn = groupingFn;
-	this._groupedSets = new Hash();
-	this._identityToGrouping = new Hash();
+	this._groupedSets = new haxe.ds.StringMap();
+	this._identityToGrouping = new haxe.ds.StringMap();
 	source.listen(function(t,type) {
 		var groupingKey = groupingFn(t);
 		var previousGroupingKey = _g._identityToGrouping.get(groupingKey);
@@ -5490,6 +4070,7 @@ ui.observable.GroupedSet = $hxClasses["ui.observable.GroupedSet"] = function(sou
 		} else _g["delete"](t);
 	});
 };
+$hxClasses["ui.observable.GroupedSet"] = ui.observable.GroupedSet;
 ui.observable.GroupedSet.__name__ = ["ui","observable","GroupedSet"];
 ui.observable.GroupedSet.__super__ = ui.observable.AbstractSet;
 ui.observable.GroupedSet.prototype = $extend(ui.observable.AbstractSet.prototype,{
@@ -5544,13 +4125,9 @@ ui.observable.GroupedSet.prototype = $extend(ui.observable.AbstractSet.prototype
 		} else {
 		}
 	}
-	,_identityToGrouping: null
-	,_groupedSets: null
-	,_groupingFn: null
-	,_source: null
 	,__class__: ui.observable.GroupedSet
 });
-ui.observable.SortedSet = $hxClasses["ui.observable.SortedSet"] = function(source,sortByFn) {
+ui.observable.SortedSet = function(source,sortByFn) {
 	var _g = this;
 	ui.observable.AbstractSet.call(this);
 	this._source = source;
@@ -5573,6 +4150,7 @@ ui.observable.SortedSet = $hxClasses["ui.observable.SortedSet"] = function(sourc
 		} else _g.add(t);
 	});
 };
+$hxClasses["ui.observable.SortedSet"] = ui.observable.SortedSet;
 ui.observable.SortedSet.__name__ = ["ui","observable","SortedSet"];
 ui.observable.SortedSet.__super__ = ui.observable.AbstractSet;
 ui.observable.SortedSet.prototype = $extend(ui.observable.AbstractSet.prototype,{
@@ -5615,18 +4193,14 @@ ui.observable.SortedSet.prototype = $extend(ui.observable.AbstractSet.prototype,
 		}
 		return this._sorted;
 	}
-	,_comparisonFn: null
-	,_dirty: null
-	,_sorted: null
-	,_sortByFn: null
-	,_source: null
 	,__class__: ui.observable.SortedSet
 });
-if(!ui.serialization) ui.serialization = {}
-ui.serialization.Serializer = $hxClasses["ui.serialization.Serializer"] = function() {
-	this._handlersMap = new Hash();
+ui.serialization = {}
+ui.serialization.Serializer = function() {
+	this._handlersMap = new haxe.ds.StringMap();
 	this.addHandlerViaName("Array<Dynamic>",new ui.serialization.DynamicArrayHandler());
 };
+$hxClasses["ui.serialization.Serializer"] = ui.serialization.Serializer;
 ui.serialization.Serializer.__name__ = ["ui","serialization","Serializer"];
 ui.serialization.Serializer.prototype = {
 	createHandler: function(type) {
@@ -5639,6 +4213,32 @@ ui.serialization.Serializer.prototype = {
 				$r = path == "Bool"?new ui.serialization.BoolHandler():new ui.serialization.EnumHandler(path,parms);
 				break;
 			case 2:
+				var parms = $e[3], path = $e[2];
+				$r = (function($this) {
+					var $r;
+					switch(path) {
+					case "Bool":
+						$r = new ui.serialization.BoolHandler();
+						break;
+					case "Float":
+						$r = new ui.serialization.FloatHandler();
+						break;
+					case "String":
+						$r = new ui.serialization.StringHandler();
+						break;
+					case "Int":
+						$r = new ui.serialization.IntHandler();
+						break;
+					case "Array":
+						$r = new ui.serialization.ArrayHandler(parms,$this);
+						break;
+					default:
+						$r = new ui.serialization.ClassHandler(Type.resolveClass(ui.serialization.CTypeTools.classname(type)),ui.serialization.CTypeTools.typename(type),$this);
+					}
+					return $r;
+				}($this));
+				break;
+			case 7:
 				var parms = $e[3], path = $e[2];
 				$r = (function($this) {
 					var $r;
@@ -5731,21 +4331,20 @@ ui.serialization.Serializer.prototype = {
 		var typename = Type.getClassName(clazz);
 		this._handlersMap.set(typename,handler);
 	}
-	,_handlersMap: null
 	,__class__: ui.serialization.Serializer
 }
-ui.serialization.TypeHandler = $hxClasses["ui.serialization.TypeHandler"] = function() { }
+ui.serialization.TypeHandler = function() { }
+$hxClasses["ui.serialization.TypeHandler"] = ui.serialization.TypeHandler;
 ui.serialization.TypeHandler.__name__ = ["ui","serialization","TypeHandler"];
 ui.serialization.TypeHandler.prototype = {
-	write: null
-	,read: null
-	,__class__: ui.serialization.TypeHandler
+	__class__: ui.serialization.TypeHandler
 }
-ui.serialization.ArrayHandler = $hxClasses["ui.serialization.ArrayHandler"] = function(parms,serializer) {
+ui.serialization.ArrayHandler = function(parms,serializer) {
 	this._parms = parms;
 	this._serializer = serializer;
 	this._elementHandler = this._serializer.getHandler(this._parms.first());
 };
+$hxClasses["ui.serialization.ArrayHandler"] = ui.serialization.ArrayHandler;
 ui.serialization.ArrayHandler.__name__ = ["ui","serialization","ArrayHandler"];
 ui.serialization.ArrayHandler.__interfaces__ = [ui.serialization.TypeHandler];
 ui.serialization.ArrayHandler.prototype = {
@@ -5788,18 +4387,16 @@ ui.serialization.ArrayHandler.prototype = {
 		}
 		return instance;
 	}
-	,_elementHandler: null
-	,_serializer: null
-	,_parms: null
 	,__class__: ui.serialization.ArrayHandler
 }
-ui.serialization.EnumHandler = $hxClasses["ui.serialization.EnumHandler"] = function(enumName,parms) {
+ui.serialization.EnumHandler = function(enumName,parms) {
 	this._enumName = enumName;
 	this._parms = parms;
 	this._enum = Type.resolveEnum(this._enumName);
 	if(this._enum == null) throw new ui.serialization.JsonException("no enum named " + this._enumName + " found");
 	this._enumValues = Type.allEnums(this._enum);
 };
+$hxClasses["ui.serialization.EnumHandler"] = ui.serialization.EnumHandler;
 ui.serialization.EnumHandler.__name__ = ["ui","serialization","EnumHandler"];
 ui.serialization.EnumHandler.__interfaces__ = [ui.serialization.TypeHandler];
 ui.serialization.EnumHandler.prototype = {
@@ -5809,20 +4406,33 @@ ui.serialization.EnumHandler.prototype = {
 	,read: function(fromJson,reader,instance) {
 		if(instance != null) reader.error("enum type can not populate a passed in instance");
 		var type = Type.getClass(fromJson);
-		if(type == String) return Type.createEnum(this._enum,fromJson); else if(type == Int) return Type.createEnumIndex(this._enum,fromJson); else {
-			reader.error(Std.string(fromJson) + " is a(n) " + Std.string(type) + " not a String");
-			return null;
-		}
+		var result = (function($this) {
+			var $r;
+			switch(type) {
+			case String:
+				$r = Type.createEnum($this._enum,fromJson);
+				break;
+			case Int:
+				$r = Type.createEnumIndex($this._enum,fromJson);
+				break;
+			default:
+				$r = (function($this) {
+					var $r;
+					reader.error(Std.string(fromJson) + " is a(n) " + Std.string(type) + " not a String");
+					$r = null;
+					return $r;
+				}($this));
+			}
+			return $r;
+		}(this));
+		return result;
 	}
-	,_parms: null
-	,_enumValues: null
-	,_enum: null
-	,_enumName: null
 	,__class__: ui.serialization.EnumHandler
 }
-ui.serialization.ValueTypeHandler = $hxClasses["ui.serialization.ValueTypeHandler"] = function(valueType) {
+ui.serialization.ValueTypeHandler = function(valueType) {
 	this._valueType = valueType;
 };
+$hxClasses["ui.serialization.ValueTypeHandler"] = ui.serialization.ValueTypeHandler;
 ui.serialization.ValueTypeHandler.__name__ = ["ui","serialization","ValueTypeHandler"];
 ui.serialization.ValueTypeHandler.__interfaces__ = [ui.serialization.TypeHandler];
 ui.serialization.ValueTypeHandler.prototype = {
@@ -5837,11 +4447,11 @@ ui.serialization.ValueTypeHandler.prototype = {
 			return null;
 		}
 	}
-	,_valueType: null
 	,__class__: ui.serialization.ValueTypeHandler
 }
-ui.serialization.DynamicArrayHandler = $hxClasses["ui.serialization.DynamicArrayHandler"] = function() {
+ui.serialization.DynamicArrayHandler = function() {
 };
+$hxClasses["ui.serialization.DynamicArrayHandler"] = ui.serialization.DynamicArrayHandler;
 ui.serialization.DynamicArrayHandler.__name__ = ["ui","serialization","DynamicArrayHandler"];
 ui.serialization.DynamicArrayHandler.__interfaces__ = [ui.serialization.TypeHandler];
 ui.serialization.DynamicArrayHandler.prototype = {
@@ -5854,8 +4464,9 @@ ui.serialization.DynamicArrayHandler.prototype = {
 	}
 	,__class__: ui.serialization.DynamicArrayHandler
 }
-ui.serialization.DynamicHandler = $hxClasses["ui.serialization.DynamicHandler"] = function() {
+ui.serialization.DynamicHandler = function() {
 };
+$hxClasses["ui.serialization.DynamicHandler"] = ui.serialization.DynamicHandler;
 ui.serialization.DynamicHandler.__name__ = ["ui","serialization","DynamicHandler"];
 ui.serialization.DynamicHandler.__interfaces__ = [ui.serialization.TypeHandler];
 ui.serialization.DynamicHandler.prototype = {
@@ -5867,32 +4478,36 @@ ui.serialization.DynamicHandler.prototype = {
 	}
 	,__class__: ui.serialization.DynamicHandler
 }
-ui.serialization.IntHandler = $hxClasses["ui.serialization.IntHandler"] = function() {
+ui.serialization.IntHandler = function() {
 	ui.serialization.ValueTypeHandler.call(this,ValueType.TInt);
 };
+$hxClasses["ui.serialization.IntHandler"] = ui.serialization.IntHandler;
 ui.serialization.IntHandler.__name__ = ["ui","serialization","IntHandler"];
 ui.serialization.IntHandler.__super__ = ui.serialization.ValueTypeHandler;
 ui.serialization.IntHandler.prototype = $extend(ui.serialization.ValueTypeHandler.prototype,{
 	__class__: ui.serialization.IntHandler
 });
-ui.serialization.FloatHandler = $hxClasses["ui.serialization.FloatHandler"] = function() {
+ui.serialization.FloatHandler = function() {
 	ui.serialization.ValueTypeHandler.call(this,ValueType.TFloat);
 };
+$hxClasses["ui.serialization.FloatHandler"] = ui.serialization.FloatHandler;
 ui.serialization.FloatHandler.__name__ = ["ui","serialization","FloatHandler"];
 ui.serialization.FloatHandler.__super__ = ui.serialization.ValueTypeHandler;
 ui.serialization.FloatHandler.prototype = $extend(ui.serialization.ValueTypeHandler.prototype,{
 	__class__: ui.serialization.FloatHandler
 });
-ui.serialization.BoolHandler = $hxClasses["ui.serialization.BoolHandler"] = function() {
+ui.serialization.BoolHandler = function() {
 	ui.serialization.ValueTypeHandler.call(this,ValueType.TBool);
 };
+$hxClasses["ui.serialization.BoolHandler"] = ui.serialization.BoolHandler;
 ui.serialization.BoolHandler.__name__ = ["ui","serialization","BoolHandler"];
 ui.serialization.BoolHandler.__super__ = ui.serialization.ValueTypeHandler;
 ui.serialization.BoolHandler.prototype = $extend(ui.serialization.ValueTypeHandler.prototype,{
 	__class__: ui.serialization.BoolHandler
 });
-ui.serialization.StringHandler = $hxClasses["ui.serialization.StringHandler"] = function() {
+ui.serialization.StringHandler = function() {
 };
+$hxClasses["ui.serialization.StringHandler"] = ui.serialization.StringHandler;
 ui.serialization.StringHandler.__name__ = ["ui","serialization","StringHandler"];
 ui.serialization.StringHandler.__interfaces__ = [ui.serialization.TypeHandler];
 ui.serialization.StringHandler.prototype = {
@@ -5909,8 +4524,9 @@ ui.serialization.StringHandler.prototype = {
 	}
 	,__class__: ui.serialization.StringHandler
 }
-ui.serialization.FunctionHandler = $hxClasses["ui.serialization.FunctionHandler"] = function() {
+ui.serialization.FunctionHandler = function() {
 };
+$hxClasses["ui.serialization.FunctionHandler"] = ui.serialization.FunctionHandler;
 ui.serialization.FunctionHandler.__name__ = ["ui","serialization","FunctionHandler"];
 ui.serialization.FunctionHandler.__interfaces__ = [ui.serialization.TypeHandler];
 ui.serialization.FunctionHandler.prototype = {
@@ -5934,19 +4550,15 @@ ui.serialization.FunctionHandler.prototype = {
 	}
 	,__class__: ui.serialization.FunctionHandler
 }
-ui.serialization.Field = $hxClasses["ui.serialization.Field"] = function() {
+ui.serialization.Field = function() {
 	this.required = true;
 };
+$hxClasses["ui.serialization.Field"] = ui.serialization.Field;
 ui.serialization.Field.__name__ = ["ui","serialization","Field"];
 ui.serialization.Field.prototype = {
-	name: null
-	,handler: null
-	,type: null
-	,typename: null
-	,required: null
-	,__class__: ui.serialization.Field
+	__class__: ui.serialization.Field
 }
-ui.serialization.ClassHandler = $hxClasses["ui.serialization.ClassHandler"] = function(clazz,typename,serializer) {
+ui.serialization.ClassHandler = function(clazz,typename,serializer) {
 	this._clazz = clazz;
 	this._typename = typename;
 	this._serializer = serializer;
@@ -6000,17 +4612,12 @@ ui.serialization.ClassHandler = $hxClasses["ui.serialization.ClassHandler"] = fu
 			var $it2 = meta.elementsNamed("m");
 			while( $it2.hasNext() ) {
 				var m = $it2.next();
-				switch(m.get("n")) {
-				case ":optional":
+				var _g = m.get("n");
+				switch(_g) {
+				case ":optional":case "optional":
 					field.required = false;
 					break;
-				case "optional":
-					field.required = false;
-					break;
-				case ":transient":
-					$transient = true;
-					break;
-				case "transient":
+				case ":transient":case "transient":
 					$transient = true;
 					break;
 				}
@@ -6019,20 +4626,10 @@ ui.serialization.ClassHandler = $hxClasses["ui.serialization.ClassHandler"] = fu
 		if(!$transient && set != "method") {
 			switch( (f.type)[1] ) {
 			case 2:
-				field.name = f.name;
-				field.type = f.type;
-				field.typename = ui.serialization.CTypeTools.typename(f.type);
-				field.handler = this._serializer.getHandler(field.type);
-				this._fields.push(field);
-				break;
 			case 1:
-				field.name = f.name;
-				field.type = f.type;
-				field.typename = ui.serialization.CTypeTools.typename(f.type);
-				field.handler = this._serializer.getHandler(field.type);
-				this._fields.push(field);
-				break;
 			case 6:
+			case 4:
+			case 7:
 				field.name = f.name;
 				field.type = f.type;
 				field.typename = ui.serialization.CTypeTools.typename(f.type);
@@ -6046,18 +4643,11 @@ ui.serialization.ClassHandler = $hxClasses["ui.serialization.ClassHandler"] = fu
 				field.handler = this._serializer.getHandler(field.type);
 				this._fields.push(field);
 				break;
-			case 4:
-				field.name = f.name;
-				field.type = f.type;
-				field.typename = ui.serialization.CTypeTools.typename(field.type);
-				field.handler = this._serializer.getHandler(field.type);
-				this._fields.push(field);
-				break;
 			default:
 			}
 		}
 	}
-	this._fieldsByName = new Hash();
+	this._fieldsByName = new haxe.ds.StringMap();
 	var _g = 0, _g1 = this._fields;
 	while(_g < _g1.length) {
 		var f = _g1[_g];
@@ -6065,6 +4655,7 @@ ui.serialization.ClassHandler = $hxClasses["ui.serialization.ClassHandler"] = fu
 		this._fieldsByName.set(f.name,f);
 	}
 };
+$hxClasses["ui.serialization.ClassHandler"] = ui.serialization.ClassHandler;
 ui.serialization.ClassHandler.__name__ = ["ui","serialization","ClassHandler"];
 ui.serialization.ClassHandler.__interfaces__ = [ui.serialization.TypeHandler];
 ui.serialization.ClassHandler.prototype = {
@@ -6156,48 +4747,39 @@ ui.serialization.ClassHandler.prototype = {
 	,createInstance: function() {
 		return Type.createInstance(this._clazz,[]);
 	}
-	,_fieldsByName: null
-	,_serializer: null
-	,_fields: null
-	,_classDef: null
-	,_clazz: null
-	,_typename: null
 	,__class__: ui.serialization.ClassHandler
 }
-ui.serialization.JsonException = $hxClasses["ui.serialization.JsonException"] = function(msg,cause) {
+ui.serialization.JsonException = function(msg,cause) {
 	ui.exception.Exception.call(this,msg,cause);
 };
+$hxClasses["ui.serialization.JsonException"] = ui.serialization.JsonException;
 ui.serialization.JsonException.__name__ = ["ui","serialization","JsonException"];
 ui.serialization.JsonException.__super__ = ui.exception.Exception;
 ui.serialization.JsonException.prototype = $extend(ui.exception.Exception.prototype,{
 	__class__: ui.serialization.JsonException
 });
-ui.serialization.JsonReader = $hxClasses["ui.serialization.JsonReader"] = function(serializer,strict) {
+ui.serialization.JsonReader = function(serializer,strict) {
 	this._serializer = serializer;
 	this.stack = new Array();
 	this.warnings = new Array();
 	this.strict = strict;
 };
+$hxClasses["ui.serialization.JsonReader"] = ui.serialization.JsonReader;
 ui.serialization.JsonReader.__name__ = ["ui","serialization","JsonReader"];
 ui.serialization.JsonReader.prototype = {
 	error: function(msg,cause) {
-		if(this.strict) throw new ui.serialization.JsonException(msg,cause); else {
-		}
+		if(this.strict) throw new ui.serialization.JsonException(msg,cause); else return null;
 	}
 	,read: function(fromJson,clazz,instance) {
 		var handler = this._serializer.getHandlerViaClass(clazz);
 		this.instance = handler.read(fromJson,this,instance);
 	}
-	,strict: null
-	,instance: null
-	,warnings: null
-	,stack: null
-	,_serializer: null
 	,__class__: ui.serialization.JsonReader
 }
-ui.serialization.JsonWriter = $hxClasses["ui.serialization.JsonWriter"] = function(serializer) {
+ui.serialization.JsonWriter = function(serializer) {
 	this._serializer = serializer;
 };
+$hxClasses["ui.serialization.JsonWriter"] = ui.serialization.JsonWriter;
 ui.serialization.JsonWriter.__name__ = ["ui","serialization","JsonWriter"];
 ui.serialization.JsonWriter.prototype = {
 	write: function(value) {
@@ -6205,10 +4787,10 @@ ui.serialization.JsonWriter.prototype = {
 		var handler = this._serializer.getHandlerViaClass(clazz);
 		return handler.write(value,this);
 	}
-	,_serializer: null
 	,__class__: ui.serialization.JsonWriter
 }
-ui.serialization.TypeTools = $hxClasses["ui.serialization.TypeTools"] = function() { }
+ui.serialization.TypeTools = function() { }
+$hxClasses["ui.serialization.TypeTools"] = ui.serialization.TypeTools;
 ui.serialization.TypeTools.__name__ = ["ui","serialization","TypeTools"];
 ui.serialization.TypeTools.classname = function(clazz) {
 	try {
@@ -6223,7 +4805,8 @@ ui.serialization.TypeTools.clazz = function(d) {
 	if(c == null) console.log("tried to get class for type -- " + Std.string(Type["typeof"](d)) + " -- " + Std.string(d));
 	return c;
 }
-ui.serialization.CTypeTools = $hxClasses["ui.serialization.CTypeTools"] = function() { }
+ui.serialization.CTypeTools = function() { }
+$hxClasses["ui.serialization.CTypeTools"] = ui.serialization.CTypeTools;
 ui.serialization.CTypeTools.__name__ = ["ui","serialization","CTypeTools"];
 ui.serialization.CTypeTools.classname = function(type) {
 	return (function($this) {
@@ -6264,6 +4847,10 @@ ui.serialization.CTypeTools.typename = function(type) {
 			var parms = $e[3], path = $e[2];
 			$r = ui.serialization.CTypeTools.makeTypename(path,parms);
 			break;
+		case 7:
+			var parms = $e[3], path = $e[2];
+			$r = ui.serialization.CTypeTools.makeTypename(path,parms);
+			break;
 		case 6:
 			$r = "Dynamic";
 			break;
@@ -6285,7 +4872,8 @@ ui.serialization.CTypeTools.makeTypename = function(path,parms) {
 		return ui.serialization.CTypeTools.typename(ct);
 	})).join(",") + ">";
 }
-ui.serialization.ValueTypeTools = $hxClasses["ui.serialization.ValueTypeTools"] = function() { }
+ui.serialization.ValueTypeTools = function() { }
+$hxClasses["ui.serialization.ValueTypeTools"] = ui.serialization.ValueTypeTools;
 ui.serialization.ValueTypeTools.__name__ = ["ui","serialization","ValueTypeTools"];
 ui.serialization.ValueTypeTools.getClassname = function(type) {
 	return (function($this) {
@@ -6321,12 +4909,6 @@ ui.serialization.ValueTypeTools.getClassname = function(type) {
 			var c = $e[2];
 			$r = Type.getClassName(c);
 			break;
-		default:
-			$r = (function($this) {
-				var $r;
-				throw new ui.exception.Exception("don't know how to handle " + Std.string(type));
-				return $r;
-			}($this));
 		}
 		return $r;
 	}(this));
@@ -6365,21 +4947,16 @@ ui.serialization.ValueTypeTools.getName = function(type) {
 			var c = $e[2];
 			$r = "TClass";
 			break;
-		default:
-			$r = (function($this) {
-				var $r;
-				throw new ui.exception.Exception("don't know how to handle " + Std.string(type));
-				return $r;
-			}($this));
 		}
 		return $r;
 	}(this));
 }
-if(!ui.util) ui.util = {}
-ui.util.FixedSizeArray = $hxClasses["ui.util.FixedSizeArray"] = function(maxSize) {
+ui.util = {}
+ui.util.FixedSizeArray = function(maxSize) {
 	this._maxSize = maxSize;
 	this._delegate = new Array();
 };
+$hxClasses["ui.util.FixedSizeArray"] = ui.util.FixedSizeArray;
 ui.util.FixedSizeArray.__name__ = ["ui","util","FixedSizeArray"];
 ui.util.FixedSizeArray.prototype = {
 	contains: function(t) {
@@ -6389,14 +4966,11 @@ ui.util.FixedSizeArray.prototype = {
 		if(this._delegate.length >= this._maxSize) this._delegate.shift();
 		this._delegate.push(t);
 	}
-	,_maxSize: null
-	,_delegate: null
 	,__class__: ui.util.FixedSizeArray
 }
-ui.util.ColorProvider = $hxClasses["ui.util.ColorProvider"] = function() { }
+ui.util.ColorProvider = function() { }
+$hxClasses["ui.util.ColorProvider"] = ui.util.ColorProvider;
 ui.util.ColorProvider.__name__ = ["ui","util","ColorProvider"];
-ui.util.ColorProvider._COLORS = null;
-ui.util.ColorProvider._LAST_COLORS_USED = null;
 ui.util.ColorProvider.getNextColor = function() {
 	if(ui.util.ColorProvider._INDEX >= ui.util.ColorProvider._COLORS.length) ui.util.ColorProvider._INDEX = 0;
 	return ui.util.ColorProvider._COLORS[ui.util.ColorProvider._INDEX++];
@@ -6407,7 +4981,8 @@ ui.util.ColorProvider.getRandomColor = function() {
 	ui.util.ColorProvider._LAST_COLORS_USED.push(index);
 	return ui.util.ColorProvider._COLORS[index];
 }
-ui.util.HtmlUtil = $hxClasses["ui.util.HtmlUtil"] = function() { }
+ui.util.HtmlUtil = function() { }
+$hxClasses["ui.util.HtmlUtil"] = ui.util.HtmlUtil;
 ui.util.HtmlUtil.__name__ = ["ui","util","HtmlUtil"];
 ui.util.HtmlUtil.readCookie = function(name) {
 	return js.Cookie.get(name);
@@ -6418,7 +4993,7 @@ ui.util.HtmlUtil.setCookie = function(name,value) {
 ui.util.HtmlUtil.getUrlVars = function() {
 	var vars = { };
 	var hash;
-	var hashes = HxOverrides.substr(js.Lib.window.location.search,1,null).split("&");
+	var hashes = HxOverrides.substr(js.Browser.window.location.search,1,null).split("&");
 	var _g1 = 0, _g = hashes.length;
 	while(_g1 < _g) {
 		var i_ = _g1++;
@@ -6427,7 +5002,8 @@ ui.util.HtmlUtil.getUrlVars = function() {
 	}
 	return vars;
 }
-ui.util.M = $hxClasses["ui.util.M"] = function() { }
+ui.util.M = function() { }
+$hxClasses["ui.util.M"] = ui.util.M;
 ui.util.M.__name__ = ["ui","util","M"];
 ui.util.M.makeSafeGetExpression = function(e,default0,pos) {
 	if(default0 == null) default0 = ui.util.M.expr(haxe.macro.ExprDef.EConst(haxe.macro.Constant.CIdent("null")),pos);
@@ -6449,25 +5025,26 @@ ui.util.M.exprs = function(exprDefs,pos) {
 	});
 	return arr;
 }
-ui.util.SizedHash = $hxClasses["ui.util.SizedHash"] = function() {
-	Hash.call(this);
+ui.util.SizedMap = function() {
+	haxe.ds.StringMap.call(this);
 	this.size = 0;
 };
-ui.util.SizedHash.__name__ = ["ui","util","SizedHash"];
-ui.util.SizedHash.__super__ = Hash;
-ui.util.SizedHash.prototype = $extend(Hash.prototype,{
+$hxClasses["ui.util.SizedMap"] = ui.util.SizedMap;
+ui.util.SizedMap.__name__ = ["ui","util","SizedMap"];
+ui.util.SizedMap.__super__ = haxe.ds.StringMap;
+ui.util.SizedMap.prototype = $extend(haxe.ds.StringMap.prototype,{
 	remove: function(key) {
 		if(this.exists(key)) this.size--;
-		return Hash.prototype.remove.call(this,key);
+		return haxe.ds.StringMap.prototype.remove.call(this,key);
 	}
 	,set: function(key,val) {
 		if(!this.exists(key)) this.size++;
-		Hash.prototype.set.call(this,key,val);
+		haxe.ds.StringMap.prototype.set.call(this,key,val);
 	}
-	,size: null
-	,__class__: ui.util.SizedHash
+	,__class__: ui.util.SizedMap
 });
-ui.util.UidGenerator = $hxClasses["ui.util.UidGenerator"] = function() { }
+ui.util.UidGenerator = function() { }
+$hxClasses["ui.util.UidGenerator"] = ui.util.UidGenerator;
 ui.util.UidGenerator.__name__ = ["ui","util","UidGenerator"];
 ui.util.UidGenerator.create = function(length) {
 	if(length == null) length = 20;
@@ -6506,8 +5083,9 @@ ui.util.UidGenerator.randomNumChar = function() {
 	while((i = ui.util.UidGenerator.randomIndex(ui.util.UidGenerator.nums)) >= ui.util.UidGenerator.nums.length) continue;
 	return Std.parseInt(ui.util.UidGenerator.nums.charAt(i));
 }
-if(!ui.widget) ui.widget = {}
-ui.widget.Widgets = $hxClasses["ui.widget.Widgets"] = function() { }
+ui.widget = {}
+ui.widget.Widgets = function() { }
+$hxClasses["ui.widget.Widgets"] = ui.widget.Widgets;
 ui.widget.Widgets.__name__ = ["ui","widget","Widgets"];
 ui.widget.Widgets.getSelf = function() {
 	return this;
@@ -6526,14 +5104,14 @@ ui.widget.ChatOrientation.chatLeft = ["chatLeft",1];
 ui.widget.ChatOrientation.chatLeft.toString = $estr;
 ui.widget.ChatOrientation.chatLeft.__enum__ = ui.widget.ChatOrientation;
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
-var $_;
-function $bind(o,m) { var f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; return f; };
+var $_, $fid = 0;
+function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; };
 if(Array.prototype.indexOf) HxOverrides.remove = function(a,o) {
 	var i = a.indexOf(o);
 	if(i == -1) return false;
 	a.splice(i,1);
 	return true;
-}; else null;
+};
 Math.__name__ = ["Math"];
 Math.NaN = Number.NaN;
 Math.NEGATIVE_INFINITY = Number.NEGATIVE_INFINITY;
@@ -6559,42 +5137,24 @@ var Bool = $hxClasses.Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = $hxClasses.Class = { __name__ : ["Class"]};
 var Enum = { };
-var Void = $hxClasses.Void = { __ename__ : ["Void"]};
 Xml.Element = "element";
 Xml.PCData = "pcdata";
 Xml.CData = "cdata";
 Xml.Comment = "comment";
 Xml.DocType = "doctype";
-Xml.Prolog = "prolog";
+Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
 if(typeof(JSON) != "undefined") haxe.Json = JSON;
 var q = window.jQuery;
 js.JQuery = q;
-q.fn.iterator = function() {
-	return { pos : 0, j : this, hasNext : function() {
-		return this.pos < this.j.length;
-	}, next : function() {
-		return $(this.j[this.pos++]);
-	}};
-};
-if(typeof document != "undefined") js.Lib.document = document;
-if(typeof window != "undefined") {
-	js.Lib.window = window;
-	js.Lib.window.onerror = function(msg,url,line) {
-		var f = js.Lib.onerror;
-		if(f == null) return false;
-		return f(msg,[url + ":" + line]);
-	};
-}
 ui.jq = function() {}
-ui.jq.JQ = window.jQuery;
-ui.jq.JQ.fn.exists = function() {
+$.fn.exists = function() {
 	return $(this).length > 0;
 };
-ui.jq.JQ.fn.isVisible = function() {
+$.fn.isVisible = function() {
 	return $(this).css("display") != "none";
 };
-ui.jq.JQ.fn.hasAttr = function(name) {
+$.fn.hasAttr = function(name) {
 	return $(this).attr(name) != undefined;
 };
 ui.jq.JDialog = window.jQuery;
@@ -6605,11 +5165,11 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(self.options.showHelp) {
 			if(!Reflect.isFunction(self.options.buildHelp)) ui.AgentUi.LOGGER.error("Supposed to show help but buildHelp is not a function"); else {
-				var helpIconWrapper = new ui.jq.JQ("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='right: 1.5em;' role='button'>");
-				var helpIcon = new ui.jq.JQ("<span class='ui-icon ui-icon-help'>close</span>");
+				var helpIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='right: 1.5em;' role='button'>");
+				var helpIcon = new $("<span class='ui-icon ui-icon-help'>close</span>");
 				helpIconWrapper.hover(function(evt) {
 					$(this).addClass("ui-state-hover");
-				},function() {
+				},function(evt) {
 					$(this).removeClass("ui-state-hover");
 				});
 				helpIconWrapper.append(helpIcon);
@@ -6620,15 +5180,15 @@ var defineWidget = function() {
 			}
 		}
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.jdialog",ui.jq.JQ.ui.dialog,defineWidget());
+$.widget("ui.jdialog",$.ui.dialog,defineWidget());
 ui.jq.JQSortable = window.jQuery;
 ui.jq.JQDraggable = window.jQuery;
 ui.jq.JQDroppable = window.jQuery;
 ui.jq.JQTooltip = window.jQuery;
-ui.model.EventModel.hash = new Hash();
+ui.model.EventModel.hash = new haxe.ds.StringMap();
 ui.util.ColorProvider._COLORS = new Array();
 ui.util.ColorProvider._COLORS.push("#5C9BCC");
 ui.util.ColorProvider._COLORS.push("#CC5C64");
@@ -6654,13 +5214,13 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of AndOrToggle must be a div element");
 		selfElement.addClass("andOrToggle");
-		var or = new ui.jq.JQ("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
-		var and = new ui.jq.JQ("<div class='ui-widget-content ui-corner-bottom all'>All</div>");
+		var or = new $("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
+		var and = new $("<div class='ui-widget-content ui-corner-bottom all'>All</div>");
 		selfElement.append(or).append(and);
 		var children = selfElement.children();
 		children.hover(function(evt) {
 			$(this).addClass("ui-state-hover");
-		},function() {
+		},function(evt) {
 			$(this).removeClass("ui-state-hover");
 		}).click(function(evt) {
 			children.toggleClass("ui-state-active");
@@ -6676,10 +5236,10 @@ var defineWidget = function() {
 		var filter = js.Boot.__cast(selfElement.closest("#filter") , ui.widget.FilterComp);
 		filter.filterComp("fireFilter");
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.andOrToggle",defineWidget());
+$.widget("ui.andOrToggle",defineWidget());
 ui.widget.ChatMessageComp = window.jQuery;
 var defineWidget = function() {
 	return { options : { message : null, orientation : null}, _create : function() {
@@ -6687,12 +5247,12 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ChatMessageComp must be a div element");
 		selfElement.addClass("chatMessageComp ui-helper-clearfix " + Std.string(self.options.orientation) + ui.widget.Widgets.getWidgetClasses());
-		new ui.jq.JQ("<div>" + self.options.message.text + "</div>").appendTo(selfElement);
+		new $("<div>" + self.options.message.text + "</div>").appendTo(selfElement);
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.chatMessageComp",defineWidget());
+$.widget("ui.chatMessageComp",defineWidget());
 ui.widget.ChatComp = window.jQuery;
 var defineWidget = function() {
 	return { options : { connection : null, messages : null}, _create : function() {
@@ -6700,9 +5260,9 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ChatComp must be a div element");
 		selfElement.addClass("chatComp " + ui.widget.Widgets.getWidgetClasses());
-		var chatMsgs = new ui.jq.JQ("<div class='chatMsgs'></div>").appendTo(selfElement);
-		var chatInput = new ui.jq.JQ("<div class='chatInput'></div>").appendTo(selfElement);
-		var input = new ui.jq.JQ("<input class='ui-corner-all ui-widget-content boxsizingBorder' />").appendTo(chatInput);
+		var chatMsgs = new $("<div class='chatMsgs'></div>").appendTo(selfElement);
+		var chatInput = new $("<div class='chatInput'></div>").appendTo(selfElement);
+		var input = new $("<input class='ui-corner-all ui-widget-content boxsizingBorder' />").appendTo(chatInput);
 		self.chatMessages = new ui.observable.MappedSet(self.options.messages,function(msg) {
 			return new ui.widget.ChatMessageComp("<div></div>").chatMessageComp({ message : msg, orientation : ui.widget.ChatOrientation.chatRight});
 		});
@@ -6713,10 +5273,10 @@ var defineWidget = function() {
 			} else if(evt.isUpdate()) chatMessageComp.chatMessageComp("update"); else if(evt.isDelete()) chatMessageComp.remove();
 		});
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.chatComp",defineWidget());
+$.widget("ui.chatComp",defineWidget());
 ui.widget.FilterableComponent = window.jQuery;
 ui.widget.FilterCombination = window.jQuery;
 var defineWidget = function() {
@@ -6736,7 +5296,7 @@ var defineWidget = function() {
 			return root;
 		});
 		self._filterables = new ui.observable.ObservableSet(function(fc) {
-			return (js.Boot.__cast(fc , ui.jq.JQ)).attr("id");
+			return (js.Boot.__cast(fc , $)).attr("id");
 		});
 		self._filterables.listen(function(fc,evt) {
 			if(evt.isAdd()) self._add(fc); else if(evt.isUpdate()) {
@@ -6757,7 +5317,7 @@ var defineWidget = function() {
 			return self.options.type == "LABEL" && d["is"](".label") || self.options.type == "CONNECTION" && d["is"](".connectionAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
-			clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass")).appendTo(selfElement).css("position","absolute").css({ left : "", top : ""});
+			clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass"))).appendTo(selfElement).css("position","absolute").css({ left : "", top : ""});
 			self.addFilterable(clone);
 			selfElement.position({ collision : "flipfit", within : "#filter"});
 		}, tolerance : "pointer"});
@@ -6775,7 +5335,7 @@ var defineWidget = function() {
 	}, _add : function(filterable) {
 		var self = this;
 		var selfElement = this.element;
-		var jq = js.Boot.__cast(filterable , ui.jq.JQ);
+		var jq = js.Boot.__cast(filterable , $);
 		jq.appendTo(selfElement).css("position","absolute").css({ left : "", top : ""});
 		self._layout();
 	}, _remove : function(filterable) {
@@ -6785,7 +5345,7 @@ var defineWidget = function() {
 		if(iter.hasNext()) {
 			var filterable1 = iter.next();
 			if(iter.hasNext()) self._layout(); else {
-				var jq = js.Boot.__cast(filterable1 , ui.jq.JQ);
+				var jq = js.Boot.__cast(filterable1 , $);
 				var position = jq.offset();
 				jq.appendTo(selfElement.parent()).offset(position);
 				selfElement.remove();
@@ -6833,10 +5393,10 @@ var defineWidget = function() {
 		var filter = js.Boot.__cast(selfElement.parent("#filter") , ui.widget.FilterComp);
 		filter.filterComp("fireFilter");
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.filterCombination",defineWidget());
+$.widget("ui.filterCombination",defineWidget());
 ui.widget.ConnectionAvatar = window.jQuery;
 var defineWidget = function() {
 	return { options : { connection : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, cloneFcn : function(filterableComp,isDragByHelper,containment) {
@@ -6856,7 +5416,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ConnectionAvatar must be a div element");
 		selfElement.attr("id","connavatar_" + StringTools.htmlEscape(self.options.connection.lname + self.options.connection.fname));
 		selfElement.addClass(ui.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.fname + " " + self.options.connection.lname);
-		var img = new ui.jq.JQ("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
+		var img = new $("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		selfElement.append(img);
 		(js.Boot.__cast(selfElement , ui.jq.JQTooltip)).tooltip();
 		if(!self.options.dndEnabled) img.mousedown(function(evt) {
@@ -6883,7 +5443,7 @@ var defineWidget = function() {
 				filterCombiner.filterCombination({ event : event, type : "CONNECTION"});
 				filterCombiner.filterCombination("addFilterable",$(this));
 				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
-				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
+				clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
 				filterCombiner.filterCombination("addFilterable",clone);
 				filterCombiner.filterCombination("position");
 			}, tolerance : "pointer"});
@@ -6894,10 +5454,10 @@ var defineWidget = function() {
 		selfElement.children("img").attr("src",self.options.connection.imgSrc);
 		selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.connectionAvatar",defineWidget());
+$.widget("ui.connectionAvatar",defineWidget());
 ui.widget.ConnectionComp = window.jQuery;
 var defineWidget = function() {
 	return { options : { connection : null, classes : null}, _create : function() {
@@ -6915,10 +5475,10 @@ var defineWidget = function() {
 		selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
 		self._avatar.connectionAvatar("update");
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.connectionComp",defineWidget());
+$.widget("ui.connectionComp",defineWidget());
 ui.widget.ConnectionsList = window.jQuery;
 var defineWidget = function() {
 	return { options : { itemsClass : null}, _create : function() {
@@ -6941,10 +5501,10 @@ var defineWidget = function() {
 			if(evt.isAdd()) spacer.before(connComp); else if(evt.isUpdate()) connComp.connectionComp("update"); else if(evt.isDelete()) connComp.remove();
 		});
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.connectionsList",defineWidget());
+$.widget("ui.connectionsList",defineWidget());
 ui.widget.LabelComp = window.jQuery;
 var defineWidget = function() {
 	return { options : { label : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dropTargetClass : "labelDT", cloneFcn : function(filterableComp,isDragByHelper,containment) {
@@ -6960,13 +5520,13 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelComp must be a div element");
 		selfElement.addClass("label labelComp ").attr("id",StringTools.htmlEscape(self.options.label.text) + "_" + ui.util.UidGenerator.create(8));
-		var labelTail = new ui.jq.JQ("<div class='labelTail'></div>");
+		var labelTail = new $("<div class='labelTail'></div>");
 		labelTail.css("border-right-color",self.options.label.color);
 		selfElement.append(labelTail);
-		var labelBox = new ui.jq.JQ("<div class='labelBox shadowRight'></div>");
+		var labelBox = new $("<div class='labelBox shadowRight'></div>");
 		labelBox.css("background",self.options.label.color);
-		var labelBody = new ui.jq.JQ("<div class='labelBody'></div>");
-		var labelText = new ui.jq.JQ("<div>" + self.options.label.text + "</div>");
+		var labelBody = new $("<div class='labelBody'></div>");
+		var labelText = new $("<div>" + self.options.label.text + "</div>");
 		labelBody.append(labelText);
 		labelBox.append(labelBody);
 		selfElement.append(labelBox).append("<div class='clear'></div>");
@@ -6992,7 +5552,7 @@ var defineWidget = function() {
 				filterCombiner.filterCombination({ event : event, type : "LABEL"});
 				filterCombiner.filterCombination("addFilterable",$(this));
 				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
-				clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
+				clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
 				filterCombiner.filterCombination("addFilterable",clone);
 				filterCombiner.filterCombination("position");
 			}, tolerance : "pointer"});
@@ -7002,10 +5562,10 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		selfElement.find(".labelBody").text(self.options.label.text);
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.labelComp",defineWidget());
+$.widget("ui.labelComp",defineWidget());
 ui.widget.ContentComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7013,16 +5573,16 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of ContentComp must be a div element");
 		selfElement.addClass("post container shadow " + ui.widget.Widgets.getWidgetClasses());
-		var postWr = new ui.jq.JQ("<section class='postWr'></section>");
+		var postWr = new $("<section class='postWr'></section>");
 		selfElement.append(postWr);
-		var postContentWr = new ui.jq.JQ("<div class='postContentWr'></div>");
+		var postContentWr = new $("<div class='postContentWr'></div>");
 		postWr.append(postContentWr);
-		var postContent = new ui.jq.JQ("<div class='postContent'></div>");
+		var postContent = new $("<div class='postContent'></div>");
 		postContentWr.append(postContent);
 		if(self.options.content.type == "AUDIO") {
 			var audio = js.Boot.__cast(self.options.content , ui.model.AudioContent);
 			postContent.append(audio.title + "<br/>");
-			var audioControls = new ui.jq.JQ("<audio controls></audio>");
+			var audioControls = new $("<audio controls></audio>");
 			postContent.append(audioControls);
 			audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
 		} else if(self.options.content.type == "IMAGE") {
@@ -7032,28 +5592,28 @@ var defineWidget = function() {
 			var urlContent = js.Boot.__cast(self.options.content , ui.model.UrlContent);
 			postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
 		} else ui.AgentUi.LOGGER.error("Dont know how to handle " + self.options.content.type);
-		var postCreator = new ui.jq.JQ("<aside class='postCreator'></aside>").appendTo(postWr);
-		var connection = ui.helper.OSetHelper.getElementComplex(ui.AgentUi.USER._getCurrentAlias().connectionSet,self.options.content.creator);
-		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AgentUi.USER._getCurrentAlias());
+		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
+		var connection = ui.helper.OSetHelper.getElementComplex(ui.AgentUi.USER.get_currentAlias().connectionSet,self.options.content.creator);
+		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AgentUi.USER.get_currentAlias());
 		new ui.widget.ConnectionAvatar("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection}).appendTo(postCreator);
-		var postLabels = new ui.jq.JQ("<aside class='postLabels'></div>");
+		var postLabels = new $("<aside class='postLabels'></div>");
 		postWr.append(postLabels);
 		var labelIter = self.options.content.labelSet.iterator();
 		while(labelIter.hasNext()) {
-			var label = ui.helper.OSetHelper.getElementComplex(ui.AgentUi.USER._getCurrentAlias().labelSet,labelIter.next());
+			var label = ui.helper.OSetHelper.getElementComplex(ui.AgentUi.USER.get_currentAlias().labelSet,labelIter.next());
 			new ui.widget.LabelComp("<div class='small'></div>").labelComp({ dndEnabled : false, label : label}).appendTo(postLabels);
 		}
-		var postConnections = new ui.jq.JQ("<aside class='postConnections'></aside>").appendTo(postWr);
+		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		var connIter = self.options.content.connectionSet.iterator();
 		while(connIter.hasNext()) {
-			var connection1 = ui.helper.OSetHelper.getElementComplex(ui.AgentUi.USER._getCurrentAlias().connectionSet,connIter.next());
+			var connection1 = ui.helper.OSetHelper.getElementComplex(ui.AgentUi.USER.get_currentAlias().connectionSet,connIter.next());
 			new ui.widget.ConnectionAvatar("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection1}).appendTo(postConnections);
 		}
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.contentComp",defineWidget());
+$.widget("ui.contentComp",defineWidget());
 ui.widget.ContentFeed = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7066,13 +5626,13 @@ var defineWidget = function() {
 			return new ui.widget.ContentComp("<div></div>").contentComp({ content : content});
 		});
 		self.content.listen(function(contentComp,evt) {
-			if(evt.isAdd()) new ui.jq.JQ("#postInput").after(contentComp); else if(evt.isUpdate()) contentComp.contentComp("update"); else if(evt.isDelete()) contentComp.remove();
+			if(evt.isAdd()) new $("#postInput").after(contentComp); else if(evt.isUpdate()) contentComp.contentComp("update"); else if(evt.isDelete()) contentComp.remove();
 		});
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.contentFeed",defineWidget());
+$.widget("ui.contentFeed",defineWidget());
 ui.widget.LiveBuildToggle = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7080,13 +5640,13 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LiveBuildToggle must be a div element");
 		selfElement.addClass("liveBuildToggle");
-		var build = new ui.jq.JQ("<div class='ui-widget-content ui-state-active ui-corner-left build'>Build</div>");
-		var live = new ui.jq.JQ("<div class='ui-widget-content ui-corner-right live'>Live</div>");
+		var build = new $("<div class='ui-widget-content ui-state-active ui-corner-left build'>Build</div>");
+		var live = new $("<div class='ui-widget-content ui-corner-right live'>Live</div>");
 		selfElement.append(build).append(live);
 		var children = selfElement.children();
 		children.hover(function(evt) {
 			$(this).addClass("ui-state-hover");
-		},function() {
+		},function(evt) {
 			$(this).removeClass("ui-state-hover");
 		}).click(function(evt) {
 			children.toggleClass("ui-state-active");
@@ -7100,10 +5660,10 @@ var defineWidget = function() {
 		var filter = js.Boot.__cast(selfElement.closest("#filter") , ui.widget.FilterComp);
 		filter.filterComp("fireFilter");
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.liveBuildToggle",defineWidget());
+$.widget("ui.liveBuildToggle",defineWidget());
 ui.widget.FilterComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7120,7 +5680,7 @@ var defineWidget = function() {
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
 			var cloneOffset = clone.offset();
-			clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
+			clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
 			var isInFilterCombination = _ui.draggable.parent(".filterCombination").length > 0;
 			if(isInFilterCombination) {
 				var filterCombination = js.Boot.__cast(_ui.draggable.parent() , ui.widget.FilterCombination);
@@ -7177,10 +5737,10 @@ var defineWidget = function() {
 		});
 		if(!js.Boot.__cast(liveToggle.liveBuildToggle("isLive") , Bool)) ui.model.EventModel.change(ui.model.ModelEvents.FILTER_CHANGE,new ui.model.Filter(root)); else ui.model.EventModel.change(ui.model.ModelEvents.FILTER_RUN,new ui.model.Filter(root));
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.filterComp",defineWidget());
+$.widget("ui.filterComp",defineWidget());
 ui.widget.InviteComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7188,9 +5748,9 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of InviteComp must be a div element");
 		selfElement.addClass("inviteComp ui-helper-clearfix " + ui.widget.Widgets.getWidgetClasses());
-		var input = new ui.jq.JQ("<input id=\"sideRightInviteInput\" style=\"display: none;\" class=\"ui-widget-content boxsizingBorder textInput\"/>");
-		var input_placeHolder = new ui.jq.JQ("<input id=\"sideRightInviteInput_PH\" class=\"placeholder ui-widget-content boxsizingBorder textInput\" value=\"Enter Email Address\"/>");
-		var btn = new ui.jq.JQ("<button class='fright'>Invite</button>").button();
+		var input = new $("<input id=\"sideRightInviteInput\" style=\"display: none;\" class=\"ui-widget-content boxsizingBorder textInput\"/>");
+		var input_placeHolder = new $("<input id=\"sideRightInviteInput_PH\" class=\"placeholder ui-widget-content boxsizingBorder textInput\" value=\"Enter Email Address\"/>");
+		var btn = new $("<button class='fright'>Invite</button>").button();
 		selfElement.append(input).append(input_placeHolder).append(btn);
 		input_placeHolder.focus(function(evt) {
 			input_placeHolder.hide();
@@ -7203,10 +5763,10 @@ var defineWidget = function() {
 			}
 		});
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.inviteComp",defineWidget());
+$.widget("ui.inviteComp",defineWidget());
 ui.widget.LabelTreeBranch = window.jQuery;
 var defineWidget = function() {
 	return { options : { label : null, children : null, classes : null}, _create : function() {
@@ -7214,7 +5774,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTreeBranch must be a div element");
 		selfElement.addClass("labelTreeBranch ");
-		var expander = new ui.jq.JQ("<div class='labelTreeExpander' style='visibility:hidden;'>+</div>");
+		var expander = new $("<div class='labelTreeExpander' style='visibility:hidden;'>+</div>");
 		selfElement.append(expander);
 		var label = new ui.widget.LabelComp("<div></div>").labelComp({ label : self.options.label, isDragByHelper : true, containment : false});
 		selfElement.append(label);
@@ -7237,10 +5797,10 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		selfElement.find(".labelBody").text(self.options.label.text);
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.labelTreeBranch",defineWidget());
+$.widget("ui.labelTreeBranch",defineWidget());
 ui.widget.LabelTree = window.jQuery;
 var defineWidget = function() {
 	return { options : { labels : null, itemsClass : null}, _create : function() {
@@ -7249,7 +5809,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LabelTree must be a div element");
 		selfElement.addClass("labelTree " + ui.widget.Widgets.getWidgetClasses());
 		self.labels = new ui.observable.MappedSet(self.options.labels,function(label) {
-			return new ui.widget.LabelTreeBranch("<div></div>").labelTreeBranch({ label : label, children : new ui.observable.FilteredSet(ui.AgentUi.USER._getCurrentAlias().labelSet,function(child) {
+			return new ui.widget.LabelTreeBranch("<div></div>").labelTreeBranch({ label : label, children : new ui.observable.FilteredSet(ui.AgentUi.USER.get_currentAlias().labelSet,function(child) {
 				return child.parentUid == label.uid;
 			})});
 		});
@@ -7257,10 +5817,10 @@ var defineWidget = function() {
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) labelTreeBranch.labelTreeBranch("update"); else if(evt.isDelete()) labelTreeBranch.remove();
 		});
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.labelTree",defineWidget());
+$.widget("ui.labelTree",defineWidget());
 ui.widget.Popup = window.jQuery;
 var defineWidget = function() {
 	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
@@ -7268,17 +5828,17 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of Popup must be a div element");
 		selfElement.addClass("ocontainer shadow popup");
-		if(!self.options.modal) new ui.jq.JQ("body").one("click",function(evt) {
+		if(!self.options.modal) new $("body").one("click",function(evt) {
 			selfElement.remove();
 			self.destroy();
 		});
 		self.options.createFcn(selfElement);
 		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.popup",defineWidget());
+$.widget("ui.popup",defineWidget());
 ui.widget.LabelsList = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7289,7 +5849,7 @@ var defineWidget = function() {
 		ui.model.EventModel.addListener(ui.model.ModelEvents.AliasLoaded,new ui.model.EventListener(function(alias) {
 			self._setLabels(alias.labelSet);
 		}));
-		var newLabelButton = new ui.jq.JQ("<button class='newLabelButton'>New Label</button>");
+		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
 		selfElement.append(newLabelButton).append("<div class='clear'></div>");
 		newLabelButton.button().click(function(evt) {
 			evt.stopPropagation();
@@ -7303,24 +5863,24 @@ var defineWidget = function() {
 				var enterFcn = function(evt1) {
 					if(evt1.keyCode == 13) createLabel();
 				};
-				var container = new ui.jq.JQ("<div class='icontainer'></div>").appendTo(el);
+				var container = new $("<div class='icontainer'></div>").appendTo(el);
 				container.click(stopFcn).keypress(enterFcn);
 				container.append("<label for='labelParent'>Parent: </label> ");
-				var parent = new ui.jq.JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option>No Parent</option></select>").appendTo(container);
+				var parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option>No Parent</option></select>").appendTo(container);
 				parent.click(stopFcn);
-				var iter = ui.AgentUi.USER._getCurrentAlias().labelSet.iterator();
+				var iter = ui.AgentUi.USER.get_currentAlias().labelSet.iterator();
 				while(iter.hasNext()) {
 					var label = iter.next();
 					parent.append("<option value='" + label.uid + "'>" + label.text + "</option>");
 				}
 				container.append("<br/><label for='labelName'>Name: </label> ");
-				var input = new ui.jq.JQ("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
+				var input = new $("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
 				input.keypress(enterFcn).click(function(evt1) {
 					evt1.stopPropagation();
 					if($(this).val() == "New Label") $(this).val("");
 				}).focus();
 				container.append("<br/>");
-				new ui.jq.JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Label</button>").button().appendTo(container).click(function(evt1) {
+				new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Label</button>").button().appendTo(container).click(function(evt1) {
 					createLabel();
 				});
 				createLabel = function() {
@@ -7330,7 +5890,7 @@ var defineWidget = function() {
 					label.text = input.val();
 					label.uid = ui.util.UidGenerator.create();
 					ui.model.EventModel.change(ui.model.ModelEvents.CreateLabel,label);
-					new ui.jq.JQ("body").click();
+					new $("body").click();
 				};
 			}, positionalElement : newLabelButton});
 		});
@@ -7343,10 +5903,10 @@ var defineWidget = function() {
 		})});
 		selfElement.prepend(labelTree);
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.labelsList",defineWidget());
+$.widget("ui.labelsList",defineWidget());
 ui.widget.NewUserComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7355,23 +5915,23 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of NewUserComp must be a div element");
 		self._cancelled = false;
 		selfElement.addClass("newUserComp").hide();
-		var labels = new ui.jq.JQ("<div class='fleft'></div>").appendTo(selfElement);
-		var inputs = new ui.jq.JQ("<div class='fleft'></div>").appendTo(selfElement);
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
 		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
 		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
 		labels.append("<div class='labelDiv'><label id='un_label' for='newu_un'>Username</label></div>");
 		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
-		self.input_n = new ui.jq.JQ("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_n = new ui.jq.JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
+		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
 		inputs.append("<br/>");
-		self.input_em = new ui.jq.JQ("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_em = new ui.jq.JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		self.input_em = new $("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_em = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
 		inputs.append("<br/>");
-		self.input_un = new ui.jq.JQ("<input id='newu_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_un = new ui.jq.JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
+		self.input_un = new $("<input id='newu_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
 		inputs.append("<br/>");
-		self.input_pw = new ui.jq.JQ("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new ui.jq.JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 		inputs.append("<br/>");
 		inputs.children("input").keypress(function(evt) {
 			if(evt.keyCode == 13) self._createNewUser();
@@ -7449,19 +6009,19 @@ var defineWidget = function() {
 		ui.model.EventModel.change(ui.model.ModelEvents.USER_CREATE,newUser);
 		selfElement.jdialog("close");
 	}, _buildDialog : function() {
-		var self = this;
-		var selfElement = this.element;
-		self.initialized = true;
+		var self1 = this;
+		var selfElement1 = this.element;
+		self1.initialized = true;
 		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, buttons : { 'Create my Agent' : function() {
-			self._createNewUser();
+			self1._createNewUser();
 		}, Cancel : function() {
-			self._cancelled = true;
+			self1._cancelled = true;
 			$(this).jdialog("close");
 		}}, close : function(evt,ui1) {
-			selfElement.find(".placeholder").removeClass("ui-state-error");
-			if(self.user == null || !self.user.hasValidSession()) ui.AgentUi.showLogin();
+			selfElement1.find(".placeholder").removeClass("ui-state-error");
+			if(self1.user == null || !self1.user.hasValidSession()) ui.AgentUi.showLogin();
 		}};
-		selfElement.jdialog(dlgOptions);
+		selfElement1.jdialog(dlgOptions);
 	}, _setUser : function(user) {
 		var self = this;
 		self.user = user;
@@ -7474,10 +6034,10 @@ var defineWidget = function() {
 		self.input_n.blur();
 		selfElement.jdialog("open");
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.newUserComp",defineWidget());
+$.widget("ui.newUserComp",defineWidget());
 ui.widget.LoginComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7486,19 +6046,19 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of LoginComp must be a div element");
 		self._newUser = false;
 		selfElement.addClass("loginComp").hide();
-		var labels = new ui.jq.JQ("<div class='fleft'></div>").appendTo(selfElement);
-		var inputs = new ui.jq.JQ("<div class='fleft'></div>").appendTo(selfElement);
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
 		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Username</label></div>");
 		labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
 		labels.append("<div class='labelDiv'><label for='login_ag'>Agency</label></div>");
-		self.input_un = new ui.jq.JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_un = new ui.jq.JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
+		self.input_un = new $("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
 		inputs.append("<br/>");
-		self.input_pw = new ui.jq.JQ("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new ui.jq.JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		self.input_pw = new $("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 		inputs.append("<br/>");
-		self.input_ag = new ui.jq.JQ("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_ag = new ui.jq.JQ("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		self.input_ag = new $("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_ag = new $("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 		if(ui.AgentUi.DEMO) {
 			self.input_un.val("George.Costanza");
 			self.input_pw.val("Bosco");
@@ -7566,17 +6126,17 @@ var defineWidget = function() {
 		ui.model.EventModel.change(ui.model.ModelEvents.USER_LOGIN,login);
 		selfElement.jdialog("close");
 	}, _buildDialog : function() {
-		var self = this;
+		var self1 = this;
 		var selfElement = this.element;
-		self.initialized = true;
+		self1.initialized = true;
 		var dlgOptions = { autoOpen : false, title : "Login", height : 280, width : 400, buttons : { Login : function() {
-			self._login();
+			self1._login();
 		}, 'I\'m New' : function() {
-			self._newUser = true;
+			self1._newUser = true;
 			$(this).jdialog("close");
 			ui.AgentUi.showNewUser();
 		}}, beforeClose : function(evt,ui1) {
-			if(!self._newUser && (self.user == null || !self.user.hasValidSession())) {
+			if(!self1._newUser && (self1.user == null || !self1.user.hasValidSession())) {
 				js.Lib.alert("A valid user is required to use the app");
 				return false;
 			}
@@ -7595,10 +6155,10 @@ var defineWidget = function() {
 		self.input_un.blur();
 		selfElement.jdialog("open");
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.loginComp",defineWidget());
+$.widget("ui.loginComp",defineWidget());
 ui.widget.MessagingComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7613,40 +6173,41 @@ var defineWidget = function() {
 			selfElement.tabs("refresh");
 		}});
 		selfElement.addClass("messagingComp icontainer " + ui.widget.Widgets.getWidgetClasses());
-		var ul = new ui.jq.JQ("<ul></ul>").appendTo(selfElement);
+		var ul = new $("<ul></ul>").appendTo(selfElement);
 		(js.Boot.__cast(selfElement , ui.jq.JQDroppable)).droppable({ accept : function(d) {
 			return d["is"](".connectionAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 			var connection = (js.Boot.__cast(_ui.draggable , ui.widget.ConnectionAvatar)).connectionAvatar("option","connection");
 			var id = "chat-" + connection.uid;
-			var li = new ui.jq.JQ("<li><a href='#" + id + "'><img src='" + connection.imgSrc + "'></a></li>").appendTo(ul);
+			var li = new $("<li><a href='#" + id + "'><img src='" + connection.imgSrc + "'></a></li>").appendTo(ul);
 			var chatComp = new ui.widget.ChatComp("<div id='" + id + "'></div>").chatComp({ connection : connection, messages : new ui.observable.ObservableSet(ui.model.ModelObj.identifier)});
 			chatComp.appendTo(selfElement);
 			selfElement.tabs("refresh");
 		}, tolerance : "pointer"});
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.messagingComp",defineWidget());
+$.widget("ui.messagingComp",defineWidget());
 ui.widget.UrlComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
+		ui.widget.UrlComp.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of UrlComp must be a div element");
 		selfElement.addClass("urlComp container " + ui.widget.Widgets.getWidgetClasses());
-		new ui.jq.JQ("<label class='fleft ui-helper-clearfix' style='margin-left: 5px;'>Enter URL</label>").appendTo(selfElement);
-		self.urlInput = new ui.jq.JQ("<input id='' class='clear textInput boxsizingBorder' style='float: left;margin-top: 5px;'/>").appendTo(selfElement);
+		new $("<label class='fleft ui-helper-clearfix' style='margin-left: 5px;'>Enter URL</label>").appendTo(selfElement);
+		self.urlInput = new $("<input id='' class='clear textInput boxsizingBorder' style='float: left;margin-top: 5px;'/>").appendTo(selfElement);
 	}, _post : function() {
 		var self = this;
 		var selfElement = this.element;
 		ui.AgentUi.LOGGER.debug("post " + self.urlInput.val());
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.urlComp",defineWidget());
+$.widget("ui.urlComp",defineWidget());
 ui.widget.UploadComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7654,29 +6215,29 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of UploadComp must be a div element");
 		selfElement.addClass("uploadComp container " + ui.widget.Widgets.getWidgetClasses());
-		var filesUpload = new ui.jq.JQ("<input id='files-upload' type='file' multiple style='float: left;margin-top: 25px;margin-left: 25px;'/>").appendTo(selfElement);
+		var filesUpload = new $("<input id='files-upload' type='file' multiple style='float: left;margin-top: 25px;margin-left: 25px;'/>").appendTo(selfElement);
 		filesUpload.change(function(evt) {
 			self._traverseFiles(this.files);
 		});
-		selfElement.on("dragleave",null,function(evt,d) {
+		selfElement.on("dragleave",function(evt,d) {
 			ui.AgentUi.LOGGER.debug("dragleave");
 			var target = evt.target;
 			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
-		selfElement.on("dragenter",null,function(evt,d) {
+		selfElement.on("dragenter",function(evt,d) {
 			ui.AgentUi.LOGGER.debug("dragenter");
 			$(this).addClass("over");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
-		selfElement.on("dragover",null,function(evt,d) {
+		selfElement.on("dragover",function(evt,d) {
 			ui.AgentUi.LOGGER.debug("dragover");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
-		selfElement.on("drop",null,function(evt,d) {
+		selfElement.on("drop",function(evt,d) {
 			ui.AgentUi.LOGGER.debug("drop");
 			self._traverseFiles(evt.originalEvent.dataTransfer.files);
 			$(this).removeClass("drop");
@@ -7688,7 +6249,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		ui.AgentUi.LOGGER.debug("upload " + Std.string(file.name));
 		if(typeof FileReader !== 'undefined' && new EReg("image","i").match(file.type)) {
-			var img = new ui.jq.JQ("<img style='max-height: 90px;'/>").appendTo(selfElement);
+			var img = new $("<img style='max-height: 90px;'/>").appendTo(selfElement);
 			var reader = new FileReader();
 			reader.onload = function(evt) {
 				img.attr("src",evt.target.result);
@@ -7707,10 +6268,10 @@ var defineWidget = function() {
 		} else {
 		}
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.uploadComp",defineWidget());
+$.widget("ui.uploadComp",defineWidget());
 ui.widget.PostComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7718,10 +6279,10 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of PostComp must be a div element");
 		selfElement.addClass("postComp container shadow " + ui.widget.Widgets.getWidgetClasses());
-		var section = new ui.jq.JQ("<section id='postSection'></section>").appendTo(selfElement);
+		var section = new $("<section id='postSection'></section>").appendTo(selfElement);
 		var addConnectionsAndLabels = null;
-		var textInput = new ui.jq.JQ("<div class='postContainer'></div>").appendTo(section);
-		var ta = new ui.jq.JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput).keypress(function(evt) {
+		var textInput = new $("<div class='postContainer'></div>").appendTo(section);
+		var ta = new $("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput).keypress(function(evt) {
 			if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) {
 				ui.AgentUi.LOGGER.debug("Post new text content");
 				evt.preventDefault();
@@ -7740,27 +6301,27 @@ var defineWidget = function() {
 		urlInput.appendTo(section);
 		var mediaInput = new ui.widget.UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp();
 		mediaInput.appendTo(section);
-		var label = new ui.jq.JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
-		var tabs = new ui.jq.JQ("<aside class='tabs'></aside>").appendTo(section);
+		var label = new $("<aside class='label'><span>Post:</span></aside>").appendTo(section);
+		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
 		var fcn = function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 		};
-		var textTab = new ui.jq.JQ("<span class='ui-icon ui-icon-document active ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
+		var textTab = new $("<span class='ui-icon ui-icon-document active ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.show();
 			urlInput.hide();
 			mediaInput.hide();
 		});
-		var urlTab = new ui.jq.JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
+		var urlTab = new $("<span class='ui-icon ui-icon-link ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.hide();
 			urlInput.show();
 			mediaInput.hide();
 		});
-		var imgTab = new ui.jq.JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
+		var imgTab = new $("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.hide();
@@ -7792,10 +6353,10 @@ var defineWidget = function() {
 			});
 		};
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.postComp",defineWidget());
+$.widget("ui.postComp",defineWidget());
 ui.widget.UserComp = window.jQuery;
 var defineWidget = function() {
 	return { _create : function() {
@@ -7803,7 +6364,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new ui.exception.Exception("Root of UserComp must be a div element");
 		selfElement.addClass("ocontainer shadow ");
-		selfElement.append(new ui.jq.JQ("<div class='container'></div>"));
+		selfElement.append(new $("<div class='container'></div>"));
 		self._setUser();
 		ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(user) {
 			self.user = user;
@@ -7818,13 +6379,13 @@ var defineWidget = function() {
 		var user = self.user;
 		var container = selfElement.children(".container").empty();
 		var imgSrc = "";
-		if(user != null && user._getCurrentAlias() != null) {
-			if(ui.helper.StringHelper.isNotBlank(user._getCurrentAlias().imgSrc)) imgSrc = user._getCurrentAlias().imgSrc; else imgSrc = user.imgSrc;
+		if(user != null && user.get_currentAlias() != null) {
+			if(ui.helper.StringHelper.isNotBlank(user.get_currentAlias().imgSrc)) imgSrc = user.get_currentAlias().imgSrc; else imgSrc = user.imgSrc;
 		}
 		if(ui.helper.StringHelper.isBlank(imgSrc)) imgSrc = "media/default_avatar.jpg";
-		var img = new ui.jq.JQ("<img alt='user' src='" + imgSrc + "' class='shadow'/>");
+		var img = new $("<img alt='user' src='" + imgSrc + "' class='shadow'/>");
 		container.append(img);
-		var userIdTxt = new ui.jq.JQ("<div class='userIdTxt'></div>");
+		var userIdTxt = new $("<div class='userIdTxt'></div>");
 		container.append(userIdTxt);
 		var name = (function($this) {
 			var $r;
@@ -7846,18 +6407,18 @@ var defineWidget = function() {
 		var aliasLabel = (function($this) {
 			var $r;
 			try {
-				$r = user._getCurrentAlias().label;
+				$r = user.get_currentAlias().label;
 			} catch( __e ) {
 				$r = "";
 			}
 			return $r;
 		}(this));
 		userIdTxt.append("<strong>" + name + "</strong>").append("<br/>").append("<font style='font-size:12px'>" + aliasLabel + "</font>");
-		var changeDiv = new ui.jq.JQ("<div class='ui-helper-clearfix'></div>");
-		var change = new ui.jq.JQ("<a class='aliasToggle'>Change Alias</a>");
+		var changeDiv = new $("<div class='ui-helper-clearfix'></div>");
+		var change = new $("<a class='aliasToggle'>Change Alias</a>");
 		changeDiv.append(change);
 		container.append(changeDiv);
-		var aliases = new ui.jq.JQ("<div class='aliases ocontainer nonmodalPopup' style='position: absolute;'></div>");
+		var aliases = new $("<div class='aliases ocontainer nonmodalPopup' style='position: absolute;'></div>");
 		container.append(aliases);
 		var iter = (function($this) {
 			var $r;
@@ -7869,9 +6430,9 @@ var defineWidget = function() {
 			return $r;
 		}(this));
 		if(iter != null) while(iter.hasNext()) {
-			var alias = [iter.next()];
-			var btn = new ui.jq.JQ("<div id='" + alias[0].uid + "' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>" + alias[0].label + "</div>");
-			if(alias[0].uid == user._getCurrentAlias().uid) btn.addClass("ui-state-active");
+			var alias1 = [iter.next()];
+			var btn = new $("<div id='" + alias1[0].uid + "' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>" + alias1[0].label + "</div>");
+			if(alias1[0].uid == user.get_currentAlias().uid) btn.addClass("ui-state-active");
 			aliases.append(btn);
 			btn.hover((function() {
 				return function() {
@@ -7881,11 +6442,11 @@ var defineWidget = function() {
 				return function() {
 					$(this).removeClass("ui-state-hover");
 				};
-			})()).click((function(alias) {
+			})()).click((function(alias1) {
 				return function(evt) {
-					ui.model.EventModel.change(ui.model.ModelEvents.LoadAlias,alias[0].uid);
+					ui.model.EventModel.change(ui.model.ModelEvents.LoadAlias,alias1[0].uid);
 				};
-			})(alias));
+			})(alias1));
 		}
 		aliases.position({ my : "left top", at : "right-6px center", of : selfElement});
 		aliases.hide();
@@ -7894,71 +6455,96 @@ var defineWidget = function() {
 			evt.stopPropagation();
 		});
 	}, destroy : function() {
-		ui.jq.JQ.Widget.prototype.destroy.call(this);
+		$.Widget.prototype.destroy.call(this);
 	}};
 };
-ui.jq.JQ.widget("ui.userComp",defineWidget());
-DateTools.DAYS_OF_MONTH = [31,28,31,30,31,30,31,31,30,31,30,31];
-js.Lib.onerror = null;
-ui.AgentUi.DEMO = false;
+$.widget("ui.userComp",defineWidget());
+haxe.xml.Parser.escapes = (function($this) {
+	var $r;
+	var h = new haxe.ds.StringMap();
+	h.set("lt","<");
+	h.set("gt",">");
+	h.set("amp","&");
+	h.set("quot","\"");
+	h.set("apos","'");
+	h.set("nbsp",String.fromCharCode(160));
+	$r = h;
+	return $r;
+}(this));
+js.Browser.window = typeof window != "undefined" ? window : null;
+js.Browser.document = typeof window != "undefined" ? window.document : null;
+ui.AgentUi.DEMO = true;
 ui.AgentUi.URL = "";
-ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<implements path=\"ui.api.HasContent\"><c path=\"ui.api.ProtocolMessage.T\"/></implements>\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<getContent public=\"1\" set=\"method\" line=\"14\"><f a=\"\"><c path=\"ui.api.ProtocolMessage.T\"/></f></getContent>\n</class>";
-ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"52\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionRequestData.__rtti = "<class path=\"ui.api.InitializeSessionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"57\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionResponse.__rtti = "<class path=\"ui.api.InitializeSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"68\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"64\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionResponseData.__rtti = "<class path=\"ui.api.InitializeSessionResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<listOfAliases public=\"1\"><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></listOfAliases>\n\t<defaultAlias public=\"1\"><c path=\"ui.model.Alias\"/></defaultAlias>\n\t<listOfLabels public=\"1\"><c path=\"Array\"><c path=\"ui.model.Label\"/></c></listOfLabels>\n\t<listOfCnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></listOfCnxns>\n\t<lastActiveFilter public=\"1\"><c path=\"String\"/></lastActiveFilter>\n\t<new public=\"1\" set=\"method\" line=\"73\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionError.__rtti = "<class path=\"ui.api.InitializeSessionError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionErrorData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionErrorData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"89\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionErrorData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"85\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionErrorData.__rtti = "<class path=\"ui.api.InitializeSessionErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"94\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPingRequest.__rtti = "<class path=\"ui.api.SessionPingRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPingRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.SessionPingRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"109\" override=\"1\"><f a=\"\"><c path=\"ui.api.SessionPingRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"105\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPingRequestData.__rtti = "<class path=\"ui.api.SessionPingRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"114\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPongResponse.__rtti = "<class path=\"ui.api.SessionPongResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPongResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.SessionPongResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"125\" override=\"1\"><f a=\"\"><c path=\"ui.api.SessionPongResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"121\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPongResponseData.__rtti = "<class path=\"ui.api.SessionPongResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"130\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.CloseSessionData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"144\" override=\"1\"><f a=\"\"><c path=\"ui.api.CloseSessionData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"140\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionResponse.__rtti = "<class path=\"ui.api.CloseSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.CloseSessionData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"156\" override=\"1\"><f a=\"\"><c path=\"ui.api.CloseSessionData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"152\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionData.__rtti = "<class path=\"ui.api.CloseSessionData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"161\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalRequest.__rtti = "<class path=\"ui.api.EvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"175\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"171\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalRequestData.__rtti = "<class path=\"ui.api.EvalRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<expression public=\"1\"><d/></expression>\n\t<new public=\"1\" set=\"method\" line=\"180\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalNextPageRequest.__rtti = "<class path=\"ui.api.EvalNextPageRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalNextPageRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalNextPageRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"192\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalNextPageRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"188\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalNextPageRequestData.__rtti = "<class path=\"ui.api.EvalNextPageRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<nextPage public=\"1\"><c path=\"String\"/></nextPage>\n\t<new public=\"1\" set=\"method\" line=\"197\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalResponse.__rtti = "<class path=\"ui.api.EvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"209\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"205\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalComplete.__rtti = "<class path=\"ui.api.EvalComplete\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"221\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"217\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"ui.model.Content\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"226\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalError.__rtti = "<class path=\"ui.api.EvalError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalErrorData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalErrorData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"238\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalErrorData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"234\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalErrorData.__rtti = "<class path=\"ui.api.EvalErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<errorMsg public=\"1\"><c path=\"String\"/></errorMsg>\n\t<new public=\"1\" set=\"method\" line=\"243\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.StopEvalRequest.__rtti = "<class path=\"ui.api.StopEvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.StopMsgData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"258\" override=\"1\"><f a=\"\"><c path=\"ui.api.StopMsgData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"254\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.StopEvalResponse.__rtti = "<class path=\"ui.api.StopEvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.StopMsgData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"270\" override=\"1\"><f a=\"\"><c path=\"ui.api.StopMsgData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"266\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.api.StopMsgData.__rtti = "<class path=\"ui.api.StopMsgData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"275\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
+ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<implements path=\"ui.api.HasContent\"><c path=\"ui.api.ProtocolMessage.T\"/></implements>\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<getContent public=\"1\" set=\"method\" line=\"15\"><f a=\"\"><c path=\"ui.api.ProtocolMessage.T\"/></f></getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.CreateUserRequest.__rtti = "<class path=\"ui.api.CreateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CreateUserRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.CreateUserRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"35\" override=\"1\"><f a=\"\"><c path=\"ui.api.CreateUserRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"31\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Create User Request/Response</haxe_doc>\n</class>";
+ui.api.CreateUserRequestData.__rtti = "<class path=\"ui.api.CreateUserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<expression public=\"1\"><d/></expression>\n\t<new public=\"1\" set=\"method\" line=\"40\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"55\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"51\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Initialize Session Request/Response</haxe_doc>\n</class>";
+ui.api.InitializeSessionRequestData.__rtti = "<class path=\"ui.api.InitializeSessionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"60\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionResponse.__rtti = "<class path=\"ui.api.InitializeSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"71\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"67\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionResponseData.__rtti = "<class path=\"ui.api.InitializeSessionResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<listOfAliases public=\"1\"><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></listOfAliases>\n\t<defaultAlias public=\"1\"><c path=\"ui.model.Alias\"/></defaultAlias>\n\t<listOfLabels public=\"1\"><c path=\"Array\"><c path=\"ui.model.Label\"/></c></listOfLabels>\n\t<listOfCnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></listOfCnxns>\n\t<lastActiveFilter public=\"1\"><c path=\"String\"/></lastActiveFilter>\n\t<new public=\"1\" set=\"method\" line=\"76\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionError.__rtti = "<class path=\"ui.api.InitializeSessionError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionErrorData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.InitializeSessionErrorData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"92\" override=\"1\"><f a=\"\"><c path=\"ui.api.InitializeSessionErrorData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"88\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionErrorData.__rtti = "<class path=\"ui.api.InitializeSessionErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"97\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SessionPingRequest.__rtti = "<class path=\"ui.api.SessionPingRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPingRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.SessionPingRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"112\" override=\"1\"><f a=\"\"><c path=\"ui.api.SessionPingRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"108\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Ping/pop Request/Response</haxe_doc>\n</class>";
+ui.api.SessionPingRequestData.__rtti = "<class path=\"ui.api.SessionPingRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"117\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SessionPongResponse.__rtti = "<class path=\"ui.api.SessionPongResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPongResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.SessionPongResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"128\" override=\"1\"><f a=\"\"><c path=\"ui.api.SessionPongResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"124\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SessionPongResponseData.__rtti = "<class path=\"ui.api.SessionPongResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"133\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.CloseSessionData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"147\" override=\"1\"><f a=\"\"><c path=\"ui.api.CloseSessionData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"143\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Close Session Request/Response</haxe_doc>\n</class>";
+ui.api.CloseSessionResponse.__rtti = "<class path=\"ui.api.CloseSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.CloseSessionData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"159\" override=\"1\"><f a=\"\"><c path=\"ui.api.CloseSessionData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"155\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CloseSessionData.__rtti = "<class path=\"ui.api.CloseSessionData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalRequest.__rtti = "<class path=\"ui.api.EvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"178\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"174\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Evaluate Request/Response</haxe_doc>\n</class>";
+ui.api.EvalRequestData.__rtti = "<class path=\"ui.api.EvalRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<expression public=\"1\"><d/></expression>\n\t<new public=\"1\" set=\"method\" line=\"183\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalNextPageRequest.__rtti = "<class path=\"ui.api.EvalNextPageRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalNextPageRequestData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalNextPageRequestData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"195\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalNextPageRequestData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"191\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalNextPageRequestData.__rtti = "<class path=\"ui.api.EvalNextPageRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<nextPage public=\"1\"><c path=\"String\"/></nextPage>\n\t<new public=\"1\" set=\"method\" line=\"200\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalResponse.__rtti = "<class path=\"ui.api.EvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"212\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"208\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalComplete.__rtti = "<class path=\"ui.api.EvalComplete\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalResponseData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"224\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalResponseData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"220\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"ui.model.Content\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"229\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalError.__rtti = "<class path=\"ui.api.EvalError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalErrorData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.EvalErrorData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"241\" override=\"1\"><f a=\"\"><c path=\"ui.api.EvalErrorData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"237\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalErrorData.__rtti = "<class path=\"ui.api.EvalErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<errorMsg public=\"1\"><c path=\"String\"/></errorMsg>\n\t<new public=\"1\" set=\"method\" line=\"246\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.StopEvalRequest.__rtti = "<class path=\"ui.api.StopEvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.StopMsgData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"261\" override=\"1\"><f a=\"\"><c path=\"ui.api.StopMsgData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"257\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Stop Evaluation Request/Response</haxe_doc>\n</class>";
+ui.api.StopEvalResponse.__rtti = "<class path=\"ui.api.StopEvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<content public=\"1\"><c path=\"ui.api.StopMsgData\"/></content>\n\t<getContent public=\"1\" set=\"method\" line=\"273\" override=\"1\"><f a=\"\"><c path=\"ui.api.StopMsgData\"/></f></getContent>\n\t<new public=\"1\" set=\"method\" line=\"269\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.StopMsgData.__rtti = "<class path=\"ui.api.StopMsgData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"278\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.TestDao.initialized = false;
 ui.api.TestDao._lastRandom = 0;
-ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"14\" static=\"1\"><f a=\"t\">\n\t<a><uid><c path=\"String\"/></uid></a>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n</class>";
-ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Login\"/></extends>\n\t<getUri public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.LoginByUn.__rtti = "<class path=\"ui.model.LoginByUn\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<username public=\"1\"><c path=\"String\"/></username>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<agency public=\"1\"><c path=\"String\"/></agency>\n\t<getUri public=\"1\" set=\"method\" line=\"32\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"27\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.LoginById.__rtti = "<class path=\"ui.model.LoginById\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<id public=\"1\"><c path=\"String\"/></id>\n\t<getUri public=\"1\" set=\"method\" line=\"40\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"37\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.NewUser\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"51\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<aliasSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Alias\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</aliasSet>\n\t<aliases><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></aliases>\n\t<currentAlias public=\"1\" get=\"_getCurrentAlias\" set=\"_setCurrentAlias\"><c path=\"ui.model.Alias\"/></currentAlias>\n\t<_getCurrentAlias set=\"method\" line=\"65\"><f a=\"\"><c path=\"ui.model.Alias\"/></f></_getCurrentAlias>\n\t<_setCurrentAlias set=\"method\" line=\"75\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"ui.model.Alias\"/>\n</f></_setCurrentAlias>\n\t<hasValidSession public=\"1\" set=\"method\" line=\"80\"><f a=\"\"><e path=\"Bool\"/></f></hasValidSession>\n\t<readResolve set=\"method\" line=\"86\"><f a=\"\"><e path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"90\"><f a=\"\"><e path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"63\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Alias\"/></extends>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<labelSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<labels><c path=\"Array\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<connections><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></connections>\n\t<readResolve set=\"method\" line=\"106\"><f a=\"\"><e path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"111\"><f a=\"\"><e path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"104\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"127\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"138\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<labels><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<connections><c path=\"Array\"><c path=\"String\"/></c></connections>\n\t<creator public=\"1\"><c path=\"String\"/></creator>\n\t<readResolve set=\"method\" line=\"153\"><f a=\"\"><e path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"158\"><f a=\"\"><e path=\"Void\"/></f></writeResolve>\n\t<toInsertExpression public=\"1\" set=\"method\" line=\"163\"><f a=\"\"><c path=\"String\"/></f></toInsertExpression>\n</class>";
-ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"199\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"207\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"213\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"216\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.observable.OSet.__rtti = "<class path=\"ui.observable.OSet\" params=\"T\" interface=\"1\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"ui.observable.OSet.T\"/>\n\t\t<c path=\"ui.observable.EventType\"/>\n\t\t<e path=\"Void\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></listen>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.OSet.T\"/></c></f></delegate>\n</class>";
-ui.observable.EventManager.__rtti = "<class path=\"ui.observable.EventManager\" params=\"T\" module=\"ui.observable.OSet\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"ui.observable.EventManager.T\"/>\n\t<c path=\"ui.observable.EventType\"/>\n\t<e path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"ui.observable.OSet\"><c path=\"ui.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"42\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"ui.observable.EventManager.T\"/>\n\t\t<c path=\"ui.observable.EventType\"/>\n\t\t<e path=\"Void\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></add>\n\t<fire public=\"1\" set=\"method\" line=\"50\"><f a=\"t:type\">\n\t<c path=\"ui.observable.EventManager.T\"/>\n\t<c path=\"ui.observable.EventType\"/>\n\t<e path=\"Void\"/>\n</f></fire>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"set\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.EventManager.T\"/></c>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\">\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"15\" static=\"1\"><f a=\"t\">\n\t<a><uid><c path=\"String\"/></uid></a>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Login\"/></extends>\n\t<getUri public=\"1\" set=\"method\" line=\"23\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.LoginByUn.__rtti = "<class path=\"ui.model.LoginByUn\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<username public=\"1\"><c path=\"String\"/></username>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<agency public=\"1\"><c path=\"String\"/></agency>\n\t<getUri public=\"1\" set=\"method\" line=\"33\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"28\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.LoginById.__rtti = "<class path=\"ui.model.LoginById\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<id public=\"1\"><c path=\"String\"/></id>\n\t<getUri public=\"1\" set=\"method\" line=\"41\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.NewUser\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"52\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<aliasSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Alias\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</aliasSet>\n\t<aliases><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></aliases>\n\t<currentAlias public=\"1\" get=\"accessor\" set=\"accessor\">\n\t\t<c path=\"ui.model.Alias\"/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</currentAlias>\n\t<get_currentAlias set=\"method\" line=\"66\"><f a=\"\"><c path=\"ui.model.Alias\"/></f></get_currentAlias>\n\t<set_currentAlias set=\"method\" line=\"76\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"ui.model.Alias\"/>\n</f></set_currentAlias>\n\t<hasValidSession public=\"1\" set=\"method\" line=\"81\"><f a=\"\"><x path=\"Bool\"/></f></hasValidSession>\n\t<readResolve set=\"method\" line=\"87\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"91\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"64\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Alias\"/></extends>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<labelSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<labels><c path=\"Array\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<connections><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></connections>\n\t<readResolve set=\"method\" line=\"107\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"112\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"105\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"128\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"139\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<labels><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"ui.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<connections><c path=\"Array\"><c path=\"String\"/></c></connections>\n\t<creator public=\"1\"><c path=\"String\"/></creator>\n\t<readResolve set=\"method\" line=\"154\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"159\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<toInsertExpression public=\"1\" set=\"method\" line=\"164\"><f a=\"\"><c path=\"String\"/></f></toInsertExpression>\n</class>";
+ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"200\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"208\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"214\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"217\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.observable.OSet.__rtti = "<class path=\"ui.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"ui.observable.OSet.T\"/>\n\t\t<c path=\"ui.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.OSet.T\"/>\n</x></f></delegate>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.observable.EventManager.__rtti = "<class path=\"ui.observable.EventManager\" params=\"T\" module=\"ui.observable.OSet\">\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"ui.observable.EventManager.T\"/>\n\t<c path=\"ui.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"ui.observable.OSet\"><c path=\"ui.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"43\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"ui.observable.EventManager.T\"/>\n\t\t<c path=\"ui.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></add>\n\t<fire public=\"1\" set=\"method\" line=\"51\"><f a=\"t:type\">\n\t<c path=\"ui.observable.EventManager.T\"/>\n\t<c path=\"ui.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"set\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.EventManager.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.observable.EventType.Add = new ui.observable.EventType("Add",true,false);
 ui.observable.EventType.Update = new ui.observable.EventType("Update",false,true);
 ui.observable.EventType.Delete = new ui.observable.EventType("Delete",false,false);
-ui.observable.AbstractSet.__rtti = "<class path=\"ui.observable.AbstractSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<implements path=\"ui.observable.OSet\"><c path=\"ui.observable.AbstractSet.T\"/></implements>\n\t<_eventManager><c path=\"ui.observable.EventManager\"><c path=\"ui.observable.AbstractSet.T\"/></c></_eventManager>\n\t<listen public=\"1\" set=\"method\" line=\"104\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t\t<c path=\"ui.observable.EventType\"/>\n\t\t<e path=\"Void\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></listen>\n\t<filter public=\"1\" set=\"method\" line=\"108\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t\t<e path=\"Bool\"/>\n\t</f>\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"112\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"ui.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"116\"><f a=\"t:type\">\n\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t<c path=\"ui.observable.EventType\"/>\n\t<e path=\"Void\"/>\n</f></fire>\n\t<identifier public=\"1\" set=\"method\" line=\"120\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"124\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"128\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.AbstractSet.T\"/></c></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"100\"><f a=\"\"><e path=\"Void\"/></f></new>\n</class>";
-ui.observable.ObservableSet.__rtti = "<class path=\"ui.observable.ObservableSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.ObservableSet.T\"/></extends>\n\t<implements path=\"haxe.rtti.Infos\"/>\n\t<_delegate><c path=\"ui.util.SizedHash\"><c path=\"ui.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"147\"><f a=\"t\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<e path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"151\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"ui.observable.ObservableSet.T\"/></c>\n\t<e path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"159\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"163\"><f a=\"\"><e path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"167\"><f a=\"t\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<e path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"179\" override=\"1\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.ObservableSet.T\"/></c></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"183\"><f a=\"t\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<e path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"187\"><f a=\"t\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<e path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"195\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"199\"><f a=\"\"><e path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"206\"><f a=\"\"><c path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"210\"><f a=\"\"><c path=\"Array\"><c path=\"ui.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"138\"><f a=\"identifier:?tArr\">\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"ui.observable.ObservableSet.T\"/></c>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.observable.MappedSet.__rtti = "<class path=\"ui.observable.MappedSet\" params=\"T:U\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"ui.observable.MappedSet.T\"/>\n\t<c path=\"ui.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><c path=\"Hash\"><c path=\"ui.observable.MappedSet.U\"/></c></_mappedSet>\n\t<identifier public=\"1\" set=\"method\" line=\"244\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"248\" override=\"1\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.MappedSet.U\"/></c></f></delegate>\n\t<identify set=\"method\" line=\"252\"><f a=\"u\">\n\t<c path=\"ui.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"263\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.MappedSet.U\"/></t></f></iterator>\n\t<new public=\"1\" set=\"method\" line=\"226\"><f a=\"source:mapper\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.MappedSet.T\"/>\n\t\t<c path=\"ui.observable.MappedSet.U\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.observable.FilteredSet.__rtti = "<class path=\"ui.observable.FilteredSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><c path=\"Hash\"><c path=\"ui.observable.FilteredSet.T\"/></c></_filteredSet>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t<e path=\"Bool\"/>\n</f></_filter>\n\t<_identifier><f a=\"\">\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"296\" override=\"1\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.FilteredSet.T\"/></c></f></delegate>\n\t<apply set=\"method\" line=\"300\"><f a=\"t\">\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t<e path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"317\"><f a=\"\"><e path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"321\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"325\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.FilteredSet.T\"/></t></f></iterator>\n\t<new public=\"1\" set=\"method\" line=\"275\"><f a=\"source:filter\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t\t<e path=\"Bool\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.observable.GroupedSet.__rtti = "<class path=\"ui.observable.GroupedSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><c path=\"Hash\"><c path=\"ui.observable.ObservableSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></c></_groupedSets>\n\t<_identityToGrouping><c path=\"Hash\"><c path=\"String\"/></c></_identityToGrouping>\n\t<delete set=\"method\" line=\"358\"><f a=\"t\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<e path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"380\"><f a=\"t\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<e path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"400\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"404\"><f a=\"set\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"415\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"419\" override=\"1\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></c></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"337\"><f a=\"source:groupingFn\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
-ui.observable.SortedSet.__rtti = "<class path=\"ui.observable.SortedSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"ui.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><e path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted set=\"method\" line=\"471\"><f a=\"\"><c path=\"Array\"><c path=\"ui.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"479\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"484\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<c path=\"Int\"/>\n\t<c path=\"Int\"/>\n\t<c path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"502\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<e path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"506\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<e path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"512\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"516\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"520\" override=\"1\"><f a=\"\"><c path=\"Hash\"><c path=\"ui.observable.SortedSet.T\"/></c></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"432\"><f a=\"source:?sortByFn\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<e path=\"Void\"/>\n</f></new>\n</class>";
+ui.observable.AbstractSet.__rtti = "<class path=\"ui.observable.AbstractSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<implements path=\"ui.observable.OSet\"><c path=\"ui.observable.AbstractSet.T\"/></implements>\n\t<_eventManager><c path=\"ui.observable.EventManager\"><c path=\"ui.observable.AbstractSet.T\"/></c></_eventManager>\n\t<listen public=\"1\" set=\"method\" line=\"106\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t\t<c path=\"ui.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<filter public=\"1\" set=\"method\" line=\"110\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"114\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"ui.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"118\"><f a=\"t:type\">\n\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t<c path=\"ui.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<identifier public=\"1\" set=\"method\" line=\"122\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"126\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"130\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.AbstractSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.observable.ObservableSet.__rtti = "<class path=\"ui.observable.ObservableSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"ui.util.SizedMap\"><c path=\"ui.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"150\"><f a=\"t\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"154\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"ui.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"162\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"166\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"170\"><f a=\"t\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"182\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"186\"><f a=\"t\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"190\"><f a=\"t\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"198\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"202\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"209\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"213\"><f a=\"\"><c path=\"Array\"><c path=\"ui.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"141\"><f a=\"identifier:?tArr\">\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"ui.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.observable.MappedSet.__rtti = "<class path=\"ui.observable.MappedSet\" params=\"T:U\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"ui.observable.MappedSet.T\"/>\n\t<c path=\"ui.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<identifier public=\"1\" set=\"method\" line=\"247\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"251\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"255\"><f a=\"u\">\n\t<c path=\"ui.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"266\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.MappedSet.U\"/></t></f></iterator>\n\t<new public=\"1\" set=\"method\" line=\"229\"><f a=\"source:mapper\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.MappedSet.T\"/>\n\t\t<c path=\"ui.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.observable.FilteredSet.__rtti = "<class path=\"ui.observable.FilteredSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<_identifier><f a=\"\">\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"299\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"303\"><f a=\"t\">\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"320\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"324\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"328\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.FilteredSet.T\"/></t></f></iterator>\n\t<new public=\"1\" set=\"method\" line=\"278\"><f a=\"source:filter\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.observable.GroupedSet.__rtti = "<class path=\"ui.observable.GroupedSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.ObservableSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"361\"><f a=\"t\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"383\"><f a=\"t\">\n\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"403\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"407\"><f a=\"set\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"418\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"422\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"340\"><f a=\"source:groupingFn\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.observable.SortedSet.__rtti = "<class path=\"ui.observable.SortedSet\" params=\"T\" module=\"ui.observable.OSet\">\n\t<extends path=\"ui.observable.AbstractSet\"><c path=\"ui.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"ui.observable.OSet\"><c path=\"ui.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"ui.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted set=\"method\" line=\"474\"><f a=\"\"><c path=\"Array\"><c path=\"ui.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"482\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"487\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"505\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"509\"><f a=\"t\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"515\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"ui.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"519\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"ui.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"523\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"435\"><f a=\"source:?sortByFn\">\n\t<c path=\"ui.observable.OSet\"><c path=\"ui.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"ui.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.util.ColorProvider._INDEX = 0;
 ui.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 ui.util.UidGenerator.nums = "0123456789";
 ui.AgentUi.main();
+function $hxExpose(src, path) {
+	var o = typeof window != "undefined" ? window : exports;
+	var parts = path.split(".");
+	for(var ii = 0; ii < parts.length-1; ++ii) {
+		var p = parts[ii];
+		if(typeof o[p] == "undefined") o[p] = {};
+		o = o[p];
+	}
+	o[parts[parts.length-1]] = src;
+}
+})();
 
 //@ sourceMappingURL=AgentUi.js.map

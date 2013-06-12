@@ -24,7 +24,7 @@ class ProtocolHandler {
 
 	private var filterIsRunning: Bool = false;
 	private var listeningChannel: Requester;
-	private var processHash: Hash<Dynamic->Void>;
+	private var processHash: Map<String,Dynamic->Void>;
 
 	public function new() {
 		EventModel.addListener(ModelEvents.FILTER_RUN, new EventListener(function(filter: Filter): Void {
@@ -86,7 +86,7 @@ class ProtocolHandler {
     		})
         );
 
-        processHash = new Hash<Dynamic->Void>();
+        processHash = new Map<String,Dynamic->Void>();
         processHash.set(Std.string(MsgType.evalResponse), function(data: Dynamic){
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
         		//TODO need to make sure this is wired to properly push into the observable set
