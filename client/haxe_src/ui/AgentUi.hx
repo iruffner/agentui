@@ -56,18 +56,14 @@ class AgentUi {
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
 
         // SERIALIZER.addHandler(ObservableSet, new ObservableSetHandler());
-
-        // var content: MessageContent = new MessageContent();
-        // content.type = "audio";
-        // content.labels = new ObservableSet<Label>(ModelObj.identifier);
-        // content.connections = new ObservableSet<Connection>(ModelObj.identifier);
-        // content.text = "test";
-
-        // var str: String = SERIALIZER.toJsonString(content);
-        // LOGGER.debug(str);
     }
 
     public static function start(): Void {
+        var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
+        if(urlVars.demo.isNotBlank() && (urlVars.demo == "no" || urlVars.demo == "false")) {
+            DEMO = false;
+        }
+
         new JQ("body").keyup(function(evt: JQEvent) {
             if(HOT_KEY_ACTIONS.hasValues()) {
                 for(action_ in 0...HOT_KEY_ACTIONS.length) {
@@ -77,7 +73,7 @@ class AgentUi {
         });
 
         new JQ("#middleContainer #content #tabs").tabs();
-    	new MessagingComp("#sideRight #chat").messagingComp();
+        new MessagingComp("#sideRight #chat").messagingComp();
 
         new ConnectionsList("#connections").connectionsList({
             });
@@ -126,7 +122,6 @@ class AgentUi {
         });
 
 
-        var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
         if(urlVars.uuid.isNotBlank()) {
             LOGGER.info("Login via id | " + urlVars.uuid);
             var login: LoginById = new LoginById();

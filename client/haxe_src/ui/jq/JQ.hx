@@ -58,6 +58,11 @@ typedef UIPosition = {
 	left: Int
 }
 
+typedef UISize = {
+	height: Int,
+	width: Int
+}
+
 @:native("$")
 extern class JQ extends js.JQuery {
 

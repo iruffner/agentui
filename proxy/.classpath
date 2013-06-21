@@ -133,7 +133,7 @@
 			<attribute name="javadoc_location" value="jar:file:/Users/glen/.m2/repository/org/eclipse/jetty/jetty-security/8.1.5.v20120716/jetty-security-8.1.5.v20120716-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="var" path="M2_REPO/net/model3/m3-servlet_2.10.1/1.0-SNAPSHOT/m3-servlet_2.10.1-1.0-SNAPSHOT.jar" source="/CODE_HOME//model3/servlet/core/src/main/scala"/>
+	<classpathentry kind="var" path="M2_REPO/net/model3/m3-servlet_2.10.1/1.0-SNAPSHOT/m3-servlet_2.10.1-1.0-SNAPSHOT.jar" source="/CODE_HOME//model3/servlet/core/src/main/scala" sourcepath="/CODE_HOME/model3/servlet"/>
 	<classpathentry kind="var" path="M2_REPO/net/model3/model3-json/1.5-SNAPSHOT/model3-json-1.5-SNAPSHOT.jar" source="/CODE_HOME//model3/json/src/main"/>
 	<classpathentry kind="var" path="M2_REPO/beanprops/beanprops/2.0-SNAPSHOT/beanprops-2.0-SNAPSHOT.jar" source="/CODE_HOME//model3/beanprops/src/main/java"/>
 	<classpathentry kind="var" path="M2_REPO/org/eclipse/jetty/jetty-websocket/8.1.5.v20120716/jetty-websocket-8.1.5.v20120716.jar" sourcepath="M2_REPO/org/eclipse/jetty/jetty-websocket/8.1.5.v20120716/jetty-websocket-8.1.5.v20120716-sources.jar">

@@ -1882,6 +1882,8 @@ ui.AgentUi.main = function() {
 	ui.AgentUi.HOT_KEY_ACTIONS = new Array();
 }
 ui.AgentUi.start = function() {
+	var urlVars = ui.util.HtmlUtil.getUrlVars();
+	if(ui.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "no" || urlVars.demo == "false")) ui.AgentUi.DEMO = false;
 	new $("body").keyup(function(evt) {
 		if(ui.helper.ArrayHelper.hasValues(ui.AgentUi.HOT_KEY_ACTIONS)) {
 			var _g1 = 0, _g = ui.AgentUi.HOT_KEY_ACTIONS.length;
@@ -1920,7 +1922,6 @@ ui.AgentUi.start = function() {
 	new $("body").click(function(evt) {
 		new $(".nonmodalPopup").hide();
 	});
-	var urlVars = ui.util.HtmlUtil.getUrlVars();
 	if(ui.helper.StringHelper.isNotBlank(urlVars.uuid)) {
 		ui.AgentUi.LOGGER.info("Login via id | " + urlVars.uuid);
 		var login = new ui.model.LoginById();
