@@ -19,6 +19,7 @@ class ModelObj<T> {
 
 class Login extends ModelObj<Login> {
 	public function new () {}
+	public var password: String;
 
 	public function getUri(): String {
 		return throw new ui.exception.Exception("don't call me!");
@@ -26,20 +27,20 @@ class Login extends ModelObj<Login> {
 }
 
 class LoginByUn extends Login {
-	public var username: String;
-	public var password: String;
-	public var agency: String;
+	public var email: String;
+	// public var agency: String;
 
 	override public function getUri(): String {
-		return "agent://" + username + ":" + password + "@server:9876/" + agency + "?email=george@costanza.com&fullname=George+Costanza";
+		// return "agent://" + username + ":" + password + "@server:9876/" + agency + "?email=george@costanza.com&fullname=George+Costanza";
+		return "agent://email/" + email + "?password=" + password;
 	}
 }
 
 class LoginById extends Login {
-	public var id: String;
+	public var uuid: String;
 
 	override public function getUri(): String {
-		return "agent://calpop/" + id;
+		return uuid + "?password=" + password;
 	}
 }
 

@@ -76,6 +76,11 @@ class ProtocolHandler {
             })
         );
 
+        EventModel.addListener(ModelEvents.USER_UPDATE, new EventListener(function(user: NewUser): Void {
+                updateUser(user);
+            })
+        );
+
         EventModel.addListener(ModelEvents.NewContentCreated, new EventListener(function(content: Content): Void {
         		post(content);
     		})
@@ -219,10 +224,46 @@ class ProtocolHandler {
 	}
 
 	public function createUser(newUser: NewUser): Void {
-		var request: InitializeSessionRequest = new InitializeSessionRequest();
-		var data: InitializeSessionRequestData = new InitializeSessionRequestData();
+		var request: CreateUserRequest = new CreateUserRequest();
+		var data: UserRequestData = new UserRequestData();
 		request.content = data;
-		data.agentURI = "agent://" + newUser.userName + ":" + newUser.pwd + "@host?email=" + newUser.email + "&name=" + newUser.name;
+		data.email = newUser.email;
+		data.password = newUser.pwd;
+		data.jsonBlob = {};
+		data.jsonBlob.name = newUser.name;
+		try {
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					if(data.msgType == MsgType.createUserResponse) {
+						try {
+				        	var response: CreateUserResponse = AgentUi.SERIALIZER.fromJsonX(data, CreateUserResponse, false);
+
+				        	AgentUi.agentURI = response.content.agentURI;
+				        	//TODO put this value into the url
+							AgentUi.showLogin();
+							AgentUi.LOGGER.error("Enable firing new user event");
+						} catch (e: JsonException) {
+							AgentUi.LOGGER.error("Serialization error", e);
+						}
+			        // } else if(data.msgType == MsgType.initializeSessionError) {
+			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        // 	throw new InitializeSessionException(error, "Login error");
+			        } else {
+			        	//something unexpected..
+			        	throw new Exception("Unknown user creation error");
+			        }
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing user creation", ex);
+		}
+	}
+
+	public function updateUser(newUser: NewUser): Void {
+		var request: UpdateUserRequest = new UpdateUserRequest();
+		var data: UpdateUserRequestData = new UpdateUserRequestData();
+		request.content = data;
+		data.email = newUser.email;
+		data.password = newUser.pwd;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){

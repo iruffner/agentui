@@ -14,6 +14,7 @@ enum ModelEvents {
 
 	USER_LOGIN;
 	USER_CREATE;
+	USER_UPDATE;
 	USER;
 
 	FitWindow;

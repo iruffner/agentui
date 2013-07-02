@@ -58,22 +58,27 @@ extern class LoginComp extends JQ {
 		        	var labels: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 		        	var inputs: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 
-		        	labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Username</label></div>");
+		        	if(ui.AgentUi.agentURI.isBlank()) {
+		        		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Email</label></div>");
+		        	}
 		        	labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
-		        	labels.append("<div class='labelDiv'><label for='login_ag'>Agency</label></div>");
-		        	self.input_un = new JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
-		        	inputs.append("<br/>");
+		        	// labels.append("<div class='labelDiv'><label for='login_ag'>Agency</label></div>");
+
+		        	if(ui.AgentUi.agentURI.isBlank()) {
+			        	self.input_un = new JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+			        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
+			        	inputs.append("<br/>");
+			        }
 		        	self.input_pw = new JQ("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	self.placeholder_pw = new JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		        	inputs.append("<br/>");
-		        	self.input_ag = new JQ("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		        	self.placeholder_ag = new JQ("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		        	// inputs.append("<br/>");
+		        	// self.input_ag = new JQ("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		        	// self.placeholder_ag = new JQ("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 
 		        	if(AgentUi.DEMO) {
 		        		self.input_un.val("George.Costanza");
 		        		self.input_pw.val("Bosco");
-		        		self.input_ag.val("TheAgency");
+		        		// self.input_ag.val("TheAgency");
 		        	}
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
@@ -82,17 +87,19 @@ extern class LoginComp extends JQ {
 		        			}
 		        		});
 
-		        	self.placeholder_un.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_un.hide();
-		        			self.input_un.show().focus();
-		        		});
+		        	if(ui.AgentUi.agentURI.isBlank()) {
+			        	self.placeholder_un.focus(function(evt: JQEvent): Void {
+			        			self.placeholder_un.hide();
+			        			self.input_un.show().focus();
+			        		});
 
-		        	self.input_un.blur(function(evt: JQEvent): Void {
-		        			if(self.input_un.val().isBlank()) {
-			        			self.placeholder_un.show();
-			        			self.input_un.hide();
-		        			}
-		        		});
+			        	self.input_un.blur(function(evt: JQEvent): Void {
+			        			if(self.input_un.val().isBlank()) {
+				        			self.placeholder_un.show();
+				        			self.input_un.hide();
+			        			}
+			        		});
+			        }
 
 		        	self.placeholder_pw.focus(function(evt: JQEvent): Void {
 		        			self.placeholder_pw.hide();
@@ -106,17 +113,17 @@ extern class LoginComp extends JQ {
 		        			}
 		        		});
 
-		        	self.placeholder_ag.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_ag.hide();
-		        			self.input_ag.show().focus();
-		        		});
+		        	// self.placeholder_ag.focus(function(evt: JQEvent): Void {
+		        	// 		self.placeholder_ag.hide();
+		        	// 		self.input_ag.show().focus();
+		        	// 	});
 
-		        	self.input_ag.blur(function(evt: JQEvent): Void {
-		        			if(self.input_ag.val().isBlank()) {
-			        			self.placeholder_ag.show();
-			        			self.input_ag.hide();
-		        			}
-		        		});
+		        	// self.input_ag.blur(function(evt: JQEvent): Void {
+		        	// 		if(self.input_ag.val().isBlank()) {
+			        // 			self.placeholder_ag.show();
+			        // 			self.input_ag.hide();
+		        	// 		}
+		        	// 	});
 
 		        	EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User): Void {
 	        				self._setUser(user);
@@ -134,22 +141,29 @@ extern class LoginComp extends JQ {
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
-    				var login: LoginByUn = new LoginByUn();
-    				login.username = self.input_un.val();
-    				if(login.username.isBlank()) {
-    					self.placeholder_un.addClass("ui-state-error");
-    					valid = false;
+    				var login: Login;
+    				if(ui.AgentUi.agentURI.isNotBlank()) {
+    					login = new LoginById();
+    					cast(login,LoginById).uuid = ui.AgentUi.agentURI;
+    				} else {
+    					login = new LoginByUn();
+    					var l: LoginByUn = cast(login,LoginByUn);
+    					l.email = self.input_un.val();
+	    				if(l.email.isBlank() && ui.AgentUi.agentURI.isBlank()) {
+	    					self.placeholder_un.addClass("ui-state-error");
+	    					valid = false;
+	    				}
     				}
     				login.password = self.input_pw.val();
     				if(login.password.isBlank()) {
     					self.placeholder_pw.addClass("ui-state-error");
     					valid = false;
     				}
-    				login.agency = self.input_ag.val();
-    				if(login.agency.isBlank()) {
-    					self.placeholder_ag.addClass("ui-state-error");
-    					valid = false;
-    				}
+    				// login.agency = self.input_ag.val();
+    				// if(login.agency.isBlank()) {
+    				// 	self.placeholder_ag.addClass("ui-state-error");
+    				// 	valid = false;
+    				// }
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EventModel.change(ModelEvents.USER_LOGIN, login);
@@ -204,7 +218,9 @@ extern class LoginComp extends JQ {
 		        		self._buildDialog();
 		        	}
 		        	selfElement.children("#un_label").focus();
-		        	self.input_un.blur();
+		        	if(ui.AgentUi.agentURI.isBlank()) {
+		        		self.input_un.blur();
+		        	}
 	        		selfElement.jdialog("open");
         		},
 		        

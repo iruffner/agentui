@@ -46,6 +46,7 @@ class AgentUi {
     public static var PROTOCOL: ProtocolHandler;
     public static var URL: String = "";//"http://64.27.3.17";
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
+    public static var agentURI: String;
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
@@ -62,7 +63,7 @@ class AgentUi {
         var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
         if(urlVars.demo.isNotBlank() && (urlVars.demo == "no" || urlVars.demo == "false")) {
             DEMO = false;
-        }
+        } 
 
         new JQ("body").keyup(function(evt: JQEvent) {
             if(HOT_KEY_ACTIONS.hasValues()) {
@@ -121,15 +122,17 @@ class AgentUi {
             new JQ(".nonmodalPopup").hide();
         });
 
-
-        if(urlVars.uuid.isNotBlank()) {
-            LOGGER.info("Login via id | " + urlVars.uuid);
-            var login: LoginById = new LoginById();
-            login.id = urlVars.uuid;
-            EventModel.change(ModelEvents.USER_LOGIN, login);
-        } else {
-            showLogin();
+        if(urlVars.agentURI.isNotBlank()) {
+            agentURI = urlVars.agentURI;
+            // LOGGER.info("Login via id | " + urlVars.uuid);
+            // var login: LoginById = new LoginById();
+            // login.id = urlVars.agentURI;
+            // EventModel.change(ModelEvents.USER_LOGIN, login);
+        //     showLogin();
+        // } else {
+        //     showNewUser();
         }
+        showLogin();
     }
 
     public static function showLogin(): Void {

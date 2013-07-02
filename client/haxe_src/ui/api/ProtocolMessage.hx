@@ -25,20 +25,54 @@ class Payload {
 /** 
 	Create User Request/Response 
 **/
-class CreateUserRequest extends ProtocolMessage<CreateUserRequestData> {
-	public var content: CreateUserRequestData;
+class CreateUserRequest extends ProtocolMessage<UserRequestData> {
+	public var content: UserRequestData;
 
 	public function new() {
-		this.msgType = MsgType.evalSubscribeRequest;
+		this.msgType = MsgType.createUserRequest;
 	}
 
-	override public function getContent(): CreateUserRequestData {
+	override public function getContent(): UserRequestData {
 		return this.content;
 	}
 }
 
-class CreateUserRequestData extends Payload {
-	public var expression: Dynamic;
+class UserRequestData extends Payload {
+	public var email: String;
+	public var password: String;
+	public var jsonBlob: Dynamic;
+}
+
+class CreateUserResponse extends ProtocolMessage<CreateUserResponseData> {
+	public var content: CreateUserResponseData;
+
+	public function new() {
+		this.msgType = MsgType.createUserResponse;
+	}
+
+	override public function getContent(): CreateUserResponseData {
+		return this.content;
+	}
+}
+
+class CreateUserResponseData extends Payload {
+	public var agentURI: String;
+}
+
+class UpdateUserRequest extends ProtocolMessage<UpdateUserRequestData> {
+	public var content: UpdateUserRequestData;
+
+	public function new() {
+		this.msgType = MsgType.updateUserRequest;
+	}
+
+	override public function getContent(): UpdateUserRequestData {
+		return this.content;
+	}
+}
+
+class UpdateUserRequestData extends UserRequestData {
+	public var sessionId: String;
 }
 
 
@@ -293,7 +327,10 @@ enum MsgType {
 	evalError;
 	stopEvalRequest;
 	stopEvalResponse;
-	createAgentRequest;
+	createUserRequest;
+	createUserResponse;
+	updateUserRequest;
+	createUserError;
 }
 
 enum Reason {

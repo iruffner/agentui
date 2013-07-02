@@ -62,7 +62,7 @@ extern class NewUserComp extends JQ {
 
 		        	labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
 		        	labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
-		        	labels.append("<div class='labelDiv'><label id='un_label' for='newu_un'>Username</label></div>");
+		        	// labels.append("<div class='labelDiv'><label id='un_label' for='newu_un'>Username</label></div>");
 		        	labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
 
 		        	self.input_n = new JQ("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
@@ -71,9 +71,9 @@ extern class NewUserComp extends JQ {
 		        	self.input_em = new JQ("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		        	self.placeholder_em = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
 		        	inputs.append("<br/>");
-		        	self.input_un = new JQ("<input id='newu_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
-		        	inputs.append("<br/>");
+		        	// self.input_un = new JQ("<input id='newu_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		        	// self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
+		        	// inputs.append("<br/>");
 		        	self.input_pw = new JQ("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	self.placeholder_pw = new JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 		        	inputs.append("<br/>");
@@ -98,17 +98,17 @@ extern class NewUserComp extends JQ {
 		        			}
 		        		});
 
-		        	self.placeholder_un.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_un.hide();
-		        			self.input_un.show().focus();
-		        		});
+		        	// self.placeholder_un.focus(function(evt: JQEvent): Void {
+		        	// 		self.placeholder_un.hide();
+		        	// 		self.input_un.show().focus();
+		        	// 	});
 
-		        	self.input_un.blur(function(evt: JQEvent): Void {
-		        			if(self.input_un.val().isBlank()) {
-			        			self.placeholder_un.show();
-			        			self.input_un.hide();
-		        			}
-		        		});
+		        	// self.input_un.blur(function(evt: JQEvent): Void {
+		        	// 		if(self.input_un.val().isBlank()) {
+			        // 			self.placeholder_un.show();
+			        // 			self.input_un.hide();
+		        	// 		}
+		        	// 	});
 
 		        	self.placeholder_pw.focus(function(evt: JQEvent): Void {
 		        			self.placeholder_pw.hide();
@@ -148,11 +148,11 @@ extern class NewUserComp extends JQ {
 
 		        	var valid = true;
     				var newUser: NewUser = new NewUser();
-    				newUser.userName = self.input_un.val();
-    				if(newUser.userName.isBlank()) {
-    					self.placeholder_un.addClass("ui-state-error");
-    					valid = false;
-    				}
+    				// newUser.userName = self.input_un.val();
+    				// if(newUser.userName.isBlank()) {
+    				// 	self.placeholder_un.addClass("ui-state-error");
+    				// 	valid = false;
+    				// }
     				newUser.pwd = self.input_pw.val();
     				if(newUser.pwd.isBlank()) {
     					self.placeholder_pw.addClass("ui-state-error");
