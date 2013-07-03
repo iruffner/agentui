@@ -171,7 +171,10 @@ extern class NewUserComp extends JQ {
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EventModel.change(ModelEvents.USER_CREATE, newUser);
-    				selfElement.jdialog("close");
+
+    				EventModel.addListener(ModelEvents.USER_SIGNUP, new EventListener(function(n: Null<Dynamic>): Void {
+    						selfElement.jdialog("close");
+    					}));
 	        	},
 
 		        _buildDialog: function(): Void {

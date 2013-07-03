@@ -111,51 +111,52 @@ class ProtocolHandler {
 		if(AgentUi.DEMO) {
 			EventModel.change(ModelEvents.USER, TestDao.getUser(null));
 		} 
-		// else {
-			var request: InitializeSessionRequest = new InitializeSessionRequest();
-			var requestData: InitializeSessionRequestData = new InitializeSessionRequestData();
-			request.content = requestData;
-			requestData.agentURI = login.getUri();
-			try {
-				var loginRequest: StandardRequest = new StandardRequest(request, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
-						if(data.msgType == MsgType.initializeSessionResponse) {
-							try {
-					        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
 
-					        	var user: User = new User();
-								user.currentAlias = response.content.defaultAlias;
-								user.sessionURI = response.content.sessionURI;
-								user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.content.listOfCnxns);
-								user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.content.listOfLabels);
-								user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier, response.content.listOfAliases);
-								//TODO user.imgSrc
-								//TODO user.fname
+		var request: InitializeSessionRequest = new InitializeSessionRequest();
+		var requestData: InitializeSessionRequestData = new InitializeSessionRequestData();
+		request.content = requestData;
+		requestData.agentURI = login.getUri();
+		try {
+			var loginRequest: StandardRequest = new StandardRequest(
+				request, 
+				function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
+					if(data.msgType == MsgType.initializeSessionResponse) {
+						try {
+				        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
 
-								//open comm's with server
-								_startPolling(user.sessionURI);
+				        	var user: User = new User();
+							user.currentAlias = response.content.defaultAlias;
+							user.sessionURI = response.content.sessionURI;
+							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.content.listOfCnxns);
+							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.content.listOfLabels);
+							user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier, response.content.listOfAliases);
 
-								// EventModel.change(ModelEvents.User, user);
-								AgentUi.LOGGER.error("Enable firing new user event");
-							} catch (e: JsonException) {
-								AgentUi.LOGGER.error("Serialization error", e);
-							}
-				        } else if(data.msgType == MsgType.initializeSessionError) {
-				        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
-				        	throw new InitializeSessionException(error, "Login error");
-				        } else {
-				        	//something unexpected..
-				        	throw new Exception("Unknown login error");
-				        }
-					});
-				loginRequest.start();
-				
-			} catch (err: InitializeSessionException) {
-				js.Lib.alert("Login error");
-			} catch (err: Dynamic) {
-				js.Lib.alert(err);
-			}
+							//open comm's with server
+							_startPolling(user.sessionURI);
+
+							// EventModel.change(ModelEvents.User, user);
+							AgentUi.LOGGER.error("Enable firing new user event");
+						} catch (e: JsonException) {
+							AgentUi.LOGGER.error("Serialization error", e);
+						}
+			        } else if(data.msgType == MsgType.initializeSessionError) {
+			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        	throw new InitializeSessionException(error, "Login error");
+			        } else {
+			        	//something unexpected..
+			        	AgentUi.LOGGER.error("Unknown user login error | " + data);
+			        	js.Lib.alert("There was an unexpected error attempting to login. Please try again.");
+			        }
+				});
+			loginRequest.start();
+			
+		} catch (err: InitializeSessionException) {
+			js.Lib.alert("Login error");
+		} catch (err: Dynamic) {
+			js.Lib.alert(err);
 		}
-	// }
+	}
+
 
 	public function filter(filter: Filter): Void {
 		filter.rootNode.log();
@@ -239,8 +240,8 @@ class ProtocolHandler {
 
 				        	AgentUi.agentURI = response.content.agentURI;
 				        	//TODO put this value into the url
-							AgentUi.showLogin();
-							AgentUi.LOGGER.error("Enable firing new user event");
+							//AgentUi.showLogin(); -> firing the USER_SIGNUP will close the NewUserComp, 
+							EventModel.change(ModelEvents.USER_SIGNUP);
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
 						}
@@ -249,7 +250,8 @@ class ProtocolHandler {
 			        // 	throw new InitializeSessionException(error, "Login error");
 			        } else {
 			        	//something unexpected..
-			        	throw new Exception("Unknown user creation error");
+			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);
+			        	js.Lib.alert("There was an unexpected error creating your agent. Please try again.");
 			        }
 				}).start();
 		} catch (err: Dynamic) {

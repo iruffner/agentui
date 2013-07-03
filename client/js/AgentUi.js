@@ -2095,13 +2095,15 @@ ui.api.ProtocolHandler.prototype = {
 				if(data1.msgType == ui.api.MsgType.createUserResponse) try {
 					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserResponse,false);
 					ui.AgentUi.agentURI = response.content.agentURI;
-					ui.AgentUi.showLogin();
-					ui.AgentUi.LOGGER.error("Enable firing new user event");
+					ui.model.EventModel.change(ui.model.ModelEvents.USER_SIGNUP);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,ui.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
 					} else throw(e);
-				} else throw new ui.exception.Exception("Unknown user creation error");
+				} else {
+					ui.AgentUi.LOGGER.error("Unknown user creation error | " + Std.string(data1));
+					js.Lib.alert("There was an unexpected error creating your agent. Please try again.");
+				}
 			}).start();
 		} catch( err ) {
 			var ex = ui.log.Logga.getExceptionInst(err);
@@ -2197,7 +2199,10 @@ ui.api.ProtocolHandler.prototype = {
 				} else if(data.msgType == ui.api.MsgType.initializeSessionError) {
 					var error = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionError);
 					throw new ui.exception.InitializeSessionException(error,"Login error");
-				} else throw new ui.exception.Exception("Unknown login error");
+				} else {
+					ui.AgentUi.LOGGER.error("Unknown user login error | " + Std.string(data));
+					js.Lib.alert("There was an unexpected error attempting to login. Please try again.");
+				}
 			});
 			loginRequest.start();
 		} catch( $e0 ) {
@@ -3560,7 +3565,7 @@ ui.model.Filter.prototype = {
 	}
 	,__class__: ui.model.Filter
 }
-ui.model.ModelEvents = $hxClasses["ui.model.ModelEvents"] = { __ename__ : ["ui","model","ModelEvents"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","USER_LOGIN","USER_CREATE","USER_UPDATE","USER","FitWindow","CreateLabel"] }
+ui.model.ModelEvents = $hxClasses["ui.model.ModelEvents"] = { __ename__ : ["ui","model","ModelEvents"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER","FitWindow","CreateLabel"] }
 ui.model.ModelEvents.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.ModelEvents.FILTER_RUN.toString = $estr;
 ui.model.ModelEvents.FILTER_RUN.__enum__ = ui.model.ModelEvents;
@@ -3594,13 +3599,16 @@ ui.model.ModelEvents.USER_CREATE.__enum__ = ui.model.ModelEvents;
 ui.model.ModelEvents.USER_UPDATE = ["USER_UPDATE",10];
 ui.model.ModelEvents.USER_UPDATE.toString = $estr;
 ui.model.ModelEvents.USER_UPDATE.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER = ["USER",11];
+ui.model.ModelEvents.USER_SIGNUP = ["USER_SIGNUP",11];
+ui.model.ModelEvents.USER_SIGNUP.toString = $estr;
+ui.model.ModelEvents.USER_SIGNUP.__enum__ = ui.model.ModelEvents;
+ui.model.ModelEvents.USER = ["USER",12];
 ui.model.ModelEvents.USER.toString = $estr;
 ui.model.ModelEvents.USER.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.FitWindow = ["FitWindow",12];
+ui.model.ModelEvents.FitWindow = ["FitWindow",13];
 ui.model.ModelEvents.FitWindow.toString = $estr;
 ui.model.ModelEvents.FitWindow.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.CreateLabel = ["CreateLabel",13];
+ui.model.ModelEvents.CreateLabel = ["CreateLabel",14];
 ui.model.ModelEvents.CreateLabel.toString = $estr;
 ui.model.ModelEvents.CreateLabel.__enum__ = ui.model.ModelEvents;
 ui.model.ModelObj = function() { }
@@ -6048,7 +6056,7 @@ var defineWidget = function() {
 		}));
 	}, initialized : false, _createNewUser : function() {
 		var self = this;
-		var selfElement = this.element;
+		var selfElement1 = this.element;
 		var valid = true;
 		var newUser = new ui.model.NewUser();
 		newUser.pwd = self.input_pw.val();
@@ -6067,12 +6075,14 @@ var defineWidget = function() {
 			valid = false;
 		}
 		if(!valid) return;
-		selfElement.find(".ui-state-error").removeClass("ui-state-error");
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
 		ui.model.EventModel.change(ui.model.ModelEvents.USER_CREATE,newUser);
-		selfElement.jdialog("close");
+		ui.model.EventModel.addListener(ui.model.ModelEvents.USER_SIGNUP,new ui.model.EventListener(function(n) {
+			selfElement1.jdialog("close");
+		}));
 	}, _buildDialog : function() {
 		var self1 = this;
-		var selfElement1 = this.element;
+		var selfElement2 = this.element;
 		self1.initialized = true;
 		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, buttons : { 'Create my Agent' : function() {
 			self1._createNewUser();
@@ -6080,10 +6090,10 @@ var defineWidget = function() {
 			self1._cancelled = true;
 			$(this).jdialog("close");
 		}}, close : function(evt,ui1) {
-			selfElement1.find(".placeholder").removeClass("ui-state-error");
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
 			if(self1.user == null || !self1.user.hasValidSession()) ui.AgentUi.showLogin();
 		}};
-		selfElement1.jdialog(dlgOptions);
+		selfElement2.jdialog(dlgOptions);
 	}, _setUser : function(user) {
 		var self = this;
 		self.user = user;
