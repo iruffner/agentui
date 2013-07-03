@@ -2191,7 +2191,7 @@ ui.api.ProtocolHandler.prototype = {
 					user.get_currentAlias().labelSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfLabels);
 					user.aliasSet = new ui.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfAliases);
 					_g._startPolling(user.sessionURI);
-					ui.AgentUi.LOGGER.error("Enable firing new user event");
+					if(!ui.AgentUi.DEMO) ui.model.EventModel.change(ui.model.ModelEvents.USER,user); else ui.AgentUi.LOGGER.error("Enable firing new user event");
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,ui.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
@@ -6164,7 +6164,7 @@ var defineWidget = function() {
 		}));
 	}, initialized : false, _login : function() {
 		var self = this;
-		var selfElement = this.element;
+		var selfElement1 = this.element;
 		var valid = true;
 		var login;
 		if(ui.helper.StringHelper.isNotBlank(ui.AgentUi.agentURI)) {
@@ -6185,9 +6185,11 @@ var defineWidget = function() {
 			valid = false;
 		}
 		if(!valid) return;
-		selfElement.find(".ui-state-error").removeClass("ui-state-error");
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
 		ui.model.EventModel.change(ui.model.ModelEvents.USER_LOGIN,login);
-		selfElement.jdialog("close");
+		ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(n) {
+			selfElement1.jdialog("close");
+		}));
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement = this.element;

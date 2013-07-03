@@ -167,7 +167,9 @@ extern class LoginComp extends JQ {
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EventModel.change(ModelEvents.USER_LOGIN, login);
-    				selfElement.jdialog("close");
+    				EventModel.addListener(ModelEvents.USER, new EventListener(function(n: Null<Dynamic>): Void {
+    						selfElement.jdialog("close");
+    					}));
 	        	},
 
 		        _buildDialog: function(): Void {

@@ -134,8 +134,11 @@ class ProtocolHandler {
 							//open comm's with server
 							_startPolling(user.sessionURI);
 
-							// EventModel.change(ModelEvents.User, user);
-							AgentUi.LOGGER.error("Enable firing new user event");
+							if(!ui.AgentUi.DEMO) {
+								EventModel.change(ModelEvents.USER, user);
+							} else {
+								AgentUi.LOGGER.error("Enable firing new user event");
+							}
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
 						}
