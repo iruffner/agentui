@@ -19,7 +19,7 @@
 
 		<dependency>
 			<groupId>net.model3</groupId>
-			<artifactId>m3-servlet_2.10.1</artifactId>
+			<artifactId>m3-servlet_2.10</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
