@@ -27,7 +27,7 @@ Haxe Compiler 3.0.0 - (C)2005-2013 Haxe Foundation
   --help  Display this list of options
 
 Step 3) goto your checkout/clone of the agentui code.  For me that is cd ~/code/agentui   From there go into the client directory cd client
-        Note that a checkout of Emeris' haxe common will be needed as well, with a symlink from [agentui]client/haxe_src/m3 -> [haxe]/m3
+        Note that a checkout of Emeris' haxe common (https://github.com/iruffner/haxe.git) will be needed as well, with a symlink from [agentui]client/haxe_src/m3 -> [haxe]/m3
 
 Step 4) build it haxe build.hxml (here is my output)
 
