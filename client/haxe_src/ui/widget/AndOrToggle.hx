@@ -1,7 +1,8 @@
 package ui.widget;
 
-import ui.jq.JQ;
-import js.JQuery;
+import m3.jq.JQ;
+import m3.widget.Widgets;
+import m3.exception.Exception;
 import ui.model.Node;
 
 typedef AndOrToggleOptions = {
@@ -14,6 +15,7 @@ typedef AndOrToggleWidgetDef = {
 	var _fireFilter: Void->Void;
 }
 
+@:native("$")
 extern class AndOrToggle extends JQ {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd : String, arg: Dynamic):Void{})
@@ -21,7 +23,6 @@ extern class AndOrToggle extends JQ {
 	function andOrToggle(?opts: AndOrToggleOptions): AndOrToggle;
 
 	private static function __init__(): Void {
-		untyped AndOrToggle = window.jQuery;
 		var defineWidget: Void->AndOrToggleWidgetDef = function(): AndOrToggleWidgetDef {
 			return {
 		        _create: function(): Void {
@@ -29,7 +30,7 @@ extern class AndOrToggle extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of AndOrToggle must be a div element");
+		        		throw new Exception("Root of AndOrToggle must be a div element");
 		        	}
 
 		        	
@@ -41,15 +42,15 @@ extern class AndOrToggle extends JQ {
 		        	var children: JQ = selfElement.children();
 		        	children
 		        		.hover(
-			        		function(evt: JqEvent): Void {
+			        		function(evt: JQEvent): Void {
 			        			JQ.cur.addClass("ui-state-hover");
 		        			},
-			        		function(evt: JqEvent): Void {
+			        		function(evt: JQEvent): Void {
 			        			JQ.cur.removeClass("ui-state-hover");
 			        		}
 		        		)
 		        		.click(
-		        			function(evt: JqEvent): Void {
+		        			function(evt: JQEvent): Void {
 		        				children.toggleClass("ui-state-active");
 		        				self._fireFilter();
 		        			}

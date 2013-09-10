@@ -1,11 +1,12 @@
 package ui.widget;
 
-import js.JQuery;
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
 import ui.model.ModelObj;
-import ui.observable.OSet;
+import m3.observable.OSet;
 import ui.widget.LabelComp;
+import m3.exception.Exception;
+import m3.widget.Widgets;
 
 typedef ContentFeedOptions = {
 	var content: OSet<Content>;
@@ -18,6 +19,7 @@ typedef ContentFeedWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class ContentFeed extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -25,14 +27,13 @@ extern class ContentFeed extends JQ {
 	function contentFeed(?opts: ContentFeedOptions): ContentFeed;
 
 	private static function __init__(): Void {
-		untyped ContentFeed = window.jQuery;
 		var defineWidget: Void->ContentFeedWidgetDef = function(): ContentFeedWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of ContentFeed must be a div element");
+		        		throw new Exception("Root of ContentFeed must be a div element");
 		        	}
 
 		        	selfElement.addClass("container " + Widgets.getWidgetClasses()).css("padding", "10px");

@@ -1,13 +1,14 @@
 package ui.widget;
 
-import js.JQuery;
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.observable.OSet;
+import m3.observable.OSet;
 import ui.widget.LabelComp;
+import m3.exception.Exception;
 
-using ui.helper.OSetHelper;
+using m3.helper.OSetHelper;
 using ui.helper.ModelHelper;
 
 typedef ContentCompOptions = {
@@ -20,6 +21,7 @@ typedef ContentCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class ContentComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -27,14 +29,13 @@ extern class ContentComp extends JQ {
 	function contentComp(?opts: ContentCompOptions): ContentComp;
 
 	private static function __init__(): Void {
-		untyped ContentComp = window.jQuery;
 		var defineWidget: Void->ContentCompWidgetDef = function(): ContentCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of ContentComp must be a div element");
+		        		throw new Exception("Root of ContentComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());

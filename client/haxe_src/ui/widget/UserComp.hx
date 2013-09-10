@@ -1,13 +1,14 @@
 package ui.widget;
 
-import js.JQuery;
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
-import ui.util.M;
+import m3.util.M;
+import m3.exception.Exception;
 
-using ui.helper.StringHelper;
+using m3.helper.StringHelper;
 
 typedef UserCompOptions = {
 }
@@ -20,6 +21,7 @@ typedef UserCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class UserComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -27,14 +29,13 @@ extern class UserComp extends JQ {
 	function userComp(?opts: UserCompOptions): UserComp;
 
 	private static function __init__(): Void {
-		untyped UserComp = window.jQuery;
 		var defineWidget: Void->UserCompWidgetDef = function(): UserCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: UserCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of UserComp must be a div element");
+		        		throw new Exception("Root of UserComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("ocontainer shadow ");
@@ -101,7 +102,7 @@ extern class UserComp extends JQ {
 			        				}, function(){
 			        					JQ.cur.removeClass("ui-state-hover");	
 		        					})
-			        			.click(function(evt: JqEvent) {
+			        			.click(function(evt: JQEvent) {
 			        					EventModel.change(ModelEvents.LoadAlias, alias.uid);
 			        				});
 			        	}
@@ -113,7 +114,7 @@ extern class UserComp extends JQ {
 		        			of: selfElement
 		        		});
 		        	aliases.hide();
-		        	change.click(function(evt: JqEvent): Void {
+		        	change.click(function(evt: JQEvent): Void {
 		        			aliases.toggle();
 		        			evt.stopPropagation();
 		        		});

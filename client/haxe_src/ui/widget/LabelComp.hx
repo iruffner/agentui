@@ -1,13 +1,15 @@
 package ui.widget;
 
-import js.JQuery;
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
-import ui.jq.JQDraggable;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.jq.JQDraggable;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.Node;
-import ui.observable.OSet;
+import m3.observable.OSet;
 import ui.widget.FilterableComponent;
+import m3.exception.Exception;
+import m3.util.UidGenerator;
 
 using StringTools;
 
@@ -24,6 +26,7 @@ typedef LabelCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class LabelComp extends FilterableComponent {
 	public static var COLORS: Array<Array<String>>;
 
@@ -33,7 +36,6 @@ extern class LabelComp extends FilterableComponent {
 	function labelComp(opts: LabelCompOptions): LabelComp;
 
 	private static function __init__(): Void {
-		untyped LabelComp = window.jQuery;
 		var defineWidget: Void->LabelCompWidgetDef = function(): LabelCompWidgetDef {
 			return {
 		        options: {
@@ -63,12 +65,12 @@ extern class LabelComp extends FilterableComponent {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 					if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of LabelComp must be a div element");
+		        		throw new Exception("Root of LabelComp must be a div element");
 		        	}
 
 		        	// selfElement.addClass(Widgets.getWidgetClasses());
 
-		        	selfElement.addClass("label labelComp ").attr("id", self.options.label.text.htmlEscape() + "_" + ui.util.UidGenerator.create(8));
+		        	selfElement.addClass("label labelComp ").attr("id", self.options.label.text.htmlEscape() + "_" + UidGenerator.create(8));
 		        	
 		            var labelTail: JQ = new JQ("<div class='labelTail'></div>");
 		            labelTail.css("border-right-color", self.options.label.color);
@@ -118,7 +120,7 @@ extern class LabelComp extends FilterableComponent {
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
 					      	greedy: true,
-					      	drop: function( event: JqEvent, _ui: UIDroppable ) {
+					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 					      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
 					      		filterCombiner.appendTo(JQ.cur.parent());
 					      		filterCombiner.filterCombination({

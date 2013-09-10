@@ -1,12 +1,13 @@
 package ui.widget;
 
-import js.JQuery;
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
+import m3.exception.Exception;
 
-using ui.helper.StringHelper;
+using m3.helper.StringHelper;
 
 typedef PopupOptions = {
 	var createFcn: JQ->Void;
@@ -21,6 +22,7 @@ typedef PopupWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class Popup extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -28,7 +30,6 @@ extern class Popup extends JQ {
 	function popup(opts: PopupOptions): Popup;
 
 	private static function __init__(): Void {
-		untyped Popup = window.jQuery;
 		var defineWidget: Void->PopupWidgetDef = function(): PopupWidgetDef {
 			return {
 				options: {
@@ -40,7 +41,7 @@ extern class Popup extends JQ {
 		        	var self: PopupWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of Popup must be a div element");
+		        		throw new Exception("Root of Popup must be a div element");
 		        	}
 
 		        	selfElement.addClass("ocontainer shadow popup");

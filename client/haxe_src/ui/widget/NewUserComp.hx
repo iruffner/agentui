@@ -1,12 +1,14 @@
 package ui.widget;
 
-import ui.jq.JQ;
-import ui.jq.JDialog;
+import m3.jq.JQ;
+import m3.jq.JDialog;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
+import m3.exception.Exception;
 
-using ui.helper.StringHelper;
+using m3.helper.StringHelper;
 
 typedef NewUserCompOptions = {
 }
@@ -36,6 +38,7 @@ typedef NewUserCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class NewUserComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -43,14 +46,13 @@ extern class NewUserComp extends JQ {
 	function newUserComp(?opts: NewUserCompOptions): NewUserComp;
 
 	private static function __init__(): Void {
-		untyped NewUserComp = window.jQuery;
 		var defineWidget: Void->NewUserCompWidgetDef = function(): NewUserCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: NewUserCompWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of NewUserComp must be a div element");
+		        		throw new Exception("Root of NewUserComp must be a div element");
 		        	}
 
 		        	self._cancelled = false;

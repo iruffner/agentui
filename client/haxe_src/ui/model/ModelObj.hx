@@ -1,12 +1,13 @@
 package ui.model;
 
-import ui.util.ColorProvider;
-import ui.observable.OSet;
-import ui.serialization.Serialization;
+import m3.util.ColorProvider;
+import m3.observable.OSet;
+import m3.serialization.Serialization;
+import m3.exception.Exception;
 
-using ui.helper.ArrayHelper;
-using ui.helper.OSetHelper;
-using ui.helper.StringHelper;
+using m3.helper.ArrayHelper;
+using m3.helper.OSetHelper;
+using m3.helper.StringHelper;
 
 @:rtti
 class ModelObj<T> {
@@ -22,7 +23,7 @@ class Login extends ModelObj<Login> {
 	public var password: String;
 
 	public function getUri(): String {
-		return throw new ui.exception.Exception("don't call me!");
+		return throw new Exception("don't call me!");
 	}
 }
 

@@ -1,14 +1,15 @@
 package ui.widget;
 
-import js.JQuery;
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
-import ui.jq.JQDraggable;
-import ui.jq.JQTooltip;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.jq.JQDraggable;
+import m3.jq.JQTooltip;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.Node;
-import ui.observable.OSet.ObservableSet;
+import m3.observable.OSet.ObservableSet;
 import ui.widget.FilterableComponent;
+import m3.exception.Exception;
 
 using StringTools;
 
@@ -25,6 +26,7 @@ typedef ConnectionAvatarWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class ConnectionAvatar extends FilterableComponent {
 	
 	@:overload(function(cmd : String):Bool{})
@@ -33,7 +35,6 @@ extern class ConnectionAvatar extends FilterableComponent {
 	function connectionAvatar(opts: ConnectionAvatarOptions): ConnectionAvatar;
 
 	static function __init__(): Void {
-		untyped ConnectionAvatar = window.jQuery;
 		var defineWidget: Void->ConnectionAvatarWidgetDef = function(): ConnectionAvatarWidgetDef {
 			return {
 		        options: {
@@ -68,7 +69,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 					if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of ConnectionAvatar must be a div element");
+		        		throw new Exception("Root of ConnectionAvatar must be a div element");
 		        	}
 
 		        	selfElement.attr("id", "connavatar_" + (self.options.connection.lname + self.options.connection.fname).htmlEscape());
@@ -81,7 +82,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            cast(selfElement, JQTooltip).tooltip();
 
 		            if(!self.options.dndEnabled) {
-		            	img.mousedown(function(evt: JqEvent) { 
+		            	img.mousedown(function(evt: JQEvent) { 
 		            		untyped __js__("return false;"); 
 	            		});
 	            	} else {
@@ -120,7 +121,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
 					      	greedy: true,
-					      	drop: function( event: JqEvent, _ui: UIDroppable ) {
+					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 					      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
 					      		filterCombiner.appendTo(JQ.cur.parent());
 					      		filterCombiner.filterCombination({

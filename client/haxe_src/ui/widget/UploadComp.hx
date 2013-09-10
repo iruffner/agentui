@@ -1,10 +1,12 @@
 package ui.widget;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
+import m3.exception.Exception;
 // import js.html.FileReader;
 // import js.html.File;
 
-using ui.helper.ArrayHelper;
+using m3.helper.ArrayHelper;
 
 
 typedef UploadCompOptions = {
@@ -19,6 +21,7 @@ typedef UploadCompWidgetDef = {
 	var _traverseFiles: Dynamic->Void;
 }
 
+@:native("$")
 extern class UploadComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -26,14 +29,13 @@ extern class UploadComp extends JQ {
 	function uploadComp(?opts: UploadCompOptions): UploadComp;
 
 	private static function __init__(): Void {
-		untyped UploadComp = window.jQuery;
 		var defineWidget: Void->UploadCompWidgetDef = function(): UploadCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of UploadComp must be a div element");
+		        		throw new Exception("Root of UploadComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("uploadComp container " + Widgets.getWidgetClasses());

@@ -1,10 +1,13 @@
 package ui.widget;
 
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.jq.JQSortable;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.observable.OSet;
+import m3.observable.OSet;
 import ui.widget.LabelComp;
+import m3.exception.Exception;
 
 typedef MessagingCompOptions = {
 }
@@ -16,6 +19,7 @@ typedef MessagingCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class MessagingComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -23,25 +27,25 @@ extern class MessagingComp extends JQ {
 	function messagingComp(?opts: MessagingCompOptions): MessagingComp;
 
 	private static function __init__(): Void {
-		untyped MessagingComp = window.jQuery;
 		var defineWidget: Void->MessagingCompWidgetDef = function(): MessagingCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: MessagingCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of MessagingComp must be a div element");
+		        		throw new Exception("Root of MessagingComp must be a div element");
 		        	}
 
-		        	selfElement.tabs({
+		        	var tabs: JQ = selfElement.tabs({
 		                activate: function(evt: JQEvent, ui: {newPanel: JQ}) {
 		                    ui.newPanel.find(".chatMsgs").each(function() {
 		                        JQ.cur.scrollTop(JQ.cur.height());
 		                    });
 		                }
-		            }).find( ".ui-tabs-nav" ).sortable({
+		            }).find( ".ui-tabs-nav" );
+		            cast(tabs, JQSortable).sortable({
 						axis: "x",
-						stop: function() {
+						stop: function(evt: JQEvent, ui: UISortable) {
 							selfElement.tabs( "refresh" );
 						}
 				    });

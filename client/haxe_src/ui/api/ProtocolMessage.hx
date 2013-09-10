@@ -2,7 +2,7 @@ package ui.api;
 
 import ui.model.ModelObj;
 import ui.model.Filter;
-import ui.exception.Exception;
+import m3.exception.Exception;
 
 interface HasContent<T> {
 	function getContent(): T;

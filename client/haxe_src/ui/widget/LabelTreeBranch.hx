@@ -1,10 +1,12 @@
 package ui.widget;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
-import ui.observable.OSet;
+import m3.observable.OSet;
+import m3.exception.Exception;
 
 typedef LabelTreeBranchOptions = {
 	var label: Label;
@@ -19,6 +21,7 @@ typedef LabelTreeBranchWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class LabelTreeBranch extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -26,42 +29,7 @@ extern class LabelTreeBranch extends JQ {
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function labelTreeBranch(opts: LabelTreeBranchOptions): LabelTreeBranch;
 
-	private static function _initColors(): Void {
-		COLORS = new Array<Array<String>>();
-		var reds = new Array<String>();
-		reds.push("#D06C72");
-		reds.push("#C23D46");
-		reds.push("#932F35");
-		colors.push(reds);
-		
-		var blues = new Array<String>();
-		blues.push("#3D88C2");
-		blues.push("#9AC1DF");
-		blues.push("#3D46C2");
-		colors.push(blues);
-
-		var greens = new Array<String>();
-		greens.push("#72D06C");
-		greens.push("#A5D06C");
-		greens.push("#35932F");
-		colors.push(greens);
-
-		var browns = new Array<String>();
-		browns.push("#935A2F");
-		browns.push("#D0976C");
-		browns.push("#C2773D");
-		colors.push(browns);
-
-		var purples = new Array<String>();
-		purples.push("#935A2F");
-		purples.push("#CA6CD0");
-		purples.push("#5A2F93");
-		colors.push(purples);
-	}
-
 	private static function __init__(): Void {
-		untyped LabelTreeBranch = window.jQuery;
-		// _initColors();
 		var defineWidget: Void->LabelTreeBranchWidgetDef = function(): LabelTreeBranchWidgetDef {
 			return {
 		        options: {
@@ -74,7 +42,7 @@ extern class LabelTreeBranch extends JQ {
 		        	var self: LabelTreeBranchWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 					if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of LabelTreeBranch must be a div element");
+		        		throw new Exception("Root of LabelTreeBranch must be a div element");
 		        	}
 
 		        	selfElement.addClass("labelTreeBranch ");

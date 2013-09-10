@@ -1,12 +1,12 @@
 
 
 
-Step 1) Download and install HaXe 2.10 (it is fairly benign install and installs HaXe and the nekovm)
+Step 1) Download and install HaXe 3 (it is fairly benign install and installs HaXe)
 
 Step 2) make sure haxe is available from the command line
  % haxe                                                                                                                               
-Haxe Compiler 2.10 - (c)2005-2012 Motion-Twin
- Usage : haxe -main <class> [-swf|-js|-neko|-php|-cpp|-cs|-java|-as3] <output> [options]
+Haxe Compiler 3.0.0 - (C)2005-2013 Haxe Foundation
+ Usage : haxe.exe -main <class> [-swf|-js|-neko|-php|-cpp|-as3] <output> [options]
  Options :
   -cp <path> : add a directory to find source files
   -js <file> : compile code to JavaScript file
@@ -22,7 +22,7 @@ Haxe Compiler 2.10 - (c)2005-2012 Motion-Twin
   -lib <library[:version]> : use a haxelib library
   -D <var> : define a conditional compilation flag
   -v : turn on verbose mode
-  -debug : add debug informations to the compiled code
+  -debug : add debug information to the compiled code
   -help  Display this list of options
   --help  Display this list of options
 
@@ -44,7 +44,6 @@ Things to note...
 
 * Currently the client folder is the actual docroot so you can copy that to a web server and point your browser to agentui.html and have a running client
 * Where can we share tidbits like this, do we have a wiki or a mailing list?
-* We will be upgrading to HaXe 3.0 and will let y'all know when that happens and provide instructions at the point as to how to upgrade
 * If the build fails the  js/AgentUi.js is deleted.  So after running the build the existence of js/AgentUi.js is the best inidicator of success|failure
 * We currently have people building and developing using HaXe on windows, max osx and linux.
 * I think everyone's favorite dev environment is sublime http://www.sublimetext.com/ 

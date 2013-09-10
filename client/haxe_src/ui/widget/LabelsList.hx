@@ -1,14 +1,16 @@
 package ui.widget;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
-import ui.observable.OSet;
+import m3.observable.OSet;
 import ui.widget.LabelComp;
-import ui.util.UidGenerator;
+import m3.util.UidGenerator;
+import m3.exception.Exception;
 
-using ui.helper.StringHelper;
+using m3.helper.StringHelper;
 
 typedef LabelsListWidgetDef = {
 	@:optional var labels: MappedSet<Label, LabelTreeBranch>;
@@ -17,20 +19,20 @@ typedef LabelsListWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class LabelsList extends JQ {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function labelsList(): LabelsList;
 
 	private static function __init__(): Void {
-		untyped LabelsList = window.jQuery;
 		var defineWidget: Void->LabelsListWidgetDef = function(): LabelsListWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: LabelsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of LabelsList must be a div element");
+		        		throw new Exception("Root of LabelsList must be a div element");
 		        	}
 
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());

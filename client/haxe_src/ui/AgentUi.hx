@@ -2,10 +2,10 @@ package ui;
 
 import js.JQuery;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
 
-import ui.log.Logga;
-import ui.log.LogLevel;
+import m3.log.Logga;
+import m3.log.LogLevel;
 
 import ui.model.ModelObj;
 import ui.model.Node;
@@ -13,10 +13,10 @@ import ui.model.EventModel;
 import ui.model.ModelEvents;
 import ui.api.ProtocolHandler;
 
-import ui.observable.OSet;
+import m3.observable.OSet;
 
-import ui.util.UidGenerator;
-import ui.util.HtmlUtil;
+import m3.util.UidGenerator;
+import m3.util.HtmlUtil;
 
 import ui.widget.ConnectionsList;
 import ui.widget.LabelsList;
@@ -29,10 +29,10 @@ import ui.widget.MessagingComp;
 import ui.widget.InviteComp;
 import ui.widget.NewUserComp;
 
-import ui.serialization.Serialization;
+import m3.serialization.Serialization;
 
-using ui.helper.ArrayHelper;
-using ui.helper.StringHelper;
+using m3.helper.ArrayHelper;
+using m3.helper.StringHelper;
 using Lambda;
 
 @:expose

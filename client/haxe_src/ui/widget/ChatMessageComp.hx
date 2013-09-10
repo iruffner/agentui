@@ -1,9 +1,11 @@
 package ui.widget;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.observable.OSet;
+import m3.observable.OSet;
 import ui.widget.LabelComp;
+import m3.exception.Exception;
 
 enum ChatOrientation {
 	chatRight;
@@ -21,6 +23,7 @@ typedef ChatMessageCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class ChatMessageComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -28,7 +31,6 @@ extern class ChatMessageComp extends JQ {
 	function chatMessageComp(opts: ChatMessageCompOptions): ChatMessageComp;
 
 	private static function __init__(): Void {
-		untyped ChatMessageComp = window.jQuery;
 		var defineWidget: Void->ChatMessageCompWidgetDef = function(): ChatMessageCompWidgetDef {
 			return {
 		        options: {
@@ -40,7 +42,7 @@ extern class ChatMessageComp extends JQ {
 		        	var self: ChatMessageCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of ChatMessageComp must be a div element");
+		        		throw new Exception("Root of ChatMessageComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("chatMessageComp ui-helper-clearfix " + self.options.orientation + Widgets.getWidgetClasses());

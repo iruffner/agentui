@@ -1,11 +1,11 @@
 package ui.api;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
 import ui.model.Filter;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
 import ui.api.ProtocolMessage;
-import ui.exception.Exception;
+import m3.exception.Exception;
 import ui.exception.InitializeSessionException;
 
 interface Requester {
@@ -27,7 +27,7 @@ class StandardRequest implements Requester {
 		JQ.ajax( { 
 			async: true,
 			url: AgentUi.URL + "/api", 
-	        // dataType: "json", 
+	        dataType: "json", 
 	        // jsonp: "blah",
 	        data: AgentUi.SERIALIZER.toJsonString(request),
 	        type: "POST",

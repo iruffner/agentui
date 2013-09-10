@@ -1,9 +1,11 @@
 package ui.widget;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.observable.OSet;
+import m3.observable.OSet;
 import ui.widget.LabelComp;
+import m3.exception.Exception;
 
 typedef LabelTreeOptions = {
 	var labels: OSet<Label>;
@@ -17,13 +19,13 @@ typedef LabelTreeWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class LabelTree extends JQ {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function labelTree(opts: LabelTreeOptions): LabelTree;
 
 	private static function __init__(): Void {
-		untyped LabelTree = window.jQuery;
 		var defineWidget: Void->LabelTreeWidgetDef = function(): LabelTreeWidgetDef {
 			return {
 		        options: {
@@ -35,7 +37,7 @@ extern class LabelTree extends JQ {
 		        	var self: LabelTreeWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of LabelTree must be a div element");
+		        		throw new Exception("Root of LabelTree must be a div element");
 		        	}
 
 		        	selfElement.addClass("labelTree " + Widgets.getWidgetClasses());

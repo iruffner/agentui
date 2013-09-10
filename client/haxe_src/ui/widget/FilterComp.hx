@@ -2,16 +2,17 @@ package ui.widget;
 
 import js.html.Element;
 
-import js.JQuery;
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
-import ui.observable.OSet;
+import m3.observable.OSet;
 import ui.widget.LabelComp;
+import m3.exception.Exception;
 
 typedef FilterCompOptions = {
 }
@@ -23,6 +24,7 @@ typedef FilterCompWidgetDef = {
 	var fireFilter: Void->Void;
 }
 
+@:native("$")
 extern class FilterComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -30,14 +32,13 @@ extern class FilterComp extends JQ {
 	function filterComp(?opts: FilterCompOptions): FilterComp;
 
 	private static function __init__(): Void {
-		untyped FilterComp = window.jQuery;
 		var defineWidget: Void->FilterCompWidgetDef = function(): FilterCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: FilterCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of FilterComp must be a div element");
+		        		throw new Exception("Root of FilterComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("connectionDT labelDT dropCombiner " + Widgets.getWidgetClasses());
@@ -54,7 +55,7 @@ extern class FilterComp extends JQ {
 			    		},
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",
-				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
+				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
 			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, "#filter");
 			                var cloneOffset: {top: Int, left: Int} = clone.offset();
@@ -115,20 +116,20 @@ extern class FilterComp extends JQ {
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",
 				      	greedy: true,
-				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
+				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
 			                _ui.draggable.remove();
 			                shrink();
 			                self.fireFilter();
 				      	},
 				      	tolerance: "pointer",
-				      	over: function( event: JqEvent, _ui: UIDroppable) {
+				      	over: function( event: JQEvent, _ui: UIDroppable) {
 				    		grow(300);
 				      	},
-				      	out: function( event: JqEvent, _ui: UIDroppable) {
+				      	out: function( event: JQEvent, _ui: UIDroppable) {
 				      		shrink();
 				      	}
-			    	}).tooltip().dblclick(function(event: JqEvent) {
+			    	}).tooltip().dblclick(function(event: JQEvent) {
 			    			grow(150);
 		    				var trashables: JQ = selfElement.children(".filterTrashable");
 			    			trashables.position({

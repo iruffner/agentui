@@ -1,8 +1,8 @@
 package ui.model;
 
-import ui.util.UidGenerator;
+import m3.util.UidGenerator;
 
-using ui.helper.ArrayHelper;
+using m3.helper.ArrayHelper;
 
 class EventModel {
 	private static var hash: Map<String,Array<EventListener>>;

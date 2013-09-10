@@ -1,10 +1,10 @@
 package ui.model;
 
 import ui.model.ModelObj;
-import ui.exception.Exception;
+import m3.exception.Exception;
 
-using ui.helper.ArrayHelper;
-using ui.helper.StringHelper;
+using m3.helper.ArrayHelper;
+using m3.helper.StringHelper;
 
 class Node {
 	public var nodes: Array<Node>;

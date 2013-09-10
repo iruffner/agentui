@@ -1,8 +1,10 @@
 package ui.widget;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.observable.OSet;
+import m3.observable.OSet;
+import m3.exception.Exception;
 
 typedef ChatCompOptions = {
 	var connection: Connection;
@@ -18,13 +20,13 @@ typedef ChatCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class ChatComp extends JQ {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function chatComp(opts: ChatCompOptions): ChatComp;
 
 	private static function __init__(): Void {
-		untyped ChatComp = window.jQuery;
 		var defineWidget: Void->ChatCompWidgetDef = function(): ChatCompWidgetDef {
 			return {
 		        options: {
@@ -36,7 +38,7 @@ extern class ChatComp extends JQ {
 		        	var self: ChatCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of ChatComp must be a div element");
+		        		throw new Exception("Root of ChatComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("chatComp " + Widgets.getWidgetClasses());

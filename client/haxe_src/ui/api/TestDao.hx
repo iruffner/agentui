@@ -3,11 +3,11 @@ package ui.api;
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.EventModel;
-import ui.observable.OSet.ObservableSet;
-import ui.util.UidGenerator;
+import m3.observable.OSet.ObservableSet;
+import m3.util.UidGenerator;
 
-using ui.helper.ArrayHelper;
-using ui.helper.OSetHelper;
+using m3.helper.ArrayHelper;
+using m3.helper.OSetHelper;
 
 class TestDao {
 

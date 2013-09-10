@@ -1,8 +1,8 @@
 package ui.model;
 
-import ui.exception.Exception;
+import m3.exception.Exception;
 
-using ui.helper.ArrayHelper;
+using m3.helper.ArrayHelper;
 
 class Filter {
 	public var labelNodes: Array<Node>;

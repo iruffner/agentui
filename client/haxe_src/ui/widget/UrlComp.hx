@@ -1,10 +1,12 @@
 package ui.widget;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
+import m3.widget.Widgets;
+import m3.exception.Exception;
 // import js.html.FileReader;
 // import js.html.File;
 
-using ui.helper.ArrayHelper;
+using m3.helper.ArrayHelper;
 
 
 typedef UrlCompOptions = {
@@ -19,6 +21,7 @@ typedef UrlCompWidgetDef = {
 	var _post: Void->Void;
 }
 
+@:native("$")
 extern class UrlComp extends JQ {
 
 	private static var API_KEY: String;
@@ -29,8 +32,6 @@ extern class UrlComp extends JQ {
 	function urlComp(?opts: UrlCompOptions): UrlComp;
 
 	private static function __init__(): Void {
-		
-		untyped UrlComp = window.jQuery;
 		var defineWidget: Void->UrlCompWidgetDef = function(): UrlCompWidgetDef {
 			return {
 		        _create: function(): Void {
@@ -38,7 +39,7 @@ extern class UrlComp extends JQ {
 		        	var self: UrlCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of UrlComp must be a div element");
+		        		throw new Exception("Root of UrlComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("urlComp container " + Widgets.getWidgetClasses());

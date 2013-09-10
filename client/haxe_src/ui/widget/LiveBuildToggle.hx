@@ -1,8 +1,9 @@
 package ui.widget;
 
-import ui.jq.JQ;
-import js.JQuery;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.model.Node;
+import m3.exception.Exception;
 
 typedef LiveBuildToggleOptions = {
 }
@@ -15,6 +16,7 @@ typedef LiveBuildToggleWidgetDef = {
 	var _fireFilter: Void->Void;
 }
 
+@:native("$")
 extern class LiveBuildToggle extends JQ {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd : String, arg : Dynamic):Void{})
@@ -22,7 +24,6 @@ extern class LiveBuildToggle extends JQ {
 	function liveBuildToggle(?opts: LiveBuildToggleOptions): LiveBuildToggle;
 
 	private static function __init__(): Void {
-		untyped LiveBuildToggle = window.jQuery;
 		var defineWidget: Void->LiveBuildToggleWidgetDef = function(): LiveBuildToggleWidgetDef {
 			return {
 		        _create: function(): Void {
@@ -30,7 +31,7 @@ extern class LiveBuildToggle extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of LiveBuildToggle must be a div element");
+		        		throw new Exception("Root of LiveBuildToggle must be a div element");
 		        	}
 
 		        	selfElement.addClass("liveBuildToggle");
@@ -40,15 +41,15 @@ extern class LiveBuildToggle extends JQ {
 		        	var children: JQ = selfElement.children();
 		        	children
 		        		.hover(
-			        		function(evt: JqEvent): Void {
+			        		function(evt: JQEvent): Void {
 			        			JQ.cur.addClass("ui-state-hover");
 		        			},
-			        		function(evt: JqEvent): Void {
+			        		function(evt: JQEvent): Void {
 			        			JQ.cur.removeClass("ui-state-hover");
 			        		}
 		        		)
 		        		.click(
-		        			function(evt: JqEvent): Void {
+		        			function(evt: JQEvent): Void {
 		        				children.toggleClass("ui-state-active");
 		        				self._fireFilter();
 		        			}

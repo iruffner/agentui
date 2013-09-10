@@ -1,6 +1,7 @@
 package ui.exception;
 
 import ui.api.ProtocolMessage;
+import m3.exception.Exception;
 
 class InitializeSessionException extends Exception {
 	public var error: InitializeSessionError;

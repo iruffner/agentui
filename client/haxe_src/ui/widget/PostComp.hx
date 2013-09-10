@@ -2,17 +2,18 @@ package ui.widget;
 
 import js.html.Element;
 
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
-import js.JQuery;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.widget.Widgets;
 import ui.widget.UploadComp;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
 import ui.model.ModelObj;
-import ui.observable.OSet;
-import ui.util.UidGenerator;
+import m3.observable.OSet;
+import m3.util.UidGenerator;
+import m3.exception.Exception;
 
-using ui.helper.OSetHelper;
+using m3.helper.OSetHelper;
 
 typedef PostCompOptions = {
 }
@@ -23,6 +24,7 @@ typedef PostCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class PostComp extends JQ {
 
 @:overload(function(cmd : String):Bool{})
@@ -30,14 +32,13 @@ extern class PostComp extends JQ {
 	function postComp(?opts: PostCompOptions): PostComp;
 
 	private static function __init__(): Void {
-		untyped PostComp = window.jQuery;
 		var defineWidget: Void->PostCompWidgetDef = function(): PostCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: PostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of PostComp must be a div element");
+		        		throw new Exception("Root of PostComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("postComp container shadow " + Widgets.getWidgetClasses());
@@ -74,13 +75,13 @@ extern class PostComp extends JQ {
 		        	var label: JQ = new JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
 
 		        	var tabs: JQ = new JQ("<aside class='tabs'></aside>").appendTo(section);
-		        	var fcn: JqEvent->Void = function(evt: JqEvent): Void {
+		        	var fcn: JQEvent->Void = function(evt: JQEvent): Void {
 		        			tabs.children(".active").removeClass("active");
 		        			JQ.cur.addClass("active");
 		        		};
 		        	var textTab: JQ = new JQ("<span class='ui-icon ui-icon-document active ui-corner-left'></span>")
 		        						.appendTo(tabs)
-		        						.click(function(evt: JqEvent): Void {
+		        						.click(function(evt: JQEvent): Void {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.show();
@@ -89,7 +90,7 @@ extern class PostComp extends JQ {
 							        		});
 		        	var urlTab: JQ = new JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>")
 		        						.appendTo(tabs)
-		        						.click(function(evt: JqEvent): Void {
+		        						.click(function(evt: JQEvent): Void {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.hide();
@@ -98,7 +99,7 @@ extern class PostComp extends JQ {
 							        		});
 		        	var imgTab: JQ = new JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>")
 		        						.appendTo(tabs)
-		        						.click(function(evt: JqEvent): Void {
+		        						.click(function(evt: JQEvent): Void {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.hide();
@@ -116,7 +117,7 @@ extern class PostComp extends JQ {
 				    		},
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
-					      	drop: function( event: JqEvent, _ui: UIDroppable ) {
+					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 				                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, ".tags");
 				                clone.addClass("small");
 				                var cloneOffset: {top: Int, left: Int} = clone.offset();

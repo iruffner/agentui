@@ -1,12 +1,14 @@
 package ui.widget;
 
-import ui.jq.JQ;
-import ui.jq.JDialog;
+import m3.jq.JQ;
+import m3.jq.JDialog;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
+import m3.exception.Exception;
 
-using ui.helper.StringHelper;
+using m3.helper.StringHelper;
 
 typedef LoginCompOptions = {
 }
@@ -34,6 +36,7 @@ typedef LoginCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class LoginComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
@@ -41,14 +44,13 @@ extern class LoginComp extends JQ {
 	function loginComp(?opts: LoginCompOptions): LoginComp;
 
 	private static function __init__(): Void {
-		untyped LoginComp = window.jQuery;
 		var defineWidget: Void->LoginCompWidgetDef = function(): LoginCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: LoginCompWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of LoginComp must be a div element");
+		        		throw new Exception("Root of LoginComp must be a div element");
 		        	}
 
 		        	self._newUser = false;

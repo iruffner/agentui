@@ -1,11 +1,13 @@
 package ui.widget;
 
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EventModel;
 import ui.model.ModelEvents;
-import ui.observable.OSet;
+import m3.observable.OSet;
+import m3.exception.Exception;
 
 typedef ConnectionsListOptions = {
 	@:optional var itemsClass: String;
@@ -20,13 +22,13 @@ typedef ConnectionsListWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class ConnectionsList extends JQ {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function connectionsList(opts: ConnectionsListOptions): ConnectionsList;
 
 	private static function __init__(): Void {
-		untyped ConnectionsList = window.jQuery;
 		var defineWidget: Void->ConnectionsListWidgetDef = function(): ConnectionsListWidgetDef {
 			return {
 		        options: {
@@ -38,7 +40,7 @@ extern class ConnectionsList extends JQ {
 		        	var self: ConnectionsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 					if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of ConnectionsList must be a div element");
+		        		throw new Exception("Root of ConnectionsList must be a div element");
 		        	}
 
 		        	selfElement.addClass(Widgets.getWidgetClasses());

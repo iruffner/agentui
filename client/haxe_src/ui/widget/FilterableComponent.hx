@@ -1,6 +1,6 @@
 package ui.widget;
 
-import ui.jq.JQ;
+import m3.jq.JQ;
 
 typedef FilterableCompOptions = {
 	@:optional var dndEnabled: Bool;
@@ -12,8 +12,7 @@ typedef FilterableCompOptions = {
 	@:optional var helperFcn: Void->JQ;
 }
 
+@:native("$")
 extern class FilterableComponent extends JQ {
-	private static function __init__() : Void untyped {
-		FilterableComponent = window.jQuery;
-	}
+	
 }

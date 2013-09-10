@@ -1,10 +1,11 @@
 package ui.widget;
 
-import ui.jq.JQ;
-import js.JQuery;
+import m3.jq.JQ;
+import m3.widget.Widgets;
 import ui.widget.UploadComp;
+import m3.exception.Exception;
 
-using ui.helper.StringHelper;
+using m3.helper.StringHelper;
 
 typedef InviteCompOptions = {
 }
@@ -15,21 +16,21 @@ typedef InviteCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class InviteComp extends JQ {
 
-@:overload(function(cmd : String):Bool{})
+	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function inviteComp(?opts: InviteCompOptions): InviteComp;
 
 	private static function __init__(): Void {
-		untyped InviteComp = window.jQuery;
 		var defineWidget: Void->InviteCompWidgetDef = function(): InviteCompWidgetDef {
 			return {
 		        _create: function(): Void {
 		        	var self: InviteCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of InviteComp must be a div element");
+		        		throw new Exception("Root of InviteComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("inviteComp ui-helper-clearfix " + Widgets.getWidgetClasses());

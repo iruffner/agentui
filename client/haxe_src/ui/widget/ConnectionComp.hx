@@ -1,11 +1,12 @@
 package ui.widget;
 
-import js.JQuery;
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
-import ui.jq.JQDraggable;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.jq.JQDraggable;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.observable.OSet.ObservableSet;
+import m3.observable.OSet.ObservableSet;
+import m3.exception.Exception;
 
 typedef ConnectionCompOptions = {
 	var connection: Connection;
@@ -20,6 +21,7 @@ typedef ConnectionCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+@:native("$")
 extern class ConnectionComp extends JQ {
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String):Dynamic{})
@@ -27,7 +29,6 @@ extern class ConnectionComp extends JQ {
 	function connectionComp(opts: ConnectionCompOptions): ConnectionComp;
 
 	private static function __init__(): Void {
-		untyped ConnectionComp = window.jQuery;
 		var defineWidget: Void->ConnectionCompWidgetDef = function(): ConnectionCompWidgetDef {
 			return {
 		        options: {
@@ -39,7 +40,7 @@ extern class ConnectionComp extends JQ {
 		        	var self: ConnectionCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 					if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of ConnectionComp must be a div element");
+		        		throw new Exception("Root of ConnectionComp must be a div element");
 		        	}
 
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connection container boxsizingBorder");

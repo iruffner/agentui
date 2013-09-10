@@ -2,19 +2,20 @@ package ui.widget;
 
 import js.html.Element;
 
-import js.JQuery;
-import ui.jq.JQ;
-import ui.jq.JQDroppable;
-import ui.jq.JQDraggable;
+import m3.jq.JQ;
+import m3.jq.JQDroppable;
+import m3.jq.JQDraggable;
+import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.Node;
-import ui.observable.OSet;
+import m3.observable.OSet;
+import m3.exception.Exception;
 
-using ui.helper.ArrayHelper;
+using m3.helper.ArrayHelper;
 
 typedef FilterCombinationOptions = {
 	@:optional var position: {left: Int, top: Int};
-	@:optional var event: JqEvent;
+	@:optional var event: JQEvent;
 	var type: String;
 }
 
@@ -32,6 +33,7 @@ typedef FilterCombinationWidgetDef = {
 	@:optional var _filterables: ObservableSet<FilterableComponent>;
 }
 
+@:native("$")
 extern class FilterCombination extends FilterableComponent {
 
 	@:overload(function(cmd : String):Bool{})
@@ -40,7 +42,6 @@ extern class FilterCombination extends FilterableComponent {
 	function filterCombination(opts: FilterCombinationOptions): FilterCombination;
 
 	private static function __init__(): Void {
-		untyped FilterCombination = window.jQuery;
 		var defineWidget: Void->FilterCombinationWidgetDef = function(): FilterCombinationWidgetDef {
 			return {
 		        _create: function(): Void {
@@ -48,7 +49,7 @@ extern class FilterCombination extends FilterableComponent {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	if(!selfElement.is("div")) {
-		        		throw new ui.exception.Exception("Root of FilterCombination must be a div element");
+		        		throw new Exception("Root of FilterCombination must be a div element");
 		        	}
 
 		        	selfElement.data("getNode", function(): Node {
@@ -107,7 +108,7 @@ extern class FilterCombination extends FilterableComponent {
 		        	var children: JQ = toggle.children();
 		        	children
 		        		.hover(
-			        		function(evt: JqEvent): Void {
+			        		function(evt: JQEvent): Void {
 			        			JQ.cur.addClass("ui-state-hover");
 		        			},
 			        		function(): Void {
@@ -115,7 +116,7 @@ extern class FilterCombination extends FilterableComponent {
 			        		}
 		        		)
 		        		.click(
-		        			function(evt: JqEvent): Void {
+		        			function(evt: JQEvent): Void {
 		        				children.toggleClass("ui-state-active");
 		        				self._fireFilter();
 		        			}
@@ -136,7 +137,7 @@ extern class FilterCombination extends FilterableComponent {
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",
 				      	greedy: true,
-				      	drop: function( event: JqEvent, _ui: UIDroppable ) {
+				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
 				      		var clone: FilterableComponent = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"))
