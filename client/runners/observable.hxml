@@ -1,6 +1,0 @@
-
--main test.ObservableRunner
--js runner.js
--debug
--cp ../haxe_src
--D noEmbedJS
