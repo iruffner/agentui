@@ -42,9 +42,9 @@ class ProxyServlet extends HttpServlet with Logging {
 //      val post = new HttpPost("http://ec2-54-214-55-27.us-west-2.compute.amazonaws.com:9876/api")
       
       //their aws test server
-      val post = new HttpPost("http://ec2-54-212-15-76.us-west-2.compute.amazonaws.com:9876/api")
+//      val post = new HttpPost("http://ec2-54-212-15-76.us-west-2.compute.amazonaws.com:9876/api")
       //model3 aws test server
-//      val post = new HttpPost("http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api") 
+      val post = new HttpPost("http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api") 
 //      val post = new HttpPost("http://64.27.3.17:9876/api")
 
       req.getHeaderNames.asScala.filterNot(ignoreRequestHeaders).foreach { header =>
