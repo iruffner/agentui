@@ -37,12 +37,40 @@ class CreateUserRequest extends ProtocolMessage<UserRequestData> {
 	}
 }
 
-class UserRequestData extends Payload {
-	public var email: String;
-	public var password: String;
-	public var jsonBlob: Dynamic;
+		class UserRequestData extends Payload {
+			public var email: String;
+			public var password: String;
+			public var jsonBlob: Dynamic;
+		}
+
+class CreateUserWaiting extends ProtocolMessage<Payload> {
+	public var content: Payload;
+
+	public function new() {
+		this.msgType = MsgType.createUserWaiting;
+	}
+
+	override public function getContent(): Payload {
+		return this.content;
+	}
 }
 
+class ConfirmUserToken extends ProtocolMessage<ConfirmUserTokenData> {
+	public var content: ConfirmUserTokenData;
+
+	public function new() {
+		this.msgType = MsgType.createUserWaiting;
+	}
+
+	override public function getContent(): ConfirmUserTokenData {
+		return this.content;
+	}
+}
+
+		class ConfirmUserTokenData extends Payload {
+			public var token: String;
+		}
+		
 class CreateUserResponse extends ProtocolMessage<CreateUserResponseData> {
 	public var content: CreateUserResponseData;
 
@@ -55,9 +83,9 @@ class CreateUserResponse extends ProtocolMessage<CreateUserResponseData> {
 	}
 }
 
-class CreateUserResponseData extends Payload {
-	public var agentURI: String;
-}
+		class CreateUserResponseData extends Payload {
+			public var agentURI: String;
+		}
 
 class UpdateUserRequest extends ProtocolMessage<UpdateUserRequestData> {
 	public var content: UpdateUserRequestData;
@@ -71,9 +99,9 @@ class UpdateUserRequest extends ProtocolMessage<UpdateUserRequestData> {
 	}
 }
 
-class UpdateUserRequestData extends UserRequestData {
-	public var sessionId: String;
-}
+		class UpdateUserRequestData extends UserRequestData {
+			public var sessionId: String;
+		}
 
 
 /** 
@@ -91,9 +119,9 @@ class InitializeSessionRequest extends ProtocolMessage<InitializeSessionRequestD
 	}
 }
 
-class InitializeSessionRequestData extends Payload {
-	public var agentURI: String;
-}
+		class InitializeSessionRequestData extends Payload {
+			public var agentURI: String;
+		}
 
 class InitializeSessionResponse extends ProtocolMessage<InitializeSessionResponseData> {
 	public var content: InitializeSessionResponseData;
@@ -107,14 +135,14 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 	}
 }
 
-class InitializeSessionResponseData extends Payload {
-	public var sessionURI: String;
-	public var listOfAliases: Array<Alias>;
-	public var defaultAlias: Alias;
-	public var listOfLabels: Array<Label>;
-	public var listOfCnxns: Array<Connection>;
-	public var lastActiveFilter: String;
-}
+		class InitializeSessionResponseData extends Payload {
+			public var sessionURI: String;
+			public var listOfAliases: Array<Alias>;
+			public var defaultAlias: Alias;
+			public var listOfLabels: Array<Label>;
+			public var listOfCnxns: Array<Connection>;
+			public var lastActiveFilter: String;
+		}
 
 class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData> {
 	public var content: InitializeSessionErrorData;
@@ -128,10 +156,10 @@ class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData>
 	}
 }
 
-class InitializeSessionErrorData extends Payload {
-	public var agentURI: String;
-	public var reason: String;
-}
+		class InitializeSessionErrorData extends Payload {
+			public var agentURI: String;
+			public var reason: String;
+		}
 
 /** 
 	Ping/pop Request/Response 
@@ -148,9 +176,9 @@ class SessionPingRequest extends ProtocolMessage<SessionPingRequestData> {
 	}
 }
 
-class SessionPingRequestData extends Payload {
-	public var sessionURI: String;
-}
+		class SessionPingRequestData extends Payload {
+			public var sessionURI: String;
+		}
 
 class SessionPongResponse extends ProtocolMessage<SessionPongResponseData> {
 	public var content: SessionPongResponseData;
@@ -164,9 +192,9 @@ class SessionPongResponse extends ProtocolMessage<SessionPongResponseData> {
 	}
 }
 
-class SessionPongResponseData extends Payload {
-	public var sessionURI: String;
-}
+		class SessionPongResponseData extends Payload {
+			public var sessionURI: String;
+		}
 
 /** 
 	Close Session Request/Response 
@@ -195,9 +223,9 @@ class CloseSessionResponse extends ProtocolMessage<CloseSessionData> {
 	}
 }
 
-class CloseSessionData extends Payload {
-	public var sessionURI: String;
-}
+		class CloseSessionData extends Payload {
+			public var sessionURI: String;
+		}
 
 /** 
 	Evaluate Request/Response 
@@ -214,10 +242,10 @@ class EvalRequest extends ProtocolMessage<EvalRequestData> {
 	}
 }
 
-class EvalRequestData extends Payload {
-	public var sessionURI: String;
-	public var expression: Dynamic;
-}
+		class EvalRequestData extends Payload {
+			public var sessionURI: String;
+			public var expression: Dynamic;
+		}
 
 class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
 	public var content: EvalNextPageRequestData;
@@ -231,10 +259,10 @@ class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
 	}
 }
 
-class EvalNextPageRequestData extends Payload {
-	public var sessionURI: String;
-	public var nextPage: String;
-}
+		class EvalNextPageRequestData extends Payload {
+			public var sessionURI: String;
+			public var nextPage: String;
+		}
 
 class EvalResponse extends ProtocolMessage<EvalResponseData> {
 	public var content: EvalResponseData;
@@ -260,10 +288,10 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 	}
 }
 
-class EvalResponseData extends Payload {
-	public var sessionURI: String;
-	public var pageOfPosts: Array<Content>;
-}
+		class EvalResponseData extends Payload {
+			public var sessionURI: String;
+			public var pageOfPosts: Array<Content>;
+		}
 
 class EvalError extends ProtocolMessage<EvalErrorData> {
 	public var content: EvalErrorData;
@@ -277,10 +305,10 @@ class EvalError extends ProtocolMessage<EvalErrorData> {
 	}
 }
 
-class EvalErrorData extends Payload {
-	public var sessionURI: String;
-	public var errorMsg: String;
-}
+		class EvalErrorData extends Payload {
+			public var sessionURI: String;
+			public var errorMsg: String;
+		}
 
 /** 
 	Stop Evaluation Request/Response 
@@ -309,9 +337,9 @@ class StopEvalResponse extends ProtocolMessage<StopMsgData> {
 	}
 }
 
-class StopMsgData extends Payload {
-	public var sessionURI: String;
-}
+		class StopMsgData extends Payload {
+			public var sessionURI: String;
+		}
 
 enum MsgType {
 	initializeSessionRequest;
@@ -328,6 +356,8 @@ enum MsgType {
 	stopEvalRequest;
 	stopEvalResponse;
 	createUserRequest;
+	createUserWaiting;
+	confirmUserToken;
 	createUserResponse;
 	updateUserRequest;
 	createUserError;
