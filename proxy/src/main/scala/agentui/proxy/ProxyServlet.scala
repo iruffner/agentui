@@ -83,8 +83,8 @@ class ProxyServlet extends HttpServlet with Logging {
     
     logger.debug("received request " + req.getRequestURL)
 
+    val client = new DefaultHttpClient()
     try {
-      val client = new DefaultHttpClient()
       
       client.getParams().setParameter("http.socket.timeout", timeoutInSeconds * 1000);
       client.getParams().setParameter("http.connection.timeout", timeoutInSeconds * 1000);
@@ -110,7 +110,7 @@ class ProxyServlet extends HttpServlet with Logging {
 //      }
       post.setEntity(new ByteArrayEntity(reqBody))
 
-      logger.debug("proxying to upstream server")
+//      logger.debug("proxying to upstream server")
       val response = client.execute(post)
 
       response.getAllHeaders().foreach { header =>
@@ -124,9 +124,10 @@ class ProxyServlet extends HttpServlet with Logging {
       logger.debug("piping response to client")
       new Pipe(in, resp.getOutputStream).run
       logger.debug("request complete")
-
+      
     } catch {
       case e: Throwable => logger.error(e)
+    } finally {
     }
     
   }
