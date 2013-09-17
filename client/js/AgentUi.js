@@ -43,6 +43,36 @@ EReg.prototype = {
 var HxOverrides = function() { }
 $hxClasses["HxOverrides"] = HxOverrides;
 HxOverrides.__name__ = ["HxOverrides"];
+HxOverrides.dateStr = function(date) {
+	var m = date.getMonth() + 1;
+	var d = date.getDate();
+	var h = date.getHours();
+	var mi = date.getMinutes();
+	var s = date.getSeconds();
+	return date.getFullYear() + "-" + (m < 10?"0" + m:"" + m) + "-" + (d < 10?"0" + d:"" + d) + " " + (h < 10?"0" + h:"" + h) + ":" + (mi < 10?"0" + mi:"" + mi) + ":" + (s < 10?"0" + s:"" + s);
+}
+HxOverrides.strDate = function(s) {
+	switch(s.length) {
+	case 8:
+		var k = s.split(":");
+		var d = new Date();
+		d.setTime(0);
+		d.setUTCHours(k[0]);
+		d.setUTCMinutes(k[1]);
+		d.setUTCSeconds(k[2]);
+		return d;
+	case 10:
+		var k = s.split("-");
+		return new Date(k[0],k[1] - 1,k[2],0,0,0);
+	case 19:
+		var k = s.split(" ");
+		var y = k[0].split("-");
+		var t = k[1].split(":");
+		return new Date(y[0],y[1] - 1,y[2],t[0],t[1],t[2]);
+	default:
+		throw "Invalid date format : " + s;
+	}
+}
 HxOverrides.cca = function(s,index) {
 	var x = s.charCodeAt(index);
 	if(x != x) return undefined;
@@ -1964,6 +1994,7 @@ m3.exception.AjaxException.prototype = $extend(m3.exception.Exception.prototype,
 m3.helper = {}
 m3.helper.ArrayHelper = function() { }
 $hxClasses["m3.helper.ArrayHelper"] = m3.helper.ArrayHelper;
+$hxExpose(m3.helper.ArrayHelper, "m3.helper.ArrayHelper");
 m3.helper.ArrayHelper.__name__ = ["m3","helper","ArrayHelper"];
 m3.helper.ArrayHelper.indexOf = function(array,t) {
 	if(array == null) return -1;
@@ -2377,6 +2408,10 @@ m3.log.Logga.prototype = {
 			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
 		} catch( err ) {
 			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
+		}
+		if(m3.helper.StringHelper.isBlank(statement)) {
+			this.console.error("empty log statement");
+			this.console.trace();
 		}
 		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
 		if(this.logsAtLevel(level) && this.console != null) try {
@@ -2842,6 +2877,9 @@ m3.serialization.Serializer.prototype = {
 					case "Array":
 						$r = new m3.serialization.ArrayHandler(parms,$this);
 						break;
+					case "Date":
+						$r = new m3.serialization.DateHandler();
+						break;
 					default:
 						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
 					}
@@ -2867,6 +2905,9 @@ m3.serialization.Serializer.prototype = {
 						break;
 					case "Array":
 						$r = new m3.serialization.ArrayHandler(parms,$this);
+						break;
+					case "Date":
+						$r = new m3.serialization.DateHandler();
 						break;
 					default:
 						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
@@ -3141,6 +3182,25 @@ m3.serialization.StringHandler.prototype = {
 		}
 	}
 	,__class__: m3.serialization.StringHandler
+}
+m3.serialization.DateHandler = function() {
+};
+$hxClasses["m3.serialization.DateHandler"] = m3.serialization.DateHandler;
+m3.serialization.DateHandler.__name__ = ["m3","serialization","DateHandler"];
+m3.serialization.DateHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.DateHandler.prototype = {
+	write: function(value,writer) {
+		return HxOverrides.dateStr(js.Boot.__cast(value , Date));
+	}
+	,read: function(fromJson,reader,instance) {
+		return (function($this) {
+			var $r;
+			var s = fromJson;
+			$r = HxOverrides.strDate(s);
+			return $r;
+		}(this));
+	}
+	,__class__: m3.serialization.DateHandler
 }
 m3.serialization.FunctionHandler = function() {
 };
@@ -5297,13 +5357,6 @@ Xml.Document = "document";
 if(typeof(JSON) != "undefined") haxe.Json = JSON;
 var q = window.jQuery;
 js.JQuery = q;
-q.fn.iterator = function() {
-	return { pos : 0, j : this, hasNext : function() {
-		return this.pos < this.j.length;
-	}, next : function() {
-		return $(this.j[this.pos++]);
-	}};
-};
 $.fn.exists = function() {
 	return $(this).length > 0;
 };
