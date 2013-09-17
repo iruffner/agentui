@@ -1,6 +1,5 @@
 -main ui.AgentUi
 -cp haxe_src
 -js js/AgentUi.js
-#-xml types/types.xml
 -debug
 -D noEmbedJS

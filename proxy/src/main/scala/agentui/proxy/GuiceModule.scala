@@ -6,6 +6,7 @@ import net.model3.guice.M3GuiceModule
 import com.google.inject.util.Modules
 import com.google.inject.Module
 import m3.servlet.M3ServletModule
+import m3.servlet.CurlFilter
 
 
 
@@ -23,7 +24,8 @@ class GuiceModule extends ScalaModule with Provider[Module] {
 
   object ServletModule extends M3ServletModule {
     override def configureServlets = {
-      
+      init
+      filter("/api").through(classOf[CurlFilter])
 //      serve("/post").`with`(classOf[ProxyServlet])
 //      serve("/sessionPing").`with`(classOf[ProxyServlet])
       serve("/api").`with`(classOf[ProxyServlet])

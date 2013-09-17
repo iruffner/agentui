@@ -11,6 +11,10 @@ import scala.collection.JavaConverters._
 import m3.predef._
 import net.model3.io.IOHelper
 import org.apache.http.entity.ByteArrayEntity
+import net.model3.newfile.File
+import net.model3.lang.TimeDuration
+import scala.annotation.tailrec
+import net.model3.chrono.DateTime
 
 /**
  * A very simple proxy servlet to get us going.  There are too many places where this is just brutish and 
@@ -28,16 +32,64 @@ class ProxyServlet extends HttpServlet with Logging {
     "Host"
   )
   
+  val timeoutInSeconds = 60
+  val configFile = new File("proxy-server.conf")
+
+  def loadConfig = {
+    if ( configFile.exists ) {
+      val text = configFile.readText.trim
+      logger.debug(s"loaded proxy server -- ${text} -- from config file ${configFile.getCanonicalPath}")
+      text
+    } else {
+      throw new RuntimeException("unable to find config file " + configFile.getCanonicalPath)
+    }
+  }
+
+  def reloadConfig(lastConfigLoad: DateTime): Option[(String,DateTime)] = {
+    try {
+      val lastModified = configFile.getLastModified
+      if ( lastModified != lastConfigLoad ) Some(loadConfig -> lastModified)
+      else None
+    } catch {
+      case th: Throwable => {
+        logger.error(th)
+        None
+      }
+    }
+  }
+
+  @volatile var proxyServerUrl = loadConfig
+
   override def init = {
     logger.debug("init")
+    val configReloadSleep = new TimeDuration("2 seconds")
+    spawn("config-reloader") {
+      @tailrec def loop(lastConfigLoad: DateTime): Unit = {
+        val next = reloadConfig(lastConfigLoad) match {
+          case Some((url, lastChanged)) => {
+            proxyServerUrl = url
+            lastChanged
+          }
+          case None => lastConfigLoad
+        }
+        configReloadSleep.sleep
+        loop(next)
+      }
+      loop(new DateTime(0))
+    }
   }
 
   override def doPost(req: HttpServletRequest, resp: HttpServletResponse) = {
     
     logger.debug("received request " + req.getRequestURL)
 
+    val client = new DefaultHttpClient()
     try {
-      val client = new DefaultHttpClient()
+      
+      client.getParams().setParameter("http.socket.timeout", timeoutInSeconds * 1000);
+      client.getParams().setParameter("http.connection.timeout", timeoutInSeconds * 1000);
+      client.getParams().setParameter("http.connection-manager.timeout", new java.lang.Long(timeoutInSeconds * 1000));
+      client.getParams().setParameter("http.protocol.head-body-timeout", timeoutInSeconds * 1000);
       //calpop
 //      val post = new HttpPost("http://ec2-54-214-55-27.us-west-2.compute.amazonaws.com:9876/api")
       
@@ -58,20 +110,24 @@ class ProxyServlet extends HttpServlet with Logging {
 //      }
       post.setEntity(new ByteArrayEntity(reqBody))
 
-      logger.debug("proxying to upstream server")
+//      logger.debug("proxying to upstream server")
       val response = client.execute(post)
 
       response.getAllHeaders().foreach { header =>
         resp.setHeader(header.getName, header.getValue)
       }
 
+      val sl = response.getStatusLine
+      resp.setStatus(sl.getStatusCode)
+
       val in = response.getEntity.getContent
       logger.debug("piping response to client")
       new Pipe(in, resp.getOutputStream).run
       logger.debug("request complete")
-
+      
     } catch {
       case e: Throwable => logger.error(e)
+    } finally {
     }
     
   }
