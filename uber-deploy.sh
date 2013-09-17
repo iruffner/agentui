@@ -21,7 +21,7 @@ cp -r proxy/src/main/dist/ target/dist/
 
 # some anal retentive cleanup
 rm -rf target/dist/webapp/WEB-INF/source-jsp
-rm target/dist/webapp/{*.xml,*.hxml,*.txt}
+rm target/dist/webapp/{*.xml,*.hxml,*.txt,*.sublime*}
 rm -rf target/dist/webapp/haxe_src/
 
 rsync --delete --compress --recursive --partial --progress --stats target/dist/ ${SERVER}
