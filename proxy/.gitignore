@@ -4,3 +4,4 @@ portal-files
 target
 
 .cache
+proxy-server.conf
