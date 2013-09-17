@@ -17,7 +17,7 @@ set -e
 cp -r client/ target/dist/webapp/
 cp -r proxy/src/main/webapp/ target/dist/webapp/
 cp -r proxy/target/agentui-proxy-1.0-SNAPSHOT-jar-with-dependencies.jar target/dist/
-cp -r proxy/src/main/dist/run.sh target/dist/
+cp -r proxy/src/main/dist/ target/dist/
 
 # some anal retentive cleanup
 rm -rf target/dist/webapp/WEB-INF/source-jsp

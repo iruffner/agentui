@@ -37,7 +37,7 @@ class ProxyServlet extends HttpServlet with Logging {
 
   def loadConfig = {
     if ( configFile.exists ) {
-      val text = configFile.readText
+      val text = configFile.readText.trim
       logger.debug(s"loaded proxy server -- ${text} -- from config file ${configFile.getCanonicalPath}")
       text
     } else {
