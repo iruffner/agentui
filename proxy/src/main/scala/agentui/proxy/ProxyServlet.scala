@@ -11,6 +11,9 @@ import scala.collection.JavaConverters._
 import m3.predef._
 import net.model3.io.IOHelper
 import org.apache.http.entity.ByteArrayEntity
+import net.model3.newfile.File
+import net.model3.lang.TimeDuration
+import scala.annotation.tailrec
 
 /**
  * A very simple proxy servlet to get us going.  There are too many places where this is just brutish and 
@@ -28,8 +31,39 @@ class ProxyServlet extends HttpServlet with Logging {
     "Host"
   )
   
+  val configFile = new File("proxy-server.conf")
+
+  var lastConfigLoad = 0L
+  @volatile var proxyServerUrl = "http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api"
+
   override def init = {
     logger.debug("init")
+    spawn("config-reloader") {
+      @tailrec def loop(lastConfigLoad: Long): Unit = {
+        loop( 
+          try {
+            val nextLcl = if ( configFile.exists ) {
+              val lastModified = configFile.getLastModified.asDate.getTime
+              if ( lastModified != lastConfigLoad ) {
+                proxyServerUrl = configFile.readText
+                logger.debug(s"using proxyServerUrl = ${proxyServerUrl}")
+              }
+              lastModified
+            } else {
+              lastConfigLoad
+            }
+            new TimeDuration("2 seconds").sleep
+            nextLcl
+          } catch {
+            case th: Throwable => {
+              logger.error(th)
+              lastConfigLoad
+            }
+          }
+        )
+      }
+      loop(-1)
+    }
   }
 
   override def doPost(req: HttpServletRequest, resp: HttpServletResponse) = {
@@ -64,6 +98,9 @@ class ProxyServlet extends HttpServlet with Logging {
       response.getAllHeaders().foreach { header =>
         resp.setHeader(header.getName, header.getValue)
       }
+
+      val sl = response.getStatusLine
+      resp.setStatus(sl.getStatusCode)
 
       val in = response.getEntity.getContent
       logger.debug("piping response to client")

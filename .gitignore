@@ -3,4 +3,6 @@ types.xml
 .cache
 proxy/src/main/webapp/client/*
 .DS_Store
-*.sublime-workspace
+*.sublime-workspaceclient/haxe_src/m3
+client/haxe_src/m3
+target
