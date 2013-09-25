@@ -25,7 +25,7 @@ class GuiceModule extends ScalaModule with Provider[Module] {
   object ServletModule extends M3ServletModule {
     override def configureServlets = {
       init
-//      filter("/api").through(classOf[CurlFilter])
+      filter("/api").through(classOf[CurlFilter])
 //      serve("/post").`with`(classOf[ProxyServlet])
 //      serve("/sessionPing").`with`(classOf[ProxyServlet])
       serve("/api").`with`(classOf[ProxyServlet])
