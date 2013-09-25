@@ -110,6 +110,8 @@ extern class LabelsList extends JQ {
 		        	var self: LabelsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
+					self.labels = labels;
+
 					selfElement.children(".labelTree").remove();
 					var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
 		                labels: new FilteredSet(labels, function(label: Label): Bool { 

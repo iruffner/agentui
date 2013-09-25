@@ -172,9 +172,13 @@ extern class LoginComp extends JQ {
     				// 	self.placeholder_ag.addClass("ui-state-error");
     				// 	valid = false;
     				// }
+
     				if(!valid) return;
+
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
+
     				EM.change(EMEvent.USER_LOGIN, login);
+    				
     				// EM.addListener(EMEvent.USER, new EMListener(function(n: Nothing): Void {
     				// 		selfElement.jdialog("close");
     				// 	}));

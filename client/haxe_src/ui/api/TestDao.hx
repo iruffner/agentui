@@ -424,10 +424,13 @@ class TestDao {
         user.uid = UidGenerator.create();
         user.imgSrc = "media/test/jerry_default.jpg";
         user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);
+        user.aliasSet.visualId = "TestAlias";
         user.aliasSet.addAll(aliases);
         var alias: Alias = aliases[0];
         alias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+        alias.connectionSet.visualId = "TestAliasConnections";
         alias.labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
+        alias.labelSet.visualId = "TestAliasLabels";
         user.currentAlias = alias;
         
         return user;
@@ -437,7 +440,9 @@ class TestDao {
 		if(!initialized) initialize();
 		var alias: Alias = aliases.getElementComplex(uid, "uid");
 		alias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+        alias.connectionSet.visualId = "TestAliasConnections";
         alias.labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
+        alias.labelSet.visualId = "TestAliasLabels";
 		return alias;
 	}
 }

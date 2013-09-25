@@ -66,7 +66,7 @@ class ProtocolHandler {
         );
 
         EM.addListener(EMEvent.USER_LOGIN, new EMListener(function(login: Login): Void {
-                getUser(login);
+            	getUser(login);
             })
         );
 
@@ -114,6 +114,7 @@ class ProtocolHandler {
 	public function getUser(login: Login): Void {
 		if(AgentUi.DEMO) {
 			EM.change(EMEvent.USER, TestDao.getUser(null));
+			return;
 		} 
 
 		var request: InitializeSessionRequest = new InitializeSessionRequest();

@@ -51,7 +51,7 @@ extern class LabelTree extends JQ {
 		        			});
 		        		});
 		        	self.labels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
-		        			ui.AgentUi.LOGGER.debug("LabelTree | " + evt + " | " + labelTreeBranch);
+		        			ui.AgentUi.LOGGER.debug(self.labels.getVisualId() + " | LabelTree | " + evt.name() + " | New Branch");
 		            		if(evt.isAdd()) {
 		            			selfElement.append(labelTreeBranch);
 		            		} else if (evt.isUpdate()) {
