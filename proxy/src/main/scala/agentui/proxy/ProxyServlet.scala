@@ -90,14 +90,15 @@ class ProxyServlet extends HttpServlet with Logging {
       client.getParams().setParameter("http.connection.timeout", timeoutInSeconds * 1000);
       client.getParams().setParameter("http.connection-manager.timeout", new java.lang.Long(timeoutInSeconds * 1000));
       client.getParams().setParameter("http.protocol.head-body-timeout", timeoutInSeconds * 1000);
+
       //calpop
-//      val post = new HttpPost("http://ec2-54-214-55-27.us-west-2.compute.amazonaws.com:9876/api")
-      
+//      val post = new HttpPost("http://ec2-54-214-55-27.us-west-2.compute.amazonaws.com:9876/api")      
       //their aws test server
 //      val post = new HttpPost("http://ec2-54-212-15-76.us-west-2.compute.amazonaws.com:9876/api")
       //model3 aws test server
-      val post = new HttpPost("http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api") 
-//      val post = new HttpPost("http://64.27.3.17:9876/api")
+//      val post = new HttpPost("http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api")
+      
+      val post = new HttpPost(proxyServerUrl) 
 
       req.getHeaderNames.asScala.filterNot(ignoreRequestHeaders).foreach { header =>
         post.setHeader(header, req.getHeader(header))
