@@ -251,6 +251,53 @@ class ProtocolHandler {
 			        // } else if(data.msgType == MsgType.initializeSessionError) {
 			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
 			        // 	throw new InitializeSessionException(error, "Login error");
+			    	} else if(data.msgType == MsgType.createUserWaiting) {
+						try {
+				        	var response: CreateUserWaiting = AgentUi.SERIALIZER.fromJsonX(data, CreateUserWaiting, false);
+
+				        	AgentUi.showSignupConfirmation();
+				        	//TODO put this value into the url
+							//AgentUi.showLogin(); -> firing the USER_SIGNUP will close the NewUserComp, 
+							EventModel.change(ModelEvents.USER_SIGNUP);
+						} catch (e: JsonException) {
+							AgentUi.LOGGER.error("Serialization error", e);
+						}
+			        // } else if(data.msgType == MsgType.initializeSessionError) {
+			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        // 	throw new InitializeSessionException(error, "Login error");
+			        } else {
+			        	//something unexpected..
+			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);
+			        	js.Lib.alert("There was an unexpected error creating your agent. Please try again.");
+			        }
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing user creation", ex);
+		}
+	}
+
+	public function validateUser(token: String): Void {
+		var request: ConfirmUserToken = new ConfirmUserToken();
+		var data: ConfirmUserTokenData = new ConfirmUserTokenData();
+		request.content = data;
+		data.token = token;
+		try {
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					if(data.msgType == MsgType.createUserResponse) {
+						try {
+				        	var response: CreateUserResponse = AgentUi.SERIALIZER.fromJsonX(data, CreateUserResponse, false);
+
+				        	AgentUi.agentURI = response.content.agentURI;
+				        	//TODO put this value into the url
+							//AgentUi.showLogin(); -> firing the USER_VALIDATED will close the SignupConfirmationDialog, 
+							EventModel.change(ModelEvents.USER_VALIDATED);
+						} catch (e: JsonException) {
+							AgentUi.LOGGER.error("Serialization error", e);
+						}
+			        // } else if(data.msgType == MsgType.initializeSessionError) {
+			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        // 	throw new InitializeSessionException(error, "Login error");
 			        } else {
 			        	//something unexpected..
 			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);

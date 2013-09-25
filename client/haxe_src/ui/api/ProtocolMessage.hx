@@ -59,7 +59,7 @@ class ConfirmUserToken extends ProtocolMessage<ConfirmUserTokenData> {
 	public var content: ConfirmUserTokenData;
 
 	public function new() {
-		this.msgType = MsgType.createUserWaiting;
+		this.msgType = MsgType.confirmEmailToken;
 	}
 
 	override public function getContent(): ConfirmUserTokenData {
@@ -357,7 +357,7 @@ enum MsgType {
 	stopEvalResponse;
 	createUserRequest;
 	createUserWaiting;
-	confirmUserToken;
+	confirmEmailToken;
 	createUserResponse;
 	updateUserRequest;
 	createUserError;

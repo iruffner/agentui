@@ -28,6 +28,7 @@ import ui.widget.LoginComp;
 import ui.widget.MessagingComp;
 import ui.widget.InviteComp;
 import ui.widget.NewUserComp;
+import ui.widget.SignupConfirmationDialog;
 
 import m3.serialization.Serialization;
 
@@ -141,7 +142,7 @@ class AgentUi {
             loginComp.loginComp("open");
         } else {
             loginComp = new LoginComp("<div></div>");
-            loginComp.appendTo(new JQ("body"));
+            loginComp.appendTo(js.Browser.document.body);
             loginComp.loginComp();
             loginComp.loginComp("open");
         }
@@ -153,9 +154,21 @@ class AgentUi {
             newUserComp.newUserComp("open");
         } else {
             newUserComp = new NewUserComp("<div></div>");
-            newUserComp.appendTo(new JQ("body"));
+            newUserComp.appendTo(js.Browser.document.body);
             newUserComp.newUserComp();
             newUserComp.newUserComp("open");
+        }
+    }
+
+    public static function showSignupConfirmation(): Void {
+        var signupConfirmationDialog: SignupConfirmationDialog = new SignupConfirmationDialog(".signupConfirmationDialog");
+        if(signupConfirmationDialog.exists()) {
+            signupConfirmationDialog.signupConfirmationDialog("open");
+        } else {
+            signupConfirmationDialog = new SignupConfirmationDialog("<div></div>");
+            signupConfirmationDialog.appendTo(js.Browser.document.body);
+            signupConfirmationDialog.signupConfirmationDialog();
+            signupConfirmationDialog.signupConfirmationDialog("open");
         }
     }
 }

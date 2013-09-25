@@ -2193,6 +2193,18 @@ m3.helper.ArrayHelper.joinX = function(array,sep) {
 	}
 	return s;
 }
+m3.helper.DateHelper = function() { }
+$hxClasses["m3.helper.DateHelper"] = m3.helper.DateHelper;
+m3.helper.DateHelper.__name__ = ["m3","helper","DateHelper"];
+m3.helper.DateHelper.inThePast = function(d) {
+	return d.getTime() < new Date().getTime();
+}
+m3.helper.DateHelper.inTheFuture = function(d) {
+	return d.getTime() > new Date().getTime();
+}
+m3.helper.DateHelper.isValid = function(d) {
+	return d != null && !Math.isNaN(d.getTime());
+}
 m3.helper.OSetHelper = function() { }
 $hxClasses["m3.helper.OSetHelper"] = m3.helper.OSetHelper;
 m3.helper.OSetHelper.__name__ = ["m3","helper","OSetHelper"];
@@ -2348,6 +2360,23 @@ m3.helper.StringHelper.splitByReg = function(baseString,reg) {
 	var result = null;
 	if(baseString != null && reg != null) result = reg.split(baseString);
 	return result;
+}
+m3.helper.StringHelper.toDate = function(baseString) {
+	var date = null;
+	if(m3.helper.StringHelper.isNotBlank(baseString)) {
+		try {
+			date = HxOverrides.strDate(baseString);
+		} catch( err ) {
+		}
+		if(!m3.helper.DateHelper.isValid(date) && baseString.indexOf("/") > -1) try {
+			var split = baseString.split("/");
+			var temp = split[2] + "-" + split[0] + "-" + split[1];
+			date = HxOverrides.strDate(temp);
+		} catch( err ) {
+		}
+	}
+	if(!m3.helper.DateHelper.isValid(date)) date == null;
+	return date;
 }
 m3.log = {}
 m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] }
@@ -3838,7 +3867,7 @@ ui.AgentUi.showLogin = function() {
 	var loginComp = new $(".loginComp");
 	if(loginComp.exists()) loginComp.loginComp("open"); else {
 		loginComp = new $("<div></div>");
-		loginComp.appendTo(new $("body"));
+		loginComp.appendTo(js.Browser.document.body);
 		loginComp.loginComp();
 		loginComp.loginComp("open");
 	}
@@ -3847,9 +3876,18 @@ ui.AgentUi.showNewUser = function() {
 	var newUserComp = new $(".newUserComp");
 	if(newUserComp.exists()) newUserComp.newUserComp("open"); else {
 		newUserComp = new $("<div></div>");
-		newUserComp.appendTo(new $("body"));
+		newUserComp.appendTo(js.Browser.document.body);
 		newUserComp.newUserComp();
 		newUserComp.newUserComp("open");
+	}
+}
+ui.AgentUi.showSignupConfirmation = function() {
+	var signupConfirmationDialog = new $(".signupConfirmationDialog");
+	if(signupConfirmationDialog.exists()) signupConfirmationDialog.signupConfirmationDialog("open"); else {
+		signupConfirmationDialog = new $("<div></div>");
+		signupConfirmationDialog.appendTo(js.Browser.document.body);
+		signupConfirmationDialog.signupConfirmationDialog();
+		signupConfirmationDialog.signupConfirmationDialog("open");
 	}
 }
 ui.api = {}
@@ -3977,6 +4015,31 @@ ui.api.ProtocolHandler.prototype = {
 			ui.AgentUi.LOGGER.error("Error executing user creation",ex);
 		}
 	}
+	,validateUser: function(token) {
+		var request = new ui.api.ConfirmUserToken();
+		var data = new ui.api.ConfirmUserTokenData();
+		request.content = data;
+		data.token = token;
+		try {
+			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+				if(data1.msgType == ui.api.MsgType.createUserResponse) try {
+					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserResponse,false);
+					ui.AgentUi.agentURI = response.content.agentURI;
+					ui.model.EventModel.change(ui.model.ModelEvents.USER_VALIDATED);
+				} catch( e ) {
+					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
+						ui.AgentUi.LOGGER.error("Serialization error",e);
+					} else throw(e);
+				} else {
+					ui.AgentUi.LOGGER.error("Unknown user creation error | " + Std.string(data1));
+					js.Lib.alert("There was an unexpected error creating your agent. Please try again.");
+				}
+			}).start();
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AgentUi.LOGGER.error("Error executing user creation",ex);
+		}
+	}
 	,createUser: function(newUser) {
 		var request = new ui.api.CreateUserRequest();
 		var data = new ui.api.UserRequestData();
@@ -3990,6 +4053,14 @@ ui.api.ProtocolHandler.prototype = {
 				if(data1.msgType == ui.api.MsgType.createUserResponse) try {
 					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserResponse,false);
 					ui.AgentUi.agentURI = response.content.agentURI;
+					ui.model.EventModel.change(ui.model.ModelEvents.USER_SIGNUP);
+				} catch( e ) {
+					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
+						ui.AgentUi.LOGGER.error("Serialization error",e);
+					} else throw(e);
+				} else if(data1.msgType == ui.api.MsgType.createUserWaiting) try {
+					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserWaiting,false);
+					ui.AgentUi.showSignupConfirmation();
 					ui.model.EventModel.change(ui.model.ModelEvents.USER_SIGNUP);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
@@ -4173,7 +4244,7 @@ ui.api.CreateUserWaiting.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	,__class__: ui.api.CreateUserWaiting
 });
 ui.api.ConfirmUserToken = function() {
-	this.msgType = ui.api.MsgType.createUserWaiting;
+	this.msgType = ui.api.MsgType.confirmEmailToken;
 };
 $hxClasses["ui.api.ConfirmUserToken"] = ui.api.ConfirmUserToken;
 ui.api.ConfirmUserToken.__name__ = ["ui","api","ConfirmUserToken"];
@@ -4502,7 +4573,7 @@ ui.api.StopMsgData.__super__ = ui.api.Payload;
 ui.api.StopMsgData.prototype = $extend(ui.api.Payload.prototype,{
 	__class__: ui.api.StopMsgData
 });
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createUserRequest","createUserWaiting","confirmUserToken","createUserResponse","updateUserRequest","createUserError"] }
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createUserRequest","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","createUserError"] }
 ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
 ui.api.MsgType.initializeSessionRequest.toString = $estr;
 ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
@@ -4548,9 +4619,9 @@ ui.api.MsgType.createUserRequest.__enum__ = ui.api.MsgType;
 ui.api.MsgType.createUserWaiting = ["createUserWaiting",14];
 ui.api.MsgType.createUserWaiting.toString = $estr;
 ui.api.MsgType.createUserWaiting.__enum__ = ui.api.MsgType;
-ui.api.MsgType.confirmUserToken = ["confirmUserToken",15];
-ui.api.MsgType.confirmUserToken.toString = $estr;
-ui.api.MsgType.confirmUserToken.__enum__ = ui.api.MsgType;
+ui.api.MsgType.confirmEmailToken = ["confirmEmailToken",15];
+ui.api.MsgType.confirmEmailToken.toString = $estr;
+ui.api.MsgType.confirmEmailToken.__enum__ = ui.api.MsgType;
 ui.api.MsgType.createUserResponse = ["createUserResponse",16];
 ui.api.MsgType.createUserResponse.toString = $estr;
 ui.api.MsgType.createUserResponse.__enum__ = ui.api.MsgType;
@@ -5021,7 +5092,7 @@ ui.model.Filter.prototype = {
 	}
 	,__class__: ui.model.Filter
 }
-ui.model.ModelEvents = $hxClasses["ui.model.ModelEvents"] = { __ename__ : ["ui","model","ModelEvents"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER","FitWindow","CreateLabel"] }
+ui.model.ModelEvents = $hxClasses["ui.model.ModelEvents"] = { __ename__ : ["ui","model","ModelEvents"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","CreateLabel"] }
 ui.model.ModelEvents.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.ModelEvents.FILTER_RUN.toString = $estr;
 ui.model.ModelEvents.FILTER_RUN.__enum__ = ui.model.ModelEvents;
@@ -5058,13 +5129,19 @@ ui.model.ModelEvents.USER_UPDATE.__enum__ = ui.model.ModelEvents;
 ui.model.ModelEvents.USER_SIGNUP = ["USER_SIGNUP",11];
 ui.model.ModelEvents.USER_SIGNUP.toString = $estr;
 ui.model.ModelEvents.USER_SIGNUP.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER = ["USER",12];
+ui.model.ModelEvents.USER_VALIDATE = ["USER_VALIDATE",12];
+ui.model.ModelEvents.USER_VALIDATE.toString = $estr;
+ui.model.ModelEvents.USER_VALIDATE.__enum__ = ui.model.ModelEvents;
+ui.model.ModelEvents.USER_VALIDATED = ["USER_VALIDATED",13];
+ui.model.ModelEvents.USER_VALIDATED.toString = $estr;
+ui.model.ModelEvents.USER_VALIDATED.__enum__ = ui.model.ModelEvents;
+ui.model.ModelEvents.USER = ["USER",14];
 ui.model.ModelEvents.USER.toString = $estr;
 ui.model.ModelEvents.USER.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.FitWindow = ["FitWindow",13];
+ui.model.ModelEvents.FitWindow = ["FitWindow",15];
 ui.model.ModelEvents.FitWindow.toString = $estr;
 ui.model.ModelEvents.FitWindow.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.CreateLabel = ["CreateLabel",14];
+ui.model.ModelEvents.CreateLabel = ["CreateLabel",16];
 ui.model.ModelEvents.CreateLabel.toString = $estr;
 ui.model.ModelEvents.CreateLabel.__enum__ = ui.model.ModelEvents;
 ui.model.ModelObj = function() { }
@@ -6478,20 +6555,22 @@ var defineWidget = function() {
 		selfElement.addClass("postComp container shadow " + m3.widget.Widgets.getWidgetClasses());
 		var section = new $("<section id='postSection'></section>").appendTo(selfElement);
 		var addConnectionsAndLabels = null;
+		var doTextPost = function(evt) {
+			ui.AgentUi.LOGGER.debug("Post new text content");
+			evt.preventDefault();
+			var msg = new ui.model.MessageContent();
+			msg.text = $(this).val();
+			msg.connectionSet = new m3.observable.ObservableSet(m3.helper.OSetHelper.strIdentifier);
+			msg.labelSet = new m3.observable.ObservableSet(m3.helper.OSetHelper.strIdentifier);
+			addConnectionsAndLabels(msg);
+			msg.type = "TEXT";
+			msg.uid = m3.util.UidGenerator.create();
+			ui.model.EventModel.change(ui.model.ModelEvents.NewContentCreated,msg);
+			$(this).val("");
+		};
 		var textInput = new $("<div class='postContainer'></div>").appendTo(section);
 		var ta = new $("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput).keypress(function(evt) {
 			if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) {
-				ui.AgentUi.LOGGER.debug("Post new text content");
-				evt.preventDefault();
-				var msg = new ui.model.MessageContent();
-				msg.text = $(this).val();
-				msg.connectionSet = new m3.observable.ObservableSet(m3.helper.OSetHelper.strIdentifier);
-				msg.labelSet = new m3.observable.ObservableSet(m3.helper.OSetHelper.strIdentifier);
-				addConnectionsAndLabels(msg);
-				msg.type = "TEXT";
-				msg.uid = m3.util.UidGenerator.create();
-				ui.model.EventModel.change(ui.model.ModelEvents.NewContentCreated,msg);
-				$(this).val("");
 			}
 		});
 		var urlInput = new $("<div class='postContainer boxsizingBorder'></div>").urlComp();
@@ -6549,11 +6628,74 @@ var defineWidget = function() {
 				content.connectionSet.add((js.Boot.__cast(conn.connectionAvatar("option","connection") , ui.model.Connection)).uid);
 			});
 		};
+		var postButton = new $("<button>Post</button>").appendTo(selfElement).button().click(function(evt) {
+			doTextPost(evt);
+		});
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
 $.widget("ui.postComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of SignupConfirmationDialog must be a div element");
+		self._cancelled = false;
+		selfElement.addClass("signupConfirmationDialog").hide();
+		selfElement.append("<p> Your request for a User Agent has been submitted. Upon receiving your confirmation email, you may click the " + "link it contains or paste the token below to validate your email address.");
+		self.inputLabel = new $("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>").appendTo(selfElement);
+		self.input = new $("<input id='confirmToken' />").appendTo(selfElement);
+		self.input.keypress(function(evt) {
+			if(evt.keyCode == 13) self._validateUser();
+		});
+		ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(user) {
+			self._setUser(user);
+		}));
+	}, initialized : false, _validateUser : function() {
+		var self = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var token = self.input.val();
+		if(m3.helper.StringHelper.isBlank(token)) {
+			self.inputLabel.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EventModel.change(ui.model.ModelEvents.USER_VALIDATE,token);
+		ui.model.EventModel.addListener(ui.model.ModelEvents.USER_VALIDATED,new ui.model.EventListener(function(n) {
+			selfElement1.jdialog("close");
+		}));
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement2 = this.element;
+		self1.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Email Validation", height : 320, width : 400, buttons : { Validate : function() {
+			self1._validateUser();
+		}, Cancel : function() {
+			self1._cancelled = true;
+			$(this).jdialog("close");
+		}}, close : function(evt,ui1) {
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
+			if(self1.user == null || !self1.user.hasValidSession()) ui.AgentUi.showLogin();
+		}};
+		selfElement2.jdialog(dlgOptions);
+	}, _setUser : function(user) {
+		var self = this;
+		self.user = user;
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		self._cancelled = false;
+		if(!self.initialized) self._buildDialog();
+		self.input.focus();
+		selfElement.jdialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.signupConfirmationDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -6749,5 +6891,3 @@ function $hxExpose(src, path) {
 	o[parts[parts.length-1]] = src;
 }
 })();
-
-//@ sourceMappingURL=AgentUi.js.map

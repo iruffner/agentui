@@ -47,31 +47,36 @@ extern class PostComp extends JQ {
 
 		        	var addConnectionsAndLabels: Content->Void = null;
 
+		        	var doTextPost: JQEvent->Void = function(evt: JQEvent): Void {
+		        		ui.AgentUi.LOGGER.debug("Post new text content");
+						evt.preventDefault();
+						var msg: MessageContent = new MessageContent();
+						msg.text = JQ.cur.val();
+						msg.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+						msg.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+						addConnectionsAndLabels(msg);
+						msg.type = "TEXT";
+						msg.uid = UidGenerator.create();
+						EventModel.change(ModelEvents.NewContentCreated, msg);
+						JQ.cur.val("");
+		        	};
+
 		        	var textInput: JQ = new JQ("<div class='postContainer'></div>").appendTo(section);
 		        	var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
 		        			.appendTo(textInput)
 		        			.keypress(function(evt: JQEvent): Void {
 		        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-		        						ui.AgentUi.LOGGER.debug("Post new text content");
-		        						evt.preventDefault();
-		        						var msg: MessageContent = new MessageContent();
-		        						msg.text = JQ.cur.val();
-		        						msg.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
-		        						msg.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
-		        						addConnectionsAndLabels(msg);
-		        						msg.type = "TEXT";
-		        						msg.uid = UidGenerator.create();
-		        						EventModel.change(ModelEvents.NewContentCreated, msg);
-		        						JQ.cur.val("");
+		        						// doTextPost(evt);
 		        					}
-		        				});
+		        				})
+		        			;
 
 		        	var urlInput: JQ = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		        	urlInput.appendTo(section);
 
 		        	var mediaInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp();
 		        	mediaInput.appendTo(section);
-
+		        	
 		        	var label: JQ = new JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
 
 		        	var tabs: JQ = new JQ("<aside class='tabs'></aside>").appendTo(section);
@@ -150,6 +155,13 @@ extern class PostComp extends JQ {
 								content.connectionSet.add( cast(conn.connectionAvatar("option", "connection"), Connection).uid );
 							});
 					}
+
+					var postButton: JQ = new JQ("<button>Post</button>")
+		        							.appendTo(selfElement)
+		        							.button()
+		        							.click(function(evt: JQEvent): Void {
+													doTextPost(evt);
+		        								});
 		        },
 
 		        destroy: function() {

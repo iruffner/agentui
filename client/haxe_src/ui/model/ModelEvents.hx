@@ -16,6 +16,8 @@ enum ModelEvents {
 	USER_CREATE;
 	USER_UPDATE;
 	USER_SIGNUP;
+	USER_VALIDATE; //occurs when the SignupConfirmationDialog attempts to validate a user
+	USER_VALIDATED; //occurs when a user has successfully validated
 	USER;
 
 	FitWindow;
