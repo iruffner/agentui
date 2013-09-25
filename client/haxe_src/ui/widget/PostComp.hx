@@ -6,8 +6,7 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.widget.Widgets;
 import ui.widget.UploadComp;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import ui.model.ModelObj;
 import m3.observable.OSet;
 import m3.util.UidGenerator;
@@ -57,7 +56,7 @@ extern class PostComp extends JQ {
 						addConnectionsAndLabels(msg);
 						msg.type = "TEXT";
 						msg.uid = UidGenerator.create();
-						EventModel.change(ModelEvents.NewContentCreated, msg);
+						EM.change(EMEvent.NewContentCreated, msg);
 						JQ.cur.val("");
 		        	};
 

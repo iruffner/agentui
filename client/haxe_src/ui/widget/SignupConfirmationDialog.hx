@@ -4,8 +4,7 @@ import m3.jq.JQ;
 import m3.jq.JDialog;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.exception.Exception;
 
 using m3.helper.StringHelper;
@@ -56,7 +55,7 @@ extern class SignupConfirmationDialog extends JQ {
 		        	selfElement.append("<p> Your request for a User Agent has been submitted. Upon receiving your confirmation email, you may click the " + 
 		        							"link it contains or paste the token below to validate your email address.");
 
-		        	self.inputLabel = new JQ("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>").appendTo(selfElement);
+		        	self.inputLabel = new JQ("<div class='labelDiv'><label id='confirmTokenLabel' for='confirmToken'>Your Token</label></div>").appendTo(selfElement);
 		        	self.input = new JQ("<input id='confirmToken' />").appendTo(selfElement);
 
 
@@ -66,9 +65,9 @@ extern class SignupConfirmationDialog extends JQ {
 		        			}
 		        		});
 
-		        	EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
 	        				self._setUser(user);
-		        		})
+		        		}, "SignupConfirmationDialog-User")
 		        	);
 		        },
 
@@ -87,11 +86,11 @@ extern class SignupConfirmationDialog extends JQ {
     				}
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EventModel.change(ModelEvents.USER_VALIDATE, token);
+    				EM.change(EMEvent.USER_VALIDATE, token);
 
-    				EventModel.addListener(ModelEvents.USER_VALIDATED, new EventListener(function(n: Null<Dynamic>): Void {
+    				EM.addListener(EMEvent.USER_VALIDATED, new EMListener(function(n: Nothing): Void {
     						selfElement.jdialog("close");
-    					}));
+    					}, "SignupConfirmationDialog-UserValidated"));
 	        	},
 
 		        _buildDialog: function(): Void {
@@ -103,8 +102,8 @@ extern class SignupConfirmationDialog extends JQ {
 		        	var dlgOptions: JDialogOptions = {
 		        		autoOpen: false,
 		        		title: "Email Validation",
-		        		height: 320,
-		        		width: 400,
+		        		height: 420,
+		        		width: 420,
 		        		buttons: {
 		        			"Validate": function() {
 		        				self._validateUser();

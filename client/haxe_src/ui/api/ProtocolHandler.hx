@@ -10,8 +10,7 @@ import m3.log.Logga;
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.observable.OSet;
 
 import ui.api.Requester;
@@ -27,7 +26,7 @@ class ProtocolHandler {
 	private var processHash: Map<String,Dynamic->Void>;
 
 	public function new() {
-		EventModel.addListener(ModelEvents.FILTER_RUN, new EventListener(function(filter: Filter): Void {
+		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
 				if(filterIsRunning) {
 					try {
 						var stopEval: StopEvalRequest = new StopEvalRequest();
@@ -50,44 +49,49 @@ class ProtocolHandler {
             })
         );
 
-        EventModel.addListener(ModelEvents.EndOfContent, new EventListener(function(nextPageURI: String): Void {
+        EM.addListener(EMEvent.EndOfContent, new EMListener(function(nextPageURI: String): Void {
                 filterIsRunning = false;
             })
         );
 
-        EventModel.addListener(ModelEvents.NextContent, new EventListener(function(nextPageURI: String): Void {
+        EM.addListener(EMEvent.NextContent, new EMListener(function(nextPageURI: String): Void {
                 this.nextPage(nextPageURI);
             })
         );
 
-        EventModel.addListener(ModelEvents.LoadAlias, new EventListener(function(uid: String): Void {
+        EM.addListener(EMEvent.LoadAlias, new EMListener(function(uid: String): Void {
                 var alias: Alias = this.getAlias(uid);
-                EventModel.change(ModelEvents.AliasLoaded, alias);
+                EM.change(EMEvent.AliasLoaded, alias);
             })
         );
 
-        EventModel.addListener(ModelEvents.USER_LOGIN, new EventListener(function(login: Login): Void {
+        EM.addListener(EMEvent.USER_LOGIN, new EMListener(function(login: Login): Void {
                 getUser(login);
             })
         );
 
-        EventModel.addListener(ModelEvents.USER_CREATE, new EventListener(function(user: NewUser): Void {
+        EM.addListener(EMEvent.USER_CREATE, new EMListener(function(user: NewUser): Void {
                 createUser(user);
             })
         );
 
-        EventModel.addListener(ModelEvents.USER_UPDATE, new EventListener(function(user: NewUser): Void {
+        EM.addListener(EMEvent.USER_UPDATE, new EMListener(function(user: NewUser): Void {
                 updateUser(user);
             })
         );
 
-        EventModel.addListener(ModelEvents.NewContentCreated, new EventListener(function(content: Content): Void {
+        EM.addListener(EMEvent.USER_VALIDATE, new EMListener(function(token: String): Void {
+                validateUser(token);
+            })
+        );
+
+        EM.addListener(EMEvent.NewContentCreated, new EMListener(function(content: Content): Void {
         		post(content);
     		})
         );
 
-        EventModel.addListener(ModelEvents.CreateLabel, new EventListener(function(label: Label): Void {
-        		createLabel(label);
+        EM.addListener(EMEvent.CreateLabel, new EMListener(function(label: Label): Void {
+        		// createLabel(label);
     		})
         );
 
@@ -95,12 +99,12 @@ class ProtocolHandler {
         processHash.set(Std.string(MsgType.evalResponse), function(data: Dynamic){
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
         		//TODO need to make sure this is wired to properly push into the observable set
-        		EventModel.change(ModelEvents.MoreContent, evalResponse.content.pageOfPosts); 
+        		EM.change(EMEvent.MoreContent, evalResponse.content.pageOfPosts); 
         	});
         processHash.set(Std.string(MsgType.evalComplete), function(data: Dynamic){
         		var evalComplete: EvalComplete = AgentUi.SERIALIZER.fromJsonX(data, EvalComplete);
         		//TODO need to make sure this is wired to properly push into the observable set
-        		EventModel.change(ModelEvents.EndOfContent, evalComplete.content.pageOfPosts); 
+        		EM.change(EMEvent.EndOfContent, evalComplete.content.pageOfPosts); 
         	});
         processHash.set(Std.string(MsgType.sessionPong), function(data: Dynamic){
         		//nothing to do with this message
@@ -109,7 +113,7 @@ class ProtocolHandler {
 
 	public function getUser(login: Login): Void {
 		if(AgentUi.DEMO) {
-			EventModel.change(ModelEvents.USER, TestDao.getUser(null));
+			EM.change(EMEvent.USER, TestDao.getUser(null));
 		} 
 
 		var request: InitializeSessionRequest = new InitializeSessionRequest();
@@ -135,7 +139,7 @@ class ProtocolHandler {
 							_startPolling(user.sessionURI);
 
 							if(!ui.AgentUi.DEMO) {
-								EventModel.change(ModelEvents.USER, user);
+								EM.change(EMEvent.USER, user);
 							} else {
 								AgentUi.LOGGER.error("Enable firing new user event");
 							}
@@ -244,7 +248,7 @@ class ProtocolHandler {
 				        	AgentUi.agentURI = response.content.agentURI;
 				        	//TODO put this value into the url
 							//AgentUi.showLogin(); -> firing the USER_SIGNUP will close the NewUserComp, 
-							EventModel.change(ModelEvents.USER_SIGNUP);
+							EM.change(EMEvent.USER_SIGNUP);
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
 						}
@@ -258,7 +262,7 @@ class ProtocolHandler {
 				        	AgentUi.showSignupConfirmation();
 				        	//TODO put this value into the url
 							//AgentUi.showLogin(); -> firing the USER_SIGNUP will close the NewUserComp, 
-							EventModel.change(ModelEvents.USER_SIGNUP);
+							EM.change(EMEvent.USER_SIGNUP);
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
 						}
@@ -291,7 +295,7 @@ class ProtocolHandler {
 				        	AgentUi.agentURI = response.content.agentURI;
 				        	//TODO put this value into the url
 							//AgentUi.showLogin(); -> firing the USER_VALIDATED will close the SignupConfirmationDialog, 
-							EventModel.change(ModelEvents.USER_VALIDATED);
+							EM.change(EMEvent.USER_VALIDATED);
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
 						}
@@ -335,7 +339,7 @@ class ProtocolHandler {
 							//open comm's with server
 							_startPolling(user.sessionURI);
 
-							// EventModel.change(ModelEvents.User, user);
+							// EM.change(EMEvent.User, user);
 							AgentUi.LOGGER.error("Enable firing new user event");
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);

@@ -4,8 +4,7 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
@@ -45,12 +44,12 @@ extern class ConnectionsList extends JQ {
 
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
-		        	EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
+		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
 			                self._setConnections(alias.connectionSet);
-			            })
+			            }, "ConnectionsList-Alias")
 			        );
 
-		        	// EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
+		        	// EM.addListener(EMEvent.User, new EMListener(function(user: User) {
 			        //        	self._setConnections(user.currentAlias.connections);
 			        //     })
 			        // );

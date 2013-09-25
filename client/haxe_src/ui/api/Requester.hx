@@ -2,8 +2,7 @@ package ui.api;
 
 import m3.jq.JQ;
 import ui.model.Filter;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import ui.api.ProtocolMessage;
 import m3.exception.Exception;
 import ui.exception.InitializeSessionException;
@@ -28,6 +27,7 @@ class StandardRequest implements Requester {
 			async: true,
 			url: AgentUi.URL + "/api", 
 	        dataType: "json", 
+	        contentType: "application/json",
 	        // jsonp: "blah",
 	        data: AgentUi.SERIALIZER.toJsonString(request),
 	        type: "POST",
@@ -90,6 +90,7 @@ class LongPollingRequest implements Requester {
 			var ajaxOpts: AjaxOptions = { 
 				url: AgentUi.URL + "/api", 
 		        // dataType: "json", 
+	        	contentType: "application/json",
 		        data: this.requestJson,
 		        type: "POST",
 				success: function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {

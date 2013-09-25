@@ -8,8 +8,7 @@ import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.observable.OSet;
 import ui.widget.LabelComp;
 import m3.exception.Exception;
@@ -173,9 +172,9 @@ extern class FilterComp extends JQ {
 		        		});
 					
 					if(!cast(liveToggle.liveBuildToggle("isLive"), Bool)) {
-						EventModel.change(ModelEvents.FILTER_CHANGE, new Filter(root));
+						EM.change(EMEvent.FILTER_CHANGE, new Filter(root));
 					} else {
-		        		EventModel.change(ModelEvents.FILTER_RUN, new Filter(root));
+		        		EM.change(EMEvent.FILTER_RUN, new Filter(root));
 		        	}
 	        	},
 

@@ -239,6 +239,12 @@ Reflect.fields = function(o) {
 Reflect.isFunction = function(f) {
 	return typeof(f) == "function" && !(f.__name__ || f.__ename__);
 }
+Reflect.compare = function(a,b) {
+	return a == b?0:a > b?1:-1;
+}
+Reflect.isEnumValue = function(v) {
+	return v != null && v.__enum__ != null;
+}
 var Std = function() { }
 $hxClasses["Std"] = Std;
 Std.__name__ = ["Std"];
@@ -833,6 +839,131 @@ haxe.Json.prototype = {
 	,__class__: haxe.Json
 }
 haxe.ds = {}
+haxe.ds.BalancedTree = function() {
+};
+$hxClasses["haxe.ds.BalancedTree"] = haxe.ds.BalancedTree;
+haxe.ds.BalancedTree.__name__ = ["haxe","ds","BalancedTree"];
+haxe.ds.BalancedTree.prototype = {
+	compare: function(k1,k2) {
+		return Reflect.compare(k1,k2);
+	}
+	,balance: function(l,k,v,r) {
+		var hl = l == null?0:l._height;
+		var hr = r == null?0:r._height;
+		return hl > hr + 2?(function($this) {
+			var $r;
+			var _this = l.left;
+			$r = _this == null?0:_this._height;
+			return $r;
+		}(this)) >= (function($this) {
+			var $r;
+			var _this = l.right;
+			$r = _this == null?0:_this._height;
+			return $r;
+		}(this))?new haxe.ds.TreeNode(l.left,l.key,l.value,new haxe.ds.TreeNode(l.right,k,v,r)):new haxe.ds.TreeNode(new haxe.ds.TreeNode(l.left,l.key,l.value,l.right.left),l.right.key,l.right.value,new haxe.ds.TreeNode(l.right.right,k,v,r)):hr > hl + 2?(function($this) {
+			var $r;
+			var _this = r.right;
+			$r = _this == null?0:_this._height;
+			return $r;
+		}(this)) > (function($this) {
+			var $r;
+			var _this = r.left;
+			$r = _this == null?0:_this._height;
+			return $r;
+		}(this))?new haxe.ds.TreeNode(new haxe.ds.TreeNode(l,k,v,r.left),r.key,r.value,r.right):new haxe.ds.TreeNode(new haxe.ds.TreeNode(l,k,v,r.left.left),r.left.key,r.left.value,new haxe.ds.TreeNode(r.left.right,r.key,r.value,r.right)):new haxe.ds.TreeNode(l,k,v,r,(hl > hr?hl:hr) + 1);
+	}
+	,setLoop: function(k,v,node) {
+		if(node == null) return new haxe.ds.TreeNode(null,k,v,null);
+		var c = this.compare(k,node.key);
+		return c == 0?new haxe.ds.TreeNode(node.left,k,v,node.right,node == null?0:node._height):c < 0?(function($this) {
+			var $r;
+			var nl = $this.setLoop(k,v,node.left);
+			$r = $this.balance(nl,node.key,node.value,node.right);
+			return $r;
+		}(this)):(function($this) {
+			var $r;
+			var nr = $this.setLoop(k,v,node.right);
+			$r = $this.balance(node.left,node.key,node.value,nr);
+			return $r;
+		}(this));
+	}
+	,get: function(k) {
+		var node = this.root;
+		while(node != null) {
+			var c = this.compare(k,node.key);
+			if(c == 0) return node.value;
+			if(c < 0) node = node.left; else node = node.right;
+		}
+		return null;
+	}
+	,set: function(k,v) {
+		this.root = this.setLoop(k,v,this.root);
+	}
+	,__class__: haxe.ds.BalancedTree
+}
+haxe.ds.TreeNode = function(l,k,v,r,h) {
+	if(h == null) h = -1;
+	this.left = l;
+	this.key = k;
+	this.value = v;
+	this.right = r;
+	if(h == -1) this._height = ((function($this) {
+		var $r;
+		var _this = $this.left;
+		$r = _this == null?0:_this._height;
+		return $r;
+	}(this)) > (function($this) {
+		var $r;
+		var _this = $this.right;
+		$r = _this == null?0:_this._height;
+		return $r;
+	}(this))?(function($this) {
+		var $r;
+		var _this = $this.left;
+		$r = _this == null?0:_this._height;
+		return $r;
+	}(this)):(function($this) {
+		var $r;
+		var _this = $this.right;
+		$r = _this == null?0:_this._height;
+		return $r;
+	}(this))) + 1; else this._height = h;
+};
+$hxClasses["haxe.ds.TreeNode"] = haxe.ds.TreeNode;
+haxe.ds.TreeNode.__name__ = ["haxe","ds","TreeNode"];
+haxe.ds.TreeNode.prototype = {
+	__class__: haxe.ds.TreeNode
+}
+haxe.ds.EnumValueMap = function() {
+	haxe.ds.BalancedTree.call(this);
+};
+$hxClasses["haxe.ds.EnumValueMap"] = haxe.ds.EnumValueMap;
+haxe.ds.EnumValueMap.__name__ = ["haxe","ds","EnumValueMap"];
+haxe.ds.EnumValueMap.__interfaces__ = [IMap];
+haxe.ds.EnumValueMap.__super__ = haxe.ds.BalancedTree;
+haxe.ds.EnumValueMap.prototype = $extend(haxe.ds.BalancedTree.prototype,{
+	compareArgs: function(a1,a2) {
+		var ld = a1.length - a2.length;
+		if(ld != 0) return ld;
+		var _g1 = 0, _g = a1.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var v1 = a1[i], v2 = a2[i];
+			var d = Reflect.isEnumValue(v1) && Reflect.isEnumValue(v2)?this.compare(v1,v2):Reflect.compare(v1,v2);
+			if(d != 0) return d;
+		}
+		return 0;
+	}
+	,compare: function(k1,k2) {
+		var d = k1[1] - k2[1];
+		if(d != 0) return d;
+		var p1 = k1.slice(2);
+		var p2 = k2.slice(2);
+		if(p1.length == 0 && p2.length == 0) return 0;
+		return this.compareArgs(p1,p2);
+	}
+	,__class__: haxe.ds.EnumValueMap
+});
 haxe.ds.StringMap = function() {
 	this.h = { };
 };
@@ -3840,23 +3971,23 @@ ui.AgentUi.start = function() {
 	new $("#userId").userComp();
 	new $("#postInput").postComp();
 	new $("#sideRight #sideRightInvite").inviteComp();
-	var fitWindowListener = new ui.model.EventListener(function(n) {
+	var fitWindowListener = new ui.model.EMListener(function(n) {
 		fitWindow();
-	});
-	var fireFitWindow = new ui.model.EventListener(function(n) {
-		ui.model.EventModel.change(ui.model.ModelEvents.FitWindow);
-	});
-	ui.model.EventModel.addListener(ui.model.ModelEvents.MoreContent,fireFitWindow);
-	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_LOGIN,fireFitWindow);
-	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_CREATE,fireFitWindow);
-	ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(user) {
+	},"FitWindowListener");
+	var fireFitWindow = new ui.model.EMListener(function(n) {
+		ui.model.EM.change(ui.model.EMEvent.FitWindow);
+	},"FireFitWindowListener");
+	ui.model.EM.addListener(ui.model.EMEvent.MoreContent,fireFitWindow);
+	ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,fireFitWindow);
+	ui.model.EM.addListener(ui.model.EMEvent.USER_CREATE,fireFitWindow);
+	ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
 		ui.AgentUi.USER = user;
-		ui.model.EventModel.change(ui.model.ModelEvents.AliasLoaded,user.get_currentAlias());
-	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.AliasLoaded,new ui.model.EventListener(function(alias) {
+		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,user.get_currentAlias());
+	},"AgentUi-User"));
+	ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
 		ui.AgentUi.USER.set_currentAlias(alias);
-	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.FitWindow,fitWindowListener);
+	},"AgentUi-Alias"));
+	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,fitWindowListener);
 	new $("body").click(function(evt) {
 		new $(".nonmodalPopup").hide();
 	});
@@ -3894,7 +4025,7 @@ ui.api = {}
 ui.api.ProtocolHandler = function() {
 	this.filterIsRunning = false;
 	var _g = this;
-	ui.model.EventModel.addListener(ui.model.ModelEvents.FILTER_RUN,new ui.model.EventListener(function(filter) {
+	ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filter) {
 		if(_g.filterIsRunning) try {
 			var stopEval = new ui.api.StopEvalRequest();
 			var stopData = new ui.api.StopMsgData();
@@ -3911,39 +4042,41 @@ ui.api.ProtocolHandler = function() {
 		} else _g.filter(filter);
 		_g.filterIsRunning = true;
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.EndOfContent,new ui.model.EventListener(function(nextPageURI) {
+	ui.model.EM.addListener(ui.model.EMEvent.EndOfContent,new ui.model.EMListener(function(nextPageURI) {
 		_g.filterIsRunning = false;
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.NextContent,new ui.model.EventListener(function(nextPageURI) {
+	ui.model.EM.addListener(ui.model.EMEvent.NextContent,new ui.model.EMListener(function(nextPageURI) {
 		_g.nextPage(nextPageURI);
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.LoadAlias,new ui.model.EventListener(function(uid) {
+	ui.model.EM.addListener(ui.model.EMEvent.LoadAlias,new ui.model.EMListener(function(uid) {
 		var alias = _g.getAlias(uid);
-		ui.model.EventModel.change(ui.model.ModelEvents.AliasLoaded,alias);
+		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias);
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_LOGIN,new ui.model.EventListener(function(login) {
+	ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,new ui.model.EMListener(function(login) {
 		_g.getUser(login);
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_CREATE,new ui.model.EventListener(function(user) {
+	ui.model.EM.addListener(ui.model.EMEvent.USER_CREATE,new ui.model.EMListener(function(user) {
 		_g.createUser(user);
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.USER_UPDATE,new ui.model.EventListener(function(user) {
+	ui.model.EM.addListener(ui.model.EMEvent.USER_UPDATE,new ui.model.EMListener(function(user) {
 		_g.updateUser(user);
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.NewContentCreated,new ui.model.EventListener(function(content) {
+	ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATE,new ui.model.EMListener(function(token) {
+		_g.validateUser(token);
+	}));
+	ui.model.EM.addListener(ui.model.EMEvent.NewContentCreated,new ui.model.EMListener(function(content) {
 		_g.post(content);
 	}));
-	ui.model.EventModel.addListener(ui.model.ModelEvents.CreateLabel,new ui.model.EventListener(function(label) {
-		_g.createLabel(label);
+	ui.model.EM.addListener(ui.model.EMEvent.CreateLabel,new ui.model.EMListener(function(label) {
 	}));
 	this.processHash = new haxe.ds.StringMap();
 	this.processHash.set(Std.string(ui.api.MsgType.evalResponse),function(data) {
 		var evalResponse = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.EvalResponse);
-		ui.model.EventModel.change(ui.model.ModelEvents.MoreContent,evalResponse.content.pageOfPosts);
+		ui.model.EM.change(ui.model.EMEvent.MoreContent,evalResponse.content.pageOfPosts);
 	});
 	this.processHash.set(Std.string(ui.api.MsgType.evalComplete),function(data) {
 		var evalComplete = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.EvalComplete);
-		ui.model.EventModel.change(ui.model.ModelEvents.EndOfContent,evalComplete.content.pageOfPosts);
+		ui.model.EM.change(ui.model.EMEvent.EndOfContent,evalComplete.content.pageOfPosts);
 	});
 	this.processHash.set(Std.string(ui.api.MsgType.sessionPong),function(data) {
 	});
@@ -4025,7 +4158,7 @@ ui.api.ProtocolHandler.prototype = {
 				if(data1.msgType == ui.api.MsgType.createUserResponse) try {
 					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserResponse,false);
 					ui.AgentUi.agentURI = response.content.agentURI;
-					ui.model.EventModel.change(ui.model.ModelEvents.USER_VALIDATED);
+					ui.model.EM.change(ui.model.EMEvent.USER_VALIDATED);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
@@ -4053,7 +4186,7 @@ ui.api.ProtocolHandler.prototype = {
 				if(data1.msgType == ui.api.MsgType.createUserResponse) try {
 					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserResponse,false);
 					ui.AgentUi.agentURI = response.content.agentURI;
-					ui.model.EventModel.change(ui.model.ModelEvents.USER_SIGNUP);
+					ui.model.EM.change(ui.model.EMEvent.USER_SIGNUP);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
@@ -4061,7 +4194,7 @@ ui.api.ProtocolHandler.prototype = {
 				} else if(data1.msgType == ui.api.MsgType.createUserWaiting) try {
 					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserWaiting,false);
 					ui.AgentUi.showSignupConfirmation();
-					ui.model.EventModel.change(ui.model.ModelEvents.USER_SIGNUP);
+					ui.model.EM.change(ui.model.EMEvent.USER_SIGNUP);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
@@ -4141,7 +4274,7 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,getUser: function(login) {
 		var _g = this;
-		if(ui.AgentUi.DEMO) ui.model.EventModel.change(ui.model.ModelEvents.USER,ui.api.TestDao.getUser(null));
+		if(ui.AgentUi.DEMO) ui.model.EM.change(ui.model.EMEvent.USER,ui.api.TestDao.getUser(null));
 		var request = new ui.api.InitializeSessionRequest();
 		var requestData = new ui.api.InitializeSessionRequestData();
 		request.content = requestData;
@@ -4157,7 +4290,7 @@ ui.api.ProtocolHandler.prototype = {
 					user.get_currentAlias().labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfLabels);
 					user.aliasSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,response.content.listOfAliases);
 					_g._startPolling(user.sessionURI);
-					if(!ui.AgentUi.DEMO) ui.model.EventModel.change(ui.model.ModelEvents.USER,user); else ui.AgentUi.LOGGER.error("Enable firing new user event");
+					if(!ui.AgentUi.DEMO) ui.model.EM.change(ui.model.EMEvent.USER,user); else ui.AgentUi.LOGGER.error("Enable firing new user event");
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
@@ -4650,7 +4783,7 @@ ui.api.StandardRequest.prototype = {
 	}
 	,start: function() {
 		ui.AgentUi.LOGGER.debug("send " + Std.string(this.request.msgType));
-		$.ajax({ async : true, url : ui.AgentUi.URL + "/api", dataType : "json", data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
+		$.ajax({ async : true, url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
 			throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 		}});
 	}
@@ -4677,7 +4810,7 @@ ui.api.LongPollingRequest.prototype = {
 	poll: function() {
 		var _g = this;
 		if(!this.stop) {
-			var ajaxOpts = { url : ui.AgentUi.URL + "/api", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
+			var ajaxOpts = { url : ui.AgentUi.URL + "/api", contentType : "application/json", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
 				if(!_g.stop) _g.successFcn(data,textStatus,jqXHR);
 			}, error : function(jqXHR,textStatus,errorThrown) {
 				ui.AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
@@ -5020,40 +5153,116 @@ ui.helper.ModelHelper.asConnection = function(alias) {
 	return conn;
 }
 ui.model = {}
-ui.model.EventModel = function() { }
-$hxClasses["ui.model.EventModel"] = ui.model.EventModel;
-ui.model.EventModel.__name__ = ["ui","model","EventModel"];
-ui.model.EventModel.addListener = function(id,listener) {
-	var arr = ui.model.EventModel.hash.get(Std.string(id));
-	if(arr == null) {
-		arr = new Array();
-		ui.model.EventModel.hash.set(Std.string(id),arr);
+ui.model.EM = function() { }
+$hxClasses["ui.model.EM"] = ui.model.EM;
+ui.model.EM.__name__ = ["ui","model","EM"];
+ui.model.EM.addListener = function(id,listener) {
+	var map = ui.model.EM.hash.get(id);
+	if(map == null) {
+		map = new haxe.ds.StringMap();
+		ui.model.EM.hash.set(id,map);
 	}
-	arr.push(listener);
+	map.set(listener.get_uid(),listener);
+	return listener.get_uid();
 }
-ui.model.EventModel.change = function(id,t) {
+ui.model.EM.listenOnce = function(id,listener) {
+	var map = ui.model.EM.hash.get(id);
+	ui.model.EM.oneTimers.push(listener.get_uid());
+	return ui.model.EM.addListener(id,listener);
+}
+ui.model.EM.removeListener = function(id,listenerUid) {
+	var map = ui.model.EM.hash.get(id);
+	if(map != null) map.remove(listenerUid);
+}
+ui.model.EM.change = function(id,t) {
 	ui.AgentUi.LOGGER.debug("EVENTMODEL: Change to " + Std.string(id));
-	var arr = ui.model.EventModel.hash.get(Std.string(id));
-	if(m3.helper.ArrayHelper.hasValues(arr)) {
-		var _g1 = 0, _g = arr.length;
-		while(_g1 < _g) {
-			var l_ = _g1++;
-			arr[l_].change(t);
-		}
+	var map = ui.model.EM.hash.get(id);
+	if(map == null) {
+		ui.AgentUi.LOGGER.warn("No listeners for event " + Std.string(id));
+		return;
+	}
+	var iter = map.iterator();
+	while(iter.hasNext()) {
+		var listener = iter.next();
+		ui.AgentUi.LOGGER.debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
+		listener.change(t);
+		if(HxOverrides.remove(ui.model.EM.oneTimers,listener.get_uid())) map.remove(listener.get_uid());
 	}
 }
-ui.model.EventListener = function(fcn) {
+ui.model.EMListener = function(fcn,name) {
 	this.fcn = fcn;
-	this.uid = m3.util.UidGenerator.create(10);
+	this.uid = m3.util.UidGenerator.create(20);
+	this.name = name == null?this.get_uid():name;
 };
-$hxClasses["ui.model.EventListener"] = ui.model.EventListener;
-ui.model.EventListener.__name__ = ["ui","model","EventListener"];
-ui.model.EventListener.prototype = {
-	change: function(t) {
+$hxClasses["ui.model.EMListener"] = ui.model.EMListener;
+ui.model.EMListener.__name__ = ["ui","model","EMListener"];
+ui.model.EMListener.prototype = {
+	get_name: function() {
+		return this.name;
+	}
+	,get_uid: function() {
+		return this.uid;
+	}
+	,change: function(t) {
 		this.fcn(t);
 	}
-	,__class__: ui.model.EventListener
+	,__class__: ui.model.EMListener
 }
+ui.model.Nothing = function() { }
+$hxClasses["ui.model.Nothing"] = ui.model.Nothing;
+ui.model.Nothing.__name__ = ["ui","model","Nothing"];
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","CreateLabel"] }
+ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
+ui.model.EMEvent.FILTER_RUN.toString = $estr;
+ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.FILTER_CHANGE = ["FILTER_CHANGE",1];
+ui.model.EMEvent.FILTER_CHANGE.toString = $estr;
+ui.model.EMEvent.FILTER_CHANGE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.MoreContent = ["MoreContent",2];
+ui.model.EMEvent.MoreContent.toString = $estr;
+ui.model.EMEvent.MoreContent.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.NextContent = ["NextContent",3];
+ui.model.EMEvent.NextContent.toString = $estr;
+ui.model.EMEvent.NextContent.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.EndOfContent = ["EndOfContent",4];
+ui.model.EMEvent.EndOfContent.toString = $estr;
+ui.model.EMEvent.EndOfContent.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.NewContentCreated = ["NewContentCreated",5];
+ui.model.EMEvent.NewContentCreated.toString = $estr;
+ui.model.EMEvent.NewContentCreated.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.LoadAlias = ["LoadAlias",6];
+ui.model.EMEvent.LoadAlias.toString = $estr;
+ui.model.EMEvent.LoadAlias.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.AliasLoaded = ["AliasLoaded",7];
+ui.model.EMEvent.AliasLoaded.toString = $estr;
+ui.model.EMEvent.AliasLoaded.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.USER_LOGIN = ["USER_LOGIN",8];
+ui.model.EMEvent.USER_LOGIN.toString = $estr;
+ui.model.EMEvent.USER_LOGIN.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.USER_CREATE = ["USER_CREATE",9];
+ui.model.EMEvent.USER_CREATE.toString = $estr;
+ui.model.EMEvent.USER_CREATE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.USER_UPDATE = ["USER_UPDATE",10];
+ui.model.EMEvent.USER_UPDATE.toString = $estr;
+ui.model.EMEvent.USER_UPDATE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",11];
+ui.model.EMEvent.USER_SIGNUP.toString = $estr;
+ui.model.EMEvent.USER_SIGNUP.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.USER_VALIDATE = ["USER_VALIDATE",12];
+ui.model.EMEvent.USER_VALIDATE.toString = $estr;
+ui.model.EMEvent.USER_VALIDATE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.USER_VALIDATED = ["USER_VALIDATED",13];
+ui.model.EMEvent.USER_VALIDATED.toString = $estr;
+ui.model.EMEvent.USER_VALIDATED.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.USER = ["USER",14];
+ui.model.EMEvent.USER.toString = $estr;
+ui.model.EMEvent.USER.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.FitWindow = ["FitWindow",15];
+ui.model.EMEvent.FitWindow.toString = $estr;
+ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.CreateLabel = ["CreateLabel",16];
+ui.model.EMEvent.CreateLabel.toString = $estr;
+ui.model.EMEvent.CreateLabel.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
 	this.rootNode = node;
 	this.connectionNodes = new Array();
@@ -5092,58 +5301,6 @@ ui.model.Filter.prototype = {
 	}
 	,__class__: ui.model.Filter
 }
-ui.model.ModelEvents = $hxClasses["ui.model.ModelEvents"] = { __ename__ : ["ui","model","ModelEvents"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","CreateLabel"] }
-ui.model.ModelEvents.FILTER_RUN = ["FILTER_RUN",0];
-ui.model.ModelEvents.FILTER_RUN.toString = $estr;
-ui.model.ModelEvents.FILTER_RUN.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.FILTER_CHANGE = ["FILTER_CHANGE",1];
-ui.model.ModelEvents.FILTER_CHANGE.toString = $estr;
-ui.model.ModelEvents.FILTER_CHANGE.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.MoreContent = ["MoreContent",2];
-ui.model.ModelEvents.MoreContent.toString = $estr;
-ui.model.ModelEvents.MoreContent.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.NextContent = ["NextContent",3];
-ui.model.ModelEvents.NextContent.toString = $estr;
-ui.model.ModelEvents.NextContent.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.EndOfContent = ["EndOfContent",4];
-ui.model.ModelEvents.EndOfContent.toString = $estr;
-ui.model.ModelEvents.EndOfContent.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.NewContentCreated = ["NewContentCreated",5];
-ui.model.ModelEvents.NewContentCreated.toString = $estr;
-ui.model.ModelEvents.NewContentCreated.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.LoadAlias = ["LoadAlias",6];
-ui.model.ModelEvents.LoadAlias.toString = $estr;
-ui.model.ModelEvents.LoadAlias.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.AliasLoaded = ["AliasLoaded",7];
-ui.model.ModelEvents.AliasLoaded.toString = $estr;
-ui.model.ModelEvents.AliasLoaded.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER_LOGIN = ["USER_LOGIN",8];
-ui.model.ModelEvents.USER_LOGIN.toString = $estr;
-ui.model.ModelEvents.USER_LOGIN.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER_CREATE = ["USER_CREATE",9];
-ui.model.ModelEvents.USER_CREATE.toString = $estr;
-ui.model.ModelEvents.USER_CREATE.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER_UPDATE = ["USER_UPDATE",10];
-ui.model.ModelEvents.USER_UPDATE.toString = $estr;
-ui.model.ModelEvents.USER_UPDATE.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER_SIGNUP = ["USER_SIGNUP",11];
-ui.model.ModelEvents.USER_SIGNUP.toString = $estr;
-ui.model.ModelEvents.USER_SIGNUP.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER_VALIDATE = ["USER_VALIDATE",12];
-ui.model.ModelEvents.USER_VALIDATE.toString = $estr;
-ui.model.ModelEvents.USER_VALIDATE.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER_VALIDATED = ["USER_VALIDATED",13];
-ui.model.ModelEvents.USER_VALIDATED.toString = $estr;
-ui.model.ModelEvents.USER_VALIDATED.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.USER = ["USER",14];
-ui.model.ModelEvents.USER.toString = $estr;
-ui.model.ModelEvents.USER.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.FitWindow = ["FitWindow",15];
-ui.model.ModelEvents.FitWindow.toString = $estr;
-ui.model.ModelEvents.FitWindow.__enum__ = ui.model.ModelEvents;
-ui.model.ModelEvents.CreateLabel = ["CreateLabel",16];
-ui.model.ModelEvents.CreateLabel.toString = $estr;
-ui.model.ModelEvents.CreateLabel.__enum__ = ui.model.ModelEvents;
 ui.model.ModelObj = function() { }
 $hxClasses["ui.model.ModelObj"] = ui.model.ModelObj;
 ui.model.ModelObj.__name__ = ["ui","model","ModelObj"];
@@ -5527,7 +5684,8 @@ m3.util.ColorProvider._COLORS.push("#9BCC5C");
 m3.util.ColorProvider._COLORS.push("#CCC45C");
 m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
-ui.model.EventModel.hash = new haxe.ds.StringMap();
+ui.model.EM.hash = new haxe.ds.EnumValueMap();
+ui.model.EM.oneTimers = new Array();
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -5799,9 +5957,9 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsList must be a div element");
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses());
-		ui.model.EventModel.addListener(ui.model.ModelEvents.AliasLoaded,new ui.model.EventListener(function(alias) {
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
 			self._setConnections(alias.connectionSet);
-		}));
+		},"ConnectionsList-Alias"));
 	}, _setConnections : function(connections) {
 		var self = this;
 		var selfElement = this.element;
@@ -6043,7 +6201,7 @@ var defineWidget = function() {
 			var node = (filterable.data("getNode"))();
 			root.addNode(node);
 		});
-		if(!js.Boot.__cast(liveToggle.liveBuildToggle("isLive") , Bool)) ui.model.EventModel.change(ui.model.ModelEvents.FILTER_CHANGE,new ui.model.Filter(root)); else ui.model.EventModel.change(ui.model.ModelEvents.FILTER_RUN,new ui.model.Filter(root));
+		if(!js.Boot.__cast(liveToggle.liveBuildToggle("isLive") , Bool)) ui.model.EM.change(ui.model.EMEvent.FILTER_CHANGE,new ui.model.Filter(root)); else ui.model.EM.change(ui.model.EMEvent.FILTER_RUN,new ui.model.Filter(root));
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -6095,7 +6253,7 @@ var defineWidget = function() {
 			selfElement.append(labelChildren);
 			label.add(expander).click(function(evt) {
 				labelChildren.toggle();
-				ui.model.EventModel.change(ui.model.ModelEvents.FitWindow);
+				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 			});
 		}
 	}, update : function() {
@@ -6119,6 +6277,7 @@ var defineWidget = function() {
 			})});
 		});
 		self.labels.listen(function(labelTreeBranch,evt) {
+			ui.AgentUi.LOGGER.debug("LabelTree | " + Std.string(evt) + " | " + Std.string(labelTreeBranch));
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) labelTreeBranch.labelTreeBranch("update"); else if(evt.isDelete()) labelTreeBranch.remove();
 		});
 	}, destroy : function() {
@@ -6149,9 +6308,9 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
 		selfElement.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
-		ui.model.EventModel.addListener(ui.model.ModelEvents.AliasLoaded,new ui.model.EventListener(function(alias) {
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
 			self._setLabels(alias.labelSet);
-		}));
+		},"LabelsList-Alias"));
 		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
 		selfElement.append(newLabelButton).append("<div class='clear'></div>");
 		newLabelButton.button().click(function(evt) {
@@ -6192,8 +6351,9 @@ var defineWidget = function() {
 					label.parentUid = parent.val();
 					label.text = input.val();
 					label.uid = m3.util.UidGenerator.create();
-					ui.model.EventModel.change(ui.model.ModelEvents.CreateLabel,label);
+					ui.model.EM.change(ui.model.EMEvent.CreateLabel,label);
 					new $("body").click();
+					self.labels.add(label);
 				};
 			}, positionalElement : newLabelButton});
 		});
@@ -6264,9 +6424,9 @@ var defineWidget = function() {
 				self.input_em.hide();
 			}
 		});
-		ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(user) {
+		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
 			self._setUser(user);
-		}));
+		},"NewUserComp-User"));
 	}, initialized : false, _createNewUser : function() {
 		var self = this;
 		var selfElement1 = this.element;
@@ -6289,22 +6449,23 @@ var defineWidget = function() {
 		}
 		if(!valid) return;
 		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EventModel.change(ui.model.ModelEvents.USER_CREATE,newUser);
-		ui.model.EventModel.addListener(ui.model.ModelEvents.USER_SIGNUP,new ui.model.EventListener(function(n) {
+		ui.model.EM.change(ui.model.EMEvent.USER_CREATE,newUser);
+		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(n) {
 			selfElement1.jdialog("close");
-		}));
+		},"NewUserComp-UserSignup"));
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement2 = this.element;
 		self1.initialized = true;
 		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, buttons : { 'Create my Agent' : function() {
+			self1._registered = true;
 			self1._createNewUser();
 		}, Cancel : function() {
 			self1._cancelled = true;
 			$(this).jdialog("close");
 		}}, close : function(evt,ui1) {
 			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			if(self1.user == null || !self1.user.hasValidSession()) ui.AgentUi.showLogin();
+			if(!self1._registered && (self1.user == null || !self1.user.hasValidSession())) ui.AgentUi.showLogin();
 		}};
 		selfElement2.jdialog(dlgOptions);
 	}, _setUser : function(user) {
@@ -6323,6 +6484,66 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.newUserComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of SignupConfirmationDialog must be a div element");
+		self._cancelled = false;
+		selfElement.addClass("signupConfirmationDialog").hide();
+		selfElement.append("<p> Your request for a User Agent has been submitted. Upon receiving your confirmation email, you may click the " + "link it contains or paste the token below to validate your email address.");
+		self.inputLabel = new $("<div class='labelDiv'><label id='confirmTokenLabel' for='confirmToken'>Your Token</label></div>").appendTo(selfElement);
+		self.input = new $("<input id='confirmToken' />").appendTo(selfElement);
+		self.input.keypress(function(evt) {
+			if(evt.keyCode == 13) self._validateUser();
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
+			self._setUser(user);
+		},"SignupConfirmationDialog-User"));
+	}, initialized : false, _validateUser : function() {
+		var self = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var token = self.input.val();
+		if(m3.helper.StringHelper.isBlank(token)) {
+			self.inputLabel.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EM.change(ui.model.EMEvent.USER_VALIDATE,token);
+		ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATED,new ui.model.EMListener(function(n) {
+			selfElement1.jdialog("close");
+		},"SignupConfirmationDialog-UserValidated"));
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement2 = this.element;
+		self1.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Email Validation", height : 420, width : 420, buttons : { Validate : function() {
+			self1._validateUser();
+		}, Cancel : function() {
+			self1._cancelled = true;
+			$(this).jdialog("close");
+		}}, close : function(evt,ui1) {
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
+			if(self1.user == null || !self1.user.hasValidSession()) ui.AgentUi.showLogin();
+		}};
+		selfElement2.jdialog(dlgOptions);
+	}, _setUser : function(user) {
+		var self = this;
+		self.user = user;
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		self._cancelled = false;
+		if(!self.initialized) self._buildDialog();
+		self.input.focus();
+		selfElement.jdialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.signupConfirmationDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -6370,13 +6591,16 @@ var defineWidget = function() {
 				self.input_pw.hide();
 			}
 		});
-		ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(user) {
+		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
 			self._setUser(user);
-			if(user == null) self.open();
-		}));
+			if(user == null) self.open(); else selfElement.jdialog("close");
+		},"Login-User"));
+		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(user) {
+			selfElement.jdialog("close");
+		},"Login-UserSignup"));
 	}, initialized : false, _login : function() {
 		var self = this;
-		var selfElement1 = this.element;
+		var selfElement = this.element;
 		var valid = true;
 		var login;
 		if(m3.helper.StringHelper.isNotBlank(ui.AgentUi.agentURI)) {
@@ -6397,11 +6621,8 @@ var defineWidget = function() {
 			valid = false;
 		}
 		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EventModel.change(ui.model.ModelEvents.USER_LOGIN,login);
-		ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(n) {
-			selfElement1.jdialog("close");
-		}));
+		selfElement.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EM.change(ui.model.EMEvent.USER_LOGIN,login);
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement = this.element;
@@ -6412,6 +6633,10 @@ var defineWidget = function() {
 			self1._newUser = true;
 			$(this).jdialog("close");
 			ui.AgentUi.showNewUser();
+		}, Validate : function() {
+			self1._newUser = true;
+			$(this).jdialog("close");
+			ui.AgentUi.showSignupConfirmation();
 		}}, beforeClose : function(evt,ui1) {
 			if(!self1._newUser && (self1.user == null || !self1.user.hasValidSession())) {
 				js.Lib.alert("A valid user is required to use the app");
@@ -6565,7 +6790,7 @@ var defineWidget = function() {
 			addConnectionsAndLabels(msg);
 			msg.type = "TEXT";
 			msg.uid = m3.util.UidGenerator.create();
-			ui.model.EventModel.change(ui.model.ModelEvents.NewContentCreated,msg);
+			ui.model.EM.change(ui.model.EMEvent.NewContentCreated,msg);
 			$(this).val("");
 		};
 		var textInput = new $("<div class='postContainer'></div>").appendTo(section);
@@ -6640,77 +6865,17 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of SignupConfirmationDialog must be a div element");
-		self._cancelled = false;
-		selfElement.addClass("signupConfirmationDialog").hide();
-		selfElement.append("<p> Your request for a User Agent has been submitted. Upon receiving your confirmation email, you may click the " + "link it contains or paste the token below to validate your email address.");
-		self.inputLabel = new $("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>").appendTo(selfElement);
-		self.input = new $("<input id='confirmToken' />").appendTo(selfElement);
-		self.input.keypress(function(evt) {
-			if(evt.keyCode == 13) self._validateUser();
-		});
-		ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(user) {
-			self._setUser(user);
-		}));
-	}, initialized : false, _validateUser : function() {
-		var self = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var token = self.input.val();
-		if(m3.helper.StringHelper.isBlank(token)) {
-			self.inputLabel.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EventModel.change(ui.model.ModelEvents.USER_VALIDATE,token);
-		ui.model.EventModel.addListener(ui.model.ModelEvents.USER_VALIDATED,new ui.model.EventListener(function(n) {
-			selfElement1.jdialog("close");
-		}));
-	}, _buildDialog : function() {
-		var self1 = this;
-		var selfElement2 = this.element;
-		self1.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Email Validation", height : 320, width : 400, buttons : { Validate : function() {
-			self1._validateUser();
-		}, Cancel : function() {
-			self1._cancelled = true;
-			$(this).jdialog("close");
-		}}, close : function(evt,ui1) {
-			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			if(self1.user == null || !self1.user.hasValidSession()) ui.AgentUi.showLogin();
-		}};
-		selfElement2.jdialog(dlgOptions);
-	}, _setUser : function(user) {
-		var self = this;
-		self.user = user;
-	}, open : function() {
-		var self = this;
-		var selfElement = this.element;
-		self._cancelled = false;
-		if(!self.initialized) self._buildDialog();
-		self.input.focus();
-		selfElement.jdialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.signupConfirmationDialog",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UserComp must be a div element");
 		selfElement.addClass("ocontainer shadow ");
 		selfElement.append(new $("<div class='container'></div>"));
 		self._setUser();
-		ui.model.EventModel.addListener(ui.model.ModelEvents.USER,new ui.model.EventListener(function(user) {
+		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
 			self.user = user;
 			self._setUser();
-		}));
-		ui.model.EventModel.addListener(ui.model.ModelEvents.LoadAlias,new ui.model.EventListener(function(alias) {
+		},"UserComp-User"));
+		ui.model.EM.addListener(ui.model.EMEvent.LoadAlias,new ui.model.EMListener(function(alias) {
 			self._setUser();
-		}));
+		},"UserComp-Alias"));
 	}, _setUser : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -6782,7 +6947,7 @@ var defineWidget = function() {
 				};
 			})()).click((function(alias1) {
 				return function(evt) {
-					ui.model.EventModel.change(ui.model.ModelEvents.LoadAlias,alias1[0].uid);
+					ui.model.EM.change(ui.model.EMEvent.LoadAlias,alias1[0].uid);
 				};
 			})(alias1));
 		}

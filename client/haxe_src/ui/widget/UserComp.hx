@@ -3,8 +3,7 @@ package ui.widget;
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.util.M;
 import m3.exception.Exception;
 
@@ -41,15 +40,15 @@ extern class UserComp extends JQ {
 		        	selfElement.addClass("ocontainer shadow ");
 		        	selfElement.append(new JQ("<div class='container'></div>"));
 		        	self._setUser();//init the components
-		        	EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
 		        			self.user = user;
 		        			self._setUser();
-		        		})
+		        		}, "UserComp-User")
 		        	);
 
-		        	EventModel.addListener(ModelEvents.LoadAlias, new EventListener(function(alias: Alias): Void {
+		        	EM.addListener(EMEvent.LoadAlias, new EMListener(function(alias: Alias): Void {
 		        			self._setUser();
-		        		})
+		        		}, "UserComp-Alias")
 		        	);
 		        },
 
@@ -103,7 +102,7 @@ extern class UserComp extends JQ {
 			        					JQ.cur.removeClass("ui-state-hover");	
 		        					})
 			        			.click(function(evt: JQEvent) {
-			        					EventModel.change(ModelEvents.LoadAlias, alias.uid);
+			        					EM.change(EMEvent.LoadAlias, alias.uid);
 			        				});
 			        	}
 			        }

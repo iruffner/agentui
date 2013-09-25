@@ -4,8 +4,7 @@ import m3.jq.JQ;
 import m3.jq.JDialog;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.exception.Exception;
 
 using m3.helper.StringHelper;
@@ -17,6 +16,7 @@ typedef NewUserCompWidgetDef = {
 	@:optional var options: NewUserCompOptions;
 	@:optional var user: User;
 	@:optional var _cancelled: Bool;
+	@:optional var _registered: Bool;
 
 	@:optional var input_n: JQ;
 	@:optional var input_un: JQ;
@@ -136,9 +136,9 @@ extern class NewUserComp extends JQ {
 		        			}
 		        		});
 
-		        	EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
 	        				self._setUser(user);
-		        		})
+		        		},"NewUserComp-User")
 		        	);
 		        },
 
@@ -172,11 +172,11 @@ extern class NewUserComp extends JQ {
     				}
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EventModel.change(ModelEvents.USER_CREATE, newUser);
+    				EM.change(EMEvent.USER_CREATE, newUser);
 
-    				EventModel.addListener(ModelEvents.USER_SIGNUP, new EventListener(function(n: Null<Dynamic>): Void {
+    				EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(n: Nothing): Void {
     						selfElement.jdialog("close");
-    					}));
+    					}, "NewUserComp-UserSignup"));
 	        	},
 
 		        _buildDialog: function(): Void {
@@ -192,6 +192,7 @@ extern class NewUserComp extends JQ {
 		        		width: 400,
 		        		buttons: {
 		        			"Create my Agent": function() {
+		        				self._registered = true;
 		        				self._createNewUser();
 		        			},
 		        			"Cancel": function() {
@@ -201,7 +202,7 @@ extern class NewUserComp extends JQ {
 		        		},
 		        		close: function(evt: JQEvent, ui: UIJDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");
-		        			if(self.user == null || !self.user.hasValidSession()) {
+		        			if(!self._registered && (self.user == null || !self.user.hasValidSession())) {
 		        				AgentUi.showLogin();
 		        			}
 		        		}

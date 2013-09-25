@@ -4,8 +4,7 @@ import m3.jq.JQ;
 import m3.jq.JDialog;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.exception.Exception;
 
 using m3.helper.StringHelper;
@@ -127,12 +126,19 @@ extern class LoginComp extends JQ {
 		        	// 		}
 		        	// 	});
 
-		        	EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
 	        				self._setUser(user);
 		        			if(user == null) {
 		        				self.open();
+		        			} else {
+    							selfElement.jdialog("close");
 		        			}
-		        		})
+		        		}, "Login-User")
+		        	);
+
+		        	EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(user: User): Void {
+	        				selfElement.jdialog("close");
+		        		}, "Login-UserSignup")
 		        	);
 		        },
 
@@ -168,10 +174,10 @@ extern class LoginComp extends JQ {
     				// }
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EventModel.change(ModelEvents.USER_LOGIN, login);
-    				EventModel.addListener(ModelEvents.USER, new EventListener(function(n: Null<Dynamic>): Void {
-    						selfElement.jdialog("close");
-    					}));
+    				EM.change(EMEvent.USER_LOGIN, login);
+    				// EM.addListener(EMEvent.USER, new EMListener(function(n: Nothing): Void {
+    				// 		selfElement.jdialog("close");
+    				// 	}));
 	        	},
 
 		        _buildDialog: function(): Void {
@@ -193,6 +199,11 @@ extern class LoginComp extends JQ {
 		        				self._newUser = true;
 		        				JDialog.cur.jdialog("close");
 		        				AgentUi.showNewUser();
+		        			},
+		        			"Validate": function() {
+		        				self._newUser = true;
+		        				JDialog.cur.jdialog("close");
+		        				AgentUi.showSignupConfirmation();
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJDialog): Dynamic {

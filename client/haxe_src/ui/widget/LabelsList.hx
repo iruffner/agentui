@@ -3,8 +3,7 @@ package ui.widget;
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.observable.OSet;
 import ui.widget.LabelComp;
 import m3.util.UidGenerator;
@@ -13,7 +12,7 @@ import m3.exception.Exception;
 using m3.helper.StringHelper;
 
 typedef LabelsListWidgetDef = {
-	@:optional var labels: MappedSet<Label, LabelTreeBranch>;
+	@:optional var labels: ObservableSet<Label>;
 	var _create: Void->Void;
 	var _setLabels: ObservableSet<Label>->Void;
 	var destroy: Void->Void;
@@ -37,9 +36,9 @@ extern class LabelsList extends JQ {
 
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
-		        	EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
+		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
 		        			self._setLabels(alias.labelSet);
-	        			})
+	        			}, "LabelsList-Alias")
 		        	);
 
 		        	var newLabelButton: JQ = new JQ("<button class='newLabelButton'>New Label</button>");
@@ -92,15 +91,16 @@ extern class LabelsList extends JQ {
         									label.parentUid = parent.val();
         									label.text = input.val();
         									label.uid = UidGenerator.create();
-        									EventModel.change(ModelEvents.CreateLabel, label);
+        									EM.change(EMEvent.CreateLabel, label);
         									new JQ("body").click();
+        									self.labels.add(label);
 		        						};
 		        					},
 		        					positionalElement: newLabelButton
 		        				});
 		        		});
 
-		        	// EventModel.addListener(ModelEvents.User, new EventListener(function(user: User) {
+		        	// EM.addListener(EMEvent.User, new EMListener(function(user: User) {
 			        //        	self._setLabels(user.currentAlias.labels);
 			        //     })
 			        // );

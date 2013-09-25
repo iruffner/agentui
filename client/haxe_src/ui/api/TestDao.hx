@@ -2,7 +2,7 @@ package ui.api;
 
 import ui.model.ModelObj;
 import ui.model.Node;
-import ui.model.EventModel;
+import ui.model.EM;
 import m3.observable.OSet.ObservableSet;
 import m3.util.UidGenerator;
 

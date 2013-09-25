@@ -3,8 +3,7 @@ package ui.widget;
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
@@ -76,7 +75,7 @@ extern class LabelTreeBranch extends JQ {
 			            selfElement.append(labelChildren);
 		            	label.add(expander).click(function(evt: js.JQuery.JqEvent): Void {
 		            			labelChildren.toggle();
-		            			EventModel.change(ModelEvents.FitWindow);
+		            			EM.change(EMEvent.FitWindow);
 		            		}
 	            		);
 			        }

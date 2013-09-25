@@ -9,8 +9,7 @@ import m3.log.LogLevel;
 
 import ui.model.ModelObj;
 import ui.model.Node;
-import ui.model.EventModel;
-import ui.model.ModelEvents;
+import ui.model.EM;
 import ui.api.ProtocolHandler;
 
 import m3.observable.OSet;
@@ -93,31 +92,31 @@ class AgentUi {
 
         new InviteComp("#sideRight #sideRightInvite").inviteComp();
 
-        var fitWindowListener = new EventListener(function(n: Null<Dynamic>) {
+        var fitWindowListener = new EMListener(function(n: Nothing) {
                 untyped __js__("fitWindow()");
-            });
+            }, "FitWindowListener");
 
-        var fireFitWindow = new EventListener(function(n: Null<Dynamic>) {
-                EventModel.change(ModelEvents.FitWindow);
-            });
+        var fireFitWindow = new EMListener(function(n: Nothing) {
+                EM.change(EMEvent.FitWindow);
+            }, "FireFitWindowListener");
 
-        EventModel.addListener(ModelEvents.MoreContent, fireFitWindow);
+        EM.addListener(EMEvent.MoreContent, fireFitWindow);
 
-        EventModel.addListener(ModelEvents.USER_LOGIN, fireFitWindow);
-        EventModel.addListener(ModelEvents.USER_CREATE, fireFitWindow);
+        EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
+        EM.addListener(EMEvent.USER_CREATE, fireFitWindow);
 
-        EventModel.addListener(ModelEvents.USER, new EventListener(function(user: User) {
+        EM.addListener(EMEvent.USER, new EMListener(function(user: User) {
                 USER = user;
-                EventModel.change(ModelEvents.AliasLoaded, user.currentAlias);
-            })
+                EM.change(EMEvent.AliasLoaded, user.currentAlias);
+            }, "AgentUi-User")
         );
 
-        EventModel.addListener(ModelEvents.AliasLoaded, new EventListener(function(alias: Alias) {
+        EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
                 USER.currentAlias = alias;
-            })
+            }, "AgentUi-Alias")
         );
 
-        EventModel.addListener(ModelEvents.FitWindow, fitWindowListener);
+        EM.addListener(EMEvent.FitWindow, fitWindowListener);
 
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();
@@ -128,7 +127,7 @@ class AgentUi {
             // LOGGER.info("Login via id | " + urlVars.uuid);
             // var login: LoginById = new LoginById();
             // login.id = urlVars.agentURI;
-            // EventModel.change(ModelEvents.USER_LOGIN, login);
+            // EM.change(EMEvent.USER_LOGIN, login);
         //     showLogin();
         // } else {
         //     showNewUser();
