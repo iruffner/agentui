@@ -14,7 +14,7 @@ typedef LabelTreeOptions = {
 
 typedef LabelTreeWidgetDef = {
 	var options: LabelTreeOptions;
-	@:optional var labels: MappedSet<Label, LabelTreeBranch>;
+	@:optional var mappedLabels: MappedSet<Label, LabelTreeBranch>;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -42,16 +42,20 @@ extern class LabelTree extends JQ {
 
 		        	selfElement.addClass("labelTree " + Widgets.getWidgetClasses());
 
-		        	self.labels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
+		        	self.mappedLabels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
+		        			var children: FilteredSet<Label> = new FilteredSet<Label>(AgentUi.USER.currentAlias.labelSet, function(child: Label): Bool{
+		        						return child.parentUid == label.uid;
+		        					});
+		        			children.visualId = "filteredLabelTree--" + label.text;
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				label: label,
-	        					children:  new FilteredSet<Label>(AgentUi.USER.currentAlias.labelSet, function(child: Label): Bool{
-		        						return child.parentUid == label.uid;
-		        					})
+	        					children: children
 		        			});
 		        		});
-		        	self.labels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
-		        			ui.AgentUi.LOGGER.debug(self.labels.getVisualId() + " | LabelTree | " + evt.name() + " | New Branch");
+		        	self.mappedLabels.visualId = self.options.labels.getVisualId() + "_map";
+		        	AgentUi.LOGGER.debug("Listen to " + self.mappedLabels.visualId);
+		        	self.mappedLabels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
+		        			ui.AgentUi.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
 		            		if(evt.isAdd()) {
 		            			selfElement.append(labelTreeBranch);
 		            		} else if (evt.isUpdate()) {

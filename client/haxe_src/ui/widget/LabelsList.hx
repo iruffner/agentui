@@ -93,6 +93,7 @@ extern class LabelsList extends JQ {
         									label.uid = UidGenerator.create();
         									EM.change(EMEvent.CreateLabel, label);
         									new JQ("body").click();
+        									AgentUi.LOGGER.debug("add to " + self.labels.visualId);
         									self.labels.add(label);
 		        						};
 		        					},
@@ -113,10 +114,13 @@ extern class LabelsList extends JQ {
 					self.labels = labels;
 
 					selfElement.children(".labelTree").remove();
-					var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
-		                labels: new FilteredSet(labels, function(label: Label): Bool { 
+
+					var filteredSet: FilteredSet<Label> = new FilteredSet(labels, function(label: Label): Bool { 
 		                        return label.parentUid.isBlank();
-		                    })
+		                    });
+					filteredSet.visualId = labels.visualId + "_filter";
+					var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
+		                labels: filteredSet 
 		            });
 
 		        	selfElement.prepend(labelTree);
