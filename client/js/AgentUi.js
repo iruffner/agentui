@@ -2769,7 +2769,6 @@ m3.observable.MappedSet = function(source,mapper) {
 	this._mappedSet = new haxe.ds.StringMap();
 	this._source = source;
 	this._source.listen(function(t,type) {
-		m3.log.Logga.get_DEFAULT().debug("MappedSet (" + _g.getVisualId() + ") source (" + source.getVisualId() + ") change | " + type.name() + " | " + (source.identifier())(t));
 		var key = (_g._source.identifier())(t);
 		var mappedValue;
 		if(type.isAddOrUpdate()) {
@@ -2812,7 +2811,6 @@ m3.observable.FilteredSet = function(source,filter) {
 	this._source = source;
 	this._filter = filter;
 	this._source.listen(function(t,type) {
-		m3.log.Logga.get_DEFAULT().debug("FilteredSet (" + _g.getVisualId() + ") source (" + source.getVisualId() + ") change | " + type.name() + " | " + (_g.identifier())(t));
 		if(type.isAddOrUpdate()) _g.apply(t); else if(type.isDelete()) {
 			var key = (_g.identifier())(t);
 			if(_g._filteredSet.exists(key)) {
@@ -6341,7 +6339,7 @@ var defineWidget = function() {
 				var container = new $("<div class='icontainer'></div>").appendTo(el);
 				container.click(stopFcn).keypress(enterFcn);
 				container.append("<label for='labelParent'>Parent: </label> ");
-				var parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option>No Parent</option></select>").appendTo(container);
+				var parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value=''>No Parent</option></select>").appendTo(container);
 				parent.click(stopFcn);
 				var iter = ui.AgentUi.USER.get_currentAlias().labelSet.iterator();
 				while(iter.hasNext()) {

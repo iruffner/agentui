@@ -61,7 +61,7 @@ extern class LabelsList extends JQ {
 		        						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
 		        						container.click(stopFcn).keypress(enterFcn);
 		        						container.append("<label for='labelParent'>Parent: </label> ");
-		        						var parent: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option>No Parent</option></select>").appendTo(container);
+		        						var parent: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value=''>No Parent</option></select>").appendTo(container);
 		        						parent.click(stopFcn);
 		        						var iter: Iterator<Label> = ui.AgentUi.USER.currentAlias.labelSet.iterator();
 		        						while(iter.hasNext()) {
