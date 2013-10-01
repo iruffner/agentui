@@ -45,20 +45,22 @@ extern class ContentComp extends JQ {
 		        	postWr.append(postContentWr);
 		        	var postContent: JQ = new JQ("<div class='postContent'></div>");
 		        	postContentWr.append(postContent);
-		        	if(self.options.content.type == "AUDIO") {
-		        		var audio: AudioContent = cast(self.options.content, AudioContent);
-		        		postContent.append(audio.title + "<br/>");
-		        		var audioControls: JQ = new JQ("<audio controls></audio>");
-		        		postContent.append(audioControls);
-		        		audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
-		        	} else if (self.options.content.type == "IMAGE") {
-		        		var img: ImageContent = cast(self.options.content, ImageContent);
-		        		postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");// + img.caption);
-		        	} else if (self.options.content.type == "URL") {
-		        		var urlContent: UrlContent = cast(self.options.content, UrlContent);
-		        		postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
-		        	} else {
-		        		ui.AgentUi.LOGGER.error("Dont know how to handle " + self.options.content.type);
+		        	switch(self.options.content.type) {
+		        		case ContentType.AUDIO:
+			        		var audio: AudioContent = cast(self.options.content, AudioContent);
+			        		postContent.append(audio.title + "<br/>");
+			        		var audioControls: JQ = new JQ("<audio controls></audio>");
+			        		postContent.append(audioControls);
+			        		audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
+		        		case ContentType.IMAGE:
+		        			var img: ImageContent = cast(self.options.content, ImageContent);
+		        			postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");// + img.caption);
+						case ContentType.URL:
+							var urlContent: UrlContent = cast(self.options.content, UrlContent);
+		        			postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
+	        			case ContentType.TEXT:
+	        				var textContent: MessageContent = cast(self.options.content, MessageContent);
+	        				postContent.append("<p>" + textContent.text + "</p>"); 
 		        	}
 		        	
 		        	var postCreator: JQ = new JQ("<aside class='postCreator'></aside>").appendTo(postWr);

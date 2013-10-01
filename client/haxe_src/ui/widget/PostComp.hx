@@ -54,7 +54,7 @@ extern class PostComp extends JQ {
 						msg.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
 						msg.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
 						addConnectionsAndLabels(msg);
-						msg.type = "TEXT";
+						msg.type = ContentType.TEXT;
 						msg.uid = UidGenerator.create();
 						EM.change(EMEvent.NewContentCreated, msg);
 						JQ.cur.val("");

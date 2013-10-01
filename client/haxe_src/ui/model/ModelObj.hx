@@ -56,12 +56,12 @@ class NewUser extends ModelObj<NewUser> {
 
 class User extends ModelObj<User> {
 	public var sessionURI: String;
-	public var fname: String;
-	public var lname: String;
+	public var userData: UserData; 
 	@:optional public var imgSrc: String;
 	@:transient public var aliasSet: ObservableSet<Alias>;
 	private var aliases: Array<Alias>;
 	@:isVar public var currentAlias (get,set): Alias;
+
 
 	public function new () {}
 
@@ -93,6 +93,12 @@ class User extends ModelObj<User> {
 	private function writeResolve(): Void {
 		aliases = aliasSet.asArray();
 	}
+}
+
+class UserData extends ModelObj<UserData> {
+	public var name: String;
+
+	public function new() { }
 }
 
 class Alias extends ModelObj<Alias> {
@@ -146,11 +152,20 @@ class Connection extends ModelObj<Connection> implements Filterable {
 }
 
 class Content extends ModelObj<Content> {
-	public var type: String;
+	/**
+		ContentType of this content
+	*/
+	public var type: ContentType;
+	
 	@:transient public var labelSet: ObservableSet<String>;
-	private var labels: Array<String>;
 	@:transient public var connectionSet: ObservableSet<String>;
+	
+	private var labels: Array<String>;
 	private var connections: Array<String>;
+	
+	/**
+		UID of connection that created the content
+	*/
 	public var creator: String;
 
 	private function readResolve(): Void {
@@ -163,36 +178,36 @@ class Content extends ModelObj<Content> {
 		connections = connectionSet.asArray();
 	}
 
-	public function toInsertExpression(): String {
-		var str: String = "InsertContent(";
-		var labels = labelSet.joinX(",");
-		if(labels.isNotBlank()) {
-			if(labels.contains(",")) {
-				str += "any(" + labels + ")";
-			} else {
-				str += labels;
-			}
-		} else {
-			str += "_";
-		}
-		str += ",";
+	// public function toInsertExpression(): String {
+	// 	var str: String = "InsertContent(";
+	// 	var labels = labelSet.joinX(",");
+	// 	if(labels.isNotBlank()) {
+	// 		if(labels.contains(",")) {
+	// 			str += "any(" + labels + ")";
+	// 		} else {
+	// 			str += labels;
+	// 		}
+	// 	} else {
+	// 		str += "_";
+	// 	}
+	// 	str += ",";
 
-		var conns = connectionSet.joinX(",");
-		if(conns.isNotBlank()) {
-			if(conns.contains(",")) {
-				str += "any(" + conns + "," + AgentUi.USER.uid + ")";
-			} else {
-				str += conns + "," + AgentUi.USER.uid;
-			}
-		} else {
-			str += AgentUi.USER.uid;
-		}
-		str += ",";
+	// 	var conns = connectionSet.joinX(",");
+	// 	if(conns.isNotBlank()) {
+	// 		if(conns.contains(",")) {
+	// 			str += "any(" + conns + "," + AgentUi.USER.uid + ")";
+	// 		} else {
+	// 			str += conns + "," + AgentUi.USER.uid;
+	// 		}
+	// 	} else {
+	// 		str += AgentUi.USER.uid;
+	// 	}
+	// 	str += ",";
 
-		str += AgentUi.SERIALIZER.toJsonString(this);
+	// 	str += AgentUi.SERIALIZER.toJsonString(this);
 
-		return str + ")";
-	}
+	// 	return str + ")";
+	// }
 }
 
 class ImageContent extends Content {
@@ -220,3 +235,9 @@ class UrlContent extends MessageContent {
 	public var url: String;
 }
 
+enum ContentType {
+	AUDIO;
+	IMAGE;
+	URL;
+	TEXT;
+}

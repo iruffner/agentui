@@ -74,8 +74,9 @@ extern class UserComp extends JQ {
 		        	container.append(img);
 		        	var userIdTxt: JQ = new JQ("<div class='userIdTxt'></div>");
 		        	container.append(userIdTxt);
-		        	var name: String = M.getX(user.fname, "") + " " + M.getX(user.lname, "");
+		        	var name: String = M.getX(user.userData.name, "");
 		        	var aliasLabel: String = M.getX(user.currentAlias.label, "");
+		        	if(aliasLabel.isBlank()) aliasLabel = "";
 		        	userIdTxt
 		        		.append("<strong>" + name + "</strong>")
 		        		.append("<br/>")

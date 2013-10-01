@@ -135,7 +135,7 @@ class ProtocolHandler {
 							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.content.listOfCnxns);
 							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.content.listOfLabels);
 							user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier, response.content.listOfAliases);
-
+							user.userData = response.content.jsonBlob;
 							//open comm's with server
 							_startPolling(user.sessionURI);
 
@@ -364,7 +364,8 @@ class ProtocolHandler {
 		var data: EvalRequestData = new EvalRequestData();
 		evalRequest.content = data;
 		data.sessionURI = AgentUi.USER.sessionURI;
-		data.expression = content.toInsertExpression();
+		// data.expression = content.toInsertExpression();
+		data.expression = AgentUi.SERIALIZER.toJson(content);
 		try {
 			//we don't expect anything back here
 			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){

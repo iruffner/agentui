@@ -107,7 +107,7 @@ class TestDao {
 		var content = new Array<Content>();
 		var audioContent: AudioContent = new AudioContent();
         audioContent.uid = UidGenerator.create();
-        audioContent.type = "AUDIO";
+        audioContent.type = ContentType.AUDIO;
         audioContent.audioSrc = "media/test/hello_newman.mp3";
         audioContent.audioType = "audio/mpeg";
         audioContent.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
@@ -128,7 +128,7 @@ class TestDao {
 
         var img: ImageContent = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = "IMAGE";
+        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/soupkitchen.jpg";
         img.caption = "Soup Kitchen";
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
@@ -148,7 +148,7 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = "IMAGE";
+        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/apt.jpg";
         img.caption = "Apartment";
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
@@ -168,7 +168,7 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = "IMAGE";
+        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/jrmint.jpg";
         img.caption = "The Junior Mint!";
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
@@ -188,7 +188,7 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = "IMAGE";
+        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/oldschool.jpg";
         img.caption = "Retro";
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
@@ -208,7 +208,7 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = "IMAGE";
+        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/mailman.jpg";
         img.caption = "Jerry Delivering the mail";
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
@@ -228,7 +228,7 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = "IMAGE";
+        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/closet.jpg";
         img.caption = "Stuck in the closet!";
         img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
@@ -248,7 +248,7 @@ class TestDao {
 
         var urlContent = new UrlContent();
         urlContent.uid = UidGenerator.create();
-        urlContent.type = "URL";
+        urlContent.type = ContentType.URL;
         urlContent.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         urlContent.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
         urlContent.text = "Check out this link";
@@ -419,8 +419,8 @@ class TestDao {
 		if(!initialized) initialize();
 		var user: User = new User();
         user.sessionURI = "agent-session://ArtVandelay@session1";
-        user.fname = "Jerry";
-        user.lname = "Seinfeld";
+        user.userData = new UserData();
+        user.userData.name = "Jerry Seinfeld";
         user.uid = UidGenerator.create();
         user.imgSrc = "media/test/jerry_default.jpg";
         user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);

@@ -142,6 +142,7 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 			public var listOfLabels: Array<Label>;
 			public var listOfCnxns: Array<Connection>;
 			public var lastActiveFilter: String;
+			public var jsonBlob: UserData;
 		}
 
 class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData> {
