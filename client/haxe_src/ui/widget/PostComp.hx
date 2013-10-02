@@ -89,9 +89,10 @@ extern class PostComp extends JQ {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.show();
-							        			urlInput.hide();
-							        			mediaInput.hide();
+//							        			urlInput.hide();
+//							        			mediaInput.hide();
 							        		});
+/*
 		        	var urlTab: JQ = new JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>")
 		        						.appendTo(tabs)
 		        						.click(function(evt: JQEvent): Void {
@@ -112,7 +113,7 @@ extern class PostComp extends JQ {
 							        		});
 					urlInput.hide();
 					mediaInput.hide();
-
+*/
 					var tags: JQDroppable = new JQDroppable("<aside class='tags container boxsizingBorder'></aside>");
 					tags.appendTo(section);
 					tags.droppable({

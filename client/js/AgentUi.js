@@ -6842,25 +6842,7 @@ var defineWidget = function() {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.show();
-			urlInput.hide();
-			mediaInput.hide();
 		});
-		var urlTab = new $("<span class='ui-icon ui-icon-link ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
-			tabs.children(".active").removeClass("active");
-			$(this).addClass("active");
-			textInput.hide();
-			urlInput.show();
-			mediaInput.hide();
-		});
-		var imgTab = new $("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
-			tabs.children(".active").removeClass("active");
-			$(this).addClass("active");
-			textInput.hide();
-			urlInput.hide();
-			mediaInput.show();
-		});
-		urlInput.hide();
-		mediaInput.hide();
 		var tags = new $("<aside class='tags container boxsizingBorder'></aside>");
 		tags.appendTo(section);
 		tags.droppable({ accept : function(d) {
