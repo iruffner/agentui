@@ -8,6 +8,7 @@ import m3.exception.Exception;
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
+using Lambda;
 
 @:rtti
 class ModelObj<T> {
@@ -121,6 +122,48 @@ class Alias extends ModelObj<Alias> {
 		labels = labelSet.asArray();
 		connections = connectionSet.asArray();
 	}
+
+	public function labelsAsString(): String {
+		var sarray: Array<String> = new Array<String>();
+		var topLevelLabels: FilteredSet<Label> = new FilteredSet(labelSet, function(l: Label): Bool { return l.parentUid.isBlank(); });
+
+		topLevelLabels.iter(function(l: Label): Void {
+				var s: String = "";
+				var children: FilteredSet<Label> = new FilteredSet(labelSet, function(l: Label): Bool { return l.parentUid == l.uid; });
+				if(children.hasValues()) {
+					s += "n_" + l.text + "(" + _processLabelChildren(children) + ")";
+				} else {
+					s += l.text;
+				}
+
+				sarray.push(s);
+			});
+
+		var str: String = {
+			if(sarray.hasValues() && sarray.length == 1) sarray[0];
+			else if (sarray.hasValues()) "and(" + sarray.join(",") + ")";
+			else "";
+		}
+
+		return str;
+	}
+
+	private function _processLabelChildren(set: FilteredSet<Label>): String {
+		var str: String = set.fold(function(l: Label, s: String): String {
+				var children: FilteredSet<Label> = new FilteredSet(labelSet, function(l: Label): Bool { return l.parentUid == l.uid; });
+				if(children.hasValues()) {
+					s += "n_" + l.text + "(";
+					s += _processLabelChildren(children);
+					s += ")";
+				} else {
+					s += "\\\"" + l.text + "\\\"";
+				}
+
+				return s;
+			},
+			"");
+		return str;
+	}
 }
 
 interface Filterable {
@@ -143,6 +186,10 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	public var fname: String;
 	public var lname: String;
 	public var imgSrc: String;
+
+	public var src: String;
+	public var trgt: String;
+	public var label: String;
 
 	public function new(?fname: String, ?lname: String, ?imgSrc: String) {
 		this.fname = fname;

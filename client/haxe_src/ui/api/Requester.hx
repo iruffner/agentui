@@ -8,7 +8,7 @@ import m3.exception.Exception;
 import ui.exception.InitializeSessionException;
 
 interface Requester {
-	function start(): Void;
+	function start(?opts: AjaxOptions): Void;
 	function abort(): Void;
 }
 
@@ -21,9 +21,9 @@ class StandardRequest implements Requester {
 		this.successFcn = successFcn;
 	}
 
-	public function start(): Void {
+	public function start(?opts: AjaxOptions): Void {
 		AgentUi.LOGGER.debug("send " + request.msgType);
-		JQ.ajax( { 
+		var ajaxOpts: AjaxOptions = { 
 			async: true,
 			url: AgentUi.URL + "/api", 
 	        dataType: "json", 
@@ -35,7 +35,11 @@ class StandardRequest implements Requester {
    			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
    				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 			}
-        } );
+        };
+        if(opts != null) {
+        	JQ.extend(ajaxOpts, opts);
+        }
+		JQ.ajax(ajaxOpts);
 	}
 
 	public function abort(): Void {
@@ -68,7 +72,7 @@ class LongPollingRequest implements Requester {
         });
 	}
 
-	public function start(): Void {
+	public function start(?opts: AjaxOptions): Void {
 		poll();
 	}
 

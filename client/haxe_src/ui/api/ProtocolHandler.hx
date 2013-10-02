@@ -91,7 +91,7 @@ class ProtocolHandler {
         );
 
         EM.addListener(EMEvent.CreateLabel, new EMListener(function(label: Label): Void {
-        		// createLabel(label);
+        		createLabel(label);
     		})
         );
 
@@ -175,7 +175,7 @@ class ProtocolHandler {
 			ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
 			var content: Array<Content> =TestDao.getContent(filter.rootNode);
 			ui.AgentUi.CONTENT.addAll(content);
-			var evalRequest: EvalRequest = new EvalRequest();
+			var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
 			var evalRequestData: EvalRequestData = new EvalRequestData();
 			evalRequestData.expression = "feed( " + string + " )";
 			evalRequestData.sessionURI = AgentUi.USER.sessionURI;
@@ -360,7 +360,7 @@ class ProtocolHandler {
 	}
 
 	public function post(content: Content): Void {
-		var evalRequest: EvalRequest = new EvalRequest();
+		var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
 		var data: EvalRequestData = new EvalRequestData();
 		evalRequest.content = data;
 		data.sessionURI = AgentUi.USER.sessionURI;
@@ -378,17 +378,28 @@ class ProtocolHandler {
 	}
 
 	public function createLabel(label: Label): Void {
-		var evalRequest: EvalRequest = new EvalRequest();
-		var data: EvalRequestData = new EvalRequestData();
+		var evalRequest: TempAddAliasLabel = new TempAddAliasLabel();
+		var data: TempAddAliasLabelData = new TempAddAliasLabelData();
 		evalRequest.content = data;
 		data.sessionURI = AgentUi.USER.sessionURI;
-		data.expression = label.uid;
+		var insertContent: InsertContent = new InsertContent();
+		data.expression = insertContent;
+		var insertData: InsertContentData = new InsertContentData();
+		insertContent.content = insertData;
+		var labelConnection: Connection = new Connection();
+		labelConnection.src = "alias://test";
+		labelConnection.trgt = "alias://test";
+		labelConnection.label = "test";
+		insertData.cnxns = [labelConnection];
+		insertData.label = "labelList";
+		insertData.value = ui.AgentUi.USER.currentAlias.labelsAsString();
+
 		try {
 			//we don't expect anything back here
 			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("label successfully submitted");
 					AgentUi.USER.currentAlias.labelSet.add(label);
-				}).start();
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing label post", ex);
