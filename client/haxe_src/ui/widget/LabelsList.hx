@@ -91,10 +91,10 @@ extern class LabelsList extends JQ {
         									label.parentUid = parent.val();
         									label.text = input.val();
         									label.uid = UidGenerator.create();
-        									EM.change(EMEvent.CreateLabel, label);
-        									new JQ("body").click();
         									AgentUi.LOGGER.debug("add to " + self.labels.visualId);
         									self.labels.add(label);
+        									EM.change(EMEvent.CreateLabel, label);
+        									new JQ("body").click();
 		        						};
 		        					},
 		        					positionalElement: newLabelButton
