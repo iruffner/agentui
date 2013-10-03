@@ -170,4 +170,14 @@ class AgentUi {
             signupConfirmationDialog.signupConfirmationDialog("open");
         }
     }
+
+    public static function test(): Void {
+        var alias: Alias = new Alias();
+
+        // alias._processDataLog("Work");
+        // alias._processDataLog("n_Work(Colleagues, Tasks)");
+        // alias._processDataLog("n_Work(n_Colleagues(Emeris, Biosim), Tasks)");
+        // alias._processDataLog("and(n_Work(n_Colleagues(Emeris, Biosim), Tasks), n_Personal(n_Family(Ruffner, Denmark), Friends))");
+        alias._processDataLog("and (n_Work (n_Colleagues(Emeris, Biosim), Tasks), n_Personal(n_Family(Ruffner and Patton, Denmark), Friends))");
+    }
 }

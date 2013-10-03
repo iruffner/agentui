@@ -1,13 +1,17 @@
 package ui.model;
 
 import m3.util.ColorProvider;
+import m3.util.UidGenerator;
 import m3.observable.OSet;
 import m3.serialization.Serialization;
 import m3.exception.Exception;
 
+import ui.helper.LabelStringParser;
+
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
+using StringTools;
 using Lambda;
 
 @:rtti
@@ -164,6 +168,46 @@ class Alias extends ModelObj<Alias> {
 			"");
 		return str;
 	}
+
+	public function _processDataLog(str: String): Array<Label> {
+		var larray: Array<Label> = new Array<Label>();
+		var parser: LabelStringParser = new LabelStringParser(str);
+		var term: String = parser.nextTerm();
+		if(term != "and") { // there are multiple top level labels
+			parser.restore(term);
+		}
+		larray = _processDataLogChildren(null, parser);
+		return larray;
+	}
+
+	public function _processDataLogChildren(parentLabel: Label, parser: LabelStringParser): Array<Label> {
+		var larray: Array<Label> = new Array<Label>();
+		var term = parser.nextTerm();
+		if(term == "(") { // this was the leading paren
+			term = parser.nextTerm();
+		}
+
+		while(term != null && term != ")") { //continue until we hit our closing paren or we are out of data [null]
+			if(term.startsWith("n_")) { // this node has children
+				term = term.substring(2);
+				var l: Label = new Label(term);
+				l.uid = UidGenerator.create(10);
+				if(parentLabel != null) l.parentUid = parentLabel.uid;
+				larray.push(l);
+				var children: Array<Label> = _processDataLogChildren(l, parser);
+				larray = larray.concat(children);
+			} else if(term.isNotBlank() && !term.contains(",")) { // this node has no children
+				var l: Label = new Label(term);
+				l.uid = UidGenerator.create(10);
+				if(parentLabel != null) l.parentUid = parentLabel.uid;
+				larray.push(l);
+			}
+			term = parser.nextTerm();
+		}
+
+		return larray;
+	}
+
 }
 
 interface Filterable {

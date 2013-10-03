@@ -292,6 +292,9 @@ StringTools.htmlEscape = function(s,quotes) {
 	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
 	return quotes?s.split("\"").join("&quot;").split("'").join("&#039;"):s;
 }
+StringTools.startsWith = function(s,start) {
+	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
+}
 StringTools.endsWith = function(s,end) {
 	var elen = end.length;
 	var slen = s.length;
@@ -2482,8 +2485,18 @@ m3.helper.StringHelper.trimRight = function(s,minChars,trimChars) {
 	return HxOverrides.substr(s,0,i);
 }
 m3.helper.StringHelper.contains = function(baseString,str) {
-	if(baseString == null) baseString = "";
+	if(m3.helper.StringHelper.isBlank(baseString)) return false;
 	return baseString.indexOf(str) > -1;
+}
+m3.helper.StringHelper.containsAny = function(baseString,sarray) {
+	if(m3.helper.StringHelper.isBlank(baseString)) return false; else {
+		var _g1 = 0, _g = sarray.length;
+		while(_g1 < _g) {
+			var s_ = _g1++;
+			if(m3.helper.StringHelper.contains(baseString,sarray[s_])) return true;
+		}
+	}
+	return false;
 }
 m3.helper.StringHelper.endsWithAny = function(baseString,sarray) {
 	if(m3.helper.StringHelper.isBlank(baseString)) return false; else {
@@ -2516,6 +2529,19 @@ m3.helper.StringHelper.toDate = function(baseString) {
 	}
 	if(!m3.helper.DateHelper.isValid(date)) date == null;
 	return date;
+}
+m3.jq = {}
+m3.jq.JQMenuHelper = function() { }
+$hxClasses["m3.jq.JQMenuHelper"] = m3.jq.JQMenuHelper;
+m3.jq.JQMenuHelper.__name__ = ["m3","jq","JQMenuHelper"];
+m3.jq.JQMenuHelper.blur = function(m) {
+	m.menu("blur");
+}
+m3.jq.JQMenuHelper.collapseAll = function(m) {
+	m.menu("collapseAll");
+}
+m3.jq.JQMenuHelper.refresh = function(m) {
+	m.menu("refresh");
 }
 m3.log = {}
 m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] }
@@ -4028,6 +4054,10 @@ ui.AgentUi.showSignupConfirmation = function() {
 		signupConfirmationDialog.signupConfirmationDialog("open");
 	}
 }
+ui.AgentUi.test = function() {
+	var alias = new ui.model.Alias();
+	alias._processDataLog("and (n_Work (n_Colleagues(Emeris, Biosim), Tasks), n_Personal(n_Family(Ruffner and Patton, Denmark), Friends))");
+}
 ui.api = {}
 ui.api.ProtocolHandler = function() {
 	this.filterIsRunning = false;
@@ -4037,7 +4067,7 @@ ui.api.ProtocolHandler = function() {
 			var stopEval = new ui.api.StopEvalRequest();
 			var stopData = new ui.api.StopMsgData();
 			stopData.sessionURI = ui.AgentUi.USER.sessionURI;
-			stopEval.set_content(stopData);
+			stopEval.setContent(stopData);
 			new ui.api.StandardRequest(stopEval,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("stopEval successfully submitted");
 				_g.filter(filter);
@@ -4095,12 +4125,12 @@ ui.api.ProtocolHandler.prototype = {
 	createLabel: function(label) {
 		var evalRequest = new ui.api.TempAddAliasLabel();
 		var data = new ui.api.TempAddAliasLabelData();
-		evalRequest.set_content(data);
+		evalRequest.setContent(data);
 		data.sessionURI = ui.AgentUi.USER.sessionURI;
 		var insertContent = new ui.api.InsertContent();
 		data.expression = insertContent;
 		var insertData = new ui.api.InsertContentData();
-		insertContent.set_content(insertData);
+		insertContent.setContent(insertData);
 		var labelConnection = new ui.model.Connection();
 		labelConnection.src = "alias://test";
 		labelConnection.trgt = "alias://test";
@@ -4121,7 +4151,7 @@ ui.api.ProtocolHandler.prototype = {
 	,post: function(content) {
 		var evalRequest = new ui.api.EvalSubscribeRequest();
 		var data = new ui.api.EvalRequestData();
-		evalRequest.set_content(data);
+		evalRequest.setContent(data);
 		data.sessionURI = ui.AgentUi.USER.sessionURI;
 		data.expression = ui.AgentUi.SERIALIZER.toJson(content);
 		try {
@@ -4137,7 +4167,7 @@ ui.api.ProtocolHandler.prototype = {
 		var _g = this;
 		var request = new ui.api.UpdateUserRequest();
 		var data = new ui.api.UpdateUserRequestData();
-		request.set_content(data);
+		request.setContent(data);
 		data.email = newUser.email;
 		data.password = newUser.pwd;
 		try {
@@ -4169,7 +4199,7 @@ ui.api.ProtocolHandler.prototype = {
 	,validateUser: function(token) {
 		var request = new ui.api.ConfirmUserToken();
 		var data = new ui.api.ConfirmUserTokenData();
-		request.set_content(data);
+		request.setContent(data);
 		data.token = token;
 		try {
 			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
@@ -4194,7 +4224,7 @@ ui.api.ProtocolHandler.prototype = {
 	,createUser: function(newUser) {
 		var request = new ui.api.CreateUserRequest();
 		var data = new ui.api.UserRequestData();
-		request.set_content(data);
+		request.setContent(data);
 		data.email = newUser.email;
 		data.password = newUser.pwd;
 		data.jsonBlob = { };
@@ -4230,7 +4260,7 @@ ui.api.ProtocolHandler.prototype = {
 	,_startPolling: function(sessionURI) {
 		var _g = this;
 		var ping = new ui.api.SessionPingRequest();
-		ping.set_content(new ui.api.SessionPingRequestData());
+		ping.setContent(new ui.api.SessionPingRequestData());
 		ping.get_content().sessionURI = sessionURI;
 		this.listeningChannel = new ui.api.LongPollingRequest(ping,function(data,textStatus,jqXHR) {
 			var processor = (function($this) {
@@ -4257,7 +4287,7 @@ ui.api.ProtocolHandler.prototype = {
 		var nextPageRequestData = new ui.api.EvalNextPageRequestData();
 		nextPageRequestData.nextPage = nextPageURI;
 		nextPageRequestData.sessionURI = ui.AgentUi.USER.sessionURI;
-		nextPageRequest.set_content(nextPageRequestData);
+		nextPageRequest.setContent(nextPageRequestData);
 		try {
 			new ui.api.StandardRequest(nextPageRequest,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("next page request successfully submitted");
@@ -4279,7 +4309,7 @@ ui.api.ProtocolHandler.prototype = {
 			var evalRequestData = new ui.api.EvalRequestData();
 			evalRequestData.expression = "feed( " + string + " )";
 			evalRequestData.sessionURI = ui.AgentUi.USER.sessionURI;
-			evalRequest.set_content(evalRequestData);
+			evalRequest.setContent(evalRequestData);
 			try {
 				new ui.api.StandardRequest(evalRequest,function(data,textStatus,jqXHR) {
 					ui.AgentUi.LOGGER.debug("filter successfully submitted");
@@ -4298,7 +4328,7 @@ ui.api.ProtocolHandler.prototype = {
 		}
 		var request = new ui.api.InitializeSessionRequest();
 		var requestData = new ui.api.InitializeSessionRequestData();
-		request.set_content(requestData);
+		request.setContent(requestData);
 		requestData.agentURI = login.getUri();
 		try {
 			var loginRequest = new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
@@ -4351,15 +4381,14 @@ ui.api.ProtocolMessage = function(msgType,type) {
 $hxClasses["ui.api.ProtocolMessage"] = ui.api.ProtocolMessage;
 ui.api.ProtocolMessage.__name__ = ["ui","api","ProtocolMessage"];
 ui.api.ProtocolMessage.prototype = {
-	set_content: function(t) {
+	setContent: function(t) {
 		this.contentImpl = t;
-		return t;
 	}
 	,get_content: function() {
 		return this.contentImpl;
 	}
 	,writeResolve: function() {
-		this.set_content(ui.AgentUi.SERIALIZER.toJson(this.contentImpl));
+		this.content = ui.AgentUi.SERIALIZER.toJson(this.contentImpl);
 	}
 	,readResolve: function() {
 		this.contentImpl = ui.AgentUi.SERIALIZER.fromJsonX(this.get_content(),this.type);
@@ -5161,6 +5190,41 @@ ui.exception.InitializeSessionException.prototype = $extend(m3.exception.Excepti
 	__class__: ui.exception.InitializeSessionException
 });
 ui.helper = {}
+ui.helper.LabelStringParser = function(str) {
+	this.original = str;
+	this.processingString = str;
+};
+$hxClasses["ui.helper.LabelStringParser"] = ui.helper.LabelStringParser;
+ui.helper.LabelStringParser.__name__ = ["ui","helper","LabelStringParser"];
+ui.helper.LabelStringParser.prototype = {
+	restore: function(str) {
+		this.processingString = str + this.processingString;
+	}
+	,nextTerm: function(trim) {
+		if(trim == null) trim = true;
+		if(m3.helper.StringHelper.isBlank(this.processingString)) return null;
+		var tmp = "";
+		var _g1 = 0, _g = this.processingString.length;
+		while(_g1 < _g) {
+			var char_ = _g1++;
+			var nextChar = this.processingString.substring(0,1);
+			if(m3.helper.StringHelper.containsAny(nextChar,["(",",",")"])) {
+				if(m3.helper.StringHelper.isBlank(tmp)) tmp = this.consume(1);
+				break;
+			} else tmp += this.consume(1);
+		}
+		return StringTools.trim(tmp);
+	}
+	,consume: function(chars,skipLeadingWhiteSpace) {
+		if(skipLeadingWhiteSpace == null) skipLeadingWhiteSpace = false;
+		if(m3.helper.StringHelper.isBlank(this.processingString)) return null;
+		if(skipLeadingWhiteSpace) this.processingString = StringTools.ltrim(this.processingString);
+		var consumedVal = this.processingString.substring(0,chars);
+		this.processingString = this.processingString.substring(chars);
+		return consumedVal;
+	}
+	,__class__: ui.helper.LabelStringParser
+}
 ui.helper.ModelHelper = function() { }
 $hxClasses["ui.helper.ModelHelper"] = ui.helper.ModelHelper;
 ui.helper.ModelHelper.__name__ = ["ui","helper","ModelHelper"];
@@ -5419,7 +5483,38 @@ $hxClasses["ui.model.Alias"] = ui.model.Alias;
 ui.model.Alias.__name__ = ["ui","model","Alias"];
 ui.model.Alias.__super__ = ui.model.ModelObj;
 ui.model.Alias.prototype = $extend(ui.model.ModelObj.prototype,{
-	_processLabelChildren: function(set) {
+	_processDataLogChildren: function(parentLabel,parser) {
+		var larray = new Array();
+		var term = parser.nextTerm();
+		if(term == "(") term = parser.nextTerm();
+		while(term != null && term != ")") {
+			if(StringTools.startsWith(term,"n_")) {
+				term = term.substring(2);
+				var l = new ui.model.Label(term);
+				l.uid = m3.util.UidGenerator.create(10);
+				if(parentLabel != null) l.parentUid = parentLabel.uid;
+				larray.push(l);
+				var children = this._processDataLogChildren(l,parser);
+				larray = larray.concat(children);
+			} else if(m3.helper.StringHelper.isNotBlank(term) && !m3.helper.StringHelper.contains(term,",")) {
+				var l = new ui.model.Label(term);
+				l.uid = m3.util.UidGenerator.create(10);
+				if(parentLabel != null) l.parentUid = parentLabel.uid;
+				larray.push(l);
+			}
+			term = parser.nextTerm();
+		}
+		return larray;
+	}
+	,_processDataLog: function(str) {
+		var larray = new Array();
+		var parser = new ui.helper.LabelStringParser(str);
+		var term = parser.nextTerm();
+		if(term != "and") parser.restore(term);
+		larray = this._processDataLogChildren(null,parser);
+		return larray;
+	}
+	,_processLabelChildren: function(set) {
 		var _g = this;
 		var str = Lambda.fold(set,function(l,s) {
 			var children = new m3.observable.FilteredSet(_g.labelSet,function(l1) {
@@ -5723,6 +5818,96 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.jdialog",$.ui.dialog,defineWidget());
+var defineWidget = function() {
+	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false, onMaxToggle : $.noop}, originalSize : { width : 10, height : 10}, _create : function() {
+		this._super("create");
+		var self = this;
+		var selfElement = this.element;
+		var closeBtn = selfElement.prev().find(".ui-dialog-titlebar-close");
+		var hovers = new $("blah");
+		if(self.options.showHelp && false) {
+			if(!Reflect.isFunction(self.options.buildHelp)) {
+			} else {
+				var helpIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
+				var helpIcon = new $("<span class='ui-icon ui-icon-help'>help</span>");
+				hovers = hovers.add(helpIconWrapper);
+				helpIconWrapper.append(helpIcon);
+				closeBtn.before(helpIconWrapper);
+				helpIconWrapper.click(function(evt) {
+					self.options.buildHelp();
+				});
+			}
+		}
+		self.maxIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
+		var maxIcon = new $("<span class='ui-icon ui-icon-extlink'>maximize</span>");
+		hovers = hovers.add(self.maxIconWrapper);
+		self.maxIconWrapper.append(maxIcon);
+		closeBtn.before(self.maxIconWrapper);
+		self.maxIconWrapper.click(function(evt) {
+			self.maximize();
+		});
+		self.restoreIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px; display: none;' role='button'>");
+		var restoreIcon = new $("<span class='ui-icon ui-icon-newwin'>restore</span>");
+		hovers = hovers.add(self.restoreIconWrapper);
+		self.restoreIconWrapper.append(restoreIcon);
+		closeBtn.before(self.restoreIconWrapper);
+		self.restoreIconWrapper.click(function(evt) {
+			self.restore();
+		});
+		hovers.hover(function(evt) {
+			$(this).addClass("ui-state-hover");
+		},function(evt) {
+			$(this).removeClass("ui-state-hover");
+		});
+	}, restore : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.m3dialog("option","height",self.originalSize.height);
+		selfElement.m3dialog("option","width",self.originalSize.width);
+		selfElement.parent().position({ my : "middle", at : "middle", of : js.Browser.window});
+		self.restoreIconWrapper.hide();
+		self.maxIconWrapper.show();
+		self.options.onMaxToggle();
+	}, maximize : function() {
+		var self = this;
+		var selfElement = this.element;
+		self.originalSize = { height : selfElement.parent().height(), width : selfElement.parent().width()};
+		var window = new $(js.Browser.window);
+		var windowDimensions = { height : window.height(), width : window.width()};
+		selfElement.m3dialog("option","height",windowDimensions.height * .85);
+		selfElement.m3dialog("option","width",windowDimensions.width * .85);
+		selfElement.parent().position({ my : "middle", at : "middle", of : window});
+		self.maxIconWrapper.hide();
+		self.restoreIconWrapper.show();
+		self.options.onMaxToggle();
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.m3dialog",$.ui.dialog,defineWidget());
+var defineWidget = function() {
+	return { options : { menuOptions : null, width : 200}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.addClass("m3menu nonmodalPopup");
+		selfElement.width(self.options.width);
+		var _g = 0, _g1 = self.options.menuOptions;
+		while(_g < _g1.length) {
+			var menuOption = [_g1[_g]];
+			++_g;
+			var icon = m3.helper.StringHelper.isNotBlank(menuOption[0].icon)?"<span class='ui-icon " + menuOption[0].icon + "'></span>":"";
+			new $("<li><a href='#'>" + icon + menuOption[0].label + "</a></li>").appendTo(selfElement).click((function(menuOption) {
+				return function(evt) {
+					menuOption[0].action(evt,selfElement);
+				};
+			})(menuOption));
+		}
+		this._super("create");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.m3menu",$.ui.menu,defineWidget());
 m3.util.ColorProvider._COLORS = new Array();
 m3.util.ColorProvider._COLORS.push("#5C9BCC");
 m3.util.ColorProvider._COLORS.push("#CC5C64");
@@ -6233,7 +6418,7 @@ var defineWidget = function() {
 			trashDiv.animate({ width : "50px"},200);
 			trashCan.animate({ 'max-width' : "50px", 'margin-top' : "50px"},200);
 		};
-		(js.Boot.__cast(trashDiv , $)).droppable({ accept : function(d) {
+		(js.Boot.__cast((js.Boot.__cast(trashDiv , $)).droppable({ accept : function(d) {
 			return d["is"](".filterTrashable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 			_ui.draggable.remove();
@@ -6243,7 +6428,7 @@ var defineWidget = function() {
 			grow(300);
 		}, out : function(event,_ui) {
 			shrink();
-		}}).tooltip().dblclick(function(event) {
+		}}) , $)).tooltip().dblclick(function(event) {
 			grow(150);
 			var trashables = selfElement.children(".filterTrashable");
 			trashables.position({ my : "center", at : "center", of : trashCan, using : function(pos) {
@@ -6943,6 +7128,25 @@ var defineWidget = function() {
 		if(m3.helper.StringHelper.isBlank(imgSrc)) imgSrc = "media/default_avatar.jpg";
 		var img = new $("<img alt='user' src='" + imgSrc + "' class='shadow'/>");
 		container.append(img);
+		var menu = new $("<ul id='userCompMenu'></ul>");
+		menu.appendTo(container);
+		menu.m3menu({ menuOptions : [{ label : "Set Profile Picture", icon : "ui-icon-image", action : function(evt,m) {
+			var dlg = new $("<div id='profilePictureUploader'></div>");
+			dlg.appendTo(container);
+			var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
+			uploadComp.appendTo(dlg);
+			uploadComp.uploadComp();
+			dlg.m3dialog({ width : 800, height : 305, title : "Profile Picture Uploader", buttons : { Cancel : function() {
+				$(this).m3dialog("close");
+			}, 'Set Profile Image' : function() {
+			}}});
+		}}], width : 225}).hide();
+		img.click(function(evt) {
+			new $(".nonmodalPopup").hide();
+			menu.show();
+			menu.position({ my : "left top", of : evt});
+			evt.stopPropagation();
+		});
 		var userIdTxt = new $("<div class='userIdTxt'></div>");
 		container.append(userIdTxt);
 		var name = (function($this) {
@@ -7040,63 +7244,63 @@ m3.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwx
 m3.util.UidGenerator.nums = "0123456789";
 ui.AgentUi.DEMO = true;
 ui.AgentUi.URL = "";
-ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<content public=\"1\" get=\"accessor\" set=\"accessor\">\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl>\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<readResolve set=\"method\" line=\"24\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"28\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<get_content set=\"method\" line=\"32\"><f a=\"\"><c path=\"ui.api.ProtocolMessage.T\"/></f></get_content>\n\t<set_content set=\"method\" line=\"36\"><f a=\"t\">\n\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t<c path=\"ui.api.ProtocolMessage.T\"/>\n</f></set_content>\n\t<new public=\"1\" set=\"method\" line=\"19\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"44\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.CreateUserRequest.__rtti = "<class path=\"ui.api.CreateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.UserRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"51\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Create User Request/Response</haxe_doc>\n</class>";
-ui.api.UserRequestData.__rtti = "<class path=\"ui.api.UserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<jsonBlob public=\"1\"><d/></jsonBlob>\n\t<new public=\"1\" set=\"method\" line=\"56\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CreateUserWaiting.__rtti = "<class path=\"ui.api.CreateUserWaiting\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.Payload\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"63\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ConfirmUserToken.__rtti = "<class path=\"ui.api.ConfirmUserToken\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ConfirmUserTokenData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"69\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ConfirmUserTokenData.__rtti = "<class path=\"ui.api.ConfirmUserTokenData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<token public=\"1\"><c path=\"String\"/></token>\n\t<new public=\"1\" set=\"method\" line=\"74\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CreateUserResponse.__rtti = "<class path=\"ui.api.CreateUserResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CreateUserResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"79\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CreateUserResponseData.__rtti = "<class path=\"ui.api.CreateUserResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"84\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.UpdateUserRequest.__rtti = "<class path=\"ui.api.UpdateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.UpdateUserRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"89\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.UpdateUserRequestData.__rtti = "<class path=\"ui.api.UpdateUserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.UserRequestData\"/>\n\t<sessionId public=\"1\"><c path=\"String\"/></sessionId>\n\t<new public=\"1\" set=\"method\" line=\"94\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"103\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Initialize Session Request/Response</haxe_doc>\n</class>";
-ui.api.InitializeSessionRequestData.__rtti = "<class path=\"ui.api.InitializeSessionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"108\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionResponse.__rtti = "<class path=\"ui.api.InitializeSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"113\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionResponseData.__rtti = "<class path=\"ui.api.InitializeSessionResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<listOfAliases public=\"1\"><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></listOfAliases>\n\t<defaultAlias public=\"1\"><c path=\"ui.model.Alias\"/></defaultAlias>\n\t<listOfLabels public=\"1\"><c path=\"Array\"><c path=\"ui.model.Label\"/></c></listOfLabels>\n\t<listOfCnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></listOfCnxns>\n\t<lastActiveFilter public=\"1\"><c path=\"String\"/></lastActiveFilter>\n\t<jsonBlob public=\"1\"><c path=\"ui.model.UserData\"/></jsonBlob>\n\t<new public=\"1\" set=\"method\" line=\"118\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionError.__rtti = "<class path=\"ui.api.InitializeSessionError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionErrorData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"129\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionErrorData.__rtti = "<class path=\"ui.api.InitializeSessionErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"134\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPingRequest.__rtti = "<class path=\"ui.api.SessionPingRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPingRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"143\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Ping/pop Request/Response</haxe_doc>\n</class>";
-ui.api.SessionPingRequestData.__rtti = "<class path=\"ui.api.SessionPingRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"148\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPongResponse.__rtti = "<class path=\"ui.api.SessionPongResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPongResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"153\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPongResponseData.__rtti = "<class path=\"ui.api.SessionPongResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"158\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"166\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Close Session Request/Response</haxe_doc>\n</class>";
-ui.api.CloseSessionResponse.__rtti = "<class path=\"ui.api.CloseSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"172\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionData.__rtti = "<class path=\"ui.api.CloseSessionData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"177\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalSubscribeRequest.__rtti = "<class path=\"ui.api.EvalSubscribeRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"185\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Evaluate Request/Response</haxe_doc>\n</class>";
-ui.api.EvalRequestData.__rtti = "<class path=\"ui.api.EvalRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<expression public=\"1\"><d/></expression>\n\t<new public=\"1\" set=\"method\" line=\"190\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalNextPageRequest.__rtti = "<class path=\"ui.api.EvalNextPageRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalNextPageRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"196\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalNextPageRequestData.__rtti = "<class path=\"ui.api.EvalNextPageRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<nextPage public=\"1\"><c path=\"String\"/></nextPage>\n\t<new public=\"1\" set=\"method\" line=\"201\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalResponse.__rtti = "<class path=\"ui.api.EvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"207\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalComplete.__rtti = "<class path=\"ui.api.EvalComplete\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"213\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"ui.model.Content\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"218\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalError.__rtti = "<class path=\"ui.api.EvalError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalErrorData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"224\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalErrorData.__rtti = "<class path=\"ui.api.EvalErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<errorMsg public=\"1\"><c path=\"String\"/></errorMsg>\n\t<new public=\"1\" set=\"method\" line=\"229\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.StopEvalRequest.__rtti = "<class path=\"ui.api.StopEvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"238\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Stop Evaluation Request/Response</haxe_doc>\n</class>";
-ui.api.StopEvalResponse.__rtti = "<class path=\"ui.api.StopEvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"244\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.StopMsgData.__rtti = "<class path=\"ui.api.StopMsgData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"249\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.TempAddAliasLabel.__rtti = "<class path=\"ui.api.TempAddAliasLabel\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.TempAddAliasLabelData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"254\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.TempAddAliasLabelData.__rtti = "<class path=\"ui.api.TempAddAliasLabelData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<expression public=\"1\"><c path=\"ui.api.InsertContent\"/></expression>\n\t<new public=\"1\" set=\"method\" line=\"259\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InsertContent.__rtti = "<class path=\"ui.api.InsertContent\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InsertContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"271\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InsertContentData.__rtti = "<class path=\"ui.api.InsertContentData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<cnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></cnxns>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<value public=\"1\"><c path=\"String\"/></value>\n\t<new public=\"1\" set=\"method\" line=\"276\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<content public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl>\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<readResolve set=\"method\" line=\"24\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"28\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<get_content set=\"method\" line=\"32\"><f a=\"\"><c path=\"ui.api.ProtocolMessage.T\"/></f></get_content>\n\t<setContent public=\"1\" set=\"method\" line=\"36\"><f a=\"t\">\n\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t<x path=\"Void\"/>\n</f></setContent>\n\t<new public=\"1\" set=\"method\" line=\"19\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.CreateUserRequest.__rtti = "<class path=\"ui.api.CreateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.UserRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"50\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Create User Request/Response</haxe_doc>\n</class>";
+ui.api.UserRequestData.__rtti = "<class path=\"ui.api.UserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<jsonBlob public=\"1\"><d/></jsonBlob>\n\t<new public=\"1\" set=\"method\" line=\"55\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CreateUserWaiting.__rtti = "<class path=\"ui.api.CreateUserWaiting\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.Payload\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"62\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.ConfirmUserToken.__rtti = "<class path=\"ui.api.ConfirmUserToken\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ConfirmUserTokenData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"68\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.ConfirmUserTokenData.__rtti = "<class path=\"ui.api.ConfirmUserTokenData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<token public=\"1\"><c path=\"String\"/></token>\n\t<new public=\"1\" set=\"method\" line=\"73\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CreateUserResponse.__rtti = "<class path=\"ui.api.CreateUserResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CreateUserResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"78\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CreateUserResponseData.__rtti = "<class path=\"ui.api.CreateUserResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"83\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.UpdateUserRequest.__rtti = "<class path=\"ui.api.UpdateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.UpdateUserRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"88\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.UpdateUserRequestData.__rtti = "<class path=\"ui.api.UpdateUserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.UserRequestData\"/>\n\t<sessionId public=\"1\"><c path=\"String\"/></sessionId>\n\t<new public=\"1\" set=\"method\" line=\"93\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Initialize Session Request/Response</haxe_doc>\n</class>";
+ui.api.InitializeSessionRequestData.__rtti = "<class path=\"ui.api.InitializeSessionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"107\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionResponse.__rtti = "<class path=\"ui.api.InitializeSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"112\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionResponseData.__rtti = "<class path=\"ui.api.InitializeSessionResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<listOfAliases public=\"1\"><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></listOfAliases>\n\t<defaultAlias public=\"1\"><c path=\"ui.model.Alias\"/></defaultAlias>\n\t<listOfLabels public=\"1\"><c path=\"Array\"><c path=\"ui.model.Label\"/></c></listOfLabels>\n\t<listOfCnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></listOfCnxns>\n\t<lastActiveFilter public=\"1\"><c path=\"String\"/></lastActiveFilter>\n\t<jsonBlob public=\"1\"><c path=\"ui.model.UserData\"/></jsonBlob>\n\t<new public=\"1\" set=\"method\" line=\"117\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionError.__rtti = "<class path=\"ui.api.InitializeSessionError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionErrorData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"128\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionErrorData.__rtti = "<class path=\"ui.api.InitializeSessionErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"133\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SessionPingRequest.__rtti = "<class path=\"ui.api.SessionPingRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPingRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"142\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Ping/pop Request/Response</haxe_doc>\n</class>";
+ui.api.SessionPingRequestData.__rtti = "<class path=\"ui.api.SessionPingRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"147\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SessionPongResponse.__rtti = "<class path=\"ui.api.SessionPongResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.SessionPongResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"152\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SessionPongResponseData.__rtti = "<class path=\"ui.api.SessionPongResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"157\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"165\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Close Session Request/Response</haxe_doc>\n</class>";
+ui.api.CloseSessionResponse.__rtti = "<class path=\"ui.api.CloseSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CloseSessionData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"171\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CloseSessionData.__rtti = "<class path=\"ui.api.CloseSessionData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"176\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalSubscribeRequest.__rtti = "<class path=\"ui.api.EvalSubscribeRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"184\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Evaluate Request/Response</haxe_doc>\n</class>";
+ui.api.EvalRequestData.__rtti = "<class path=\"ui.api.EvalRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<expression public=\"1\"><d/></expression>\n\t<new public=\"1\" set=\"method\" line=\"189\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalNextPageRequest.__rtti = "<class path=\"ui.api.EvalNextPageRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalNextPageRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"195\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalNextPageRequestData.__rtti = "<class path=\"ui.api.EvalNextPageRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<nextPage public=\"1\"><c path=\"String\"/></nextPage>\n\t<new public=\"1\" set=\"method\" line=\"200\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalResponse.__rtti = "<class path=\"ui.api.EvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"206\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalComplete.__rtti = "<class path=\"ui.api.EvalComplete\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"212\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"ui.model.Content\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"217\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalError.__rtti = "<class path=\"ui.api.EvalError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalErrorData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"223\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalErrorData.__rtti = "<class path=\"ui.api.EvalErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<errorMsg public=\"1\"><c path=\"String\"/></errorMsg>\n\t<new public=\"1\" set=\"method\" line=\"228\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.StopEvalRequest.__rtti = "<class path=\"ui.api.StopEvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"237\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Stop Evaluation Request/Response</haxe_doc>\n</class>";
+ui.api.StopEvalResponse.__rtti = "<class path=\"ui.api.StopEvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.StopMsgData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"243\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.StopMsgData.__rtti = "<class path=\"ui.api.StopMsgData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"248\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.TempAddAliasLabel.__rtti = "<class path=\"ui.api.TempAddAliasLabel\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.TempAddAliasLabelData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"253\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.TempAddAliasLabelData.__rtti = "<class path=\"ui.api.TempAddAliasLabelData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<expression public=\"1\"><c path=\"ui.api.InsertContent\"/></expression>\n\t<new public=\"1\" set=\"method\" line=\"258\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InsertContent.__rtti = "<class path=\"ui.api.InsertContent\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InsertContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"270\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InsertContentData.__rtti = "<class path=\"ui.api.InsertContentData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<cnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></cnxns>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<value public=\"1\"><c path=\"String\"/></value>\n\t<new public=\"1\" set=\"method\" line=\"275\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.TestDao.initialized = false;
 ui.api.TestDao._lastRandom = 0;
-ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\">\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"17\" static=\"1\"><f a=\"t\">\n\t<a><uid><c path=\"String\"/></uid></a>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Login\"/></extends>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<getUri public=\"1\" set=\"method\" line=\"26\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.LoginByUn.__rtti = "<class path=\"ui.model.LoginByUn\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<getUri public=\"1\" set=\"method\" line=\"35\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"31\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.LoginById.__rtti = "<class path=\"ui.model.LoginById\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<uuid public=\"1\"><c path=\"String\"/></uuid>\n\t<getUri public=\"1\" set=\"method\" line=\"44\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"41\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.NewUser\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"55\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<userData public=\"1\"><c path=\"ui.model.UserData\"/></userData>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<aliasSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Alias\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</aliasSet>\n\t<aliases><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></aliases>\n\t<currentAlias public=\"1\" get=\"accessor\" set=\"accessor\">\n\t\t<c path=\"ui.model.Alias\"/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</currentAlias>\n\t<get_currentAlias set=\"method\" line=\"69\"><f a=\"\"><c path=\"ui.model.Alias\"/></f></get_currentAlias>\n\t<set_currentAlias set=\"method\" line=\"79\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"ui.model.Alias\"/>\n</f></set_currentAlias>\n\t<hasValidSession public=\"1\" set=\"method\" line=\"84\"><f a=\"\"><x path=\"Bool\"/></f></hasValidSession>\n\t<readResolve set=\"method\" line=\"90\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"94\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"67\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UserData.__rtti = "<class path=\"ui.model.UserData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.UserData\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Alias\"/></extends>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<labels><c path=\"Array\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<connections><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></connections>\n\t<readResolve set=\"method\" line=\"116\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"121\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<labelsAsString public=\"1\" set=\"method\" line=\"126\"><f a=\"\"><c path=\"String\"/></f></labelsAsString>\n\t<_processLabelChildren set=\"method\" line=\"151\"><f a=\"set\">\n\t<c path=\"m3.observable.FilteredSet\"><c path=\"ui.model.Label\"/></c>\n\t<c path=\"String\"/>\n</f></_processLabelChildren>\n\t<new public=\"1\" set=\"method\" line=\"114\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"179\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<src public=\"1\"><c path=\"String\"/></src>\n\t<trgt public=\"1\"><c path=\"String\"/></trgt>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<new public=\"1\" set=\"method\" line=\"194\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\">\n\t\t<e path=\"ui.model.ContentType\"/>\n\t\t<haxe_doc>ContentType of this content</haxe_doc>\n\t</type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<connections><c path=\"Array\"><c path=\"String\"/></c></connections>\n\t<creator public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<haxe_doc>UID of connection that created the content</haxe_doc>\n\t</creator>\n\t<readResolve set=\"method\" line=\"218\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"223\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n</class>";
-ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"264\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"272\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"278\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"281\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\">\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"21\" static=\"1\"><f a=\"t\">\n\t<a><uid><c path=\"String\"/></uid></a>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\"><c path=\"String\"/></uid>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Login\"/></extends>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<getUri public=\"1\" set=\"method\" line=\"30\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"27\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.LoginByUn.__rtti = "<class path=\"ui.model.LoginByUn\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<getUri public=\"1\" set=\"method\" line=\"39\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"35\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.LoginById.__rtti = "<class path=\"ui.model.LoginById\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<uuid public=\"1\"><c path=\"String\"/></uuid>\n\t<getUri public=\"1\" set=\"method\" line=\"48\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"45\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.NewUser\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<userData public=\"1\"><c path=\"ui.model.UserData\"/></userData>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<aliasSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Alias\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</aliasSet>\n\t<aliases><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></aliases>\n\t<currentAlias public=\"1\" get=\"accessor\" set=\"accessor\">\n\t\t<c path=\"ui.model.Alias\"/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</currentAlias>\n\t<get_currentAlias set=\"method\" line=\"73\"><f a=\"\"><c path=\"ui.model.Alias\"/></f></get_currentAlias>\n\t<set_currentAlias set=\"method\" line=\"83\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"ui.model.Alias\"/>\n</f></set_currentAlias>\n\t<hasValidSession public=\"1\" set=\"method\" line=\"88\"><f a=\"\"><x path=\"Bool\"/></f></hasValidSession>\n\t<readResolve set=\"method\" line=\"94\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"98\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"71\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.UserData.__rtti = "<class path=\"ui.model.UserData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.UserData\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<new public=\"1\" set=\"method\" line=\"106\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Alias\"/></extends>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<labels><c path=\"Array\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<connections><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></connections>\n\t<readResolve set=\"method\" line=\"120\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"125\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<labelsAsString public=\"1\" set=\"method\" line=\"130\"><f a=\"\"><c path=\"String\"/></f></labelsAsString>\n\t<_processLabelChildren set=\"method\" line=\"155\"><f a=\"set\">\n\t<c path=\"m3.observable.FilteredSet\"><c path=\"ui.model.Label\"/></c>\n\t<c path=\"String\"/>\n</f></_processLabelChildren>\n\t<_processDataLog public=\"1\" set=\"method\" line=\"172\"><f a=\"str\">\n\t<c path=\"String\"/>\n\t<c path=\"Array\"><c path=\"ui.model.Label\"/></c>\n</f></_processDataLog>\n\t<_processDataLogChildren public=\"1\" set=\"method\" line=\"183\"><f a=\"parentLabel:parser\">\n\t<c path=\"ui.model.Label\"/>\n\t<c path=\"ui.helper.LabelStringParser\"/>\n\t<c path=\"Array\"><c path=\"ui.model.Label\"/></c>\n</f></_processDataLogChildren>\n\t<new public=\"1\" set=\"method\" line=\"118\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"223\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\"><c path=\"String\"/></fname>\n\t<lname public=\"1\"><c path=\"String\"/></lname>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<src public=\"1\"><c path=\"String\"/></src>\n\t<trgt public=\"1\"><c path=\"String\"/></trgt>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<new public=\"1\" set=\"method\" line=\"238\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\">\n\t\t<e path=\"ui.model.ContentType\"/>\n\t\t<haxe_doc>ContentType of this content</haxe_doc>\n\t</type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<connections><c path=\"Array\"><c path=\"String\"/></c></connections>\n\t<creator public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<haxe_doc>UID of connection that created the content</haxe_doc>\n\t</creator>\n\t<readResolve set=\"method\" line=\"262\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"267\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n</class>";
+ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"308\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"316\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"322\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"325\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;

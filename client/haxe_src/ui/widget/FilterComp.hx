@@ -4,6 +4,7 @@ import js.html.Element;
 
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
+import m3.jq.JQTooltip;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.Node;
@@ -108,27 +109,29 @@ extern class FilterComp extends JQ {
 			    			}, 200);
 					}
 
-				    cast(trashDiv, JQDroppable).droppable({
-				    	accept: function(d) {
-			    			return d.is(".filterTrashable");
-			    		},
-						activeClass: "ui-state-hover",
-				      	hoverClass: "ui-state-active",
-				      	greedy: true,
-				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
-			                //fire off a filterable
-			                _ui.draggable.remove();
-			                shrink();
-			                self.fireFilter();
-				      	},
-				      	tolerance: "pointer",
-				      	over: function( event: JQEvent, _ui: UIDroppable) {
-				    		grow(300);
-				      	},
-				      	out: function( event: JQEvent, _ui: UIDroppable) {
-				      		shrink();
-				      	}
-			    	}).tooltip().dblclick(function(event: JQEvent) {
+				    cast(
+				    	cast(trashDiv, JQDroppable).droppable({
+					    	accept: function(d) {
+				    			return d.is(".filterTrashable");
+				    		},
+							activeClass: "ui-state-hover",
+					      	hoverClass: "ui-state-active",
+					      	greedy: true,
+					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
+				                //fire off a filterable
+				                _ui.draggable.remove();
+				                shrink();
+				                self.fireFilter();
+					      	},
+					      	tolerance: "pointer",
+					      	over: function( event: JQEvent, _ui: UIDroppable) {
+					    		grow(300);
+					      	},
+					      	out: function( event: JQEvent, _ui: UIDroppable) {
+					      		shrink();
+					      	}
+				    	}),
+				    JQTooltip).tooltip().dblclick(function(event: JQEvent) {
 			    			grow(150);
 		    				var trashables: JQ = selfElement.children(".filterTrashable");
 			    			trashables.position({

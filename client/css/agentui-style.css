@@ -41,6 +41,13 @@ body {
 	z-index: 100;
 }
 
+.m3menu {
+	display: none;
+	position: absolute !important;	
+	z-index: 1000;
+	text-align: left;
+}
+
 /* Login
 -----------------------------------------------------------------------------*/
 .loginComp, .newUserComp {

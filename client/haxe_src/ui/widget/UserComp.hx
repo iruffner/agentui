@@ -1,9 +1,12 @@
 package ui.widget;
 
 import m3.jq.JQ;
+import m3.jq.M3Menu;
+import m3.jq.M3Dialog;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
+import ui.widget.UploadComp;
 import m3.util.M;
 import m3.exception.Exception;
 
@@ -72,6 +75,47 @@ extern class UserComp extends JQ {
 					}
 		        	var img: JQ = new JQ("<img alt='user' src='" + imgSrc + "' class='shadow'/>");
 		        	container.append(img);
+		        	var menu: M3Menu = new M3Menu("<ul id='userCompMenu'></ul>");
+		        	menu.appendTo(container);
+        			menu.m3menu({
+        					menuOptions: [
+        						{ 
+        							label: "Set Profile Picture",
+        							icon: "ui-icon-image",
+        							action: function(evt: JQEvent, m: M3Menu): Void {
+        								var dlg: M3Dialog = new M3Dialog("<div id='profilePictureUploader'></div>");
+        								dlg.appendTo(container);
+        								var uploadComp: UploadComp = new UploadComp("<div class='boxsizingBorder' style='height: 150px;'></div>");
+        								uploadComp.appendTo(dlg);
+        								uploadComp.uploadComp();
+        								
+        								dlg.m3dialog({
+        										width: 800,
+        										height: 305,
+        										title: "Profile Picture Uploader",
+        										buttons: {
+        											"Cancel" : function() {
+														M3Dialog.cur.m3dialog("close");
+													},
+													"Set Profile Image": function() {
+
+													}
+        										}
+        									});
+        							}
+        						}
+        					],
+        					width: 225
+        				}).hide();
+		        	img.click(function(evt: JQEvent): Void {
+		        			new JQ(".nonmodalPopup").hide();
+		        			menu.show();
+		        			menu.position({
+		        					my: "left top",
+		        					of: evt
+		        				});
+		        			evt.stopPropagation();
+		        		});
 		        	var userIdTxt: JQ = new JQ("<div class='userIdTxt'></div>");
 		        	container.append(userIdTxt);
 		        	var name: String = M.getX(user.userData.name, "");

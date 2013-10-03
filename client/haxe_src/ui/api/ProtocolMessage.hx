@@ -10,7 +10,7 @@ interface HasContent<T> {
 
 @:rtti
 class ProtocolMessage<T>  {
-	@:isVar public var content(get,set): Dynamic;
+	@:isVar public var content(get,null): Dynamic;
 	@:transient var contentImpl: T;
 	@:transient var type: Class<T>;
 
@@ -26,16 +26,15 @@ class ProtocolMessage<T>  {
 	}
 
 	private function writeResolve(): Void {
-		content = AgentUi.SERIALIZER.toJson(this.contentImpl);
+		this.content = AgentUi.SERIALIZER.toJson(this.contentImpl);
 	}
 
 	private function get_content(): T {
 		return contentImpl;
 	}
 
-	private function set_content(t: T): T {
+	public function setContent(t: T): Void {
 		contentImpl = t;
-		return t;
 	}
 }
 

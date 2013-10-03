@@ -32,7 +32,7 @@ class ProtocolHandler {
 						var stopEval: StopEvalRequest = new StopEvalRequest();
 						var stopData: StopMsgData = new StopMsgData();
 						stopData.sessionURI = AgentUi.USER.sessionURI;
-						stopEval.content = stopData;
+						stopEval.setContent(stopData);
 						new StandardRequest(stopEval, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 							AgentUi.LOGGER.debug("stopEval successfully submitted");
 	                		this.filter(filter);
@@ -119,7 +119,7 @@ class ProtocolHandler {
 
 		var request: InitializeSessionRequest = new InitializeSessionRequest();
 		var requestData: InitializeSessionRequestData = new InitializeSessionRequestData();
-		request.content = requestData;
+		request.setContent(requestData);
 		requestData.agentURI = login.getUri();
 		try {
 			var loginRequest: StandardRequest = new StandardRequest(
@@ -179,7 +179,7 @@ class ProtocolHandler {
 			var evalRequestData: EvalRequestData = new EvalRequestData();
 			evalRequestData.expression = "feed( " + string + " )";
 			evalRequestData.sessionURI = AgentUi.USER.sessionURI;
-			evalRequest.content = evalRequestData;
+			evalRequest.setContent(evalRequestData);
 			try {
 				//we don't expect anything back here
 				new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -197,7 +197,7 @@ class ProtocolHandler {
 		var nextPageRequestData: EvalNextPageRequestData = new EvalNextPageRequestData();
 		nextPageRequestData.nextPage = nextPageURI;
 		nextPageRequestData.sessionURI = AgentUi.USER.sessionURI;//"agent-session://myLovelySession/1234,";
-		nextPageRequest.content = nextPageRequestData;
+		nextPageRequest.setContent(nextPageRequestData);
 		try {
 			//we don't expect anything back here
 			new StandardRequest(nextPageRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -215,7 +215,7 @@ class ProtocolHandler {
 
 	private function _startPolling(sessionURI: String): Void {
 		var ping: SessionPingRequest = new SessionPingRequest();
-		ping.content = new SessionPingRequestData();
+		ping.setContent(new SessionPingRequestData());
 		ping.content.sessionURI = sessionURI;
 
 		listeningChannel = new LongPollingRequest(ping, function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {
@@ -235,7 +235,7 @@ class ProtocolHandler {
 	public function createUser(newUser: NewUser): Void {
 		var request: CreateUserRequest = new CreateUserRequest();
 		var data: UserRequestData = new UserRequestData();
-		request.content = data;
+		request.setContent(data);
 		data.email = newUser.email;
 		data.password = newUser.pwd;
 		data.jsonBlob = {};
@@ -285,7 +285,7 @@ class ProtocolHandler {
 	public function validateUser(token: String): Void {
 		var request: ConfirmUserToken = new ConfirmUserToken();
 		var data: ConfirmUserTokenData = new ConfirmUserTokenData();
-		request.content = data;
+		request.setContent(data);
 		data.token = token;
 		try {
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -318,7 +318,7 @@ class ProtocolHandler {
 	public function updateUser(newUser: NewUser): Void {
 		var request: UpdateUserRequest = new UpdateUserRequest();
 		var data: UpdateUserRequestData = new UpdateUserRequestData();
-		request.content = data;
+		request.setContent(data);
 		data.email = newUser.email;
 		data.password = newUser.pwd;
 		try {
@@ -362,7 +362,7 @@ class ProtocolHandler {
 	public function post(content: Content): Void {
 		var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
 		var data: EvalRequestData = new EvalRequestData();
-		evalRequest.content = data;
+		evalRequest.setContent(data);
 		data.sessionURI = AgentUi.USER.sessionURI;
 		// data.expression = content.toInsertExpression();
 		data.expression = AgentUi.SERIALIZER.toJson(content);
@@ -380,12 +380,12 @@ class ProtocolHandler {
 	public function createLabel(label: Label): Void {
 		var evalRequest: TempAddAliasLabel = new TempAddAliasLabel();
 		var data: TempAddAliasLabelData = new TempAddAliasLabelData();
-		evalRequest.content = data;
+		evalRequest.setContent(data);
 		data.sessionURI = AgentUi.USER.sessionURI;
 		var insertContent: InsertContent = new InsertContent();
 		data.expression = insertContent;
 		var insertData: InsertContentData = new InsertContentData();
-		insertContent.content = insertData;
+		insertContent.setContent(insertData);
 		var labelConnection: Connection = new Connection();
 		labelConnection.src = "alias://test";
 		labelConnection.trgt = "alias://test";
