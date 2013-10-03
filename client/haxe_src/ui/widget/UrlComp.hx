@@ -16,6 +16,7 @@ typedef UrlCompWidgetDef = {
 	@:optional var options: UrlCompOptions;
 	var _create: Void->Void;
 	var destroy: Void->Void;
+	var valEle: Void->JQ;
 
 	@:optional var urlInput: JQ;
 	var _post: Void->Void;
@@ -37,18 +38,15 @@ extern class UrlComp extends JQ {
 		        _create: function(): Void {
 		        	UrlComp.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
 		        	var self: UrlCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+					var selfElement: UrlComp = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of UrlComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("urlComp container " + Widgets.getWidgetClasses());
 		        	new JQ("<label class='fleft ui-helper-clearfix' style='margin-left: 5px;'>Enter URL</label>").appendTo(selfElement);
-		        	self.urlInput = new JQ("<input id='' class='clear textInput boxsizingBorder' style='float: left;margin-top: 5px;'/>").appendTo(selfElement);
-
-		        	// urlInput.blur(function(evt: JQEvent): Void {
-		        	// 		self.load
-		        	// 	});
+		        	self.urlInput = new JQ("<input id='' class='clear textInput boxsizingBorder' style='float: left;margin-top: 5px;'/>")
+		        		.appendTo(selfElement);
 		        },
 
 		        _post: function() {
@@ -60,6 +58,11 @@ extern class UrlComp extends JQ {
 
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
+		        },
+
+		        valEle: function(): JQ {
+		        	var self: UrlCompWidgetDef = Widgets.getSelf();
+		        	return self.urlInput;
 		        }
 		    };
 		}
