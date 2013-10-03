@@ -13,6 +13,7 @@ import m3.util.UidGenerator;
 import m3.exception.Exception;
 
 using m3.helper.OSetHelper;
+using ui.widget.UploadComp;
 
 typedef PostCompOptions = {
 }
@@ -22,6 +23,7 @@ typedef PostCompWidgetDef = {
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
+
 
 
 
@@ -48,19 +50,23 @@ extern class PostComp extends JQ {
 
 		        	var addConnectionsAndLabels: Content->Void = null;
 
-		        	var doTextPost: JQEvent->ContentType->JQ->Void = function(evt: JQEvent, contentType: ContentType, ele:JQ): Void {
+		        	var doTextPost: JQEvent->ContentType->String->Void = function(evt: JQEvent, contentType: ContentType, value:String): Void {
 		        		ui.AgentUi.LOGGER.debug("Post new text content");
 						evt.preventDefault();
 						
 						var msg: MessageContent = new MessageContent();
 						msg.type          = contentType;
 						msg.uid           = UidGenerator.create();
-						msg.text          = ele.val();
+						msg.text          = value;
 						msg.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
 						msg.labelSet      = new ObservableSet<String>(OSetHelper.strIdentifier);
 
 						addConnectionsAndLabels(msg);
 						EM.change(EMEvent.NewContentCreated, msg);
+		        	};
+
+		        	var doTextPostForElement: JQEvent->ContentType->JQ->Void = function(evt: JQEvent, contentType: ContentType, ele:JQ): Void {
+		        		doTextPost(evt, contentType, ele.val());
 						ele.val("");
 		        	};
 
@@ -70,7 +76,7 @@ extern class PostComp extends JQ {
 		        			.attr("id", "textInput_ta")
 		        			.keypress(function(evt: JQEvent): Void {
 		        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-		        						doTextPost(evt, ContentType.TEXT, new JQ(evt.target));
+		        						doTextPostForElement(evt, ContentType.TEXT, new JQ(evt.target));
 		        					}
 		        				})
 		        			;
@@ -80,11 +86,11 @@ extern class PostComp extends JQ {
 		        		.appendTo(section)
 		        		.keypress(function(evt: JQEvent): Void {
         					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-        						doTextPost(evt, ContentType.URL, new JQ(evt.target));
+        						doTextPostForElement(evt, ContentType.URL, new JQ(evt.target));
         					}
         				});
 
-		        	var mediaInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp();
+		        	var mediaInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp({});
 		        	mediaInput.appendTo(section);
 		        	
 		        	var label: JQ = new JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
@@ -175,11 +181,12 @@ extern class PostComp extends JQ {
 		        							.click(function(evt: JQEvent): Void {
 		        								if (textInput.isVisible()) {
 		        									var ta = new JQ("#textInput_ta");
-													doTextPost(evt, ContentType.TEXT, ta);
+													doTextPostForElement(evt, ContentType.TEXT, ta);
 		        								} else if (urlInput.isVisible()) {
-		        									doTextPost(evt, ContentType.URL, urlInput.urlComp("valEle"));
+		        									doTextPostForElement(evt, ContentType.URL, urlInput.urlComp("valEle"));
 		        								} else {
-		        									js.Lib.alert("mediaInput");
+		        									doTextPost(evt, ContentType.IMAGE, mediaInput.value());
+		        									mediaInput.clear();
 		        								}
 		        							});
 		        },

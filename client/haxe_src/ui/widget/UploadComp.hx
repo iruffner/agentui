@@ -17,14 +17,33 @@ typedef UploadCompWidgetDef = {
 	var _create: Void->Void;
 	var destroy: Void->Void;
 
+	var value: Void->String;
+	var clear: Void->Void;
+
 	var _uploadFile: Dynamic->Void;
 	var _traverseFiles: Dynamic->Void;
+
+	var _createFileUploadComponent: Void->Void;
+
+	@:optional var previewImg: JQ;
+
+}
+
+class UploadCompHelper {
+	public static function value(m:UploadComp):String {
+		return cast m.uploadComp("value");
+	}
+
+	public static function clear(m:UploadComp):Void {
+		m.uploadComp("clear");
+	}
+
 }
 
 @:native("$")
 extern class UploadComp extends JQ {
 
-	@:overload(function(cmd : String):Bool{})
+	@:overload(function<T>(cmd : String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function uploadComp(?opts: UploadCompOptions): UploadComp;
 
@@ -40,17 +59,7 @@ extern class UploadComp extends JQ {
 
 		        	selfElement.addClass("uploadComp container " + Widgets.getWidgetClasses());
 
-		        	var filesUpload = new JQ("<input id='files-upload' type='file' multiple style='float: left;margin-top: 25px;margin-left: 25px;'/>").appendTo(selfElement);
-
-
-
-		   //      	var filesUpload: JQ = new JQ("files-upload"),
-					// 	dropArea: JQ = new JQ("drop-area"),
-					// 	fileList: JQ = new JQ("file-list");
-
-					filesUpload.change(function (evt: JQEvent) {
-						untyped self._traverseFiles(JQ.curNoWrap.files);
-					});
+		        	self._createFileUploadComponent();
 					
 					selfElement.on("dragleave", function (evt: JQEvent, d: Dynamic) {
 						ui.AgentUi.LOGGER.debug("dragleave");
@@ -89,81 +98,43 @@ extern class UploadComp extends JQ {
 					});
 		        },
 
+		        _createFileUploadComponent: function() {
+		        	var self: UploadCompWidgetDef = Widgets.getSelf();
+		        	var selfElement: JQ = Widgets.getSelfElement();
+		        	
+		        	new JQ("#files-upload").remove();
+		        	
+		        	var filesUpload = new JQ("<input id='files-upload' type='file' style='float: left;margin-top: 25px;margin-left: 25px;'/>").prependTo(selfElement);
+					filesUpload.change(function (evt: JQEvent) {
+						untyped self._traverseFiles(JQ.curNoWrap.files);
+					});
+		        },
+
 		        _uploadFile: function(file: Dynamic) {
+		        	if (untyped __js__("typeof FileReader === 'undefined'")) {
+		        		js.Lib.alert("FileUpload is not supported by your browser");
+		        		return;
+		        	}
+
+		        	if (!(~/image/i).match(file.type)) {
+		        		js.Lib.alert("Please select an image file.");
+		        		return;
+		        	}
+
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					ui.AgentUi.LOGGER.debug("upload " + file.name);
 
-					// var li = new JQ("<li></li>"),
-					// 	div = new JQ("<div></div>"),
-					// 	img,
-					// 	progressBarContainer = new JQ("<div></div>"),
-					// 	progressBar = new JQ("<div></div>"),
-					// 	reader,
-					// 	xhr,
-					// 	fileInfo;
-						
-					// li.append(div);
-					
-					// progressBarContainer.addClass("progress-bar-container");
-					// progressBar.addClass("progress-bar");
-					// progressBarContainer.append(progressBar);
-					// li.append(progressBarContainer);
-					
-					/*
-						If the file is an image and the web browser supports FileReader,
-						present a preview in the file list
-					*/
-					if (untyped __js__("typeof FileReader !== 'undefined'") && (~/image/i).match(file.type)) {
-						var img = new JQ("<img style='max-height: 90px;'/>").appendTo(selfElement);
-						var reader = untyped __js__("new FileReader()");
-						reader.onload = function (evt) {
-							// return function (evt) {
-							img.attr("src", evt.target.result);
-							// };
-						};
-						// }(img));
-						reader.readAsDataURL(file);
+					// present a preview in the file list
+					if (self.previewImg == null) {
+						self.previewImg = new JQ("<img style='max-height: 90px;' id='file_about_to_be_uploaded'/>").appendTo(selfElement);
 					}
-					
-					// // Uploading - for Firefox, Google Chrome and Safari
-					// xhr = new XMLHttpRequest();
-					
-					// // Update progress bar
-					// xhr.upload.on("progress", function (evt: JQEvent, d: Dynamic) {
-					// 	if (evt.lengthComputable) {
-					// 		progressBar.style.width = (evt.loaded / evt.total) * 100 + "%";
-					// 	}
-					// 	else {
-					// 		// No data to calculate on
-					// 	}
-					// });
-					
-					// // File uploaded
-					// xhr.on("load", function (evt: JQEvent, d: Dynamic) {
-					// 	progressBarContainer.addClass = "uploaded";
-					// 	progressBar.innerHTML = "Uploaded!";
-					// });
-					
-					// xhr.open("post", "upload/upload.php", true);
-					
-					// // Set appropriate headers
-					// xhr.setRequestHeader("Content-Type", "multipart/form-data");
-					// xhr.setRequestHeader("X-File-Name", file.name);
-					// xhr.setRequestHeader("X-File-Size", file.size);
-					// xhr.setRequestHeader("X-File-Type", file.type);
-
-					// // Send the file (doh)
-					// xhr.send(file);
-					
-					// // Present file info and append it to the list of files
-					// fileInfo = "<div><strong>Name:</strong> " + file.name + "</div>";
-					// fileInfo += "<div><strong>Size:</strong> " + parseInt(file.size / 1024, 10) + " kb</div>";
-					// fileInfo += "<div><strong>Type:</strong> " + file.type + "</div>";
-					// div.innerHTML = fileInfo;
-					
-					// fileList.append(li);
+					var reader = untyped __js__("new FileReader()");
+					reader.onload = function (evt) {
+						self.previewImg.attr("src", evt.target.result);
+					};
+					reader.readAsDataURL(file);
 				},
 
 				_traverseFiles: function(files: Array<Dynamic>) {
@@ -171,7 +142,7 @@ extern class UploadComp extends JQ {
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 
 					if (files.hasValues()) {
-						for (i in 0...files.length) {
+						for (i in 0...1 /*files.length*/) {
 							self._uploadFile(files[i]);
 						}
 					}
@@ -183,6 +154,18 @@ extern class UploadComp extends JQ {
 
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
+		        },
+
+		        value: function() {
+		        	var self: UploadCompWidgetDef = Widgets.getSelf();
+					return self.previewImg.attr("src");
+		        },
+
+		        clear: function() {
+		        	var self: UploadCompWidgetDef = Widgets.getSelf();
+		        	self.previewImg.remove();
+		        	self.previewImg = null;
+		        	self._createFileUploadComponent();
 		        }
 		    };
 		}
