@@ -23,6 +23,8 @@ typedef PostCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+
+
 @:native("$")
 extern class PostComp extends JQ {
 
@@ -46,32 +48,41 @@ extern class PostComp extends JQ {
 
 		        	var addConnectionsAndLabels: Content->Void = null;
 
-		        	var doTextPost: JQEvent->Void = function(evt: JQEvent): Void {
+		        	var doTextPost: JQEvent->ContentType->JQ->Void = function(evt: JQEvent, contentType: ContentType, ele:JQ): Void {
 		        		ui.AgentUi.LOGGER.debug("Post new text content");
 						evt.preventDefault();
+						
 						var msg: MessageContent = new MessageContent();
-						msg.text = JQ.cur.val();
+						msg.type          = contentType;
+						msg.uid           = UidGenerator.create();
+						msg.text          = ele.val();
 						msg.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
-						msg.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
+						msg.labelSet      = new ObservableSet<String>(OSetHelper.strIdentifier);
+
 						addConnectionsAndLabels(msg);
-						msg.type = ContentType.TEXT;
-						msg.uid = UidGenerator.create();
 						EM.change(EMEvent.NewContentCreated, msg);
-						JQ.cur.val("");
+						ele.val("");
 		        	};
 
 		        	var textInput: JQ = new JQ("<div class='postContainer'></div>").appendTo(section);
 		        	var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
 		        			.appendTo(textInput)
+		        			.attr("id", "textInput_ta")
 		        			.keypress(function(evt: JQEvent): Void {
 		        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-		        						// doTextPost(evt);
+		        						doTextPost(evt, ContentType.TEXT, new JQ(evt.target));
 		        					}
 		        				})
 		        			;
 
-		        	var urlInput: JQ = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
-		        	urlInput.appendTo(section);
+		        	var urlInput: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
+		        	urlInput
+		        		.appendTo(section)
+		        		.keypress(function(evt: JQEvent): Void {
+        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
+        						doTextPost(evt, ContentType.URL, new JQ(evt.target));
+        					}
+        				});
 
 		        	var mediaInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp();
 		        	mediaInput.appendTo(section);
@@ -89,10 +100,10 @@ extern class PostComp extends JQ {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.show();
-//							        			urlInput.hide();
-//							        			mediaInput.hide();
+							        			urlInput.hide();
+							        			mediaInput.hide();
 							        		});
-/*
+
 		        	var urlTab: JQ = new JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>")
 		        						.appendTo(tabs)
 		        						.click(function(evt: JQEvent): Void {
@@ -102,6 +113,7 @@ extern class PostComp extends JQ {
 							        			urlInput.show();
 							        			mediaInput.hide();
 							        		});
+
 		        	var imgTab: JQ = new JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>")
 		        						.appendTo(tabs)
 		        						.click(function(evt: JQEvent): Void {
@@ -113,7 +125,7 @@ extern class PostComp extends JQ {
 							        		});
 					urlInput.hide();
 					mediaInput.hide();
-*/
+
 					var tags: JQDroppable = new JQDroppable("<aside class='tags container boxsizingBorder'></aside>");
 					tags.appendTo(section);
 					tags.droppable({
@@ -145,6 +157,7 @@ extern class PostComp extends JQ {
 				                // self.fireFilter();
 					      	}
 						});
+
 					addConnectionsAndLabels = function(content: Content): Void {
 						tags.children(".label").each(function(i: Int, dom: Element): Void {
 								var label: LabelComp = new LabelComp(dom);
@@ -160,8 +173,15 @@ extern class PostComp extends JQ {
 		        							.appendTo(selfElement)
 		        							.button()
 		        							.click(function(evt: JQEvent): Void {
-													doTextPost(evt);
-		        								});
+		        								if (textInput.isVisible()) {
+		        									var ta = new JQ("#textInput_ta");
+													doTextPost(evt, ContentType.TEXT, ta);
+		        								} else if (urlInput.isVisible()) {
+		        									doTextPost(evt, ContentType.URL, urlInput.urlComp("valEle"));
+		        								} else {
+		        									js.Lib.alert("mediaInput");
+		        								}
+		        							});
 		        },
 
 		        destroy: function() {
