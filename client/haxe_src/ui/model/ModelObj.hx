@@ -139,7 +139,7 @@ class Alias extends ModelObj<Alias> {
 				if(children.hasValues()) {
 					s += "n_" + l.text + "(" + _processLabelChildren(children) + ")";
 				} else {
-					s += l.text;
+					s += "'" + l.text + "'";
 				}
 
 				sarray.push(s);
@@ -162,7 +162,7 @@ class Alias extends ModelObj<Alias> {
 					s += _processLabelChildren(children);
 					s += ")";
 				} else {
-					s += l.text;
+					s += "'" + l.text + "'";
 				}
 
 				return s;

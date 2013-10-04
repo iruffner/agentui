@@ -5541,7 +5541,7 @@ ui.model.Alias.prototype = $extend(ui.model.ModelObj.prototype,{
 				s += "n_" + l.text + "(";
 				s += _g._processLabelChildren(children);
 				s += ")";
-			} else s += l.text;
+			} else s += "'" + l.text + "'";
 			return s;
 		},"");
 		return str;
@@ -5557,7 +5557,7 @@ ui.model.Alias.prototype = $extend(ui.model.ModelObj.prototype,{
 			var children = new m3.observable.FilteredSet(_g.labelSet,function(l1) {
 				return l1.parentUid == l1.uid;
 			});
-			if(m3.helper.OSetHelper.hasValues(children)) s += "n_" + l.text + "(" + _g._processLabelChildren(children) + ")"; else s += l.text;
+			if(m3.helper.OSetHelper.hasValues(children)) s += "n_" + l.text + "(" + _g._processLabelChildren(children) + ")"; else s += "'" + l.text + "'";
 			sarray.push(s);
 		});
 		var str = m3.helper.ArrayHelper.hasValues(sarray) && sarray.length == 1?sarray[0]:m3.helper.ArrayHelper.hasValues(sarray)?"and(" + sarray.join(",") + ")":"";

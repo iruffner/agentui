@@ -98,7 +98,9 @@ extern class UserComp extends JQ {
 														M3Dialog.cur.m3dialog("close");
 													},
 													"Set Profile Image": function() {
-
+														// TODO Peter
+														ui.AgentUi.USER.userData.profileImg = //base 64 data
+														//fire EMEvent.USER_UPDATE
 													}
         										}
         									});
