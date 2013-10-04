@@ -244,25 +244,24 @@ class ProtocolHandler {
 		ping.contentImpl = new PayloadWithSessionURI();
 		ping.contentImpl.sessionURI = sessionURI;
 
-		listeningChannel = new LongPollingRequest(ping, function(data: String, textStatus: String, jqXHR: JQXHR): Void {
-				var json: {msgType: String} = haxe.Json.parse(data);
+		listeningChannel = new LongPollingRequest(ping, function(data: {msgType: String}, textStatus: String, jqXHR: JQXHR): Void {
 				var msgType: MsgType = {
 					try {
-						Type.createEnum(MsgType, json.msgType);
+						Type.createEnum(MsgType, data.msgType);
 					} catch (err: Dynamic) {
 						null;
 					}
 				}
 				var processor: Dynamic->Void = processHash.get(msgType);
 				if(processor == null) {
-					if(json != null)
-						AgentUi.LOGGER.info("no processor for " + json.msgType);
+					if(data != null)
+						AgentUi.LOGGER.info("no processor for " + data.msgType);
 					else 
 						AgentUi.LOGGER.info("no data returned on polling channel response");
 					// js.Lib.alert("Don't know how to handle " + data.msgType);
 					return;
 				} else {
-					AgentUi.LOGGER.debug("received " + json.msgType);
+					AgentUi.LOGGER.debug("received " + data.msgType);
 					processor(data);
 				}
 			});

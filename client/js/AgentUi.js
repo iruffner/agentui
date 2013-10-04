@@ -265,9 +265,6 @@ Std.parseInt = function(x) {
 	if(isNaN(v)) return null;
 	return v;
 }
-Std.parseFloat = function(x) {
-	return parseFloat(x);
-}
 Std.random = function(x) {
 	return x <= 0?0:Math.floor(Math.random() * x);
 }
@@ -726,200 +723,11 @@ haxe.Json = function() {
 };
 $hxClasses["haxe.Json"] = haxe.Json;
 haxe.Json.__name__ = ["haxe","Json"];
-haxe.Json.parse = function(text) {
-	return new haxe.Json().doParse(text);
-}
 haxe.Json.stringify = function(value,replacer) {
 	return new haxe.Json().toString(value,replacer);
 }
 haxe.Json.prototype = {
-	parseNumber: function(c) {
-		var start = this.pos - 1;
-		var minus = c == 45, digit = !minus, zero = c == 48;
-		var point = false, e = false, pm = false, end = false;
-		while(true) {
-			c = this.str.charCodeAt(this.pos++);
-			switch(c) {
-			case 48:
-				if(zero && !point) this.invalidNumber(start);
-				if(minus) {
-					minus = false;
-					zero = true;
-				}
-				digit = true;
-				break;
-			case 49:case 50:case 51:case 52:case 53:case 54:case 55:case 56:case 57:
-				if(zero && !point) this.invalidNumber(start);
-				if(minus) minus = false;
-				digit = true;
-				zero = false;
-				break;
-			case 46:
-				if(minus || point) this.invalidNumber(start);
-				digit = false;
-				point = true;
-				break;
-			case 101:case 69:
-				if(minus || zero || e) this.invalidNumber(start);
-				digit = false;
-				e = true;
-				break;
-			case 43:case 45:
-				if(!e || pm) this.invalidNumber(start);
-				digit = false;
-				pm = true;
-				break;
-			default:
-				if(!digit) this.invalidNumber(start);
-				this.pos--;
-				end = true;
-			}
-			if(end) break;
-		}
-		var f = Std.parseFloat(HxOverrides.substr(this.str,start,this.pos - start));
-		var i = f | 0;
-		return i == f?i:f;
-	}
-	,invalidNumber: function(start) {
-		throw "Invalid number at position " + start + ": " + HxOverrides.substr(this.str,start,this.pos - start);
-	}
-	,parseString: function() {
-		var start = this.pos;
-		var buf = new StringBuf();
-		while(true) {
-			var c = this.str.charCodeAt(this.pos++);
-			if(c == 34) break;
-			if(c == 92) {
-				buf.addSub(this.str,start,this.pos - start - 1);
-				c = this.str.charCodeAt(this.pos++);
-				switch(c) {
-				case 114:
-					buf.b += "\r";
-					break;
-				case 110:
-					buf.b += "\n";
-					break;
-				case 116:
-					buf.b += "\t";
-					break;
-				case 98:
-					buf.b += "";
-					break;
-				case 102:
-					buf.b += "";
-					break;
-				case 47:case 92:case 34:
-					buf.b += String.fromCharCode(c);
-					break;
-				case 117:
-					var uc = Std.parseInt("0x" + HxOverrides.substr(this.str,this.pos,4));
-					this.pos += 4;
-					buf.b += String.fromCharCode(uc);
-					break;
-				default:
-					throw "Invalid escape sequence \\" + String.fromCharCode(c) + " at position " + (this.pos - 1);
-				}
-				start = this.pos;
-			} else if(c != c) throw "Unclosed string";
-		}
-		buf.addSub(this.str,start,this.pos - start - 1);
-		return buf.b;
-	}
-	,parseRec: function() {
-		while(true) {
-			var c = this.str.charCodeAt(this.pos++);
-			switch(c) {
-			case 32:case 13:case 10:case 9:
-				break;
-			case 123:
-				var obj = { }, field = null, comma = null;
-				while(true) {
-					var c1 = this.str.charCodeAt(this.pos++);
-					switch(c1) {
-					case 32:case 13:case 10:case 9:
-						break;
-					case 125:
-						if(field != null || comma == false) this.invalidChar();
-						return obj;
-					case 58:
-						if(field == null) this.invalidChar();
-						obj[field] = this.parseRec();
-						field = null;
-						comma = true;
-						break;
-					case 44:
-						if(comma) comma = false; else this.invalidChar();
-						break;
-					case 34:
-						if(comma) this.invalidChar();
-						field = this.parseString();
-						break;
-					default:
-						this.invalidChar();
-					}
-				}
-				break;
-			case 91:
-				var arr = [], comma = null;
-				while(true) {
-					var c1 = this.str.charCodeAt(this.pos++);
-					switch(c1) {
-					case 32:case 13:case 10:case 9:
-						break;
-					case 93:
-						if(comma == false) this.invalidChar();
-						return arr;
-					case 44:
-						if(comma) comma = false; else this.invalidChar();
-						break;
-					default:
-						if(comma) this.invalidChar();
-						this.pos--;
-						arr.push(this.parseRec());
-						comma = true;
-					}
-				}
-				break;
-			case 116:
-				var save = this.pos;
-				if(this.str.charCodeAt(this.pos++) != 114 || this.str.charCodeAt(this.pos++) != 117 || this.str.charCodeAt(this.pos++) != 101) {
-					this.pos = save;
-					this.invalidChar();
-				}
-				return true;
-			case 102:
-				var save = this.pos;
-				if(this.str.charCodeAt(this.pos++) != 97 || this.str.charCodeAt(this.pos++) != 108 || this.str.charCodeAt(this.pos++) != 115 || this.str.charCodeAt(this.pos++) != 101) {
-					this.pos = save;
-					this.invalidChar();
-				}
-				return false;
-			case 110:
-				var save = this.pos;
-				if(this.str.charCodeAt(this.pos++) != 117 || this.str.charCodeAt(this.pos++) != 108 || this.str.charCodeAt(this.pos++) != 108) {
-					this.pos = save;
-					this.invalidChar();
-				}
-				return null;
-			case 34:
-				return this.parseString();
-			case 48:case 49:case 50:case 51:case 52:case 53:case 54:case 55:case 56:case 57:case 45:
-				return this.parseNumber(c);
-			default:
-				this.invalidChar();
-			}
-		}
-	}
-	,invalidChar: function() {
-		this.pos--;
-		throw "Invalid char " + this.str.charCodeAt(this.pos) + " at position " + this.pos;
-	}
-	,doParse: function(str) {
-		this.str = str;
-		this.pos = 0;
-		return this.parseRec();
-	}
-	,quote: function(s) {
+	quote: function(s) {
 		this.buf.b += "\"";
 		var i = 0;
 		while(true) {
@@ -4429,11 +4237,10 @@ ui.api.ProtocolHandler.prototype = {
 		ping.contentImpl = new ui.api.PayloadWithSessionURI();
 		ping.contentImpl.sessionURI = sessionURI;
 		this.listeningChannel = new ui.api.LongPollingRequest(ping,function(data,textStatus,jqXHR) {
-			var json = haxe.Json.parse(data);
 			var msgType = (function($this) {
 				var $r;
 				try {
-					$r = Type.createEnum(ui.api.MsgType,json.msgType);
+					$r = Type.createEnum(ui.api.MsgType,data.msgType);
 				} catch( err ) {
 					$r = null;
 				}
@@ -4441,10 +4248,10 @@ ui.api.ProtocolHandler.prototype = {
 			}(this));
 			var processor = _g.processHash.get(msgType);
 			if(processor == null) {
-				if(json != null) ui.AgentUi.LOGGER.info("no processor for " + json.msgType); else ui.AgentUi.LOGGER.info("no data returned on polling channel response");
+				if(data != null) ui.AgentUi.LOGGER.info("no processor for " + data.msgType); else ui.AgentUi.LOGGER.info("no data returned on polling channel response");
 				return;
 			} else {
-				ui.AgentUi.LOGGER.debug("received " + json.msgType);
+				ui.AgentUi.LOGGER.debug("received " + data.msgType);
 				processor(data);
 			}
 		});
@@ -5047,7 +4854,7 @@ ui.api.LongPollingRequest.prototype = {
 	poll: function() {
 		var _g = this;
 		if(!this.stop) {
-			var ajaxOpts = { url : ui.AgentUi.URL + "/api", contentType : "application/json", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
+			var ajaxOpts = { url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
 				if(!_g.stop) _g.successFcn(data,textStatus,jqXHR);
 			}, error : function(jqXHR,textStatus,errorThrown) {
 				ui.AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
@@ -5689,8 +5496,8 @@ ui.model.Alias._processDataLogChildren = function(parentLabel,parser) {
 	var term = parser.nextTerm();
 	if(term == "(") term = parser.nextTerm();
 	while(term != null && term != ")") {
-		if(StringTools.startsWith(term,"n_")) {
-			term = term.substring(2);
+		if(StringTools.startsWith(term,"n")) {
+			term = term.substring(1);
 			var l = new ui.model.Label(term);
 			l.uid = m3.util.UidGenerator.create(10);
 			if(parentLabel != null) l.parentUid = parentLabel.uid;
@@ -5716,10 +5523,10 @@ ui.model.Alias.prototype = $extend(ui.model.ModelObj.prototype,{
 				return l1.parentUid == l1.uid;
 			});
 			if(m3.helper.OSetHelper.hasValues(children)) {
-				s += "n_" + l.text + "(";
+				s += "n" + l.text + "(";
 				s += _g._processLabelChildren(children);
 				s += ")";
-			} else s += "\"" + l.text + "\"";
+			} else s += "n" + l.text + "(X)";
 			return s;
 		},"");
 		return str;
@@ -5735,7 +5542,7 @@ ui.model.Alias.prototype = $extend(ui.model.ModelObj.prototype,{
 			var children = new m3.observable.FilteredSet(_g.labelSet,function(l1) {
 				return l1.parentUid == l1.uid;
 			});
-			if(m3.helper.OSetHelper.hasValues(children)) s += "n_" + l.text + "(" + _g._processLabelChildren(children) + ")"; else s += "\"" + l.text + "\"";
+			if(m3.helper.OSetHelper.hasValues(children)) s += "n" + l.text + "(" + _g._processLabelChildren(children) + ")"; else s += "n" + l.text + "(X)";
 			sarray.push(s);
 		});
 		var str = m3.helper.ArrayHelper.hasValues(sarray) && sarray.length == 1?sarray[0]:m3.helper.ArrayHelper.hasValues(sarray)?"and(" + sarray.join(",") + ")":"";

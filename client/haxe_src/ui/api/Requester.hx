@@ -93,7 +93,7 @@ class LongPollingRequest implements Requester {
 		if(!stop) {
 			var ajaxOpts: AjaxOptions = { 
 				url: AgentUi.URL + "/api", 
-		        // dataType: "json", 
+		        dataType: "json", 
 	        	contentType: "application/json",
 		        data: this.requestJson,
 		        type: "POST",

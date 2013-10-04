@@ -137,9 +137,9 @@ class Alias extends ModelObj<Alias> {
 				var s: String = "";
 				var children: FilteredSet<Label> = new FilteredSet(labelSet, function(l: Label): Bool { return l.parentUid == l.uid; });
 				if(children.hasValues()) {
-					s += "n_" + l.text + "(" + _processLabelChildren(children) + ")";
+					s += "n" + l.text + "(" + _processLabelChildren(children) + ")";
 				} else {
-					s += "\"" + l.text + "\"";
+					s += "n" + l.text + "(X)";
 				}
 
 				sarray.push(s);
@@ -158,11 +158,11 @@ class Alias extends ModelObj<Alias> {
 		var str: String = set.fold(function(l: Label, s: String): String {
 				var children: FilteredSet<Label> = new FilteredSet(labelSet, function(l: Label): Bool { return l.parentUid == l.uid; });
 				if(children.hasValues()) {
-					s += "n_" + l.text + "(";
+					s += "n" + l.text + "(";
 					s += _processLabelChildren(children);
 					s += ")";
 				} else {
-					s += "\"" + l.text + "\"";
+					s += "n" + l.text + "(X)";
 				}
 
 				return s;
@@ -190,8 +190,8 @@ class Alias extends ModelObj<Alias> {
 		}
 
 		while(term != null && term != ")") { //continue until we hit our closing paren or we are out of data [null]
-			if(term.startsWith("n_")) { // this node has children
-				term = term.substring(2);
+			if(term.startsWith("n")) { // this node has children
+				term = term.substring(1);
 				var l: Label = new Label(term);
 				l.uid = UidGenerator.create(10);
 				if(parentLabel != null) l.parentUid = parentLabel.uid;
