@@ -11,6 +11,7 @@ import m3.util.M;
 import m3.exception.Exception;
 
 using m3.helper.StringHelper;
+using ui.widget.UploadComp;
 
 typedef UserCompOptions = {
 }
@@ -43,6 +44,7 @@ extern class UserComp extends JQ {
 		        	selfElement.addClass("ocontainer shadow ");
 		        	selfElement.append(new JQ("<div class='container'></div>"));
 		        	self._setUser();//init the components
+
 		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
 		        			self.user = user;
 		        			self._setUser();
@@ -61,19 +63,16 @@ extern class UserComp extends JQ {
 		        	var user = self.user;
 
 					var container = selfElement.children(".container").empty();
-					var imgSrc: String = "";
-					if(user != null && user.currentAlias != null) {
-						if(user.currentAlias.imgSrc.isNotBlank()) {
+					var imgSrc: String = "media/default_avatar.jpg";
+					if(user != null) {
+						if (user.currentAlias != null && user.currentAlias.imgSrc.isNotBlank()) {
 							imgSrc = user.currentAlias.imgSrc;
-						} else {
+						} else if (user.imgSrc.isNotBlank()){
 							imgSrc = user.imgSrc;
 						}
 					}
 
-					if(imgSrc.isBlank()) {
-						imgSrc = "media/default_avatar.jpg";
-					}
-		        	var img: JQ = new JQ("<img alt='user' src='" + imgSrc + "' class='shadow'/>");
+		        	var img: JQ = new JQ("<img id='usa_profile'alt='user' src='" + imgSrc + "' class='shadow'/>");
 		        	container.append(img);
 		        	var menu: M3Menu = new M3Menu("<ul id='userCompMenu'></ul>");
 		        	menu.appendTo(container);
@@ -98,9 +97,10 @@ extern class UserComp extends JQ {
 														M3Dialog.cur.m3dialog("close");
 													},
 													"Set Profile Image": function() {
-														// TODO Peter
-														// ui.AgentUi.USER.userData.profileImg = //base 64 data
-														//fire EMEvent.USER_UPDATE
+														//new JQ("#usa_profile").attr("src", uploadComp.value());
+														ui.AgentUi.USER.imgSrc = uploadComp.value();
+														EM.change(EMEvent.USER_UPDATE, ui.AgentUi.USER);
+														M3Dialog.cur.m3dialog("close");
 													}
         										}
         									});
