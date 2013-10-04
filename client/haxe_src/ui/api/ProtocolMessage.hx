@@ -136,7 +136,6 @@ class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData>
 }
 
 		class InitializeSessionErrorData extends Payload {
-			public var agentURI: String;
 			public var reason: String;
 		}
 

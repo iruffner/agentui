@@ -129,17 +129,17 @@ class Alias extends ModelObj<Alias> {
 		connections = connectionSet.asArray();
 	}
 
-	public function labelsAsString(): String {
+	public static function labelsAsString(labels: ObservableSet<Label>): String {
 		var sarray: Array<String> = new Array<String>();
-		var topLevelLabels: FilteredSet<Label> = new FilteredSet(labelSet, function(l: Label): Bool { return l.parentUid.isBlank(); });
+		var topLevelLabel: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
 
-		topLevelLabels.iter(function(l: Label): Void {
+		topLevelLabel.iter(function(l: Label): Void {
 				var s: String = "";
-				var children: FilteredSet<Label> = new FilteredSet(labelSet, function(l: Label): Bool { return l.parentUid == l.uid; });
+				var children: FilteredSet<Label> = new FilteredSet(labels, function(f: Label): Bool { return f.parentUid == l.uid; });
 				if(children.hasValues()) {
-					s += "n" + l.text + "(" + _processLabelChildren(children) + ")";
+					s += "n" + l.text + "(" + _processLabelChildren(labels, children) + ")";
 				} else {
-					s += "n" + l.text + "(X)";
+					s += "l" + l.text + "(X)";
 				}
 
 				sarray.push(s);
@@ -154,15 +154,18 @@ class Alias extends ModelObj<Alias> {
 		return str;
 	}
 
-	private function _processLabelChildren(set: FilteredSet<Label>): String {
+	private static function _processLabelChildren(original: ObservableSet<Label>, set: FilteredSet<Label>): String {
 		var str: String = set.fold(function(l: Label, s: String): String {
-				var children: FilteredSet<Label> = new FilteredSet(labelSet, function(l: Label): Bool { return l.parentUid == l.uid; });
+				if(s.isNotBlank()) {
+					s += ",";
+				}
+				var children: FilteredSet<Label> = new FilteredSet(original, function(l: Label): Bool { return l.parentUid == l.uid; });
 				if(children.hasValues()) {
 					s += "n" + l.text + "(";
-					s += _processLabelChildren(children);
+					s += _processLabelChildren(original, children);
 					s += ")";
 				} else {
-					s += "n" + l.text + "(X)";
+					s += "l" + l.text + "(X)";
 				}
 
 				return s;
@@ -182,7 +185,7 @@ class Alias extends ModelObj<Alias> {
 		return larray;
 	}
 
-	public static function _processDataLogChildren(parentLabel: Label, parser: LabelStringParser): Array<Label> {
+	private static function _processDataLogChildren(parentLabel: Label, parser: LabelStringParser): Array<Label> {
 		var larray: Array<Label> = new Array<Label>();
 		var term = parser.nextTerm();
 		if(term == "(") { // this was the leading paren
@@ -198,7 +201,8 @@ class Alias extends ModelObj<Alias> {
 				larray.push(l);
 				var children: Array<Label> = _processDataLogChildren(l, parser);
 				larray = larray.concat(children);
-			} else if(term.isNotBlank() && !term.contains(",")) { // this node has no children
+			} else if(term.isNotBlank() && term.startsWith("l") /*!term.contains(",")*/) { // this is a leaf
+				term = term.substring(1);
 				var l: Label = new Label(term);
 				l.uid = UidGenerator.create(10);
 				if(parentLabel != null) l.parentUid = parentLabel.uid;

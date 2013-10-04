@@ -176,7 +176,7 @@ class ProtocolHandler {
 						}
 			        } else if(data.msgType == MsgType.initializeSessionError) {
 			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
-			        	throw new InitializeSessionException(error, "Login error");
+			        	js.Lib.alert("Login error: " + error.contentImpl.reason);
 			        } else {
 			        	//something unexpected..
 			        	AgentUi.LOGGER.error("Unknown user login error | " + data);
@@ -185,8 +185,6 @@ class ProtocolHandler {
 				});
 			loginRequest.start();
 			
-		} catch (err: InitializeSessionException) {
-			js.Lib.alert("Login error");
 		} catch (err: Dynamic) {
 			js.Lib.alert(err);
 		}
@@ -391,15 +389,34 @@ class ProtocolHandler {
 		var data: AddAliasLabelsRequestData = new AddAliasLabelsRequestData();
 		evalRequest.contentImpl = data;
 		data.sessionURI = AgentUi.USER.sessionURI;
-		data.labels = [AgentUi.USER.currentAlias.labelsAsString()];
+		var labelSet: ObservableSet<Label> = new ObservableSet<Label>(ModelObj.identifier);
+
+		var pLabel: Label = label;
+		while(pLabel != null) {
+			labelSet.add(pLabel);
+			if(pLabel.parentUid.isNotBlank()) {
+				pLabel = AgentUi.USER.currentAlias.labelSet.getElementComplex(pLabel.parentUid);
+				if(pLabel != null) {
+					var pLabelUid: String = pLabel.uid;
+					var siblings: OSet<Label> = AgentUi.USER.currentAlias.labelSet.filter(function(l: Label): Bool {
+							return l.parentUid == pLabelUid;
+						});
+					labelSet.addAll(siblings.array());
+				}
+			} else {
+				pLabel = null;
+			}
+		}
+
+		data.labels = [Alias.labelsAsString(labelSet)];
 		data.alias = AgentUi.USER.currentAlias.label;
 
 		try {
 			//we don't expect anything back here
-			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("label successfully submitted");
-					AgentUi.USER.currentAlias.labelSet.add(label);
-				}).start({dataType: "text"});
+			// new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+			// 		AgentUi.LOGGER.debug("label successfully submitted");
+			// 		AgentUi.USER.currentAlias.labelSet.add(label);
+			// 	}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing label post", ex);
