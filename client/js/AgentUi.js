@@ -3766,7 +3766,15 @@ m3.serialization.ClassHandler.prototype = {
 			++_g;
 			if(f.required) {
 				var found = false;
-				if(m3.helper.ArrayHelper.contains(jsonFieldNames,f.name)) found = true;
+				var _g2 = 0;
+				while(_g2 < jsonFieldNames.length) {
+					var jsonFieldName = jsonFieldNames[_g2];
+					++_g2;
+					if(f.name == jsonFieldName) {
+						found = true;
+						break;
+					}
+				}
 				if(!found) reader.error("instance of " + this._typename + " has required field named " + f.name + " json does not does not " + haxe.Json.stringify(fromJson));
 			}
 		}
@@ -7375,12 +7383,11 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		var user = self.user;
 		var container = selfElement.children(".container").empty();
-		var imgSrc = "";
-		if(user != null && user.get_currentAlias() != null) {
-			if(m3.helper.StringHelper.isNotBlank(user.get_currentAlias().imgSrc)) imgSrc = user.get_currentAlias().imgSrc; else imgSrc = user.imgSrc;
+		var imgSrc = "media/default_avatar.jpg";
+		if(user != null) {
+			if(user.get_currentAlias() != null && m3.helper.StringHelper.isNotBlank(user.get_currentAlias().imgSrc)) imgSrc = user.get_currentAlias().imgSrc; else if(m3.helper.StringHelper.isNotBlank(user.imgSrc)) imgSrc = user.imgSrc;
 		}
-		if(m3.helper.StringHelper.isBlank(imgSrc)) imgSrc = "media/default_avatar.jpg";
-		var img = new $("<img alt='user' src='" + imgSrc + "' class='shadow'/>");
+		var img = new $("<img id='usa_profile'alt='user' src='" + imgSrc + "' class='shadow'/>");
 		container.append(img);
 		var menu = new $("<ul id='userCompMenu'></ul>");
 		menu.appendTo(container);
@@ -7393,6 +7400,10 @@ var defineWidget = function() {
 			dlg.m3dialog({ width : 800, height : 305, title : "Profile Picture Uploader", buttons : { Cancel : function() {
 				$(this).m3dialog("close");
 			}, 'Set Profile Image' : function() {
+				new $("#usa_profile").attr("src",ui.widget.UploadCompHelper.value(uploadComp));
+				ui.AgentUi.USER.imgSrc = ui.widget.UploadCompHelper.value(uploadComp);
+				ui.model.EM.change(ui.model.EMEvent.USER_UPDATE,ui.AgentUi.USER);
+				$(this).m3dialog("close");
 			}}});
 		}}], width : 225}).hide();
 		img.click(function(evt) {
