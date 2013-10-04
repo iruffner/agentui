@@ -163,7 +163,7 @@ class ProtocolHandler {
 							
 							user.sessionURI = response.contentImpl.sessionURI;
 							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.contentImpl.listOfCnxns);
-							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.contentImpl.listOfLabels);
+							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.contentImpl.labels);
 							user.userData = response.contentImpl.jsonBlob;
 							//open comm's with server
 							_startPolling(user.sessionURI);
@@ -244,14 +244,25 @@ class ProtocolHandler {
 		ping.contentImpl = new PayloadWithSessionURI();
 		ping.contentImpl.sessionURI = sessionURI;
 
-		listeningChannel = new LongPollingRequest(ping, function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {
-				var processor: Dynamic->Void = processHash.get(data.msgType);
+		listeningChannel = new LongPollingRequest(ping, function(data: String, textStatus: String, jqXHR: JQXHR): Void {
+				var json: {msgType: String} = haxe.Json.parse(data);
+				var msgType: MsgType = {
+					try {
+						Type.createEnum(MsgType, json.msgType);
+					} catch (err: Dynamic) {
+						null;
+					}
+				}
+				var processor: Dynamic->Void = processHash.get(msgType);
 				if(processor == null) {
-					AgentUi.LOGGER.info("long poll response was empty");
+					if(json != null)
+						AgentUi.LOGGER.info("no processor for " + json.msgType);
+					else 
+						AgentUi.LOGGER.info("no data returned on polling channel response");
 					// js.Lib.alert("Don't know how to handle " + data.msgType);
 					return;
 				} else {
-					AgentUi.LOGGER.debug("received " + data.msgType);
+					AgentUi.LOGGER.debug("received " + json.msgType);
 					processor(data);
 				}
 			});

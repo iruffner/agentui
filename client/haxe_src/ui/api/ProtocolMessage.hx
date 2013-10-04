@@ -4,6 +4,8 @@ import ui.model.ModelObj;
 import ui.model.Filter;
 import m3.exception.Exception;
 
+using m3.helper.ArrayHelper;
+
 interface HasContent<T> {
 	function getContent(): T;
 }
@@ -114,10 +116,17 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 			public var sessionURI: String;
 			public var listOfAliases: Array<String>;
 			public var defaultAlias: String;
-			public var listOfLabels: Array<Label>;
 			public var listOfCnxns: Array<Connection>;
 			public var lastActiveLabel: String;
 			public var jsonBlob: UserData;
+			var listOfLabels: Array<String>;
+			@:transient public var labels(get,never): Array<Label>;
+
+			function get_labels(): Array<Label> {
+				if(listOfLabels.hasValues())
+					return Alias._processDataLog(listOfLabels[0]);
+				else return null;
+			}
 		}
 
 class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData> {

@@ -139,7 +139,7 @@ class Alias extends ModelObj<Alias> {
 				if(children.hasValues()) {
 					s += "n_" + l.text + "(" + _processLabelChildren(children) + ")";
 				} else {
-					s += "'" + l.text + "'";
+					s += "\"" + l.text + "\"";
 				}
 
 				sarray.push(s);
@@ -162,7 +162,7 @@ class Alias extends ModelObj<Alias> {
 					s += _processLabelChildren(children);
 					s += ")";
 				} else {
-					s += "'" + l.text + "'";
+					s += "\"" + l.text + "\"";
 				}
 
 				return s;
@@ -171,7 +171,7 @@ class Alias extends ModelObj<Alias> {
 		return str;
 	}
 
-	public function _processDataLog(str: String): Array<Label> {
+	public static function _processDataLog(str: String): Array<Label> {
 		var larray: Array<Label> = new Array<Label>();
 		var parser: LabelStringParser = new LabelStringParser(str);
 		var term: String = parser.nextTerm();
@@ -182,7 +182,7 @@ class Alias extends ModelObj<Alias> {
 		return larray;
 	}
 
-	public function _processDataLogChildren(parentLabel: Label, parser: LabelStringParser): Array<Label> {
+	public static function _processDataLogChildren(parentLabel: Label, parser: LabelStringParser): Array<Label> {
 		var larray: Array<Label> = new Array<Label>();
 		var term = parser.nextTerm();
 		if(term == "(") { // this was the leading paren
