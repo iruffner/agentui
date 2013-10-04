@@ -4099,16 +4099,22 @@ ui.api.ProtocolHandler = function() {
 	ui.model.EM.addListener(ui.model.EMEvent.CreateLabel,new ui.model.EMListener(function(label) {
 		_g.createLabel(label);
 	}));
-	this.processHash = new haxe.ds.StringMap();
-	this.processHash.set(Std.string(ui.api.MsgType.evalResponse),function(data) {
+	this.processHash = new haxe.ds.EnumValueMap();
+	this.processHash.set(ui.api.MsgType.evalResponse,function(data) {
 		var evalResponse = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.EvalResponse);
 		ui.model.EM.change(ui.model.EMEvent.MoreContent,evalResponse.contentImpl.pageOfPosts);
 	});
-	this.processHash.set(Std.string(ui.api.MsgType.evalComplete),function(data) {
+	this.processHash.set(ui.api.MsgType.evalComplete,function(data) {
 		var evalComplete = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.EvalComplete);
 		ui.model.EM.change(ui.model.EMEvent.EndOfContent,evalComplete.contentImpl.pageOfPosts);
 	});
-	this.processHash.set(Std.string(ui.api.MsgType.sessionPong),function(data) {
+	this.processHash.set(ui.api.MsgType.sessionPong,function(data) {
+	});
+	this.processHash.set(ui.api.MsgType.updateUserResponse,function(data) {
+		ui.AgentUi.LOGGER.debug("updateUserResponse was received from the server");
+	});
+	this.processHash.set(ui.api.MsgType.addAliasLabelsResponse,function(data) {
+		ui.AgentUi.LOGGER.debug("addAliasLabelsResponse was received from the server");
 	});
 };
 $hxClasses["ui.api.ProtocolHandler"] = ui.api.ProtocolHandler;
@@ -4146,49 +4152,15 @@ ui.api.ProtocolHandler.prototype = {
 			ui.AgentUi.LOGGER.error("Error executing content post",ex);
 		}
 	}
-	,updateUser: function(newUser) {
-		var _g = this;
+	,updateUser: function(user) {
 		var request = new ui.api.UpdateUserRequest();
 		var data = new ui.api.UpdateUserRequestData();
 		request.contentImpl = data;
+		data.jsonBlob = user.userData;
 		try {
 			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
-				if(data1.msgType == ui.api.MsgType.initializeSessionResponse) try {
-					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.InitializeSessionResponse,false);
-					var user = new ui.model.User();
-					user.aliasSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier);
-					user.aliasSet.visualId = "User Aliases";
-					var _g1 = 0, _g11 = response.contentImpl.listOfAliases;
-					while(_g1 < _g11.length) {
-						var alias_ = _g11[_g1];
-						++_g1;
-						var alias = new ui.model.Alias();
-						alias.label = alias_;
-						alias.uid = m3.util.UidGenerator.create(12);
-						user.aliasSet.add(alias);
-					}
-					if(!m3.helper.OSetHelper.hasValues(user.aliasSet)) {
-						ui.AgentUi.LOGGER.error("Agent has no Aliases!!");
-						user.set_currentAlias(new ui.model.Alias());
-						user.get_currentAlias().label = "default";
-						user.get_currentAlias().uid = m3.util.UidGenerator.create(12);
-						user.aliasSet.add(user.get_currentAlias());
-					}
-					if(m3.helper.StringHelper.isNotBlank(response.contentImpl.defaultAlias)) user.set_currentAlias(m3.helper.OSetHelper.getElementComplex(user.aliasSet,response.contentImpl.defaultAlias,"label")); else user.set_currentAlias(user.aliasSet.iterator().next());
-					user.sessionURI = response.contentImpl.sessionURI;
-					user.get_currentAlias().connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,response.contentImpl.listOfCnxns);
-					user.get_currentAlias().labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,response.contentImpl.listOfLabels);
-					user.userData = response.contentImpl.jsonBlob;
-					_g._startPolling(user.sessionURI);
-					ui.AgentUi.LOGGER.error("Enable firing new user event");
-				} catch( e ) {
-					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
-						ui.AgentUi.LOGGER.error("Serialization error",e);
-					} else throw(e);
-				} else if(data1.msgType == ui.api.MsgType.initializeSessionError) {
-					var error = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.InitializeSessionError);
-					throw new ui.exception.InitializeSessionException(error,"Login error");
-				} else throw new m3.exception.Exception("Unknown login error");
+				ui.AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
+				ui.model.EM.change(ui.model.EMEvent.USER,user);
 			}).start();
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
@@ -4358,7 +4330,7 @@ ui.api.ProtocolHandler.prototype = {
 					user.get_currentAlias().labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,response.contentImpl.listOfLabels);
 					user.userData = response.contentImpl.jsonBlob;
 					_g._startPolling(user.sessionURI);
-					if(!ui.AgentUi.DEMO) ui.model.EM.change(ui.model.EMEvent.USER,user); else ui.AgentUi.LOGGER.error("Enable firing new user event");
+					if(!ui.AgentUi.DEMO) ui.model.EM.change(ui.model.EMEvent.USER,user);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
@@ -4754,7 +4726,7 @@ ui.api.InsertContentData.__super__ = ui.api.Payload;
 ui.api.InsertContentData.prototype = $extend(ui.api.Payload.prototype,{
 	__class__: ui.api.InsertContentData
 });
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createUserRequest","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","createUserError","insertContent","addAliasLabelsRequest","addAliasLabelsResponse"] }
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createUserRequest","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","createUserError","insertContent","addAliasLabelsRequest","addAliasLabelsResponse"] }
 ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
 ui.api.MsgType.initializeSessionRequest.toString = $estr;
 ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
@@ -4809,16 +4781,19 @@ ui.api.MsgType.createUserResponse.__enum__ = ui.api.MsgType;
 ui.api.MsgType.updateUserRequest = ["updateUserRequest",17];
 ui.api.MsgType.updateUserRequest.toString = $estr;
 ui.api.MsgType.updateUserRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.createUserError = ["createUserError",18];
+ui.api.MsgType.updateUserResponse = ["updateUserResponse",18];
+ui.api.MsgType.updateUserResponse.toString = $estr;
+ui.api.MsgType.updateUserResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.createUserError = ["createUserError",19];
 ui.api.MsgType.createUserError.toString = $estr;
 ui.api.MsgType.createUserError.__enum__ = ui.api.MsgType;
-ui.api.MsgType.insertContent = ["insertContent",19];
+ui.api.MsgType.insertContent = ["insertContent",20];
 ui.api.MsgType.insertContent.toString = $estr;
 ui.api.MsgType.insertContent.__enum__ = ui.api.MsgType;
-ui.api.MsgType.addAliasLabelsRequest = ["addAliasLabelsRequest",20];
+ui.api.MsgType.addAliasLabelsRequest = ["addAliasLabelsRequest",21];
 ui.api.MsgType.addAliasLabelsRequest.toString = $estr;
 ui.api.MsgType.addAliasLabelsRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.addAliasLabelsResponse = ["addAliasLabelsResponse",21];
+ui.api.MsgType.addAliasLabelsResponse = ["addAliasLabelsResponse",22];
 ui.api.MsgType.addAliasLabelsResponse.toString = $estr;
 ui.api.MsgType.addAliasLabelsResponse.__enum__ = ui.api.MsgType;
 ui.api.Reason = $hxClasses["ui.api.Reason"] = { __ename__ : ["ui","api","Reason"], __constructs__ : [] }

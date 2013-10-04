@@ -99,7 +99,7 @@ extern class UserComp extends JQ {
 													},
 													"Set Profile Image": function() {
 														// TODO Peter
-														ui.AgentUi.USER.userData.profileImg = //base 64 data
+														// ui.AgentUi.USER.userData.profileImg = //base 64 data
 														//fire EMEvent.USER_UPDATE
 													}
         										}

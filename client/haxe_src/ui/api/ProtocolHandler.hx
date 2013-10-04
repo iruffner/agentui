@@ -26,7 +26,7 @@ class ProtocolHandler {
 
 	private var filterIsRunning: Bool = false;
 	private var listeningChannel: Requester;
-	private var processHash: Map<String,Dynamic->Void>;
+	private var processHash: Map<MsgType,Dynamic->Void>;
 
 	public function new() {
 		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
@@ -78,7 +78,7 @@ class ProtocolHandler {
             })
         );
 
-        EM.addListener(EMEvent.USER_UPDATE, new EMListener(function(user: NewUser): Void {
+        EM.addListener(EMEvent.USER_UPDATE, new EMListener(function(user: User): Void {
                 updateUser(user);
             })
         );
@@ -98,19 +98,25 @@ class ProtocolHandler {
     		})
         );
 
-        processHash = new Map<String,Dynamic->Void>();
-        processHash.set(Std.string(MsgType.evalResponse), function(data: Dynamic){
+        processHash = new Map<MsgType,Dynamic->Void>();
+        processHash.set(MsgType.evalResponse, function(data: Dynamic){
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
         		//TODO need to make sure this is wired to properly push into the observable set
         		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.pageOfPosts); 
         	});
-        processHash.set(Std.string(MsgType.evalComplete), function(data: Dynamic){
+        processHash.set(MsgType.evalComplete, function(data: Dynamic){
         		var evalComplete: EvalComplete = AgentUi.SERIALIZER.fromJsonX(data, EvalComplete);
         		//TODO need to make sure this is wired to properly push into the observable set
         		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.pageOfPosts); 
         	});
-        processHash.set(Std.string(MsgType.sessionPong), function(data: Dynamic){
+        processHash.set(MsgType.sessionPong, function(data: Dynamic){
         		//nothing to do with this message
+        	});
+        processHash.set(MsgType.updateUserResponse, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("updateUserResponse was received from the server");
+        	});
+        processHash.set(MsgType.addAliasLabelsResponse, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("addAliasLabelsResponse was received from the server");
         	});
 	}
 
@@ -164,8 +170,6 @@ class ProtocolHandler {
 
 							if(!ui.AgentUi.DEMO) {
 								EM.change(EMEvent.USER, user);
-							} else {
-								AgentUi.LOGGER.error("Enable firing new user event");
 							}
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
@@ -187,7 +191,6 @@ class ProtocolHandler {
 			js.Lib.alert(err);
 		}
 	}
-
 
 	public function filter(filter: Filter): Void {
 		filter.rootNode.log();
@@ -338,60 +341,16 @@ class ProtocolHandler {
 		}
 	}
 
-	public function updateUser(newUser: NewUser): Void {
+	public function updateUser(user: User): Void {
 		var request: UpdateUserRequest = new UpdateUserRequest();
 		var data: UpdateUserRequestData = new UpdateUserRequestData();
 		request.contentImpl = data;
+		data.jsonBlob = user.userData;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					if(data.msgType == MsgType.initializeSessionResponse) {
-						try {
-				        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
-
-				        	var user: User = new User();
-				        	user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);
-				        	user.aliasSet.visualId = "User Aliases";
-				        	for( alias_ in response.contentImpl.listOfAliases) {
-				        		var alias: Alias = new Alias();
-				        		alias.label = alias_;
-				        		alias.uid = UidGenerator.create(12);
-				        		user.aliasSet.add(alias);
-				        	}
-				        	if(!user.aliasSet.hasValues()) {
-				        		AgentUi.LOGGER.error("Agent has no Aliases!!");
-				        		user.currentAlias = new Alias();
-				        		user.currentAlias.label = "default";
-				        		user.currentAlias.uid = UidGenerator.create(12);
-				        		user.aliasSet.add(user.currentAlias);
-				        	}
-
-				        	if(response.contentImpl.defaultAlias.isNotBlank()) {
-				        		user.currentAlias = user.aliasSet.getElementComplex( response.contentImpl.defaultAlias , "label" );
-				        	} else {
-				        		user.currentAlias = user.aliasSet.iterator().next();
-				        	}
-							
-							user.sessionURI = response.contentImpl.sessionURI;
-							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.contentImpl.listOfCnxns);
-							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.contentImpl.listOfLabels);
-							user.userData = response.contentImpl.jsonBlob;
-
-							//open comm's with server
-							_startPolling(user.sessionURI);
-
-							// EM.change(EMEvent.User, user);
-							AgentUi.LOGGER.error("Enable firing new user event");
-						} catch (e: JsonException) {
-							AgentUi.LOGGER.error("Serialization error", e);
-						}
-			        } else if(data.msgType == MsgType.initializeSessionError) {
-			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
-			        	throw new InitializeSessionException(error, "Login error");
-			        } else {
-			        	//something unexpected..
-			        	throw new Exception("Unknown login error");
-			        }
+					AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
+					EM.change(EMEvent.USER, user);
 				}).start();
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);

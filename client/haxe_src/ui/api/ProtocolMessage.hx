@@ -284,6 +284,7 @@ enum MsgType {
 	confirmEmailToken;
 	createUserResponse;
 	updateUserRequest;
+	updateUserResponse;
 	createUserError;
 	insertContent;
 	addAliasLabelsRequest;
