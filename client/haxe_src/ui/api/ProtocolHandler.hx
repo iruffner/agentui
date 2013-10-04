@@ -6,6 +6,7 @@ import ui.exception.InitializeSessionException;
 import m3.exception.Exception;
 import m3.serialization.Serialization.JsonException;
 import m3.log.Logga;
+import m3.util.UidGenerator;
 
 import ui.model.ModelObj;
 import ui.model.Node;
@@ -17,6 +18,8 @@ import ui.api.Requester;
 import ui.api.ProtocolMessage;
 
 using m3.helper.ArrayHelper;
+using m3.helper.OSetHelper;
+using m3.helper.StringHelper;
 using Lambda;
 
 class ProtocolHandler {
@@ -30,9 +33,9 @@ class ProtocolHandler {
 				if(filterIsRunning) {
 					try {
 						var stopEval: StopEvalRequest = new StopEvalRequest();
-						var stopData: StopMsgData = new StopMsgData();
+						var stopData: PayloadWithSessionURI = new PayloadWithSessionURI();
 						stopData.sessionURI = AgentUi.USER.sessionURI;
-						stopEval.setContent(stopData);
+						stopEval.contentImpl = stopData;
 						new StandardRequest(stopEval, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 							AgentUi.LOGGER.debug("stopEval successfully submitted");
 	                		this.filter(filter);
@@ -99,12 +102,12 @@ class ProtocolHandler {
         processHash.set(Std.string(MsgType.evalResponse), function(data: Dynamic){
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
         		//TODO need to make sure this is wired to properly push into the observable set
-        		EM.change(EMEvent.MoreContent, evalResponse.content.pageOfPosts); 
+        		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.pageOfPosts); 
         	});
         processHash.set(Std.string(MsgType.evalComplete), function(data: Dynamic){
         		var evalComplete: EvalComplete = AgentUi.SERIALIZER.fromJsonX(data, EvalComplete);
         		//TODO need to make sure this is wired to properly push into the observable set
-        		EM.change(EMEvent.EndOfContent, evalComplete.content.pageOfPosts); 
+        		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.pageOfPosts); 
         	});
         processHash.set(Std.string(MsgType.sessionPong), function(data: Dynamic){
         		//nothing to do with this message
@@ -119,7 +122,7 @@ class ProtocolHandler {
 
 		var request: InitializeSessionRequest = new InitializeSessionRequest();
 		var requestData: InitializeSessionRequestData = new InitializeSessionRequestData();
-		request.setContent(requestData);
+		request.contentImpl = requestData;
 		requestData.agentURI = login.getUri();
 		try {
 			var loginRequest: StandardRequest = new StandardRequest(
@@ -130,12 +133,32 @@ class ProtocolHandler {
 				        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
 
 				        	var user: User = new User();
-							user.currentAlias = response.content.defaultAlias;
-							user.sessionURI = response.content.sessionURI;
-							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.content.listOfCnxns);
-							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.content.listOfLabels);
-							user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier, response.content.listOfAliases);
-							user.userData = response.content.jsonBlob;
+				        	user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);
+				        	user.aliasSet.visualId = "User Aliases";
+				        	for( alias_ in response.contentImpl.listOfAliases) {
+				        		var alias: Alias = new Alias();
+				        		alias.label = alias_;
+				        		alias.uid = UidGenerator.create(12);
+				        		user.aliasSet.add(alias);
+				        	}
+				        	if(!user.aliasSet.hasValues()) {
+				        		AgentUi.LOGGER.error("Agent has no Aliases!!");
+				        		user.currentAlias = new Alias();
+				        		user.currentAlias.label = "default";
+				        		user.currentAlias.uid = UidGenerator.create(12);
+				        		user.aliasSet.add(user.currentAlias);
+				        	}
+
+				        	if(response.contentImpl.defaultAlias.isNotBlank()) {
+				        		user.currentAlias = user.aliasSet.getElementComplex( response.contentImpl.defaultAlias , "label" );
+				        	} else {
+				        		user.currentAlias = user.aliasSet.iterator().next();
+				        	}
+							
+							user.sessionURI = response.contentImpl.sessionURI;
+							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.contentImpl.listOfCnxns);
+							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.contentImpl.listOfLabels);
+							user.userData = response.contentImpl.jsonBlob;
 							//open comm's with server
 							_startPolling(user.sessionURI);
 
@@ -179,7 +202,7 @@ class ProtocolHandler {
 			var evalRequestData: EvalRequestData = new EvalRequestData();
 			evalRequestData.expression = "feed( " + string + " )";
 			evalRequestData.sessionURI = AgentUi.USER.sessionURI;
-			evalRequest.setContent(evalRequestData);
+			evalRequest.contentImpl = evalRequestData;
 			try {
 				//we don't expect anything back here
 				new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -197,7 +220,7 @@ class ProtocolHandler {
 		var nextPageRequestData: EvalNextPageRequestData = new EvalNextPageRequestData();
 		nextPageRequestData.nextPage = nextPageURI;
 		nextPageRequestData.sessionURI = AgentUi.USER.sessionURI;//"agent-session://myLovelySession/1234,";
-		nextPageRequest.setContent(nextPageRequestData);
+		nextPageRequest.contentImpl = nextPageRequestData;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(nextPageRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -215,8 +238,8 @@ class ProtocolHandler {
 
 	private function _startPolling(sessionURI: String): Void {
 		var ping: SessionPingRequest = new SessionPingRequest();
-		ping.setContent(new SessionPingRequestData());
-		ping.content.sessionURI = sessionURI;
+		ping.contentImpl = new PayloadWithSessionURI();
+		ping.contentImpl.sessionURI = sessionURI;
 
 		listeningChannel = new LongPollingRequest(ping, function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {
 				var processor: Dynamic->Void = processHash.get(data.msgType);
@@ -235,7 +258,7 @@ class ProtocolHandler {
 	public function createUser(newUser: NewUser): Void {
 		var request: CreateUserRequest = new CreateUserRequest();
 		var data: UserRequestData = new UserRequestData();
-		request.setContent(data);
+		request.contentImpl = data;
 		data.email = newUser.email;
 		data.password = newUser.pwd;
 		data.jsonBlob = {};
@@ -246,7 +269,7 @@ class ProtocolHandler {
 						try {
 				        	var response: CreateUserResponse = AgentUi.SERIALIZER.fromJsonX(data, CreateUserResponse, false);
 
-				        	AgentUi.agentURI = response.content.agentURI;
+				        	AgentUi.agentURI = response.contentImpl.agentURI;
 				        	//TODO put this value into the url
 							//AgentUi.showLogin(); -> firing the USER_SIGNUP will close the NewUserComp, 
 							EM.change(EMEvent.USER_SIGNUP);
@@ -285,7 +308,7 @@ class ProtocolHandler {
 	public function validateUser(token: String): Void {
 		var request: ConfirmUserToken = new ConfirmUserToken();
 		var data: ConfirmUserTokenData = new ConfirmUserTokenData();
-		request.setContent(data);
+		request.contentImpl = data;
 		data.token = token;
 		try {
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -293,7 +316,7 @@ class ProtocolHandler {
 						try {
 				        	var response: CreateUserResponse = AgentUi.SERIALIZER.fromJsonX(data, CreateUserResponse, false);
 
-				        	AgentUi.agentURI = response.content.agentURI;
+				        	AgentUi.agentURI = response.contentImpl.agentURI;
 				        	//TODO put this value into the url
 							//AgentUi.showLogin(); -> firing the USER_VALIDATED will close the SignupConfirmationDialog, 
 							EM.change(EMEvent.USER_VALIDATED);
@@ -318,9 +341,7 @@ class ProtocolHandler {
 	public function updateUser(newUser: NewUser): Void {
 		var request: UpdateUserRequest = new UpdateUserRequest();
 		var data: UpdateUserRequestData = new UpdateUserRequestData();
-		request.setContent(data);
-		data.email = newUser.email;
-		data.password = newUser.pwd;
+		request.contentImpl = data;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -329,13 +350,32 @@ class ProtocolHandler {
 				        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
 
 				        	var user: User = new User();
-							user.currentAlias = response.content.defaultAlias;
-							user.sessionURI = response.content.sessionURI;
-							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.content.listOfCnxns);
-							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.content.listOfLabels);
-							user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier, response.content.listOfAliases);
-							//TODO user.imgSrc
-							//TODO user.fname
+				        	user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);
+				        	user.aliasSet.visualId = "User Aliases";
+				        	for( alias_ in response.contentImpl.listOfAliases) {
+				        		var alias: Alias = new Alias();
+				        		alias.label = alias_;
+				        		alias.uid = UidGenerator.create(12);
+				        		user.aliasSet.add(alias);
+				        	}
+				        	if(!user.aliasSet.hasValues()) {
+				        		AgentUi.LOGGER.error("Agent has no Aliases!!");
+				        		user.currentAlias = new Alias();
+				        		user.currentAlias.label = "default";
+				        		user.currentAlias.uid = UidGenerator.create(12);
+				        		user.aliasSet.add(user.currentAlias);
+				        	}
+
+				        	if(response.contentImpl.defaultAlias.isNotBlank()) {
+				        		user.currentAlias = user.aliasSet.getElementComplex( response.contentImpl.defaultAlias , "label" );
+				        	} else {
+				        		user.currentAlias = user.aliasSet.iterator().next();
+				        	}
+							
+							user.sessionURI = response.contentImpl.sessionURI;
+							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.contentImpl.listOfCnxns);
+							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.contentImpl.listOfLabels);
+							user.userData = response.contentImpl.jsonBlob;
 
 							//open comm's with server
 							_startPolling(user.sessionURI);
@@ -362,9 +402,9 @@ class ProtocolHandler {
 	public function post(content: Content): Void {
 		var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
 		var data: EvalRequestData = new EvalRequestData();
-		evalRequest.setContent(data);
+		evalRequest.contentImpl = data;
 		data.sessionURI = AgentUi.USER.sessionURI;
-		// data.expression = content.toInsertExpression();
+		// data.expression = contentImpl.toInsertExpression();
 		data.expression = AgentUi.SERIALIZER.toJson(content);
 		try {
 			//we don't expect anything back here
@@ -378,21 +418,12 @@ class ProtocolHandler {
 	}
 
 	public function createLabel(label: Label): Void {
-		var evalRequest: TempAddAliasLabel = new TempAddAliasLabel();
-		var data: TempAddAliasLabelData = new TempAddAliasLabelData();
-		evalRequest.setContent(data);
+		var evalRequest: AddAliasLabelsRequest = new AddAliasLabelsRequest();
+		var data: AddAliasLabelsRequestData = new AddAliasLabelsRequestData();
+		evalRequest.contentImpl = data;
 		data.sessionURI = AgentUi.USER.sessionURI;
-		var insertContent: InsertContent = new InsertContent();
-		data.expression = insertContent;
-		var insertData: InsertContentData = new InsertContentData();
-		insertContent.setContent(insertData);
-		var labelConnection: Connection = new Connection();
-		labelConnection.src = "alias://test";
-		labelConnection.trgt = "alias://test";
-		labelConnection.label = "test";
-		insertData.cnxns = [labelConnection];
-		insertData.label = "labelList";
-		insertData.value = ui.AgentUi.USER.currentAlias.labelsAsString();
+		data.labels = [AgentUi.USER.currentAlias.labelsAsString()];
+		data.alias = AgentUi.USER.currentAlias.label;
 
 		try {
 			//we don't expect anything back here

@@ -10,8 +10,8 @@ interface HasContent<T> {
 
 @:rtti
 class ProtocolMessage<T>  {
-	@:isVar public var content(get,null): Dynamic;
-	@:transient var contentImpl: T;
+	@:isVar var content: Dynamic;
+	@:transient public var contentImpl: T;
 	@:transient var type: Class<T>;
 
 	public var msgType(default, null): MsgType;
@@ -28,19 +28,15 @@ class ProtocolMessage<T>  {
 	private function writeResolve(): Void {
 		this.content = AgentUi.SERIALIZER.toJson(this.contentImpl);
 	}
-
-	private function get_content(): T {
-		return contentImpl;
-	}
-
-	public function setContent(t: T): Void {
-		contentImpl = t;
-	}
 }
 
 @:rtti
 class Payload {
 	public function new() {}
+}
+
+class PayloadWithSessionURI extends Payload {
+	public var sessionURI: String;
 }
 
 /** 
@@ -90,8 +86,8 @@ class UpdateUserRequest extends ProtocolMessage<UpdateUserRequestData> {
 	}
 }
 
-		class UpdateUserRequestData extends UserRequestData {
-			public var sessionId: String;
+		class UpdateUserRequestData extends PayloadWithSessionURI {
+			public var jsonBlob: Dynamic;
 		}
 
 
@@ -116,11 +112,11 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 
 		class InitializeSessionResponseData extends Payload {
 			public var sessionURI: String;
-			public var listOfAliases: Array<Alias>;
-			public var defaultAlias: Alias;
+			public var listOfAliases: Array<String>;
+			public var defaultAlias: String;
 			public var listOfLabels: Array<Label>;
 			public var listOfCnxns: Array<Connection>;
-			public var lastActiveFilter: String;
+			public var lastActiveLabel: String;
 			public var jsonBlob: UserData;
 		}
 
@@ -138,44 +134,33 @@ class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData>
 /** 
 	Ping/pop Request/Response 
 **/
-class SessionPingRequest extends ProtocolMessage<SessionPingRequestData> {
+class SessionPingRequest extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.sessionPing, SessionPingRequestData);
+		super(MsgType.sessionPing, PayloadWithSessionURI);
 	}
 }
 
-		class SessionPingRequestData extends Payload {
-			public var sessionURI: String;
-		}
-
-class SessionPongResponse extends ProtocolMessage<SessionPongResponseData> {
+class SessionPongResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.sessionPong, SessionPongResponseData);
+		super(MsgType.sessionPong, PayloadWithSessionURI);
 	}
 }
 
-		class SessionPongResponseData extends Payload {
-			public var sessionURI: String;
-		}
 
 /** 
 	Close Session Request/Response 
 **/
-class CloseSessionRequest extends ProtocolMessage<CloseSessionData> {
+class CloseSessionRequest extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.closeSessionRequest, CloseSessionData);
+		super(MsgType.closeSessionRequest, PayloadWithSessionURI);
 	}
 }
 
-class CloseSessionResponse extends ProtocolMessage<CloseSessionData> {
+class CloseSessionResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.closeSessionResponse, CloseSessionData);
+		super(MsgType.closeSessionResponse, PayloadWithSessionURI);
 	}
 }
-
-		class CloseSessionData extends Payload {
-			public var sessionURI: String;
-		}
 
 /** 
 	Evaluate Request/Response 
@@ -186,8 +171,7 @@ class EvalSubscribeRequest extends ProtocolMessage<EvalRequestData> {
 	}
 }
 
-		class EvalRequestData extends Payload {
-			public var sessionURI: String;
+		class EvalRequestData extends PayloadWithSessionURI {
 			public var expression: Dynamic;
 		}
 
@@ -197,8 +181,7 @@ class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
 	}
 }
 
-		class EvalNextPageRequestData extends Payload {
-			public var sessionURI: String;
+		class EvalNextPageRequestData extends PayloadWithSessionURI {
 			public var nextPage: String;
 		}
 
@@ -214,8 +197,7 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 	}
 }
 
-		class EvalResponseData extends Payload {
-			public var sessionURI: String;
+		class EvalResponseData extends PayloadWithSessionURI {
 			public var pageOfPosts: Array<Content>;
 		}
 
@@ -225,29 +207,24 @@ class EvalError extends ProtocolMessage<EvalErrorData> {
 	}
 }
 
-		class EvalErrorData extends Payload {
-			public var sessionURI: String;
+		class EvalErrorData extends PayloadWithSessionURI {
 			public var errorMsg: String;
 		}
 
 /** 
 	Stop Evaluation Request/Response 
 **/
-class StopEvalRequest extends ProtocolMessage<StopMsgData> {
+class StopEvalRequest extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.stopEvalRequest, StopMsgData);
+		super(MsgType.stopEvalRequest, PayloadWithSessionURI);
 	}
 }
 
-class StopEvalResponse extends ProtocolMessage<StopMsgData> {
+class StopEvalResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.stopEvalResponse, StopMsgData);
+		super(MsgType.stopEvalResponse, PayloadWithSessionURI);
 	}
 }
-
-		class StopMsgData extends Payload {
-			public var sessionURI: String;
-		}
 
 class TempAddAliasLabel extends ProtocolMessage<TempAddAliasLabelData> {
 	public function new() {
@@ -255,16 +232,26 @@ class TempAddAliasLabel extends ProtocolMessage<TempAddAliasLabelData> {
 	}
 }
 
-		class TempAddAliasLabelData extends Payload {
-			public var sessionURI: String;
+		class TempAddAliasLabelData extends PayloadWithSessionURI {
 			public var expression: InsertContent;
 		}
 
-// class AddAliasLabel extends ProtocolMessage<AddAliasLabel> {
-// 	public function new() {
-// 		this.msgType = MsgType.addAliasLabel;
-// 	}
-// }
+class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
+	public function new() {
+		super(MsgType.addAliasLabelsRequest, AddAliasLabelsRequestData);
+	}
+}
+
+		class AddAliasLabelsRequestData extends PayloadWithSessionURI {
+			public var labels: Array<String>;
+			public var alias: String;
+		}
+
+class AddAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
+	public function new() {
+		super(MsgType.addAliasLabelsResponse, PayloadWithSessionURI);
+	}
+}
 
 class InsertContent extends ProtocolMessage<InsertContentData> {
 	public function new() {
@@ -299,7 +286,8 @@ enum MsgType {
 	updateUserRequest;
 	createUserError;
 	insertContent;
-	// addAliasLabel;
+	addAliasLabelsRequest;
+	addAliasLabelsResponse;
 }
 
 enum Reason {

@@ -16,7 +16,7 @@ using Lambda;
 
 @:rtti
 class ModelObj<T> {
-	public var uid: String;
+	@:transient public var uid: String;
 
 	public static function identifier<T>(t: {uid: String}): String {
 		return t.uid;
@@ -114,6 +114,8 @@ class Alias extends ModelObj<Alias> {
 	@:transient public var connectionSet: ObservableSet<Connection>;
 	private var connections: Array<Connection>;
 
+	@:transient var loadedFromDb: Bool = false;
+
 
 	public function new () {}
 
@@ -160,7 +162,7 @@ class Alias extends ModelObj<Alias> {
 					s += _processLabelChildren(children);
 					s += ")";
 				} else {
-					s += "\\\"" + l.text + "\\\"";
+					s += l.text;
 				}
 
 				return s;
@@ -268,37 +270,6 @@ class Content extends ModelObj<Content> {
 		labels = labelSet.asArray();
 		connections = connectionSet.asArray();
 	}
-
-	// public function toInsertExpression(): String {
-	// 	var str: String = "InsertContent(";
-	// 	var labels = labelSet.joinX(",");
-	// 	if(labels.isNotBlank()) {
-	// 		if(labels.contains(",")) {
-	// 			str += "any(" + labels + ")";
-	// 		} else {
-	// 			str += labels;
-	// 		}
-	// 	} else {
-	// 		str += "_";
-	// 	}
-	// 	str += ",";
-
-	// 	var conns = connectionSet.joinX(",");
-	// 	if(conns.isNotBlank()) {
-	// 		if(conns.contains(",")) {
-	// 			str += "any(" + conns + "," + AgentUi.USER.uid + ")";
-	// 		} else {
-	// 			str += conns + "," + AgentUi.USER.uid;
-	// 		}
-	// 	} else {
-	// 		str += AgentUi.USER.uid;
-	// 	}
-	// 	str += ",";
-
-	// 	str += AgentUi.SERIALIZER.toJsonString(this);
-
-	// 	return str + ")";
-	// }
 }
 
 class ImageContent extends Content {
