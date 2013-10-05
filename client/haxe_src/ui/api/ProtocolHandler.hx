@@ -354,6 +354,7 @@ class ProtocolHandler {
 		var data: UpdateUserRequestData = new UpdateUserRequestData();
 		request.contentImpl = data;
 		data.jsonBlob = user.userData;
+		data.sessionURI = AgentUi.USER.sessionURI;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){

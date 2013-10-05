@@ -4181,6 +4181,7 @@ ui.api.ProtocolHandler.prototype = {
 		var data = new ui.api.UpdateUserRequestData();
 		request.contentImpl = data;
 		data.jsonBlob = user.userData;
+		data.sessionURI = ui.AgentUi.USER.sessionURI;
 		try {
 			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
