@@ -7,3 +7,4 @@ proxy/src/main/webapp/client/*
 client/haxe_src/m3
 target
 proxy/src/main/webapp/client
+*.tmproj
