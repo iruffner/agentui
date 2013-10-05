@@ -3574,15 +3574,7 @@ m3.serialization.ClassHandler.prototype = {
 			++_g;
 			if(f.required) {
 				var found = false;
-				var _g2 = 0;
-				while(_g2 < jsonFieldNames.length) {
-					var jsonFieldName = jsonFieldNames[_g2];
-					++_g2;
-					if(f.name == jsonFieldName) {
-						found = true;
-						break;
-					}
-				}
+				if(m3.helper.ArrayHelper.contains(jsonFieldNames,f.name)) found = true;
 				if(!found) reader.error("instance of " + this._typename + " has required field named " + f.name + " json does not does not " + haxe.Json.stringify(fromJson));
 			}
 		}
@@ -4143,6 +4135,10 @@ ui.api.ProtocolHandler.prototype = {
 		data.labels = [ui.model.Alias.labelsAsString(labelSet)];
 		data.alias = ui.AgentUi.USER.get_currentAlias().label;
 		try {
+			new ui.api.StandardRequest(evalRequest,function(data1,textStatus,jqXHR) {
+				ui.AgentUi.LOGGER.debug("label successfully submitted");
+				ui.AgentUi.USER.get_currentAlias().labelSet.add(label);
+			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
 			ui.AgentUi.LOGGER.error("Error executing label post",ex);
@@ -5493,7 +5489,7 @@ ui.model.Alias.labelsAsString = function(labels) {
 		var children = new m3.observable.FilteredSet(labels,function(f) {
 			return f.parentUid == l1.uid;
 		});
-		if(m3.helper.OSetHelper.hasValues(children)) s += "v" + l1.text + "(" + ui.model.Alias._processLabelChildren(labels,children) + ")"; else s += "v" + l1.text + "(X)";
+		if(m3.helper.OSetHelper.hasValues(children)) s += "n" + l1.text + "(" + ui.model.Alias._processLabelChildren(labels,children) + ")"; else s += "l" + l1.text + "(X)";
 		sarray.push(s);
 	});
 	var str = m3.helper.ArrayHelper.hasValues(sarray) && sarray.length == 1?sarray[0]:m3.helper.ArrayHelper.hasValues(sarray)?"and(" + sarray.join(",") + ")":"";
@@ -5506,10 +5502,10 @@ ui.model.Alias._processLabelChildren = function(original,set) {
 			return l1.parentUid == l1.uid;
 		});
 		if(m3.helper.OSetHelper.hasValues(children)) {
-			s += "v" + l.text + "(";
+			s += "n" + l.text + "(";
 			s += ui.model.Alias._processLabelChildren(original,children);
 			s += ")";
-		} else s += "v" + l.text + "(X)";
+		} else s += "l" + l.text + "(X)";
 		return s;
 	},"");
 	return str;
