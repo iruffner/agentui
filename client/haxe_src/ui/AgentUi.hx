@@ -39,7 +39,7 @@ using Lambda;
 class AgentUi {
     
     public static var LOGGER: Logga;
-	public static var DEMO: Bool = true;
+	public static var DEMO: Bool = false;
     public static var CONTENT: ObservableSet<Content>;
     public static var USER: User;
     public static var SERIALIZER: Serializer;
@@ -61,8 +61,8 @@ class AgentUi {
 
     public static function start(): Void {
         var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
-        if(urlVars.demo.isNotBlank() && (urlVars.demo == "no" || urlVars.demo == "false")) {
-            DEMO = false;
+        if(urlVars.demo.isNotBlank() && (urlVars.demo == "yes" || urlVars.demo == "true")) {
+            DEMO = true;
         } 
 
         new JQ("body").keyup(function(evt: JQEvent) {

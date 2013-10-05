@@ -26,12 +26,18 @@ typedef LabelCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+class LabelCompHelper {
+	public static function getLabel(l: LabelComp): Label {
+		return l.labelComp("option", "label");
+	}
+}
+
 @:native("$")
 extern class LabelComp extends FilterableComponent {
 	public static var COLORS: Array<Array<String>>;
 
-	@:overload(function(cmd : String):Bool{})
-	@:overload(function(cmd:String, opt:String):Dynamic{})
+	@:overload(function<T>(cmd : String):T{})
+	@:overload(function<T>(cmd:String, opt:String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function labelComp(opts: LabelCompOptions): LabelComp;
 

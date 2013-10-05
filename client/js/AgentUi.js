@@ -3977,7 +3977,7 @@ ui.AgentUi.main = function() {
 }
 ui.AgentUi.start = function() {
 	var urlVars = m3.util.HtmlUtil.getUrlVars();
-	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "no" || urlVars.demo == "false")) ui.AgentUi.DEMO = false;
+	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "yes" || urlVars.demo == "true")) ui.AgentUi.DEMO = true;
 	new $("body").keyup(function(evt) {
 		if(m3.helper.ArrayHelper.hasValues(ui.AgentUi.HOT_KEY_ACTIONS)) {
 			var _g1 = 0, _g = ui.AgentUi.HOT_KEY_ACTIONS.length;
@@ -4743,7 +4743,7 @@ ui.api.InsertContentData.__super__ = ui.api.Payload;
 ui.api.InsertContentData.prototype = $extend(ui.api.Payload.prototype,{
 	__class__: ui.api.InsertContentData
 });
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createUserRequest","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","createUserError","insertContent","addAliasLabelsRequest","addAliasLabelsResponse"] }
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createUserRequest","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","createUserError","insertContent","addAliasLabelsRequest","addAliasLabelsResponse","updateAliasLabelsRequest"] }
 ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
 ui.api.MsgType.initializeSessionRequest.toString = $estr;
 ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
@@ -4813,6 +4813,9 @@ ui.api.MsgType.addAliasLabelsRequest.__enum__ = ui.api.MsgType;
 ui.api.MsgType.addAliasLabelsResponse = ["addAliasLabelsResponse",22];
 ui.api.MsgType.addAliasLabelsResponse.toString = $estr;
 ui.api.MsgType.addAliasLabelsResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.updateAliasLabelsRequest = ["updateAliasLabelsRequest",23];
+ui.api.MsgType.updateAliasLabelsRequest.toString = $estr;
+ui.api.MsgType.updateAliasLabelsRequest.__enum__ = ui.api.MsgType;
 ui.api.Reason = $hxClasses["ui.api.Reason"] = { __ename__ : ["ui","api","Reason"], __constructs__ : [] }
 ui.api.Requester = function() { }
 $hxClasses["ui.api.Requester"] = ui.api.Requester;
@@ -5747,6 +5750,18 @@ ui.widget.ChatOrientation.chatRight.__enum__ = ui.widget.ChatOrientation;
 ui.widget.ChatOrientation.chatLeft = ["chatLeft",1];
 ui.widget.ChatOrientation.chatLeft.toString = $estr;
 ui.widget.ChatOrientation.chatLeft.__enum__ = ui.widget.ChatOrientation;
+ui.widget.ConnectionAvatarHelper = function() { }
+$hxClasses["ui.widget.ConnectionAvatarHelper"] = ui.widget.ConnectionAvatarHelper;
+ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelper"];
+ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
+	return c.connectionAvatar("option","connection");
+}
+ui.widget.LabelCompHelper = function() { }
+$hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
+ui.widget.LabelCompHelper.__name__ = ["ui","widget","LabelCompHelper"];
+ui.widget.LabelCompHelper.getLabel = function(l) {
+	return l.labelComp("option","label");
+}
 ui.widget.UploadCompHelper = function() { }
 $hxClasses["ui.widget.UploadCompHelper"] = ui.widget.UploadCompHelper;
 ui.widget.UploadCompHelper.__name__ = ["ui","widget","UploadCompHelper"];
@@ -7148,11 +7163,11 @@ var defineWidget = function() {
 		addConnectionsAndLabels = function(content) {
 			tags.children(".label").each(function(i,dom) {
 				var label1 = new $(dom);
-				content.labelSet.add((js.Boot.__cast(label1.labelComp("option","label") , ui.model.Label)).uid);
+				content.labelSet.add(ui.widget.LabelCompHelper.getLabel(label1).uid);
 			});
 			tags.children(".connectionAvatar").each(function(i,dom) {
 				var conn = new $(dom);
-				content.connectionSet.add((js.Boot.__cast(conn.connectionAvatar("option","connection") , ui.model.Connection)).uid);
+				content.connectionSet.add(ui.widget.ConnectionAvatarHelper.getConnection(conn).uid);
 			});
 		};
 		var postButton = new $("<button>Post</button>").appendTo(selfElement).button().click(function(evt) {
@@ -7312,7 +7327,7 @@ m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params
 m3.util.ColorProvider._INDEX = 0;
 m3.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 m3.util.UidGenerator.nums = "0123456789";
-ui.AgentUi.DEMO = true;
+ui.AgentUi.DEMO = false;
 ui.AgentUi.URL = "";
 ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<content>\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl public=\"1\">\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<readResolve set=\"method\" line=\"26\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"30\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"37\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";

@@ -26,6 +26,12 @@ typedef ConnectionAvatarWidgetDef = {
 	var destroy: Void->Void;
 }
 
+class ConnectionAvatarHelper {
+	public static function getConnection(c: ConnectionAvatar): Connection {
+		return c.connectionAvatar("option", "connection");
+	}
+}
+
 @:native("$")
 extern class ConnectionAvatar extends FilterableComponent {
 	

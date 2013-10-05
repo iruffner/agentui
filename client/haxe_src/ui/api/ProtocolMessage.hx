@@ -297,6 +297,7 @@ enum MsgType {
 	insertContent;
 	addAliasLabelsRequest;
 	addAliasLabelsResponse;
+	updateAliasLabelsRequest;
 }
 
 enum Reason {
