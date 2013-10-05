@@ -62,7 +62,6 @@ class NewUser extends ModelObj<NewUser> {
 class User extends ModelObj<User> {
 	public var sessionURI: String;
 	public var userData: UserData; 
-	@:optional public var imgSrc: String;
 	@:transient public var aliasSet: ObservableSet<Alias>;
 	private var aliases: Array<Alias>;
 	@:isVar public var currentAlias (get,set): Alias;
@@ -102,6 +101,7 @@ class User extends ModelObj<User> {
 
 class UserData extends ModelObj<UserData> {
 	public var name: String;
+	@:optional public var imgSrc: String;
 
 	public function new() { }
 }

@@ -67,12 +67,12 @@ extern class UserComp extends JQ {
 					if(user != null) {
 						if (user.currentAlias != null && user.currentAlias.imgSrc.isNotBlank()) {
 							imgSrc = user.currentAlias.imgSrc;
-						} else if (user.imgSrc.isNotBlank()){
-							imgSrc = user.imgSrc;
+						} else if (user.userData.imgSrc.isNotBlank()){
+							imgSrc = user.userData.imgSrc;
 						}
 					}
 
-		        	var img: JQ = new JQ("<img id='usa_profile'alt='user' src='" + imgSrc + "' class='shadow'/>");
+		        	var img: JQ = new JQ("<img alt='user' src='" + imgSrc + "' class='shadow'/>");
 		        	container.append(img);
 		        	var menu: M3Menu = new M3Menu("<ul id='userCompMenu'></ul>");
 		        	menu.appendTo(container);
@@ -97,8 +97,7 @@ extern class UserComp extends JQ {
 														M3Dialog.cur.m3dialog("close");
 													},
 													"Set Profile Image": function() {
-														//new JQ("#usa_profile").attr("src", uploadComp.value());
-														ui.AgentUi.USER.imgSrc = uploadComp.value();
+														ui.AgentUi.USER.userData.imgSrc = uploadComp.value();
 														EM.change(EMEvent.USER_UPDATE, ui.AgentUi.USER);
 														M3Dialog.cur.m3dialog("close");
 													}

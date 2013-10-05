@@ -422,7 +422,7 @@ class TestDao {
         user.userData = new UserData();
         user.userData.name = "Jerry Seinfeld";
         user.uid = UidGenerator.create();
-        user.imgSrc = "media/test/jerry_default.jpg";
+        user.userData.imgSrc = "media/test/jerry_default.jpg";
         user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);
         user.aliasSet.visualId = "TestAlias";
         user.aliasSet.addAll(aliases);
