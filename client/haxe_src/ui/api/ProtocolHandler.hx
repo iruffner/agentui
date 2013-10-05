@@ -30,7 +30,10 @@ class ProtocolHandler {
 
 	public function new() {
 		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
+				// TODO:  The server does not support StopEvalRequest
+				/*
 				if(filterIsRunning) {
+					AgentUi.LOGGER.debug("stopEval successfully submitted");
 					try {
 						var stopEval: StopEvalRequest = new StopEvalRequest();
 						var stopData: PayloadWithSessionURI = new PayloadWithSessionURI();
@@ -46,8 +49,9 @@ class ProtocolHandler {
                 		this.filter(filter);
 					}
 				} else {
+				*/
             		this.filter(filter);
-				}
+				/* } */
 				filterIsRunning = true;
             })
         );
@@ -201,6 +205,7 @@ class ProtocolHandler {
 			ui.AgentUi.CONTENT.addAll(content);
 			var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
 			var evalRequestData: EvalRequestData = new EvalRequestData();
+			// expression is a ProtocolMessage
 			// evalRequestData.expression = "feed( " + string + " )";TODO FIXME
 			throw new Exception("fixme");
 			evalRequestData.sessionURI = AgentUi.USER.sessionURI;
@@ -361,7 +366,7 @@ class ProtocolHandler {
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
 					EM.change(EMEvent.USER, user);
-				}).start();
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing user creation", ex);
@@ -376,7 +381,7 @@ class ProtocolHandler {
 		data.expression = new InsertContent();//AgentUi.SERIALIZER.toJson(content);
 		var insertData: InsertContentData = new InsertContentData();
 		data.expression.contentImpl = insertData;
-		insertData.label = "";
+		insertData.label = "";  // TODO: Insert the prolog code here
 		insertData.value = AgentUi.SERIALIZER.toJson(content);
 		insertData.cnxns = [AgentUi.USER.getSelfConnection()];
 

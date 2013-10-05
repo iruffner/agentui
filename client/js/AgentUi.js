@@ -4066,20 +4066,7 @@ ui.api.ProtocolHandler = function() {
 	this.filterIsRunning = false;
 	var _g = this;
 	ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filter) {
-		if(_g.filterIsRunning) try {
-			var stopEval = new ui.api.StopEvalRequest();
-			var stopData = new ui.api.PayloadWithSessionURI();
-			stopData.sessionURI = ui.AgentUi.USER.sessionURI;
-			stopEval.contentImpl = stopData;
-			new ui.api.StandardRequest(stopEval,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("stopEval successfully submitted");
-				_g.filter(filter);
-			}).start();
-		} catch( err ) {
-			var exc = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing stop evaluation request",exc);
-			_g.filter(filter);
-		} else _g.filter(filter);
+		_g.filter(filter);
 		_g.filterIsRunning = true;
 	}));
 	ui.model.EM.addListener(ui.model.EMEvent.EndOfContent,new ui.model.EMListener(function(nextPageURI) {
@@ -4191,7 +4178,7 @@ ui.api.ProtocolHandler.prototype = {
 			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
 				ui.model.EM.change(ui.model.EMEvent.USER,user);
-			}).start();
+			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
 			ui.AgentUi.LOGGER.error("Error executing user creation",ex);
@@ -5506,7 +5493,7 @@ ui.model.Alias.labelsAsString = function(labels) {
 		var children = new m3.observable.FilteredSet(labels,function(f) {
 			return f.parentUid == l1.uid;
 		});
-		if(m3.helper.OSetHelper.hasValues(children)) s += "n" + l1.text + "(" + ui.model.Alias._processLabelChildren(labels,children) + ")"; else s += "l" + l1.text + "(X)";
+		if(m3.helper.OSetHelper.hasValues(children)) s += "v" + l1.text + "(" + ui.model.Alias._processLabelChildren(labels,children) + ")"; else s += "v" + l1.text + "(X)";
 		sarray.push(s);
 	});
 	var str = m3.helper.ArrayHelper.hasValues(sarray) && sarray.length == 1?sarray[0]:m3.helper.ArrayHelper.hasValues(sarray)?"and(" + sarray.join(",") + ")":"";
@@ -5519,10 +5506,10 @@ ui.model.Alias._processLabelChildren = function(original,set) {
 			return l1.parentUid == l1.uid;
 		});
 		if(m3.helper.OSetHelper.hasValues(children)) {
-			s += "n" + l.text + "(";
+			s += "v" + l.text + "(";
 			s += ui.model.Alias._processLabelChildren(original,children);
 			s += ")";
-		} else s += "l" + l.text + "(X)";
+		} else s += "v" + l.text + "(X)";
 		return s;
 	},"");
 	return str;
