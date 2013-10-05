@@ -97,6 +97,14 @@ class User extends ModelObj<User> {
 	private function writeResolve(): Void {
 		aliases = aliasSet.asArray();
 	}
+
+	public function getSelfConnection(): Connection {
+		var conn: Connection = new Connection();
+		conn.src = sessionURI;
+		conn.trgt = sessionURI;
+		conn.label = currentAlias.label;
+		return conn;
+	}
 }
 
 class UserData extends ModelObj<UserData> {
@@ -222,7 +230,7 @@ interface Filterable {
 
 class Label extends ModelObj<Connection> implements Filterable {
 	public var text: String;
-	@:optional public var parentUid: String;
+	@:transient public var parentUid: String;
 
 	@:transient public var color: String;
 
@@ -233,9 +241,9 @@ class Label extends ModelObj<Connection> implements Filterable {
 }
 
 class Connection extends ModelObj<Connection> implements Filterable {
-	public var fname: String;
-	public var lname: String;
-	public var imgSrc: String;
+	@:transient public var fname: String;
+	@:transient public var lname: String;
+	@:transient public var imgSrc: String;
 
 	public var src: String;
 	public var trgt: String;
