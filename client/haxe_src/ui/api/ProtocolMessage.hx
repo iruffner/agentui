@@ -14,7 +14,7 @@ interface HasContent<T> {
 class ProtocolMessage<T>  {
 	public var msgType(default, null): MsgType;
 	@:isVar var content: Dynamic;
-	
+
 	@:transient public var contentImpl: T;
 	@:transient var type: Class<T>;
 
@@ -247,7 +247,7 @@ class StopEvalResponse extends ProtocolMessage<PayloadWithSessionURI> {
 
 class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
 	public function new() {
-		super(MsgType.addAliasLabelsRequest, AddAliasLabelsRequestData);
+		super(MsgType.updateAliasLabelsRequest, AddAliasLabelsRequestData);
 	}
 }
 
@@ -258,7 +258,7 @@ class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
 
 class AddAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.addAliasLabelsResponse, PayloadWithSessionURI);
+		super(MsgType.updateAliasLabelsResponse, PayloadWithSessionURI);
 	}
 }
 
@@ -299,6 +299,7 @@ enum MsgType {
 	addAliasLabelsRequest;
 	addAliasLabelsResponse;
 	updateAliasLabelsRequest;
+	updateAliasLabelsResponse;
 }
 
 enum Reason {

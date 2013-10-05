@@ -425,10 +425,10 @@ class ProtocolHandler {
 
 		try {
 			//we don't expect anything back here
-			// new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-			// 		AgentUi.LOGGER.debug("label successfully submitted");
-			// 		AgentUi.USER.currentAlias.labelSet.add(label);
-			// 	}).start({dataType: "text"});
+			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("label successfully submitted");
+					AgentUi.USER.currentAlias.labelSet.add(label);
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing label post", ex);
