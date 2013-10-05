@@ -201,7 +201,8 @@ class ProtocolHandler {
 			ui.AgentUi.CONTENT.addAll(content);
 			var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
 			var evalRequestData: EvalRequestData = new EvalRequestData();
-			evalRequestData.expression = "feed( " + string + " )";
+			// evalRequestData.expression = "feed( " + string + " )";TODO FIXME
+			throw new Exception("fixme");
 			evalRequestData.sessionURI = AgentUi.USER.sessionURI;
 			evalRequest.contentImpl = evalRequestData;
 			try {
@@ -371,8 +372,13 @@ class ProtocolHandler {
 		var data: EvalRequestData = new EvalRequestData();
 		evalRequest.contentImpl = data;
 		data.sessionURI = AgentUi.USER.sessionURI;
-		// data.expression = contentImpl.toInsertExpression();
-		data.expression = AgentUi.SERIALIZER.toJson(content);
+		data.expression = new InsertContent();//AgentUi.SERIALIZER.toJson(content);
+		var insertData: InsertContentData = new InsertContentData();
+		data.expression.contentImpl = insertData;
+		insertData.label = "";
+		insertData.value = AgentUi.SERIALIZER.toJson(content);
+		insertData.cnxns = [AgentUi.USER.getSelfConnection()];
+
 		try {
 			//we don't expect anything back here
 			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){

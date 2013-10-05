@@ -12,11 +12,12 @@ interface HasContent<T> {
 
 @:rtti
 class ProtocolMessage<T>  {
+	public var msgType(default, null): MsgType;
 	@:isVar var content: Dynamic;
+	
 	@:transient public var contentImpl: T;
 	@:transient var type: Class<T>;
 
-	public var msgType(default, null): MsgType;
 
 	public function new(msgType: MsgType, type: Class<T>) {
 		this.msgType = msgType;
@@ -180,7 +181,7 @@ class EvalSubscribeRequest extends ProtocolMessage<EvalRequestData> {
 }
 
 		class EvalRequestData extends PayloadWithSessionURI {
-			public var expression: Dynamic;
+			public var expression: ProtocolMessage<Dynamic>;
 		}
 
 class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
@@ -234,15 +235,15 @@ class StopEvalResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	}
 }
 
-class TempAddAliasLabel extends ProtocolMessage<TempAddAliasLabelData> {
-	public function new() {
-		super(MsgType.evalSubscribeRequest, TempAddAliasLabelData);
-	}
-}
+// class TempAddAliasLabel extends ProtocolMessage<TempAddAliasLabelData> {
+// 	public function new() {
+// 		super(MsgType.evalSubscribeRequest, TempAddAliasLabelData);
+// 	}
+// }
 
-		class TempAddAliasLabelData extends PayloadWithSessionURI {
-			public var expression: InsertContent;
-		}
+// 		class TempAddAliasLabelData extends PayloadWithSessionURI {
+// 			public var expression: InsertContent;
+// 		}
 
 class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
 	public function new() {
