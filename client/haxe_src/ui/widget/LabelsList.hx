@@ -90,11 +90,16 @@ extern class LabelsList extends JQ {
         									var label: Label = new Label();
         									label.parentUid = parent.val();
         									label.text = input.val();
-        									label.uid = UidGenerator.create();
-        									AgentUi.LOGGER.debug("add to " + self.labels.visualId);
-        									self.labels.add(label);
-        									EM.change(EMEvent.CreateLabel, label);
-        									new JQ("body").click();
+        									var alnum: EReg = ~/(^[a-zA-Z0-9]*$)/;
+        									if (!alnum.match(label.text)) {
+        										js.Lib.alert("Only alphanumeric labels allowed.");
+        									} else {
+	        									label.uid = UidGenerator.create();
+  	      									AgentUi.LOGGER.debug("add to " + self.labels.visualId);
+    	    									self.labels.add(label);
+      	  									EM.change(EMEvent.CreateLabel);
+        										new JQ("body").click();
+        									}
 		        						};
 		        					},
 		        					positionalElement: newLabelButton

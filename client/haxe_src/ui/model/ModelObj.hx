@@ -101,7 +101,7 @@ class User extends ModelObj<User> {
 	public function getSelfConnection(): Connection {
 		var conn: Connection = new Connection();
 		conn.src = sessionURI;
-		conn.trgt = sessionURI;
+		conn.tgt = sessionURI;
 		conn.label = currentAlias.label;
 		return conn;
 	}
@@ -147,7 +147,7 @@ class Alias extends ModelObj<Alias> {
 				if(children.hasValues()) {
 					s += "n" + l.text + "(" + _processLabelChildren(labels, children) + ")";
 				} else {
-					s += "l" + l.text + "(X)";
+					s += "l" + l.text + "( _ )";
 				}
 
 				sarray.push(s);
@@ -173,7 +173,7 @@ class Alias extends ModelObj<Alias> {
 					s += _processLabelChildren(original, children);
 					s += ")";
 				} else {
-					s += "l" + l.text + "(X)";
+					s += "l" + l.text + "( _ )";
 				}
 
 				return s;
@@ -246,7 +246,7 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	@:transient public var imgSrc: String;
 
 	public var src: String;
-	public var trgt: String;
+	public var tgt: String;
 	public var label: String;
 
 	public function new(?fname: String, ?lname: String, ?imgSrc: String) {
