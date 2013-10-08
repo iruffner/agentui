@@ -116,7 +116,7 @@ extern class SignupConfirmationDialog extends JQ {
 		        		close: function(evt: JQEvent, ui: UIJDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");
 		        			if(self.user == null || !self.user.hasValidSession()) {
-		        				AgentUi.showLogin();
+		        				DialogManager.showLogin();
 		        			}
 		        		}
 		        	};

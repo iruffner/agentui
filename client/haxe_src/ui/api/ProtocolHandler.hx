@@ -12,6 +12,7 @@ import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
 import ui.model.EM;
+import ui.widget.DialogManager;
 import m3.observable.OSet;
 
 import ui.api.Requester;
@@ -343,7 +344,7 @@ class ProtocolHandler {
 						try {
 				        	var response: CreateUserWaiting = AgentUi.SERIALIZER.fromJsonX(data, CreateUserWaiting, false);
 
-				        	AgentUi.showSignupConfirmation();
+				        	DialogManager.showSignupConfirmation();
 				        	//TODO put this value into the url
 							//AgentUi.showLogin(); -> firing the USER_SIGNUP will close the NewUserComp, 
 							EM.change(EMEvent.USER_SIGNUP);

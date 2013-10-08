@@ -161,7 +161,7 @@ extern class UserComp extends JQ {
 	        					JQ.cur.removeClass("ui-state-hover");	
         					})
 	        			.click(function(evt: JQEvent) {
-	        					AgentUi.showNewAlias();
+	        					DialogManager.showNewAlias();
 	        				});
 
 		        	aliases.position({
