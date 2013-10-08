@@ -40,6 +40,11 @@ class Payload {
 
 class PayloadWithSessionURI extends Payload {
 	public var sessionURI: String;
+
+	public function new() {
+		super();
+		this.sessionURI = AgentUi.USER.sessionURI;
+	}
 }
 
 class PayloadWithReason extends Payload {
