@@ -101,7 +101,7 @@ class User extends ModelObj<User> {
 	public function getSelfConnection(): Connection {
 		var conn: Connection = new Connection();
 		conn.src = sessionURI;
-		conn.trgt = sessionURI;
+		conn.tgt = sessionURI;
 		conn.label = currentAlias.label;
 		return conn;
 	}
@@ -137,7 +137,7 @@ class Alias extends ModelObj<Alias> {
 		connections = connectionSet.asArray();
 	}
 
-	public static function labelsAsString(labels: ObservableSet<Label>): String {
+	public static function labelsAsStrings(labels: ObservableSet<Label>): Array<String> {
 		var sarray: Array<String> = new Array<String>();
 		var topLevelLabel: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
 
@@ -147,19 +147,19 @@ class Alias extends ModelObj<Alias> {
 				if(children.hasValues()) {
 					s += "n" + l.text + "(" + _processLabelChildren(labels, children) + ")";
 				} else {
-					s += "l" + l.text + "(X)";
+					s += "l" + l.text + "( _ )";
 				}
 
 				sarray.push(s);
 			});
 
-		var str: String = {
-			if(sarray.hasValues() && sarray.length == 1) sarray[0];
-			else if (sarray.hasValues()) "and(" + sarray.join(",") + ")";
-			else "";
-		}
+		// var str: String = {
+		// 	if(sarray.hasValues() && sarray.length == 1) sarray[0];
+		// 	else if (sarray.hasValues()) "and(" + sarray.join(",") + ")";
+		// 	else "";
+		// }
 
-		return str;
+		return sarray;
 	}
 
 	private static function _processLabelChildren(original: ObservableSet<Label>, set: FilteredSet<Label>): String {
@@ -173,7 +173,7 @@ class Alias extends ModelObj<Alias> {
 					s += _processLabelChildren(original, children);
 					s += ")";
 				} else {
-					s += "l" + l.text + "(X)";
+					s += "l" + l.text + "( _ )";
 				}
 
 				return s;
@@ -246,7 +246,7 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	@:transient public var imgSrc: String;
 
 	public var src: String;
-	public var trgt: String;
+	public var tgt: String;
 	public var label: String;
 
 	public function new(?fname: String, ?lname: String, ?imgSrc: String) {

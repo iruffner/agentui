@@ -47,6 +47,10 @@ class PayloadWithSessionURI extends Payload {
 	}
 }
 
+class PayloadWithReason extends Payload {
+	public var reason: String;
+}
+
 /** 
 	Create User Request/Response 
 **/
@@ -61,6 +65,13 @@ class CreateUserRequest extends ProtocolMessage<UserRequestData> {
 			public var password: String;
 			public var jsonBlob: Dynamic;
 		}
+
+class CreateUserError extends ProtocolMessage<PayloadWithReason> {
+	public function new() {
+		super(MsgType.createUserError, PayloadWithReason);
+	}
+}
+
 
 class CreateUserWaiting extends ProtocolMessage<Payload> {
 	public function new() {
@@ -129,21 +140,23 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 			@:transient public var labels(get,never): Array<Label>;
 
 			function get_labels(): Array<Label> {
-				if(listOfLabels.hasValues())
-					return Alias._processDataLog(listOfLabels[0]);
+				if(listOfLabels.hasValues()) {
+					var labels: Array<Label> = [];
+					var i: Int;
+					for (i in 0...listOfLabels.length) {
+						labels = labels.concat(Alias._processDataLog(listOfLabels[i]));
+					}
+					return labels;
+				}
 				else return null;
 			}
 		}
 
-class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData> {
+class InitializeSessionError extends ProtocolMessage<PayloadWithReason> {
 	public function new() {
-		super(MsgType.initializeSessionError, InitializeSessionErrorData);
+		super(MsgType.initializeSessionError, PayloadWithReason);
 	}
 }
-
-		class InitializeSessionErrorData extends Payload {
-			public var reason: String;
-		}
 
 /** 
 	Ping/pop Request/Response 
@@ -294,12 +307,12 @@ enum MsgType {
 	stopEvalRequest;
 	stopEvalResponse;
 	createUserRequest;
+	createUserError;
 	createUserWaiting;
 	confirmEmailToken;
 	createUserResponse;
 	updateUserRequest;
 	updateUserResponse;
-	createUserError;
 	insertContent;
 	addAliasLabelsRequest;
 	addAliasLabelsResponse;

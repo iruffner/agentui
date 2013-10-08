@@ -9,6 +9,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<name>agentui-proxy</name>
 
+        <repositories>
+            <repository>
+                <id>emeris</id>
+                <name>emeris artifact server where all the net.model3 stuff lives</name>
+                <url>http://ratchet.model3.net:8081/artifactory/remote-repos</url>
+            </repository>
+        </repositories>
+
 	<dependencies>
 
 		<dependency>

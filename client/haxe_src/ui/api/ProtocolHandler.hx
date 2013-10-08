@@ -304,9 +304,9 @@ class ProtocolHandler {
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
 						}
-			        // } else if(data.msgType == MsgType.initializeSessionError) {
-			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
-			        // 	throw new InitializeSessionException(error, "Login error");
+					} else if(data.msgType == MsgType.createUserError) {
+			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        	js.Lib.alert("User creation error: " + error.contentImpl.reason);
 			        } else {
 			        	//something unexpected..
 			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);
@@ -414,7 +414,8 @@ class ProtocolHandler {
 			}
 		}
 
-		data.labels = [Alias.labelsAsString(labelSet)];
+		var labelsArray: Array<String> = Alias.labelsAsStrings(AgentUi.USER.currentAlias.labelSet);
+		data.labels = labelsArray;
 		data.alias = AgentUi.USER.currentAlias.label;
 
 		try {
