@@ -152,13 +152,6 @@ class Alias extends ModelObj<Alias> {
 
 				sarray.push(s);
 			});
-
-		// var str: String = {
-		// 	if(sarray.hasValues() && sarray.length == 1) sarray[0];
-		// 	else if (sarray.hasValues()) "and(" + sarray.join(",") + ")";
-		// 	else "";
-		// }
-
 		return sarray;
 	}
 
