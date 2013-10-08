@@ -137,7 +137,7 @@ class Alias extends ModelObj<Alias> {
 		connections = connectionSet.asArray();
 	}
 
-	public static function labelsAsString(labels: ObservableSet<Label>): String {
+	public static function labelsAsStrings(labels: ObservableSet<Label>): Array<String> {
 		var sarray: Array<String> = new Array<String>();
 		var topLevelLabel: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
 
@@ -153,13 +153,13 @@ class Alias extends ModelObj<Alias> {
 				sarray.push(s);
 			});
 
-		var str: String = {
-			if(sarray.hasValues() && sarray.length == 1) sarray[0];
-			else if (sarray.hasValues()) "and(" + sarray.join(",") + ")";
-			else "";
-		}
+		// var str: String = {
+		// 	if(sarray.hasValues() && sarray.length == 1) sarray[0];
+		// 	else if (sarray.hasValues()) "and(" + sarray.join(",") + ")";
+		// 	else "";
+		// }
 
-		return str;
+		return sarray;
 	}
 
 	private static function _processLabelChildren(original: ObservableSet<Label>, set: FilteredSet<Label>): String {

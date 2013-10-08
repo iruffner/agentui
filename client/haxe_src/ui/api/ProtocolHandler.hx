@@ -307,9 +307,9 @@ class ProtocolHandler {
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
 						}
-			        // } else if(data.msgType == MsgType.initializeSessionError) {
-			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
-			        // 	throw new InitializeSessionException(error, "Login error");
+					} else if(data.msgType == MsgType.createUserError) {
+			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        	js.Lib.alert("User creation error: " + error.contentImpl.reason);
 			        } else {
 			        	//something unexpected..
 			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);
@@ -420,25 +420,8 @@ class ProtocolHandler {
 			}
 		}
 
-		var labelsString = Alias.labelsAsString(AgentUi.USER.currentAlias.labelSet);
-		if (labelsString.substring(0,3) == "and") {
-			// Get rid of surrounding "and()"
-			labelsString = labelsString.substring(4, labelsString.length-1);
-		}
-		data.labels = [];
-		var i: Int;
-		var j: Int = 0;
-		var p: Int = 0;
-    for (i in 0...labelsString.length) {
-			if (labelsString.charAt(i) == "(") { ++p; }
-      if (labelsString.charAt(i) == ")") {
-				--p;
-				if (p == 0) {
-					data.labels.push(labelsString.substring(j, i + 1));
-					j = i + 2;
-				}
-			}
-		}
+		var labelsArray: Array<String> = Alias.labelsAsStrings(AgentUi.USER.currentAlias.labelSet);
+		data.labels = labelsArray;
 		data.alias = AgentUi.USER.currentAlias.label;
 
 		try {

@@ -42,6 +42,10 @@ class PayloadWithSessionURI extends Payload {
 	public var sessionURI: String;
 }
 
+class PayloadWithReason extends Payload {
+	public var reason: String;
+}
+
 /** 
 	Create User Request/Response 
 **/
@@ -56,6 +60,13 @@ class CreateUserRequest extends ProtocolMessage<UserRequestData> {
 			public var password: String;
 			public var jsonBlob: Dynamic;
 		}
+
+class CreateUserError extends ProtocolMessage<PayloadWithReason> {
+	public function new() {
+		super(MsgType.createUserError, PayloadWithReason);
+	}
+}
+
 
 class CreateUserWaiting extends ProtocolMessage<Payload> {
 	public function new() {
@@ -136,15 +147,11 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 			}
 		}
 
-class InitializeSessionError extends ProtocolMessage<InitializeSessionErrorData> {
+class InitializeSessionError extends ProtocolMessage<PayloadWithReason> {
 	public function new() {
-		super(MsgType.initializeSessionError, InitializeSessionErrorData);
+		super(MsgType.initializeSessionError, PayloadWithReason);
 	}
 }
-
-		class InitializeSessionErrorData extends Payload {
-			public var reason: String;
-		}
 
 /** 
 	Ping/pop Request/Response 
@@ -295,12 +302,12 @@ enum MsgType {
 	stopEvalRequest;
 	stopEvalResponse;
 	createUserRequest;
+	createUserError;
 	createUserWaiting;
 	confirmEmailToken;
 	createUserResponse;
 	updateUserRequest;
 	updateUserResponse;
-	createUserError;
 	insertContent;
 	addAliasLabelsRequest;
 	addAliasLabelsResponse;
