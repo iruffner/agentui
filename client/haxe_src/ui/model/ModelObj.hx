@@ -137,7 +137,7 @@ class Alias extends ModelObj<Alias> {
 		connections = connectionSet.asArray();
 	}
 
-	public static function labelsAsStrings(labels: ObservableSet<Label>): Array<String> {
+	public static function labelsAsStrings(labels: OSet<Label>): Array<String> {
 		var sarray: Array<String> = new Array<String>();
 		var topLevelLabel: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
 
@@ -162,7 +162,7 @@ class Alias extends ModelObj<Alias> {
 		return sarray;
 	}
 
-	private static function _processLabelChildren(original: ObservableSet<Label>, set: FilteredSet<Label>): String {
+	private static function _processLabelChildren(original: OSet<Label>, set: FilteredSet<Label>): String {
 		var str: String = set.fold(function(l: Label, s: String): String {
 				if(s.isNotBlank()) {
 					s += ",";

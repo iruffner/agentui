@@ -423,8 +423,8 @@ class ProtocolHandler {
 		data.expression = new InsertContent();//AgentUi.SERIALIZER.toJson(content);
 		var insertData: InsertContentData = new InsertContentData();
 		data.expression.contentImpl = insertData;
-		insertData.label = "";  // TODO: Insert the prolog code here
-		insertData.value = AgentUi.SERIALIZER.toJson(content);
+		insertData.label = Alias.labelsAsStrings(content.labelSet.map(function(str: String): Label { return new Label(str);})).join(",");
+		insertData.value = AgentUi.SERIALIZER.toJsonString(content);
 		insertData.cnxns = [AgentUi.USER.getSelfConnection()];
 
 		try {

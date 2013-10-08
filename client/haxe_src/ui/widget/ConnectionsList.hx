@@ -48,11 +48,6 @@ extern class ConnectionsList extends JQ {
 			                self._setConnections(alias.connectionSet);
 			            }, "ConnectionsList-Alias")
 			        );
-
-		        	// EM.addListener(EMEvent.User, new EMListener(function(user: User) {
-			        //        	self._setConnections(user.currentAlias.connections);
-			        //     })
-			        // );
 		        },
 
 		        _setConnections: function(connections: ObservableSet<Connection>): Void {
