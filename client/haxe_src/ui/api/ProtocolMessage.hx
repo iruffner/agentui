@@ -124,8 +124,14 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 			@:transient public var labels(get,never): Array<Label>;
 
 			function get_labels(): Array<Label> {
-				if(listOfLabels.hasValues())
-					return Alias._processDataLog(listOfLabels[0]);
+				if(listOfLabels.hasValues()) {
+					var labels: Array<Label> = [];
+					var i: Int;
+					for (i in 0...listOfLabels.length) {
+						labels = labels.concat(Alias._processDataLog(listOfLabels[i]));
+					}
+					return labels;
+				}
 				else return null;
 			}
 		}
