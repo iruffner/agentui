@@ -39,7 +39,12 @@ class ProxyServlet extends HttpServlet with Logging {
     if ( configFile.exists ) {
       val text = configFile.readText.trim
       logger.debug(s"loaded proxy server -- ${text} -- from config file ${configFile.getCanonicalPath}")
-      text
+      text.
+        lines.
+        map(_.trim).
+        filterNot(_.startsWith("#")).
+        filter(_.length > 0).
+        mkString
     } else {
       throw new RuntimeException("unable to find config file " + configFile.getCanonicalPath)
     }
