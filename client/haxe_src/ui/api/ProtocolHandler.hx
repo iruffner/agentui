@@ -37,7 +37,6 @@ class ProtocolHandler {
 					try {
 						var stopEval: StopEvalRequest = new StopEvalRequest();
 						var stopData: PayloadWithSessionURI = new PayloadWithSessionURI();
-						stopData.sessionURI = AgentUi.USER.sessionURI;
 						stopEval.contentImpl = stopData;
 						new StandardRequest(stopEval, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 							AgentUi.LOGGER.debug("stopEval successfully submitted");
@@ -208,7 +207,6 @@ class ProtocolHandler {
 			// expression is a ProtocolMessage
 			// evalRequestData.expression = "feed( " + string + " )";TODO FIXME
 			throw new Exception("fixme");
-			evalRequestData.sessionURI = AgentUi.USER.sessionURI;
 			evalRequest.contentImpl = evalRequestData;
 			try {
 				//we don't expect anything back here
@@ -226,7 +224,6 @@ class ProtocolHandler {
 		var nextPageRequest: EvalNextPageRequest = new EvalNextPageRequest();
 		var nextPageRequestData: EvalNextPageRequestData = new EvalNextPageRequestData();
 		nextPageRequestData.nextPage = nextPageURI;
-		nextPageRequestData.sessionURI = AgentUi.USER.sessionURI;//"agent-session://myLovelySession/1234,";
 		nextPageRequest.contentImpl = nextPageRequestData;
 		try {
 			//we don't expect anything back here
@@ -360,7 +357,6 @@ class ProtocolHandler {
 		var data: UpdateUserRequestData = new UpdateUserRequestData();
 		request.contentImpl = data;
 		data.jsonBlob = user.userData;
-		data.sessionURI = AgentUi.USER.sessionURI;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -377,7 +373,6 @@ class ProtocolHandler {
 		var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
 		var data: EvalRequestData = new EvalRequestData();
 		evalRequest.contentImpl = data;
-		data.sessionURI = AgentUi.USER.sessionURI;
 		data.expression = new InsertContent();//AgentUi.SERIALIZER.toJson(content);
 		var insertData: InsertContentData = new InsertContentData();
 		data.expression.contentImpl = insertData;
@@ -400,7 +395,6 @@ class ProtocolHandler {
 		var evalRequest: AddAliasLabelsRequest = new AddAliasLabelsRequest();
 		var data: AddAliasLabelsRequestData = new AddAliasLabelsRequestData();
 		evalRequest.contentImpl = data;
-		data.sessionURI = AgentUi.USER.sessionURI;
 		var labelSet: ObservableSet<Label> = new ObservableSet<Label>(ModelObj.identifier);
 
 		var pLabel: Label = label;
