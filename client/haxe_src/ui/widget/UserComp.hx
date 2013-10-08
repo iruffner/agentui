@@ -148,10 +148,21 @@ extern class UserComp extends JQ {
 			        					JQ.cur.removeClass("ui-state-hover");	
 		        					})
 			        			.click(function(evt: JQEvent) {
-			        					EM.change(EMEvent.LoadAlias, alias.uid);
+			        					EM.change(EMEvent.LoadAlias, alias);
 			        				});
 			        	}
 			        }
+			        var btn: JQ = new JQ("<div id='newAlias' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>New Alias</div>");
+			        aliases.append( btn );
+			        btn
+	        			.hover(function(){
+	        					JQ.cur.addClass("ui-state-hover");
+	        				}, function(){
+	        					JQ.cur.removeClass("ui-state-hover");	
+        					})
+	        			.click(function(evt: JQEvent) {
+	        					AgentUi.showNewAlias();
+	        				});
 
 		        	aliases.position({
 		        			my: "left top",

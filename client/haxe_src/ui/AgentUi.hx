@@ -17,17 +17,7 @@ import m3.observable.OSet;
 import m3.util.UidGenerator;
 import m3.util.HtmlUtil;
 
-import ui.widget.ConnectionsList;
-import ui.widget.LabelsList;
-import ui.widget.ContentFeed;
-import ui.widget.FilterComp;
-import ui.widget.UserComp;
-import ui.widget.PostComp;
-import ui.widget.LoginComp;
-import ui.widget.MessagingComp;
-import ui.widget.InviteComp;
-import ui.widget.NewUserComp;
-import ui.widget.SignupConfirmationDialog;
+import ui.widget.*;
 
 import m3.serialization.Serialization;
 
@@ -168,6 +158,18 @@ class AgentUi {
             signupConfirmationDialog.appendTo(js.Browser.document.body);
             signupConfirmationDialog.signupConfirmationDialog();
             signupConfirmationDialog.signupConfirmationDialog("open");
+        }
+    }
+
+    public static function showNewAlias(): Void {
+        var newUserComp: NewAliasComp = new NewAliasComp(".newAliasComp");
+        if(newUserComp.exists()) {
+            newUserComp.newAliasComp("open");
+        } else {
+            newUserComp = new NewAliasComp("<div></div>");
+            newUserComp.appendTo(js.Browser.document.body);
+            newUserComp.newAliasComp();
+            newUserComp.newAliasComp("open");
         }
     }
 

@@ -65,9 +65,13 @@ class ProtocolHandler {
             })
         );
 
-        EM.addListener(EMEvent.LoadAlias, new EMListener(function(uid: String): Void {
-                var alias: Alias = this.getAlias(uid);
-                EM.change(EMEvent.AliasLoaded, alias);
+        EM.addListener(EMEvent.LoadAlias, new EMListener(function(alias: Alias): Void {
+                this.getAliasInfo(alias);
+            })
+        );
+
+        EM.addListener(EMEvent.AliasCreate, new EMListener(function(alias: Alias): Void {
+                addAlias(alias);
             })
         );
 
@@ -120,6 +124,47 @@ class ProtocolHandler {
         	});
         processHash.set(MsgType.addAliasLabelsResponse, function(data: Dynamic){
         		AgentUi.LOGGER.debug("addAliasLabelsResponse was received from the server");
+        	});
+        
+
+        processHash.set(MsgType.addAgentAliasesResponse, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("addAgentAliasesResponse was received from the server");
+        	});
+        processHash.set(MsgType.addAgentAliasesError, function(data: Dynamic){
+        		AgentUi.LOGGER.error("addAgentAliasesError was received from the server");
+        	});
+        processHash.set(MsgType.removeAgentAliasesResponse, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("removeAgentAliasesResponse was received from the server");
+        	});
+        processHash.set(MsgType.removeAgentAliasesError, function(data: Dynamic){
+        		AgentUi.LOGGER.error("removeAgentAliasesError was received from the server");
+        	});
+        processHash.set(MsgType.setDefaultAliasRequest, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("setDefaultAliasRequest was received from the server");
+        	});
+        processHash.set(MsgType.setDefaultAliasError, function(data: Dynamic){
+        		AgentUi.LOGGER.error("setDefaultAliasError was received from the server");
+        	});
+
+        processHash.set(MsgType.getAliasConnectionsResponse, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("getAliasConnectionsResponse was received from the server");
+        		var resp: GetAliasConnectionsResponse = AgentUi.SERIALIZER.fromJsonX(data, GetAliasConnectionsResponse);
+        		AgentUi.USER.currentAlias.connectionSet.clear();
+        		AgentUi.USER.currentAlias.connectionSet.addAll(resp.contentImpl.cnxns);
+        	});
+        processHash.set(MsgType.getAliasConnectionsError, function(data: Dynamic){
+        		AgentUi.LOGGER.error("getAliasConnectionsError was received from the server");
+        	});
+        processHash.set(MsgType.getAliasLabelsResponse, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("getAliasLabelsResponse was received from the server");
+        		var resp: GetAliasLabelsResponse = AgentUi.SERIALIZER.fromJsonX(data, GetAliasLabelsResponse);
+        		AgentUi.USER.currentAlias.labelSet.clear();
+        		AgentUi.USER.currentAlias.labelSet.addAll(resp.contentImpl.labels.map(function(str: String): Label {
+        				return new Label( str );
+        			}));
+        	});
+        processHash.set(MsgType.getAliasLabelsError, function(data: Dynamic){
+        		AgentUi.LOGGER.error("getAliasLabelsError was received from the server");
         	});
 	}
 
@@ -236,8 +281,9 @@ class ProtocolHandler {
 		}
 	}
 
-	public function getAlias(uid: String): Alias {
-		return TestDao.getAlias(uid);
+	public function getAliasInfo(alias: Alias): Void {
+		getAliasConnections(alias);
+		getAliasLabels(alias);
 	}
 
 	private function _startPolling(sessionURI: String): Void {
@@ -427,6 +473,91 @@ class ProtocolHandler {
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing label post", ex);
+		}
+	}
+
+	public function addAlias(alias: Alias): Void {
+		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.addAgentAliasesRequest);
+		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("addAlias successfully submitted");
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing addAlias", ex);
+		}
+	}
+
+	public function removeAlias(alias: Alias): Void {
+		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.removeAgentAliasesRequest);
+		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("removeAlias successfully submitted");
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing removeAlias", ex);
+		}
+	}
+
+	public function setDefaultAlias(alias: Alias): Void {
+		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.setDefaultAliasRequest);
+		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("setDefaultAlias successfully submitted");
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing setDefaultAlias", ex);
+		}
+	}
+
+	public function getAliasConnections(alias: Alias): Void {
+		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.getAliasConnectionsRequest);
+		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("getAliasConnections successfully submitted");
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing getAliasConnections", ex);
+		}
+	}
+
+	public function getAliasLabels(alias: Alias): Void {
+		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.getAliasLabelsRequest);
+		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("getAliasLabels successfully submitted");
+				}).start();
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing getAliasLabels", ex);
 		}
 	}
 }

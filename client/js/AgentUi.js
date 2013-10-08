@@ -4054,6 +4054,15 @@ ui.AgentUi.showSignupConfirmation = function() {
 		signupConfirmationDialog.signupConfirmationDialog("open");
 	}
 }
+ui.AgentUi.showNewAlias = function() {
+	var newUserComp = new $(".newAliasComp");
+	if(newUserComp.exists()) newUserComp.newAliasComp("open"); else {
+		newUserComp = new $("<div></div>");
+		newUserComp.appendTo(js.Browser.document.body);
+		newUserComp.newAliasComp();
+		newUserComp.newAliasComp("open");
+	}
+}
 ui.AgentUi.test = function() {
 	ui.model.Alias._processDataLog("Work");
 	ui.model.Alias._processDataLog("n_Work(Colleagues, Tasks)");
@@ -4075,9 +4084,11 @@ ui.api.ProtocolHandler = function() {
 	ui.model.EM.addListener(ui.model.EMEvent.NextContent,new ui.model.EMListener(function(nextPageURI) {
 		_g.nextPage(nextPageURI);
 	}));
-	ui.model.EM.addListener(ui.model.EMEvent.LoadAlias,new ui.model.EMListener(function(uid) {
-		var alias = _g.getAlias(uid);
-		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias);
+	ui.model.EM.addListener(ui.model.EMEvent.LoadAlias,new ui.model.EMListener(function(alias) {
+		_g.getAliasInfo(alias);
+	}));
+	ui.model.EM.addListener(ui.model.EMEvent.AliasCreate,new ui.model.EMListener(function(alias) {
+		_g.addAlias(alias);
 	}));
 	ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,new ui.model.EMListener(function(login) {
 		_g.getUser(login);
@@ -4114,15 +4125,122 @@ ui.api.ProtocolHandler = function() {
 	this.processHash.set(ui.api.MsgType.addAliasLabelsResponse,function(data) {
 		ui.AgentUi.LOGGER.debug("addAliasLabelsResponse was received from the server");
 	});
+	this.processHash.set(ui.api.MsgType.addAgentAliasesResponse,function(data) {
+		ui.AgentUi.LOGGER.debug("addAgentAliasesResponse was received from the server");
+	});
+	this.processHash.set(ui.api.MsgType.addAgentAliasesError,function(data) {
+		ui.AgentUi.LOGGER.error("addAgentAliasesError was received from the server");
+	});
+	this.processHash.set(ui.api.MsgType.removeAgentAliasesResponse,function(data) {
+		ui.AgentUi.LOGGER.debug("removeAgentAliasesResponse was received from the server");
+	});
+	this.processHash.set(ui.api.MsgType.removeAgentAliasesError,function(data) {
+		ui.AgentUi.LOGGER.error("removeAgentAliasesError was received from the server");
+	});
+	this.processHash.set(ui.api.MsgType.setDefaultAliasRequest,function(data) {
+		ui.AgentUi.LOGGER.debug("setDefaultAliasRequest was received from the server");
+	});
+	this.processHash.set(ui.api.MsgType.setDefaultAliasError,function(data) {
+		ui.AgentUi.LOGGER.error("setDefaultAliasError was received from the server");
+	});
+	this.processHash.set(ui.api.MsgType.getAliasConnectionsResponse,function(data) {
+		ui.AgentUi.LOGGER.debug("getAliasConnectionsResponse was received from the server");
+		var resp = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.GetAliasConnectionsResponse);
+		ui.AgentUi.USER.get_currentAlias().connectionSet.clear();
+		ui.AgentUi.USER.get_currentAlias().connectionSet.addAll(resp.contentImpl.cnxns);
+	});
+	this.processHash.set(ui.api.MsgType.getAliasConnectionsError,function(data) {
+		ui.AgentUi.LOGGER.error("getAliasConnectionsError was received from the server");
+	});
+	this.processHash.set(ui.api.MsgType.getAliasLabelsResponse,function(data) {
+		ui.AgentUi.LOGGER.debug("getAliasLabelsResponse was received from the server");
+		var resp = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.GetAliasLabelsResponse);
+		ui.AgentUi.USER.get_currentAlias().labelSet.clear();
+		ui.AgentUi.USER.get_currentAlias().labelSet.addAll(resp.contentImpl.labels.map(function(str) {
+			return new ui.model.Label(str);
+		}));
+	});
+	this.processHash.set(ui.api.MsgType.getAliasLabelsError,function(data) {
+		ui.AgentUi.LOGGER.error("getAliasLabelsError was received from the server");
+	});
 };
 $hxClasses["ui.api.ProtocolHandler"] = ui.api.ProtocolHandler;
 ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
 ui.api.ProtocolHandler.prototype = {
-	createLabel: function(label) {
+	getAliasLabels: function(alias) {
+		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.getAliasLabelsRequest);
+		var data = new ui.api.AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+		try {
+			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+				ui.AgentUi.LOGGER.debug("getAliasLabels successfully submitted");
+			}).start();
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AgentUi.LOGGER.error("Error executing getAliasLabels",ex);
+		}
+	}
+	,getAliasConnections: function(alias) {
+		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.getAliasConnectionsRequest);
+		var data = new ui.api.AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+		try {
+			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+				ui.AgentUi.LOGGER.debug("getAliasConnections successfully submitted");
+			}).start();
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AgentUi.LOGGER.error("Error executing getAliasConnections",ex);
+		}
+	}
+	,setDefaultAlias: function(alias) {
+		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.setDefaultAliasRequest);
+		var data = new ui.api.AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+		try {
+			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+				ui.AgentUi.LOGGER.debug("setDefaultAlias successfully submitted");
+			}).start();
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AgentUi.LOGGER.error("Error executing setDefaultAlias",ex);
+		}
+	}
+	,removeAlias: function(alias) {
+		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.removeAgentAliasesRequest);
+		var data = new ui.api.AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+		try {
+			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+				ui.AgentUi.LOGGER.debug("removeAlias successfully submitted");
+			}).start();
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AgentUi.LOGGER.error("Error executing removeAlias",ex);
+		}
+	}
+	,addAlias: function(alias) {
+		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.addAgentAliasesRequest);
+		var data = new ui.api.AgentAliasesRequestData();
+		request.contentImpl = data;
+		data.aliases = [alias.label];
+		try {
+			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+				ui.AgentUi.LOGGER.debug("addAlias successfully submitted");
+			}).start();
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AgentUi.LOGGER.error("Error executing addAlias",ex);
+		}
+	}
+	,createLabel: function(label) {
 		var evalRequest = new ui.api.AddAliasLabelsRequest();
 		var data = new ui.api.AddAliasLabelsRequestData();
 		evalRequest.contentImpl = data;
-		data.sessionURI = ui.AgentUi.USER.sessionURI;
 		var labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier);
 		var pLabel = label;
 		while(pLabel != null) {
@@ -4157,7 +4275,6 @@ ui.api.ProtocolHandler.prototype = {
 		var evalRequest = new ui.api.EvalSubscribeRequest();
 		var data = new ui.api.EvalRequestData();
 		evalRequest.contentImpl = data;
-		data.sessionURI = ui.AgentUi.USER.sessionURI;
 		data.expression = new ui.api.InsertContent();
 		var insertData = new ui.api.InsertContentData();
 		data.expression.contentImpl = insertData;
@@ -4178,7 +4295,6 @@ ui.api.ProtocolHandler.prototype = {
 		var data = new ui.api.UpdateUserRequestData();
 		request.contentImpl = data;
 		data.jsonBlob = user.userData;
-		data.sessionURI = ui.AgentUi.USER.sessionURI;
 		try {
 			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
@@ -4279,14 +4395,14 @@ ui.api.ProtocolHandler.prototype = {
 		});
 		this.listeningChannel.start();
 	}
-	,getAlias: function(uid) {
-		return ui.api.TestDao.getAlias(uid);
+	,getAliasInfo: function(alias) {
+		this.getAliasConnections(alias);
+		this.getAliasLabels(alias);
 	}
 	,nextPage: function(nextPageURI) {
 		var nextPageRequest = new ui.api.EvalNextPageRequest();
 		var nextPageRequestData = new ui.api.EvalNextPageRequestData();
 		nextPageRequestData.nextPage = nextPageURI;
-		nextPageRequestData.sessionURI = ui.AgentUi.USER.sessionURI;
 		nextPageRequest.contentImpl = nextPageRequestData;
 		try {
 			new ui.api.StandardRequest(nextPageRequest,function(data,textStatus,jqXHR) {
@@ -4308,7 +4424,6 @@ ui.api.ProtocolHandler.prototype = {
 			var evalRequest = new ui.api.EvalSubscribeRequest();
 			var evalRequestData = new ui.api.EvalRequestData();
 			throw new m3.exception.Exception("fixme");
-			evalRequestData.sessionURI = ui.AgentUi.USER.sessionURI;
 			evalRequest.contentImpl = evalRequestData;
 			try {
 				new ui.api.StandardRequest(evalRequest,function(data,textStatus,jqXHR) {
@@ -4409,6 +4524,7 @@ ui.api.Payload.prototype = {
 }
 ui.api.PayloadWithSessionURI = function() {
 	ui.api.Payload.call(this);
+	this.sessionURI = ui.AgentUi.USER.sessionURI;
 };
 $hxClasses["ui.api.PayloadWithSessionURI"] = ui.api.PayloadWithSessionURI;
 ui.api.PayloadWithSessionURI.__name__ = ["ui","api","PayloadWithSessionURI"];
@@ -4424,6 +4540,15 @@ ui.api.PayloadWithReason.__name__ = ["ui","api","PayloadWithReason"];
 ui.api.PayloadWithReason.__super__ = ui.api.Payload;
 ui.api.PayloadWithReason.prototype = $extend(ui.api.Payload.prototype,{
 	__class__: ui.api.PayloadWithReason
+});
+ui.api.ErrorPayload = function() {
+	ui.api.PayloadWithSessionURI.call(this);
+};
+$hxClasses["ui.api.ErrorPayload"] = ui.api.ErrorPayload;
+ui.api.ErrorPayload.__name__ = ["ui","api","ErrorPayload"];
+ui.api.ErrorPayload.__super__ = ui.api.PayloadWithSessionURI;
+ui.api.ErrorPayload.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
+	__class__: ui.api.ErrorPayload
 });
 ui.api.CreateUserRequest = function() {
 	ui.api.ProtocolMessage.call(this,ui.api.MsgType.createUserRequest,ui.api.UserRequestData);
@@ -4707,6 +4832,114 @@ ui.api.StopEvalResponse.__super__ = ui.api.ProtocolMessage;
 ui.api.StopEvalResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
 	__class__: ui.api.StopEvalResponse
 });
+ui.api.BaseAgentAliasRequest = function(msgType) {
+	ui.api.ProtocolMessage.call(this,msgType,ui.api.AgentAliasesRequestData);
+};
+$hxClasses["ui.api.BaseAgentAliasRequest"] = ui.api.BaseAgentAliasRequest;
+ui.api.BaseAgentAliasRequest.__name__ = ["ui","api","BaseAgentAliasRequest"];
+ui.api.BaseAgentAliasRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.BaseAgentAliasRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.BaseAgentAliasRequest
+});
+ui.api.AgentAliasesRequestData = function() {
+	ui.api.PayloadWithSessionURI.call(this);
+};
+$hxClasses["ui.api.AgentAliasesRequestData"] = ui.api.AgentAliasesRequestData;
+ui.api.AgentAliasesRequestData.__name__ = ["ui","api","AgentAliasesRequestData"];
+ui.api.AgentAliasesRequestData.__super__ = ui.api.PayloadWithSessionURI;
+ui.api.AgentAliasesRequestData.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
+	__class__: ui.api.AgentAliasesRequestData
+});
+ui.api.AddAgentAliasesResponse = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.addAgentAliasesResponse,ui.api.PayloadWithSessionURI);
+};
+$hxClasses["ui.api.AddAgentAliasesResponse"] = ui.api.AddAgentAliasesResponse;
+ui.api.AddAgentAliasesResponse.__name__ = ["ui","api","AddAgentAliasesResponse"];
+ui.api.AddAgentAliasesResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.AddAgentAliasesResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.AddAgentAliasesResponse
+});
+ui.api.AddAgentAliasesError = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.addAgentAliasesError,ui.api.ErrorPayload);
+};
+$hxClasses["ui.api.AddAgentAliasesError"] = ui.api.AddAgentAliasesError;
+ui.api.AddAgentAliasesError.__name__ = ["ui","api","AddAgentAliasesError"];
+ui.api.AddAgentAliasesError.__super__ = ui.api.ProtocolMessage;
+ui.api.AddAgentAliasesError.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.AddAgentAliasesError
+});
+ui.api.RemoveAgentAliasesResponse = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.removeAgentAliasesResponse,ui.api.PayloadWithSessionURI);
+};
+$hxClasses["ui.api.RemoveAgentAliasesResponse"] = ui.api.RemoveAgentAliasesResponse;
+ui.api.RemoveAgentAliasesResponse.__name__ = ["ui","api","RemoveAgentAliasesResponse"];
+ui.api.RemoveAgentAliasesResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.RemoveAgentAliasesResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.RemoveAgentAliasesResponse
+});
+ui.api.RemoveAgentAliasesError = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.removeAgentAliasesError,ui.api.ErrorPayload);
+};
+$hxClasses["ui.api.RemoveAgentAliasesError"] = ui.api.RemoveAgentAliasesError;
+ui.api.RemoveAgentAliasesError.__name__ = ["ui","api","RemoveAgentAliasesError"];
+ui.api.RemoveAgentAliasesError.__super__ = ui.api.ProtocolMessage;
+ui.api.RemoveAgentAliasesError.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.RemoveAgentAliasesError
+});
+ui.api.SetDefaultAliasResponse = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.setDefaultAliasResponse,ui.api.PayloadWithSessionURI);
+};
+$hxClasses["ui.api.SetDefaultAliasResponse"] = ui.api.SetDefaultAliasResponse;
+ui.api.SetDefaultAliasResponse.__name__ = ["ui","api","SetDefaultAliasResponse"];
+ui.api.SetDefaultAliasResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.SetDefaultAliasResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.SetDefaultAliasResponse
+});
+ui.api.SetDefaultAliasError = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.setDefaultAliasError,ui.api.ErrorPayload);
+};
+$hxClasses["ui.api.SetDefaultAliasError"] = ui.api.SetDefaultAliasError;
+ui.api.SetDefaultAliasError.__name__ = ["ui","api","SetDefaultAliasError"];
+ui.api.SetDefaultAliasError.__super__ = ui.api.ProtocolMessage;
+ui.api.SetDefaultAliasError.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.SetDefaultAliasError
+});
+ui.api.GetAliasConnectionsResponse = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.getAliasConnectionsResponse,ui.api.AliasConnectionsRequestData);
+};
+$hxClasses["ui.api.GetAliasConnectionsResponse"] = ui.api.GetAliasConnectionsResponse;
+ui.api.GetAliasConnectionsResponse.__name__ = ["ui","api","GetAliasConnectionsResponse"];
+ui.api.GetAliasConnectionsResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.GetAliasConnectionsResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.GetAliasConnectionsResponse
+});
+ui.api.AliasConnectionsRequestData = function() {
+	ui.api.PayloadWithSessionURI.call(this);
+};
+$hxClasses["ui.api.AliasConnectionsRequestData"] = ui.api.AliasConnectionsRequestData;
+ui.api.AliasConnectionsRequestData.__name__ = ["ui","api","AliasConnectionsRequestData"];
+ui.api.AliasConnectionsRequestData.__super__ = ui.api.PayloadWithSessionURI;
+ui.api.AliasConnectionsRequestData.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
+	__class__: ui.api.AliasConnectionsRequestData
+});
+ui.api.GetAliasLabelsResponse = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.getAliasLabelsResponse,ui.api.AliasLabelsRequestData);
+};
+$hxClasses["ui.api.GetAliasLabelsResponse"] = ui.api.GetAliasLabelsResponse;
+ui.api.GetAliasLabelsResponse.__name__ = ["ui","api","GetAliasLabelsResponse"];
+ui.api.GetAliasLabelsResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.GetAliasLabelsResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.GetAliasLabelsResponse
+});
+ui.api.AliasLabelsRequestData = function() {
+	ui.api.PayloadWithSessionURI.call(this);
+};
+$hxClasses["ui.api.AliasLabelsRequestData"] = ui.api.AliasLabelsRequestData;
+ui.api.AliasLabelsRequestData.__name__ = ["ui","api","AliasLabelsRequestData"];
+ui.api.AliasLabelsRequestData.__super__ = ui.api.PayloadWithSessionURI;
+ui.api.AliasLabelsRequestData.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
+	__class__: ui.api.AliasLabelsRequestData
+});
 ui.api.AddAliasLabelsRequest = function() {
 	ui.api.ProtocolMessage.call(this,ui.api.MsgType.updateAliasLabelsRequest,ui.api.AddAliasLabelsRequestData);
 };
@@ -4752,7 +4985,7 @@ ui.api.InsertContentData.__super__ = ui.api.Payload;
 ui.api.InsertContentData.prototype = $extend(ui.api.Payload.prototype,{
 	__class__: ui.api.InsertContentData
 });
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createUserRequest","createUserError","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","insertContent","addAliasLabelsRequest","addAliasLabelsResponse","updateAliasLabelsRequest","updateAliasLabelsResponse"] }
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalResponse","evalComplete","evalError","stopEvalRequest","stopEvalResponse","createUserRequest","createUserError","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","insertContent","addAgentAliasesRequest","addAgentAliasesError","addAgentAliasesResponse","removeAgentAliasesRequest","removeAgentAliasesError","removeAgentAliasesResponse","setDefaultAliasRequest","setDefaultAliasError","setDefaultAliasResponse","getAliasConnectionsRequest","getAliasConnectionsResponse","getAliasConnectionsError","getAliasLabelsRequest","getAliasLabelsResponse","getAliasLabelsError","addAliasLabelsRequest","addAliasLabelsResponse","updateAliasLabelsRequest","updateAliasLabelsResponse"] }
 ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
 ui.api.MsgType.initializeSessionRequest.toString = $estr;
 ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
@@ -4816,16 +5049,61 @@ ui.api.MsgType.updateUserResponse.__enum__ = ui.api.MsgType;
 ui.api.MsgType.insertContent = ["insertContent",20];
 ui.api.MsgType.insertContent.toString = $estr;
 ui.api.MsgType.insertContent.__enum__ = ui.api.MsgType;
-ui.api.MsgType.addAliasLabelsRequest = ["addAliasLabelsRequest",21];
+ui.api.MsgType.addAgentAliasesRequest = ["addAgentAliasesRequest",21];
+ui.api.MsgType.addAgentAliasesRequest.toString = $estr;
+ui.api.MsgType.addAgentAliasesRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.addAgentAliasesError = ["addAgentAliasesError",22];
+ui.api.MsgType.addAgentAliasesError.toString = $estr;
+ui.api.MsgType.addAgentAliasesError.__enum__ = ui.api.MsgType;
+ui.api.MsgType.addAgentAliasesResponse = ["addAgentAliasesResponse",23];
+ui.api.MsgType.addAgentAliasesResponse.toString = $estr;
+ui.api.MsgType.addAgentAliasesResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.removeAgentAliasesRequest = ["removeAgentAliasesRequest",24];
+ui.api.MsgType.removeAgentAliasesRequest.toString = $estr;
+ui.api.MsgType.removeAgentAliasesRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.removeAgentAliasesError = ["removeAgentAliasesError",25];
+ui.api.MsgType.removeAgentAliasesError.toString = $estr;
+ui.api.MsgType.removeAgentAliasesError.__enum__ = ui.api.MsgType;
+ui.api.MsgType.removeAgentAliasesResponse = ["removeAgentAliasesResponse",26];
+ui.api.MsgType.removeAgentAliasesResponse.toString = $estr;
+ui.api.MsgType.removeAgentAliasesResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.setDefaultAliasRequest = ["setDefaultAliasRequest",27];
+ui.api.MsgType.setDefaultAliasRequest.toString = $estr;
+ui.api.MsgType.setDefaultAliasRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.setDefaultAliasError = ["setDefaultAliasError",28];
+ui.api.MsgType.setDefaultAliasError.toString = $estr;
+ui.api.MsgType.setDefaultAliasError.__enum__ = ui.api.MsgType;
+ui.api.MsgType.setDefaultAliasResponse = ["setDefaultAliasResponse",29];
+ui.api.MsgType.setDefaultAliasResponse.toString = $estr;
+ui.api.MsgType.setDefaultAliasResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.getAliasConnectionsRequest = ["getAliasConnectionsRequest",30];
+ui.api.MsgType.getAliasConnectionsRequest.toString = $estr;
+ui.api.MsgType.getAliasConnectionsRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.getAliasConnectionsResponse = ["getAliasConnectionsResponse",31];
+ui.api.MsgType.getAliasConnectionsResponse.toString = $estr;
+ui.api.MsgType.getAliasConnectionsResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.getAliasConnectionsError = ["getAliasConnectionsError",32];
+ui.api.MsgType.getAliasConnectionsError.toString = $estr;
+ui.api.MsgType.getAliasConnectionsError.__enum__ = ui.api.MsgType;
+ui.api.MsgType.getAliasLabelsRequest = ["getAliasLabelsRequest",33];
+ui.api.MsgType.getAliasLabelsRequest.toString = $estr;
+ui.api.MsgType.getAliasLabelsRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.getAliasLabelsResponse = ["getAliasLabelsResponse",34];
+ui.api.MsgType.getAliasLabelsResponse.toString = $estr;
+ui.api.MsgType.getAliasLabelsResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.getAliasLabelsError = ["getAliasLabelsError",35];
+ui.api.MsgType.getAliasLabelsError.toString = $estr;
+ui.api.MsgType.getAliasLabelsError.__enum__ = ui.api.MsgType;
+ui.api.MsgType.addAliasLabelsRequest = ["addAliasLabelsRequest",36];
 ui.api.MsgType.addAliasLabelsRequest.toString = $estr;
 ui.api.MsgType.addAliasLabelsRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.addAliasLabelsResponse = ["addAliasLabelsResponse",22];
+ui.api.MsgType.addAliasLabelsResponse = ["addAliasLabelsResponse",37];
 ui.api.MsgType.addAliasLabelsResponse.toString = $estr;
 ui.api.MsgType.addAliasLabelsResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.updateAliasLabelsRequest = ["updateAliasLabelsRequest",23];
+ui.api.MsgType.updateAliasLabelsRequest = ["updateAliasLabelsRequest",38];
 ui.api.MsgType.updateAliasLabelsRequest.toString = $estr;
 ui.api.MsgType.updateAliasLabelsRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.updateAliasLabelsResponse = ["updateAliasLabelsResponse",24];
+ui.api.MsgType.updateAliasLabelsResponse = ["updateAliasLabelsResponse",39];
 ui.api.MsgType.updateAliasLabelsResponse.toString = $estr;
 ui.api.MsgType.updateAliasLabelsResponse.__enum__ = ui.api.MsgType;
 ui.api.Reason = $hxClasses["ui.api.Reason"] = { __ename__ : ["ui","api","Reason"], __constructs__ : [] }
@@ -5317,7 +5595,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","CreateLabel"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","LoadAlias","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","AliasCreate","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","CreateLabel"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
@@ -5342,31 +5620,40 @@ ui.model.EMEvent.LoadAlias.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.AliasLoaded = ["AliasLoaded",7];
 ui.model.EMEvent.AliasLoaded.toString = $estr;
 ui.model.EMEvent.AliasLoaded.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_LOGIN = ["USER_LOGIN",8];
+ui.model.EMEvent.AliasConnectionsLoaded = ["AliasConnectionsLoaded",8];
+ui.model.EMEvent.AliasConnectionsLoaded.toString = $estr;
+ui.model.EMEvent.AliasConnectionsLoaded.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.AliasLabelsLoaded = ["AliasLabelsLoaded",9];
+ui.model.EMEvent.AliasLabelsLoaded.toString = $estr;
+ui.model.EMEvent.AliasLabelsLoaded.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.AliasCreate = ["AliasCreate",10];
+ui.model.EMEvent.AliasCreate.toString = $estr;
+ui.model.EMEvent.AliasCreate.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.USER_LOGIN = ["USER_LOGIN",11];
 ui.model.EMEvent.USER_LOGIN.toString = $estr;
 ui.model.EMEvent.USER_LOGIN.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_CREATE = ["USER_CREATE",9];
+ui.model.EMEvent.USER_CREATE = ["USER_CREATE",12];
 ui.model.EMEvent.USER_CREATE.toString = $estr;
 ui.model.EMEvent.USER_CREATE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_UPDATE = ["USER_UPDATE",10];
+ui.model.EMEvent.USER_UPDATE = ["USER_UPDATE",13];
 ui.model.EMEvent.USER_UPDATE.toString = $estr;
 ui.model.EMEvent.USER_UPDATE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",11];
+ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",14];
 ui.model.EMEvent.USER_SIGNUP.toString = $estr;
 ui.model.EMEvent.USER_SIGNUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_VALIDATE = ["USER_VALIDATE",12];
+ui.model.EMEvent.USER_VALIDATE = ["USER_VALIDATE",15];
 ui.model.EMEvent.USER_VALIDATE.toString = $estr;
 ui.model.EMEvent.USER_VALIDATE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_VALIDATED = ["USER_VALIDATED",13];
+ui.model.EMEvent.USER_VALIDATED = ["USER_VALIDATED",16];
 ui.model.EMEvent.USER_VALIDATED.toString = $estr;
 ui.model.EMEvent.USER_VALIDATED.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER = ["USER",14];
+ui.model.EMEvent.USER = ["USER",17];
 ui.model.EMEvent.USER.toString = $estr;
 ui.model.EMEvent.USER.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FitWindow = ["FitWindow",15];
+ui.model.EMEvent.FitWindow = ["FitWindow",18];
 ui.model.EMEvent.FitWindow.toString = $estr;
 ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateLabel = ["CreateLabel",16];
+ui.model.EMEvent.CreateLabel = ["CreateLabel",19];
 ui.model.EMEvent.CreateLabel.toString = $estr;
 ui.model.EMEvent.CreateLabel.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
@@ -7005,6 +7292,72 @@ var defineWidget = function() {
 $.widget("ui.messagingComp",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of NewAliasComp must be a div element");
+		selfElement.addClass("_newAliasComp").hide();
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
+		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Alias Name</label></div>");
+		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Alias name'>").appendTo(inputs);
+		inputs.append("<br/>");
+		inputs.children("input").keypress(function(evt) {
+			if(evt.keyCode == 13) self._createNewAlias();
+		});
+		self.placeholder_n.focus(function(evt) {
+			self.placeholder_n.hide();
+			self.input_n.show().focus();
+		});
+		self.input_n.blur(function(evt) {
+			if(m3.helper.StringHelper.isBlank(self.input_n.val())) {
+				self.placeholder_n.show();
+				self.input_n.hide();
+			}
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
+			self._setUser(user);
+		},"NewAliasComp-User"));
+	}, initialized : false, _createNewAlias : function() {
+		var self = this;
+		var selfElement = this.element;
+		var valid = true;
+		var alias = new ui.model.Alias();
+		alias.label = self.input_n.val();
+		if(m3.helper.StringHelper.isBlank(alias.label)) {
+			self.placeholder_n.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EM.change(ui.model.EMEvent.AliasCreate,alias);
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		self1.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Create New Alias", height : 190, width : 340, buttons : { 'Create New Alias' : function() {
+			self1._createNewAlias();
+		}, Cancel : function() {
+			$(this).jdialog("close");
+		}}, close : function(evt,ui) {
+			selfElement1.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement1.jdialog(dlgOptions);
+	}, _setUser : function(user) {
+		var self = this;
+		self.user = user;
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!self.initialized) self._buildDialog();
+		selfElement.jdialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.newAliasComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
 		$.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
 		var self = this;
 		var selfElement = this.element;
@@ -7318,10 +7671,19 @@ var defineWidget = function() {
 				};
 			})()).click((function(alias1) {
 				return function(evt) {
-					ui.model.EM.change(ui.model.EMEvent.LoadAlias,alias1[0].uid);
+					ui.model.EM.change(ui.model.EMEvent.LoadAlias,alias1[0]);
 				};
 			})(alias1));
 		}
+		var btn = new $("<div id='newAlias' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>New Alias</div>");
+		aliases.append(btn);
+		btn.hover(function() {
+			$(this).addClass("ui-state-hover");
+		},function() {
+			$(this).removeClass("ui-state-hover");
+		}).click(function(evt) {
+			ui.AgentUi.showNewAlias();
+		});
 		aliases.position({ my : "left top", at : "right-6px center", of : selfElement});
 		aliases.hide();
 		change.click(function(evt) {
@@ -7365,43 +7727,56 @@ ui.AgentUi.DEMO = false;
 ui.AgentUi.URL = "";
 ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<content>\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl public=\"1\">\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"27\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"31\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.PayloadWithSessionURI.__rtti = "<class path=\"ui.api.PayloadWithSessionURI\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"41\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.PayloadWithReason.__rtti = "<class path=\"ui.api.PayloadWithReason\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"45\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CreateUserRequest.__rtti = "<class path=\"ui.api.CreateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.UserRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"53\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Create User Request/Response</haxe_doc>\n</class>";
-ui.api.UserRequestData.__rtti = "<class path=\"ui.api.UserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<jsonBlob public=\"1\"><d/></jsonBlob>\n\t<new public=\"1\" set=\"method\" line=\"58\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CreateUserError.__rtti = "<class path=\"ui.api.CreateUserError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithReason\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"65\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CreateUserWaiting.__rtti = "<class path=\"ui.api.CreateUserWaiting\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.Payload\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"72\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ConfirmUserToken.__rtti = "<class path=\"ui.api.ConfirmUserToken\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ConfirmUserTokenData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"78\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ConfirmUserTokenData.__rtti = "<class path=\"ui.api.ConfirmUserTokenData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<token public=\"1\"><c path=\"String\"/></token>\n\t<new public=\"1\" set=\"method\" line=\"83\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CreateUserResponse.__rtti = "<class path=\"ui.api.CreateUserResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CreateUserResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"88\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CreateUserResponseData.__rtti = "<class path=\"ui.api.CreateUserResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"93\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.UpdateUserRequest.__rtti = "<class path=\"ui.api.UpdateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.UpdateUserRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"98\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.UpdateUserRequestData.__rtti = "<class path=\"ui.api.UpdateUserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<jsonBlob public=\"1\"><d/></jsonBlob>\n\t<new public=\"1\" set=\"method\" line=\"103\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"112\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Initialize Session Request/Response</haxe_doc>\n</class>";
-ui.api.InitializeSessionRequestData.__rtti = "<class path=\"ui.api.InitializeSessionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"117\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionResponse.__rtti = "<class path=\"ui.api.InitializeSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"122\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionResponseData.__rtti = "<class path=\"ui.api.InitializeSessionResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<listOfAliases public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></listOfAliases>\n\t<defaultAlias public=\"1\"><c path=\"String\"/></defaultAlias>\n\t<listOfCnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></listOfCnxns>\n\t<lastActiveLabel public=\"1\"><c path=\"String\"/></lastActiveLabel>\n\t<jsonBlob public=\"1\"><c path=\"ui.model.UserData\"/></jsonBlob>\n\t<listOfLabels><c path=\"Array\"><c path=\"String\"/></c></listOfLabels>\n\t<labels public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"Array\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<get_labels set=\"method\" line=\"137\"><f a=\"\"><c path=\"Array\"><c path=\"ui.model.Label\"/></c></f></get_labels>\n\t<new public=\"1\" set=\"method\" line=\"127\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionError.__rtti = "<class path=\"ui.api.InitializeSessionError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithReason\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"151\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.SessionPingRequest.__rtti = "<class path=\"ui.api.SessionPingRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"160\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Ping/pop Request/Response</haxe_doc>\n</class>";
-ui.api.SessionPongResponse.__rtti = "<class path=\"ui.api.SessionPongResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"166\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"176\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Close Session Request/Response</haxe_doc>\n</class>";
-ui.api.CloseSessionResponse.__rtti = "<class path=\"ui.api.CloseSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"182\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalSubscribeRequest.__rtti = "<class path=\"ui.api.EvalSubscribeRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"191\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Evaluate Request/Response</haxe_doc>\n</class>";
-ui.api.EvalRequestData.__rtti = "<class path=\"ui.api.EvalRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<expression public=\"1\"><c path=\"ui.api.ProtocolMessage\"><d/></c></expression>\n\t<new public=\"1\" set=\"method\" line=\"196\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalNextPageRequest.__rtti = "<class path=\"ui.api.EvalNextPageRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalNextPageRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"201\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalNextPageRequestData.__rtti = "<class path=\"ui.api.EvalNextPageRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<nextPage public=\"1\"><c path=\"String\"/></nextPage>\n\t<new public=\"1\" set=\"method\" line=\"206\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalResponse.__rtti = "<class path=\"ui.api.EvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"211\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalComplete.__rtti = "<class path=\"ui.api.EvalComplete\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"217\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"ui.model.Content\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"222\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalError.__rtti = "<class path=\"ui.api.EvalError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalErrorData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"227\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalErrorData.__rtti = "<class path=\"ui.api.EvalErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<errorMsg public=\"1\"><c path=\"String\"/></errorMsg>\n\t<new public=\"1\" set=\"method\" line=\"232\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.StopEvalRequest.__rtti = "<class path=\"ui.api.StopEvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"240\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Stop Evaluation Request/Response</haxe_doc>\n</class>";
-ui.api.StopEvalResponse.__rtti = "<class path=\"ui.api.StopEvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"246\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.AddAliasLabelsRequest.__rtti = "<class path=\"ui.api.AddAliasLabelsRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.AddAliasLabelsRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"262\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.AddAliasLabelsRequestData.__rtti = "<class path=\"ui.api.AddAliasLabelsRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<labels public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<alias public=\"1\"><c path=\"String\"/></alias>\n\t<new public=\"1\" set=\"method\" line=\"267\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.AddAliasLabelsResponse.__rtti = "<class path=\"ui.api.AddAliasLabelsResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"273\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InsertContent.__rtti = "<class path=\"ui.api.InsertContent\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InsertContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"279\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InsertContentData.__rtti = "<class path=\"ui.api.InsertContentData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<cnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></cnxns>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<value public=\"1\"><c path=\"String\"/></value>\n\t<new public=\"1\" set=\"method\" line=\"284\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.PayloadWithSessionURI.__rtti = "<class path=\"ui.api.PayloadWithSessionURI\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"44\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.PayloadWithReason.__rtti = "<class path=\"ui.api.PayloadWithReason\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"50\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.ErrorPayload.__rtti = "<class path=\"ui.api.ErrorPayload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"54\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CreateUserRequest.__rtti = "<class path=\"ui.api.CreateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.UserRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"62\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Create User Request/Response</haxe_doc>\n</class>";
+ui.api.UserRequestData.__rtti = "<class path=\"ui.api.UserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<jsonBlob public=\"1\"><d/></jsonBlob>\n\t<new public=\"1\" set=\"method\" line=\"67\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CreateUserError.__rtti = "<class path=\"ui.api.CreateUserError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithReason\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"74\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CreateUserWaiting.__rtti = "<class path=\"ui.api.CreateUserWaiting\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.Payload\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"81\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.ConfirmUserToken.__rtti = "<class path=\"ui.api.ConfirmUserToken\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ConfirmUserTokenData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"87\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.ConfirmUserTokenData.__rtti = "<class path=\"ui.api.ConfirmUserTokenData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<token public=\"1\"><c path=\"String\"/></token>\n\t<new public=\"1\" set=\"method\" line=\"92\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CreateUserResponse.__rtti = "<class path=\"ui.api.CreateUserResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.CreateUserResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"97\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CreateUserResponseData.__rtti = "<class path=\"ui.api.CreateUserResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.UpdateUserRequest.__rtti = "<class path=\"ui.api.UpdateUserRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.UpdateUserRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"107\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.UpdateUserRequestData.__rtti = "<class path=\"ui.api.UpdateUserRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<jsonBlob public=\"1\"><d/></jsonBlob>\n\t<new public=\"1\" set=\"method\" line=\"112\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"121\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Initialize Session Request/Response</haxe_doc>\n</class>";
+ui.api.InitializeSessionRequestData.__rtti = "<class path=\"ui.api.InitializeSessionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"126\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionResponse.__rtti = "<class path=\"ui.api.InitializeSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"131\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionResponseData.__rtti = "<class path=\"ui.api.InitializeSessionResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<listOfAliases public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></listOfAliases>\n\t<defaultAlias public=\"1\"><c path=\"String\"/></defaultAlias>\n\t<listOfCnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></listOfCnxns>\n\t<lastActiveLabel public=\"1\"><c path=\"String\"/></lastActiveLabel>\n\t<jsonBlob public=\"1\"><c path=\"ui.model.UserData\"/></jsonBlob>\n\t<listOfLabels><c path=\"Array\"><c path=\"String\"/></c></listOfLabels>\n\t<labels public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"Array\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<get_labels set=\"method\" line=\"146\"><f a=\"\"><c path=\"Array\"><c path=\"ui.model.Label\"/></c></f></get_labels>\n\t<new public=\"1\" set=\"method\" line=\"136\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InitializeSessionError.__rtti = "<class path=\"ui.api.InitializeSessionError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithReason\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"160\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SessionPingRequest.__rtti = "<class path=\"ui.api.SessionPingRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"169\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Ping/pop Request/Response</haxe_doc>\n</class>";
+ui.api.SessionPongResponse.__rtti = "<class path=\"ui.api.SessionPongResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"175\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"185\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Close Session Request/Response</haxe_doc>\n</class>";
+ui.api.CloseSessionResponse.__rtti = "<class path=\"ui.api.CloseSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"191\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalSubscribeRequest.__rtti = "<class path=\"ui.api.EvalSubscribeRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"200\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Evaluate Request/Response</haxe_doc>\n</class>";
+ui.api.EvalRequestData.__rtti = "<class path=\"ui.api.EvalRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<expression public=\"1\"><c path=\"ui.api.ProtocolMessage\"><d/></c></expression>\n\t<new public=\"1\" set=\"method\" line=\"205\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalNextPageRequest.__rtti = "<class path=\"ui.api.EvalNextPageRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalNextPageRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"210\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalNextPageRequestData.__rtti = "<class path=\"ui.api.EvalNextPageRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<nextPage public=\"1\"><c path=\"String\"/></nextPage>\n\t<new public=\"1\" set=\"method\" line=\"215\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalResponse.__rtti = "<class path=\"ui.api.EvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"220\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalComplete.__rtti = "<class path=\"ui.api.EvalComplete\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"226\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"ui.model.Content\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"231\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalError.__rtti = "<class path=\"ui.api.EvalError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalErrorData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"236\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalErrorData.__rtti = "<class path=\"ui.api.EvalErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<errorMsg public=\"1\"><c path=\"String\"/></errorMsg>\n\t<new public=\"1\" set=\"method\" line=\"241\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.StopEvalRequest.__rtti = "<class path=\"ui.api.StopEvalRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"249\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<haxe_doc>Stop Evaluation Request/Response</haxe_doc>\n</class>";
+ui.api.StopEvalResponse.__rtti = "<class path=\"ui.api.StopEvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"255\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.BaseAgentAliasRequest.__rtti = "<class path=\"ui.api.BaseAgentAliasRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.AgentAliasesRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"264\"><f a=\"msgType\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<haxe_doc>Aliases</haxe_doc>\n</class>";
+ui.api.AgentAliasesRequestData.__rtti = "<class path=\"ui.api.AgentAliasesRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<aliases public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></aliases>\n\t<new public=\"1\" set=\"method\" line=\"269\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.AddAgentAliasesResponse.__rtti = "<class path=\"ui.api.AddAgentAliasesResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"274\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.AddAgentAliasesError.__rtti = "<class path=\"ui.api.AddAgentAliasesError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ErrorPayload\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"280\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RemoveAgentAliasesResponse.__rtti = "<class path=\"ui.api.RemoveAgentAliasesResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"286\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RemoveAgentAliasesError.__rtti = "<class path=\"ui.api.RemoveAgentAliasesError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ErrorPayload\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"292\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SetDefaultAliasResponse.__rtti = "<class path=\"ui.api.SetDefaultAliasResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"298\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.SetDefaultAliasError.__rtti = "<class path=\"ui.api.SetDefaultAliasError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ErrorPayload\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"304\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.GetAliasConnectionsResponse.__rtti = "<class path=\"ui.api.GetAliasConnectionsResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.AliasConnectionsRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"310\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.AliasConnectionsRequestData.__rtti = "<class path=\"ui.api.AliasConnectionsRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<cnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></cnxns>\n\t<new public=\"1\" set=\"method\" line=\"315\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.GetAliasLabelsResponse.__rtti = "<class path=\"ui.api.GetAliasLabelsResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.AliasLabelsRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"320\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.AliasLabelsRequestData.__rtti = "<class path=\"ui.api.AliasLabelsRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<labels public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<new public=\"1\" set=\"method\" line=\"325\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.AddAliasLabelsRequest.__rtti = "<class path=\"ui.api.AddAliasLabelsRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.AddAliasLabelsRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"330\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.AddAliasLabelsRequestData.__rtti = "<class path=\"ui.api.AddAliasLabelsRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<labels public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<alias public=\"1\"><c path=\"String\"/></alias>\n\t<new public=\"1\" set=\"method\" line=\"335\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.AddAliasLabelsResponse.__rtti = "<class path=\"ui.api.AddAliasLabelsResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"341\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InsertContent.__rtti = "<class path=\"ui.api.InsertContent\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InsertContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"349\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.InsertContentData.__rtti = "<class path=\"ui.api.InsertContentData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<cnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></cnxns>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<value public=\"1\"><c path=\"String\"/></value>\n\t<new public=\"1\" set=\"method\" line=\"354\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.TestDao.initialized = false;
 ui.api.TestDao._lastRandom = 0;
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"T\">\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"21\" static=\"1\"><f a=\"t\">\n\t<a><uid><c path=\"String\"/></uid></a>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</uid>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";

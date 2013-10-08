@@ -90,6 +90,9 @@ enum EMEvent {
 
 	LoadAlias;
 	AliasLoaded;
+	AliasConnectionsLoaded;
+	AliasLabelsLoaded;
+	AliasCreate;
 
 	USER_LOGIN;
 	USER_CREATE;

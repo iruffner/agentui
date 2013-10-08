@@ -51,6 +51,10 @@ class PayloadWithReason extends Payload {
 	public var reason: String;
 }
 
+class ErrorPayload extends PayloadWithSessionURI {
+	public var reason: String;
+}
+
 /** 
 	Create User Request/Response 
 **/
@@ -253,15 +257,74 @@ class StopEvalResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	}
 }
 
-// class TempAddAliasLabel extends ProtocolMessage<TempAddAliasLabelData> {
-// 	public function new() {
-// 		super(MsgType.evalSubscribeRequest, TempAddAliasLabelData);
-// 	}
-// }
+/** 
+	Aliases 
+**/
+class BaseAgentAliasRequest extends ProtocolMessage<AgentAliasesRequestData> {
+	public function new(msgType: MsgType) {
+		super(msgType, AgentAliasesRequestData);
+	}
+}
 
-// 		class TempAddAliasLabelData extends PayloadWithSessionURI {
-// 			public var expression: InsertContent;
-// 		}
+		class AgentAliasesRequestData extends PayloadWithSessionURI {
+			public var aliases: Array<String>;
+		}
+
+class AddAgentAliasesResponse extends ProtocolMessage<PayloadWithSessionURI> {
+	public function new() {
+		super(MsgType.addAgentAliasesResponse, PayloadWithSessionURI);
+	}
+}
+
+class AddAgentAliasesError extends ProtocolMessage<ErrorPayload> {
+	public function new() {
+		super(MsgType.addAgentAliasesError, ErrorPayload);
+	}
+}
+
+class RemoveAgentAliasesResponse extends ProtocolMessage<PayloadWithSessionURI> {
+	public function new() {
+		super(MsgType.removeAgentAliasesResponse, PayloadWithSessionURI);
+	}
+}
+
+class RemoveAgentAliasesError extends ProtocolMessage<ErrorPayload> {
+	public function new() {
+		super(MsgType.removeAgentAliasesError, ErrorPayload);
+	}
+}
+
+class SetDefaultAliasResponse extends ProtocolMessage<PayloadWithSessionURI> {
+	public function new() {
+		super(MsgType.setDefaultAliasResponse, PayloadWithSessionURI);
+	}
+}
+
+class SetDefaultAliasError extends ProtocolMessage<ErrorPayload> {
+	public function new() {
+		super(MsgType.setDefaultAliasError, ErrorPayload);
+	}
+}
+
+class GetAliasConnectionsResponse extends ProtocolMessage<AliasConnectionsRequestData> {
+	public function new() {
+		super(MsgType.getAliasConnectionsResponse, AliasConnectionsRequestData);
+	}
+}
+
+		class AliasConnectionsRequestData extends PayloadWithSessionURI {
+			public var cnxns: Array<Connection>;
+		}
+
+class GetAliasLabelsResponse extends ProtocolMessage<AliasLabelsRequestData> {
+	public function new() {
+		super(MsgType.getAliasLabelsResponse, AliasLabelsRequestData);
+	}
+}
+
+		class AliasLabelsRequestData extends PayloadWithSessionURI {
+			public var labels: Array<String>;
+		}
 
 class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
 	public function new() {
@@ -279,6 +342,8 @@ class AddAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
 		super(MsgType.updateAliasLabelsResponse, PayloadWithSessionURI);
 	}
 }
+
+
 
 class InsertContent extends ProtocolMessage<InsertContentData> {
 	public function new() {
@@ -314,6 +379,24 @@ enum MsgType {
 	updateUserRequest;
 	updateUserResponse;
 	insertContent;
+
+	addAgentAliasesRequest;
+	addAgentAliasesError;
+	addAgentAliasesResponse;
+	removeAgentAliasesRequest;
+	removeAgentAliasesError;
+	removeAgentAliasesResponse;
+	setDefaultAliasRequest;
+	setDefaultAliasError;
+	setDefaultAliasResponse;
+
+	getAliasConnectionsRequest;
+	getAliasConnectionsResponse;
+	getAliasConnectionsError;
+	getAliasLabelsRequest;
+	getAliasLabelsResponse;
+	getAliasLabelsError;
+
 	addAliasLabelsRequest;
 	addAliasLabelsResponse;
 	updateAliasLabelsRequest;
