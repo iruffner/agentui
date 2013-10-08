@@ -202,12 +202,12 @@ extern class LoginComp extends JQ {
 		        			"I\\\'m New": function() {
 		        				self._newUser = true;
 		        				JDialog.cur.jdialog("close");
-		        				AgentUi.showNewUser();
+		        				DialogManager.showNewUser();
 		        			},
 		        			"Validate": function() {
 		        				self._newUser = true;
 		        				JDialog.cur.jdialog("close");
-		        				AgentUi.showSignupConfirmation();
+		        				DialogManager.showSignupConfirmation();
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJDialog): Dynamic {

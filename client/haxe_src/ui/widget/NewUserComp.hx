@@ -203,7 +203,7 @@ extern class NewUserComp extends JQ {
 		        		close: function(evt: JQEvent, ui: UIJDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");
 		        			if(self._cancelled || (!self._registered && (self.user == null || !self.user.hasValidSession()))) {
-		        				AgentUi.showLogin();
+		        				DialogManager.showLogin();
 		        			}
 		        		}
 		        	};
