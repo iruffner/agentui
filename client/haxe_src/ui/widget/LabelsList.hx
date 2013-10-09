@@ -94,10 +94,10 @@ extern class LabelsList extends JQ {
         									if (!alnum.match(label.text)) {
         										js.Lib.alert("Only alphanumeric labels allowed.");
         									} else {
-	        									label.uid = UidGenerator.create();
-  	      									AgentUi.LOGGER.debug("add to " + self.labels.visualId);
+        										label.uid = UidGenerator.create();
+  	      										AgentUi.LOGGER.debug("add to " + self.labels.visualId);
     	    									self.labels.add(label);
-      	  									EM.change(EMEvent.CreateLabel);
+      	  										EM.change(EMEvent.CreateLabel, label);
         										new JQ("body").click();
         									}
 		        						};

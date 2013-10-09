@@ -423,8 +423,8 @@ class ProtocolHandler {
 		data.expression = new InsertContent();//AgentUi.SERIALIZER.toJson(content);
 		var insertData: InsertContentData = new InsertContentData();
 		data.expression.contentImpl = insertData;
-		insertData.label = "";  // TODO: Insert the prolog code here
-		insertData.value = AgentUi.SERIALIZER.toJson(content);
+		insertData.label = Alias.labelsAsStrings(content.labelSet.map(function(str: String): Label { return new Label(str);})).join(",");
+		insertData.value = AgentUi.SERIALIZER.toJsonString(content);
 		insertData.cnxns = [AgentUi.USER.getSelfConnection()];
 
 		try {
@@ -487,7 +487,7 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("addAlias successfully submitted");
-				}).start();
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing addAlias", ex);
@@ -504,7 +504,7 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("removeAlias successfully submitted");
-				}).start();
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing removeAlias", ex);
@@ -521,7 +521,7 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("setDefaultAlias successfully submitted");
-				}).start();
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing setDefaultAlias", ex);
@@ -538,7 +538,7 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("getAliasConnections successfully submitted");
-				}).start();
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing getAliasConnections", ex);
@@ -555,7 +555,7 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("getAliasLabels successfully submitted");
-				}).start();
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing getAliasLabels", ex);

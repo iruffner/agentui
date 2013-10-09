@@ -43,7 +43,8 @@ class PayloadWithSessionURI extends Payload {
 
 	public function new() {
 		super();
-		this.sessionURI = AgentUi.USER.sessionURI;
+		if(AgentUi.USER != null)
+			this.sessionURI = AgentUi.USER.sessionURI;
 	}
 }
 

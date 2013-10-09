@@ -2,6 +2,7 @@
 
 # make sure you have a trailing slash
 SERVER=root@64.27.3.17:/opt/agentui/
+#SERVER=agentui-dev:/opt/agentui/
 
 set -e
 

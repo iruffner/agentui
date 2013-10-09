@@ -7,6 +7,7 @@ import com.google.inject.util.Modules
 import com.google.inject.Module
 import m3.servlet.M3ServletModule
 import m3.servlet.CurlFilter
+import net.model3.guice.bootstrap.ApplicationName
 
 
 
@@ -19,7 +20,8 @@ class GuiceModule extends ScalaModule with Provider[Module] {
       ServletModule
   )
 
-  def configure = {    
+  def configure = {
+    bind(classOf[ApplicationName]).toInstance(new ApplicationName("agentui"))
   }
 
   object ServletModule extends M3ServletModule {

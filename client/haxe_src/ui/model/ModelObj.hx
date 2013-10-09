@@ -137,11 +137,11 @@ class Alias extends ModelObj<Alias> {
 		connections = connectionSet.asArray();
 	}
 
-	public static function labelsAsStrings(labels: ObservableSet<Label>): Array<String> {
+	public static function labelsAsStrings(labels: OSet<Label>): Array<String> {
 		var sarray: Array<String> = new Array<String>();
-		var topLevelLabel: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
+		var topLevelLabels: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
 
-		topLevelLabel.iter(function(l: Label): Void {
+		topLevelLabels.iter(function(l: Label): Void {
 				var s: String = "";
 				var children: FilteredSet<Label> = new FilteredSet(labels, function(f: Label): Bool { return f.parentUid == l.uid; });
 				if(children.hasValues()) {
@@ -152,17 +152,10 @@ class Alias extends ModelObj<Alias> {
 
 				sarray.push(s);
 			});
-
-		// var str: String = {
-		// 	if(sarray.hasValues() && sarray.length == 1) sarray[0];
-		// 	else if (sarray.hasValues()) "and(" + sarray.join(",") + ")";
-		// 	else "";
-		// }
-
 		return sarray;
 	}
 
-	private static function _processLabelChildren(original: ObservableSet<Label>, set: FilteredSet<Label>): String {
+	private static function _processLabelChildren(original: OSet<Label>, set: FilteredSet<Label>): String {
 		var str: String = set.fold(function(l: Label, s: String): String {
 				if(s.isNotBlank()) {
 					s += ",";
@@ -215,6 +208,9 @@ class Alias extends ModelObj<Alias> {
 				l.uid = UidGenerator.create(10);
 				if(parentLabel != null) l.parentUid = parentLabel.uid;
 				larray.push(l);
+				parser.nextTerm();// "("
+				parser.nextTerm();// "_"
+				parser.nextTerm();// ")"
 			}
 			term = parser.nextTerm();
 		}

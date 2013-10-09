@@ -17,7 +17,6 @@ typedef NewAliasCompWidgetDef = {
 	@:optional var user: User;
 
 	@:optional var input_n: JQ;
-	@:optional var placeholder_n: JQ;
 	
 	var initialized: Bool;
 
@@ -52,27 +51,14 @@ extern class NewAliasComp extends JQ {
 		        	var labels: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 		        	var inputs: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 
-		        	labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Alias Name</label></div>");
+		        	labels.append("<div class='labelDiv' style='margin-top: 3px; margin-right: 6px;'><label id='n_label' for='newu_n'>Alias Name:</label></div>");
 
-		        	self.input_n = new JQ("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		        	self.placeholder_n = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Alias name'>").appendTo(inputs);
+		        	self.input_n = new JQ("<input id='newu_n' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		        	inputs.append("<br/>");
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
 		        			if(evt.keyCode == 13) {
 		        				self._createNewAlias();
-		        			}
-		        		});
-
-		        	self.placeholder_n.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_n.hide();
-		        			self.input_n.show().focus();
-		        		});
-
-		        	self.input_n.blur(function(evt: JQEvent): Void {
-		        			if(self.input_n.val().isBlank()) {
-			        			self.placeholder_n.show();
-			        			self.input_n.hide();
 		        			}
 		        		});
 
@@ -92,7 +78,6 @@ extern class NewAliasComp extends JQ {
     				var alias: Alias = new Alias();
     				alias.label = self.input_n.val();
     				if(alias.label.isBlank()) {
-    					self.placeholder_n.addClass("ui-state-error");
     					valid = false;
     				}
     				if(!valid) return;
