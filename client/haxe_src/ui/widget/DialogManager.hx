@@ -1,5 +1,7 @@
 package ui.widget;
 
+import ui.model.ModelObj;
+
 @:expose
 class DialogManager {
 
@@ -40,14 +42,33 @@ class DialogManager {
     }
 
     public static function showNewAlias(): Void {
-        var newUserComp: NewAliasComp = new NewAliasComp(".newAliasComp");
-        if(newUserComp.exists()) {
-            newUserComp.newAliasComp("open");
+        var newAliasComp: NewAliasComp = new NewAliasComp(".newAliasComp");
+        if(newAliasComp.exists()) {
+            newAliasComp.newAliasComp("open");
         } else {
-            newUserComp = new NewAliasComp("<div></div>");
-            newUserComp.appendTo(js.Browser.document.body);
-            newUserComp.newAliasComp();
-            newUserComp.newAliasComp("open");
+            newAliasComp = new NewAliasComp("<div></div>");
+            newAliasComp.appendTo(js.Browser.document.body);
+            newAliasComp.newAliasComp();
+            newAliasComp.newAliasComp("open");
         }
     }	
+
+    public static function requestIntroduction(from:Connection, to:Connection): Void {
+        var requestIntroductionDialog: RequestIntroductionDialog = new RequestIntroductionDialog(".requestIntroductionDialog");
+
+        if (requestIntroductionDialog.exists()) {
+            requestIntroductionDialog.requestIntroductionDialog("option", "from", from);
+            requestIntroductionDialog.requestIntroductionDialog("option", "to", to);
+            requestIntroductionDialog.requestIntroductionDialog("open");
+        } else {
+            requestIntroductionDialog = new RequestIntroductionDialog("<div></div>");
+            requestIntroductionDialog.appendTo(js.Browser.document.body);
+            requestIntroductionDialog.requestIntroductionDialog({
+                from: from,
+                to: to
+            });
+            requestIntroductionDialog.requestIntroductionDialog("open");
+        }
+    }   
+
 }

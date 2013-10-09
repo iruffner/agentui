@@ -254,6 +254,10 @@ class Connection extends ModelObj<Connection> implements Filterable {
 		this.lname = lname;
 		this.imgSrc = imgSrc;
 	}
+
+	public function name() : String {
+		return this.fname + " " + this.lname;
+	}
 }
 
 class Content extends ModelObj<Content> {

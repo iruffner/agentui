@@ -5861,7 +5861,10 @@ ui.model.Connection.__name__ = ["ui","model","Connection"];
 ui.model.Connection.__interfaces__ = [ui.model.Filterable];
 ui.model.Connection.__super__ = ui.model.ModelObj;
 ui.model.Connection.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.Connection
+	name: function() {
+		return this.fname + " " + this.lname;
+	}
+	,__class__: ui.model.Connection
 });
 ui.model.Content = function() { }
 $hxClasses["ui.model.Content"] = ui.model.Content;
@@ -6057,12 +6060,25 @@ ui.widget.DialogManager.showSignupConfirmation = function() {
 	}
 }
 ui.widget.DialogManager.showNewAlias = function() {
-	var newUserComp = new $(".newAliasComp");
-	if(newUserComp.exists()) newUserComp.newAliasComp("open"); else {
-		newUserComp = new $("<div></div>");
-		newUserComp.appendTo(js.Browser.document.body);
-		newUserComp.newAliasComp();
-		newUserComp.newAliasComp("open");
+	var newAliasComp = new $(".newAliasComp");
+	if(newAliasComp.exists()) newAliasComp.newAliasComp("open"); else {
+		newAliasComp = new $("<div></div>");
+		newAliasComp.appendTo(js.Browser.document.body);
+		newAliasComp.newAliasComp();
+		newAliasComp.newAliasComp("open");
+	}
+}
+ui.widget.DialogManager.requestIntroduction = function(from,to) {
+	var requestIntroductionDialog = new $(".requestIntroductionDialog");
+	if(requestIntroductionDialog.exists()) {
+		requestIntroductionDialog.requestIntroductionDialog("option","from",from);
+		requestIntroductionDialog.requestIntroductionDialog("option","to",to);
+		requestIntroductionDialog.requestIntroductionDialog("open");
+	} else {
+		requestIntroductionDialog = new $("<div></div>");
+		requestIntroductionDialog.appendTo(js.Browser.document.body);
+		requestIntroductionDialog.requestIntroductionDialog({ from : from, to : to});
+		requestIntroductionDialog.requestIntroductionDialog("open");
 	}
 }
 ui.widget.LabelCompHelper = function() { }
@@ -6472,7 +6488,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionAvatar must be a div element");
 		selfElement.attr("id","connavatar_" + StringTools.htmlEscape(self.options.connection.lname + self.options.connection.fname));
-		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.fname + " " + self.options.connection.lname);
+		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.name());
 		var img = new $("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		selfElement.append(img);
 		(js.Boot.__cast(selfElement , $)).tooltip();
@@ -6509,12 +6525,67 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		selfElement.children("img").attr("src",self.options.connection.imgSrc);
-		selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+		selfElement.children("div").text(self.options.connection.name());
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
 $.widget("ui.connectionAvatar",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RequestIntroductionDialog must be a div element");
+		selfElement.addClass("requestIntroductionDialog").hide();
+		var connections = new $("<div></div>").appendTo(selfElement);
+		connections.append("<div class='labelDiv' style='display:inline'>Introduce&nbsp;&nbsp;</div>");
+		self._appendConnectionAvatar(self.options.to,connections);
+		connections.append("<div class='labelDiv' style='display:inline'>&nbsp;to&nbsp;</div>");
+		self._appendConnectionAvatar(self.options.from,connections);
+		connections.append("<div class='labelDiv'>&nbsp;</div>");
+		var toName = self.options.to.name();
+		var fromName = self.options.from.name();
+		var ridTitle = new $("<div style='display:table-row;'></div>").appendTo(selfElement);
+		ridTitle.append("<div style='width:270px;font-size:12px;display:table-cell;text-align:left;'>Introduction Message for " + toName + "</div>");
+		ridTitle.append("<div class='labelDiv' style='width:270px;font-size:12px;display:table-cell;text-align:right;'><input type='checkbox' id='same_messsage' checked='checked'>Same Message for " + fromName + "</div>");
+		var ridTa = new $("<div style='display:table-row;'></div>").appendTo(selfElement);
+		var divTa1 = new $("<div style='display:table-cell;width:270px;height:140px;'></div>").appendTo(ridTa);
+		var ta1 = new $("<textarea class='boxsizingBorder container' style='resize:none;font-size:12px;width:100%;height:100%;'></textarea>").appendTo(divTa1).attr("id","ta1").html("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
+		var divTa2 = new $("<div style='display:table-cell;width:270px;height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
+		var ta2 = new $("<textarea class='boxsizingBorder container' style='resize: none;font-size:12px;width:100%;height:100%;' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","ta2").html(ta1.html());
+	}, _appendConnectionAvatar : function(connection,parent) {
+		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connection : connection, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(parent).css("display","inline");
+		parent.append("<div class='labelDiv' style='display:inline'>" + connection.name() + "</div>");
+	}, initialized : false, _requestIntroduction : function() {
+		var self = this;
+		var selfElement = this.element;
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		if(self1.initialized) return;
+		self1.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Introduction Request", height : 400, width : 600, buttons : { Send : function() {
+			self1._requestIntroduction();
+		}, Cancel : function() {
+			$(this).jdialog("close");
+		}}, close : function(evt,ui) {
+			selfElement1.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement1.jdialog(dlgOptions);
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(selfElement.exists()) {
+			selfElement.empty();
+			self._create();
+		}
+		self._buildDialog();
+		selfElement.jdialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.requestIntroductionDialog",defineWidget());
 var defineWidget = function() {
 	return { options : { connection : null, classes : null}, _create : function() {
 		var self = this;
@@ -6523,17 +6594,19 @@ var defineWidget = function() {
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connection container boxsizingBorder");
 		self._avatar = new $("<div class='avatar'></div>").connectionAvatar({ connection : self.options.connection, dndEnabled : true, isDragByHelper : true, containment : false});
 		selfElement.append(self._avatar);
-		selfElement.append("<div class='name'>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
+		selfElement.append("<div class='name'>" + self.options.connection.name() + "</div>");
 		(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
 			return d["is"](".connectionAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
-			js.Lib.alert("popup the introduction dialog box");
+			var dropper = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
+			var droppee = self.options.connection;
+			ui.widget.DialogManager.requestIntroduction(dropper,droppee);
 		}, tolerance : "pointer"});
 	}, update : function() {
 		var self = this;
 		var selfElement = this.element;
 		selfElement.children("img").attr("src",self.options.connection.imgSrc);
-		selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+		selfElement.children("div").text(self.options.connection.name());
 		self._avatar.connectionAvatar("update");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
@@ -7797,12 +7870,12 @@ ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.mo
 ui.model.UserData.__rtti = "<class path=\"ui.model.UserData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.UserData\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"114\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Alias\"/></extends>\n\t<labelsAsStrings public=\"1\" set=\"method\" line=\"140\" static=\"1\"><f a=\"labels\">\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t<c path=\"Array\"><c path=\"String\"/></c>\n</f></labelsAsStrings>\n\t<_processLabelChildren set=\"method\" line=\"165\" static=\"1\"><f a=\"original:set\">\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t<c path=\"m3.observable.FilteredSet\"><c path=\"ui.model.Label\"/></c>\n\t<c path=\"String\"/>\n</f></_processLabelChildren>\n\t<_processDataLog public=\"1\" set=\"method\" line=\"185\" static=\"1\"><f a=\"str\">\n\t<c path=\"String\"/>\n\t<c path=\"Array\"><c path=\"ui.model.Label\"/></c>\n</f></_processDataLog>\n\t<_processDataLogChildren set=\"method\" line=\"196\" static=\"1\"><f a=\"parentLabel:parser\">\n\t<c path=\"ui.model.Label\"/>\n\t<c path=\"ui.helper.LabelStringParser\"/>\n\t<c path=\"Array\"><c path=\"ui.model.Label\"/></c>\n</f></_processDataLogChildren>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<labels><c path=\"Array\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<connections><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></connections>\n\t<loadedFromDb line=\"125\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</loadedFromDb>\n\t<readResolve set=\"method\" line=\"130\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"135\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"128\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"237\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</fname>\n\t<lname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</imgSrc>\n\t<src public=\"1\"><c path=\"String\"/></src>\n\t<tgt public=\"1\"><c path=\"String\"/></tgt>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<new public=\"1\" set=\"method\" line=\"252\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\">\n\t\t<e path=\"ui.model.ContentType\"/>\n\t\t<haxe_doc>ContentType of this content</haxe_doc>\n\t</type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<connections><c path=\"Array\"><c path=\"String\"/></c></connections>\n\t<creator public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<haxe_doc>UID of connection that created the content</haxe_doc>\n\t</creator>\n\t<readResolve set=\"method\" line=\"276\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"281\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n</class>";
-ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"291\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"299\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"305\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"308\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</fname>\n\t<lname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</imgSrc>\n\t<src public=\"1\"><c path=\"String\"/></src>\n\t<tgt public=\"1\"><c path=\"String\"/></tgt>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<name public=\"1\" set=\"method\" line=\"258\"><f a=\"\"><c path=\"String\"/></f></name>\n\t<new public=\"1\" set=\"method\" line=\"252\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\">\n\t\t<e path=\"ui.model.ContentType\"/>\n\t\t<haxe_doc>ContentType of this content</haxe_doc>\n\t</type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels><c path=\"Array\"><c path=\"String\"/></c></labels>\n\t<connections><c path=\"Array\"><c path=\"String\"/></c></connections>\n\t<creator public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<haxe_doc>UID of connection that created the content</haxe_doc>\n\t</creator>\n\t<readResolve set=\"method\" line=\"280\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"285\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n</class>";
+ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"295\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"303\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"309\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"312\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
