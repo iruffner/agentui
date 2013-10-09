@@ -60,9 +60,9 @@ extern class RequestIntroductionDialog extends JQ {
 		        	var toName = self.options.to.name();
 		        	var fromName = self.options.from.name();
 
-		        	var ridTitle:JQ = new JQ("<div style='display:table-row;'></div>").appendTo(selfElement);
-		        	ridTitle.append("<div style='width:270px;font-size:12px;display:table-cell;text-align:left;'>Introduction Message for " + toName + "</div>");
-		        	ridTitle.append("<div class='labelDiv' id='same_messsage_div' style='width:270px;font-size:12px;display:table-cell;text-align:right;'>Same Message for " + fromName + "</div>");
+		        	var ridTitle:JQ = new JQ("<div class='rid_row'></div>").appendTo(selfElement);
+		        	ridTitle.append("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>");
+		        	ridTitle.append("<div class='rid_cell' id='same_messsage_div' style='text-align:right;'>Same Message for " + fromName + "</div>");
 		        	var cb:JQ = new JQ("<input type='checkbox' id='same_messsage' checked='checked'>")
 		        				.prependTo(new JQ("#same_messsage_div"))
 		        				.change(function(evt){
@@ -76,7 +76,7 @@ extern class RequestIntroductionDialog extends JQ {
 		        				});
 		        	cb.prop("checked", true);
 
-		        	var ridTa:JQ = new JQ("<div style='display:table-row;'></div>").appendTo(selfElement);
+		        	var ridTa:JQ = new JQ("<div class='rid_row'></div>").appendTo(selfElement);
 
 		        	var ta1_changed = function(evt) {
 						var same_messsage = new JQ("#same_messsage");
@@ -87,15 +87,15 @@ extern class RequestIntroductionDialog extends JQ {
 						}
 		        	};
 
-		        	var divTa1:JQ = new JQ("<div style='display:table-cell;width:270px;height:140px;'></div>").appendTo(ridTa);
-					var ta1: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize:none;font-size:12px;width:100%;height:100%;'></textarea>")
+		        	var divTa1:JQ = new JQ("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
+					var ta1: JQ = new JQ("<textarea class='boxsizingBorder container rid_ta'></textarea>")
  	  		        				.appendTo(divTa1)
  	  		        				.attr("id", "ta1")
  	  		        				.keyup(ta1_changed)
  	  		        				.val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + AgentUi.USER.userData.name);
 
-		        	var divTa2:JQ = new JQ("<div style='display:table-cell;width:270px;height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
-					var ta2: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;font-size:12px;width:100%;height:100%;' readonly='readonly'></textarea>")
+		        	var divTa2:JQ = new JQ("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
+					var ta2: JQ = new JQ("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>")
  	  		        				.appendTo(divTa2)
  	  		        				.attr("id", "ta2")
  	  		        				.val(ta1.val());

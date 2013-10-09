@@ -6039,52 +6039,52 @@ $hxExpose(ui.widget.DialogManager, "ui.widget.DialogManager");
 ui.widget.DialogManager.__name__ = ["ui","widget","DialogManager"];
 ui.widget.DialogManager.showLogin = function() {
 	var loginComp = new $(".loginComp");
-	if(loginComp.exists()) loginComp.loginComp("open"); else {
+	if(!loginComp.exists()) {
 		loginComp = new $("<div></div>");
 		loginComp.appendTo(js.Browser.document.body);
 		loginComp.loginComp();
-		loginComp.loginComp("open");
 	}
+	loginComp.loginComp("open");
 }
 ui.widget.DialogManager.showNewUser = function() {
 	var newUserComp = new $(".newUserComp");
-	if(newUserComp.exists()) newUserComp.newUserComp("open"); else {
+	if(!newUserComp.exists()) {
 		newUserComp = new $("<div></div>");
 		newUserComp.appendTo(js.Browser.document.body);
 		newUserComp.newUserComp();
-		newUserComp.newUserComp("open");
 	}
+	newUserComp.newUserComp("open");
 }
 ui.widget.DialogManager.showSignupConfirmation = function() {
 	var signupConfirmationDialog = new $(".signupConfirmationDialog");
-	if(signupConfirmationDialog.exists()) signupConfirmationDialog.signupConfirmationDialog("open"); else {
+	if(!signupConfirmationDialog.exists()) {
 		signupConfirmationDialog = new $("<div></div>");
 		signupConfirmationDialog.appendTo(js.Browser.document.body);
 		signupConfirmationDialog.signupConfirmationDialog();
 		signupConfirmationDialog.signupConfirmationDialog("open");
 	}
+	signupConfirmationDialog.signupConfirmationDialog("open");
 }
 ui.widget.DialogManager.showNewAlias = function() {
 	var newAliasComp = new $(".newAliasComp");
-	if(newAliasComp.exists()) newAliasComp.newAliasComp("open"); else {
+	if(!newAliasComp.exists()) {
 		newAliasComp = new $("<div></div>");
 		newAliasComp.appendTo(js.Browser.document.body);
 		newAliasComp.newAliasComp();
-		newAliasComp.newAliasComp("open");
 	}
+	newAliasComp.newAliasComp("open");
 }
 ui.widget.DialogManager.requestIntroduction = function(from,to) {
 	var requestIntroductionDialog = new $(".requestIntroductionDialog");
 	if(requestIntroductionDialog.exists()) {
 		requestIntroductionDialog.requestIntroductionDialog("option","from",from);
 		requestIntroductionDialog.requestIntroductionDialog("option","to",to);
-		requestIntroductionDialog.requestIntroductionDialog("open");
 	} else {
 		requestIntroductionDialog = new $("<div></div>");
 		requestIntroductionDialog.appendTo(js.Browser.document.body);
 		requestIntroductionDialog.requestIntroductionDialog({ from : from, to : to});
-		requestIntroductionDialog.requestIntroductionDialog("open");
 	}
+	requestIntroductionDialog.requestIntroductionDialog("open");
 }
 ui.widget.LabelCompHelper = function() { }
 $hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
@@ -6550,9 +6550,9 @@ var defineWidget = function() {
 		connections.append("<div class='labelDiv'>&nbsp;</div>");
 		var toName = self.options.to.name();
 		var fromName = self.options.from.name();
-		var ridTitle = new $("<div style='display:table-row;'></div>").appendTo(selfElement);
-		ridTitle.append("<div style='width:270px;font-size:12px;display:table-cell;text-align:left;'>Introduction Message for " + toName + "</div>");
-		ridTitle.append("<div class='labelDiv' id='same_messsage_div' style='width:270px;font-size:12px;display:table-cell;text-align:right;'>Same Message for " + fromName + "</div>");
+		var ridTitle = new $("<div class='rid_row'></div>").appendTo(selfElement);
+		ridTitle.append("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>");
+		ridTitle.append("<div class='rid_cell' id='same_messsage_div' style='text-align:right;'>Same Message for " + fromName + "</div>");
 		var cb = new $("<input type='checkbox' id='same_messsage' checked='checked'>").prependTo(new $("#same_messsage_div")).change(function(evt) {
 			var tgt = new $(evt.target);
 			var ta1 = new $("#ta1");
@@ -6561,7 +6561,7 @@ var defineWidget = function() {
 			if(tgt.prop("checked")) ta2.val(ta1.val());
 		});
 		cb.prop("checked",true);
-		var ridTa = new $("<div style='display:table-row;'></div>").appendTo(selfElement);
+		var ridTa = new $("<div class='rid_row'></div>").appendTo(selfElement);
 		var ta1_changed = function(evt) {
 			var same_messsage = new $("#same_messsage");
 			if(same_messsage.prop("checked")) {
@@ -6570,10 +6570,10 @@ var defineWidget = function() {
 				ta2.val(ta1.val());
 			}
 		};
-		var divTa1 = new $("<div style='display:table-cell;width:270px;height:140px;'></div>").appendTo(ridTa);
-		var ta1 = new $("<textarea class='boxsizingBorder container' style='resize:none;font-size:12px;width:100%;height:100%;'></textarea>").appendTo(divTa1).attr("id","ta1").keyup(ta1_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
-		var divTa2 = new $("<div style='display:table-cell;width:270px;height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
-		var ta2 = new $("<textarea class='boxsizingBorder container' style='resize: none;font-size:12px;width:100%;height:100%;' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","ta2").val(ta1.val());
+		var divTa1 = new $("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
+		var ta1 = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","ta1").keyup(ta1_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
+		var divTa2 = new $("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
+		var ta2 = new $("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","ta2").val(ta1.val());
 	}, _appendConnectionAvatar : function(connection,parent) {
 		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connection : connection, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(parent).css("display","inline");
 		parent.append("<div class='labelDiv' style='display:inline'>" + connection.name() + "</div>");
