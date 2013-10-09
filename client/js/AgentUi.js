@@ -3995,6 +3995,10 @@ ui.AgentUi.start = function() {
 			}
 		}
 	});
+	new $("#sideRightSearchInput").keydown(function(evt) {
+		var search = new $(evt.target);
+		var cl = new $("#connections");
+	});
 	new $("#middleContainer #content #tabs").tabs();
 	new $("#sideRight #chat").messagingComp();
 	new $("#connections").connectionsList({ });
@@ -6621,7 +6625,7 @@ var defineWidget = function() {
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 			var dropper = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
 			var droppee = self.options.connection;
-			ui.widget.DialogManager.requestIntroduction(dropper,droppee);
+			if(dropper.uid != droppee.uid) ui.widget.DialogManager.requestIntroduction(dropper,droppee);
 		}, tolerance : "pointer"});
 	}, update : function() {
 		var self = this;

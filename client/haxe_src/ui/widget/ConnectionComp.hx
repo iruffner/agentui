@@ -66,7 +66,9 @@ extern class ConnectionComp extends JQ {
 				      		var dropper:Connection = cast(_ui.draggable, ConnectionAvatar).getConnection();
 				      		var droppee:Connection = self.options.connection;
 
-				      		ui.widget.DialogManager.requestIntroduction(dropper, droppee);
+				      		if (dropper.uid != droppee.uid) {
+					      		ui.widget.DialogManager.requestIntroduction(dropper, droppee);
+					      	}
 				      	},
 				      	tolerance: "pointer"
 			    	});
