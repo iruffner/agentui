@@ -6560,16 +6560,18 @@ var defineWidget = function() {
 			ta2.prop("readonly",tgt.prop("checked"));
 			if(tgt.prop("checked")) ta2.val(ta1.val());
 		});
+		cb.prop("checked",true);
 		var ridTa = new $("<div style='display:table-row;'></div>").appendTo(selfElement);
-		var divTa1 = new $("<div style='display:table-cell;width:270px;height:140px;'></div>").appendTo(ridTa);
-		var ta1 = new $("<textarea class='boxsizingBorder container' style='resize:none;font-size:12px;width:100%;height:100%;'></textarea>").appendTo(divTa1).attr("id","ta1").keypress(function(evt) {
+		var ta1_changed = function(evt) {
 			var same_messsage = new $("#same_messsage");
 			if(same_messsage.prop("checked")) {
-				var ta11 = new $("#ta1");
+				var ta1 = new $("#ta1");
 				var ta2 = new $("#ta2");
-				ta2.val(ta11.val());
+				ta2.val(ta1.val());
 			}
-		}).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
+		};
+		var divTa1 = new $("<div style='display:table-cell;width:270px;height:140px;'></div>").appendTo(ridTa);
+		var ta1 = new $("<textarea class='boxsizingBorder container' style='resize:none;font-size:12px;width:100%;height:100%;'></textarea>").appendTo(divTa1).attr("id","ta1").keyup(ta1_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
 		var divTa2 = new $("<div style='display:table-cell;width:270px;height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
 		var ta2 = new $("<textarea class='boxsizingBorder container' style='resize: none;font-size:12px;width:100%;height:100%;' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","ta2").val(ta1.val());
 	}, _appendConnectionAvatar : function(connection,parent) {

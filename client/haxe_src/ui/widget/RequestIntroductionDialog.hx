@@ -74,21 +74,24 @@ extern class RequestIntroductionDialog extends JQ {
 		        						ta2.val(ta1.val());
 		        					}
 		        				});
+		        	cb.prop("checked", true);
 
 		        	var ridTa:JQ = new JQ("<div style='display:table-row;'></div>").appendTo(selfElement);
+
+		        	var ta1_changed = function(evt) {
+						var same_messsage = new JQ("#same_messsage");
+						if (same_messsage.prop("checked")) {
+							var ta1 = new JQ("#ta1");
+    						var ta2 = new JQ("#ta2");
+							ta2.val(ta1.val());
+						}
+		        	};
 
 		        	var divTa1:JQ = new JQ("<div style='display:table-cell;width:270px;height:140px;'></div>").appendTo(ridTa);
 					var ta1: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize:none;font-size:12px;width:100%;height:100%;'></textarea>")
  	  		        				.appendTo(divTa1)
  	  		        				.attr("id", "ta1")
- 	  		        				.keypress(function(evt){
-		        						var same_messsage = new JQ("#same_messsage");
-		        						if (same_messsage.prop("checked")) {
-											var ta1 = new JQ("#ta1");
-			        						var ta2 = new JQ("#ta2");
-		        							ta2.val(ta1.val());
-		        						}
- 	  		        				})
+ 	  		        				.keyup(ta1_changed)
  	  		        				.val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + AgentUi.USER.userData.name);
 
 		        	var divTa2:JQ = new JQ("<div style='display:table-cell;width:270px;height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
