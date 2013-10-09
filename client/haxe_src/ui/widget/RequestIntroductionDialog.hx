@@ -62,11 +62,22 @@ extern class RequestIntroductionDialog extends JQ {
 
 		        	var ridTitle:JQ = new JQ("<div style='display:table-row;'></div>").appendTo(selfElement);
 		        	ridTitle.append("<div style='width:270px;font-size:12px;display:table-cell;text-align:left;'>Introduction Message for " + toName + "</div>");
-		        	ridTitle.append("<div class='labelDiv' style='width:270px;font-size:12px;display:table-cell;text-align:right;'><input type='checkbox' id='same_messsage' checked='checked'>Same Message for " + fromName + "</div>");
+		        	ridTitle.append("<div class='labelDiv' id='same_messsage_div' style='width:270px;font-size:12px;display:table-cell;text-align:right;'>Same Message for " + fromName + "</div>");
+		        	var cb:JQ = new JQ("<input type='checkbox' id='same_messsage' checked='checked'>")
+		        				.prependTo(new JQ("#same_messsage_div"))
+		        				.change(function(evt){
+		        					var tgt = new JQ(evt.target);
+		        					var ta1 = new JQ("#ta1");
+		        					var ta2 = new JQ("#ta2");
+		        					ta2.prop("readonly", tgt.prop("checked"));
+		        					if (tgt.prop("checked")) {
+		        						ta2.val(ta1.val());
+		        					}
+		        				});
 
 		        	var ridTa:JQ = new JQ("<div style='display:table-row;'></div>").appendTo(selfElement);
+
 		        	var divTa1:JQ = new JQ("<div style='display:table-cell;width:270px;height:140px;'></div>").appendTo(ridTa);
-		        	
 					var ta1: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize:none;font-size:12px;width:100%;height:100%;'></textarea>")
  	  		        				.appendTo(divTa1)
  	  		        				.attr("id", "ta1")

@@ -6552,7 +6552,14 @@ var defineWidget = function() {
 		var fromName = self.options.from.name();
 		var ridTitle = new $("<div style='display:table-row;'></div>").appendTo(selfElement);
 		ridTitle.append("<div style='width:270px;font-size:12px;display:table-cell;text-align:left;'>Introduction Message for " + toName + "</div>");
-		ridTitle.append("<div class='labelDiv' style='width:270px;font-size:12px;display:table-cell;text-align:right;'><input type='checkbox' id='same_messsage' checked='checked'>Same Message for " + fromName + "</div>");
+		ridTitle.append("<div class='labelDiv' id='same_messsage_div' style='width:270px;font-size:12px;display:table-cell;text-align:right;'>Same Message for " + fromName + "</div>");
+		var cb = new $("<input type='checkbox' id='same_messsage' checked='checked'>").prependTo(new $("#same_messsage_div")).change(function(evt) {
+			var tgt = new $(evt.target);
+			var ta1 = new $("#ta1");
+			var ta2 = new $("#ta2");
+			ta2.prop("readonly",tgt.prop("checked"));
+			if(tgt.prop("checked")) ta2.val(ta1.val());
+		});
 		var ridTa = new $("<div style='display:table-row;'></div>").appendTo(selfElement);
 		var divTa1 = new $("<div style='display:table-cell;width:270px;height:140px;'></div>").appendTo(ridTa);
 		var ta1 = new $("<textarea class='boxsizingBorder container' style='resize:none;font-size:12px;width:100%;height:100%;'></textarea>").appendTo(divTa1).attr("id","ta1").html("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
