@@ -8,6 +8,8 @@ import ui.model.EM;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
+using ui.widget.ConnectionComp;
+
 typedef ConnectionsListOptions = {
 	@:optional var itemsClass: String;
 }
@@ -19,11 +21,13 @@ typedef ConnectionsListWidgetDef = {
 	var _create: Void->Void;
 	var _setConnections: ObservableSet<Connection>->Void;
 	var destroy: Void->Void;
+	var filterConnections: String->Void;
 }
 
 @:native("$")
 extern class ConnectionsList extends JQ {
-	@:overload(function(cmd : String):Bool{})
+	@:overload(function<T>(cmd : String):T{})
+	@:overload(function(cmd:String, opt:String):Dynamic{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function connectionsList(opts: ConnectionsListOptions): ConnectionsList;
 
@@ -73,6 +77,22 @@ extern class ConnectionsList extends JQ {
 		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
+		        },
+
+		        filterConnections: function(term:String):Void {
+		        	term = term.toLowerCase();
+
+		        	var self: ConnectionsListWidgetDef = Widgets.getSelf();
+
+		        	var iter: Iterator<ConnectionComp> = self.connectionsMap.iterator();
+		        	while (iter.hasNext()) {
+		        		var c:ConnectionComp = iter.next();
+		        		if (term == "" || c.connection().name().toLowerCase().indexOf(term) != -1) {
+		        			c.show();
+		        		} else {
+		        			c.hide();
+		        		}
+		        	}
 		        }
 		    };
 		}

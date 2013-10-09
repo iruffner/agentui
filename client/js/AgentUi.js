@@ -3995,9 +3995,10 @@ ui.AgentUi.start = function() {
 			}
 		}
 	});
-	new $("#sideRightSearchInput").keydown(function(evt) {
+	new $("#sideRightSearchInput").keyup(function(evt) {
 		var search = new $(evt.target);
 		var cl = new $("#connections");
+		cl.connectionsList("filterConnections",search.val());
 	});
 	new $("#middleContainer #content #tabs").tabs();
 	new $("#sideRight #chat").messagingComp();
@@ -6037,6 +6038,12 @@ ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelp
 ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
 	return c.connectionAvatar("option","connection");
 }
+ui.widget.ConnectionCompHelper = function() { }
+$hxClasses["ui.widget.ConnectionCompHelper"] = ui.widget.ConnectionCompHelper;
+ui.widget.ConnectionCompHelper.__name__ = ["ui","widget","ConnectionCompHelper"];
+ui.widget.ConnectionCompHelper.connection = function(c) {
+	return c.connectionComp("option","connection");
+}
 ui.widget.DialogManager = function() { }
 $hxClasses["ui.widget.DialogManager"] = ui.widget.DialogManager;
 $hxExpose(ui.widget.DialogManager, "ui.widget.DialogManager");
@@ -6660,6 +6667,14 @@ var defineWidget = function() {
 		});
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
+	}, filterConnections : function(term) {
+		term = term.toLowerCase();
+		var self = this;
+		var iter = self.connectionsMap.iterator();
+		while(iter.hasNext()) {
+			var c = iter.next();
+			if(term == "" || ui.widget.ConnectionCompHelper.connection(c).name().toLowerCase().indexOf(term) != -1) c.show(); else c.hide();
+		}
 	}};
 };
 $.widget("ui.connectionsList",defineWidget());

@@ -63,6 +63,12 @@ class AgentUi {
             }
         });
 
+        new JQ("#sideRightSearchInput").keyup(function(evt){
+            var search:JQ = new JQ(evt.target);
+            var cl:ConnectionsList = new ConnectionsList("#connections");
+            cl.connectionsList("filterConnections", search.val());
+        });
+
         new JQ("#middleContainer #content #tabs").tabs();
         new MessagingComp("#sideRight #chat").messagingComp();
 

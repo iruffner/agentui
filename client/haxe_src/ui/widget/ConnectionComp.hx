@@ -23,6 +23,13 @@ typedef ConnectionCompWidgetDef = {
 	var destroy: Void->Void;
 }
 
+class ConnectionCompHelper {
+	public static function connection(c: ConnectionComp): Connection {
+		return c.connectionComp("option", "connection");
+	}
+}
+
+
 @:native("$")
 extern class ConnectionComp extends JQ {
 	@:overload(function(cmd : String):Bool{})
