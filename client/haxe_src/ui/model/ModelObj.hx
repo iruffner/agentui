@@ -139,9 +139,9 @@ class Alias extends ModelObj<Alias> {
 
 	public static function labelsAsStrings(labels: OSet<Label>): Array<String> {
 		var sarray: Array<String> = new Array<String>();
-		var topLevelLabel: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
+		var topLevelLabels: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
 
-		topLevelLabel.iter(function(l: Label): Void {
+		topLevelLabels.iter(function(l: Label): Void {
 				var s: String = "";
 				var children: FilteredSet<Label> = new FilteredSet(labels, function(f: Label): Bool { return f.parentUid == l.uid; });
 				if(children.hasValues()) {
@@ -208,6 +208,9 @@ class Alias extends ModelObj<Alias> {
 				l.uid = UidGenerator.create(10);
 				if(parentLabel != null) l.parentUid = parentLabel.uid;
 				larray.push(l);
+				parser.nextTerm();// "("
+				parser.nextTerm();// "_"
+				parser.nextTerm();// ")"
 			}
 			term = parser.nextTerm();
 		}
