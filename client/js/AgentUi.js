@@ -6398,7 +6398,9 @@ var defineWidget = function() {
 			});
 			var helper = "clone";
 			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
-			(js.Boot.__cast(selfElement , $)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
+			(js.Boot.__cast(selfElement , $)).draggable({ containment : self.options.containment, helper : helper, distance : 10, revert : false, scroll : false, start : function(evt,_ui) {
+				(js.Boot.__cast(selfElement , $)).draggable("option","revert",false);
+			}});
 			(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
 				return !$(this).parent()["is"](".filterCombination") && $(this).parent()["is"](".dropCombiner") && d["is"](".connectionAvatar");
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
@@ -6589,7 +6591,9 @@ var defineWidget = function() {
 			});
 			var helper = "clone";
 			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
-			(js.Boot.__cast(selfElement , $)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false});
+			(js.Boot.__cast(selfElement , $)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false, start : function(evt,_ui) {
+				(js.Boot.__cast(selfElement , $)).draggable("option","revert",false);
+			}});
 			(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
 				return !$(this).parent()["is"](".filterCombination") && $(this).parent()["is"](".dropCombiner") && d["is"](".label");
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
@@ -6758,7 +6762,7 @@ var defineWidget = function() {
 			_ui.draggable.remove();
 			shrink();
 			self.fireFilter();
-		}, tolerance : "pointer", over : function(event,_ui) {
+		}, tolerance : "touch", over : function(event,_ui) {
 			grow(300);
 		}, out : function(event,_ui) {
 			shrink();
@@ -7499,29 +7503,30 @@ var defineWidget = function() {
 		});
 		urlInput.hide();
 		mediaInput.hide();
-		var tags = new $("<aside class='tags container boxsizingBorder'></aside>");
-		tags.appendTo(section);
-		tags.droppable({ accept : function(d) {
-			return d["is"](".filterable");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+		var isDuplicate = function(selector,ele,tags,getUid) {
 			var is_duplicate = false;
-			if(_ui.draggable["is"](".connectionAvatar")) {
-				var new_uid = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $)).uid;
-				tags.children(".connectionAvatar").each(function(i,dom) {
-					var ca = new $(dom);
-					var uid = ui.widget.ConnectionAvatarHelper.getConnection(ca).uid;
+			if(ele["is"](selector)) {
+				var new_uid = getUid(ele);
+				tags.children(selector).each(function(i,dom) {
+					var uid = getUid(new $(dom));
 					if(new_uid == uid) is_duplicate = true;
 				});
 			}
-			if(_ui.draggable["is"](".labelComp")) {
-				var new_uid1 = ui.widget.LabelCompHelper.getLabel(js.Boot.__cast(_ui.draggable , $)).uid;
-				tags.children(".labelComp").each(function(i,dom) {
-					var ca = new $(dom);
-					var uid = ui.widget.LabelCompHelper.getLabel(ca).uid;
-					if(new_uid1 == uid) is_duplicate = true;
-				});
+			return is_duplicate;
+		};
+		var tags1 = new $("<aside class='tags container boxsizingBorder'></aside>");
+		tags1.appendTo(section);
+		tags1.droppable({ accept : function(d) {
+			return d["is"](".filterable");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+			if(isDuplicate(".connectionAvatar",_ui.draggable,tags1,function(ele) {
+				return ui.widget.ConnectionAvatarHelper.getConnection(new $(ele)).uid;
+			}) || isDuplicate(".labelComp",_ui.draggable,tags1,function(ele) {
+				return ui.widget.LabelCompHelper.getLabel(new $(ele)).uid;
+			})) {
+				_ui.draggable.draggable("option","revert",true);
+				return;
 			}
-			if(is_duplicate) return;
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,".tags");
 			clone.addClass("small");
 			var cloneOffset = clone.offset();
@@ -7530,11 +7535,11 @@ var defineWidget = function() {
 			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : ".tags"});
 		}});
 		addConnectionsAndLabels = function(content) {
-			tags.children(".label").each(function(i,dom) {
+			tags1.children(".label").each(function(i,dom) {
 				var labelComp = new $(dom);
 				content.labelSet.add(ui.widget.LabelCompHelper.getLabel(labelComp));
 			});
-			tags.children(".connectionAvatar").each(function(i,dom) {
+			tags1.children(".connectionAvatar").each(function(i,dom) {
 				var conn = new $(dom);
 				content.connectionSet.add(ui.widget.ConnectionAvatarHelper.getConnection(conn));
 			});
