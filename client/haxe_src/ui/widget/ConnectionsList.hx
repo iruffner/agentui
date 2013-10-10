@@ -24,6 +24,12 @@ typedef ConnectionsListWidgetDef = {
 	var filterConnections: String->Void;
 }
 
+class ConnectionListHelper {
+	public static function filterConnections(c: ConnectionsList, term:String): Void {
+		c.connectionsList("filterConnections", term);
+	}
+}
+
 @:native("$")
 extern class ConnectionsList extends JQ {
 	@:overload(function<T>(cmd : String):T{})
@@ -62,17 +68,18 @@ extern class ConnectionsList extends JQ {
 		        	
 		        	var spacer: JQ = selfElement.children("#sideRightSpacer");
 		        	self.connectionsMap = new MappedSet<Connection, ConnectionComp>(connections, function(conn: Connection): ConnectionComp {
-		        			return new ConnectionComp("<div></div>").connectionComp({connection: conn});
-		        		});
+		        		return new ConnectionComp("<div></div>").connectionComp({connection: conn});
+		        	});
+		        	
 		        	self.connectionsMap.listen(function(connComp: ConnectionComp, evt: EventType): Void {
-		            		if(evt.isAdd()) {
-		            			spacer.before(connComp);
-		            		} else if (evt.isUpdate()) {
-		            			connComp.connectionComp("update");
-		            		} else if (evt.isDelete()) {
-		            			connComp.remove();
-		            		}
-		            	});
+	            		if(evt.isAdd()) {
+	            			spacer.before(connComp);
+	            		} else if (evt.isUpdate()) {
+	            			connComp.connectionComp("update");
+	            		} else if (evt.isDelete()) {
+	            			connComp.remove();
+	            		}
+	            	});
 		        },
 		        
 		        destroy: function() {

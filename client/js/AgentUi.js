@@ -3998,7 +3998,7 @@ ui.AgentUi.start = function() {
 	new $("#sideRightSearchInput").keyup(function(evt) {
 		var search = new $(evt.target);
 		var cl = new $("#connections");
-		cl.connectionsList("filterConnections",search.val());
+		ui.widget.ConnectionListHelper.filterConnections(cl,search.val());
 	});
 	new $("#middleContainer #content #tabs").tabs();
 	new $("#sideRight #chat").messagingComp();
@@ -6097,6 +6097,12 @@ ui.widget.DialogManager.requestIntroduction = function(from,to) {
 	}
 	requestIntroductionDialog.requestIntroductionDialog("open");
 }
+ui.widget.ConnectionListHelper = function() { }
+$hxClasses["ui.widget.ConnectionListHelper"] = ui.widget.ConnectionListHelper;
+ui.widget.ConnectionListHelper.__name__ = ["ui","widget","ConnectionListHelper"];
+ui.widget.ConnectionListHelper.filterConnections = function(c,term) {
+	c.connectionsList("filterConnections",term);
+}
 ui.widget.LabelCompHelper = function() { }
 $hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
 ui.widget.LabelCompHelper.__name__ = ["ui","widget","LabelCompHelper"];
@@ -7603,10 +7609,6 @@ var defineWidget = function() {
 		mediaInput.appendTo(section);
 		var label = new $("<aside class='label'><span>Post:</span></aside>").appendTo(section);
 		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
-		var fcn = function(evt) {
-			tabs.children(".active").removeClass("active");
-			$(this).addClass("active");
-		};
 		var textTab = new $("<span class='ui-icon ui-icon-document active ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
@@ -7635,6 +7637,24 @@ var defineWidget = function() {
 		tags.droppable({ accept : function(d) {
 			return d["is"](".filterable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+			var is_duplicate = false;
+			if(_ui.draggable["is"](".connectionAvatar")) {
+				var new_uid = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $)).uid;
+				tags.children(".connectionAvatar").each(function(i,dom) {
+					var ca = new $(dom);
+					var uid = ui.widget.ConnectionAvatarHelper.getConnection(ca).uid;
+					if(new_uid == uid) is_duplicate = true;
+				});
+			}
+			if(_ui.draggable["is"](".labelComp")) {
+				var new_uid1 = ui.widget.LabelCompHelper.getLabel(js.Boot.__cast(_ui.draggable , $)).uid;
+				tags.children(".labelComp").each(function(i,dom) {
+					var ca = new $(dom);
+					var uid = ui.widget.LabelCompHelper.getLabel(ca).uid;
+					if(new_uid1 == uid) is_duplicate = true;
+				});
+			}
+			if(is_duplicate) return;
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,".tags");
 			clone.addClass("small");
 			var cloneOffset = clone.offset();

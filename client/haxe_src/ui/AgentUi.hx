@@ -23,6 +23,7 @@ import m3.serialization.Serialization;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
+using ui.widget.ConnectionsList;
 using Lambda;
 
 @:expose
@@ -66,7 +67,7 @@ class AgentUi {
         new JQ("#sideRightSearchInput").keyup(function(evt){
             var search:JQ = new JQ(evt.target);
             var cl:ConnectionsList = new ConnectionsList("#connections");
-            cl.connectionsList("filterConnections", search.val());
+            cl.filterConnections(search.val());
         });
 
         new JQ("#middleContainer #content #tabs").tabs();
