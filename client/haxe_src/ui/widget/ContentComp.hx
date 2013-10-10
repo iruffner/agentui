@@ -76,9 +76,9 @@ extern class ContentComp extends JQ {
 
 		        	var postLabels: JQ = new JQ("<aside class='postLabels'></div>");
 		        	postWr.append(postLabels);
-		        	var labelIter: Iterator<String> = self.options.content.labelSet.iterator();
+		        	var labelIter: Iterator<Label> = self.options.content.labelSet.iterator();
 		        	while(labelIter.hasNext()) {
-		        		var label: Label = AgentUi.USER.currentAlias.labelSet.getElementComplex(labelIter.next());
+		        		var label: Label = labelIter.next();
 		        		new LabelComp("<div class='small'></div>").labelComp({
 		        				dndEnabled: false,
 		        				label: label
@@ -86,9 +86,9 @@ extern class ContentComp extends JQ {
 		        	}
 		        	
 		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>").appendTo(postWr);
-		        	var connIter: Iterator<String> = self.options.content.connectionSet.iterator();
+		        	var connIter: Iterator<Connection> = self.options.content.connectionSet.iterator();
 		        	while(connIter.hasNext()) {
-		        		var connection: Connection = AgentUi.USER.currentAlias.connectionSet.getElementComplex(connIter.next());
+		        		var connection: Connection = connIter.next();
 		        		new ConnectionAvatar("<div></div>").connectionAvatar({
 		        				dndEnabled: false,
 		        				connection: connection

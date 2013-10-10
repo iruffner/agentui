@@ -97,10 +97,9 @@ extern class LabelComp extends FilterableComponent {
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
 		            	selfElement.data("getNode", function(): Node {
-			            		var node: ContentNode = new ContentNode();
+			            		var node: LabelNode = new LabelNode();
 			            		node.type = "LABEL";
-			            		node.contentUid = self.options.label.uid;
-			            		node.filterable = self.options.label;
+			            		node.content = self.options.label;
 			            		return node;
 			            	});
 
@@ -116,7 +115,11 @@ extern class LabelComp extends FilterableComponent {
 				    		helper: helper,
 				    		distance: 10,
 				    		// grid: [5,5],
-				    		scroll: false
+				    		scroll: false,
+				    		revertDuration: 200,
+				    		start: function(evt:JQEvent, _ui:UIDraggable):Void {
+				    			cast(selfElement, JQDraggable).draggable("option", "revert", false);
+				    		}
 				    	});
 
 			            cast(selfElement, JQDroppable).droppable({

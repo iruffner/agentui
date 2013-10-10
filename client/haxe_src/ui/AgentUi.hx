@@ -23,6 +23,7 @@ import m3.serialization.Serialization;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
+using ui.widget.ConnectionsList;
 using Lambda;
 
 @:expose
@@ -61,6 +62,12 @@ class AgentUi {
                     HOT_KEY_ACTIONS[action_](evt);
                 }
             }
+        });
+
+        new JQ("#sideRightSearchInput").keyup(function(evt){
+            var search:JQ = new JQ(evt.target);
+            var cl:ConnectionsList = new ConnectionsList("#connections");
+            cl.filterConnections(search.val());
         });
 
         new JQ("#middleContainer #content #tabs").tabs();
@@ -123,14 +130,5 @@ class AgentUi {
         //     showNewUser();
         }
         DialogManager.showLogin();
-    }
-
-    public static function test(): Void {
-
-        Alias._processDataLog("Work");
-        Alias._processDataLog("n_Work(Colleagues, Tasks)");
-        Alias._processDataLog("n_Work(n_Colleagues(Emeris, Biosim), Tasks)");
-        Alias._processDataLog("and(n_Work(n_Colleagues(Emeris, Biosim), Tasks), n_Personal(n_Family(Ruffner, Denmark), Friends))");
-        Alias._processDataLog("and (n_Work (n_Colleagues(Emeris, Biosim), Tasks), n_Personal(n_Family(Ruffner and Patton, Denmark), Friends))");
     }
 }

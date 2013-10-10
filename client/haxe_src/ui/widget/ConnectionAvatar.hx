@@ -80,7 +80,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		        	selfElement.attr("id", "connavatar_" + (self.options.connection.lname + self.options.connection.fname).htmlEscape());
 
-		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.fname + " " + self.options.connection.lname);
+		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.name());
 
 		            var img: JQ = new JQ("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		            selfElement.append(img);
@@ -98,10 +98,9 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
 		            	selfElement.data("getNode", function(): Node {
-			            		var node: ContentNode = new ContentNode();
+			            		var node: ConnectionNode = new ConnectionNode();
 			            		node.type = "CONNECTION";
-			            		node.contentUid = self.options.connection.uid;
-			            		node.filterable = self.options.connection;
+			            		node.content = self.options.connection;
 			            		return node;
 			            	});
 
@@ -117,7 +116,11 @@ extern class ConnectionAvatar extends FilterableComponent {
 				    		helper: helper,
 				    		distance: 10,
 				    		// grid: [5,5],
-				    		scroll: false
+				    		revertDuration: 200,
+				    		scroll: false,
+				    		start: function(evt:JQEvent, _ui:UIDraggable):Void {
+				    			cast(selfElement, JQDraggable).draggable("option", "revert", false);
+				    		}
 				    	});
 
 			            cast(selfElement, JQDroppable).droppable({
@@ -153,7 +156,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	selfElement.children("img").attr("src", self.options.connection.imgSrc);
-		            selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+		            selfElement.children("div").text(self.options.connection.name());
 	        	},
 		        
 		        destroy: function() {

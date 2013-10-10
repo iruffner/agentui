@@ -17,6 +17,7 @@ import m3.observable.OSet;
 
 import ui.api.Requester;
 import ui.api.ProtocolMessage;
+import ui.helper.PrologHelper;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
@@ -240,25 +241,28 @@ class ProtocolHandler {
 	}
 
 	public function filter(filter: Filter): Void {
-		filter.rootNode.log();
 		AgentUi.CONTENT.clear();
 		
 		if(filter.rootNode.hasChildren()) {
-			var string: String = filter.kdbxify();
-			ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
-			var content: Array<Content> =TestDao.getContent(filter.rootNode);
-			ui.AgentUi.CONTENT.addAll(content);
+			// var string: String = filter.kdbxify();
+			// ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
+			// var content: Array<Content> =TestDao.getContent(filter.rootNode);
+			// ui.AgentUi.CONTENT.addAll(content);
 			var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
 			var evalRequestData: EvalRequestData = new EvalRequestData();
-			// expression is a ProtocolMessage
-			// evalRequestData.expression = "feed( " + string + " )";TODO FIXME
-			throw new Exception("fixme");
 			evalRequest.contentImpl = evalRequestData;
+
+			var feedExpr: FeedExpr = new FeedExpr();
+			evalRequestData.expression = feedExpr;
+			var data: FeedExprData = new FeedExprData();
+			feedExpr.contentImpl = data;
+			data.cnxns = [AgentUi.USER.getSelfConnection()];
+			data.label = filter.labelsProlog();
 			try {
 				//we don't expect anything back here
 				new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 						AgentUi.LOGGER.debug("filter successfully submitted");
-					}).start();
+					}).start({dataType: "text"});
 			} catch (err: Dynamic) {
 				var ex: Exception = Logga.getExceptionInst(err);
 				AgentUi.LOGGER.error("Error executing filter request", ex);
@@ -423,7 +427,7 @@ class ProtocolHandler {
 		data.expression = new InsertContent();//AgentUi.SERIALIZER.toJson(content);
 		var insertData: InsertContentData = new InsertContentData();
 		data.expression.contentImpl = insertData;
-		insertData.label = Alias.labelsAsStrings(content.labelSet.map(function(str: String): Label { return new Label(str);})).join(",");
+		insertData.label = PrologHelper.labelsToProlog(content.labelSet);
 		insertData.value = AgentUi.SERIALIZER.toJsonString(content);
 		insertData.cnxns = [AgentUi.USER.getSelfConnection()];
 
@@ -431,7 +435,7 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("content successfully submitted");
-				}).start();
+				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AgentUi.LOGGER.error("Error executing content post", ex);
@@ -442,26 +446,26 @@ class ProtocolHandler {
 		var evalRequest: AddAliasLabelsRequest = new AddAliasLabelsRequest();
 		var data: AddAliasLabelsRequestData = new AddAliasLabelsRequestData();
 		evalRequest.contentImpl = data;
-		var labelSet: ObservableSet<Label> = new ObservableSet<Label>(ModelObj.identifier);
+		// var labelSet: ObservableSet<Label> = new ObservableSet<Label>(ModelObj.identifier);
 
-		var pLabel: Label = label;
-		while(pLabel != null) {
-			labelSet.add(pLabel);
-			if(pLabel.parentUid.isNotBlank()) {
-				pLabel = AgentUi.USER.currentAlias.labelSet.getElementComplex(pLabel.parentUid);
-				if(pLabel != null) {
-					var pLabelUid: String = pLabel.uid;
-					var siblings: OSet<Label> = AgentUi.USER.currentAlias.labelSet.filter(function(l: Label): Bool {
-							return l.parentUid == pLabelUid;
-						});
-					labelSet.addAll(siblings.array());
-				}
-			} else {
-				pLabel = null;
-			}
-		}
-
-		var labelsArray: Array<String> = Alias.labelsAsStrings(AgentUi.USER.currentAlias.labelSet);
+		// var pLabel: Label = label;
+		// while(pLabel != null) {
+		// 	labelSet.add(pLabel);
+		// 	if(pLabel.parentUid.isNotBlank()) {
+		// 		pLabel = AgentUi.USER.currentAlias.labelSet.getElementComplex(pLabel.parentUid);
+		// 		if(pLabel != null) {
+		// 			var pLabelUid: String = pLabel.uid;
+		// 			var siblings: OSet<Label> = AgentUi.USER.currentAlias.labelSet.filter(function(l: Label): Bool {
+		// 					return l.parentUid == pLabelUid;
+		// 				});
+		// 			labelSet.addAll(siblings.array());
+		// 		}
+		// 	} else {
+		// 		pLabel = null;
+		// 	}
+		// }
+		AgentUi.USER.currentAlias.labelSet.add(label);
+		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AgentUi.USER.currentAlias.labelSet);
 		data.labels = labelsArray;
 		data.alias = AgentUi.USER.currentAlias.label;
 
@@ -469,7 +473,7 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("label successfully submitted");
-					AgentUi.USER.currentAlias.labelSet.add(label);
+					// AgentUi.USER.currentAlias.labelSet.add(label);
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);

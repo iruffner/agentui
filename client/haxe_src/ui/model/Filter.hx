@@ -26,23 +26,32 @@ class Filter {
 		}
 	}
 
-	public function kdbxify(): String {
-		var queries: Array<String> = [this._kdbxify(labelNodes), _kdbxify(connectionNodes)];
+	public function toProlog(): String {
+		var queries: Array<String> = [_prologify(labelNodes), _prologify(connectionNodes)];
 		var query: String = queries.joinX(",");
 		return query;
 	}
 
-	private function _kdbxify(nodes: Array<Node>): String {
-		var str: String = "";//this.rootNode.getKdbxName();
+	public function labelsProlog(): String {
+		return rootNode.getProlog() + _prologify(labelNodes);
+	}
+
+	private function _prologify(nodes: Array<Node>): String {
+		var str: String = "";
 		if(nodes.hasValues()) {
+			// if(nodes.length == 1) {
+			// 	str += nodes[0].getProlog();
+			// } else {
+
+			// }
 			if(nodes.length > 1)
 				str += "(";
 			var iteration: Int = 0;
 			for(ln_ in 0...nodes.length) {
 				if(iteration++ > 0) str += ",";
-				str += nodes[ln_].getKdbxName();
+				str += nodes[ln_].getProlog();
 				if(nodes[ln_].hasChildren()) {
-					str += _kdbxify(nodes[ln_].nodes);
+					str += _prologify(nodes[ln_].nodes);
 				}
 			}
 			if(nodes.length > 1)

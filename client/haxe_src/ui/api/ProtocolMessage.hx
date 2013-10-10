@@ -4,6 +4,8 @@ import ui.model.ModelObj;
 import ui.model.Filter;
 import m3.exception.Exception;
 
+import ui.helper.PrologHelper;
+
 using m3.helper.ArrayHelper;
 
 interface HasContent<T> {
@@ -149,7 +151,7 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 					var labels: Array<Label> = [];
 					var i: Int;
 					for (i in 0...listOfLabels.length) {
-						labels = labels.concat(Alias._processDataLog(listOfLabels[i]));
+						labels = labels.concat(PrologHelper.tagTreeFromString(listOfLabels[i]));
 					}
 					return labels;
 				}
@@ -241,6 +243,17 @@ class EvalError extends ProtocolMessage<EvalErrorData> {
 
 		class EvalErrorData extends PayloadWithSessionURI {
 			public var errorMsg: String;
+		}
+
+class FeedExpr extends ProtocolMessage<FeedExprData> {
+	public function new() {
+		super(MsgType.feedExpr, FeedExprData);
+	}
+}
+
+		class FeedExprData extends Payload {
+			public var cnxns: Array<Connection>;
+			public var label: String;
 		}
 
 /** 
@@ -380,6 +393,7 @@ enum MsgType {
 	updateUserRequest;
 	updateUserResponse;
 	insertContent;
+	feedExpr;
 
 	addAgentAliasesRequest;
 	addAgentAliasesError;
