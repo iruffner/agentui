@@ -37,14 +37,17 @@ class ProxyServlet extends HttpServlet with Logging {
 
   def loadConfig = {
     if ( configFile.exists ) {
-      val text = configFile.readText.trim
+      val text = 
+        configFile.
+          readText.
+          trim.
+          lines.
+          map(_.trim).
+          filterNot(_.startsWith("#")).
+          filter(_.length > 0).
+          mkString
       logger.debug(s"loaded proxy server -- ${text} -- from config file ${configFile.getCanonicalPath}")
-      text.
-        lines.
-        map(_.trim).
-        filterNot(_.startsWith("#")).
-        filter(_.length > 0).
-        mkString
+      text
     } else {
       throw new RuntimeException("unable to find config file " + configFile.getCanonicalPath)
     }
