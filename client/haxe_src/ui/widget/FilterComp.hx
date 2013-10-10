@@ -62,16 +62,15 @@ extern class FilterComp extends JQ {
 			                var cloneOffset: {top: Int, left: Int} = clone.offset();
 
 			                JQ.cur.append(clone);
-			                
+							clone.css({
+			                    "position": "absolute"
+			                });
 			                var isInFilterCombination: Bool = _ui.draggable.parent(".filterCombination").length > 0;
 			                if(isInFilterCombination) {
 			                	var filterCombination: FilterCombination = cast(_ui.draggable.parent(), FilterCombination);
 			                	filterCombination.filterCombination("removeFilterable", _ui.draggable);
 			                }
 
-			                clone.css({
-			                        "position": "absolute"
-			                    });
 			                if(cloneOffset.top != 0) {
 			                	clone.offset(cloneOffset);
 		                	} else {
