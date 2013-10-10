@@ -136,95 +136,13 @@ class Alias extends ModelObj<Alias> {
 		labels = labelSet.asArray();
 		connections = connectionSet.asArray();
 	}
-
-	public static function labelsAsStrings(labels: OSet<Label>): Array<String> {
-		var sarray: Array<String> = new Array<String>();
-		var topLevelLabels: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
-
-		topLevelLabels.iter(function(l: Label): Void {
-				var s: String = "";
-				var children: FilteredSet<Label> = new FilteredSet(labels, function(f: Label): Bool { return f.parentUid == l.uid; });
-				if(children.hasValues()) {
-					s += "n" + l.text + "(" + _processLabelChildren(labels, children) + ")";
-				} else {
-					s += "l" + l.text + "( _ )";
-				}
-
-				sarray.push(s);
-			});
-		return sarray;
-	}
-
-	private static function _processLabelChildren(original: OSet<Label>, set: FilteredSet<Label>): String {
-		var str: String = set.fold(function(l: Label, s: String): String {
-				if(s.isNotBlank()) {
-					s += ",";
-				}
-				var children: FilteredSet<Label> = new FilteredSet(original, function(l: Label): Bool { return l.parentUid == l.uid; });
-				if(children.hasValues()) {
-					s += "n" + l.text + "(";
-					s += _processLabelChildren(original, children);
-					s += ")";
-				} else {
-					s += "l" + l.text + "( _ )";
-				}
-
-				return s;
-			},
-			"");
-		return str;
-	}
-
-	public static function _processDataLog(str: String): Array<Label> {
-		var larray: Array<Label> = new Array<Label>();
-		var parser: LabelStringParser = new LabelStringParser(str);
-		var term: String = parser.nextTerm();
-		if(term != "and") { // there are multiple top level labels
-			parser.restore(term);
-		}
-		larray = _processDataLogChildren(null, parser);
-		return larray;
-	}
-
-	private static function _processDataLogChildren(parentLabel: Label, parser: LabelStringParser): Array<Label> {
-		var larray: Array<Label> = new Array<Label>();
-		var term = parser.nextTerm();
-		if(term == "(") { // this was the leading paren
-			term = parser.nextTerm();
-		}
-
-		while(term != null && term != ")") { //continue until we hit our closing paren or we are out of data [null]
-			if(term.startsWith("n")) { // this node has children
-				term = term.substring(1);
-				var l: Label = new Label(term);
-				l.uid = UidGenerator.create(10);
-				if(parentLabel != null) l.parentUid = parentLabel.uid;
-				larray.push(l);
-				var children: Array<Label> = _processDataLogChildren(l, parser);
-				larray = larray.concat(children);
-			} else if(term.isNotBlank() && term.startsWith("l") /*!term.contains(",")*/) { // this is a leaf
-				term = term.substring(1);
-				var l: Label = new Label(term);
-				l.uid = UidGenerator.create(10);
-				if(parentLabel != null) l.parentUid = parentLabel.uid;
-				larray.push(l);
-				parser.nextTerm();// "("
-				parser.nextTerm();// "_"
-				parser.nextTerm();// ")"
-			}
-			term = parser.nextTerm();
-		}
-
-		return larray;
-	}
-
 }
 
 interface Filterable {
 
 }
 
-class Label extends ModelObj<Connection> implements Filterable {
+class Label extends ModelObj<Label> implements Filterable {
 	public var text: String;
 	@:transient public var parentUid: String;
 
@@ -258,11 +176,11 @@ class Content extends ModelObj<Content> {
 	*/
 	public var type: ContentType;
 	
-	@:transient public var labelSet: ObservableSet<String>;
-	@:transient public var connectionSet: ObservableSet<String>;
+	@:transient public var labelSet: ObservableSet<Label>;
+	@:transient public var connectionSet: ObservableSet<Connection>;
 	
-	private var labels: Array<String>;
-	private var connections: Array<String>;
+	@:transient private var labels: Array<String>;
+	@:transient private var connections: Array<String>;
 	
 	/**
 		UID of connection that created the content
@@ -270,13 +188,13 @@ class Content extends ModelObj<Content> {
 	public var creator: String;
 
 	private function readResolve(): Void {
-		labelSet = new ObservableSet<String>(OSetHelper.strIdentifier, labels);
-		connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier, connections);
+		// labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
+		// connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
 	}
 
 	private function writeResolve(): Void {
-		labels = labelSet.asArray();
-		connections = connectionSet.asArray();
+		// labels = labelSet.asArray();
+		// connections = connectionSet.asArray();
 	}
 }
 

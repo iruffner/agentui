@@ -98,10 +98,9 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
 		            	selfElement.data("getNode", function(): Node {
-			            		var node: ContentNode = new ContentNode();
+			            		var node: ConnectionNode = new ConnectionNode();
 			            		node.type = "CONNECTION";
-			            		node.contentUid = self.options.connection.uid;
-			            		node.filterable = self.options.connection;
+			            		node.content = self.options.connection;
 			            		return node;
 			            	});
 

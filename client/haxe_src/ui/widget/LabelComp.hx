@@ -97,10 +97,9 @@ extern class LabelComp extends FilterableComponent {
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
 		            	selfElement.data("getNode", function(): Node {
-			            		var node: ContentNode = new ContentNode();
+			            		var node: LabelNode = new LabelNode();
 			            		node.type = "LABEL";
-			            		node.contentUid = self.options.label.uid;
-			            		node.filterable = self.options.label;
+			            		node.content = self.options.label;
 			            		return node;
 			            	});
 

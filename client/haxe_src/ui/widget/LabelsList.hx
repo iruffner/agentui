@@ -96,7 +96,7 @@ extern class LabelsList extends JQ {
         									} else {
         										label.uid = UidGenerator.create();
   	      										AgentUi.LOGGER.debug("add to " + self.labels.visualId);
-    	    									self.labels.add(label);
+    	    									// self.labels.add(label);
       	  										EM.change(EMEvent.CreateLabel, label);
         										new JQ("body").click();
         									}

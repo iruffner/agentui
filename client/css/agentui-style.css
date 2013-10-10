@@ -394,6 +394,14 @@ body {
 
 	/* Labels
 	-----------------------------------------------------------------------------*/
+	.labelsList {
+		overflow: auto;
+	}
+
+		.labelTree {
+			min-width: 100%;
+		}
+
 	#labelc {
 		margin-top: 15px;
 	}

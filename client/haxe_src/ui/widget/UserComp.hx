@@ -130,7 +130,7 @@ extern class UserComp extends JQ {
 		        	var change: JQ = new JQ("<a class='aliasToggle'>Change Alias</a>");
 	        		changeDiv.append(change);
 	        		container.append(changeDiv);
-		        	var aliases: JQ = new JQ("<div class='aliases ocontainer nonmodalPopup' style='position: absolute;'></div>");
+		        	var aliases: JQ = new JQ("<div class='aliases ocontainer nonmodalPopup' style='position: absolute; min-width: 100px;'></div>");
 		        	container.append(aliases);
 		        	var iter: Iterator<Alias> = M.getX(user.aliasSet.iterator());
 		        	if(iter != null) {
@@ -176,8 +176,6 @@ extern class UserComp extends JQ {
 		        		});
 
 	        	},
-
-
 		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );

@@ -124,13 +124,4 @@ class AgentUi {
         }
         DialogManager.showLogin();
     }
-
-    public static function test(): Void {
-
-        Alias._processDataLog("Work");
-        Alias._processDataLog("n_Work(Colleagues, Tasks)");
-        Alias._processDataLog("n_Work(n_Colleagues(Emeris, Biosim), Tasks)");
-        Alias._processDataLog("and(n_Work(n_Colleagues(Emeris, Biosim), Tasks), n_Personal(n_Family(Ruffner, Denmark), Friends))");
-        Alias._processDataLog("and (n_Work (n_Colleagues(Emeris, Biosim), Tasks), n_Personal(n_Family(Ruffner and Patton, Denmark), Friends))");
-    }
 }
