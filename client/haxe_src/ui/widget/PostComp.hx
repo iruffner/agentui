@@ -98,10 +98,6 @@ extern class PostComp extends JQ {
 		        	var label: JQ = new JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
 
 		        	var tabs: JQ = new JQ("<aside class='tabs'></aside>").appendTo(section);
-		        	var fcn: JQEvent->Void = function(evt: JQEvent): Void {
-		        			tabs.children(".active").removeClass("active");
-		        			JQ.cur.addClass("active");
-		        		};
 		        	var textTab: JQ = new JQ("<span class='ui-icon ui-icon-document active ui-corner-left'></span>")
 		        						.appendTo(tabs)
 		        						.click(function(evt: JQEvent): Void {
@@ -143,6 +139,36 @@ extern class PostComp extends JQ {
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
 					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
+						      	var is_duplicate = false;
+					      		
+					      		if (_ui.draggable.is(".connectionAvatar")) {
+						      		var new_uid:String = cast(_ui.draggable, ConnectionAvatar).getConnection().uid;
+
+						      		tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
+						      			var ca: ConnectionAvatar = new ConnectionAvatar(dom);
+						      			var uid:String = ca.getConnection().uid;
+						      			if (new_uid == uid) {
+						      				is_duplicate = true;
+						      			}
+						      		});
+								}
+
+					      		if (_ui.draggable.is(".labelComp")) {
+						      		var new_uid:String = cast(_ui.draggable, LabelComp).getLabel().uid;
+
+						      		tags.children(".labelComp").each(function(i: Int, dom: Element): Void {
+						      			var ca: LabelComp = new LabelComp(dom);
+						      			var uid:String = ca.getLabel().uid;
+						      			if (new_uid == uid) {
+						      				is_duplicate = true;
+						      			}
+						      		});
+								}
+
+					      		if (is_duplicate) {
+					      			return;
+					      		}
+
 				                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, ".tags");
 				                clone.addClass("small");
 				                var cloneOffset: {top: Int, left: Int} = clone.offset();

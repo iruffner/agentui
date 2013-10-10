@@ -8,6 +8,8 @@ import ui.model.ModelObj;
 import m3.observable.OSet.ObservableSet;
 import m3.exception.Exception;
 
+using ui.widget.ConnectionAvatar;
+
 typedef ConnectionCompOptions = {
 	var connection: Connection;
 	@:optional var classes: String;
@@ -20,6 +22,13 @@ typedef ConnectionCompWidgetDef = {
 	var update: Void->Void;
 	var destroy: Void->Void;
 }
+
+class ConnectionCompHelper {
+	public static function connection(c: ConnectionComp): Connection {
+		return c.connectionComp("option", "connection");
+	}
+}
+
 
 @:native("$")
 extern class ConnectionComp extends JQ {
@@ -51,7 +60,26 @@ extern class ConnectionComp extends JQ {
 		        		containment: false
 	        		});
 		            selfElement.append(self._avatar);
-		            selfElement.append("<div class='name'>" + self.options.connection.fname + " " + self.options.connection.lname + "</div>");
+		            selfElement.append("<div class='name'>" + self.options.connection.name() + "</div>");
+		        
+		            cast(selfElement, JQDroppable).droppable({
+			    		accept: function(d) {
+			    			return d.is(".connectionAvatar");
+			    		},
+						activeClass: "ui-state-hover",
+				      	hoverClass: "ui-state-active",
+				      	greedy: true, 	 	
+				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
+				      		var dropper:Connection = cast(_ui.draggable, ConnectionAvatar).getConnection();
+				      		var droppee:Connection = self.options.connection;
+
+				      		if (dropper.uid != droppee.uid) {
+					      		ui.widget.DialogManager.requestIntroduction(dropper, droppee);
+					      	}
+				      	},
+				      	tolerance: "pointer"
+			    	});
+
 		        },
 
 		        update: function(): Void {
@@ -59,7 +87,7 @@ extern class ConnectionComp extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	selfElement.children("img").attr("src", self.options.connection.imgSrc);
-		            selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+		            selfElement.children("div").text(self.options.connection.name());
 
 		            self._avatar.connectionAvatar("update");
 	        	},

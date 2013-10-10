@@ -80,7 +80,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		        	selfElement.attr("id", "connavatar_" + (self.options.connection.lname + self.options.connection.fname).htmlEscape());
 
-		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.fname + " " + self.options.connection.lname);
+		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.name());
 
 		            var img: JQ = new JQ("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		            selfElement.append(img);
@@ -152,7 +152,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	selfElement.children("img").attr("src", self.options.connection.imgSrc);
-		            selfElement.children("div").text(self.options.connection.fname + " " + self.options.connection.lname);
+		            selfElement.children("div").text(self.options.connection.name());
 	        	},
 		        
 		        destroy: function() {
