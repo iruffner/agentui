@@ -123,7 +123,7 @@ extern class FilterComp extends JQ {
 				                shrink();
 				                self.fireFilter();
 					      	},
-					      	tolerance: "pointer",
+					      	tolerance: "touch",
 					      	over: function( event: JQEvent, _ui: UIDroppable) {
 					    		grow(300);
 					      	},
