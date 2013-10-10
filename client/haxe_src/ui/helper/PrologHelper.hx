@@ -43,7 +43,7 @@ class PrologHelper {
 					s += _processTagChildren(original, children);
 					s += ")";
 				} else {
-					s += "l" + l.text + "( _ )";
+					s += "l" + l.text + "(_)";
 				}
 
 				return s;
@@ -108,51 +108,7 @@ class PrologHelper {
 				sarray.push("[" + path.join(",") + "]");
 			});
 
-		return (sarray.length > 1? "all(":"") + sarray.join(",") + (sarray.length > 1? ")":"");
-
-		// var pathLabels: Array<String> = new Array<String>();
-		// contentTags.iter(function(l: Label): Void {
-		// 		pathLabels.push(l.uid);
-		// 		var parent: Label = l;
-		// 		while(parent.parentUid.isNotBlank()) {
-		// 			parent = tagTree.getElement(parent.parentUid);
-		// 		}
-		// 		pathLabels.push(parent.uid);
-		// 	});
-		// var topLevelLabels: FilteredSet<Label> = new FilteredSet(tagTree, function(l: Label): Bool { return l.parentUid.isBlank(); });
-
-		// var sarray: Array<String> = [];
-		// topLevelLabels.iter(function(l: Label): Void {
-		// 		var s: String = "";
-		// 		var children: FilteredSet<Label> = new FilteredSet(tagTree, function(f: Label): Bool { return f.parentUid == l.uid; });
-		// 		var childStr: String = labelsRender(tagTree, l, pathLabels, includeTheExtraUnderscore);
-		// 		sarray.push(
-		// 			"v" + l.text + "(" +
-		// 				(childStr.isBlank() ? "_" : "[" + labelsRender(tagTree, l, pathLabels, includeTheExtraUnderscore) + "]") +
-		// 			")"
-		// 		);
-		// 	});
-
-		// var str: String = sarray.join(",");
-		// return (wrapWithAll? "all(":"") + (str.isBlank() ? "_" : "[" + str + (includeTheExtraUnderscore ? " | _":"") + "]") + (wrapWithAll? ")":"");
-	}
-
-	static function labelsRender(tagTree: OSet<Label>, label: Label, paths: Array<String>, includeTheExtraUnderscore: Bool): String {
-	    var result: Array<String> = [];
-	    var children: FilteredSet<Label> = new FilteredSet(tagTree, function(f: Label): Bool { return f.parentUid == label.uid; });
-	    children.iter(function(l: Label): Void {
-			if (paths.contains(l.uid)) {
-				var childStr = labelsRender(tagTree, l, paths, includeTheExtraUnderscore);
-				result.push(
-					"v" + l.text + "(" +
-						(childStr.isBlank() ? "_" : "[" + childStr + (includeTheExtraUnderscore ? " | _":"") + "]") +
-					")"
-				);
-			} else {
-				result.push("_");
-			}
-	    });
-	    return result.join(",");
+		return (sarray.length > 1? "each(":"") + sarray.join(",") + (sarray.length > 1? ")":"");
 	}
 
 	public static function connectionsToProlog(connections: OSet<Connection>): String {

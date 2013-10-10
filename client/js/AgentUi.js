@@ -5378,7 +5378,7 @@ ui.helper.PrologHelper._processTagChildren = function(original,set) {
 			s += "n" + l.text + "(";
 			s += ui.helper.PrologHelper._processTagChildren(original,children);
 			s += ")";
-		} else s += "l" + l.text + "( _ )";
+		} else s += "l" + l.text + "(_)";
 		return s;
 	},"");
 	return str;
@@ -5429,20 +5429,7 @@ ui.helper.PrologHelper.labelsToProlog = function(contentTags) {
 		}
 		sarray.push("[" + path.join(",") + "]");
 	});
-	return (sarray.length > 1?"all(":"") + sarray.join(",") + (sarray.length > 1?")":"");
-}
-ui.helper.PrologHelper.labelsRender = function(tagTree,label,paths,includeTheExtraUnderscore) {
-	var result = [];
-	var children = new m3.observable.FilteredSet(tagTree,function(f) {
-		return f.parentUid == label.uid;
-	});
-	Lambda.iter(children,function(l) {
-		if(m3.helper.ArrayHelper.contains(paths,l.uid)) {
-			var childStr = ui.helper.PrologHelper.labelsRender(tagTree,l,paths,includeTheExtraUnderscore);
-			result.push("v" + l.text + "(" + (m3.helper.StringHelper.isBlank(childStr)?"_":"[" + childStr + (includeTheExtraUnderscore?" | _":"") + "]") + ")");
-		} else result.push("_");
-	});
-	return result.join(",");
+	return (sarray.length > 1?"each(":"") + sarray.join(",") + (sarray.length > 1?")":"");
 }
 ui.helper.PrologHelper.connectionsToProlog = function(connections) {
 	var sarray = [];
