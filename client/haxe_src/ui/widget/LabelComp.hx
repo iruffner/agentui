@@ -115,7 +115,11 @@ extern class LabelComp extends FilterableComponent {
 				    		helper: helper,
 				    		distance: 10,
 				    		// grid: [5,5],
-				    		scroll: false
+				    		scroll: false,
+				    		revertDuration: 200,
+				    		start: function(evt:JQEvent, _ui:UIDraggable):Void {
+				    			cast(selfElement, JQDraggable).draggable("option", "revert", false);
+				    		}
 				    	});
 
 			            cast(selfElement, JQDroppable).droppable({
