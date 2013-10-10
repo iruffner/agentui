@@ -40,7 +40,7 @@ extern class LabelTree extends JQ {
 		        		throw new Exception("Root of LabelTree must be a div element");
 		        	}
 
-		        	selfElement.addClass("labelTree " + Widgets.getWidgetClasses());
+		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
 		        	self.mappedLabels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
 		        			var children: FilteredSet<Label> = new FilteredSet<Label>(AgentUi.USER.currentAlias.labelSet, function(child: Label): Bool{
