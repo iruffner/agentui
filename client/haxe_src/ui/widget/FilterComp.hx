@@ -58,16 +58,17 @@ extern class FilterComp extends JQ {
 				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
 			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, "#filter");
-			                var cloneOffset: {top: Int, left: Int} = clone.offset();
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
+			                var cloneOffset: {top: Int, left: Int} = clone.offset();
+
+			                JQ.cur.append(clone);
+			                
 			                var isInFilterCombination: Bool = _ui.draggable.parent(".filterCombination").length > 0;
 			                if(isInFilterCombination) {
 			                	var filterCombination: FilterCombination = cast(_ui.draggable.parent(), FilterCombination);
-			                	JQ.cur.append(clone);
 			                	filterCombination.filterCombination("removeFilterable", _ui.draggable);
-			                } else {
-			                	JQ.cur.append(clone);
 			                }
+
 			                clone.css({
 			                        "position": "absolute"
 			                    });

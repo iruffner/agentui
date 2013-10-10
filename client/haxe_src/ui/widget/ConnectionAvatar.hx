@@ -116,7 +116,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 				    		helper: helper,
 				    		distance: 10,
 				    		// grid: [5,5],
-				    		revert: false,
+				    		revertDuration: 200,
 				    		scroll: false,
 				    		start: function(evt:JQEvent, _ui:UIDraggable):Void {
 				    			cast(selfElement, JQDraggable).draggable("option", "revert", false);

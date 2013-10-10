@@ -130,12 +130,12 @@ extern class PostComp extends JQ {
 					urlInput.hide();
 					mediaInput.hide();
 
-					var isDuplicate = function(selector:String, ele:JQ, tags: JQDroppable, getUid:JQ->String) {
+					var isDuplicate = function(selector:String, ele:JQ, container: JQDroppable, getUid:JQ->String) {
 						var is_duplicate = false;
 			      		if (ele.is(selector)) {
 				      		var new_uid:String = getUid(ele);
 
-				      		tags.children(selector).each(function(i: Int, dom: Element): Void {
+				      		container.children(selector).each(function(i: Int, dom: Element): Void {
 				      			var uid:String = getUid(new JQ(dom));
 				      			if (new_uid == uid) {
 				      				is_duplicate = true;
@@ -145,7 +145,7 @@ extern class PostComp extends JQ {
 						return is_duplicate;
 					};
 
-					var tags: JQDroppable = new JQDroppable("<aside class='tags container boxsizingBorder'></aside>");
+					var tags: JQDroppable = new JQDroppable("<aside id='post_comps_tags' class='tags container boxsizingBorder'></aside>");
 					tags.appendTo(section);
 					tags.droppable({
 							accept: function(d) {
@@ -157,7 +157,9 @@ extern class PostComp extends JQ {
 					      		// Check to see if the element being dropped is already in the container
 						      	if (isDuplicate(".connectionAvatar", _ui.draggable, tags, function(ele:JQ){return new ConnectionAvatar(ele).getConnection().uid;} )
 					      		 || isDuplicate(".labelComp"       , _ui.draggable, tags, function(ele:JQ){return new LabelComp(ele).getLabel().uid;})) {
-					      			_ui.draggable.draggable("option", "revert", true);
+					      			if (_ui.draggable.parent().attr("id") != "post_comps_tags") {
+						      			_ui.draggable.draggable("option", "revert", true);
+						      		}
 					      			return;
 					      		}
 
