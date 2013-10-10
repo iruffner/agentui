@@ -104,7 +104,7 @@ extern class UploadComp extends JQ {
 		        	
 		        	new JQ("#files-upload").remove();
 		        	
-		        	var filesUpload = new JQ("<input id='files-upload' type='file' style='float: left;margin-top: 25px;margin-left: 25px;'/>").prependTo(selfElement);
+		        	var filesUpload = new JQ("<input id='files-upload' type='file'/>").prependTo(selfElement);
 					filesUpload.change(function (evt: JQEvent) {
 						untyped self._traverseFiles(JQ.curNoWrap.files);
 					});
@@ -128,7 +128,7 @@ extern class UploadComp extends JQ {
 
 					// present a preview in the file list
 					if (self.previewImg == null) {
-						self.previewImg = new JQ("<img style='max-height: 90px;' id='file_about_to_be_uploaded'/>").appendTo(selfElement);
+						self.previewImg = new JQ("<img id='file_about_to_be_uploaded'/>").appendTo(selfElement);
 					}
 					var reader = untyped __js__("new FileReader()");
 					reader.onload = function (evt) {
