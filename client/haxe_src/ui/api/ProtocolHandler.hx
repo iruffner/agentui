@@ -110,12 +110,11 @@ class ProtocolHandler {
         processHash = new Map<MsgType,Dynamic->Void>();
         processHash.set(MsgType.evalResponse, function(data: Dynamic){
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
-        		//TODO need to make sure this is wired to properly push into the observable set
         		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.pageOfPosts); 
         	});
         processHash.set(MsgType.evalComplete, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("evalComplete was received from the server");
         		var evalComplete: EvalComplete = AgentUi.SERIALIZER.fromJsonX(data, EvalComplete);
-        		//TODO need to make sure this is wired to properly push into the observable set
         		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.pageOfPosts); 
         	});
         processHash.set(MsgType.sessionPong, function(data: Dynamic){
