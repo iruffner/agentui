@@ -34,7 +34,7 @@ typedef SignupConfirmationDialogWidgetDef = {
 @:native("$")
 extern class SignupConfirmationDialog extends JQ {
 
-	@:overload(function(cmd : String):Bool{})
+	@:overload(function<T>(cmd : String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function signupConfirmationDialog(?opts: SignupConfirmationDialogOptions): SignupConfirmationDialog;
 

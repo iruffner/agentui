@@ -2424,6 +2424,10 @@ m3.helper.StringHelper.capitalizeFirstLetter = function(str) {
 	if(m3.helper.StringHelper.isBlank(str)) return str;
 	return HxOverrides.substr(str,0,1).toUpperCase() + HxOverrides.substr(str,1,str.length);
 }
+m3.helper.StringHelper.camelCase = function(str) {
+	if(m3.helper.StringHelper.isBlank(str)) return str;
+	return HxOverrides.substr(str,0,1).toLowerCase() + HxOverrides.substr(str,1,str.length);
+}
 m3.helper.StringHelper.isBlank = function(str) {
 	return str == null || $.trim(str) == "";
 }
@@ -2529,6 +2533,12 @@ m3.helper.StringHelper.toDate = function(baseString) {
 	}
 	if(!m3.helper.DateHelper.isValid(date)) date == null;
 	return date;
+}
+m3.helper.TypeHelper = function() { }
+$hxClasses["m3.helper.TypeHelper"] = m3.helper.TypeHelper;
+m3.helper.TypeHelper.__name__ = ["m3","helper","TypeHelper"];
+m3.helper.TypeHelper.camelCase = function(c) {
+	return m3.helper.StringHelper.camelCase(Type.getClassName(c));
 }
 m3.jq = {}
 m3.jq.JQMenuHelper = function() { }
@@ -5907,54 +5917,44 @@ ui.widget.DialogManager = function() { }
 $hxClasses["ui.widget.DialogManager"] = ui.widget.DialogManager;
 $hxExpose(ui.widget.DialogManager, "ui.widget.DialogManager");
 ui.widget.DialogManager.__name__ = ["ui","widget","DialogManager"];
-ui.widget.DialogManager.showLogin = function() {
-	var loginComp = new $(".loginComp");
-	if(!loginComp.exists()) {
-		loginComp = new $("<div></div>");
-		loginComp.appendTo(js.Browser.document.body);
-		loginComp.loginComp();
+ui.widget.DialogManager.showDialog = function(dialogFcnName,options) {
+	if(options == null) options = { };
+	var selector = "." + dialogFcnName;
+	var dialog = new $(selector);
+	if(!dialog.exists()) {
+		dialog = new $("<div></div>");
+		dialog.appendTo(js.Browser.document.body);
+		var dlg = (Reflect.field($.ui,dialogFcnName))(options);
+		dlg.open();
+	} else {
+		var field = Reflect.field(dialog,dialogFcnName);
+		var _g = 0, _g1 = Reflect.fields(options);
+		while(_g < _g1.length) {
+			var key = _g1[_g];
+			++_g;
+			var value = Reflect.field(options,key);
+			field.apply(dialog,["option",key,value]);
+		}
+		field.apply(dialog,["open"]);
 	}
-	loginComp.loginComp("open");
+}
+ui.widget.DialogManager.showLogin = function() {
+	ui.widget.DialogManager.showDialog(m3.helper.TypeHelper.camelCase($));
 }
 ui.widget.DialogManager.showNewUser = function() {
-	var newUserComp = new $(".newUserComp");
-	if(!newUserComp.exists()) {
-		newUserComp = new $("<div></div>");
-		newUserComp.appendTo(js.Browser.document.body);
-		newUserComp.newUserComp();
-	}
-	newUserComp.newUserComp("open");
+	ui.widget.DialogManager.showDialog("newUserComp");
 }
 ui.widget.DialogManager.showSignupConfirmation = function() {
-	var signupConfirmationDialog = new $(".signupConfirmationDialog");
-	if(!signupConfirmationDialog.exists()) {
-		signupConfirmationDialog = new $("<div></div>");
-		signupConfirmationDialog.appendTo(js.Browser.document.body);
-		signupConfirmationDialog.signupConfirmationDialog();
-		signupConfirmationDialog.signupConfirmationDialog("open");
-	}
-	signupConfirmationDialog.signupConfirmationDialog("open");
+	ui.widget.DialogManager.showDialog("signupConfirmationDialog");
 }
 ui.widget.DialogManager.showNewAlias = function() {
-	var newAliasComp = new $(".newAliasComp");
-	if(!newAliasComp.exists()) {
-		newAliasComp = new $("<div></div>");
-		newAliasComp.appendTo(js.Browser.document.body);
-		newAliasComp.newAliasComp();
-	}
-	newAliasComp.newAliasComp("open");
+	ui.widget.DialogManager.showDialog("newAliasComp");
 }
 ui.widget.DialogManager.requestIntroduction = function(from,to) {
-	var requestIntroductionDialog = new $(".requestIntroductionDialog");
-	if(requestIntroductionDialog.exists()) {
-		requestIntroductionDialog.requestIntroductionDialog("option","from",from);
-		requestIntroductionDialog.requestIntroductionDialog("option","to",to);
-	} else {
-		requestIntroductionDialog = new $("<div></div>");
-		requestIntroductionDialog.appendTo(js.Browser.document.body);
-		requestIntroductionDialog.requestIntroductionDialog({ from : from, to : to});
-	}
-	requestIntroductionDialog.requestIntroductionDialog("open");
+	var options = { };
+	options.from = from;
+	options.to = to;
+	ui.widget.DialogManager.showDialog("requestIntroductionDialog",options);
 }
 ui.widget.ConnectionListHelper = function() { }
 $hxClasses["ui.widget.ConnectionListHelper"] = ui.widget.ConnectionListHelper;
@@ -6413,77 +6413,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.connectionAvatar",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RequestIntroductionDialog must be a div element");
-		selfElement.addClass("requestIntroductionDialog").hide();
-		var connections = new $("<div></div>").appendTo(selfElement);
-		connections.append("<div class='labelDiv' style='display:inline'>Introduce&nbsp;&nbsp;</div>");
-		self._appendConnectionAvatar(self.options.to,connections);
-		connections.append("<div class='labelDiv' style='display:inline'>&nbsp;to&nbsp;</div>");
-		self._appendConnectionAvatar(self.options.from,connections);
-		connections.append("<div class='labelDiv'>&nbsp;</div>");
-		var toName = self.options.to.name();
-		var fromName = self.options.from.name();
-		var ridTitle = new $("<div class='rid_row'></div>").appendTo(selfElement);
-		ridTitle.append("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>");
-		ridTitle.append("<div class='rid_cell' id='same_messsage_div' style='text-align:right;'>Same Message for " + fromName + "</div>");
-		var cb = new $("<input type='checkbox' id='same_messsage' checked='checked'>").prependTo(new $("#same_messsage_div")).change(function(evt) {
-			var tgt = new $(evt.target);
-			var ta1 = new $("#ta1");
-			var ta2 = new $("#ta2");
-			ta2.prop("readonly",tgt.prop("checked"));
-			if(tgt.prop("checked")) ta2.val(ta1.val());
-		});
-		cb.prop("checked",true);
-		var ridTa = new $("<div class='rid_row'></div>").appendTo(selfElement);
-		var ta1_changed = function(evt) {
-			var same_messsage = new $("#same_messsage");
-			if(same_messsage.prop("checked")) {
-				var ta1 = new $("#ta1");
-				var ta2 = new $("#ta2");
-				ta2.val(ta1.val());
-			}
-		};
-		var divTa1 = new $("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
-		var ta1 = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","ta1").keyup(ta1_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
-		var divTa2 = new $("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
-		var ta2 = new $("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","ta2").val(ta1.val());
-	}, _appendConnectionAvatar : function(connection,parent) {
-		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connection : connection, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(parent).css("display","inline");
-		parent.append("<div class='labelDiv' style='display:inline'>" + connection.name() + "</div>");
-	}, initialized : false, _requestIntroduction : function() {
-		var self = this;
-		var selfElement = this.element;
-	}, _buildDialog : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		if(self1.initialized) return;
-		self1.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Introduction Request", height : 400, width : 600, buttons : { Send : function() {
-			self1._requestIntroduction();
-		}, Cancel : function() {
-			$(this).jdialog("close");
-		}}, close : function(evt,ui) {
-			selfElement1.find(".placeholder").removeClass("ui-state-error");
-		}};
-		selfElement1.jdialog(dlgOptions);
-	}, open : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(selfElement.exists()) {
-			selfElement.empty();
-			self._create();
-		}
-		self._buildDialog();
-		selfElement.jdialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.requestIntroductionDialog",defineWidget());
 var defineWidget = function() {
 	return { options : { connection : null, classes : null}, _create : function() {
 		var self = this;
@@ -6961,180 +6890,6 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of NewUserComp must be a div element");
-		self._cancelled = false;
-		selfElement.addClass("newUserComp").hide();
-		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
-		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
-		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
-		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
-		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
-		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_em = new $("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_em = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		inputs.append("<br/>");
-		inputs.children("input").keypress(function(evt) {
-			if(evt.keyCode == 13) self._createNewUser();
-		});
-		self.placeholder_n.focus(function(evt) {
-			self.placeholder_n.hide();
-			self.input_n.show().focus();
-		});
-		self.input_n.blur(function(evt) {
-			if(m3.helper.StringHelper.isBlank(self.input_n.val())) {
-				self.placeholder_n.show();
-				self.input_n.hide();
-			}
-		});
-		self.placeholder_pw.focus(function(evt) {
-			self.placeholder_pw.hide();
-			self.input_pw.show().focus();
-		});
-		self.input_pw.blur(function(evt) {
-			if(m3.helper.StringHelper.isBlank(self.input_pw.val())) {
-				self.placeholder_pw.show();
-				self.input_pw.hide();
-			}
-		});
-		self.placeholder_em.focus(function(evt) {
-			self.placeholder_em.hide();
-			self.input_em.show().focus();
-		});
-		self.input_em.blur(function(evt) {
-			if(m3.helper.StringHelper.isBlank(self.input_em.val())) {
-				self.placeholder_em.show();
-				self.input_em.hide();
-			}
-		});
-		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
-			self._setUser(user);
-		},"NewUserComp-User"));
-	}, initialized : false, _createNewUser : function() {
-		var self = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var newUser = new ui.model.NewUser();
-		newUser.pwd = self.input_pw.val();
-		if(m3.helper.StringHelper.isBlank(newUser.pwd)) {
-			self.placeholder_pw.addClass("ui-state-error");
-			valid = false;
-		}
-		newUser.email = self.input_em.val();
-		if(m3.helper.StringHelper.isBlank(newUser.email)) {
-			self.placeholder_em.addClass("ui-state-error");
-			valid = false;
-		}
-		newUser.name = self.input_n.val();
-		if(m3.helper.StringHelper.isBlank(newUser.name)) {
-			self.placeholder_n.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.USER_CREATE,newUser);
-		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(n) {
-			selfElement1.jdialog("close");
-		},"NewUserComp-UserSignup"));
-	}, _buildDialog : function() {
-		var self1 = this;
-		var selfElement2 = this.element;
-		self1.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, buttons : { 'Create my Agent' : function() {
-			self1._registered = true;
-			self1._createNewUser();
-		}, Cancel : function() {
-			self1._cancelled = true;
-			$(this).jdialog("close");
-		}}, close : function(evt,ui1) {
-			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			if(self1._cancelled || !self1._registered && (self1.user == null || !self1.user.hasValidSession())) ui.widget.DialogManager.showLogin();
-		}};
-		selfElement2.jdialog(dlgOptions);
-	}, _setUser : function(user) {
-		var self = this;
-		self.user = user;
-	}, open : function() {
-		var self = this;
-		var selfElement = this.element;
-		self._cancelled = false;
-		if(!self.initialized) self._buildDialog();
-		selfElement.children("#n_label").focus();
-		self.input_n.blur();
-		selfElement.jdialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.newUserComp",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of SignupConfirmationDialog must be a div element");
-		self._cancelled = false;
-		selfElement.addClass("signupConfirmationDialog").hide();
-		selfElement.append("<p> Your request for a User Agent has been submitted. Upon receiving your confirmation email, you may click the " + "link it contains or paste the token below to validate your email address.");
-		self.inputLabel = new $("<div class='labelDiv'><label id='confirmTokenLabel' for='confirmToken'>Your Token</label></div>").appendTo(selfElement);
-		self.input = new $("<input id='confirmToken' />").appendTo(selfElement);
-		self.input.keypress(function(evt) {
-			if(evt.keyCode == 13) self._validateUser();
-		});
-		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
-			self._setUser(user);
-		},"SignupConfirmationDialog-User"));
-	}, initialized : false, _validateUser : function() {
-		var self = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var token = self.input.val();
-		if(m3.helper.StringHelper.isBlank(token)) {
-			self.inputLabel.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.USER_VALIDATE,token);
-		ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATED,new ui.model.EMListener(function(n) {
-			selfElement1.jdialog("close");
-		},"SignupConfirmationDialog-UserValidated"));
-	}, _buildDialog : function() {
-		var self1 = this;
-		var selfElement2 = this.element;
-		self1.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Email Validation", height : 420, width : 420, buttons : { Validate : function() {
-			self1._validateUser();
-		}, Cancel : function() {
-			self1._cancelled = true;
-			$(this).jdialog("close");
-		}}, close : function(evt,ui1) {
-			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			if(self1.user == null || !self1.user.hasValidSession()) ui.widget.DialogManager.showLogin();
-		}};
-		selfElement2.jdialog(dlgOptions);
-	}, _setUser : function(user) {
-		var self = this;
-		self.user = user;
-	}, open : function() {
-		var self = this;
-		var selfElement = this.element;
-		self._cancelled = false;
-		if(!self.initialized) self._buildDialog();
-		self.input.focus();
-		selfElement.jdialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.signupConfirmationDialog",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LoginComp must be a div element");
 		self._newUser = false;
 		selfElement.addClass("loginComp").hide();
@@ -7330,6 +7085,120 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.newAliasComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of NewUserComp must be a div element");
+		self._cancelled = false;
+		selfElement.addClass("newUserComp").hide();
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
+		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
+		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
+		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
+		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_em = new $("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_em = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		inputs.append("<br/>");
+		inputs.children("input").keypress(function(evt) {
+			if(evt.keyCode == 13) self._createNewUser();
+		});
+		self.placeholder_n.focus(function(evt) {
+			self.placeholder_n.hide();
+			self.input_n.show().focus();
+		});
+		self.input_n.blur(function(evt) {
+			if(m3.helper.StringHelper.isBlank(self.input_n.val())) {
+				self.placeholder_n.show();
+				self.input_n.hide();
+			}
+		});
+		self.placeholder_pw.focus(function(evt) {
+			self.placeholder_pw.hide();
+			self.input_pw.show().focus();
+		});
+		self.input_pw.blur(function(evt) {
+			if(m3.helper.StringHelper.isBlank(self.input_pw.val())) {
+				self.placeholder_pw.show();
+				self.input_pw.hide();
+			}
+		});
+		self.placeholder_em.focus(function(evt) {
+			self.placeholder_em.hide();
+			self.input_em.show().focus();
+		});
+		self.input_em.blur(function(evt) {
+			if(m3.helper.StringHelper.isBlank(self.input_em.val())) {
+				self.placeholder_em.show();
+				self.input_em.hide();
+			}
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
+			self._setUser(user);
+		},"NewUserComp-User"));
+	}, initialized : false, _createNewUser : function() {
+		var self = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var newUser = new ui.model.NewUser();
+		newUser.pwd = self.input_pw.val();
+		if(m3.helper.StringHelper.isBlank(newUser.pwd)) {
+			self.placeholder_pw.addClass("ui-state-error");
+			valid = false;
+		}
+		newUser.email = self.input_em.val();
+		if(m3.helper.StringHelper.isBlank(newUser.email)) {
+			self.placeholder_em.addClass("ui-state-error");
+			valid = false;
+		}
+		newUser.name = self.input_n.val();
+		if(m3.helper.StringHelper.isBlank(newUser.name)) {
+			self.placeholder_n.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EM.change(ui.model.EMEvent.USER_CREATE,newUser);
+		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(n) {
+			selfElement1.jdialog("close");
+		},"NewUserComp-UserSignup"));
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement2 = this.element;
+		self1.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, buttons : { 'Create my Agent' : function() {
+			self1._registered = true;
+			self1._createNewUser();
+		}, Cancel : function() {
+			self1._cancelled = true;
+			$(this).jdialog("close");
+		}}, close : function(evt,ui1) {
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
+			if(self1._cancelled || !self1._registered && (self1.user == null || !self1.user.hasValidSession())) ui.widget.DialogManager.showLogin();
+		}};
+		selfElement2.jdialog(dlgOptions);
+	}, _setUser : function(user) {
+		var self = this;
+		self.user = user;
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		self._cancelled = false;
+		if(!self.initialized) self._buildDialog();
+		selfElement.children("#n_label").focus();
+		self.input_n.blur();
+		selfElement.jdialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.newUserComp",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		$.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
@@ -7547,6 +7416,137 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.postComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RequestIntroductionDialog must be a div element");
+		selfElement.addClass("requestIntroductionDialog").hide();
+		var connections = new $("<div></div>").appendTo(selfElement);
+		connections.append("<div class='labelDiv' style='display:inline'>Introduce&nbsp;&nbsp;</div>");
+		self._appendConnectionAvatar(self.options.to,connections);
+		connections.append("<div class='labelDiv' style='display:inline'>&nbsp;to&nbsp;</div>");
+		self._appendConnectionAvatar(self.options.from,connections);
+		connections.append("<div class='labelDiv'>&nbsp;</div>");
+		var toName = self.options.to.name();
+		var fromName = self.options.from.name();
+		var ridTitle = new $("<div class='rid_row'></div>").appendTo(selfElement);
+		ridTitle.append("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>");
+		ridTitle.append("<div class='rid_cell' id='same_messsage_div' style='text-align:right;'>Same Message for " + fromName + "</div>");
+		var cb = new $("<input type='checkbox' id='same_messsage' checked='checked'>").prependTo(new $("#same_messsage_div")).change(function(evt) {
+			var tgt = new $(evt.target);
+			var ta1 = new $("#ta1");
+			var ta2 = new $("#ta2");
+			ta2.prop("readonly",tgt.prop("checked"));
+			if(tgt.prop("checked")) ta2.val(ta1.val());
+		});
+		cb.prop("checked",true);
+		var ridTa = new $("<div class='rid_row'></div>").appendTo(selfElement);
+		var ta1_changed = function(evt) {
+			var same_messsage = new $("#same_messsage");
+			if(same_messsage.prop("checked")) {
+				var ta1 = new $("#ta1");
+				var ta2 = new $("#ta2");
+				ta2.val(ta1.val());
+			}
+		};
+		var divTa1 = new $("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
+		var ta1 = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","ta1").keyup(ta1_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
+		var divTa2 = new $("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
+		var ta2 = new $("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","ta2").val(ta1.val());
+	}, _appendConnectionAvatar : function(connection,parent) {
+		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connection : connection, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(parent).css("display","inline");
+		parent.append("<div class='labelDiv' style='display:inline'>" + connection.name() + "</div>");
+	}, initialized : false, _requestIntroduction : function() {
+		var self = this;
+		var selfElement = this.element;
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		if(self1.initialized) return;
+		self1.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Introduction Request", height : 400, width : 600, buttons : { Send : function() {
+			self1._requestIntroduction();
+		}, Cancel : function() {
+			$(this).jdialog("close");
+		}}, close : function(evt,ui) {
+			selfElement1.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement1.jdialog(dlgOptions);
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(selfElement.exists()) {
+			selfElement.empty();
+			self._create();
+		}
+		self._buildDialog();
+		selfElement.jdialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.requestIntroductionDialog",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of SignupConfirmationDialog must be a div element");
+		self._cancelled = false;
+		selfElement.addClass("signupConfirmationDialog").hide();
+		selfElement.append("<p> Your request for a User Agent has been submitted. Upon receiving your confirmation email, you may click the " + "link it contains or paste the token below to validate your email address.");
+		self.inputLabel = new $("<div class='labelDiv'><label id='confirmTokenLabel' for='confirmToken'>Your Token</label></div>").appendTo(selfElement);
+		self.input = new $("<input id='confirmToken' />").appendTo(selfElement);
+		self.input.keypress(function(evt) {
+			if(evt.keyCode == 13) self._validateUser();
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
+			self._setUser(user);
+		},"SignupConfirmationDialog-User"));
+	}, initialized : false, _validateUser : function() {
+		var self = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var token = self.input.val();
+		if(m3.helper.StringHelper.isBlank(token)) {
+			self.inputLabel.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EM.change(ui.model.EMEvent.USER_VALIDATE,token);
+		ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATED,new ui.model.EMListener(function(n) {
+			selfElement1.jdialog("close");
+		},"SignupConfirmationDialog-UserValidated"));
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement2 = this.element;
+		self1.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Email Validation", height : 420, width : 420, buttons : { Validate : function() {
+			self1._validateUser();
+		}, Cancel : function() {
+			self1._cancelled = true;
+			$(this).jdialog("close");
+		}}, close : function(evt,ui1) {
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
+			if(self1.user == null || !self1.user.hasValidSession()) ui.widget.DialogManager.showLogin();
+		}};
+		selfElement2.jdialog(dlgOptions);
+	}, _setUser : function(user) {
+		var self = this;
+		self.user = user;
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		self._cancelled = false;
+		if(!self.initialized) self._buildDialog();
+		self.input.focus();
+		selfElement.jdialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.signupConfirmationDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;

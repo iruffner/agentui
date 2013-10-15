@@ -31,7 +31,7 @@ typedef RequestIntroductionDialogWidgetDef = {
 @:native("$")
 extern class RequestIntroductionDialog extends JQ {
 
-	@:overload(function(cmd : String):Bool{})
+	@:overload(function<T>(cmd : String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function requestIntroductionDialog(opts: RequestIntroductionDialogOptions): RequestIntroductionDialog;
 
