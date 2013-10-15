@@ -2534,12 +2534,6 @@ m3.helper.StringHelper.toDate = function(baseString) {
 	if(!m3.helper.DateHelper.isValid(date)) date == null;
 	return date;
 }
-m3.helper.TypeHelper = function() { }
-$hxClasses["m3.helper.TypeHelper"] = m3.helper.TypeHelper;
-m3.helper.TypeHelper.__name__ = ["m3","helper","TypeHelper"];
-m3.helper.TypeHelper.camelCase = function(c) {
-	return m3.helper.StringHelper.camelCase(Type.getClassName(c));
-}
 m3.jq = {}
 m3.jq.JQMenuHelper = function() { }
 $hxClasses["m3.jq.JQMenuHelper"] = m3.jq.JQMenuHelper;

@@ -8,8 +8,6 @@ import ui.widget.NewUserDialog;
 import ui.widget.RequestIntroductionDialog;
 import ui.widget.SignupConfirmationDialog;
 
-using m3.helper.TypeHelper;
-
 @:expose
 class DialogManager {
 
