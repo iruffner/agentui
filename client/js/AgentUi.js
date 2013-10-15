@@ -5939,7 +5939,7 @@ ui.widget.DialogManager.showDialog = function(dialogFcnName,options) {
 	}
 }
 ui.widget.DialogManager.showLogin = function() {
-	ui.widget.DialogManager.showDialog(m3.helper.TypeHelper.camelCase($));
+	ui.widget.DialogManager.showDialog("loginComp");
 }
 ui.widget.DialogManager.showNewUser = function() {
 	ui.widget.DialogManager.showDialog("newUserComp");

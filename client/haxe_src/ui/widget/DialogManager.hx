@@ -36,7 +36,7 @@ class DialogManager {
     }
 
     public static function showLogin(): Void {
-        showDialog(LoginComp.camelCase());
+        showDialog("loginComp");
     }
 
     public static function showNewUser(): Void {
