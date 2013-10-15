@@ -2,7 +2,7 @@ package ui.widget;
 
 import ui.model.ModelObj;
 import m3.jq.JQ;
-import ui.widget.LoginComp;
+import ui.widget.LoginDialog;
 import ui.widget.NewAliasComp;
 import ui.widget.NewUserComp;
 import ui.widget.RequestIntroductionDialog;
@@ -36,7 +36,7 @@ class DialogManager {
     }
 
     public static function showLogin(): Void {
-        showDialog("loginComp");
+        showDialog("loginDialog");
     }
 
     public static function showNewUser(): Void {
@@ -55,7 +55,7 @@ class DialogManager {
         var options:Dynamic = {}
         options.from = from;
         options.to   = to;
-        showDialog( "requestIntroductionDialog", options);
+        showDialog("requestIntroductionDialog", options);
     }   
 
 }

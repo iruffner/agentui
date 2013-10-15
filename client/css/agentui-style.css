@@ -50,23 +50,23 @@ body {
 
 /* Login
 -----------------------------------------------------------------------------*/
-.loginComp, .newUserComp {
+.loginDialog, .newUserComp {
 	min-width: 400px;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
-	.loginComp .placeholder, .newUserComp .placeholder {
+	.loginDialog .placeholder, .newUserComp .placeholder {
 		color: lightgray;
 	}
 
-	.loginComp input, .newUserComp input {
+	.loginDialog input, .newUserComp input {
 		min-width: 225px;
 		padding: 4px;
 	}
 
-	.loginComp .labelDiv, .newUserComp .labelDiv {
+	.loginDialog .labelDiv, .newUserComp .labelDiv {
 		line-height: 1.65em;
 		margin-right: 10px;
 		padding: 4px;

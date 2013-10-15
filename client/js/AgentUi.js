@@ -5939,7 +5939,7 @@ ui.widget.DialogManager.showDialog = function(dialogFcnName,options) {
 	}
 }
 ui.widget.DialogManager.showLogin = function() {
-	ui.widget.DialogManager.showDialog("loginComp");
+	ui.widget.DialogManager.showDialog("loginDialog");
 }
 ui.widget.DialogManager.showNewUser = function() {
 	ui.widget.DialogManager.showDialog("newUserComp");
@@ -6890,9 +6890,9 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LoginComp must be a div element");
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LoginDialog must be a div element");
 		self._newUser = false;
-		selfElement.addClass("loginComp").hide();
+		selfElement.addClass("loginDialog").hide();
 		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
 		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
 		if(m3.helper.StringHelper.isBlank(ui.AgentUi.agentURI)) labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Email</label></div>");
@@ -7002,7 +7002,7 @@ var defineWidget = function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.loginComp",defineWidget());
+$.widget("ui.loginDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
