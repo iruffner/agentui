@@ -5948,7 +5948,7 @@ ui.widget.DialogManager.showSignupConfirmation = function() {
 	ui.widget.DialogManager.showDialog("signupConfirmationDialog");
 }
 ui.widget.DialogManager.showNewAlias = function() {
-	ui.widget.DialogManager.showDialog("newAliasComp");
+	ui.widget.DialogManager.showDialog("newAliasDialog");
 }
 ui.widget.DialogManager.requestIntroduction = function(from,to) {
 	var options = { };
@@ -7037,8 +7037,8 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of NewAliasComp must be a div element");
-		selfElement.addClass("_newAliasComp").hide();
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of NewAliasDialog must be a div element");
+		selfElement.addClass("_newAliasDialog").hide();
 		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
 		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
 		labels.append("<div class='labelDiv' style='margin-top: 3px; margin-right: 6px;'><label id='n_label' for='newu_n'>Alias Name:</label></div>");
@@ -7049,7 +7049,7 @@ var defineWidget = function() {
 		});
 		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
 			self._setUser(user);
-		},"NewAliasComp-User"));
+		},"NewAliasDialog-User"));
 	}, initialized : false, _createNewAlias : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -7084,7 +7084,7 @@ var defineWidget = function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.newAliasComp",defineWidget());
+$.widget("ui.newAliasDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;

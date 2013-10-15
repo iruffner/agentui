@@ -9,11 +9,11 @@ import m3.exception.Exception;
 
 using m3.helper.StringHelper;
 
-typedef NewAliasCompOptions = {
+typedef NewAliasDialogOptions = {
 }
 
-typedef NewAliasCompWidgetDef = {
-	@:optional var options: NewAliasCompOptions;
+typedef NewAliasDialogWidgetDef = {
+	@:optional var options: NewAliasDialogOptions;
 	@:optional var user: User;
 
 	@:optional var input_n: JQ;
@@ -30,23 +30,23 @@ typedef NewAliasCompWidgetDef = {
 }
 
 @:native("$")
-extern class NewAliasComp extends JQ {
+extern class NewAliasDialog extends JQ {
 
 	@:overload(function<T>(cmd : String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function newAliasComp(?opts: NewAliasCompOptions): NewAliasComp;
+	function newAliasDialog(?opts: NewAliasDialogOptions): NewAliasDialog;
 
 	private static function __init__(): Void {
-		var defineWidget: Void->NewAliasCompWidgetDef = function(): NewAliasCompWidgetDef {
+		var defineWidget: Void->NewAliasDialogWidgetDef = function(): NewAliasDialogWidgetDef {
 			return {
 		        _create: function(): Void {
-		        	var self: NewAliasCompWidgetDef = Widgets.getSelf();
+		        	var self: NewAliasDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new Exception("Root of NewAliasComp must be a div element");
+		        		throw new Exception("Root of NewAliasDialog must be a div element");
 		        	}
 
-		        	selfElement.addClass("_newAliasComp").hide();
+		        	selfElement.addClass("_newAliasDialog").hide();
 
 		        	var labels: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 		        	var inputs: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
@@ -64,14 +64,14 @@ extern class NewAliasComp extends JQ {
 
 		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
 	        				self._setUser(user);
-		        		},"NewAliasComp-User")
+		        		},"NewAliasDialog-User")
 		        	);
 		        },
 
 		        initialized: false,
 
 		        _createNewAlias: function(): Void {
-		        	var self: NewAliasCompWidgetDef = Widgets.getSelf();
+		        	var self: NewAliasDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
@@ -87,7 +87,7 @@ extern class NewAliasComp extends JQ {
 	        	},
 
 		        _buildDialog: function(): Void {
-		        	var self: NewAliasCompWidgetDef = Widgets.getSelf();
+		        	var self: NewAliasDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 		        	self.initialized = true;
@@ -113,13 +113,13 @@ extern class NewAliasComp extends JQ {
 		        },
 
 		        _setUser: function(user: User): Void {
-		        	var self: NewAliasCompWidgetDef = Widgets.getSelf();
+		        	var self: NewAliasDialogWidgetDef = Widgets.getSelf();
 
 		        	self.user = user;
 	        	},
 
 	        	open: function(): Void {
-		        	var self: NewAliasCompWidgetDef = Widgets.getSelf();
+		        	var self: NewAliasDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 		        	if(!self.initialized) {
@@ -135,6 +135,6 @@ extern class NewAliasComp extends JQ {
 		        }
 		    };
 		}
-		JQ.widget( "ui.newAliasComp", defineWidget());
+		JQ.widget( "ui.newAliasDialog", defineWidget());
 	}
 }
