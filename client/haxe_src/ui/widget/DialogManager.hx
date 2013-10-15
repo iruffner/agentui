@@ -1,49 +1,43 @@
 package ui.widget;
 
 import ui.model.ModelObj;
+import m3.jq.JQ;
+import ui.widget.LoginComp;
+import ui.widget.NewAliasComp;
+import ui.widget.NewUserComp;
+import ui.widget.SignupConfirmationDialog;
 
 @:expose
 class DialogManager {
 
-    public static function showLogin(): Void {
-        var loginComp: LoginComp = new LoginComp(".loginComp");
-        if (!loginComp.exists()) {
-            loginComp = new LoginComp("<div></div>");
-            loginComp.appendTo(js.Browser.document.body);
-            loginComp.loginComp();
+    private static function showDialog(selector:String, dialogFcnName: String):Void {
+        //var selector:String = "." + dialogFcnName;
+        var dialog: JQ = new JQ(selector);
+        if (!dialog.exists()) {
+            dialog = new JQ("<div></div>");
+            dialog.appendTo(js.Browser.document.body);
+            var dlg = Reflect.field(JQ.ui, dialogFcnName)();
+            dlg.open();
+        } else {
+            var field = Reflect.field(dialog, dialogFcnName);
+            Reflect.callMethod(dialog, field, ["open"]);
         }
-        loginComp.loginComp("open");
+    }
+
+    public static function showLogin(): Void {
+        showDialog(".loginComp", "loginComp");
     }
 
     public static function showNewUser(): Void {
-        var newUserComp: NewUserComp = new NewUserComp(".newUserComp");
-        if (!newUserComp.exists()) {
-            newUserComp = new NewUserComp("<div></div>");
-            newUserComp.appendTo(js.Browser.document.body);
-            newUserComp.newUserComp();
-        }
-        newUserComp.newUserComp("open");
+        showDialog(".newUserComp", "newUserComp");
     }
 
     public static function showSignupConfirmation(): Void {
-        var signupConfirmationDialog: SignupConfirmationDialog = new SignupConfirmationDialog(".signupConfirmationDialog");
-        if (!signupConfirmationDialog.exists()) {
-            signupConfirmationDialog = new SignupConfirmationDialog("<div></div>");
-            signupConfirmationDialog.appendTo(js.Browser.document.body);
-            signupConfirmationDialog.signupConfirmationDialog();
-            signupConfirmationDialog.signupConfirmationDialog("open");
-        }
-        signupConfirmationDialog.signupConfirmationDialog("open");
+        showDialog(".signupConfirmationDialog", "signupConfirmationDialog");
     }
 
     public static function showNewAlias(): Void {
-        var newAliasComp: NewAliasComp = new NewAliasComp(".newAliasComp");
-        if (!newAliasComp.exists()) {
-            newAliasComp = new NewAliasComp("<div></div>");
-            newAliasComp.appendTo(js.Browser.document.body);
-            newAliasComp.newAliasComp();
-        }
-        newAliasComp.newAliasComp("open");
+        showDialog(".newAliasComp", "newAliasComp");
     }	
 
     public static function requestIntroduction(from:Connection, to:Connection): Void {
