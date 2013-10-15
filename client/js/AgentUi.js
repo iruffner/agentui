@@ -5942,7 +5942,7 @@ ui.widget.DialogManager.showLogin = function() {
 	ui.widget.DialogManager.showDialog("loginDialog");
 }
 ui.widget.DialogManager.showNewUser = function() {
-	ui.widget.DialogManager.showDialog("newUserComp");
+	ui.widget.DialogManager.showDialog("newUserDialog");
 }
 ui.widget.DialogManager.showSignupConfirmation = function() {
 	ui.widget.DialogManager.showDialog("signupConfirmationDialog");
@@ -7089,9 +7089,9 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of NewUserComp must be a div element");
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of NewUserDialog must be a div element");
 		self._cancelled = false;
-		selfElement.addClass("newUserComp").hide();
+		selfElement.addClass("newUserDialog").hide();
 		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
 		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
 		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
@@ -7141,7 +7141,7 @@ var defineWidget = function() {
 		});
 		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
 			self._setUser(user);
-		},"NewUserComp-User"));
+		},"NewUserDialog-User"));
 	}, initialized : false, _createNewUser : function() {
 		var self = this;
 		var selfElement1 = this.element;
@@ -7167,7 +7167,7 @@ var defineWidget = function() {
 		ui.model.EM.change(ui.model.EMEvent.USER_CREATE,newUser);
 		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(n) {
 			selfElement1.jdialog("close");
-		},"NewUserComp-UserSignup"));
+		},"NewUserDialog-UserSignup"));
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement2 = this.element;
@@ -7198,7 +7198,7 @@ var defineWidget = function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.newUserComp",defineWidget());
+$.widget("ui.newUserDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		$.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";

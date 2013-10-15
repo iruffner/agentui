@@ -4,7 +4,7 @@ import ui.model.ModelObj;
 import m3.jq.JQ;
 import ui.widget.LoginDialog;
 import ui.widget.NewAliasComp;
-import ui.widget.NewUserComp;
+import ui.widget.NewUserDialog;
 import ui.widget.RequestIntroductionDialog;
 import ui.widget.SignupConfirmationDialog;
 
@@ -40,7 +40,7 @@ class DialogManager {
     }
 
     public static function showNewUser(): Void {
-        showDialog("newUserComp");
+        showDialog("newUserDialog");
     }
 
     public static function showSignupConfirmation(): Void {

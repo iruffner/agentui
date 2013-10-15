@@ -335,7 +335,7 @@ class ProtocolHandler {
 
 				        	AgentUi.agentURI = response.contentImpl.agentURI;
 				        	//TODO put this value into the url
-							//AgentUi.showLogin(); -> firing the USER_SIGNUP will close the NewUserComp, 
+							//DialogManager.showLogin(); -> firing the USER_SIGNUP will close the NewUserDialog, 
 							EM.change(EMEvent.USER_SIGNUP);
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
@@ -349,7 +349,7 @@ class ProtocolHandler {
 
 				        	DialogManager.showSignupConfirmation();
 				        	//TODO put this value into the url
-							//AgentUi.showLogin(); -> firing the USER_SIGNUP will close the NewUserComp, 
+							//DialogManager.showLogin(); -> firing the USER_SIGNUP will close the NewUserDialog, 
 							EM.change(EMEvent.USER_SIGNUP);
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);

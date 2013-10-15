@@ -9,11 +9,11 @@ import m3.exception.Exception;
 
 using m3.helper.StringHelper;
 
-typedef NewUserCompOptions = {
+typedef NewUserDialogOptions = {
 }
 
-typedef NewUserCompWidgetDef = {
-	@:optional var options: NewUserCompOptions;
+typedef NewUserDialogWidgetDef = {
+	@:optional var options: NewUserDialogOptions;
 	@:optional var user: User;
 	@:optional var _cancelled: Bool;
 	@:optional var _registered: Bool;
@@ -39,25 +39,25 @@ typedef NewUserCompWidgetDef = {
 }
 
 @:native("$")
-extern class NewUserComp extends JQ {
+extern class NewUserDialog extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function newUserComp(?opts: NewUserCompOptions): NewUserComp;
+	function newUserDialog(?opts: NewUserDialogOptions): NewUserDialog;
 
 	private static function __init__(): Void {
-		var defineWidget: Void->NewUserCompWidgetDef = function(): NewUserCompWidgetDef {
+		var defineWidget: Void->NewUserDialogWidgetDef = function(): NewUserDialogWidgetDef {
 			return {
 		        _create: function(): Void {
-		        	var self: NewUserCompWidgetDef = Widgets.getSelf();
+		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new Exception("Root of NewUserComp must be a div element");
+		        		throw new Exception("Root of NewUserDialog must be a div element");
 		        	}
 
 		        	self._cancelled = false;
 
-		        	selfElement.addClass("newUserComp").hide();
+		        	selfElement.addClass("newUserDialog").hide();
 
 		        	var labels: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 		        	var inputs: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
@@ -138,14 +138,14 @@ extern class NewUserComp extends JQ {
 
 		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
 	        				self._setUser(user);
-		        		},"NewUserComp-User")
+		        		},"NewUserDialog-User")
 		        	);
 		        },
 
 		        initialized: false,
 
 		        _createNewUser: function(): Void {
-		        	var self: NewUserCompWidgetDef = Widgets.getSelf();
+		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
@@ -176,11 +176,11 @@ extern class NewUserComp extends JQ {
 
     				EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(n: Nothing): Void {
     						selfElement.jdialog("close");
-    					}, "NewUserComp-UserSignup"));
+    					}, "NewUserDialog-UserSignup"));
 	        	},
 
 		        _buildDialog: function(): Void {
-		        	var self: NewUserCompWidgetDef = Widgets.getSelf();
+		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 		        	self.initialized = true;
@@ -211,13 +211,13 @@ extern class NewUserComp extends JQ {
 		        },
 
 		        _setUser: function(user: User): Void {
-		        	var self: NewUserCompWidgetDef = Widgets.getSelf();
+		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
 
 		        	self.user = user;
 	        	},
 
 	        	open: function(): Void {
-		        	var self: NewUserCompWidgetDef = Widgets.getSelf();
+		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JDialog = Widgets.getSelfElement();
 
 					self._cancelled = false;
@@ -235,6 +235,6 @@ extern class NewUserComp extends JQ {
 		        }
 		    };
 		}
-		JQ.widget( "ui.newUserComp", defineWidget());
+		JQ.widget( "ui.newUserDialog", defineWidget());
 	}
 }
