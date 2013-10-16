@@ -2548,22 +2548,6 @@ m3.jq.JQMenuHelper.refresh = function(m) {
 	m.menu("refresh");
 }
 m3.log = {}
-m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] }
-m3.log.LogLevel.TRACE = ["TRACE",0];
-m3.log.LogLevel.TRACE.toString = $estr;
-m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.DEBUG = ["DEBUG",1];
-m3.log.LogLevel.DEBUG.toString = $estr;
-m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.INFO = ["INFO",2];
-m3.log.LogLevel.INFO.toString = $estr;
-m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.WARN = ["WARN",3];
-m3.log.LogLevel.WARN.toString = $estr;
-m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.ERROR = ["ERROR",4];
-m3.log.LogLevel.ERROR.toString = $estr;
-m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
 m3.log.Logga = function(logLevel) {
 	this.initialized = false;
 	this.loggerLevel = logLevel;
@@ -2638,6 +2622,22 @@ m3.log.Logga.prototype = {
 	}
 	,__class__: m3.log.Logga
 }
+m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] }
+m3.log.LogLevel.TRACE = ["TRACE",0];
+m3.log.LogLevel.TRACE.toString = $estr;
+m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.DEBUG = ["DEBUG",1];
+m3.log.LogLevel.DEBUG.toString = $estr;
+m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.INFO = ["INFO",2];
+m3.log.LogLevel.INFO.toString = $estr;
+m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.WARN = ["WARN",3];
+m3.log.LogLevel.WARN.toString = $estr;
+m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.ERROR = ["ERROR",4];
+m3.log.LogLevel.ERROR.toString = $estr;
+m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
 m3.observable = {}
 m3.observable.OSet = function() { }
 $hxClasses["m3.observable.OSet"] = m3.observable.OSet;
@@ -3578,15 +3578,7 @@ m3.serialization.ClassHandler.prototype = {
 			++_g;
 			if(f.required) {
 				var found = false;
-				var _g2 = 0;
-				while(_g2 < jsonFieldNames.length) {
-					var jsonFieldName = jsonFieldNames[_g2];
-					++_g2;
-					if(f.name == jsonFieldName) {
-						found = true;
-						break;
-					}
-				}
+				if(m3.helper.ArrayHelper.contains(jsonFieldNames,f.name)) found = true;
 				if(!found) reader.error("instance of " + this._typename + " has required field named " + f.name + " json does not does not " + haxe.Json.stringify(fromJson));
 			}
 		}
@@ -6025,33 +6017,6 @@ $.fn.hasAttr = function(name) {
 	return $(this).attr(name) != undefined;
 };
 var defineWidget = function() {
-	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false}, _create : function() {
-		this._super("create");
-		var self = this;
-		var selfElement = this.element;
-		if(self.options.showHelp) {
-			if(!Reflect.isFunction(self.options.buildHelp)) {
-			} else {
-				var helpIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='right: 1.5em;' role='button'>");
-				var helpIcon = new $("<span class='ui-icon ui-icon-help'>close</span>");
-				helpIconWrapper.hover(function(evt) {
-					$(this).addClass("ui-state-hover");
-				},function(evt) {
-					$(this).removeClass("ui-state-hover");
-				});
-				helpIconWrapper.append(helpIcon);
-				selfElement.prev().find(".ui-dialog-titlebar-close").before(helpIconWrapper);
-				helpIconWrapper.click(function(evt) {
-					self.options.buildHelp();
-				});
-			}
-		}
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.jdialog",$.ui.dialog,defineWidget());
-var defineWidget = function() {
 	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false, onMaxToggle : $.noop}, originalSize : { width : 10, height : 10}, _create : function() {
 		this._super("create");
 		var self = this;
@@ -6059,8 +6024,7 @@ var defineWidget = function() {
 		var closeBtn = selfElement.prev().find(".ui-dialog-titlebar-close");
 		var hovers = new $("blah");
 		if(self.options.showHelp && false) {
-			if(!Reflect.isFunction(self.options.buildHelp)) {
-			} else {
+			if(!Reflect.isFunction(self.options.buildHelp)) m3.log.Logga.get_DEFAULT().error("Supposed to show help but buildHelp is not a function"); else {
 				var helpIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
 				var helpIcon = new $("<span class='ui-icon ui-icon-help'>help</span>");
 				hovers = hovers.add(helpIconWrapper);
@@ -6929,10 +6893,10 @@ var defineWidget = function() {
 		});
 		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
 			self._setUser(user);
-			if(user == null) self.open(); else selfElement.jdialog("close");
+			if(user == null) self.open(); else selfElement.dialog("close");
 		},"Login-User"));
 		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(user) {
-			selfElement.jdialog("close");
+			selfElement.dialog("close");
 		},"Login-UserSignup"));
 	}, initialized : false, _login : function() {
 		var self = this;
@@ -6967,11 +6931,11 @@ var defineWidget = function() {
 			self1._login();
 		}, 'I\'m New' : function() {
 			self1._newUser = true;
-			$(this).jdialog("close");
+			$(this).dialog("close");
 			ui.widget.DialogManager.showNewUser();
 		}, Validate : function() {
 			self1._newUser = true;
-			$(this).jdialog("close");
+			$(this).dialog("close");
 			ui.widget.DialogManager.showSignupConfirmation();
 		}}, beforeClose : function(evt,ui1) {
 			if(!self1._newUser && (self1.user == null || !self1.user.hasValidSession())) {
@@ -6980,7 +6944,7 @@ var defineWidget = function() {
 			}
 			return true;
 		}};
-		selfElement.jdialog(dlgOptions);
+		selfElement.dialog(dlgOptions);
 	}, _setUser : function(user) {
 		var self = this;
 		self.user = user;
@@ -6991,7 +6955,7 @@ var defineWidget = function() {
 		if(!self.initialized) self._buildDialog();
 		selfElement.children("#un_label").focus();
 		if(m3.helper.StringHelper.isBlank(ui.AgentUi.agentURI)) self.input_un.blur();
-		selfElement.jdialog("open");
+		selfElement.dialog("open");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -7061,11 +7025,11 @@ var defineWidget = function() {
 		var dlgOptions = { autoOpen : false, title : "Create New Alias", height : 190, width : 340, buttons : { 'Create New Alias' : function() {
 			self1._createNewAlias();
 		}, Cancel : function() {
-			$(this).jdialog("close");
+			$(this).dialog("close");
 		}}, close : function(evt,ui) {
 			selfElement1.find(".placeholder").removeClass("ui-state-error");
 		}};
-		selfElement1.jdialog(dlgOptions);
+		selfElement1.dialog(dlgOptions);
 	}, _setUser : function(user) {
 		var self = this;
 		self.user = user;
@@ -7073,7 +7037,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!self.initialized) self._buildDialog();
-		selfElement.jdialog("open");
+		selfElement.dialog("open");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -7160,7 +7124,7 @@ var defineWidget = function() {
 		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
 		ui.model.EM.change(ui.model.EMEvent.USER_CREATE,newUser);
 		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(n) {
-			selfElement1.jdialog("close");
+			selfElement1.dialog("close");
 		},"NewUserDialog-UserSignup"));
 	}, _buildDialog : function() {
 		var self1 = this;
@@ -7171,12 +7135,12 @@ var defineWidget = function() {
 			self1._createNewUser();
 		}, Cancel : function() {
 			self1._cancelled = true;
-			$(this).jdialog("close");
+			$(this).dialog("close");
 		}}, close : function(evt,ui1) {
 			selfElement2.find(".placeholder").removeClass("ui-state-error");
 			if(self1._cancelled || !self1._registered && (self1.user == null || !self1.user.hasValidSession())) ui.widget.DialogManager.showLogin();
 		}};
-		selfElement2.jdialog(dlgOptions);
+		selfElement2.dialog(dlgOptions);
 	}, _setUser : function(user) {
 		var self = this;
 		self.user = user;
@@ -7187,7 +7151,7 @@ var defineWidget = function() {
 		if(!self.initialized) self._buildDialog();
 		selfElement.children("#n_label").focus();
 		self.input_n.blur();
-		selfElement.jdialog("open");
+		selfElement.dialog("open");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -7425,9 +7389,9 @@ var defineWidget = function() {
 		var toName = self.options.to.name();
 		var fromName = self.options.from.name();
 		var ridTitle = new $("<div class='rid_row'></div>").appendTo(selfElement);
-		ridTitle.append("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>");
-		ridTitle.append("<div class='rid_cell' id='same_messsage_div' style='text-align:right;'>Same Message for " + fromName + "</div>");
-		var cb = new $("<input type='checkbox' id='same_messsage' checked='checked'>").prependTo(new $("#same_messsage_div")).change(function(evt) {
+		var introDiv = new $("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>").appendTo(ridTitle);
+		var sameDiv = new $("<div class='rid_cell' id='same_messsage_div' style='text-align:right;'>Same Message for " + fromName + "</div>").appendTo(ridTitle);
+		var cb = new $("<input type='checkbox' id='same_messsage' checked='checked'>").prependTo(sameDiv).change(function(evt) {
 			var tgt = new $(evt.target);
 			var ta1 = new $("#ta1");
 			var ta2 = new $("#ta2");
@@ -7462,11 +7426,11 @@ var defineWidget = function() {
 		var dlgOptions = { autoOpen : false, title : "Introduction Request", height : 400, width : 600, buttons : { Send : function() {
 			self1._requestIntroduction();
 		}, Cancel : function() {
-			$(this).jdialog("close");
+			$(this).dialog("close");
 		}}, close : function(evt,ui) {
 			selfElement1.find(".placeholder").removeClass("ui-state-error");
 		}};
-		selfElement1.jdialog(dlgOptions);
+		selfElement1.dialog(dlgOptions);
 	}, open : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -7475,7 +7439,7 @@ var defineWidget = function() {
 			self._create();
 		}
 		self._buildDialog();
-		selfElement.jdialog("open");
+		selfElement.dialog("open");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -7510,7 +7474,7 @@ var defineWidget = function() {
 		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
 		ui.model.EM.change(ui.model.EMEvent.USER_VALIDATE,token);
 		ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATED,new ui.model.EMListener(function(n) {
-			selfElement1.jdialog("close");
+			selfElement1.dialog("close");
 		},"SignupConfirmationDialog-UserValidated"));
 	}, _buildDialog : function() {
 		var self1 = this;
@@ -7520,12 +7484,12 @@ var defineWidget = function() {
 			self1._validateUser();
 		}, Cancel : function() {
 			self1._cancelled = true;
-			$(this).jdialog("close");
+			$(this).dialog("close");
 		}}, close : function(evt,ui1) {
 			selfElement2.find(".placeholder").removeClass("ui-state-error");
 			if(self1.user == null || !self1.user.hasValidSession()) ui.widget.DialogManager.showLogin();
 		}};
-		selfElement2.jdialog(dlgOptions);
+		selfElement2.dialog(dlgOptions);
 	}, _setUser : function(user) {
 		var self = this;
 		self.user = user;
@@ -7535,7 +7499,7 @@ var defineWidget = function() {
 		self._cancelled = false;
 		if(!self.initialized) self._buildDialog();
 		self.input.focus();
-		selfElement.jdialog("open");
+		selfElement.dialog("open");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};

@@ -2,7 +2,7 @@ package test;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
-import m3.jq.JDialog;
+import m3.jq.JQDialog;
 import m3.jq.M3Dialog;
 import m3.test.TestRunnerBase;
 

@@ -1,7 +1,7 @@
 package ui.widget;
 
 import m3.jq.JQ;
-import m3.jq.JDialog;
+import m3.jq.JQDialog;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
@@ -47,7 +47,7 @@ extern class LoginDialog extends JQ {
 			return {
 		        _create: function(): Void {
 		        	var self: LoginDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of LoginDialog must be a div element");
 		        	}
@@ -131,13 +131,13 @@ extern class LoginDialog extends JQ {
 		        			if(user == null) {
 		        				self.open();
 		        			} else {
-    							selfElement.jdialog("close");
+    							selfElement.dialog("close");
 		        			}
 		        		}, "Login-User")
 		        	);
 
 		        	EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(user: User): Void {
-	        				selfElement.jdialog("close");
+	        				selfElement.dialog("close");
 		        		}, "Login-UserSignup")
 		        	);
 		        },
@@ -146,7 +146,7 @@ extern class LoginDialog extends JQ {
 
 		        _login: function(): Void {
 		        	var self: LoginDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
     				var login: Login;
@@ -180,17 +180,17 @@ extern class LoginDialog extends JQ {
     				EM.change(EMEvent.USER_LOGIN, login);
     				
     				// EM.addListener(EMEvent.USER, new EMListener(function(n: Nothing): Void {
-    				// 		selfElement.jdialog("close");
+    				// 		selfElement.dialog("close");
     				// 	}));
 	        	},
 
 		        _buildDialog: function(): Void {
 		        	var self: LoginDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 		        	self.initialized = true;
 
-		        	var dlgOptions: JDialogOptions = {
+		        	var dlgOptions: JQDialogOptions = {
 		        		autoOpen: false,
 		        		title: "Login",
 		        		height: 280,
@@ -201,16 +201,16 @@ extern class LoginDialog extends JQ {
 		        			},
 		        			"I\\\'m New": function() {
 		        				self._newUser = true;
-		        				JDialog.cur.jdialog("close");
+		        				JQDialog.cur.dialog("close");
 		        				DialogManager.showNewUser();
 		        			},
 		        			"Validate": function() {
 		        				self._newUser = true;
-		        				JDialog.cur.jdialog("close");
+		        				JQDialog.cur.dialog("close");
 		        				DialogManager.showSignupConfirmation();
 		        			}
 		        		},
-		        		beforeClose: function(evt: JQEvent, ui: UIJDialog): Dynamic {
+		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {
 		        			if(!self._newUser && (self.user == null || !self.user.hasValidSession())) {
 		        				js.Lib.alert("A valid user is required to use the app");
 		        				return false;
@@ -218,7 +218,7 @@ extern class LoginDialog extends JQ {
 		        			return true;
 		        		}
 		        	};
-		        	selfElement.jdialog(dlgOptions);
+		        	selfElement.dialog(dlgOptions);
 		        },
 
 		        _setUser: function(user: User): Void {
@@ -229,7 +229,7 @@ extern class LoginDialog extends JQ {
 
 	        	open: function(): Void {
 		        	var self: LoginDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 					self._newUser = false;
 
@@ -240,7 +240,7 @@ extern class LoginDialog extends JQ {
 		        	if(ui.AgentUi.agentURI.isBlank()) {
 		        		self.input_un.blur();
 		        	}
-	        		selfElement.jdialog("open");
+	        		selfElement.dialog("open");
         		},
 		        
 		        destroy: function() {

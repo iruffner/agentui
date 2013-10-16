@@ -1,7 +1,7 @@
 package ui.widget;
 
 import m3.jq.JQ;
-import m3.jq.JDialog;
+import m3.jq.JQDialog;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
@@ -43,7 +43,7 @@ extern class SignupConfirmationDialog extends JQ {
 			return {
 		        _create: function(): Void {
 		        	var self: SignupConfirmationDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of SignupConfirmationDialog must be a div element");
 		        	}
@@ -75,7 +75,7 @@ extern class SignupConfirmationDialog extends JQ {
 
 		        _validateUser: function(): Void {
 		        	var self: SignupConfirmationDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
     				
@@ -89,17 +89,17 @@ extern class SignupConfirmationDialog extends JQ {
     				EM.change(EMEvent.USER_VALIDATE, token);
 
     				EM.addListener(EMEvent.USER_VALIDATED, new EMListener(function(n: Nothing): Void {
-    						selfElement.jdialog("close");
+    						selfElement.dialog("close");
     					}, "SignupConfirmationDialog-UserValidated"));
 	        	},
 
 		        _buildDialog: function(): Void {
 		        	var self: SignupConfirmationDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 		        	self.initialized = true;
 
-		        	var dlgOptions: JDialogOptions = {
+		        	var dlgOptions: JQDialogOptions = {
 		        		autoOpen: false,
 		        		title: "Email Validation",
 		        		height: 420,
@@ -110,17 +110,17 @@ extern class SignupConfirmationDialog extends JQ {
 		        			},
 		        			"Cancel": function() {
 		        				self._cancelled = true;
-		        				JDialog.cur.jdialog("close");
+		        				JQDialog.cur.dialog("close");
 		        			}
 		        		},
-		        		close: function(evt: JQEvent, ui: UIJDialog): Void {
+		        		close: function(evt: JQEvent, ui: UIJQDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");
 		        			if(self.user == null || !self.user.hasValidSession()) {
 		        				DialogManager.showLogin();
 		        			}
 		        		}
 		        	};
-		        	selfElement.jdialog(dlgOptions);
+		        	selfElement.dialog(dlgOptions);
 		        },
 
 		        _setUser: function(user: User): Void {
@@ -131,7 +131,7 @@ extern class SignupConfirmationDialog extends JQ {
 
 	        	open: function(): Void {
 		        	var self: SignupConfirmationDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 					self._cancelled = false;
 
@@ -139,7 +139,7 @@ extern class SignupConfirmationDialog extends JQ {
 		        		self._buildDialog();
 		        	}
 		        	self.input.focus();
-	        		selfElement.jdialog("open");
+	        		selfElement.dialog("open");
         		},
 		        
 		        destroy: function() {

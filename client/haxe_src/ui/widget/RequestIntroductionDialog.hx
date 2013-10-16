@@ -1,7 +1,7 @@
 package ui.widget;
 
 import m3.jq.JQ;
-import m3.jq.JDialog;
+import m3.jq.JQDialog;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
@@ -40,7 +40,7 @@ extern class RequestIntroductionDialog extends JQ {
 			return {
 		        _create: function(): Void {
 		        	var self: RequestIntroductionDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of RequestIntroductionDialog must be a div element");
 		        	}
@@ -61,10 +61,13 @@ extern class RequestIntroductionDialog extends JQ {
 		        	var fromName = self.options.from.name();
 
 		        	var ridTitle:JQ = new JQ("<div class='rid_row'></div>").appendTo(selfElement);
-		        	ridTitle.append("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>");
-		        	ridTitle.append("<div class='rid_cell' id='same_messsage_div' style='text-align:right;'>Same Message for " + fromName + "</div>");
+		        	var introDiv = new JQ("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>")
+		        	               .appendTo(ridTitle);
+		        	var sameDiv = new JQ("<div class='rid_cell' id='same_messsage_div' style='text-align:right;'>Same Message for " + fromName + "</div>")
+		        	               .appendTo(ridTitle);
+		        	
 		        	var cb:JQ = new JQ("<input type='checkbox' id='same_messsage' checked='checked'>")
-		        				.prependTo(new JQ("#same_messsage_div"))
+		        				.prependTo(sameDiv)
 		        				.change(function(evt){
 		        					var tgt = new JQ(evt.target);
 		        					var ta1 = new JQ("#ta1");
@@ -116,18 +119,18 @@ extern class RequestIntroductionDialog extends JQ {
 
 		        _requestIntroduction: function(): Void {
 		        	var self: RequestIntroductionDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 	        	},
 
 		        _buildDialog: function(): Void {
 		        	var self: RequestIntroductionDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 		        	if (self.initialized) {return;}
 
 		        	self.initialized = true;
 
-		        	var dlgOptions: JDialogOptions = {
+		        	var dlgOptions: JQDialogOptions = {
 		        		autoOpen: false,
 		        		title: "Introduction Request",
 		        		height: 400,
@@ -137,19 +140,19 @@ extern class RequestIntroductionDialog extends JQ {
 		        				self._requestIntroduction();
 		        			},
 		        			"Cancel": function() {
-		        				JDialog.cur.jdialog("close");
+		        				JQDialog.cur.dialog("close");
 		        			}
 		        		},
-		        		close: function(evt: JQEvent, ui: UIJDialog): Void {
+		        		close: function(evt: JQEvent, ui: UIJQDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");
 		        		}
 		        	};
-		        	selfElement.jdialog(dlgOptions);
+		        	selfElement.dialog(dlgOptions);
 		        },
 
 	        	open: function(): Void {
 		        	var self: RequestIntroductionDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JDialog = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 					if (selfElement.exists()) {
 						selfElement.empty();
@@ -159,7 +162,7 @@ extern class RequestIntroductionDialog extends JQ {
 
 		        	// selfElement.children("#n_label").focus();
 		        	// self.input_n.blur();
-	        		selfElement.jdialog("open");
+	        		selfElement.dialog("open");
         		},
 		        
 		        destroy: function() {
