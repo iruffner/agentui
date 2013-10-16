@@ -6,7 +6,7 @@ import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
 import m3.exception.Exception;
-
+import ui.api.ProtocolMessage;
 using m3.helper.StringHelper;
 
 typedef RequestIntroductionDialogOptions = {
@@ -20,8 +20,8 @@ typedef RequestIntroductionDialogWidgetDef = {
 	var initialized: Bool;
 
 	var _buildDialog: Void->Void;
+	var _sendRequest: Void->Void;
 	var open: Void->Void;
-	var _requestIntroduction: Void->Void;
 	var _appendConnectionAvatar: Connection->JQ->Void;
 
 	var _create: Void->Void;
@@ -70,38 +70,38 @@ extern class RequestIntroductionDialog extends JQ {
 		        				.prependTo(sameDiv)
 		        				.change(function(evt){
 		        					var tgt = new JQ(evt.target);
-		        					var ta1 = new JQ("#ta1");
-		        					var ta2 = new JQ("#ta2");
-		        					ta2.prop("readonly", tgt.prop("checked"));
+		        					var from_text = new JQ("#from_text");
+		        					var to_text = new JQ("#to_text");
+		        					to_text.prop("readonly", tgt.prop("checked"));
 		        					if (tgt.prop("checked")) {
-		        						ta2.val(ta1.val());
+		        						to_text.val(from_text.val());
 		        					}
 		        				});
 		        	cb.prop("checked", true);
 
 		        	var ridTa:JQ = new JQ("<div class='rid_row'></div>").appendTo(selfElement);
 
-		        	var ta1_changed = function(evt) {
+		        	var from_text_changed = function(evt) {
 						var same_messsage = new JQ("#same_messsage");
 						if (same_messsage.prop("checked")) {
-							var ta1 = new JQ("#ta1");
-    						var ta2 = new JQ("#ta2");
-							ta2.val(ta1.val());
+							var from_text = new JQ("#from_text");
+    						var to_text = new JQ("#to_text");
+							to_text.val(from_text.val());
 						}
 		        	};
 
 		        	var divTa1:JQ = new JQ("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
-					var ta1: JQ = new JQ("<textarea class='boxsizingBorder container rid_ta'></textarea>")
+					var from_text: JQ = new JQ("<textarea class='boxsizingBorder container rid_ta'></textarea>")
  	  		        				.appendTo(divTa1)
- 	  		        				.attr("id", "ta1")
- 	  		        				.keyup(ta1_changed)
+ 	  		        				.attr("id", "from_text")
+ 	  		        				.keyup(from_text_changed)
  	  		        				.val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + AgentUi.USER.userData.name);
 
 		        	var divTa2:JQ = new JQ("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
-					var ta2: JQ = new JQ("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>")
+					var to_text: JQ = new JQ("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>")
  	  		        				.appendTo(divTa2)
- 	  		        				.attr("id", "ta2")
- 	  		        				.val(ta1.val());
+ 	  		        				.attr("id", "to_text")
+ 	  		        				.val(from_text.val());
 		        },
 
 		        _appendConnectionAvatar: function(connection:Connection, parent:JQ): Void {
@@ -117,10 +117,21 @@ extern class RequestIntroductionDialog extends JQ {
 
 		        initialized: false,
 
-		        _requestIntroduction: function(): Void {
+		        _sendRequest: function(): Void {
 		        	var self: RequestIntroductionDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
+
+					// Build out the introduction request message
+					var alias:String = ui.AgentUi.USER.currentAlias.label;
+					var msg = new BeginIntroductionRequest(alias, self.options.to, self.options.from, new JQ("#to_text").val(), new JQ("#from_text").val());
+
+    				EM.addListener(EMEvent.INTRODUCTION_RESPONSE, new EMListener(function(n: Nothing): Void {
+    					selfElement.dialog("close");
+    				}, "RequestIntroductionDialog-Introduction-Response"));
+
+    				EM.change(EMEvent.INTRODUCTION_REQUEST, msg);
 	        	},
+
 
 		        _buildDialog: function(): Void {
 		        	var self: RequestIntroductionDialogWidgetDef = Widgets.getSelf();
@@ -137,7 +148,7 @@ extern class RequestIntroductionDialog extends JQ {
 		        		width: 600,
 		        		buttons: {
 		        			"Send": function() {
-		        				self._requestIntroduction();
+		        				self._sendRequest();
 		        			},
 		        			"Cancel": function() {
 		        				JQDialog.cur.dialog("close");

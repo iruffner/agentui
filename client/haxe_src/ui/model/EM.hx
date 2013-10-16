@@ -105,4 +105,7 @@ enum EMEvent {
 	FitWindow;
 
 	CreateLabel;
+
+	INTRODUCTION_REQUEST;
+	INTRODUCTION_RESPONSE;
 }

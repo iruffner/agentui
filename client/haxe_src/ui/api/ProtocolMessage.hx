@@ -24,6 +24,7 @@ class ProtocolMessage<T>  {
 	public function new(msgType: MsgType, type: Class<T>) {
 		this.msgType = msgType;
 		this.type = type;
+		this.contentImpl = Type.createInstance(type, []);
 	}
 
 	private function readResolve(): Void {
@@ -45,8 +46,9 @@ class PayloadWithSessionURI extends Payload {
 
 	public function new() {
 		super();
-		if(AgentUi.USER != null)
+		if (AgentUi.USER != null) {
 			this.sessionURI = AgentUi.USER.sessionURI;
+		}
 	}
 }
 
@@ -358,18 +360,39 @@ class AddAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
 }
 
 
-
 class InsertContent extends ProtocolMessage<InsertContentData> {
 	public function new() {
 		super(MsgType.insertContent, InsertContentData);
 	}
 }
-		
 		class InsertContentData extends Payload {
 			public var cnxns: Array<Connection>;
 			public var label: String;
 			public var value: String;
 		}
+
+
+class BeginIntroductionRequest extends ProtocolMessage<BeginIntroductionRequestData> {
+	public function new(alias:String, from:Connection, to:Connection, fromMessage:String, toMessage:String) {
+		super(MsgType.beginIntroductionRequest, BeginIntroductionRequestData);
+		this.contentImpl.alias = alias;
+
+		this.contentImpl.aBiConnection = new BiConnection(to, from);
+		this.contentImpl.aMessage = fromMessage;
+		
+		this.contentImpl.bBiConnection = new BiConnection(from, to);
+		this.contentImpl.bMessage = toMessage;
+	}
+}
+	class BeginIntroductionRequestData extends PayloadWithSessionURI {
+		public var alias: String;
+		public var aBiConnection: BiConnection;
+		public var bBiConnection: BiConnection;
+
+		@:optional public var aMessage: String;
+		@:optional public var bMessage: String;
+
+	}
 
 enum MsgType {
 	initializeSessionRequest;
@@ -416,6 +439,8 @@ enum MsgType {
 	addAliasLabelsResponse;
 	updateAliasLabelsRequest;
 	updateAliasLabelsResponse;
+
+	beginIntroductionRequest;
 }
 
 enum Reason {

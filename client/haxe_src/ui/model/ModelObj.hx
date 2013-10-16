@@ -174,6 +174,16 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	}
 }
 
+class BiConnection extends ModelObj<BiConnection> implements Filterable {
+	public var readConnection:  Connection;
+	public var writeConnection: Connection;
+
+	public function new(readConnection:Connection, writeConnection: Connection) {
+		this.readConnection  = readConnection;
+		this.writeConnection = writeConnection;
+	}
+}
+
 class Content extends ModelObj<Content> {
 	/**
 		ContentType of this content

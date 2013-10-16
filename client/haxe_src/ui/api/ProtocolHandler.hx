@@ -107,6 +107,11 @@ class ProtocolHandler {
     		})
         );
 
+        EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(msg:BeginIntroductionRequest):Void{
+        	// TODO:  send the message to the server
+        	EM.change(EMEvent.INTRODUCTION_RESPONSE);
+        }));
+
         processHash = new Map<MsgType,Dynamic->Void>();
         processHash.set(MsgType.evalResponse, function(data: Dynamic){
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
