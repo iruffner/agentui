@@ -2004,9 +2004,6 @@ js.Boot.__instanceof = function(o,cl) {
 		return o.__enum__ == cl;
 	}
 }
-js.Boot.__cast = function(o,t) {
-	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
-}
 js.Browser = function() { }
 $hxClasses["js.Browser"] = js.Browser;
 js.Browser.__name__ = ["js","Browser"];
@@ -4131,11 +4128,9 @@ ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
 ui.api.ProtocolHandler.prototype = {
 	getAliasLabels: function(alias) {
 		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.getAliasLabelsRequest);
-		var data = new ui.api.AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 		try {
-			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("getAliasLabels successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
@@ -4145,11 +4140,9 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,getAliasConnections: function(alias) {
 		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.getAliasConnectionsRequest);
-		var data = new ui.api.AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 		try {
-			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("getAliasConnections successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
@@ -4159,11 +4152,9 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,setDefaultAlias: function(alias) {
 		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.setDefaultAliasRequest);
-		var data = new ui.api.AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 		try {
-			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("setDefaultAlias successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
@@ -4173,11 +4164,9 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,removeAlias: function(alias) {
 		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.removeAgentAliasesRequest);
-		var data = new ui.api.AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 		try {
-			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("removeAlias successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
@@ -4187,11 +4176,9 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,addAlias: function(alias) {
 		var request = new ui.api.BaseAgentAliasRequest(ui.api.MsgType.addAgentAliasesRequest);
-		var data = new ui.api.AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 		try {
-			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("addAlias successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
@@ -4200,15 +4187,13 @@ ui.api.ProtocolHandler.prototype = {
 		}
 	}
 	,createLabel: function(label) {
-		var evalRequest = new ui.api.AddAliasLabelsRequest();
-		var data = new ui.api.AddAliasLabelsRequestData();
-		evalRequest.contentImpl = data;
+		var request = new ui.api.AddAliasLabelsRequest();
 		ui.AgentUi.USER.get_currentAlias().labelSet.add(label);
 		var labelsArray = ui.helper.PrologHelper.tagTreeAsStrings(ui.AgentUi.USER.get_currentAlias().labelSet);
-		data.labels = labelsArray;
-		data.alias = ui.AgentUi.USER.get_currentAlias().label;
+		request.contentImpl.labels = labelsArray;
+		request.contentImpl.alias = ui.AgentUi.USER.get_currentAlias().label;
 		try {
-			new ui.api.StandardRequest(evalRequest,function(data1,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("label successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
@@ -4217,17 +4202,15 @@ ui.api.ProtocolHandler.prototype = {
 		}
 	}
 	,post: function(content) {
-		var evalRequest = new ui.api.EvalSubscribeRequest();
-		var data = new ui.api.EvalRequestData();
-		evalRequest.contentImpl = data;
-		data.expression = new ui.api.InsertContent();
+		var request = new ui.api.EvalSubscribeRequest();
+		request.contentImpl.expression = new ui.api.InsertContent();
 		var insertData = new ui.api.InsertContentData();
-		data.expression.contentImpl = insertData;
+		request.contentImpl.expression.contentImpl = insertData;
 		insertData.label = ui.helper.PrologHelper.labelsToProlog(content.labelSet);
 		insertData.value = ui.AgentUi.SERIALIZER.toJsonString(content);
 		insertData.cnxns = [ui.AgentUi.USER.getSelfConnection()];
 		try {
-			new ui.api.StandardRequest(evalRequest,function(data1,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("content successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
@@ -4237,11 +4220,9 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,updateUser: function(user) {
 		var request = new ui.api.UpdateUserRequest();
-		var data = new ui.api.UpdateUserRequestData();
-		request.contentImpl = data;
-		data.jsonBlob = user.userData;
+		request.contentImpl.jsonBlob = user.userData;
 		try {
-			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
 				ui.model.EM.change(ui.model.EMEvent.USER,user);
 			}).start({ dataType : "text"});
@@ -4252,13 +4233,11 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,validateUser: function(token) {
 		var request = new ui.api.ConfirmUserToken();
-		var data = new ui.api.ConfirmUserTokenData();
-		request.contentImpl = data;
-		data.token = token;
+		request.contentImpl.token = token;
 		try {
-			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
-				if(data1.msgType == ui.api.MsgType.createUserResponse) try {
-					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserResponse,false);
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
+				if(data.msgType == ui.api.MsgType.createUserResponse) try {
+					var response = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.CreateUserResponse,false);
 					ui.AgentUi.agentURI = response.contentImpl.agentURI;
 					ui.model.EM.change(ui.model.EMEvent.USER_VALIDATED);
 				} catch( e ) {
@@ -4266,7 +4245,7 @@ ui.api.ProtocolHandler.prototype = {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
 					} else throw(e);
 				} else {
-					ui.AgentUi.LOGGER.error("Unknown user creation error | " + Std.string(data1));
+					ui.AgentUi.LOGGER.error("Unknown user creation error | " + Std.string(data));
 					js.Lib.alert("There was an unexpected error creating your agent. Please try again.");
 				}
 			}).start();
@@ -4277,35 +4256,33 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,createUser: function(newUser) {
 		var request = new ui.api.CreateUserRequest();
-		var data = new ui.api.UserRequestData();
-		request.contentImpl = data;
-		data.email = newUser.email;
-		data.password = newUser.pwd;
-		data.jsonBlob = { };
-		data.jsonBlob.name = newUser.name;
+		request.contentImpl.email = newUser.email;
+		request.contentImpl.password = newUser.pwd;
+		request.contentImpl.jsonBlob = { };
+		request.contentImpl.jsonBlob.name = newUser.name;
 		try {
-			new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
-				if(data1.msgType == ui.api.MsgType.createUserResponse) try {
-					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserResponse,false);
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
+				if(data.msgType == ui.api.MsgType.createUserResponse) try {
+					var response = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.CreateUserResponse,false);
 					ui.AgentUi.agentURI = response.contentImpl.agentURI;
 					ui.model.EM.change(ui.model.EMEvent.USER_SIGNUP);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
 					} else throw(e);
-				} else if(data1.msgType == ui.api.MsgType.createUserWaiting) try {
-					var response = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.CreateUserWaiting,false);
+				} else if(data.msgType == ui.api.MsgType.createUserWaiting) try {
+					var response = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.CreateUserWaiting,false);
 					ui.widget.DialogManager.showSignupConfirmation();
 					ui.model.EM.change(ui.model.EMEvent.USER_SIGNUP);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
 					} else throw(e);
-				} else if(data1.msgType == ui.api.MsgType.createUserError) {
-					var error = ui.AgentUi.SERIALIZER.fromJsonX(data1,ui.api.InitializeSessionError);
+				} else if(data.msgType == ui.api.MsgType.createUserError) {
+					var error = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionError);
 					js.Lib.alert("User creation error: " + error.contentImpl.reason);
 				} else {
-					ui.AgentUi.LOGGER.error("Unknown user creation error | " + Std.string(data1));
+					ui.AgentUi.LOGGER.error("Unknown user creation error | " + Std.string(data));
 					js.Lib.alert("There was an unexpected error creating your agent. Please try again.");
 				}
 			}).start();
@@ -4345,12 +4322,10 @@ ui.api.ProtocolHandler.prototype = {
 		this.getAliasLabels(alias);
 	}
 	,nextPage: function(nextPageURI) {
-		var nextPageRequest = new ui.api.EvalNextPageRequest();
-		var nextPageRequestData = new ui.api.EvalNextPageRequestData();
-		nextPageRequestData.nextPage = nextPageURI;
-		nextPageRequest.contentImpl = nextPageRequestData;
+		var request = new ui.api.EvalNextPageRequest();
+		request.contentImpl.nextPage = nextPageURI;
 		try {
-			new ui.api.StandardRequest(nextPageRequest,function(data,textStatus,jqXHR) {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				ui.AgentUi.LOGGER.debug("next page request successfully submitted");
 			}).start();
 		} catch( err ) {
@@ -4361,17 +4336,15 @@ ui.api.ProtocolHandler.prototype = {
 	,filter: function(filter) {
 		ui.AgentUi.CONTENT.clear();
 		if(filter.rootNode.hasChildren()) {
-			var evalRequest = new ui.api.EvalSubscribeRequest();
-			var evalRequestData = new ui.api.EvalRequestData();
-			evalRequest.contentImpl = evalRequestData;
+			var request = new ui.api.EvalSubscribeRequest();
 			var feedExpr = new ui.api.FeedExpr();
-			evalRequestData.expression = feedExpr;
+			request.contentImpl.expression = feedExpr;
 			var data = new ui.api.FeedExprData();
 			feedExpr.contentImpl = data;
 			data.cnxns = [ui.AgentUi.USER.getSelfConnection()];
 			data.label = filter.labelsProlog();
 			try {
-				new ui.api.StandardRequest(evalRequest,function(data1,textStatus,jqXHR) {
+				new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
 					ui.AgentUi.LOGGER.debug("filter successfully submitted");
 				}).start({ dataType : "text"});
 			} catch( err ) {
@@ -4387,9 +4360,7 @@ ui.api.ProtocolHandler.prototype = {
 			return;
 		}
 		var request = new ui.api.InitializeSessionRequest();
-		var requestData = new ui.api.InitializeSessionRequestData();
-		request.contentImpl = requestData;
-		requestData.agentURI = login.getUri();
+		request.contentImpl.agentURI = login.getUri();
 		try {
 			var loginRequest = new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				if(data.msgType == ui.api.MsgType.initializeSessionResponse) try {
@@ -7776,7 +7747,7 @@ ui.model.LoginByUn.__rtti = "<class path=\"ui.model.LoginByUn\" params=\"\" modu
 ui.model.LoginById.__rtti = "<class path=\"ui.model.LoginById\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Login\"/>\n\t<uuid public=\"1\"><c path=\"String\"/></uuid>\n\t<getUri public=\"1\" set=\"method\" line=\"48\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></getUri>\n\t<new public=\"1\" set=\"method\" line=\"45\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.NewUser\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.User.__rtti = "<class path=\"ui.model.User\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.User\"/></extends>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<userData public=\"1\"><c path=\"ui.model.UserData\"/></userData>\n\t<aliasSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Alias\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</aliasSet>\n\t<aliases><c path=\"Array\"><c path=\"ui.model.Alias\"/></c></aliases>\n\t<currentAlias public=\"1\" get=\"accessor\" set=\"accessor\">\n\t\t<c path=\"ui.model.Alias\"/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</currentAlias>\n\t<get_currentAlias set=\"method\" line=\"72\"><f a=\"\"><c path=\"ui.model.Alias\"/></f></get_currentAlias>\n\t<set_currentAlias set=\"method\" line=\"82\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"ui.model.Alias\"/>\n</f></set_currentAlias>\n\t<hasValidSession public=\"1\" set=\"method\" line=\"87\"><f a=\"\"><x path=\"Bool\"/></f></hasValidSession>\n\t<readResolve set=\"method\" line=\"93\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"97\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getSelfConnection public=\"1\" set=\"method\" line=\"101\"><f a=\"\"><c path=\"ui.model.Connection\"/></f></getSelfConnection>\n\t<new public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UserData.__rtti = "<class path=\"ui.model.UserData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.UserData\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"114\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.UserData.__rtti = "<class path=\"ui.model.UserData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.UserData\"/></extends>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"114\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Alias\"/></extends>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<labels><c path=\"Array\"><c path=\"ui.model.Label\"/></c></labels>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<connections><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></connections>\n\t<loadedFromDb line=\"125\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</loadedFromDb>\n\t<readResolve set=\"method\" line=\"130\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"135\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"128\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"151\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</fname>\n\t<lname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</imgSrc>\n\t<src public=\"1\"><c path=\"String\"/></src>\n\t<tgt public=\"1\"><c path=\"String\"/></tgt>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<name public=\"1\" set=\"method\" line=\"172\"><f a=\"\"><c path=\"String\"/></f></name>\n\t<new public=\"1\" set=\"method\" line=\"166\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";

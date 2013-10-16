@@ -21,12 +21,10 @@ import ui.model.ModelObj;
     @test
     function test_CreateUserRequest() {
         var cur: CreateUserRequest = new CreateUserRequest();
-        var data: UserRequestData = new UserRequestData();
-        cur.contentImpl = data;
-        data.email = "user_email";
-        data.password = "user_password";
-        data.jsonBlob = {};
-        data.jsonBlob.name = "user_name";
+        cur.contentImpl.email = "user_email";
+        cur.contentImpl.password = "user_password";
+        cur.contentImpl.jsonBlob = {};
+        cur.contentImpl.jsonBlob.name = "user_name";
 
         var actual = AgentUi.SERIALIZER.toJsonString(cur);
 

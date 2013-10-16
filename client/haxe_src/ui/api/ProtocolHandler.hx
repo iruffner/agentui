@@ -181,9 +181,7 @@ class ProtocolHandler {
 		} 
 
 		var request: InitializeSessionRequest = new InitializeSessionRequest();
-		var requestData: InitializeSessionRequestData = new InitializeSessionRequestData();
-		request.contentImpl = requestData;
-		requestData.agentURI = login.getUri();
+		request.contentImpl.agentURI = login.getUri();
 		try {
 			var loginRequest: StandardRequest = new StandardRequest(
 				request, 
@@ -252,19 +250,17 @@ class ProtocolHandler {
 			// ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
 			// var content: Array<Content> =TestDao.getContent(filter.rootNode);
 			// ui.AgentUi.CONTENT.addAll(content);
-			var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
-			var evalRequestData: EvalRequestData = new EvalRequestData();
-			evalRequest.contentImpl = evalRequestData;
+			var request: EvalSubscribeRequest = new EvalSubscribeRequest();
 
 			var feedExpr: FeedExpr = new FeedExpr();
-			evalRequestData.expression = feedExpr;
+			request.contentImpl.expression = feedExpr;
 			var data: FeedExprData = new FeedExprData();
 			feedExpr.contentImpl = data;
 			data.cnxns = [AgentUi.USER.getSelfConnection()];
 			data.label = filter.labelsProlog();
 			try {
 				//we don't expect anything back here
-				new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+				new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 						AgentUi.LOGGER.debug("filter successfully submitted");
 					}).start({dataType: "text"});
 			} catch (err: Dynamic) {
@@ -275,13 +271,11 @@ class ProtocolHandler {
 	}
 
 	public function nextPage(nextPageURI: String): Void {
-		var nextPageRequest: EvalNextPageRequest = new EvalNextPageRequest();
-		var nextPageRequestData: EvalNextPageRequestData = new EvalNextPageRequestData();
-		nextPageRequestData.nextPage = nextPageURI;
-		nextPageRequest.contentImpl = nextPageRequestData;
+		var request: EvalNextPageRequest = new EvalNextPageRequest();
+		request.contentImpl.nextPage = nextPageURI;
 		try {
 			//we don't expect anything back here
-			new StandardRequest(nextPageRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("next page request successfully submitted");
 				}).start();
 		} catch (err: Dynamic) {
@@ -326,12 +320,10 @@ class ProtocolHandler {
 
 	public function createUser(newUser: NewUser): Void {
 		var request: CreateUserRequest = new CreateUserRequest();
-		var data: UserRequestData = new UserRequestData();
-		request.contentImpl = data;
-		data.email = newUser.email;
-		data.password = newUser.pwd;
-		data.jsonBlob = {};
-		data.jsonBlob.name = newUser.name;
+		request.contentImpl.email = newUser.email;
+		request.contentImpl.password = newUser.pwd;
+		request.contentImpl.jsonBlob = {};
+		request.contentImpl.jsonBlob.name = newUser.name;
 		try {
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					if(data.msgType == MsgType.createUserResponse) {
@@ -376,9 +368,7 @@ class ProtocolHandler {
 
 	public function validateUser(token: String): Void {
 		var request: ConfirmUserToken = new ConfirmUserToken();
-		var data: ConfirmUserTokenData = new ConfirmUserTokenData();
-		request.contentImpl = data;
-		data.token = token;
+		request.contentImpl.token = token;
 		try {
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					if(data.msgType == MsgType.createUserResponse) {
@@ -409,9 +399,7 @@ class ProtocolHandler {
 
 	public function updateUser(user: User): Void {
 		var request: UpdateUserRequest = new UpdateUserRequest();
-		var data: UpdateUserRequestData = new UpdateUserRequestData();
-		request.contentImpl = data;
-		data.jsonBlob = user.userData;
+		request.contentImpl.jsonBlob = user.userData;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -425,19 +413,17 @@ class ProtocolHandler {
 	}
 
 	public function post(content: Content): Void {
-		var evalRequest: EvalSubscribeRequest = new EvalSubscribeRequest();
-		var data: EvalRequestData = new EvalRequestData();
-		evalRequest.contentImpl = data;
-		data.expression = new InsertContent();//AgentUi.SERIALIZER.toJson(content);
+		var request: EvalSubscribeRequest = new EvalSubscribeRequest();
+		request.contentImpl.expression = new InsertContent();//AgentUi.SERIALIZER.toJson(content);
 		var insertData: InsertContentData = new InsertContentData();
-		data.expression.contentImpl = insertData;
+		request.contentImpl.expression.contentImpl = insertData;
 		insertData.label = PrologHelper.labelsToProlog(content.labelSet);
 		insertData.value = AgentUi.SERIALIZER.toJsonString(content);
 		insertData.cnxns = [AgentUi.USER.getSelfConnection()];
 
 		try {
 			//we don't expect anything back here
-			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("content successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
@@ -447,9 +433,7 @@ class ProtocolHandler {
 	}
 
 	public function createLabel(label: Label): Void {
-		var evalRequest: AddAliasLabelsRequest = new AddAliasLabelsRequest();
-		var data: AddAliasLabelsRequestData = new AddAliasLabelsRequestData();
-		evalRequest.contentImpl = data;
+		var request: AddAliasLabelsRequest = new AddAliasLabelsRequest();
 		// var labelSet: ObservableSet<Label> = new ObservableSet<Label>(ModelObj.identifier);
 
 		// var pLabel: Label = label;
@@ -470,12 +454,12 @@ class ProtocolHandler {
 		// }
 		AgentUi.USER.currentAlias.labelSet.add(label);
 		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AgentUi.USER.currentAlias.labelSet);
-		data.labels = labelsArray;
-		data.alias = AgentUi.USER.currentAlias.label;
+		request.contentImpl.labels = labelsArray;
+		request.contentImpl.alias = AgentUi.USER.currentAlias.label;
 
 		try {
 			//we don't expect anything back here
-			new StandardRequest(evalRequest, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("label successfully submitted");
 					// AgentUi.USER.currentAlias.labelSet.add(label);
 				}).start({dataType: "text"});
@@ -487,9 +471,7 @@ class ProtocolHandler {
 
 	public function addAlias(alias: Alias): Void {
 		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.addAgentAliasesRequest);
-		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 
 		try {
 			//we don't expect anything back here
@@ -504,9 +486,7 @@ class ProtocolHandler {
 
 	public function removeAlias(alias: Alias): Void {
 		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.removeAgentAliasesRequest);
-		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 
 		try {
 			//we don't expect anything back here
@@ -521,9 +501,7 @@ class ProtocolHandler {
 
 	public function setDefaultAlias(alias: Alias): Void {
 		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.setDefaultAliasRequest);
-		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 
 		try {
 			//we don't expect anything back here
@@ -538,9 +516,7 @@ class ProtocolHandler {
 
 	public function getAliasConnections(alias: Alias): Void {
 		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.getAliasConnectionsRequest);
-		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 
 		try {
 			//we don't expect anything back here
@@ -555,9 +531,7 @@ class ProtocolHandler {
 
 	public function getAliasLabels(alias: Alias): Void {
 		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.getAliasLabelsRequest);
-		var data: AgentAliasesRequestData = new AgentAliasesRequestData();
-		request.contentImpl = data;
-		data.aliases = [alias.label];
+		request.contentImpl.aliases = [alias.label];
 
 		try {
 			//we don't expect anything back here
