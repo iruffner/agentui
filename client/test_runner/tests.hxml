@@ -1,5 +1,5 @@
 
--main test.TestRunner
+-main ui.test.TestRunner
 -js runner.js
 -debug
 -cp ../haxe_src
