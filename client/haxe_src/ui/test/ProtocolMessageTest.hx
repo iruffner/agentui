@@ -1,4 +1,4 @@
-package test;
+package ui.test;
 
 import m3.test.Assert;
 import ui.api.ProtocolMessage;
