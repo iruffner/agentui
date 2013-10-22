@@ -33,7 +33,7 @@ class Filter {
 	}
 
 	public function labelsProlog(): String {
-		return rootNode.getProlog() + _prologify(labelNodes);
+		return rootNode.getProlog() + "(" + _prologify(labelNodes) + ")";
 	}
 
 	private function _prologify(nodes: Array<Node>): String {

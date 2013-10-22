@@ -113,7 +113,8 @@ class ProtocolHandler {
         }));
 
         processHash = new Map<MsgType,Dynamic->Void>();
-        processHash.set(MsgType.evalResponse, function(data: Dynamic){
+        processHash.set(MsgType.evalSubscribeResponse, function(data: Dynamic){
+        		AgentUi.LOGGER.debug("*** evalResponse was received from the server");
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
         		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.pageOfPosts); 
         	});

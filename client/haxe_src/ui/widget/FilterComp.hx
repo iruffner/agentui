@@ -164,7 +164,7 @@ extern class FilterComp extends JQ {
 
 					var liveToggle: LiveBuildToggle = cast(selfElement.children(".liveBuildToggle"), LiveBuildToggle);
 
-		        	var root: Node = selfElement.children(".rootToggle").data("getNode")();//new And();//determine this
+		        	var root: Node = selfElement.children(".rootToggle").data("getNode")();
 		        	root.type = "ROOT";
 
 		        	var filterables: JQ = selfElement.children(".filterable");

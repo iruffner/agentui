@@ -223,7 +223,7 @@ class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
 
 class EvalResponse extends ProtocolMessage<EvalResponseData> {
 	public function new() {
-		super(MsgType.evalResponse, EvalResponseData);
+		super(MsgType.evalSubscribeResponse, EvalResponseData);
 	}
 }
 
@@ -234,7 +234,7 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 }
 
 		class EvalResponseData extends PayloadWithSessionURI {
-			public var pageOfPosts: Array<Content>;
+			public var pageOfPosts: Array<MessageContent>;
 		}
 
 class EvalError extends ProtocolMessage<EvalErrorData> {
@@ -403,7 +403,7 @@ enum MsgType {
 	closeSessionRequest;
 	closeSessionResponse;
 	evalSubscribeRequest;
-	evalResponse;
+	evalSubscribeResponse;
 	evalComplete;
 	evalError;
 	stopEvalRequest;
