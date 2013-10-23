@@ -66,7 +66,7 @@ class ProxyServlet extends HttpServlet with Logging {
     }
   }
 
-  @volatile var proxyServerUrl = loadConfig
+  @volatile var _proxyServerUrl = loadConfig
 
   override def init = {
     logger.debug("init")
@@ -75,7 +75,7 @@ class ProxyServlet extends HttpServlet with Logging {
       @tailrec def loop(lastConfigLoad: DateTime): Unit = {
         val next = reloadConfig(lastConfigLoad) match {
           case Some((url, lastChanged)) => {
-            proxyServerUrl = url
+            _proxyServerUrl = url
             lastChanged
           }
           case None => lastConfigLoad
@@ -106,7 +106,9 @@ class ProxyServlet extends HttpServlet with Logging {
       //model3 aws test server
 //      val post = new HttpPost("http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api")
       
-      val post = new HttpPost(proxyServerUrl) 
+      val proxyTargetUrl = _proxyServerUrl
+      
+      val post = new HttpPost(proxyTargetUrl) 
 
       req.getHeaderNames.asScala.filterNot(ignoreRequestHeaders).foreach { header =>
         post.setHeader(header, req.getHeader(header))
@@ -125,6 +127,8 @@ class ProxyServlet extends HttpServlet with Logging {
       response.getAllHeaders().foreach { header =>
         resp.setHeader(header.getName, header.getValue)
       }
+      
+      resp.setHeader("X-ProxyTarget", proxyTargetUrl)
 
       val sl = response.getStatusLine
       resp.setStatus(sl.getStatusCode)

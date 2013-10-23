@@ -27,3 +27,5 @@ rm -rf target/dist/webapp/haxe_src/
 
 rsync --delete --compress --recursive --partial --progress --stats target/dist/ ${SERVER}
 
+ssh $SERVER "sudo agentui-proxy restart"
+
