@@ -212,6 +212,10 @@ body {
 			min-width: 500px;
 		}
 
+			#feed #postInput #post_comps_tags {
+				text-align: center;
+			}
+
 			#feed #postSection {
 				margin-left: 75px;
 				margin-right: 205px;
