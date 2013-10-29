@@ -223,6 +223,7 @@ class ProtocolHandler {
 
 							if(!ui.AgentUi.DEMO) {
 								EM.change(EMEvent.USER, user);
+								EM.change(EMEvent.FitWindow);
 							}
 						} catch (e: JsonException) {
 							AgentUi.LOGGER.error("Serialization error", e);
@@ -435,25 +436,8 @@ class ProtocolHandler {
 
 	public function createLabel(label: Label): Void {
 		var request: AddAliasLabelsRequest = new AddAliasLabelsRequest();
-		// var labelSet: ObservableSet<Label> = new ObservableSet<Label>(ModelObj.identifier);
-
-		// var pLabel: Label = label;
-		// while(pLabel != null) {
-		// 	labelSet.add(pLabel);
-		// 	if(pLabel.parentUid.isNotBlank()) {
-		// 		pLabel = AgentUi.USER.currentAlias.labelSet.getElementComplex(pLabel.parentUid);
-		// 		if(pLabel != null) {
-		// 			var pLabelUid: String = pLabel.uid;
-		// 			var siblings: OSet<Label> = AgentUi.USER.currentAlias.labelSet.filter(function(l: Label): Bool {
-		// 					return l.parentUid == pLabelUid;
-		// 				});
-		// 			labelSet.addAll(siblings.array());
-		// 		}
-		// 	} else {
-		// 		pLabel = null;
-		// 	}
-		// }
 		AgentUi.USER.currentAlias.labelSet.add(label);
+		EM.change(EMEvent.FitWindow);
 		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AgentUi.USER.currentAlias.labelSet);
 		request.contentImpl.labels = labelsArray;
 		request.contentImpl.alias = AgentUi.USER.currentAlias.label;
@@ -462,7 +446,6 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AgentUi.LOGGER.debug("label successfully submitted");
-					// AgentUi.USER.currentAlias.labelSet.add(label);
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);

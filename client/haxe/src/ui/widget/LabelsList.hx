@@ -1,13 +1,14 @@
 package ui.widget;
 
+import m3.exception.Exception;
 import m3.jq.JQ;
+import m3.observable.OSet;
+import m3.util.UidGenerator;
 import m3.widget.Widgets;
+
 import ui.model.ModelObj;
 import ui.model.EM;
-import m3.observable.OSet;
 import ui.widget.LabelComp;
-import m3.util.UidGenerator;
-import m3.exception.Exception;
 
 using m3.helper.StringHelper;
 

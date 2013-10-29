@@ -4201,6 +4201,7 @@ ui.api.ProtocolHandler.prototype = {
 	,createLabel: function(label) {
 		var request = new ui.api.AddAliasLabelsRequest();
 		ui.AgentUi.USER.get_currentAlias().labelSet.add(label);
+		ui.model.EM.change(ui.model.EMEvent.FitWindow);
 		var labelsArray = ui.helper.PrologHelper.tagTreeAsStrings(ui.AgentUi.USER.get_currentAlias().labelSet);
 		request.contentImpl.labels = labelsArray;
 		request.contentImpl.alias = ui.AgentUi.USER.get_currentAlias().label;
@@ -4402,7 +4403,10 @@ ui.api.ProtocolHandler.prototype = {
 					user.get_currentAlias().labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,response.contentImpl.get_labels());
 					user.userData = response.contentImpl.jsonBlob;
 					_g._startPolling(user.sessionURI);
-					if(!ui.AgentUi.DEMO) ui.model.EM.change(ui.model.EMEvent.USER,user);
+					if(!ui.AgentUi.DEMO) {
+						ui.model.EM.change(ui.model.EMEvent.USER,user);
+						ui.model.EM.change(ui.model.EMEvent.FitWindow);
+					}
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
 						ui.AgentUi.LOGGER.error("Serialization error",e);
