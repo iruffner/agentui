@@ -7,6 +7,8 @@ import ui.model.EM;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
+using m3.helper.OSetHelper;
+
 typedef LabelTreeBranchOptions = {
 	var label: Label;
 	var children: OSet<Label>;
@@ -58,7 +60,7 @@ extern class LabelTreeBranch extends JQ {
 		            selfElement.append(label);
 
 		            selfElement.hover(function(): Void {
-		            		if(self.options.children.iterator().hasNext()) {
+		            		if(self.options.children.hasValues()) {
 		            			expander.css("visibility", "visible");
 		            		}
 		            	}, function(): Void {
@@ -73,8 +75,12 @@ extern class LabelTreeBranch extends JQ {
 			            		labels: self.options.children
 			            	});
 			            selfElement.append(labelChildren);
-		            	label.add(expander).click(function(evt: js.JQuery.JqEvent): Void {
-		            			labelChildren.toggle();
+		            	label.add(expander).click(function(evt: JQEvent): Void {
+		            			if(self.options.children.hasValues()) {
+		            				labelChildren.toggle();
+		            				labelChildren.toggleClass("labelTreeFullWidth");
+	            				} else
+	            					labelChildren.hide();
 		            			EM.change(EMEvent.FitWindow);
 		            		}
 	            		);

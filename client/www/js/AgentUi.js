@@ -5136,7 +5136,11 @@ ui.api.LongPollingRequest.prototype = {
 		var _g = this;
 		if(!this.stop) {
 			var ajaxOpts = { url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
-				if(!_g.stop) _g.successFcn(data,textStatus,jqXHR);
+				if(!_g.stop) try {
+					_g.successFcn(data,textStatus,jqXHR);
+				} catch( err ) {
+					ui.AgentUi.LOGGER.error("long polling error",err);
+				}
 			}, error : function(jqXHR,textStatus,errorThrown) {
 				ui.AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 			}, complete : function(jqXHR,textStatus) {
@@ -6748,7 +6752,7 @@ var defineWidget = function() {
 		var label = new $("<div></div>").labelComp({ label : self.options.label, isDragByHelper : true, containment : false});
 		selfElement.append(label);
 		selfElement.hover(function() {
-			if(self.options.children.iterator().hasNext()) expander.css("visibility","visible");
+			if(m3.helper.OSetHelper.hasValues(self.options.children)) expander.css("visibility","visible");
 		},function() {
 			expander.css("visibility","hidden");
 		});
@@ -6757,7 +6761,10 @@ var defineWidget = function() {
 			labelChildren.labelTree({ labels : self.options.children});
 			selfElement.append(labelChildren);
 			label.add(expander).click(function(evt) {
-				labelChildren.toggle();
+				if(m3.helper.OSetHelper.hasValues(self.options.children)) {
+					labelChildren.toggle();
+					labelChildren.toggleClass("labelTreeFullWidth");
+				} else labelChildren.hide();
 				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 			});
 		}
@@ -7745,7 +7752,7 @@ ui.api.EvalNextPageRequest.__rtti = "<class path=\"ui.api.EvalNextPageRequest\" 
 ui.api.EvalNextPageRequestData.__rtti = "<class path=\"ui.api.EvalNextPageRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<nextPage public=\"1\"><c path=\"String\"/></nextPage>\n\t<new public=\"1\" set=\"method\" line=\"220\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalResponse.__rtti = "<class path=\"ui.api.EvalResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"225\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalComplete.__rtti = "<class path=\"ui.api.EvalComplete\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"231\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"ui.model.MessageContent\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"236\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.EvalResponseData.__rtti = "<class path=\"ui.api.EvalResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<pageOfPosts public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></pageOfPosts>\n\t<new public=\"1\" set=\"method\" line=\"236\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalError.__rtti = "<class path=\"ui.api.EvalError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.EvalErrorData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"241\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.EvalErrorData.__rtti = "<class path=\"ui.api.EvalErrorData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<errorMsg public=\"1\"><c path=\"String\"/></errorMsg>\n\t<new public=\"1\" set=\"method\" line=\"246\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.FeedExpr.__rtti = "<class path=\"ui.api.FeedExpr\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.FeedExprData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"251\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

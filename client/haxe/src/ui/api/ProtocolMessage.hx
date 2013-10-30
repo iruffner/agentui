@@ -234,7 +234,7 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 }
 
 		class EvalResponseData extends PayloadWithSessionURI {
-			public var pageOfPosts: Array<MessageContent>;
+			public var pageOfPosts: Array<String>;
 		}
 
 class EvalError extends ProtocolMessage<EvalErrorData> {

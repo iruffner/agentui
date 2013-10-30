@@ -101,7 +101,11 @@ class LongPollingRequest implements Requester {
 				success: function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {
 			        if(!stop) {
 			        	//broadcast results
-			        	this.successFcn(data,textStatus,jqXHR);
+			        	try {
+			        		this.successFcn(data,textStatus,jqXHR);
+		        		} catch (err: Dynamic) {
+		        			ui.AgentUi.LOGGER.error("long polling error", err);
+		        		}
 			        }
 			    },
 			    error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String): Void {
