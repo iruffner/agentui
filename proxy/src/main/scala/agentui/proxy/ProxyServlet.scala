@@ -125,6 +125,7 @@ class ProxyServlet extends HttpServlet with Logging {
       response.getAllHeaders().foreach { header =>
         resp.setHeader(header.getName, header.getValue)
       }
+      resp.setHeader("X-ProxyTarget", proxyServerUrl)
 
       val sl = response.getStatusLine
       resp.setStatus(sl.getStatusCode)
