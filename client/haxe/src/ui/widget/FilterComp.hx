@@ -2,17 +2,19 @@ package ui.widget;
 
 import js.html.Element;
 
+import m3.exception.Exception;
 import m3.jq.JQ;
+import m3.jq.JQDraggable;
 import m3.jq.JQDroppable;
 import m3.jq.JQTooltip;
+import m3.observable.OSet;
 import m3.widget.Widgets;
+
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
 import ui.model.EM;
-import m3.observable.OSet;
 import ui.widget.LabelComp;
-import m3.exception.Exception;
 
 typedef FilterCompOptions = {
 }
@@ -57,7 +59,11 @@ extern class FilterComp extends JQ {
 				      	hoverClass: "ui-state-active",
 				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
-			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, "#filter");
+			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, false, function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+			                		if(!selfElement.intersects(dragstopUi.helper)) {
+			                			dragstopUi.helper.remove();
+			                		}
+			                	});
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
 			                var cloneOffset: {top: Int, left: Int} = clone.offset();
 
@@ -66,10 +72,10 @@ extern class FilterComp extends JQ {
 			                    "position": "absolute"
 			                });
 			                var isInFilterCombination: Bool = _ui.draggable.parent(".filterCombination").length > 0;
-			                if(isInFilterCombination) {
-			                	var filterCombination: FilterCombination = cast(_ui.draggable.parent(), FilterCombination);
-			                	filterCombination.filterCombination("removeFilterable", _ui.draggable);
-			                }
+			                // if(isInFilterCombination) {
+			                // 	var filterCombination: FilterCombination = cast(_ui.draggable.parent(), FilterCombination);
+			                // 	filterCombination.filterCombination("removeFilterable", _ui.draggable);
+			                // }
 
 			                if(cloneOffset.top != 0) {
 			                	clone.offset(cloneOffset);

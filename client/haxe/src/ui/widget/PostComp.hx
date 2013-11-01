@@ -164,21 +164,13 @@ extern class PostComp extends JQ {
 					      			return;
 					      		}
 
-				                var clone: JQDraggable = _ui.draggable.data("clone")(_ui.draggable, false, "window");
-				                clone.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-				                		var tAxis = tags.offset();
-									    var t_x = [tAxis.left, tAxis.left + tags.outerWidth()];
-									    var t_y = [tAxis.top, tAxis.top + tags.outerHeight()];
+					      		var dragstop = function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+				                		if(!tags.intersects(JQ.cur)) {
+				                			JQ.cur.remove();
+				                		}
+				                	};
 
-									    var thisPos = clone.offset();
-								        var i_x = [thisPos.left, thisPos.left + clone.outerWidth()];
-								        var i_y = [thisPos.top, thisPos.top + clone.outerHeight()];
-
-								        if ( !(t_x[0] < i_x[1] && t_x[1] > i_x[0] &&
-								               t_y[0] < i_y[1] && t_y[1] > i_y[0]) ) {
-								            clone.remove();
-								        }
-				                	});
+				                var clone: JQDraggable = _ui.draggable.data("clone")(_ui.draggable, false, false, dragstop);
 				                clone.addClass("small");
 				                var cloneOffset: {top: Int, left: Int} = clone.offset();
 				                

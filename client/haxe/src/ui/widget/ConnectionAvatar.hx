@@ -49,7 +49,8 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            containment: false,
 		            dndEnabled: true,
 		            classes: null,
-		            cloneFcn: function(filterableComp: FilterableComponent, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): ConnectionAvatar {
+		            dragstop: null,
+		            cloneFcn: function(filterableComp: FilterableComponent, ?isDragByHelper: Bool = false, ?containment: Dynamic = false, ?dragstop: JQEvent->UIDraggable->Void): ConnectionAvatar {
 			            	var connectionAvatar: ConnectionAvatar = cast(filterableComp, ConnectionAvatar);
 			            	if(connectionAvatar.hasClass("clone")) return connectionAvatar;
 			            	var clone: ConnectionAvatar = new ConnectionAvatar("<div class='clone'></div>");
@@ -57,6 +58,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 			                        connection: connectionAvatar.connectionAvatar("option", "connection"),
 			                        isDragByHelper: isDragByHelper,
 			                        containment: containment,
+			                        dragstop: dragstop,
 			                        classes: connectionAvatar.connectionAvatar("option", "classes"),
 			                        cloneFcn: connectionAvatar.connectionAvatar("option", "cloneFcn"),
 			                        dropTargetClass: connectionAvatar.connectionAvatar("option", "dropTargetClass"),
@@ -104,6 +106,12 @@ extern class ConnectionAvatar extends FilterableComponent {
 			            		return node;
 			            	});
 
+		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+		                		if(self.options.dragstop != null) {
+		                			self.options.dragstop(dragstopEvt, dragstopUi);
+		                		}
+		                	});
+
 			            var helper: Dynamic = "clone";
 			            if(!self.options.isDragByHelper) {
 			            	helper = "original";
@@ -135,7 +143,8 @@ extern class ConnectionAvatar extends FilterableComponent {
 					      		filterCombiner.appendTo(JQ.cur.parent());
 					      		filterCombiner.filterCombination({
 					      			event: event,
-					      			type: "CONNECTION"
+					      			type: "CONNECTION",
+					      			dragstop: self.options.dragstop
 				      			});
 				      			filterCombiner.filterCombination("addFilterable", JQ.cur);
 

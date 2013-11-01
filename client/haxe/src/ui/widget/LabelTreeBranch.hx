@@ -54,7 +54,8 @@ extern class LabelTreeBranch extends JQ {
 		        	var label: LabelComp = new LabelComp("<div></div>").labelComp({
 		        			label: self.options.label,
 		        			isDragByHelper: true,
-		        			containment: false
+		        			containment: false,
+		        			dragstop: null
 		        		});
 
 		            selfElement.append(label);

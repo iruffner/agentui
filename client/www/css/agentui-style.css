@@ -507,13 +507,11 @@ body {
 		}
 
 			.labelBody div {
-				/*margin-top: 6px;*/
 			}
 
 		.labelChildren {
 			margin-left: 50px;
 			margin-top: 3px;
-			/*display: inline-block;*/
 			white-space: nowrap;
 		}
 

@@ -51,7 +51,13 @@ extern class LabelComp extends FilterableComponent {
 		            dndEnabled: true,
 		            classes: null,
 		            dropTargetClass: "labelDT",
-		            cloneFcn: function(filterableComp: FilterableComponent, ?isDragByHelper: Bool = false, ?containment: Dynamic = false): LabelComp {
+		            dragstop: null,
+		            		// function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+				              //   		if(!tags.intersects(clone)) {
+				              //   			clone.remove();
+				              //   		}
+				              //   	})
+		            cloneFcn: function(filterableComp: FilterableComponent, ?isDragByHelper: Bool = false, ?containment: Dynamic = false, ?dragstop: JQEvent->UIDraggable->Void): LabelComp {
 		            			var labelComp: LabelComp = cast(filterableComp, LabelComp);
 				            	if(labelComp.hasClass("clone")) return labelComp;
 				            	var clone: LabelComp = new LabelComp("<div class='clone'></div>");
@@ -59,6 +65,7 @@ extern class LabelComp extends FilterableComponent {
 				                        label: labelComp.labelComp("option", "label"),
 				                        isDragByHelper: isDragByHelper,
 				                        containment: containment,
+				                        dragstop: dragstop,
 				                        classes: labelComp.labelComp("option", "classes"),
 				                        cloneFcn: labelComp.labelComp("option", "cloneFcn"),
 				                        dropTargetClass: labelComp.labelComp("option", "dropTargetClass")
@@ -73,8 +80,6 @@ extern class LabelComp extends FilterableComponent {
 					if(!selfElement.is("div")) {
 		        		throw new Exception("Root of LabelComp must be a div element");
 		        	}
-
-		        	// selfElement.addClass(Widgets.getWidgetClasses());
 
 		        	selfElement.addClass("label labelComp ").attr("id", self.options.label.text.htmlEscape() + "_" + UidGenerator.create(8));
 		        	
@@ -110,6 +115,13 @@ extern class LabelComp extends FilterableComponent {
 			            	helper = self.options.helperFcn;
 			            }
 
+		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+		            				ui.AgentUi.LOGGER.debug("dragstop on label | " + self.options.label.text);
+			                		if(self.options.dragstop != null) {
+			                			self.options.dragstop(dragstopEvt, dragstopUi);
+			                		}
+			                	});
+
 			            cast(selfElement, JQDraggable).draggable({ 
 				    		containment: self.options.containment, 
 				    		helper: helper,
@@ -134,11 +146,13 @@ extern class LabelComp extends FilterableComponent {
 					      		filterCombiner.appendTo(JQ.cur.parent());
 					      		filterCombiner.filterCombination({
 					      			event: event,
-					      			type: "LABEL"
+					      			type: "LABEL",
+					      			dragstop: self.options.dragstop
 				      			});
 				      			filterCombiner.filterCombination("addFilterable", JQ.cur);
 
-				      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
+				      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"window");
+
 				                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
 
 				      			filterCombiner.filterCombination("addFilterable", clone);

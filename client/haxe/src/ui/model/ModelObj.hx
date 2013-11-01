@@ -16,10 +16,24 @@ using Lambda;
 
 @:rtti
 class ModelObj<T> {
-	@:transient public var uid: String;
+	@:isVar 
+	@:transient 
+	public var uid(get,set): String;
 
-	public static function identifier<T>(t: {uid: String}): String {
+	public static function identifier<T>(t: ModelObj<T>): String {
 		return t.uid;
+	}
+
+	private function get_uid(): String {
+		if(this.uid.isBlank()) {
+			this.uid = UidGenerator.create(10);
+		}
+		return this.uid;
+	}
+
+	private function set_uid(id: String): String {
+		this.uid = id;
+		return this.uid;
 	}
 }
 

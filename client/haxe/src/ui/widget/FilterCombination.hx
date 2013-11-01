@@ -6,16 +6,19 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
+import m3.util.UidGenerator;
 import ui.model.ModelObj;
 import ui.model.Node;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
 using m3.helper.ArrayHelper;
+using m3.helper.StringHelper;
 
 typedef FilterCombinationOptions = {
 	@:optional var position: {left: Int, top: Int};
 	@:optional var event: JQEvent;
+	var dragstop: JQEvent->UIDraggable->Void;
 	var type: String;
 }
 
@@ -31,6 +34,7 @@ typedef FilterCombinationWidgetDef = {
 	var _fireFilter: Void->Void;
 	var position: Void->Void;
 	@:optional var _filterables: ObservableSet<FilterableComponent>;
+	@:optional var _id: String;
 }
 
 @:native("$")
@@ -64,16 +68,25 @@ extern class FilterCombination extends FilterableComponent {
 		            		return root;
 		            	});
 					
-					self._filterables = new ObservableSet<FilterableComponent>(function (fc: FilterableComponent): String { return cast(fc, JQ).attr("id");});
+					self._filterables = new ObservableSet<FilterableComponent>(function (fc: FilterableComponent): String { return fc.attr("id");});
 					self._filterables.listen(function(fc: FilterableComponent, evt: EventType): Void {
 		            		if(evt.isAdd()) {
 		            			self._add(fc);
 		            		} else if (evt.isUpdate()) {
-		            			// fc.labelTreeBranch("update");
+			            		fc.css("position", "absolute")
+			      					.css({left: "", top: ""});
+		            			self._layout();
 		            		} else if (evt.isDelete()) {
 		            			self._remove(fc);
 		            		}
 		            	});
+
+					selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+	            				ui.AgentUi.LOGGER.debug("dragstop on filtercombo");
+		                		if(self.options.dragstop != null) {
+		                			self.options.dragstop(dragstopEvt, dragstopUi);
+		                		}
+		                	});
 
 		        	//classes
 		        	//- connectionTD & labelDT such that this is a valid drop target for connections and labels, respectively
@@ -86,7 +99,11 @@ extern class FilterCombination extends FilterableComponent {
 		        	//- filterable says this item can be composed into a filter
 
 		        	selfElement.addClass("ui-state-highlight connectionDT labelDT filterable dropCombiner filterCombination filterTrashable container shadow" + Widgets.getWidgetClasses());
-
+		        	self._id = selfElement.attr("id");
+		        	if(self._id.isBlank()) {
+		        		self._id = m3.util.UidGenerator.create(8);
+		        		selfElement.attr("id", self._id);
+		        	}
 		        	selfElement.position({
 		        		my: "bottom right",
 		        		at: "left top",
@@ -124,7 +141,7 @@ extern class FilterCombination extends FilterableComponent {
 	        		selfElement.append(toggle);
 
 		        	cast(selfElement, JQDraggable).draggable({
-			    		containment: "parent", 
+			    		// containment: "parent", 
 			    		distance: 10,
 			    		// grid: [5,5],
 			    		scroll: false
@@ -139,7 +156,7 @@ extern class FilterCombination extends FilterableComponent {
 				      	greedy: true,
 				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 			                //fire off a filterable
-				      		var clone: FilterableComponent = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
+				      		var clone: FilterableComponent = _ui.draggable.data("clone")(_ui.draggable,false,"window");
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"))
 			      				.appendTo(selfElement)
 				      			.css("position", "absolute")
@@ -190,12 +207,16 @@ extern class FilterCombination extends FilterableComponent {
 	        	_add: function(filterable: FilterableComponent): Void {
 	        		var self: FilterCombinationWidgetDef = Widgets.getSelf();
 		        	var selfElement: JQ = Widgets.getSelfElement();
-		        	var jq: JQ = cast(filterable, JQ);
-		        	jq
+		        	filterable
 		      			.appendTo(selfElement)
-		      			// .css("position", "relative")
+		      			.addClass("inFilterCombination")
 		      			.css("position", "absolute")
 		      			.css({left: "", top: ""})
+		      			.on("dragstop", function (evt: JQEvent) {
+							    if(!filterable.parent("#" + self._id).exists()) {
+							    	self.removeFilterable(filterable);
+							    }
+							})
 		      			;
 
 		        	self._layout();
@@ -204,6 +225,7 @@ extern class FilterCombination extends FilterableComponent {
 	        	_remove: function(filterable: FilterableComponent): Void {
 	        		var self: FilterCombinationWidgetDef = Widgets.getSelf();
 	        		var selfElement: JQ = Widgets.getSelfElement();
+	        		filterable.removeClass("inFilterCombination");
 
 		        	var iter: Iterator<FilterableComponent> = self._filterables.iterator();
 		        	if( iter.hasNext() ) {
@@ -212,9 +234,8 @@ extern class FilterCombination extends FilterableComponent {
 			        		self._layout();
 			        	} else {
 			        		//there is only one more filterable left
-			        		var jq: JQ = cast(filterable, JQ);
-			        		var position: {top: Int, left: Int} = jq.offset();
-		        			jq
+			        		var position: {top: Int, left: Int} = filterable.offset();
+		        			filterable
 			        			.appendTo(selfElement.parent())
 		        				.offset(position)
 			                	;
