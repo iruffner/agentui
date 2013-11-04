@@ -165,8 +165,8 @@ extern class PostComp extends JQ {
 					      		}
 
 					      		var dragstop = function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-				                		if(!tags.intersects(JQ.cur)) {
-				                			JQ.cur.remove();
+				                		if(!tags.intersects(dragstopUi.helper)) {
+				                			dragstopUi.helper.remove();
 				                		}
 				                	};
 
