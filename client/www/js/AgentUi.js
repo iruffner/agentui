@@ -6419,6 +6419,9 @@ var defineWidget = function() {
 				node.content = self.options.connection;
 				return node;
 			});
+			selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
+				if(self.options.dragstop != null) self.options.dragstop(dragstopEvt,dragstopUi);
+			});
 			var helper = "clone";
 			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
 			(js.Boot.__cast(selfElement , $)).draggable({ containment : self.options.containment, helper : helper, distance : 10, revertDuration : 200, scroll : false, start : function(evt,_ui) {
