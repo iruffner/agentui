@@ -8,6 +8,7 @@ import m3.jq.JQDraggable;
 import m3.jq.JQDroppable;
 import m3.jq.JQTooltip;
 import m3.observable.OSet;
+import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
 import ui.model.ModelObj;
@@ -62,6 +63,7 @@ extern class FilterComp extends JQ {
 			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, false, function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
 			                		if(!selfElement.intersects(dragstopUi.helper)) {
 			                			dragstopUi.helper.remove();
+			                			JqueryUtil.deleteEffects(dragstopEvt);
 			                		}
 			                	});
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));

@@ -3903,6 +3903,70 @@ m3.util.HtmlUtil.getUrlVars = function() {
 	}
 	return vars;
 }
+m3.util.JqueryUtil = function() { }
+$hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
+$hxExpose(m3.util.JqueryUtil, "m3.util.JqueryUtil");
+m3.util.JqueryUtil.__name__ = ["m3","util","JqueryUtil"];
+m3.util.JqueryUtil.isAttached = function(elem) {
+	return elem.parents("body").length > 0;
+}
+m3.util.JqueryUtil.labelSelect = function(elem,str) {
+	try {
+		m3.CrossMojo.jq("option",elem).filter(function() {
+			return $(this).text() == str;
+		})[0].selected = true;
+	} catch( err ) {
+	}
+}
+m3.util.JqueryUtil.getOrCreateDialog = function(selector,dlgOptions,createdFcn) {
+	if(m3.helper.StringHelper.isBlank(selector)) selector = "dlg" + m3.util.UidGenerator.create(10);
+	var dialog = new $(selector);
+	if(dlgOptions == null) dlgOptions = { autoOpen : false, height : 380, width : 320, modal : true};
+	if(!dialog.exists()) {
+		dialog = new $("<div id=" + HxOverrides.substr(selector,1,null) + " style='display:none;'></div>");
+		if(Reflect.isFunction(createdFcn)) createdFcn(dialog);
+		new $("body").append(dialog);
+		dialog.m3dialog(dlgOptions);
+	} else if(!dialog["is"](":data(dialog)")) dialog.m3dialog(dlgOptions);
+	return dialog;
+}
+m3.util.JqueryUtil.deleteEffects = function(dragstopEvt,width,duration,src) {
+	if(src == null) src = "media/cloud.gif";
+	if(duration == null) duration = 800;
+	if(width == null) width = "70px";
+	var img = new $("<img/>");
+	img.appendTo("body");
+	img.css("width",width);
+	img.position({ my : "center", at : "center", of : dragstopEvt, collision : "fit"});
+	img.attr("src",src);
+	haxe.Timer.delay(function() {
+		img.remove();
+	},duration);
+}
+m3.util.JqueryUtil.getWindowWidth = function() {
+	return new $(js.Browser.window).width();
+}
+m3.util.JqueryUtil.getWindowHeight = function() {
+	return new $(js.Browser.window).height();
+}
+m3.util.JqueryUtil.getDocumentWidth = function() {
+	return new $(js.Browser.document).width();
+}
+m3.util.JqueryUtil.getDocumentHeight = function() {
+	return new $(js.Browser.document).height();
+}
+m3.util.JqueryUtil.getEmptyDiv = function() {
+	return new $("<div></div>");
+}
+m3.util.JqueryUtil.getEmptyTable = function() {
+	return new $("<table style='margin:auto; text-align: center; width: 100%;'></table>");
+}
+m3.util.JqueryUtil.getEmptyRow = function() {
+	return new $("<tr></tr>");
+}
+m3.util.JqueryUtil.getEmptyCell = function() {
+	return new $("<td></td>");
+}
 m3.util.M = function() { }
 $hxClasses["m3.util.M"] = m3.util.M;
 m3.util.M.__name__ = ["m3","util","M"];
@@ -6719,7 +6783,10 @@ var defineWidget = function() {
 			return d["is"](".filterable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,function(dragstopEvt,dragstopUi) {
-				if(!selfElement.intersects(dragstopUi.helper)) dragstopUi.helper.remove();
+				if(!selfElement.intersects(dragstopUi.helper)) {
+					dragstopUi.helper.remove();
+					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
+				}
 			});
 			clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
 			var cloneOffset = clone.offset();
@@ -7457,14 +7524,7 @@ var defineWidget = function() {
 			var dragstop = function(dragstopEvt,dragstopUi) {
 				if(!tags.intersects(dragstopUi.helper)) {
 					dragstopUi.helper.remove();
-					var img = new $("<img/>");
-					img.appendTo("body");
-					img.css("width","70px");
-					img.position({ my : "center", at : "center", of : dragstopEvt, collision : "fit"});
-					img.attr("src","media/cloud.gif");
-					haxe.Timer.delay(function() {
-						img.remove();
-					},800);
+					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
 				}
 			};
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
