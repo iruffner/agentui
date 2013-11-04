@@ -167,6 +167,23 @@ extern class PostComp extends JQ {
 					      		var dragstop = function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
 				                		if(!tags.intersects(dragstopUi.helper)) {
 				                			dragstopUi.helper.remove();
+				                			var img: JQ = new JQ("<img/>");
+                        					img.appendTo("body");
+				                			img.css("width", "70px");
+				                			img.position({
+                         						my: "center",
+                         						at: "center",
+                         						of: dragstopEvt,
+                         						collision: "fit"
+                        					});
+                        					img.attr("src", 'media/cloud.gif');
+
+											haxe.Timer.delay(
+												function() {
+		                            				img.remove();
+		                        				}, 
+		                        				800 
+		                        			);
 				                		}
 				                	};
 
