@@ -3988,6 +3988,14 @@ ui.AgentUi.main = function() {
 	ui.AgentUi.HOT_KEY_ACTIONS = new Array();
 }
 ui.AgentUi.start = function() {
+	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
+		if(evt.altKey && evt.shiftKey && evt.keyCode == 78) {
+			ui.AgentUi.LOGGER.debug("ALT + SHIFT + N");
+			Lambda.iter(new $(".connection"),function(cc) {
+				(js.Boot.__cast(cc , $)).connectionComp("addNotification");
+			});
+		}
+	});
 	var urlVars = m3.util.HtmlUtil.getUrlVars();
 	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "yes" || urlVars.demo == "true")) ui.AgentUi.DEMO = true;
 	new $("body").keyup(function(evt) {
@@ -6073,6 +6081,13 @@ $.fn.intersects = function(el) {
 	if(t_x[0] < i_x[1] && t_x[1] > i_x[0] && t_y[0] < i_y[1] && t_y[1] > i_y[0]) intersects = true;
 	return intersects;
 };
+q.fn.iterator = function() {
+	return { pos : 0, j : this, hasNext : function() {
+		return this.pos < this.j.length;
+	}, next : function() {
+		return $(this.j[this.pos++]);
+	}};
+};
 var defineWidget = function() {
 	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false, onMaxToggle : $.noop}, originalSize : { width : 10, height : 10}, _create : function() {
 		this._super("create");
@@ -6472,6 +6487,13 @@ var defineWidget = function() {
 		selfElement.children("img").attr("src",self.options.connection.imgSrc);
 		selfElement.children("div").text(self.options.connection.name());
 		self._avatar.connectionAvatar("update");
+	}, addNotification : function() {
+		var self = this;
+		var selfElement = this.element;
+		var notificationDiv = new $(".notifications",selfElement);
+		if(!notificationDiv.exists()) notificationDiv = new $("<div class='notifications'>1</div>");
+		notificationDiv.appendTo(selfElement);
+		notificationDiv.position({ my : "right center", at : "right top", of : selfElement});
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};

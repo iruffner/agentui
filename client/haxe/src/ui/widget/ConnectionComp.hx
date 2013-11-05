@@ -21,6 +21,7 @@ typedef ConnectionCompWidgetDef = {
 	@:optional var _avatar: ConnectionAvatar;
 	var update: Void->Void;
 	var destroy: Void->Void;
+	var addNotification: Void->Void;
 }
 
 class ConnectionCompHelper {
@@ -91,6 +92,24 @@ extern class ConnectionComp extends JQ {
 
 		            self._avatar.connectionAvatar("update");
 	        	},
+
+	        	addNotification: function(): Void {
+	        		var self: ConnectionCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+					var notificationDiv: JQ = new JQ(".notifications", selfElement);
+					if(!notificationDiv.exists()) {
+						notificationDiv = new JQ("<div class='notifications'>1</div>");
+					}
+
+					notificationDiv.appendTo(selfElement);
+
+					notificationDiv.position({
+							my: "right center",
+							at: "right top",
+							of: selfElement
+						});
+        		},
 		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );

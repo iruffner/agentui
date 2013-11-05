@@ -51,6 +51,16 @@ class AgentUi {
     }
 
     public static function start(): Void {
+        HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
+            if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
+                LOGGER.debug("ALT + SHIFT + N");
+                new ConnectionComp(".connection").iter(function(cc: JQ): Void {
+                        cast(cc, ConnectionComp).connectionComp("addNotification");
+                    });
+            }
+        });
+
+
         var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
         if(urlVars.demo.isNotBlank() && (urlVars.demo == "yes" || urlVars.demo == "true")) {
             DEMO = true;
