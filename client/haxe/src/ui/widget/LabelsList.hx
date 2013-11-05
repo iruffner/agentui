@@ -4,6 +4,7 @@ import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.observable.OSet;
 import m3.util.UidGenerator;
+import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
 import ui.model.ModelObj;
@@ -93,7 +94,7 @@ extern class LabelsList extends JQ {
         									label.text = input.val();
         									var alnum: EReg = ~/(^[a-zA-Z0-9]*$)/;
         									if (!alnum.match(label.text)) {
-        										js.Lib.alert("Only alphanumeric labels allowed.");
+        										JqueryUtil.alert("Only alphanumeric labels allowed.");
         									} else {
         										label.uid = UidGenerator.create();
   	      										AgentUi.LOGGER.debug("add to " + self.labels.visualId);
