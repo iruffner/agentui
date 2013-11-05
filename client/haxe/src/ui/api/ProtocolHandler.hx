@@ -7,6 +7,7 @@ import m3.exception.Exception;
 import m3.serialization.Serialization.JsonException;
 import m3.log.Logga;
 import m3.util.UidGenerator;
+import m3.util.JqueryUtil;
 
 import ui.model.ModelObj;
 import ui.model.Node;
@@ -230,17 +231,17 @@ class ProtocolHandler {
 						}
 			        } else if(data.msgType == MsgType.initializeSessionError) {
 			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
-			        	js.Lib.alert("Login error: " + error.contentImpl.reason);
+			        	JqueryUtil.alert("Login error: " + error.contentImpl.reason);
 			        } else {
 			        	//something unexpected..
 			        	AgentUi.LOGGER.error("Unknown user login error | " + data);
-			        	js.Lib.alert("There was an unexpected error attempting to login. Please try again.");
+			        	JqueryUtil.alert("There was an unexpected error attempting to login. Please try again.");
 			        }
 				});
 			loginRequest.start();
 			
 		} catch (err: Dynamic) {
-			js.Lib.alert(err);
+			JqueryUtil.alert(err);
 		}
 	}
 
@@ -311,7 +312,7 @@ class ProtocolHandler {
 						AgentUi.LOGGER.info("no processor for " + data.msgType);
 					else 
 						AgentUi.LOGGER.info("no data returned on polling channel response");
-					// js.Lib.alert("Don't know how to handle " + data.msgType);
+					// JqueryUtil.alert("Don't know how to handle " + data.msgType);
 					return;
 				} else {
 					AgentUi.LOGGER.debug("received " + data.msgType);
@@ -356,11 +357,11 @@ class ProtocolHandler {
 						}
 					} else if(data.msgType == MsgType.createUserError) {
 			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
-			        	js.Lib.alert("User creation error: " + error.contentImpl.reason);
+			        	JqueryUtil.alert("User creation error: " + error.contentImpl.reason);
 			        } else {
 			        	//something unexpected..
 			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);
-			        	js.Lib.alert("There was an unexpected error creating your agent. Please try again.");
+			        	JqueryUtil.alert("There was an unexpected error creating your agent. Please try again.");
 			        }
 				}).start();
 		} catch (err: Dynamic) {
@@ -391,7 +392,7 @@ class ProtocolHandler {
 			        } else {
 			        	//something unexpected..
 			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);
-			        	js.Lib.alert("There was an unexpected error creating your agent. Please try again.");
+			        	JqueryUtil.alert("There was an unexpected error creating your agent. Please try again.");
 			        }
 				}).start();
 		} catch (err: Dynamic) {

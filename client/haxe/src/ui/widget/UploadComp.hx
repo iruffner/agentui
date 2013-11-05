@@ -1,6 +1,7 @@
 package ui.widget;
 
 import m3.jq.JQ;
+import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 import m3.exception.Exception;
 // import js.html.FileReader;
@@ -112,12 +113,12 @@ extern class UploadComp extends JQ {
 
 		        _uploadFile: function(file: Dynamic) {
 		        	if (untyped __js__("typeof FileReader === 'undefined'")) {
-		        		js.Lib.alert("FileUpload is not supported by your browser");
+		        		JqueryUtil.alert("FileUpload is not supported by your browser");
 		        		return;
 		        	}
 
 		        	if (!(~/image/i).match(file.type)) {
-		        		js.Lib.alert("Please select an image file.");
+		        		JqueryUtil.alert("Please select an image file.");
 		        		return;
 		        	}
 

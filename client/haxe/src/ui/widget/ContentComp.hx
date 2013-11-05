@@ -7,6 +7,7 @@ import ui.model.ModelObj;
 import m3.observable.OSet;
 import ui.widget.LabelComp;
 import m3.exception.Exception;
+import m3.util.JqueryUtil;
 
 using m3.helper.OSetHelper;
 using ui.helper.ModelHelper;
@@ -100,8 +101,10 @@ extern class ContentComp extends JQ {
 		        							.prependTo(selfElement)
 		        							.attr("title", "Remove Post")
 		        							.click(function(evt: JQEvent): Void {
-		        								js.Lib.alert("Are you sure you want to remove this post?");
-		        								selfElement.remove();
+		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
+		        									function(){
+		        										selfElement.remove();
+		        									});
 		        							});
 
 		        },

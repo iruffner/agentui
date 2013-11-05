@@ -6,6 +6,7 @@ import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
 import m3.exception.Exception;
+import m3.util.JqueryUtil;
 
 using m3.helper.StringHelper;
 
@@ -212,7 +213,7 @@ extern class LoginDialog extends JQ {
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {
 		        			if(!self._newUser && (self.user == null || !self.user.hasValidSession())) {
-		        				js.Lib.alert("A valid user is required to use the app");
+		        				JqueryUtil.alert("A valid user is required to use the app");
 		        				return false;
 		        			}
 		        			return true;

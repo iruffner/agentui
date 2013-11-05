@@ -1,6 +1,7 @@
 package ui.api;
 
 import m3.jq.JQ;
+import m3.util.JqueryUtil;
 import ui.model.Filter;
 import ui.model.EM;
 import ui.api.ProtocolMessage;
@@ -33,7 +34,7 @@ class StandardRequest implements Requester {
 	        type: "POST",
 			success: successFcn,
    			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
-   				js.Lib.alert("There was an error making your request.\n" + jqXHR.message);
+   				JqueryUtil.alert("There was an error making your request.\n" + jqXHR.message);
    				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 			}
         };
