@@ -100,220 +100,220 @@ class TestDao {
         aliases.push(alias);
 	}
 
-	// private static function generateContent(node: Node): Array<Content> {
-	// 	var availableConnections = getConnectionsFromNode(node);
-	// 	var availableLabels = getLabelsFromNode(node);
+	private static function generateContent(node: Node): Array<Content> {
+		var availableConnections = getConnectionsFromNode(node);
+		var availableLabels = getLabelsFromNode(node);
 
-	// 	var content = new Array<Content>();
-	// 	var audioContent: AudioContent = new AudioContent();
- //        audioContent.uid = UidGenerator.create();
- //        audioContent.type = ContentType.AUDIO;
- //        audioContent.audioSrc = "media/test/hello_newman.mp3";
- //        audioContent.audioType = "audio/mpeg";
- //        audioContent.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        audioContent.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        if(availableConnections.hasValues()) {
- //            audioContent.creator = getRandomFromArray(availableConnections).uid;
- //        } else {
- //            audioContent.creator = AgentUi.USER.currentAlias.uid;
- //        }
- //        if(availableConnections.hasValues()) {
- //        	addConnections(availableConnections, audioContent, 2);
-	//     }
- //        if(availableLabels.hasValues()) {
- //        	addLabels(availableLabels, audioContent, 2);
-	//     }
- //        audioContent.title = "Hello Newman Compilation";
- //        content.push(audioContent);
+		var content = new Array<Content>();
+		var audioContent: AudioContent = new AudioContent();
+        audioContent.uid = UidGenerator.create();
+        audioContent.type = ContentType.AUDIO;
+        audioContent.audioSrc = "media/test/hello_newman.mp3";
+        audioContent.audioType = "audio/mpeg";
+        audioContent.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        audioContent.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        if(availableConnections.hasValues()) {
+            audioContent.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            audioContent.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+        	addConnections(availableConnections, audioContent, 2);
+	    }
+        if(availableLabels.hasValues()) {
+        	addLabels(availableLabels, audioContent, 2);
+	    }
+        audioContent.title = "Hello Newman Compilation";
+        content.push(audioContent);
 
- //        var img: ImageContent = new ImageContent();
- //        img.uid = UidGenerator.create();
- //        img.type = ContentType.IMAGE;
- //        img.imgSrc = "media/test/soupkitchen.jpg";
- //        img.caption = "Soup Kitchen";
- //        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        if(availableConnections.hasValues()) {
- //            img.creator = getRandomFromArray(availableConnections).uid;
- //        } else {
- //            img.creator = AgentUi.USER.currentAlias.uid;
- //        }
- //        if(availableConnections.hasValues()) {
- //        	addConnections(availableConnections, img, 1);
-	//     }
- //        if(availableLabels.hasValues()) {
- //        	addLabels(availableLabels, img, 2);
-	//     }
- //        content.push(img);
+        var img: ImageContent = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = ContentType.IMAGE;
+        img.imgSrc = "media/test/soupkitchen.jpg";
+        img.caption = "Soup Kitchen";
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+        	addConnections(availableConnections, img, 1);
+	    }
+        if(availableLabels.hasValues()) {
+        	addLabels(availableLabels, img, 2);
+	    }
+        content.push(img);
 
- //        img = new ImageContent();
- //        img.uid = UidGenerator.create();
- //        img.type = ContentType.IMAGE;
- //        img.imgSrc = "media/test/apt.jpg";
- //        img.caption = "Apartment";
- //        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        if(availableConnections.hasValues()) {
- //            img.creator = getRandomFromArray(availableConnections).uid;
- //        } else {
- //            img.creator = AgentUi.USER.currentAlias.uid;
- //        }
- //        if(availableConnections.hasValues()) {
- //        	addConnections(availableConnections, img, 1);
-	//     }
- //        if(availableLabels.hasValues()) {
- //        	addLabels(availableLabels, img, 1);
-	//     }
- //        content.push(img);
+        img = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = ContentType.IMAGE;
+        img.imgSrc = "media/test/apt.jpg";
+        img.caption = "Apartment";
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+        	addConnections(availableConnections, img, 1);
+	    }
+        if(availableLabels.hasValues()) {
+        	addLabels(availableLabels, img, 1);
+	    }
+        content.push(img);
 
- //        img = new ImageContent();
- //        img.uid = UidGenerator.create();
- //        img.type = ContentType.IMAGE;
- //        img.imgSrc = "media/test/jrmint.jpg";
- //        img.caption = "The Junior Mint!";
- //        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        if(availableConnections.hasValues()) {
- //            img.creator = getRandomFromArray(availableConnections).uid;
- //        } else {
- //            img.creator = AgentUi.USER.currentAlias.uid;
- //        }
- //        if(availableConnections.hasValues()) {
- //        	addConnections(availableConnections, img, 3);
-	//     }
- //        if(availableLabels.hasValues()) {
- //        	addLabels(availableLabels, img, 2);
-	//     }
- //        content.push(img);
+        img = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = ContentType.IMAGE;
+        img.imgSrc = "media/test/jrmint.jpg";
+        img.caption = "The Junior Mint!";
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+        	addConnections(availableConnections, img, 3);
+	    }
+        if(availableLabels.hasValues()) {
+        	addLabels(availableLabels, img, 2);
+	    }
+        content.push(img);
 
- //        img = new ImageContent();
- //        img.uid = UidGenerator.create();
- //        img.type = ContentType.IMAGE;
- //        img.imgSrc = "media/test/oldschool.jpg";
- //        img.caption = "Retro";
- //        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        if(availableConnections.hasValues()) {
- //            img.creator = getRandomFromArray(availableConnections).uid;
- //        } else {
- //            img.creator = AgentUi.USER.currentAlias.uid;
- //        }
- //        if(availableConnections.hasValues()) {
- //        	addConnections(availableConnections, img, 3);
-	//     }
- //        if(availableLabels.hasValues()) {
- //        	addLabels(availableLabels, img, 1);
-	//     }
- //        content.push(img);
+        img = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = ContentType.IMAGE;
+        img.imgSrc = "media/test/oldschool.jpg";
+        img.caption = "Retro";
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+        	addConnections(availableConnections, img, 3);
+	    }
+        if(availableLabels.hasValues()) {
+        	addLabels(availableLabels, img, 1);
+	    }
+        content.push(img);
 
- //        img = new ImageContent();
- //        img.uid = UidGenerator.create();
- //        img.type = ContentType.IMAGE;
- //        img.imgSrc = "media/test/mailman.jpg";
- //        img.caption = "Jerry Delivering the mail";
- //        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        if(availableConnections.hasValues()) {
- //            img.creator = getRandomFromArray(availableConnections).uid;
- //        } else {
- //            img.creator = AgentUi.USER.currentAlias.uid;
- //        }
- //        if(availableConnections.hasValues()) {
- //        	addConnections(availableConnections, img, 1);
-	//     }
- //        if(availableLabels.hasValues()) {
- //        	addLabels(availableLabels, img, 1);
-	//     }
- //        content.push(img);
+        img = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = ContentType.IMAGE;
+        img.imgSrc = "media/test/mailman.jpg";
+        img.caption = "Jerry Delivering the mail";
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+        	addConnections(availableConnections, img, 1);
+	    }
+        if(availableLabels.hasValues()) {
+        	addLabels(availableLabels, img, 1);
+	    }
+        content.push(img);
 
- //        img = new ImageContent();
- //        img.uid = UidGenerator.create();
- //        img.type = ContentType.IMAGE;
- //        img.imgSrc = "media/test/closet.jpg";
- //        img.caption = "Stuck in the closet!";
- //        img.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        img.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        if(availableConnections.hasValues()) {
- //            img.creator = getRandomFromArray(availableConnections).uid;
- //        } else {
- //            img.creator = AgentUi.USER.currentAlias.uid;
- //        }
- //        if(availableConnections.hasValues()) {
- //        	addConnections(availableConnections, img, 1);
-	//     }
- //        if(availableLabels.hasValues()) {
- //        	addLabels(availableLabels, img, 2);
-	//     }
- //        content.push(img);
+        img = new ImageContent();
+        img.uid = UidGenerator.create();
+        img.type = ContentType.IMAGE;
+        img.imgSrc = "media/test/closet.jpg";
+        img.caption = "Stuck in the closet!";
+        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        if(availableConnections.hasValues()) {
+            img.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            img.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+        	addConnections(availableConnections, img, 1);
+	    }
+        if(availableLabels.hasValues()) {
+        	addLabels(availableLabels, img, 2);
+	    }
+        content.push(img);
 
- //        var urlContent = new UrlContent();
- //        urlContent.uid = UidGenerator.create();
- //        urlContent.type = ContentType.URL;
- //        urlContent.connectionSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        urlContent.labelSet = new ObservableSet<String>(OSetHelper.strIdentifier);
- //        urlContent.text = "Check out this link";
- //        urlContent.url = "http://www.bing.com";
- //        if(availableConnections.hasValues()) {
- //            urlContent.creator = getRandomFromArray(availableConnections).uid;
- //        } else {
- //            urlContent.creator = AgentUi.USER.currentAlias.uid;
- //        }
- //        if(availableConnections.hasValues()) {
- //            addConnections(availableConnections, urlContent, 1);
- //        }
- //        if(availableLabels.hasValues()) {
- //            addLabels(availableLabels, urlContent, 2);
- //        }
- //        content.push(urlContent);
+        var urlContent = new UrlContent();
+        urlContent.uid = UidGenerator.create();
+        urlContent.type = ContentType.URL;
+        urlContent.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        urlContent.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        urlContent.text = "Check out this link";
+        urlContent.url = "http://www.bing.com";
+        if(availableConnections.hasValues()) {
+            urlContent.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            urlContent.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+            addConnections(availableConnections, urlContent, 1);
+        }
+        if(availableLabels.hasValues()) {
+            addLabels(availableLabels, urlContent, 2);
+        }
+        content.push(urlContent);
 
- //        return content;
-	// }
+        return content;
+	}
 
-	// private static function addConnections(availableConnections: Array<Connection>, content: Content, numToAdd: Int) {
-	// 	if(availableConnections.hasValues()) {
- //        	if(numToAdd == 1) {
- //        		addOne(availableConnections, content.connectionSet);
- //        	} else if(numToAdd == 2) {
- //        		addTwo(availableConnections, content.connectionSet);
- //    		} else {
- //    			addAll(availableConnections, content.connectionSet);
- //    		}
-	//     }
-	// }
+	private static function addConnections(availableConnections: Array<Connection>, content: Content, numToAdd: Int) {
+		if(availableConnections.hasValues()) {
+        	if(numToAdd == 1) {
+        		addOne(availableConnections, content.connectionSet);
+        	} else if(numToAdd == 2) {
+        		addTwo(availableConnections, content.connectionSet);
+    		} else {
+    			addAll(availableConnections, content.connectionSet);
+    		}
+	    }
+	}
 
-	// private static function addLabels(availableConnections: Array<Label>, content: Content, numToAdd: Int) {
-	// 	if(availableConnections.hasValues()) {
- //        	if(numToAdd == 1) {
- //        		addOne(availableConnections, content.labelSet);
- //        	} else if(numToAdd == 2) {
- //        		addTwo(availableConnections, content.labelSet);
- //    		} else {
- //    			addAll(availableConnections, content.labelSet);
- //    		}
-	//     }
-	// }
+	private static function addLabels(availableConnections: Array<Label>, content: Content, numToAdd: Int) {
+		if(availableConnections.hasValues()) {
+        	if(numToAdd == 1) {
+        		addOne(availableConnections, content.labelSet);
+        	} else if(numToAdd == 2) {
+        		addTwo(availableConnections, content.labelSet);
+    		} else {
+    			addAll(availableConnections, content.labelSet);
+    		}
+	    }
+	}
 
-	private static function addOne(available: Array<Dynamic>, arr: ObservableSet<String>): Void {
+	private static function addOne(available: Array<Dynamic>, arr: ObservableSet<Dynamic>): Void {
 		// if(available.length == 1) {
   //       	arr.add(available[0]);
 		// } else {
-        	arr.add(getRandomFromArray(available).uid);
+        	arr.add(getRandomFromArray(available));
     	// }
 	}
 
-	private static function addTwo(available: Array<Dynamic>, arr: ObservableSet<String>) {
+	private static function addTwo(available: Array<Dynamic>, arr: ObservableSet<Dynamic>) {
 		if(available.length == 1) {
         	// arr.add(available[0]);
-        	arr.add(getRandomFromArray(available).uid);
+        	arr.add(getRandomFromArray(available));
 		} else {
-        	arr.add(getRandomFromArray(available).uid);
-        	arr.add(getRandomFromArray(available).uid);
+        	arr.add(getRandomFromArray(available));
+        	arr.add(getRandomFromArray(available));
     	}
 	}
 
-	private static function addAll(available: Array<Dynamic>, arr: ObservableSet<String>) {
+	private static function addAll(available: Array<Dynamic>, arr: ObservableSet<Dynamic>) {
 		for(t_ in 0...available.length) {
-			arr.add(available[t_].uid);
+			arr.add(available[t_]);
 		}
 	}
 
@@ -325,51 +325,51 @@ class TestDao {
 		return t;
 	}
 
-	// private static function getConnectionsFromNode(node: Node): Array<Connection> {
-	// 	var connections: Array<Connection> = new Array<Connection>();
-	// 	if(Std.is(node, ContentNode)) {
-	// 		if(cast(node, ContentNode).type == "CONNECTION") {
-	// 			connections.push(cast(cast(node, ContentNode).filterable, Connection));
-	// 		}
-	// 	} else {
-	// 		for(n_ in 0...node.nodes.length) {
-	// 			var childNode = node.nodes[n_];
-	// 			if(Std.is(childNode, ContentNode) && cast(childNode, ContentNode).type == "CONNECTION") {
-	// 				connections.push(cast(cast(childNode, ContentNode).filterable, Connection));
-	// 			} else if (childNode.nodes.hasValues()) {
-	// 				for(nn_ in 0...childNode.nodes.length) {
-	// 					var grandChild = childNode.nodes[nn_];
-	// 					connections = connections.concat(getConnectionsFromNode(grandChild));
-	// 				}
+	private static function getConnectionsFromNode(node: Node): Array<Connection> {
+		var connections: Array<Connection> = new Array<Connection>();
+		if(Std.is(node, ContentNode)) {
+			if(node.type == "CONNECTION") {
+				connections.push(cast(node, ConnectionNode).content);
+			}
+		} else {
+			for(n_ in 0...node.nodes.length) {
+				var childNode = node.nodes[n_];
+				if(Std.is(childNode, ContentNode) && childNode.type == "CONNECTION") {
+					connections.push(cast(childNode, ConnectionNode).content);
+				} else if (childNode.nodes.hasValues()) {
+					for(nn_ in 0...childNode.nodes.length) {
+						var grandChild = childNode.nodes[nn_];
+						connections = connections.concat(getConnectionsFromNode(grandChild));
+					}
 
-	// 			}
-	// 		}
-	// 	}
-	// 	return connections;
-	// }
+				}
+			}
+		}
+		return connections;
+	}
 
-	// private static function getLabelsFromNode(node: Node): Array<Label> {
-	// 	var labels: Array<Label> = new Array<Label>();
-	// 	if(Std.is(node, ContentNode)) {
-	// 		if(cast(node, ContentNode).type == "LABEL") {
-	// 			labels.push(cast(cast(node, ContentNode).filterable, Label));
-	// 		}
-	// 	} else {
-	// 		for(n_ in 0...node.nodes.length) {
-	// 			var childNode = node.nodes[n_];
-	// 			if(Std.is(childNode, ContentNode) && cast(childNode, ContentNode).type == "LABEL") {
-	// 				labels.push(cast(cast(childNode, ContentNode).filterable, Label));
-	// 			} else if (childNode.nodes.hasValues()) {
-	// 				for(nn_ in 0...childNode.nodes.length) {
-	// 					var grandChild = childNode.nodes[nn_];
-	// 					labels = labels.concat(getLabelsFromNode(grandChild));
-	// 				}
+	private static function getLabelsFromNode(node: Node): Array<Label> {
+		var labels: Array<Label> = new Array<Label>();
+		if(Std.is(node, ContentNode)) {
+			if(node.type == "LABEL") {
+				labels.push(cast(node, LabelNode).content);
+			}
+		} else {
+			for(n_ in 0...node.nodes.length) {
+				var childNode = node.nodes[n_];
+				if(Std.is(childNode, ContentNode) && childNode.type == "LABEL") {
+					labels.push(cast(childNode, LabelNode).content);
+				} else if (childNode.nodes.hasValues()) {
+					for(nn_ in 0...childNode.nodes.length) {
+						var grandChild = childNode.nodes[nn_];
+						labels = labels.concat(getLabelsFromNode(grandChild));
+					}
 
-	// 			}
-	// 		}
-	// 	}
-	// 	return labels;
-	// }
+				}
+			}
+		}
+		return labels;
+	}
 
 	private static function randomizeOrder<T>(arr: Array<T>): Array<T> {
 		var newArr: Array<Dynamic> = new Array<Dynamic>();
@@ -409,11 +409,11 @@ class TestDao {
 		return labels;
 	}
 
-	// public static function getContent(node: Node): Array<Content> {
-	// 	if(!initialized) initialize();
-	// 	var arr: Array<Content> = randomizeOrder( generateContent(node) );
-	// 	return getRandomNumber(arr , Std.random(arr.length));
-	// }
+	public static function getContent(node: Node): Array<Content> {
+		if(!initialized) initialize();
+		var arr: Array<Content> = randomizeOrder( generateContent(node) );
+		return getRandomNumber(arr , Std.random(arr.length));
+	}
 
 	public static function getUser(uid: String): User {
 		if(!initialized) initialize();

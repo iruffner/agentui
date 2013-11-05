@@ -8,6 +8,7 @@ import m3.jq.JQDraggable;
 import m3.jq.JQDroppable;
 import m3.jq.JQTooltip;
 import m3.observable.OSet;
+import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
 import ui.model.ModelObj;
@@ -58,12 +59,15 @@ extern class FilterComp extends JQ {
 						activeClass: "ui-state-hover",
 				      	hoverClass: "ui-state-active",
 				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
-			                //fire off a filterable
-			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, false, function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-			                		if(!selfElement.intersects(dragstopUi.helper)) {
-			                			dragstopUi.helper.remove();
-			                		}
-			                	});
+
+			                var dragstop = function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+			                	if (!selfElement.intersects(dragstopUi.helper)) {
+			                		dragstopUi.helper.remove();
+			                		JqueryUtil.deleteEffects(dragstopEvt);
+			                	}
+			                };
+
+			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, false, dragstop);
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
 			                var cloneOffset: {top: Int, left: Int} = clone.offset();
 
@@ -71,7 +75,8 @@ extern class FilterComp extends JQ {
 							clone.css({
 			                    "position": "absolute"
 			                });
-			                var isInFilterCombination: Bool = _ui.draggable.parent(".filterCombination").length > 0;
+
+			                // var isInFilterCombination: Bool = _ui.draggable.parent(".filterCombination").length > 0;
 			                // if(isInFilterCombination) {
 			                // 	var filterCombination: FilterCombination = cast(_ui.draggable.parent(), FilterCombination);
 			                // 	filterCombination.filterCombination("removeFilterable", _ui.draggable);
@@ -88,6 +93,8 @@ extern class FilterComp extends JQ {
 			                    	within: "#filter"
 	                    		});
 			                }
+
+			                // fire off a filterable
 			                self.fireFilter();
 				      	}
 				    });

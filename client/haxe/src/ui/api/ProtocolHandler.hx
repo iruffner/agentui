@@ -248,10 +248,11 @@ class ProtocolHandler {
 		AgentUi.CONTENT.clear();
 		
 		if(filter.rootNode.hasChildren()) {
-			// var string: String = filter.kdbxify();
-			// ui.AgentUi.LOGGER.debug("FILTER --> feed(  " + string + "  )");
-			// var content: Array<Content> =TestDao.getContent(filter.rootNode);
-			// ui.AgentUi.CONTENT.addAll(content);
+			if (AgentUi.DEMO) {
+				var content: Array<Content> = TestDao.getContent(filter.rootNode);
+				ui.AgentUi.CONTENT.addAll(content);
+			}
+
 			var request: EvalSubscribeRequest = new EvalSubscribeRequest();
 
 			var feedExpr: FeedExpr = new FeedExpr();
