@@ -94,6 +94,16 @@ extern class ContentComp extends JQ {
 		        				connection: connection
 		        			}).appendTo(postConnections);
 		        	}
+
+					var removePost: JQ = new JQ("<img src='media/fileclose.png'/>")
+											.css("float", "right")
+		        							.prependTo(selfElement)
+		        							.attr("title", "Remove Post")
+		        							.click(function(evt: JQEvent): Void {
+		        								js.Lib.alert("Are you sure you want to remove this post?");
+		        								selfElement.remove();
+		        							});
+
 		        },
 		        
 		        destroy: function() {

@@ -6930,6 +6930,10 @@ var defineWidget = function() {
 			var connection1 = connIter.next();
 			new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection1}).appendTo(postConnections);
 		}
+		var removePost = new $("<img src='media/fileclose.png'/>").css("float","right").prependTo(selfElement).attr("title","Remove Post").click(function(evt) {
+			js.Lib.alert("Are you sure you want to remove this post?");
+			selfElement.remove();
+		});
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
