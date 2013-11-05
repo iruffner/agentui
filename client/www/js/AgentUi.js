@@ -3079,95 +3079,11 @@ m3.serialization.Serializer = function() {
 $hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
 m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
 m3.serialization.Serializer.prototype = {
-	createHandler: function(type) {
-		return (function($this) {
-			var $r;
-			var $e = (type);
-			switch( $e[1] ) {
-			case 1:
-				var parms = $e[3], path = $e[2];
-				$r = path == "Bool"?new m3.serialization.BoolHandler():new m3.serialization.EnumHandler(path,parms);
-				break;
-			case 2:
-				var parms = $e[3], path = $e[2];
-				$r = (function($this) {
-					var $r;
-					switch(path) {
-					case "Bool":
-						$r = new m3.serialization.BoolHandler();
-						break;
-					case "Float":
-						$r = new m3.serialization.FloatHandler();
-						break;
-					case "String":
-						$r = new m3.serialization.StringHandler();
-						break;
-					case "Int":
-						$r = new m3.serialization.IntHandler();
-						break;
-					case "Array":
-						$r = new m3.serialization.ArrayHandler(parms,$this);
-						break;
-					case "Date":
-						$r = new m3.serialization.DateHandler();
-						break;
-					default:
-						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
-					}
-					return $r;
-				}($this));
-				break;
-			case 7:
-				var parms = $e[3], path = $e[2];
-				$r = (function($this) {
-					var $r;
-					switch(path) {
-					case "Bool":
-						$r = new m3.serialization.BoolHandler();
-						break;
-					case "Float":
-						$r = new m3.serialization.FloatHandler();
-						break;
-					case "String":
-						$r = new m3.serialization.StringHandler();
-						break;
-					case "Int":
-						$r = new m3.serialization.IntHandler();
-						break;
-					case "Array":
-						$r = new m3.serialization.ArrayHandler(parms,$this);
-						break;
-					case "Date":
-						$r = new m3.serialization.DateHandler();
-						break;
-					default:
-						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
-					}
-					return $r;
-				}($this));
-				break;
-			case 6:
-				$r = new m3.serialization.DynamicHandler();
-				break;
-			case 4:
-				var ret = $e[3], args = $e[2];
-				$r = new m3.serialization.FunctionHandler();
-				break;
-			default:
-				$r = (function($this) {
-					var $r;
-					throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
-					return $r;
-				}($this));
-			}
-			return $r;
-		}(this));
-	}
-	,getHandler: function(type) {
+	getHandler: function(type) {
 		var typename = m3.serialization.CTypeTools.typename(type);
 		var handler = this._handlersMap.get(typename);
 		if(handler == null) {
-			handler = this.createHandler(type);
+			handler = m3.serialization.ClassHandlerHelper.createHandler(type,this);
 			this._handlersMap.set(typename,handler);
 		}
 		return handler;
@@ -3271,6 +3187,40 @@ m3.serialization.ArrayHandler.prototype = {
 		return instance;
 	}
 	,__class__: m3.serialization.ArrayHandler
+}
+m3.serialization.ObservableSetHandler = function(parms,serializer) {
+	this._parms = parms;
+	this._serializer = serializer;
+	this._elementHandler = this._serializer.getHandler(this._parms.first());
+};
+$hxClasses["m3.serialization.ObservableSetHandler"] = m3.serialization.ObservableSetHandler;
+m3.serialization.ObservableSetHandler.__name__ = ["m3","serialization","ObservableSetHandler"];
+m3.serialization.ObservableSetHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.ObservableSetHandler.prototype = {
+	write: function(value,writer) {
+		return null;
+	}
+	,read: function(fromJson,reader,instance) {
+		return null;
+	}
+	,__class__: m3.serialization.ObservableSetHandler
+}
+m3.serialization.SizedMapHandler = function(parms,serializer) {
+	this._parms = parms;
+	this._serializer = serializer;
+	this._elementHandler = this._serializer.getHandler(this._parms.first());
+};
+$hxClasses["m3.serialization.SizedMapHandler"] = m3.serialization.SizedMapHandler;
+m3.serialization.SizedMapHandler.__name__ = ["m3","serialization","SizedMapHandler"];
+m3.serialization.SizedMapHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.SizedMapHandler.prototype = {
+	write: function(value,writer) {
+		return null;
+	}
+	,read: function(fromJson,reader,instance) {
+		return null;
+	}
+	,__class__: m3.serialization.SizedMapHandler
 }
 m3.serialization.EnumHandler = function(enumName,parms) {
 	this._enumName = enumName;
@@ -3468,11 +3418,119 @@ m3.serialization.Field.__name__ = ["m3","serialization","Field"];
 m3.serialization.Field.prototype = {
 	__class__: m3.serialization.Field
 }
+m3.serialization.ClassHandlerHelper = function() { }
+$hxClasses["m3.serialization.ClassHandlerHelper"] = m3.serialization.ClassHandlerHelper;
+m3.serialization.ClassHandlerHelper.__name__ = ["m3","serialization","ClassHandlerHelper"];
+m3.serialization.ClassHandlerHelper.createHandler = function(type,serializer) {
+	return (function($this) {
+		var $r;
+		var $e = (type);
+		switch( $e[1] ) {
+		case 1:
+			var parms = $e[3], path = $e[2];
+			$r = path == "Bool"?new m3.serialization.BoolHandler():new m3.serialization.EnumHandler(path,parms);
+			break;
+		case 2:
+			var parms = $e[3], path = $e[2];
+			$r = (function($this) {
+				var $r;
+				switch(path) {
+				case "Bool":
+					$r = new m3.serialization.BoolHandler();
+					break;
+				case "Float":
+					$r = new m3.serialization.FloatHandler();
+					break;
+				case "String":
+					$r = new m3.serialization.StringHandler();
+					break;
+				case "Int":
+					$r = new m3.serialization.IntHandler();
+					break;
+				case "Array":
+					$r = new m3.serialization.ArrayHandler(parms,serializer);
+					break;
+				case "Date":
+					$r = new m3.serialization.DateHandler();
+					break;
+				case "ui.observable.ObservableSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "ui.observable.OSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "m3.util.SizedMap":
+					$r = new m3.serialization.SizedMapHandler(parms,serializer);
+					break;
+				default:
+					$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),serializer);
+				}
+				return $r;
+			}($this));
+			break;
+		case 7:
+			var parms = $e[3], path = $e[2];
+			$r = (function($this) {
+				var $r;
+				switch(path) {
+				case "Bool":
+					$r = new m3.serialization.BoolHandler();
+					break;
+				case "Float":
+					$r = new m3.serialization.FloatHandler();
+					break;
+				case "String":
+					$r = new m3.serialization.StringHandler();
+					break;
+				case "Int":
+					$r = new m3.serialization.IntHandler();
+					break;
+				case "Array":
+					$r = new m3.serialization.ArrayHandler(parms,serializer);
+					break;
+				case "Date":
+					$r = new m3.serialization.DateHandler();
+					break;
+				case "ui.observable.ObservableSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "ui.observable.OSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "m3.util.SizedMap":
+					$r = new m3.serialization.SizedMapHandler(parms,serializer);
+					break;
+				default:
+					$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),serializer);
+				}
+				return $r;
+			}($this));
+			break;
+		case 6:
+			$r = new m3.serialization.DynamicHandler();
+			break;
+		case 4:
+			var ret = $e[3], args = $e[2];
+			$r = new m3.serialization.FunctionHandler();
+			break;
+		default:
+			$r = (function($this) {
+				var $r;
+				throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
+				return $r;
+			}($this));
+		}
+		return $r;
+	}(this));
+}
 m3.serialization.ClassHandler = function(clazz,typename,serializer) {
 	this._clazz = clazz;
 	this._typename = typename;
 	this._serializer = serializer;
-	if(this._clazz == null) throw new m3.serialization.JsonException("clazz is null");
+	if(this._clazz == null) {
+		console.log("clazz is null for typename: " + typename);
+		throw new m3.serialization.JsonException("clazz is null for typename: " + typename);
+	}
 	var rtti = this._clazz.__rtti;
 	if(rtti == null) {
 		var msg = "no rtti found for " + this._typename;
@@ -4440,6 +4498,10 @@ ui.api.ProtocolHandler.prototype = {
 	,filter: function(filter) {
 		ui.AgentUi.CONTENT.clear();
 		if(filter.rootNode.hasChildren()) {
+			if(ui.AgentUi.DEMO) {
+				var content = ui.api.TestDao.getContent(filter.rootNode);
+				ui.AgentUi.CONTENT.addAll(content);
+			}
 			var request = new ui.api.EvalSubscribeRequest();
 			var feedExpr = new ui.api.FeedExpr();
 			request.contentImpl.expression = feedExpr;
@@ -5321,26 +5383,173 @@ ui.api.TestDao.buildAliases = function() {
 	alias.imgSrc = "media/default_avatar.jpg";
 	ui.api.TestDao.aliases.push(alias);
 }
+ui.api.TestDao.generateContent = function(node) {
+	var availableConnections = ui.api.TestDao.getConnectionsFromNode(node);
+	var availableLabels = ui.api.TestDao.getLabelsFromNode(node);
+	var content = new Array();
+	var audioContent = new ui.model.AudioContent();
+	audioContent.set_uid(m3.util.UidGenerator.create());
+	audioContent.type = ui.model.ContentType.AUDIO;
+	audioContent.audioSrc = "media/test/hello_newman.mp3";
+	audioContent.audioType = "audio/mpeg";
+	audioContent.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	audioContent.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) audioContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else audioContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,audioContent,2);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,audioContent,2);
+	audioContent.title = "Hello Newman Compilation";
+	content.push(audioContent);
+	var img = new ui.model.ImageContent();
+	img.set_uid(m3.util.UidGenerator.create());
+	img.type = ui.model.ContentType.IMAGE;
+	img.imgSrc = "media/test/soupkitchen.jpg";
+	img.caption = "Soup Kitchen";
+	img.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	img.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else img.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.set_uid(m3.util.UidGenerator.create());
+	img.type = ui.model.ContentType.IMAGE;
+	img.imgSrc = "media/test/apt.jpg";
+	img.caption = "Apartment";
+	img.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	img.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else img.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.set_uid(m3.util.UidGenerator.create());
+	img.type = ui.model.ContentType.IMAGE;
+	img.imgSrc = "media/test/jrmint.jpg";
+	img.caption = "The Junior Mint!";
+	img.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	img.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else img.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,3);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.set_uid(m3.util.UidGenerator.create());
+	img.type = ui.model.ContentType.IMAGE;
+	img.imgSrc = "media/test/oldschool.jpg";
+	img.caption = "Retro";
+	img.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	img.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else img.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,3);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.set_uid(m3.util.UidGenerator.create());
+	img.type = ui.model.ContentType.IMAGE;
+	img.imgSrc = "media/test/mailman.jpg";
+	img.caption = "Jerry Delivering the mail";
+	img.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	img.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else img.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,1);
+	content.push(img);
+	img = new ui.model.ImageContent();
+	img.set_uid(m3.util.UidGenerator.create());
+	img.type = ui.model.ContentType.IMAGE;
+	img.imgSrc = "media/test/closet.jpg";
+	img.caption = "Stuck in the closet!";
+	img.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	img.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else img.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
+	content.push(img);
+	var urlContent = new ui.model.UrlContent();
+	urlContent.set_uid(m3.util.UidGenerator.create());
+	urlContent.type = ui.model.ContentType.URL;
+	urlContent.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	urlContent.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier,[]);
+	urlContent.text = "Check out this link";
+	urlContent.url = "http://www.bing.com";
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) urlContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else urlContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,urlContent,1);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,urlContent,2);
+	content.push(urlContent);
+	return content;
+}
+ui.api.TestDao.addConnections = function(availableConnections,content,numToAdd) {
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) {
+		if(numToAdd == 1) ui.api.TestDao.addOne(availableConnections,content.connectionSet); else if(numToAdd == 2) ui.api.TestDao.addTwo(availableConnections,content.connectionSet); else ui.api.TestDao.addAll(availableConnections,content.connectionSet);
+	}
+}
+ui.api.TestDao.addLabels = function(availableConnections,content,numToAdd) {
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) {
+		if(numToAdd == 1) ui.api.TestDao.addOne(availableConnections,content.labelSet); else if(numToAdd == 2) ui.api.TestDao.addTwo(availableConnections,content.labelSet); else ui.api.TestDao.addAll(availableConnections,content.labelSet);
+	}
+}
 ui.api.TestDao.addOne = function(available,arr) {
-	arr.add(ui.api.TestDao.getRandomFromArray(available).uid);
+	arr.add(ui.api.TestDao.getRandomFromArray(available));
 }
 ui.api.TestDao.addTwo = function(available,arr) {
-	if(available.length == 1) arr.add(ui.api.TestDao.getRandomFromArray(available).uid); else {
-		arr.add(ui.api.TestDao.getRandomFromArray(available).uid);
-		arr.add(ui.api.TestDao.getRandomFromArray(available).uid);
+	if(available.length == 1) arr.add(ui.api.TestDao.getRandomFromArray(available)); else {
+		arr.add(ui.api.TestDao.getRandomFromArray(available));
+		arr.add(ui.api.TestDao.getRandomFromArray(available));
 	}
 }
 ui.api.TestDao.addAll = function(available,arr) {
 	var _g1 = 0, _g = available.length;
 	while(_g1 < _g) {
 		var t_ = _g1++;
-		arr.add(available[t_].uid);
+		arr.add(available[t_]);
 	}
 }
 ui.api.TestDao.getRandomFromArray = function(arr) {
 	var t = null;
 	if(m3.helper.ArrayHelper.hasValues(arr)) t = arr[Std.random(arr.length)];
 	return t;
+}
+ui.api.TestDao.getConnectionsFromNode = function(node) {
+	var connections = new Array();
+	if(js.Boot.__instanceof(node,ui.model.ContentNode)) {
+		if(node.type == "CONNECTION") connections.push((js.Boot.__cast(node , ui.model.ConnectionNode)).content);
+	} else {
+		var _g1 = 0, _g = node.nodes.length;
+		while(_g1 < _g) {
+			var n_ = _g1++;
+			var childNode = node.nodes[n_];
+			if(js.Boot.__instanceof(childNode,ui.model.ContentNode) && childNode.type == "CONNECTION") connections.push((js.Boot.__cast(childNode , ui.model.ConnectionNode)).content); else if(m3.helper.ArrayHelper.hasValues(childNode.nodes)) {
+				var _g3 = 0, _g2 = childNode.nodes.length;
+				while(_g3 < _g2) {
+					var nn_ = _g3++;
+					var grandChild = childNode.nodes[nn_];
+					connections = connections.concat(ui.api.TestDao.getConnectionsFromNode(grandChild));
+				}
+			}
+		}
+	}
+	return connections;
+}
+ui.api.TestDao.getLabelsFromNode = function(node) {
+	var labels = new Array();
+	if(js.Boot.__instanceof(node,ui.model.ContentNode)) {
+		if(node.type == "LABEL") labels.push((js.Boot.__cast(node , ui.model.LabelNode)).content);
+	} else {
+		var _g1 = 0, _g = node.nodes.length;
+		while(_g1 < _g) {
+			var n_ = _g1++;
+			var childNode = node.nodes[n_];
+			if(js.Boot.__instanceof(childNode,ui.model.ContentNode) && childNode.type == "LABEL") labels.push((js.Boot.__cast(childNode , ui.model.LabelNode)).content); else if(m3.helper.ArrayHelper.hasValues(childNode.nodes)) {
+				var _g3 = 0, _g2 = childNode.nodes.length;
+				while(_g3 < _g2) {
+					var nn_ = _g3++;
+					var grandChild = childNode.nodes[nn_];
+					labels = labels.concat(ui.api.TestDao.getLabelsFromNode(grandChild));
+				}
+			}
+		}
+	}
+	return labels;
 }
 ui.api.TestDao.randomizeOrder = function(arr) {
 	var newArr = new Array();
@@ -5374,6 +5583,11 @@ ui.api.TestDao.getConnections = function(user) {
 ui.api.TestDao.getLabels = function(user) {
 	if(!ui.api.TestDao.initialized) ui.api.TestDao.initialize();
 	return ui.api.TestDao.labels;
+}
+ui.api.TestDao.getContent = function(node) {
+	if(!ui.api.TestDao.initialized) ui.api.TestDao.initialize();
+	var arr = ui.api.TestDao.randomizeOrder(ui.api.TestDao.generateContent(node));
+	return ui.api.TestDao.getRandomNumber(arr,Std.random(arr.length));
 }
 ui.api.TestDao.getUser = function(uid) {
 	if(!ui.api.TestDao.initialized) ui.api.TestDao.initialize();
@@ -6782,17 +6996,17 @@ var defineWidget = function() {
 		(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
 			return d["is"](".filterable");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
-			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,function(dragstopEvt,dragstopUi) {
+			var dragstop = function(dragstopEvt,dragstopUi) {
 				if(!selfElement.intersects(dragstopUi.helper)) {
 					dragstopUi.helper.remove();
 					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
 				}
-			});
+			};
+			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
 			clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
 			var cloneOffset = clone.offset();
 			$(this).append(clone);
 			clone.css({ position : "absolute"});
-			var isInFilterCombination = _ui.draggable.parent(".filterCombination").length > 0;
 			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : "#filter"});
 			self.fireFilter();
 		}});
