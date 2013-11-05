@@ -642,11 +642,12 @@ body {
 	}
 
 		#connections .connection {
-			float: left;
+			/*float: left;*/
 			margin: 3px auto;
 			width: 100%;
 			padding: 5px;
 			font-size: .9em !important;
+			position: relative;
 		}
 
 			#connections .connection div.avatar {
@@ -661,7 +662,7 @@ body {
 				border: 1px solid #5c9ccc;
 			}
 
-			#connections .connection div {
+			#connections .connection .avatar, #connections .connection .name {
 				margin-top: 20px;
 			}
 
@@ -671,6 +672,28 @@ body {
 
 			#connections .connection:nth-child(even) div.avatar, #connections .connection:nth-child(odd) div.name {
 				float: right;
+			}
+
+			#connections .connection .notifications {
+				position: absolute;
+				border-radius: 50%;
+				background: red;
+				color: white;
+				min-width: 20px;
+				min-height: 20px;
+				padding: 2px;
+				visibility: hidden;
+				font-weight: bold;
+			}
+
+			#connections .connection:nth-child(odd) div.notifications {
+				top: -6px;
+				left: 195px;
+			}
+
+			#connections .connection:nth-child(even) div.notifications {
+				top: -6px;
+				left: 0px;
 			}
 
 	/* #chat

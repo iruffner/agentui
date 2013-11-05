@@ -167,7 +167,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	selfElement.children("img").attr("src", self.options.connection.imgSrc);
 		            selfElement.children("div").text(self.options.connection.name());
 	        	},
-		        
+
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }

@@ -19,8 +19,10 @@ typedef ConnectionCompWidgetDef = {
 	var options: ConnectionCompOptions;
 	var _create: Void->Void;
 	@:optional var _avatar: ConnectionAvatar;
+	@:optional var _notifications: JQ;
 	var update: Void->Void;
 	var destroy: Void->Void;
+	var addNotification: Void->Void;
 }
 
 class ConnectionCompHelper {
@@ -59,8 +61,15 @@ extern class ConnectionComp extends JQ {
 		        		isDragByHelper: true,
 		        		containment: false
 	        		});
+	        		var notificationDiv: JQ = new JQ(".notifications", selfElement);
+					if(!notificationDiv.exists()) {
+						notificationDiv = new JQ("<div class='notifications'>1</div>");
+					}
+
+					notificationDiv.appendTo(selfElement);
 		            selfElement.append(self._avatar);
 		            selfElement.append("<div class='name'>" + self.options.connection.name() + "</div>");
+		            selfElement.append("<div class='clear'></div>");
 		        
 		            cast(selfElement, JQDroppable).droppable({
 			    		accept: function(d) {
@@ -91,6 +100,14 @@ extern class ConnectionComp extends JQ {
 
 		            self._avatar.connectionAvatar("update");
 	        	},
+
+	        	addNotification: function(): Void {
+	        		var self: ConnectionCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+					var notificationDiv: JQ = new JQ(".notifications", selfElement);
+					notificationDiv.css("visibility", "visible");
+        		},
 		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
