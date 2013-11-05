@@ -642,11 +642,12 @@ body {
 	}
 
 		#connections .connection {
-			float: left;
+			/*float: left;*/
 			margin: 3px auto;
 			width: 100%;
 			padding: 5px;
 			font-size: .9em !important;
+			position: relative;
 		}
 
 			#connections .connection div.avatar {
@@ -675,13 +676,24 @@ body {
 
 			#connections .connection .notifications {
 				position: absolute;
-				/*border: 2px solid red;*/
 				border-radius: 50%;
 				background: red;
 				color: white;
 				min-width: 20px;
 				min-height: 20px;
 				padding: 2px;
+				visibility: hidden;
+				font-weight: bold;
+			}
+
+			#connections .connection:nth-child(odd) div.notifications {
+				top: -6px;
+				left: 195px;
+			}
+
+			#connections .connection:nth-child(even) div.notifications {
+				top: -6px;
+				left: 0px;
 			}
 
 	/* #chat
