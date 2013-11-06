@@ -3,6 +3,7 @@ body {
 	margin-left: 5px;
 	margin-right: 5px;
 	min-width: 800px;
+	font-family: Lucida Grande,Lucida Sans,Arial,sans-serif;
 }
 
 #spacer {
@@ -185,12 +186,16 @@ body {
 		margin-top: 25px;
 	}
 
-	.urlComp {
-		padding-top: 18px;
-	}
-
 		/* Post
 		-----------------------------------------------------------------------------*/
+		.urlComp {
+			padding-top: 18px;
+		}
+
+		.uploadComp {
+			padding-top: 9px;
+		}
+
 		.file_about_to_be_uploaded {
 			max-height: 90px;
 			max-width: 160px;

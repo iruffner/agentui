@@ -40,6 +40,9 @@ extern class ContentComp extends JQ {
 		        	}
 
 		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());
+		        	selfElement.click(function(evt:js.JQuery.JqEvent){
+		        		JqueryUtil.alert("I want to edti this post...");
+		        	});
 		        	var postWr: JQ = new JQ("<section class='postWr'></section>");
 		        	selfElement.append(postWr);
 		        	var postContentWr: JQ = new JQ("<div class='postContentWr'></div>");
@@ -101,6 +104,7 @@ extern class ContentComp extends JQ {
 		        							.prependTo(selfElement)
 		        							.attr("title", "Remove Post")
 		        							.click(function(evt: JQEvent): Void {
+		        								evt.stopPropagation();
 		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
 		        									function(){
 		        										selfElement.remove();

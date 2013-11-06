@@ -6932,11 +6932,9 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentComp must be a div element");
-		var tabContainer = new $("<div class='postContainer'></div>").appendTo(selfElement).hide();
-		var tabs = new $("<aside class='tabs'></aside>").appendTo(tabContainer);
 		selfElement.addClass("post container shadow " + m3.widget.Widgets.getWidgetClasses());
 		selfElement.click(function(evt) {
-			tabContainer.toggle();
+			m3.util.JqueryUtil.alert("I want to edti this post...");
 		});
 		var postWr = new $("<section class='postWr'></section>");
 		selfElement.append(postWr);
@@ -6951,22 +6949,18 @@ var defineWidget = function() {
 			var audioControls = new $("<audio controls></audio>");
 			postContent.append(audioControls);
 			audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
-			var audioTab = new $("<span class='ui-icon ui-icon-volume-on ui-corner-left'></span>").appendTo(tabs);
 			break;
 		case 1:
 			var img = js.Boot.__cast(self.options.content , ui.model.ImageContent);
 			postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");
-			var imgTab = new $("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs);
 			break;
 		case 2:
 			var urlContent = js.Boot.__cast(self.options.content , ui.model.UrlContent);
 			postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
-			var urlTab = new $("<span class='ui-icon ui-icon-link ui-corner-left'></span>").appendTo(tabs);
 			break;
 		case 3:
 			var textContent = js.Boot.__cast(self.options.content , ui.model.MessageContent);
 			postContent.append("<p>" + textContent.text + "</p>");
-			var textTab = new $("<span class='ui-icon ui-icon-document active ui-corner-left'></span>").appendTo(tabs);
 			break;
 		}
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
@@ -6987,6 +6981,7 @@ var defineWidget = function() {
 			new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection1}).appendTo(postConnections);
 		}
 		var removePost = new $("<img src='media/fileclose.png'/>").css("float","right").prependTo(selfElement).attr("title","Remove Post").click(function(evt) {
+			evt.stopPropagation();
 			m3.util.JqueryUtil.confirm("Delete Post","Are you sure you want to remove this post?",function() {
 				selfElement.remove();
 			});
@@ -8215,11 +8210,11 @@ ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.
 ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"165\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</fname>\n\t<lname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</imgSrc>\n\t<src public=\"1\"><c path=\"String\"/></src>\n\t<tgt public=\"1\"><c path=\"String\"/></tgt>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<name public=\"1\" set=\"method\" line=\"186\"><f a=\"\"><c path=\"String\"/></f></name>\n\t<new public=\"1\" set=\"method\" line=\"180\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.BiConnection.__rtti = "<class path=\"ui.model.BiConnection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.BiConnection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<readConnection public=\"1\"><c path=\"ui.model.Connection\"/></readConnection>\n\t<writeConnection public=\"1\"><c path=\"ui.model.Connection\"/></writeConnection>\n\t<new public=\"1\" set=\"method\" line=\"195\"><f a=\"readConnection:writeConnection\">\n\t<c path=\"ui.model.Connection\"/>\n\t<c path=\"ui.model.Connection\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><e path=\"ui.model.ContentType\"/></type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<connections>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connections>\n\t<creator public=\"1\"><c path=\"String\"/></creator>\n\t<readResolve set=\"method\" line=\"218\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"223\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n</class>";
-ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"233\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"241\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"247\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"250\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><e path=\"ui.model.ContentType\"/></type>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<connections>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connections>\n\t<creator public=\"1\"><c path=\"String\"/></creator>\n\t<readResolve set=\"method\" line=\"222\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"227\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n</class>";
+ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"237\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"245\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"251\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"254\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
