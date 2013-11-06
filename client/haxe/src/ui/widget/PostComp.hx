@@ -20,6 +20,7 @@ using ui.widget.LabelComp;
 using ui.widget.ConnectionAvatar;
 
 typedef PostCompOptions = {
+	@:optional var contentType: ContentType;
 }
 
 typedef PostCompWidgetDef = {
@@ -27,8 +28,6 @@ typedef PostCompWidgetDef = {
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
-
-
 
 
 @:native("$")
@@ -42,11 +41,16 @@ extern class PostComp extends JQ {
 		var defineWidget: Void->PostCompWidgetDef = function(): PostCompWidgetDef {
 			return {
 		        _create: function(): Void {
+
 		        	var self: PostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of PostComp must be a div element");
 		        	}
+
+		        	var showContentType = function(contentType:ContentType) {
+		        		return (self.options.contentType == null || self.options.contentType == contentType);
+		        	};
 
 		        	selfElement.addClass("postComp container shadow " + Widgets.getWidgetClasses());
 
@@ -54,7 +58,7 @@ extern class PostComp extends JQ {
 
 		        	var addConnectionsAndLabels: Content->Void = null;
 
-		        	var doTextPost: JQEvent->ContentType->String->Void = function(evt: JQEvent, contentType: ContentType, value:String): Void {
+		        	var doTextPost = function(evt: JQEvent, contentType: ContentType, value:String): Void {
 		        		ui.AgentUi.LOGGER.debug("Post new text content");
 						evt.preventDefault();
 						
@@ -69,88 +73,112 @@ extern class PostComp extends JQ {
 						EM.change(EMEvent.NewContentCreated, msg);
 		        	};
 
-		        	var doTextPostForElement: JQEvent->ContentType->JQ->Void = function(evt: JQEvent, contentType: ContentType, ele:JQ): Void {
+		        	var doTextPostForElement = function(evt: JQEvent, contentType: ContentType, ele:JQ): Void {
 		        		doTextPost(evt, contentType, ele.val());
 						ele.val("");
 		        	};
 
-		        	var textInput: JQ = new JQ("<div class='postContainer'></div>").appendTo(section);
-		        	var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
-		        			.appendTo(textInput)
-		        			.attr("id", "textInput_ta")
-		        			.keypress(function(evt: JQEvent): Void {
-		        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-		        						doTextPostForElement(evt, ContentType.TEXT, new JQ(evt.target));
-		        					}
-		        				})
-		        			;
-
+		        	// Define the elements.  Don't add them to the DOM unless they are to be displayed.
+		        	var textInput: JQ = new JQ("<div class='postContainer'></div>");
 		        	var urlInput: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
-		        	urlInput
-		        		.appendTo(section)
-		        		.keypress(function(evt: JQEvent): Void {
-        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-        						doTextPostForElement(evt, ContentType.URL, new JQ(evt.target));
-        					}
-        				});
 
-		        	var options:UploadCompOptions = {contentType: ContentType.IMAGE};
-		        	var imageInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
-		        	imageInput.appendTo(section);
-		        	
+			        var options:UploadCompOptions = {contentType: ContentType.IMAGE};
+			        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+
 		        	options.contentType = ContentType.AUDIO;
-		        	var audioInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
-		        	audioInput.appendTo(section);
+		        	var audioInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 
-		        	var label: JQ = new JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
+
+		        	if (showContentType(ContentType.TEXT)) {
+			        	textInput.appendTo(section);
+			        	var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
+			        			.appendTo(textInput)
+			        			.attr("id", "textInput_ta")
+			        			.keypress(function(evt: JQEvent): Void {
+			        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
+			        						doTextPostForElement(evt, ContentType.TEXT, new JQ(evt.target));
+			        					}
+			        				})
+			        			;
+			        }
+
+		        	if (showContentType(ContentType.URL)) {
+			        	urlInput
+			        		.appendTo(section)
+			        		.keypress(function(evt: JQEvent): Void {
+	        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
+	        						doTextPostForElement(evt, ContentType.URL, new JQ(evt.target));
+	        					}
+	        				});
+					}
+
+		        	if (showContentType(ContentType.IMAGE)) {
+			        	imageInput.appendTo(section);
+		        	}
+
+		        	if (showContentType(ContentType.AUDIO)) {
+			        	audioInput.appendTo(section);
+			        }
 
 		        	var tabs: JQ = new JQ("<aside class='tabs'></aside>").appendTo(section);
-		        	var textTab: JQ = new JQ("<span class='ui-icon ui-icon-document active ui-corner-left'></span>")
-		        						.appendTo(tabs)
-		        						.click(function(evt: JQEvent): Void {
-							        			tabs.children(".active").removeClass("active");
-							        			JQ.cur.addClass("active");
-							        			textInput.show();
-							        			urlInput.hide();
-							        			imageInput.hide();
-							        			audioInput.hide();
-							        		});
 
-		        	var urlTab: JQ = new JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>")
-		        						.appendTo(tabs)
-		        						.click(function(evt: JQEvent): Void {
-							        			tabs.children(".active").removeClass("active");
-							        			JQ.cur.addClass("active");
-							        			textInput.hide();
-							        			urlInput.show();
-							        			imageInput.hide();
-							        			audioInput.hide();
-							        		});
+		        	if (showContentType(ContentType.TEXT)) {
+			        	var textTab: JQ = new JQ("<span class='ui-icon ui-icon-document active ui-corner-left'></span>")
+			        						.appendTo(tabs)
+			        						.click(function(evt: JQEvent): Void {
+								        			tabs.children(".active").removeClass("active");
+								        			JQ.cur.addClass("active");
+								        			textInput.show();
+								        			urlInput.hide();
+								        			imageInput.hide();
+								        			audioInput.hide();
+								        		});
+					}
 
-		        	var imgTab: JQ = new JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>")
-		        						.appendTo(tabs)
-		        						.click(function(evt: JQEvent): Void {
-							        			tabs.children(".active").removeClass("active");
-							        			JQ.cur.addClass("active");
-							        			textInput.hide();
-							        			urlInput.hide();
-							        			imageInput.show();
-							        			audioInput.hide();
-							        		});
+		        	if (showContentType(ContentType.URL)) {
+			        	var urlTab: JQ = new JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>")
+			        						.appendTo(tabs)
+			        						.click(function(evt: JQEvent): Void {
+								        			tabs.children(".active").removeClass("active");
+								        			JQ.cur.addClass("active");
+								        			textInput.hide();
+								        			urlInput.show();
+								        			imageInput.hide();
+								        			audioInput.hide();
+								        		});
+			        }
 
-		        	var audioTab: JQ = new JQ("<span class='ui-icon ui-icon-volume-on ui-corner-left'></span>")
-		        						.appendTo(tabs)
-		        						.click(function(evt: JQEvent): Void {
-							        			tabs.children(".active").removeClass("active");
-							        			JQ.cur.addClass("active");
-							        			textInput.hide();
-							        			urlInput.hide();
-							        			imageInput.hide();
-							        			audioInput.show();
-							        		});
-					urlInput.hide();
-					imageInput.hide();
-					audioInput.hide();
+		        	if (showContentType(ContentType.IMAGE)) {
+			        	var imgTab: JQ = new JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>")
+			        						.appendTo(tabs)
+			        						.click(function(evt: JQEvent): Void {
+								        			tabs.children(".active").removeClass("active");
+								        			JQ.cur.addClass("active");
+								        			textInput.hide();
+								        			urlInput.hide();
+								        			imageInput.show();
+								        			audioInput.hide();
+								        		});
+					}
+
+
+		        	if (showContentType(ContentType.AUDIO)) {
+			        	var audioTab: JQ = new JQ("<span class='ui-icon ui-icon-volume-on ui-corner-left'></span>")
+			        						.appendTo(tabs)
+			        						.click(function(evt: JQEvent): Void {
+								        			tabs.children(".active").removeClass("active");
+								        			JQ.cur.addClass("active");
+								        			textInput.hide();
+								        			urlInput.hide();
+								        			imageInput.hide();
+								        			audioInput.show();
+								        		});
+			        }
+			        if (self.options.contentType == null) {
+						urlInput.hide();
+						imageInput.hide();
+						audioInput.hide();
+					}
 
 					var isDuplicate = function(selector:String, ele:JQ, container: JQDroppable, getUid:JQ->String) {
 						var is_duplicate = false;
@@ -277,9 +305,12 @@ extern class PostComp extends JQ {
 													doTextPostForElement(evt, ContentType.TEXT, ta);
 		        								} else if (urlInput.isVisible()) {
 		        									doTextPostForElement(evt, ContentType.URL, urlInput.urlComp("valEle"));
-		        								} else {
+		        								} else if (imageInput.isVisible()){
 		        									doTextPost(evt, ContentType.IMAGE, imageInput.value());
 		        									imageInput.clear();
+		        								} else if (audioInput.isVisible()) {
+		        									doTextPost(evt, ContentType.AUDIO, audioInput.value());
+		        									audioInput.clear();
 		        								}
 		        							});
 		        },
