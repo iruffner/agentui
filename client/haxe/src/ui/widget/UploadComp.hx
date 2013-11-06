@@ -4,13 +4,12 @@ import m3.jq.JQ;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 import m3.exception.Exception;
-// import js.html.FileReader;
-// import js.html.File;
+import ui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 
-
 typedef UploadCompOptions = {
+	 @:optional var contentType: ContentType;
 }
 
 typedef UploadCompWidgetDef = {
@@ -103,33 +102,48 @@ extern class UploadComp extends JQ {
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 		        	var selfElement: JQ = Widgets.getSelfElement();
 		        	
-		        	new JQ("#files-upload").remove();
+		        	var element_id:String = "files-upload";
+		        	if (self.options.contentType != null) {
+		        		element_id += self.options.contentType;
+		        	}
+		        	new JQ("#" + element_id).remove();
 		        	
-		        	var filesUpload = new JQ("<input id='files-upload' type='file'/>").prependTo(selfElement);
+		        	var filesUpload = new JQ("<input id='" + element_id + "' class='files-upload' type='file'/>").prependTo(selfElement);
 					filesUpload.change(function (evt: JQEvent) {
 						untyped self._traverseFiles(JQ.curNoWrap.files);
 					});
 		        },
 
 		        _uploadFile: function(file: Dynamic) {
+		        	var self: UploadCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
 		        	if (untyped __js__("typeof FileReader === 'undefined'")) {
 		        		JqueryUtil.alert("FileUpload is not supported by your browser");
 		        		return;
 		        	}
 
-		        	if (!(~/image/i).match(file.type)) {
+		        	if (self.options.contentType == ContentType.IMAGE && !(~/image/i).match(file.type)) {
 		        		JqueryUtil.alert("Please select an image file.");
 		        		return;
 		        	}
 
-		        	var self: UploadCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+		        	if (self.options.contentType == ContentType.AUDIO && !(~/audio/i).match(file.type)) {
+		        		JqueryUtil.alert("Please select an audio file.");
+		        		return;
+		        	}
 
 					ui.AgentUi.LOGGER.debug("upload " + file.name);
 
+
+					// TODO:  Add controls for previewing audio content
+	        		// var audioControls: JQ = new JQ("<audio controls></audio>").appendTo(selfElement);
+	        		// postContent.append(audioControls);
+	        		// audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
+
 					// present a preview in the file list
 					if (self.previewImg == null) {
-						self.previewImg = new JQ("<img id='file_about_to_be_uploaded'/>").appendTo(selfElement);
+						self.previewImg = new JQ("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
 					}
 					var reader = untyped __js__("new FileReader()");
 					reader.onload = function (evt) {

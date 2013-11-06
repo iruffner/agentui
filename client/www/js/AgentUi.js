@@ -2067,12 +2067,6 @@ js.Cookie.all = function() {
 js.Cookie.get = function(name) {
 	return js.Cookie.all().get(name);
 }
-js.Lib = function() { }
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
-}
 var m3 = {}
 m3.CrossMojo = function() { }
 $hxClasses["m3.CrossMojo"] = m3.CrossMojo;
@@ -6938,7 +6932,12 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentComp must be a div element");
+		var tabContainer = new $("<div class='postContainer'></div>").appendTo(selfElement).hide();
+		var tabs = new $("<aside class='tabs'></aside>").appendTo(tabContainer);
 		selfElement.addClass("post container shadow " + m3.widget.Widgets.getWidgetClasses());
+		selfElement.click(function(evt) {
+			tabContainer.toggle();
+		});
 		var postWr = new $("<section class='postWr'></section>");
 		selfElement.append(postWr);
 		var postContentWr = new $("<div class='postContentWr'></div>");
@@ -6956,14 +6955,17 @@ var defineWidget = function() {
 		case 1:
 			var img = js.Boot.__cast(self.options.content , ui.model.ImageContent);
 			postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");
+			var imgTab = new $("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs);
 			break;
 		case 2:
 			var urlContent = js.Boot.__cast(self.options.content , ui.model.UrlContent);
 			postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
+			var urlTab = new $("<span class='ui-icon ui-icon-link ui-corner-left'></span>").appendTo(tabs);
 			break;
 		case 3:
 			var textContent = js.Boot.__cast(self.options.content , ui.model.MessageContent);
 			postContent.append("<p>" + textContent.text + "</p>");
+			var textTab = new $("<span class='ui-icon ui-icon-document active ui-corner-left'></span>").appendTo(tabs);
 			break;
 		}
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
@@ -7269,7 +7271,7 @@ var defineWidget = function() {
 					label.parentUid = parent.val();
 					label.text = input.val();
 					var alnum = new EReg("(^[a-zA-Z0-9]*$)","");
-					if(!alnum.match(label.text)) js.Lib.alert("Only alphanumeric labels allowed."); else {
+					if(!alnum.match(label.text)) m3.util.JqueryUtil.alert("Only alphanumeric labels allowed."); else {
 						label.set_uid(m3.util.UidGenerator.create());
 						ui.AgentUi.LOGGER.debug("add to " + self.labels.visualId);
 						ui.model.EM.change(ui.model.EMEvent.CreateLabel,label);
@@ -7663,24 +7665,30 @@ var defineWidget = function() {
 	}, _createFileUploadComponent : function() {
 		var self1 = this;
 		var selfElement = this.element;
-		new $("#files-upload").remove();
-		var filesUpload = new $("<input id='files-upload' type='file'/>").prependTo(selfElement);
+		var element_id = "files-upload";
+		if(self1.options.contentType != null) element_id += Std.string(self1.options.contentType);
+		new $("#" + element_id).remove();
+		var filesUpload = new $("<input id='" + element_id + "' class='files-upload' type='file'/>").prependTo(selfElement);
 		filesUpload.change(function(evt) {
 			self1._traverseFiles(this.files);
 		});
 	}, _uploadFile : function(file) {
+		var self2 = this;
+		var selfElement = this.element;
 		if(typeof FileReader === 'undefined') {
 			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
 			return;
 		}
-		if(!new EReg("image","i").match(file.type)) {
+		if(self2.options.contentType == ui.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
 			m3.util.JqueryUtil.alert("Please select an image file.");
 			return;
 		}
-		var self2 = this;
-		var selfElement = this.element;
+		if(self2.options.contentType == ui.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
+			m3.util.JqueryUtil.alert("Please select an image file.");
+			return;
+		}
 		ui.AgentUi.LOGGER.debug("upload " + Std.string(file.name));
-		if(self2.previewImg == null) self2.previewImg = new $("<img id='file_about_to_be_uploaded'/>").appendTo(selfElement);
+		if(self2.previewImg == null) self2.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
 		var reader = new FileReader();
 		reader.onload = function(evt) {
 			self2.previewImg.attr("src",evt.target.result);
@@ -7742,8 +7750,12 @@ var defineWidget = function() {
 		urlInput.appendTo(section).keypress(function(evt) {
 			if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) doTextPostForElement(evt,ui.model.ContentType.URL,new $(evt.target));
 		});
-		var mediaInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp({ });
-		mediaInput.appendTo(section);
+		var options = { contentType : ui.model.ContentType.IMAGE};
+		var imageInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		imageInput.appendTo(section);
+		options.contentType = ui.model.ContentType.AUDIO;
+		var audioInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		audioInput.appendTo(section);
 		var label = new $("<aside class='label'><span>Post:</span></aside>").appendTo(section);
 		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
 		var textTab = new $("<span class='ui-icon ui-icon-document active ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
@@ -7751,24 +7763,36 @@ var defineWidget = function() {
 			$(this).addClass("active");
 			textInput.show();
 			urlInput.hide();
-			mediaInput.hide();
+			imageInput.hide();
+			audioInput.hide();
 		});
 		var urlTab = new $("<span class='ui-icon ui-icon-link ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.hide();
 			urlInput.show();
-			mediaInput.hide();
+			imageInput.hide();
+			audioInput.hide();
 		});
 		var imgTab = new $("<span class='ui-icon ui-icon-image ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.hide();
 			urlInput.hide();
-			mediaInput.show();
+			imageInput.show();
+			audioInput.hide();
+		});
+		var audioTab = new $("<span class='ui-icon ui-icon-video ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
+			tabs.children(".active").removeClass("active");
+			$(this).addClass("active");
+			textInput.hide();
+			urlInput.hide();
+			imageInput.hide();
+			audioInput.show();
 		});
 		urlInput.hide();
-		mediaInput.hide();
+		imageInput.hide();
+		audioInput.hide();
 		var isDuplicate = function(selector,ele,container,getUid) {
 			var is_duplicate = false;
 			if(ele["is"](selector)) {
@@ -7821,8 +7845,8 @@ var defineWidget = function() {
 				var ta1 = new $("#textInput_ta");
 				doTextPostForElement(evt,ui.model.ContentType.TEXT,ta1);
 			} else if(urlInput.isVisible()) doTextPostForElement(evt,ui.model.ContentType.URL,urlInput.urlComp("valEle")); else {
-				doTextPost(evt,ui.model.ContentType.IMAGE,ui.widget.UploadCompHelper.value(mediaInput));
-				ui.widget.UploadCompHelper.clear(mediaInput);
+				doTextPost(evt,ui.model.ContentType.IMAGE,ui.widget.UploadCompHelper.value(imageInput));
+				ui.widget.UploadCompHelper.clear(imageInput);
 			}
 		});
 	}, destroy : function() {

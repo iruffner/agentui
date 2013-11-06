@@ -94,9 +94,14 @@ extern class PostComp extends JQ {
         					}
         				});
 
-		        	var mediaInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp({});
-		        	mediaInput.appendTo(section);
+		        	var options:UploadCompOptions = {contentType: ContentType.IMAGE};
+		        	var imageInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		        	imageInput.appendTo(section);
 		        	
+		        	options.contentType = ContentType.AUDIO;
+		        	var audioInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		        	audioInput.appendTo(section);
+
 		        	var label: JQ = new JQ("<aside class='label'><span>Post:</span></aside>").appendTo(section);
 
 		        	var tabs: JQ = new JQ("<aside class='tabs'></aside>").appendTo(section);
@@ -107,7 +112,8 @@ extern class PostComp extends JQ {
 							        			JQ.cur.addClass("active");
 							        			textInput.show();
 							        			urlInput.hide();
-							        			mediaInput.hide();
+							        			imageInput.hide();
+							        			audioInput.hide();
 							        		});
 
 		        	var urlTab: JQ = new JQ("<span class='ui-icon ui-icon-link ui-corner-left'></span>")
@@ -117,7 +123,8 @@ extern class PostComp extends JQ {
 							        			JQ.cur.addClass("active");
 							        			textInput.hide();
 							        			urlInput.show();
-							        			mediaInput.hide();
+							        			imageInput.hide();
+							        			audioInput.hide();
 							        		});
 
 		        	var imgTab: JQ = new JQ("<span class='ui-icon ui-icon-image ui-corner-left'></span>")
@@ -127,10 +134,23 @@ extern class PostComp extends JQ {
 							        			JQ.cur.addClass("active");
 							        			textInput.hide();
 							        			urlInput.hide();
-							        			mediaInput.show();
+							        			imageInput.show();
+							        			audioInput.hide();
+							        		});
+
+		        	var audioTab: JQ = new JQ("<span class='ui-icon ui-icon-video ui-corner-left'></span>")
+		        						.appendTo(tabs)
+		        						.click(function(evt: JQEvent): Void {
+							        			tabs.children(".active").removeClass("active");
+							        			JQ.cur.addClass("active");
+							        			textInput.hide();
+							        			urlInput.hide();
+							        			imageInput.hide();
+							        			audioInput.show();
 							        		});
 					urlInput.hide();
-					mediaInput.hide();
+					imageInput.hide();
+					audioInput.hide();
 
 					var isDuplicate = function(selector:String, ele:JQ, container: JQDroppable, getUid:JQ->String) {
 						var is_duplicate = false;
@@ -258,8 +278,8 @@ extern class PostComp extends JQ {
 		        								} else if (urlInput.isVisible()) {
 		        									doTextPostForElement(evt, ContentType.URL, urlInput.urlComp("valEle"));
 		        								} else {
-		        									doTextPost(evt, ContentType.IMAGE, mediaInput.value());
-		        									mediaInput.clear();
+		        									doTextPost(evt, ContentType.IMAGE, imageInput.value());
+		        									imageInput.clear();
 		        								}
 		        							});
 		        },
