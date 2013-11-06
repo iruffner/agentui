@@ -6951,6 +6951,7 @@ var defineWidget = function() {
 			var audioControls = new $("<audio controls></audio>");
 			postContent.append(audioControls);
 			audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
+			var audioTab = new $("<span class='ui-icon ui-icon-volume-on ui-corner-left'></span>").appendTo(tabs);
 			break;
 		case 1:
 			var img = js.Boot.__cast(self.options.content , ui.model.ImageContent);
@@ -7684,7 +7685,7 @@ var defineWidget = function() {
 			return;
 		}
 		if(self2.options.contentType == ui.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
-			m3.util.JqueryUtil.alert("Please select an image file.");
+			m3.util.JqueryUtil.alert("Please select an audio file.");
 			return;
 		}
 		ui.AgentUi.LOGGER.debug("upload " + Std.string(file.name));
@@ -7782,7 +7783,7 @@ var defineWidget = function() {
 			imageInput.show();
 			audioInput.hide();
 		});
-		var audioTab = new $("<span class='ui-icon ui-icon-video ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
+		var audioTab = new $("<span class='ui-icon ui-icon-volume-on ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");
 			$(this).addClass("active");
 			textInput.hide();

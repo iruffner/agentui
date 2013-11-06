@@ -138,7 +138,7 @@ extern class PostComp extends JQ {
 							        			audioInput.hide();
 							        		});
 
-		        	var audioTab: JQ = new JQ("<span class='ui-icon ui-icon-video ui-corner-left'></span>")
+		        	var audioTab: JQ = new JQ("<span class='ui-icon ui-icon-volume-on ui-corner-left'></span>")
 		        						.appendTo(tabs)
 		        						.click(function(evt: JQEvent): Void {
 							        			tabs.children(".active").removeClass("active");
