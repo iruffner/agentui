@@ -114,8 +114,8 @@ class User extends ModelObj<User> {
 
 	public function getSelfConnection(): Connection {
 		var conn: Connection = new Connection();
-		conn.src = sessionURI;
-		conn.tgt = sessionURI;
+		conn.source = sessionURI;
+		conn.target = sessionURI;
 		conn.label = currentAlias.label;
 		return conn;
 	}
@@ -173,8 +173,8 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	@:transient public var lname: String;
 	@:transient public var imgSrc: String;
 
-	public var src: String;
-	public var tgt: String;
+	public var source: String;
+	public var target: String;
 	public var label: String;
 
 	public function new(?fname: String, ?lname: String, ?imgSrc: String) {
