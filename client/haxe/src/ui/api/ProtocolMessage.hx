@@ -142,7 +142,7 @@ class InitializeSessionResponse extends ProtocolMessage<InitializeSessionRespons
 			public var sessionURI: String;
 			public var listOfAliases: Array<String>;
 			public var defaultAlias: String;
-			public var listOfCnxns: Array<Connection>;
+			public var listOfConnections: Array<Connection>;
 			public var lastActiveLabel: String;
 			public var jsonBlob: UserData;
 			var listOfLabels: Array<String>;

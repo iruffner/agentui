@@ -216,7 +216,7 @@ class ProtocolHandler {
 				        	}
 							
 							user.sessionURI = response.contentImpl.sessionURI;
-							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.contentImpl.listOfCnxns);
+							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.contentImpl.listOfConnections);
 							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.contentImpl.labels);
 							user.userData = response.contentImpl.jsonBlob;
 							//open comm's with server

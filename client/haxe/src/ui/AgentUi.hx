@@ -47,7 +47,7 @@ class AgentUi {
 
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
 
-        // SERIALIZER.addHandler(ObservableSet, new ObservableSetHandler());
+        SERIALIZER.addHandler(Content, new ContentHandler());
     }
 
     public static function start(): Void {

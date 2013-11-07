@@ -198,6 +198,33 @@ class BiConnection extends ModelObj<BiConnection> implements Filterable {
 	}
 }
 
+class ContentHandler implements TypeHandler {
+	
+    public function new() {
+    }
+
+    public function read(fromJson: {type: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
+        var obj: Content = null;
+
+        switch ( ContentType.createByName(fromJson.type) ) {
+        	case ContentType.AUDIO:
+        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, AudioContent);
+        	case ContentType.IMAGE:
+        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, ImageContent);
+        	case ContentType.TEXT:
+        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, MessageContent);
+        	case ContentType.URL:
+        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, UrlContent);
+        }
+
+        return obj;
+    }
+
+    public function write(value: Dynamic, writer: JsonWriter): Dynamic {
+        return ui.AgentUi.SERIALIZER.toJson(value);
+    }
+}
+
 class Content extends ModelObj<Content> {
 	/**
 		ContentType of this content
