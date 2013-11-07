@@ -6061,7 +6061,7 @@ ui.model.Connection.__interfaces__ = [ui.model.Filterable];
 ui.model.Connection.__super__ = ui.model.ModelObj;
 ui.model.Connection.prototype = $extend(ui.model.ModelObj.prototype,{
 	name: function() {
-		return this.fname + " " + this.lname;
+		return (m3.helper.StringHelper.isNotBlank(this.fname)?this.fname:"") + " " + (m3.helper.StringHelper.isNotBlank(this.lname)?this.lname:"");
 	}
 	,__class__: ui.model.Connection
 });
@@ -6724,7 +6724,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionAvatar must be a div element");
-		selfElement.attr("id","connavatar_" + StringTools.htmlEscape(self.options.connection.lname + self.options.connection.fname));
+		selfElement.attr("id","connavatar_" + StringTools.htmlEscape(self.options.connection.name()));
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.name());
 		var img = new $("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
 		selfElement.append(img);

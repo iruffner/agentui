@@ -80,7 +80,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        		throw new Exception("Root of ConnectionAvatar must be a div element");
 		        	}
 
-		        	selfElement.attr("id", "connavatar_" + (self.options.connection.lname + self.options.connection.fname).htmlEscape());
+		        	selfElement.attr("id", "connavatar_" + (self.options.connection.name()).htmlEscape());
 
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.name());
 

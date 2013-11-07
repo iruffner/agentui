@@ -184,7 +184,7 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	}
 
 	public function name() : String {
-		return this.fname + " " + this.lname;
+		return (this.fname.isNotBlank() ? this.fname : "") + " " + (this.lname.isNotBlank() ? this.lname:"");
 	}
 }
 
