@@ -298,26 +298,35 @@ class ProtocolHandler {
 		ping.contentImpl = new PayloadWithSessionURI();
 		ping.contentImpl.sessionURI = sessionURI;
 
-		listeningChannel = new LongPollingRequest(ping, function(data: {msgType: String}, textStatus: String, jqXHR: JQXHR): Void {
-				var msgType: MsgType = {
-					try {
-						Type.createEnum(MsgType, data.msgType);
-					} catch (err: Dynamic) {
-						null;
-					}
+		listeningChannel = new LongPollingRequest(ping, function(dataArr: Array<{msgType: String, content: Dynamic}>, textStatus: String, jqXHR: JQXHR): Void {
+				if(dataArr != null) {
+					dataArr.iter(function(data: {msgType: String, content: Dynamic}): Void {
+							try {
+								var msgType: MsgType = {
+									try {
+										Type.createEnum(MsgType, data.msgType);
+									} catch (err: Dynamic) {
+										null;
+									}
+								}
+								var processor: Dynamic->Void = processHash.get(msgType);
+								if(processor == null) {
+									if(data != null)
+										AgentUi.LOGGER.info("no processor for " + data.msgType);
+									else 
+										AgentUi.LOGGER.info("no data returned on polling channel response");
+									// JqueryUtil.alert("Don't know how to handle " + data.msgType);
+									return;
+								} else {
+									AgentUi.LOGGER.debug("received " + data.msgType);
+									processor(data);
+								}
+							} catch (err: Dynamic) {
+								AgentUi.LOGGER.error("Error processing msg\n" + data + "\n" + err);
+							}
+						});
 				}
-				var processor: Dynamic->Void = processHash.get(msgType);
-				if(processor == null) {
-					if(data != null)
-						AgentUi.LOGGER.info("no processor for " + data.msgType);
-					else 
-						AgentUi.LOGGER.info("no data returned on polling channel response");
-					// JqueryUtil.alert("Don't know how to handle " + data.msgType);
-					return;
-				} else {
-					AgentUi.LOGGER.debug("received " + data.msgType);
-					processor(data);
-				}
+				
 			});
 		listeningChannel.start();
 	}

@@ -4432,24 +4432,30 @@ ui.api.ProtocolHandler.prototype = {
 		var ping = new ui.api.SessionPingRequest();
 		ping.contentImpl = new ui.api.PayloadWithSessionURI();
 		ping.contentImpl.sessionURI = sessionURI;
-		this.listeningChannel = new ui.api.LongPollingRequest(ping,function(data,textStatus,jqXHR) {
-			var msgType = (function($this) {
-				var $r;
+		this.listeningChannel = new ui.api.LongPollingRequest(ping,function(dataArr,textStatus,jqXHR) {
+			if(dataArr != null) Lambda.iter(dataArr,function(data) {
 				try {
-					$r = Type.createEnum(ui.api.MsgType,data.msgType);
+					var msgType = (function($this) {
+						var $r;
+						try {
+							$r = Type.createEnum(ui.api.MsgType,data.msgType);
+						} catch( err ) {
+							$r = null;
+						}
+						return $r;
+					}(this));
+					var processor = _g.processHash.get(msgType);
+					if(processor == null) {
+						if(data != null) ui.AgentUi.LOGGER.info("no processor for " + data.msgType); else ui.AgentUi.LOGGER.info("no data returned on polling channel response");
+						return;
+					} else {
+						ui.AgentUi.LOGGER.debug("received " + data.msgType);
+						processor(data);
+					}
 				} catch( err ) {
-					$r = null;
+					ui.AgentUi.LOGGER.error("Error processing msg\n" + Std.string(data) + "\n" + Std.string(err));
 				}
-				return $r;
-			}(this));
-			var processor = _g.processHash.get(msgType);
-			if(processor == null) {
-				if(data != null) ui.AgentUi.LOGGER.info("no processor for " + data.msgType); else ui.AgentUi.LOGGER.info("no data returned on polling channel response");
-				return;
-			} else {
-				ui.AgentUi.LOGGER.debug("received " + data.msgType);
-				processor(data);
-			}
+			});
 		});
 		this.listeningChannel.start();
 	}
