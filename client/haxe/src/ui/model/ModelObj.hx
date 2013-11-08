@@ -114,8 +114,8 @@ class User extends ModelObj<User> {
 
 	public function getSelfConnection(): Connection {
 		var conn: Connection = new Connection();
-		conn.src = sessionURI;
-		conn.tgt = sessionURI;
+		conn.source = sessionURI;
+		conn.target = sessionURI;
 		conn.label = currentAlias.label;
 		return conn;
 	}
@@ -173,8 +173,8 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	@:transient public var lname: String;
 	@:transient public var imgSrc: String;
 
-	public var src: String;
-	public var tgt: String;
+	public var source: String;
+	public var target: String;
 	public var label: String;
 
 	public function new(?fname: String, ?lname: String, ?imgSrc: String) {
@@ -184,7 +184,7 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	}
 
 	public function name() : String {
-		return this.fname + " " + this.lname;
+		return (this.fname.isNotBlank() ? this.fname : "") + " " + (this.lname.isNotBlank() ? this.lname:"");
 	}
 }
 
@@ -196,6 +196,33 @@ class BiConnection extends ModelObj<BiConnection> implements Filterable {
 		this.readConnection  = readConnection;
 		this.writeConnection = writeConnection;
 	}
+}
+
+class ContentHandler implements TypeHandler {
+	
+    public function new() {
+    }
+
+    public function read(fromJson: {type: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
+        var obj: Content = null;
+
+        switch ( ContentType.createByName(fromJson.type) ) {
+        	case ContentType.AUDIO:
+        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, AudioContent);
+        	case ContentType.IMAGE:
+        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, ImageContent);
+        	case ContentType.TEXT:
+        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, MessageContent);
+        	case ContentType.URL:
+        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, UrlContent);
+        }
+
+        return obj;
+    }
+
+    public function write(value: Dynamic, writer: JsonWriter): Dynamic {
+        return ui.AgentUi.SERIALIZER.toJson(value);
+    }
 }
 
 class Content extends ModelObj<Content> {
