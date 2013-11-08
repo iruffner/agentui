@@ -221,7 +221,7 @@ body {
 			min-width: 500px;
 		}
 
-			#feed #postInput #post_comps_tags {
+			#feed #postInput #post_comps_tags, #edit_post_comps_tags {
 				text-align: center;
 			}
 

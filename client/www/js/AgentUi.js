@@ -6929,12 +6929,269 @@ var defineWidget = function() {
 $.widget("ui.labelComp",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
+		$.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UrlComp must be a div element");
+		selfElement.addClass("urlComp container " + m3.widget.Widgets.getWidgetClasses());
+		new $("<label class='fleft ui-helper-clearfix' style='margin-left: 5px;'>Enter URL</label>").appendTo(selfElement);
+		self.urlInput = new $("<input id='' class='clear textInput boxsizingBorder' style='float: left;margin-top: 5px;'/>").appendTo(selfElement);
+	}, _post : function() {
+		var self = this;
+		var selfElement = this.element;
+		ui.AgentUi.LOGGER.debug("post " + self.urlInput.val());
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}, valEle : function() {
+		var self = this;
+		return self.urlInput;
+	}};
+};
+$.widget("ui.urlComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UploadComp must be a div element");
+		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
+		self._createFileUploadComponent();
+		selfElement.on("dragleave",function(evt,d) {
+			ui.AgentUi.LOGGER.debug("dragleave");
+			var target = evt.target;
+			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("dragenter",function(evt,d) {
+			ui.AgentUi.LOGGER.debug("dragenter");
+			$(this).addClass("over");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("dragover",function(evt,d) {
+			ui.AgentUi.LOGGER.debug("dragover");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("drop",function(evt,d) {
+			ui.AgentUi.LOGGER.debug("drop");
+			self._traverseFiles(evt.originalEvent.dataTransfer.files);
+			$(this).removeClass("drop");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+	}, _createFileUploadComponent : function() {
+		var self1 = this;
+		var selfElement = this.element;
+		var element_id = "files-upload";
+		if(self1.options.contentType != null) element_id += Std.string(self1.options.contentType);
+		new $("#" + element_id).remove();
+		var filesUpload = new $("<input id='" + element_id + "' class='files-upload' type='file'/>").prependTo(selfElement);
+		filesUpload.change(function(evt) {
+			self1._traverseFiles(this.files);
+		});
+	}, _uploadFile : function(file) {
+		var self2 = this;
+		var selfElement = this.element;
+		if(typeof FileReader === 'undefined') {
+			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
+			return;
+		}
+		if(self2.options.contentType == ui.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
+			m3.util.JqueryUtil.alert("Please select an image file.");
+			return;
+		}
+		if(self2.options.contentType == ui.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
+			m3.util.JqueryUtil.alert("Please select an audio file.");
+			return;
+		}
+		ui.AgentUi.LOGGER.debug("upload " + Std.string(file.name));
+		if(self2.previewImg == null) self2.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
+		var reader = new FileReader();
+		reader.onload = function(evt) {
+			self2.previewImg.attr("src",evt.target.result);
+		};
+		reader.readAsDataURL(file);
+	}, _traverseFiles : function(files) {
+		ui.AgentUi.LOGGER.debug("traverse the files");
+		var self = this;
+		if(m3.helper.ArrayHelper.hasValues(files)) {
+			var _g = 0;
+			while(_g < 1) {
+				var i = _g++;
+				self._uploadFile(files[i]);
+			}
+		} else {
+		}
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}, value : function() {
+		var self = this;
+		return self.previewImg.attr("src");
+	}, clear : function() {
+		var self = this;
+		self.previewImg.remove();
+		self.previewImg = null;
+		self._createFileUploadComponent();
+	}};
+};
+$.widget("ui.uploadComp",defineWidget());
+var defineWidget = function() {
+	return { _initConections : function() {
+		var self = this;
+		var connIter = self.options.content.connectionSet.iterator();
+		while(connIter.hasNext()) {
+			var connection = connIter.next();
+			new $("<div></div>").connectionAvatar({ dndEnabled : true, connection : connection}).appendTo("#edit_post_comps_tags");
+		}
+	}, _initLabels : function() {
+		var self = this;
+		var labelIter = self.options.content.labelSet.iterator();
+		while(labelIter.hasNext()) {
+			var label = labelIter.next();
+			new $("<div class='small'></div>").labelComp({ dndEnabled : true, label : label}).appendTo("#edit_post_comps_tags");
+		}
+	}, _create : function() {
+		var self1 = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of EditPostComp must be a div element");
+		selfElement.addClass("post container shadow " + m3.widget.Widgets.getWidgetClasses());
+		var section = new $("<section id='postSection'></section>").appendTo(selfElement);
+		var addConnectionsAndLabels = null;
+		var doTextPost = function(evt,contentType,value) {
+			ui.AgentUi.LOGGER.debug("Post new text content");
+			evt.preventDefault();
+			var msg = new ui.model.MessageContent();
+			msg.type = contentType;
+			msg.set_uid(m3.util.UidGenerator.create());
+			msg.text = value;
+			msg.connectionSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier);
+			msg.labelSet = new m3.observable.ObservableSet(ui.model.ModelObj.identifier);
+			addConnectionsAndLabels(msg);
+			ui.model.EM.change(ui.model.EMEvent.NewContentCreated,msg);
+		};
+		var doTextPostForElement = function(evt,contentType,ele) {
+			doTextPost(evt,contentType,ele.val());
+			ele.val("");
+		};
+		var textInput = new $("<div class='postContainer'></div>");
+		var urlInput = new $("<div class='postContainer boxsizingBorder'></div>").urlComp();
+		var options = { contentType : ui.model.ContentType.IMAGE};
+		var imageInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		options.contentType = ui.model.ContentType.AUDIO;
+		var audioInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		var tab_class = "";
+		if(self1.options.content.type == ui.model.ContentType.TEXT) {
+			textInput.appendTo(section);
+			var ta = new $("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput).attr("id","textInput_ta").keypress(function(evt) {
+				if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) doTextPostForElement(evt,ui.model.ContentType.TEXT,new $(evt.target));
+			});
+			tab_class = "ui-icon-document";
+		} else if(self1.options.content.type == ui.model.ContentType.URL) {
+			urlInput.appendTo(section).keypress(function(evt) {
+				if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) doTextPostForElement(evt,ui.model.ContentType.URL,new $(evt.target));
+			});
+			tab_class = "ui-icon-link";
+		} else if(self1.options.content.type == ui.model.ContentType.IMAGE) {
+			imageInput.appendTo(section);
+			tab_class = "ui-icon-image";
+		} else if(self1.options.content.type == ui.model.ContentType.AUDIO) {
+			audioInput.appendTo(section);
+			tab_class = "ui-icon-volume-on";
+		}
+		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
+		var tab = new $("<span class='ui-icon " + tab_class + " ui-icon-document active ui-corner-left active'></span>").appendTo(tabs);
+		var isDuplicate = function(selector,ele,container,getUid) {
+			var is_duplicate = false;
+			if(ele["is"](selector)) {
+				var new_uid = getUid(ele);
+				container.children(selector).each(function(i,dom) {
+					var uid = getUid(new $(dom));
+					if(new_uid == uid) is_duplicate = true;
+				});
+			}
+			return is_duplicate;
+		};
+		var tags = new $("<aside id='edit_post_comps_tags' class='tags container boxsizingBorder'></aside>");
+		tags.appendTo(section);
+		tags.droppable({ accept : function(d) {
+			return d["is"](".filterable");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+			if(isDuplicate(".connectionAvatar",_ui.draggable,tags,function(ele) {
+				return ui.widget.ConnectionAvatarHelper.getConnection(new $(ele)).get_uid();
+			}) || isDuplicate(".labelComp",_ui.draggable,tags,function(ele) {
+				return ui.widget.LabelCompHelper.getLabel(new $(ele)).get_uid();
+			})) {
+				if(_ui.draggable.parent().attr("id") != "edit_post_comps_tags") _ui.draggable.draggable("option","revert",true);
+				return;
+			}
+			var dragstop = function(dragstopEvt,dragstopUi) {
+				if(!tags.intersects(dragstopUi.helper)) {
+					dragstopUi.helper.remove();
+					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
+				}
+			};
+			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
+			clone.addClass("small");
+			var cloneOffset = clone.offset();
+			$(this).append(clone);
+			clone.css({ position : "absolute"});
+			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : ".tags"});
+		}});
+		addConnectionsAndLabels = function(content) {
+			tags.children(".label").each(function(i,dom) {
+				var labelComp = new $(dom);
+				content.labelSet.add(ui.widget.LabelCompHelper.getLabel(labelComp));
+			});
+			tags.children(".connectionAvatar").each(function(i,dom) {
+				var conn = new $(dom);
+				content.connectionSet.add(ui.widget.ConnectionAvatarHelper.getConnection(conn));
+			});
+		};
+		var removeButton = new $("<button>Remove</button>").appendTo(selfElement).button().click(function(evt) {
+			self1.destroy();
+			selfElement.remove();
+			self1.options.contentComp.show();
+		});
+		var updateButton = new $("<button>Update</button>").appendTo(selfElement).button().click(function(evt) {
+			switch( (self1.options.content.type)[1] ) {
+			case 3:
+				var ta = new $("#textInput_ta");
+				doTextPostForElement(evt,ui.model.ContentType.TEXT,ta);
+				break;
+			case 2:
+				doTextPostForElement(evt,ui.model.ContentType.URL,urlInput.urlComp("valEle"));
+				break;
+			case 1:
+				doTextPost(evt,ui.model.ContentType.IMAGE,ui.widget.UploadCompHelper.value(imageInput));
+				ui.widget.UploadCompHelper.clear(imageInput);
+				break;
+			case 0:
+				doTextPost(evt,ui.model.ContentType.AUDIO,ui.widget.UploadCompHelper.value(audioInput));
+				ui.widget.UploadCompHelper.clear(audioInput);
+				break;
+			}
+		});
+		self1._initConections();
+		self1._initLabels();
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.editPostComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentComp must be a div element");
 		selfElement.addClass("post container shadow " + m3.widget.Widgets.getWidgetClasses());
 		selfElement.click(function(evt) {
-			m3.util.JqueryUtil.alert("I want to edti this post...");
+			var comp = new $("<div id='edit-post-comp'></div>");
+			comp.insertBefore(selfElement);
+			comp.width(selfElement.width());
+			comp.height(selfElement.height() + 35);
+			selfElement.hide();
+			var editPostComp = new $(comp).editPostComp({ content : self.options.content, contentComp : selfElement});
 		});
 		var postWr = new $("<section class='postWr'></section>");
 		selfElement.append(postWr);
@@ -7607,115 +7864,6 @@ var defineWidget = function() {
 $.widget("ui.newUserDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
-		$.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UrlComp must be a div element");
-		selfElement.addClass("urlComp container " + m3.widget.Widgets.getWidgetClasses());
-		new $("<label class='fleft ui-helper-clearfix' style='margin-left: 5px;'>Enter URL</label>").appendTo(selfElement);
-		self.urlInput = new $("<input id='' class='clear textInput boxsizingBorder' style='float: left;margin-top: 5px;'/>").appendTo(selfElement);
-	}, _post : function() {
-		var self = this;
-		var selfElement = this.element;
-		ui.AgentUi.LOGGER.debug("post " + self.urlInput.val());
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}, valEle : function() {
-		var self = this;
-		return self.urlInput;
-	}};
-};
-$.widget("ui.urlComp",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UploadComp must be a div element");
-		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
-		self._createFileUploadComponent();
-		selfElement.on("dragleave",function(evt,d) {
-			ui.AgentUi.LOGGER.debug("dragleave");
-			var target = evt.target;
-			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-		selfElement.on("dragenter",function(evt,d) {
-			ui.AgentUi.LOGGER.debug("dragenter");
-			$(this).addClass("over");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-		selfElement.on("dragover",function(evt,d) {
-			ui.AgentUi.LOGGER.debug("dragover");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-		selfElement.on("drop",function(evt,d) {
-			ui.AgentUi.LOGGER.debug("drop");
-			self._traverseFiles(evt.originalEvent.dataTransfer.files);
-			$(this).removeClass("drop");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-	}, _createFileUploadComponent : function() {
-		var self1 = this;
-		var selfElement = this.element;
-		var element_id = "files-upload";
-		if(self1.options.contentType != null) element_id += Std.string(self1.options.contentType);
-		new $("#" + element_id).remove();
-		var filesUpload = new $("<input id='" + element_id + "' class='files-upload' type='file'/>").prependTo(selfElement);
-		filesUpload.change(function(evt) {
-			self1._traverseFiles(this.files);
-		});
-	}, _uploadFile : function(file) {
-		var self2 = this;
-		var selfElement = this.element;
-		if(typeof FileReader === 'undefined') {
-			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
-			return;
-		}
-		if(self2.options.contentType == ui.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
-			m3.util.JqueryUtil.alert("Please select an image file.");
-			return;
-		}
-		if(self2.options.contentType == ui.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
-			m3.util.JqueryUtil.alert("Please select an audio file.");
-			return;
-		}
-		ui.AgentUi.LOGGER.debug("upload " + Std.string(file.name));
-		if(self2.previewImg == null) self2.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
-		var reader = new FileReader();
-		reader.onload = function(evt) {
-			self2.previewImg.attr("src",evt.target.result);
-		};
-		reader.readAsDataURL(file);
-	}, _traverseFiles : function(files) {
-		ui.AgentUi.LOGGER.debug("traverse the files");
-		var self = this;
-		if(m3.helper.ArrayHelper.hasValues(files)) {
-			var _g = 0;
-			while(_g < 1) {
-				var i = _g++;
-				self._uploadFile(files[i]);
-			}
-		} else {
-		}
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}, value : function() {
-		var self = this;
-		return self.previewImg.attr("src");
-	}, clear : function() {
-		var self = this;
-		self.previewImg.remove();
-		self.previewImg = null;
-		self._createFileUploadComponent();
-	}};
-};
-$.widget("ui.uploadComp",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of PostComp must be a div element");
@@ -7752,7 +7900,6 @@ var defineWidget = function() {
 		options.contentType = ui.model.ContentType.AUDIO;
 		var audioInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		audioInput.appendTo(section);
-		var label = new $("<aside class='label'><span>Post:</span></aside>").appendTo(section);
 		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
 		var textTab = new $("<span class='ui-icon ui-icon-document active ui-corner-left'></span>").appendTo(tabs).click(function(evt) {
 			tabs.children(".active").removeClass("active");

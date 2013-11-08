@@ -41,7 +41,13 @@ extern class ContentComp extends JQ {
 
 		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());
 		        	selfElement.click(function(evt:js.JQuery.JqEvent){
-		        		JqueryUtil.alert("I want to edti this post...");
+		        		var comp = new JQ("<div id='edit-post-comp'></div>");
+            			comp.insertBefore(selfElement);
+						comp.width(selfElement.width());
+						comp.height(selfElement.height() + 35);
+
+						selfElement.hide();
+						var editPostComp = new EditPostComp(comp).editPostComp({content: self.options.content, contentComp:selfElement});
 		        	});
 		        	var postWr: JQ = new JQ("<section class='postWr'></section>");
 		        	selfElement.append(postWr);
