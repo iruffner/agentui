@@ -8,6 +8,7 @@ import m3.observable.OSet;
 import ui.widget.LabelComp;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
+import ui.model.EM;
 
 using m3.helper.OSetHelper;
 using ui.helper.ModelHelper;
@@ -113,7 +114,9 @@ extern class ContentComp extends JQ {
 		        								evt.stopPropagation();
 		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
 		        									function(){
+		        										self.destroy();
 		        										selfElement.remove();
+		        										EM.change(EMEvent.FitWindow);
 		        									});
 		        							});
 

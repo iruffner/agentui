@@ -2,11 +2,13 @@ package ui.widget;
 
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
+import ui.model.EM;
 import ui.model.ModelObj;
 import m3.observable.OSet;
 import ui.widget.LabelComp;
 import m3.exception.Exception;
 import m3.widget.Widgets;
+
 
 typedef ContentFeedOptions = {
 	var content: OSet<Content>;
@@ -47,6 +49,7 @@ extern class ContentFeed extends JQ {
 		        	self.content.listen(function(contentComp: ContentComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {
 		            			new JQ("#postInput").after(contentComp);
+								EM.change(EMEvent.FitWindow);
 		            		} else if (evt.isUpdate()) {
 		            			contentComp.contentComp("update");
 		            		} else if (evt.isDelete()) {

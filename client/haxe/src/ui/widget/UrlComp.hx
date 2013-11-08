@@ -22,6 +22,12 @@ typedef UrlCompWidgetDef = {
 	var _post: Void->Void;
 }
 
+class UrlCompHelper {
+	public static function urlInput(m:UrlComp):JQ {
+		return cast m.urlComp("valEle");
+	}
+}
+
 @:native("$")
 extern class UrlComp extends JQ {
 

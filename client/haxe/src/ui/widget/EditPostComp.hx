@@ -16,6 +16,7 @@ import m3.exception.Exception;
 
 using m3.helper.OSetHelper;
 using ui.widget.ContentComp;
+using ui.widget.UrlComp;
 using ui.widget.UploadComp;
 using ui.widget.LabelComp;
 using ui.widget.ConnectionAvatar;
@@ -44,27 +45,34 @@ extern class EditPostComp extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->EditPostCompWidgetDef = function(): EditPostCompWidgetDef {
 			return {
+
 				_initConections: function() : Void {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
 		        	var connIter: Iterator<Connection> = self.options.content.connectionSet.iterator();
+		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
+
 		        	while(connIter.hasNext()) {
 		        		var connection: Connection = connIter.next();
 		        		new ConnectionAvatar("<div></div>").connectionAvatar({
 		        				dndEnabled: true,
 		        				connection: connection
-		        			}).appendTo("#edit_post_comps_tags");
+		        			}).appendTo(edit_post_comps_tags);
 		        	}
 				},
 
 				_initLabels: function() : Void {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
 		        	var labelIter: Iterator<Label> = self.options.content.labelSet.iterator();
+
+		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = labelIter.next();
 		        		new LabelComp("<div class='small'></div>").labelComp({
 		        				dndEnabled: true,
 		        				label: label
-		        			}).appendTo("#edit_post_comps_tags");
+		        			}).appendTo(edit_post_comps_tags);
 		        	}
 				},
 
@@ -103,7 +111,7 @@ extern class EditPostComp extends JQ {
 
 		        	// Define the elements.  Don't add them to the DOM unless they are to be displayed.
 		        	var textInput: JQ = new JQ("<div class='postContainer'></div>");
-		        	var urlInput: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
+		        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 
 			        var options:UploadCompOptions = {contentType: ContentType.IMAGE};
 			        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
@@ -119,22 +127,23 @@ extern class EditPostComp extends JQ {
 			        			.appendTo(textInput)
 			        			.attr("id", "textInput_ta")
 			        			.keypress(function(evt: JQEvent): Void {
-			        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-			        						doTextPostForElement(evt, ContentType.TEXT, new JQ(evt.target));
-			        					}
-			        				})
-			        			;
+		        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
+		        						doTextPostForElement(evt, ContentType.TEXT, new JQ(evt.target));
+		        					}
+		        				});
+			        	ta.val(cast(self.options.content, MessageContent).text);
 			        	tab_class = "ui-icon-document";
 			        }
 
 		        	else if (self.options.content.type == ContentType.URL) {
-			        	urlInput
+			        	urlComp
 			        		.appendTo(section)
 			        		.keypress(function(evt: JQEvent): Void {
 	        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
 	        						doTextPostForElement(evt, ContentType.URL, new JQ(evt.target));
 	        					}
 	        				});
+			        	urlComp.urlInput().val(cast(self.options.content, UrlContent).url);
 			        	tab_class = "ui-icon-link";
 					}
 
@@ -233,6 +242,8 @@ extern class EditPostComp extends JQ {
 	        									self.destroy();
 	        									selfElement.remove();
 	        									self.options.contentComp.show();
+
+	        									EM.change(EMEvent.FitWindow);
 		        							});
 
 					var updateButton: JQ = new JQ("<button>Update</button>")
@@ -244,7 +255,7 @@ extern class EditPostComp extends JQ {
 			        									var ta = new JQ("#textInput_ta");
 														doTextPostForElement(evt, ContentType.TEXT, ta);
 													case ContentType.URL:
-														doTextPostForElement(evt, ContentType.URL, urlInput.urlComp("valEle"));
+														doTextPostForElement(evt, ContentType.URL, urlComp.urlInput());
 													case ContentType.IMAGE:
 														doTextPost(evt, ContentType.IMAGE, imageInput.value());
 			        									imageInput.clear();

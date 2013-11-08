@@ -14,6 +14,7 @@ typedef UploadCompOptions = {
 
 typedef UploadCompWidgetDef = {
 	@:optional var options: UploadCompOptions;
+	@:optional var inner_element_id: String;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 
@@ -102,13 +103,12 @@ extern class UploadComp extends JQ {
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 		        	var selfElement: JQ = Widgets.getSelfElement();
 		        	
-		        	var element_id:String = "files-upload";
-		        	if (self.options.contentType != null) {
-		        		element_id += self.options.contentType;
+		        	if (self.inner_element_id != null) {
+			        	new JQ("#" + self.inner_element_id).remove();
 		        	}
-		        	new JQ("#" + element_id).remove();
+		        	self.inner_element_id = "files-upload-" + StringTools.hex(Std.random(999999));
 		        	
-		        	var filesUpload = new JQ("<input id='" + element_id + "' class='files-upload' type='file'/>").prependTo(selfElement);
+		        	var filesUpload = new JQ("<input id='" + self.inner_element_id + "' class='files-upload' type='file'/>").prependTo(selfElement);
 					filesUpload.change(function (evt: JQEvent) {
 						untyped self._traverseFiles(JQ.curNoWrap.files);
 					});
