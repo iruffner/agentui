@@ -12,6 +12,7 @@ import ui.widget.FilterableComponent;
 import m3.exception.Exception;
 
 using StringTools;
+using m3.helper.StringHelper;
 
 typedef ConnectionAvatarOptions = {
 	>FilterableCompOptions,
@@ -84,7 +85,12 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.name());
 
-		            var img: JQ = new JQ("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
+		        	var imgSrc: String = "media/default_avatar.jpg";
+		        	if(self.options.connection.imgSrc.isNotBlank()) {
+		        		imgSrc = self.options.connection.imgSrc;
+		        	}
+
+		            var img: JQ = new JQ("<img src='" + imgSrc + "' class='shadow'/>");
 		            selfElement.append(img);
 
 		            cast(selfElement, JQTooltip).tooltip();

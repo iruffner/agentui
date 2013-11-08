@@ -6726,7 +6726,9 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionAvatar must be a div element");
 		selfElement.attr("id","connavatar_" + StringTools.htmlEscape(self.options.connection.name()));
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.name());
-		var img = new $("<img src='" + self.options.connection.imgSrc + "' class='shadow'/>");
+		var imgSrc = "media/default_avatar.jpg";
+		if(m3.helper.StringHelper.isNotBlank(self.options.connection.imgSrc)) imgSrc = self.options.connection.imgSrc;
+		var img = new $("<img src='" + imgSrc + "' class='shadow'/>");
 		selfElement.append(img);
 		(js.Boot.__cast(selfElement , $)).tooltip();
 		if(!self.options.dndEnabled) img.mousedown(function(evt) {
