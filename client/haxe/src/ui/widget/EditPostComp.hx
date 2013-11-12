@@ -28,9 +28,12 @@ typedef EditPostCompOptions = {
 
 typedef EditPostCompWidgetDef = {
 	@:optional var options: EditPostCompOptions;
+	@:optional var tags: JQDroppable;
 	var _create: Void->Void;
-	var _initConections:Void->Void;
-	var _initLabels:Void->Void;
+	var _initConections:Void->JQ;
+	var _initLabels:JQ->Void;
+	var _addToTagsContainer:UIDroppable->Void;
+	var _getDragStop:Void->(JQEvent->UIDraggable->Void);
 	var destroy: Void->Void;
 }
 
@@ -46,22 +49,77 @@ extern class EditPostComp extends JQ {
 		var defineWidget: Void->EditPostCompWidgetDef = function(): EditPostCompWidgetDef {
 			return {
 
-				_initConections: function() : Void {
+				_getDragStop:function():(JQEvent->UIDraggable->Void) {
+		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
+					return function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+	                	if(!self.tags.intersects(dragstopUi.helper)) {
+	                		dragstopUi.helper.remove();
+	                		JqueryUtil.deleteEffects(dragstopEvt);
+	                	}
+	                };
+				},
+
+				_addToTagsContainer: function(_ui: UIDroppable):Void{
+		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+	                var clone: JQDraggable = _ui.draggable.data("clone")(_ui.draggable, false, false, self._getDragStop());
+	                clone.addClass("small");
+	                var cloneOffset: {top: Int, left: Int} = clone.offset();
+	                
+                	self.tags.append(clone);
+	                clone.css({
+	                    "position": "absolute"
+	                });
+
+	                if (cloneOffset.top != 0) {
+	                	clone.offset(cloneOffset);
+                	} else {
+	                	clone.position({
+	                    	my: "left top",
+	                    	at: "left top",
+	                    	of: _ui.helper,
+	                    	collision: "flipfit",
+	                    	within: self.tags
+                		});
+	                }
+
+				},
+
+				_initConections: function() : JQ {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	var connIter: Iterator<Connection> = self.options.content.connectionSet.iterator();
 		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
 
+		        	var of:JQ = null;
+
 		        	while(connIter.hasNext()) {
 		        		var connection: Connection = connIter.next();
-		        		new ConnectionAvatar("<div></div>").connectionAvatar({
+
+		        		var ca = new ConnectionAvatar("<div></div>").connectionAvatar({
+		        				connection: connection,
 		        				dndEnabled: true,
-		        				connection: connection
-		        			}).appendTo(edit_post_comps_tags);
+				        		isDragByHelper: false,
+				        		containment: false,
+				        		dragstop: self._getDragStop()
+		        			}).appendTo(edit_post_comps_tags)
+		        		      .css("position", "absolute");
+
+			        	ca.position({
+		                    	my: "left",
+		                    	at: "right",
+		                    	of: of,
+		                    	collision: "flipfit",
+		                    	within: self.tags
+	                	});
+
+	                	of = ca;
 		        	}
+		        	return of;
 				},
 
-				_initLabels: function() : Void {
+				_initLabels: function(of:JQ) : Void {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	var labelIter: Iterator<Label> = self.options.content.labelSet.iterator();
@@ -69,10 +127,24 @@ extern class EditPostComp extends JQ {
 		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = labelIter.next();
-		        		new LabelComp("<div class='small'></div>").labelComp({
+		        		var lc = new LabelComp("<div></div>").labelComp({
+		        				label: label,
 		        				dndEnabled: true,
-		        				label: label
-		        			}).appendTo(edit_post_comps_tags);
+				        		isDragByHelper: false,
+				        		containment: false,
+				        		dragstop: self._getDragStop(),
+		        			}).appendTo(edit_post_comps_tags)
+		        		      .css("position", "absolute")
+		        		      .addClass("small");
+
+			        	lc.position({
+		                    	my: "top",
+		                    	at: "bottom",
+		                    	of: of,
+		                    	collision: "flipfit",
+		                    	within: self.tags
+	                	});
+	                	of = lc;
 		        	}
 				},
 
@@ -149,6 +221,7 @@ extern class EditPostComp extends JQ {
 
 		        	else if (self.options.content.type == ContentType.IMAGE) {
 			        	imageInput.appendTo(section);
+			        	imageInput.setPreviewImage(cast(self.options.content, ImageContent).imgSrc);
 			        	tab_class = "ui-icon-image";
 		        	}
 
@@ -194,35 +267,11 @@ extern class EditPostComp extends JQ {
 					      			return;
 					      		}
 
-					      		var dragstop = function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-				                	if(!tags.intersects(dragstopUi.helper)) {
-				                		dragstopUi.helper.remove();
-				                		JqueryUtil.deleteEffects(dragstopEvt);
-				                	}
-				                };
-
-				                var clone: JQDraggable = _ui.draggable.data("clone")(_ui.draggable, false, false, dragstop);
-				                clone.addClass("small");
-				                var cloneOffset: {top: Int, left: Int} = clone.offset();
-				                
-			                	JQ.cur.append(clone);
-				                clone.css({
-				                    "position": "absolute"
-				                });
-
-				                if (cloneOffset.top != 0) {
-				                	clone.offset(cloneOffset);
-			                	} else {
-				                	clone.position({
-				                    	my: "left top",
-				                    	at: "left top",
-				                    	of: _ui.helper,
-				                    	collision: "flipfit",
-				                    	within: ".tags"
-		                    		});
-				                }
+					      		self._addToTagsContainer(_ui);
 					      	}
 						});
+
+					self.tags = tags;
 
 					addConnectionsAndLabels = function(content: Content): Void {
 						tags.children(".label").each(function(i: Int, dom: Element): Void {
@@ -265,8 +314,8 @@ extern class EditPostComp extends JQ {
 		        								}
 		        							});
 
-		        	self._initConections();
-		        	self._initLabels();
+		        	var jq = self._initConections();
+		        	self._initLabels(jq);
 		        },
 
 		        destroy: function() {

@@ -6383,12 +6383,6 @@ ui.widget.UrlCompHelper.__name__ = ["ui","widget","UrlCompHelper"];
 ui.widget.UrlCompHelper.urlInput = function(m) {
 	return m.urlComp("valEle");
 }
-ui.widget.LabelCompHelper = function() { }
-$hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
-ui.widget.LabelCompHelper.__name__ = ["ui","widget","LabelCompHelper"];
-ui.widget.LabelCompHelper.getLabel = function(l) {
-	return l.labelComp("option","label");
-}
 ui.widget.UploadCompHelper = function() { }
 $hxClasses["ui.widget.UploadCompHelper"] = ui.widget.UploadCompHelper;
 ui.widget.UploadCompHelper.__name__ = ["ui","widget","UploadCompHelper"];
@@ -6397,6 +6391,15 @@ ui.widget.UploadCompHelper.value = function(m) {
 }
 ui.widget.UploadCompHelper.clear = function(m) {
 	m.uploadComp("clear");
+}
+ui.widget.UploadCompHelper.setPreviewImage = function(m,src) {
+	m.uploadComp("setPreviewImage",src);
+}
+ui.widget.LabelCompHelper = function() { }
+$hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
+ui.widget.LabelCompHelper.__name__ = ["ui","widget","LabelCompHelper"];
+ui.widget.LabelCompHelper.getLabel = function(l) {
+	return l.labelComp("option","label");
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;
@@ -7060,12 +7063,18 @@ var defineWidget = function() {
 			return;
 		}
 		ui.AgentUi.LOGGER.debug("upload " + Std.string(file.name));
-		if(self2.previewImg == null) self2.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
 		var reader = new FileReader();
 		reader.onload = function(evt) {
-			self2.previewImg.attr("src",evt.target.result);
+			self2.setPreviewImage(evt.target.result);
 		};
 		reader.readAsDataURL(file);
+	}, setPreviewImage : function(src) {
+		var self = this;
+		if(self.previewImg == null) {
+			var selfElement = this.element;
+			self.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
+		}
+		self.previewImg.attr("src",src);
 	}, _traverseFiles : function(files) {
 		ui.AgentUi.LOGGER.debug("traverse the files");
 		var self = this;
@@ -7091,23 +7100,46 @@ var defineWidget = function() {
 };
 $.widget("ui.uploadComp",defineWidget());
 var defineWidget = function() {
-	return { _initConections : function() {
+	return { _getDragStop : function() {
+		var self = this;
+		return function(dragstopEvt,dragstopUi) {
+			if(!self.tags.intersects(dragstopUi.helper)) {
+				dragstopUi.helper.remove();
+				m3.util.JqueryUtil.deleteEffects(dragstopEvt);
+			}
+		};
+	}, _addToTagsContainer : function(_ui) {
+		var self = this;
+		var selfElement = this.element;
+		var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,self._getDragStop());
+		clone.addClass("small");
+		var cloneOffset = clone.offset();
+		self.tags.append(clone);
+		clone.css({ position : "absolute"});
+		if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : self.tags});
+	}, _initConections : function() {
 		var self = this;
 		var selfElement = this.element;
 		var connIter = self.options.content.connectionSet.iterator();
 		var edit_post_comps_tags = new $("#edit_post_comps_tags",selfElement);
+		var of = null;
 		while(connIter.hasNext()) {
 			var connection = connIter.next();
-			new $("<div></div>").connectionAvatar({ dndEnabled : true, connection : connection}).appendTo(edit_post_comps_tags);
+			var ca = new $("<div></div>").connectionAvatar({ connection : connection, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self._getDragStop()}).appendTo(edit_post_comps_tags).css("position","absolute");
+			ca.position({ my : "left", at : "right", of : of, collision : "flipfit", within : self.tags});
+			of = ca;
 		}
-	}, _initLabels : function() {
+		return of;
+	}, _initLabels : function(of) {
 		var self = this;
 		var selfElement = this.element;
 		var labelIter = self.options.content.labelSet.iterator();
 		var edit_post_comps_tags = new $("#edit_post_comps_tags",selfElement);
 		while(labelIter.hasNext()) {
 			var label = labelIter.next();
-			new $("<div class='small'></div>").labelComp({ dndEnabled : true, label : label}).appendTo(edit_post_comps_tags);
+			var lc = new $("<div></div>").labelComp({ label : label, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self._getDragStop()}).appendTo(edit_post_comps_tags).css("position","absolute").addClass("small");
+			lc.position({ my : "top", at : "bottom", of : of, collision : "flipfit", within : self.tags});
+			of = lc;
 		}
 	}, _create : function() {
 		var self1 = this;
@@ -7154,6 +7186,7 @@ var defineWidget = function() {
 			tab_class = "ui-icon-link";
 		} else if(self1.options.content.type == ui.model.ContentType.IMAGE) {
 			imageInput.appendTo(section);
+			ui.widget.UploadCompHelper.setPreviewImage(imageInput,(js.Boot.__cast(self1.options.content , ui.model.ImageContent)).imgSrc);
 			tab_class = "ui-icon-image";
 		} else if(self1.options.content.type == ui.model.ContentType.AUDIO) {
 			audioInput.appendTo(section);
@@ -7185,19 +7218,9 @@ var defineWidget = function() {
 				if(_ui.draggable.parent().attr("id") != "edit_post_comps_tags") _ui.draggable.draggable("option","revert",true);
 				return;
 			}
-			var dragstop = function(dragstopEvt,dragstopUi) {
-				if(!tags.intersects(dragstopUi.helper)) {
-					dragstopUi.helper.remove();
-					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
-				}
-			};
-			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
-			clone.addClass("small");
-			var cloneOffset = clone.offset();
-			$(this).append(clone);
-			clone.css({ position : "absolute"});
-			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : ".tags"});
+			self1._addToTagsContainer(_ui);
 		}});
+		self1.tags = tags;
 		addConnectionsAndLabels = function(content) {
 			tags.children(".label").each(function(i,dom) {
 				var labelComp = new $(dom);
@@ -7233,8 +7256,8 @@ var defineWidget = function() {
 				break;
 			}
 		});
-		self1._initConections();
-		self1._initLabels();
+		var jq = self1._initConections();
+		self1._initLabels(jq);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -8423,11 +8446,11 @@ ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.
 ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"165\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</fname>\n\t<lname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</imgSrc>\n\t<source public=\"1\"><c path=\"String\"/></source>\n\t<target public=\"1\"><c path=\"String\"/></target>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<name public=\"1\" set=\"method\" line=\"186\"><f a=\"\"><c path=\"String\"/></f></name>\n\t<new public=\"1\" set=\"method\" line=\"180\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.BiConnection.__rtti = "<class path=\"ui.model.BiConnection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.BiConnection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<readConnection public=\"1\"><c path=\"ui.model.Connection\"/></readConnection>\n\t<writeConnection public=\"1\"><c path=\"ui.model.Connection\"/></writeConnection>\n\t<new public=\"1\" set=\"method\" line=\"195\"><f a=\"readConnection:writeConnection\">\n\t<c path=\"ui.model.Connection\"/>\n\t<c path=\"ui.model.Connection\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><e path=\"ui.model.ContentType\"/></type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<connections>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connections>\n\t<creator public=\"1\"><c path=\"String\"/></creator>\n\t<readResolve set=\"method\" line=\"249\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"254\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n</class>";
-ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"264\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"272\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"278\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"281\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><e path=\"ui.model.ContentType\"/></type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<connections>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connections>\n\t<creator public=\"1\"><c path=\"String\"/></creator>\n\t<readResolve set=\"method\" line=\"245\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"250\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n</class>";
+ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"260\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"268\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"274\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.MessageContent\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<new public=\"1\" set=\"method\" line=\"277\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;

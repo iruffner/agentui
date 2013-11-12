@@ -23,6 +23,7 @@ typedef UploadCompWidgetDef = {
 
 	var _uploadFile: Dynamic->Void;
 	var _traverseFiles: Dynamic->Void;
+	var setPreviewImage:String->Void;
 
 	var _createFileUploadComponent: Void->Void;
 
@@ -39,12 +40,17 @@ class UploadCompHelper {
 		m.uploadComp("clear");
 	}
 
+	public static function setPreviewImage(m:UploadComp, src:String):Void {
+		m.uploadComp("setPreviewImage", src);
+	}
+
 }
 
 @:native("$")
 extern class UploadComp extends JQ {
 
 	@:overload(function<T>(cmd : String):T{})
+	@:overload(function(cmd:String, opt:String):Dynamic{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function uploadComp(?opts: UploadCompOptions): UploadComp;
 
@@ -142,14 +148,20 @@ extern class UploadComp extends JQ {
 	        		// audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
 
 					// present a preview in the file list
-					if (self.previewImg == null) {
-						self.previewImg = new JQ("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
-					}
 					var reader = untyped __js__("new FileReader()");
 					reader.onload = function (evt) {
-						self.previewImg.attr("src", evt.target.result);
+						self.setPreviewImage(evt.target.result);
 					};
 					reader.readAsDataURL(file);
+				},
+
+				setPreviewImage: function(src:String):Void {
+					var self: UploadCompWidgetDef = Widgets.getSelf();
+					if (self.previewImg == null) {
+						var selfElement: JQ = Widgets.getSelfElement();
+						self.previewImg = new JQ("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
+					}
+					self.previewImg.attr("src", src);
 				},
 
 				_traverseFiles: function(files: Array<Dynamic>) {
