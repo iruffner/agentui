@@ -105,21 +105,6 @@ extern class ContentComp extends JQ {
 		        				connection: connection
 		        			}).appendTo(postConnections);
 		        	}
-
-					var removePost: JQ = new JQ("<img src='media/fileclose.png'/>")
-											.css("float", "right")
-		        							.prependTo(selfElement)
-		        							.attr("title", "Remove Post")
-		        							.click(function(evt: JQEvent): Void {
-		        								evt.stopPropagation();
-		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
-		        									function(){
-		        										self.destroy();
-		        										selfElement.remove();
-		        										EM.change(EMEvent.FitWindow);
-		        									});
-		        							});
-
 		        },
 		        
 		        destroy: function() {
