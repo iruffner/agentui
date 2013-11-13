@@ -5326,6 +5326,9 @@ ui.api.TestDao.buildConnections = function() {
 	var newman = new ui.model.Connection("Newman","","media/test/newman.jpg");
 	newman.set_uid(m3.util.UidGenerator.create());
 	ui.api.TestDao.connections.push(newman);
+	var bania = new ui.model.Connection("Kenny","Bania","media/test/bania.jpg");
+	bania.set_uid(m3.util.UidGenerator.create());
+	ui.api.TestDao.connections.push(bania);
 }
 ui.api.TestDao.buildLabels = function() {
 	ui.api.TestDao.labels = new Array();
