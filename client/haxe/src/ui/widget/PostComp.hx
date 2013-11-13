@@ -16,6 +16,7 @@ import m3.exception.Exception;
 
 using m3.helper.OSetHelper;
 using ui.widget.UploadComp;
+using ui.widget.UrlComp;
 using ui.widget.LabelComp;
 using ui.widget.ConnectionAvatar;
 
@@ -59,11 +60,9 @@ extern class PostComp extends JQ {
 						evt.preventDefault();
 						
 						var msg: MessageContent = new MessageContent();
-						msg.type          = contentType;
-						msg.uid           = UidGenerator.create();
-						msg.text          = value;
-						msg.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-						msg.labelSet      = new ObservableSet<Label>(ModelObj.identifier);
+						msg.type = contentType;
+						msg.uid  = UidGenerator.create();
+						msg.text = value;
 
 						addConnectionsAndLabels(msg);
 						EM.change(EMEvent.NewContentCreated, msg);
@@ -85,8 +84,8 @@ extern class PostComp extends JQ {
 		        				})
 		        			;
 
-		        	var urlInput: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
-		        	urlInput
+		        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
+		        	urlComp
 		        		.appendTo(section)
 		        		.keypress(function(evt: JQEvent): Void {
         					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
@@ -109,7 +108,7 @@ extern class PostComp extends JQ {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.show();
-							        			urlInput.hide();
+							        			urlComp.hide();
 							        			imageInput.hide();
 							        			audioInput.hide();
 							        		});
@@ -120,7 +119,7 @@ extern class PostComp extends JQ {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.hide();
-							        			urlInput.show();
+							        			urlComp.show();
 							        			imageInput.hide();
 							        			audioInput.hide();
 							        		});
@@ -131,7 +130,7 @@ extern class PostComp extends JQ {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.hide();
-							        			urlInput.hide();
+							        			urlComp.hide();
 							        			imageInput.show();
 							        			audioInput.hide();
 							        		});
@@ -142,11 +141,11 @@ extern class PostComp extends JQ {
 							        			tabs.children(".active").removeClass("active");
 							        			JQ.cur.addClass("active");
 							        			textInput.hide();
-							        			urlInput.hide();
+							        			urlComp.hide();
 							        			imageInput.hide();
 							        			audioInput.show();
 							        		});
-					urlInput.hide();
+					urlComp.hide();
 					imageInput.hide();
 					audioInput.hide();
 
@@ -273,8 +272,8 @@ extern class PostComp extends JQ {
 		        								if (textInput.isVisible()) {
 		        									var ta = new JQ("#textInput_ta");
 													doTextPostForElement(evt, ContentType.TEXT, ta);
-		        								} else if (urlInput.isVisible()) {
-		        									doTextPostForElement(evt, ContentType.URL, urlInput.urlComp("valEle"));
+		        								} else if (urlComp.isVisible()) {
+		        									doTextPostForElement(evt, ContentType.URL, urlComp.urlInput());
 		        								} else {
 		        									doTextPost(evt, ContentType.IMAGE, imageInput.value());
 		        									imageInput.clear();

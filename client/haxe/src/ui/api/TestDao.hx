@@ -111,11 +111,8 @@ class TestDao {
 		var content = new Array<Content>();
 		var audioContent: AudioContent = new AudioContent();
         audioContent.uid = UidGenerator.create();
-        audioContent.type = ContentType.AUDIO;
         audioContent.audioSrc = "media/test/hello_newman.mp3";
         audioContent.audioType = "audio/mpeg";
-        audioContent.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        audioContent.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
         if(availableConnections.hasValues()) {
             audioContent.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -132,11 +129,8 @@ class TestDao {
 
         var img: ImageContent = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/soupkitchen.jpg";
         img.caption = "Soup Kitchen";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
         if(availableConnections.hasValues()) {
             img.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -152,11 +146,8 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/apt.jpg";
         img.caption = "Apartment";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
         if(availableConnections.hasValues()) {
             img.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -172,11 +163,8 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/jrmint.jpg";
         img.caption = "The Junior Mint!";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
         if(availableConnections.hasValues()) {
             img.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -192,11 +180,8 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/oldschool.jpg";
         img.caption = "Retro";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
         if(availableConnections.hasValues()) {
             img.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -212,11 +197,8 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/mailman.jpg";
         img.caption = "Jerry Delivering the mail";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
         if(availableConnections.hasValues()) {
             img.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -232,11 +214,8 @@ class TestDao {
 
         img = new ImageContent();
         img.uid = UidGenerator.create();
-        img.type = ContentType.IMAGE;
         img.imgSrc = "media/test/closet.jpg";
         img.caption = "Stuck in the closet!";
-        img.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        img.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
         if(availableConnections.hasValues()) {
             img.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -252,9 +231,6 @@ class TestDao {
 
         var urlContent = new UrlContent();
         urlContent.uid = UidGenerator.create();
-        urlContent.type = ContentType.URL;
-        urlContent.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        urlContent.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
         urlContent.text = "Check out this link";
         urlContent.url = "http://www.bing.com";
         if(availableConnections.hasValues()) {
@@ -269,6 +245,53 @@ class TestDao {
             addLabels(availableLabels, urlContent, 2);
         }
         content.push(urlContent);
+
+        var textContent = new MessageContent();
+        textContent.uid = UidGenerator.create();
+        textContent.text = "It's the best, Jerry! The best!";
+        if(availableConnections.hasValues()) {
+            textContent.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            textContent.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+            addConnections(availableConnections, textContent, 1);
+        }
+        if(availableLabels.hasValues()) {
+            addLabels(availableLabels, textContent, 2);
+        }
+        content.push(textContent);
+
+        textContent = new MessageContent();
+        textContent.uid = UidGenerator.create();
+        if(availableConnections.hasValues()) {
+            textContent.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            textContent.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+            addConnections(availableConnections, textContent, 1);
+        }
+        if(availableLabels.hasValues()) {
+            addLabels(availableLabels, textContent, 2);
+        }
+        content.push(textContent);
+
+        textContent = new MessageContent();
+        textContent.uid = UidGenerator.create();
+        textContent.text = "I find tinsel distracting.";
+        if(availableConnections.hasValues()) {
+            textContent.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            textContent.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+            addConnections(availableConnections, textContent, 1);
+        }
+        if(availableLabels.hasValues()) {
+            addLabels(availableLabels, textContent, 2);
+        }
+        content.push(textContent);
 
         return content;
 	}

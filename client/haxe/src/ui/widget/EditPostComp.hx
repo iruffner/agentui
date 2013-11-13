@@ -30,12 +30,14 @@ typedef EditPostCompWidgetDef = {
 	@:optional var options: EditPostCompOptions;
 	@:optional var tags: JQDroppable;
 	@:optional var valueElement: JQ;
+	@:optional var uploadComp:UploadComp;
 	var _create: Void->Void;
 	var _initConections:Void->JQ;
 	var _initLabels:JQ->Void;
 	var _addToTagsContainer:UIDroppable->Void;
 	var _getDragStop:Void->(JQEvent->UIDraggable->Void);
 	var _updateContent:Void->Void;
+	var _createButtonBlock:EditPostCompWidgetDef->JQ->Void;
 	var destroy: Void->Void;
 }
 
@@ -150,46 +152,12 @@ extern class EditPostComp extends JQ {
 		        	}
 				},
 
-				_updateContent: function(): Void {
-		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+				_createButtonBlock:function(self: EditPostCompWidgetDef, selfElement:JQ): Void {
 
-					switch (self.options.content.type) {
-						case ContentType.TEXT:
-							cast(self.options.content, MessageContent).text = self.valueElement.val();
-						case ContentType.URL:
-							cast(self.options.content, UrlContent).url = self.valueElement.val();
-						case ContentType.IMAGE:
-							cast(self.options.content, ImageContent).imgSrc = self.valueElement.val();
-						case ContentType.AUDIO:
-							cast(self.options.content, AudioContent).audioSrc = self.valueElement.val();
-					}
-
-					self.options.content.labelSet.clear();
-					self.options.content.connectionSet.clear();
-
-					self.tags.children(".label").each(function(i: Int, dom: Element): Void {
-							var labelComp: LabelComp = new LabelComp(dom);
-							self.options.content.labelSet.add(labelComp.getLabel());
-						});
-					self.tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
-							var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-							self.options.content.connectionSet.add( conn.getConnection() );
-						});
-				},
-
-		        _create: function(): Void {
-		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-		        	if(!selfElement.is("div")) {
-		        		throw new Exception("Root of EditPostComp must be a div element");
-		        	}
-		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());
-		        	
-					var buttonContainer = new JQ("<div></div>").css("text-align", "right").appendTo(selfElement);
+					var buttonBlock = new JQ("<div></div>").css("text-align", "right").appendTo(selfElement);
 
 					var removeButton: JQ = new JQ("<button title='Remove Post'></button>")
-		        							.appendTo(buttonContainer)
+		        							.appendTo(buttonBlock)
 		        							.button({text: false,  icons: { primary: "ui-icon-circle-close"}})
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
@@ -203,7 +171,7 @@ extern class EditPostComp extends JQ {
 		        							});
 
 					var updateButton: JQ = new JQ("<button title='Update Post'></button>")
-		        							.appendTo(buttonContainer)
+		        							.appendTo(buttonBlock)
 		        							.button({text: false,   icons: { primary: "ui-icon-disk"}})
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
@@ -216,7 +184,7 @@ extern class EditPostComp extends JQ {
 
 
 					var closeButton: JQ = new JQ("<button title='Close'></button>")
-		        							.appendTo(buttonContainer)
+		        							.appendTo(buttonBlock)
 		        							.button({text: false, icons: { primary: "ui-icon-closethick"}})
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
@@ -224,21 +192,53 @@ extern class EditPostComp extends JQ {
 		        								self.destroy();
 		        							});
 
+				},
+
+				_updateContent: function(): Void {
+		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+					switch (self.options.content.type) {
+						case ContentType.TEXT:
+							cast(self.options.content, MessageContent).text = self.valueElement.val();
+						case ContentType.URL:
+							cast(self.options.content, UrlContent).url = self.valueElement.val();
+						case ContentType.IMAGE:
+							cast(self.options.content, ImageContent).imgSrc = self.uploadComp.value();
+						case ContentType.AUDIO:
+							cast(self.options.content, AudioContent).audioSrc = self.uploadComp.value();
+					}
+
+					self.options.content.labelSet.clear();
+					self.options.content.connectionSet.clear();
+
+					self.tags.children(".label").each(function(i: Int, dom: Element): Void {
+						var labelComp: LabelComp = new LabelComp(dom);
+						self.options.content.labelSet.add(labelComp.getLabel());
+					});
+					
+					self.tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
+						var conn: ConnectionAvatar = new ConnectionAvatar(dom);
+						self.options.content.connectionSet.add( conn.getConnection() );
+					});
+				},
+
+		        _create: function(): Void {
+		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+		        	if(!selfElement.is("div")) {
+		        		throw new Exception("Root of EditPostComp must be a div element");
+		        	}
+		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());
+
+		        	self._createButtonBlock(self, selfElement);
+
 		        	var section: JQ = new JQ("<section id='postSection'></section>").appendTo(selfElement);
-
-		        	// Define the elements.  Don't add them to the DOM unless they are to be displayed.
-		        	var textInput: JQ = new JQ("<div class='postContainer'></div>");
-		        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
-
-			        var options:UploadCompOptions = {contentType: ContentType.IMAGE};
-			        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
-
-		        	options.contentType = ContentType.AUDIO;
-		        	var audioInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 
 		        	var tab_class:String = "";
 
 		        	if (self.options.content.type == ContentType.TEXT) {
+			        	var textInput: JQ = new JQ("<div class='postContainer boxsizingBorder'></div>");
 			        	textInput.appendTo(section);
 			        	self.valueElement = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
 			        			.appendTo(textInput)
@@ -248,6 +248,7 @@ extern class EditPostComp extends JQ {
 			        }
 
 		        	else if (self.options.content.type == ContentType.URL) {
+			        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		        		self.valueElement = urlComp.urlInput();
 			        	urlComp.appendTo(section);
 			        	urlComp.urlInput().val(cast(self.options.content, UrlContent).url);
@@ -255,14 +256,18 @@ extern class EditPostComp extends JQ {
 					}
 
 		        	else if (self.options.content.type == ContentType.IMAGE) {
-		        		self.valueElement = imageInput;
+				        var options:UploadCompOptions = {contentType: ContentType.IMAGE};
+				        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		        		self.uploadComp = imageInput;
 			        	imageInput.appendTo(section);
 			        	imageInput.setPreviewImage(cast(self.options.content, ImageContent).imgSrc);
 			        	tab_class = "ui-icon-image";
 		        	}
 
 		        	else if (self.options.content.type == ContentType.AUDIO) {
-		        		self.valueElement = audioInput;
+				        var options:UploadCompOptions = {contentType: ContentType.AUDIO};
+			        	var audioInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		        		self.uploadComp = audioInput;
 			        	audioInput.appendTo(section);
 			        	audioInput.setPreviewImage(cast(self.options.content, AudioContent).audioSrc);
 			        	tab_class = "ui-icon-volume-on";
