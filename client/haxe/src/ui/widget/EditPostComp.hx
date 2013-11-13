@@ -185,33 +185,44 @@ extern class EditPostComp extends JQ {
 		        		throw new Exception("Root of EditPostComp must be a div element");
 		        	}
 		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());
+		        	
 					var buttonContainer = new JQ("<div></div>").css("text-align", "right").appendTo(selfElement);
 
-					// ui-icon-circle-close
-					// ui-icon-gear
-					// ui-icon-closethick
-					// ui-icon-pencil
-					var removeButton: JQ = new JQ("<button>Remove</button>")
+					var removeButton: JQ = new JQ("<button title='Remove Post'></button>")
 		        							.appendTo(buttonContainer)
-		        							.button()
+		        							.button({text: false,  icons: { primary: "ui-icon-circle-close"}})
+		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
 		        								evt.stopPropagation();
 		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
 		        									function(){
+		        										self.options.contentComp.remove();
 		        										self.destroy();
 		        										EM.change(EMEvent.ContentDeleted, self.options.content);
 		        									});
 		        							});
 
-					var updateButton: JQ = new JQ("<button>Update</button>")
+					var updateButton: JQ = new JQ("<button title='Update Post'></button>")
 		        							.appendTo(buttonContainer)
-		        							.button()
+		        							.button({text: false,   icons: { primary: "ui-icon-disk"}})
+		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
 		        								self._updateContent();
 		        								EM.change(EMEvent.ContentUpdated, self.options.content);
+
+		        								self.options.contentComp.show();
 		        								self.destroy();
 		        							});
 
+
+					var closeButton: JQ = new JQ("<button title='Close'></button>")
+		        							.appendTo(buttonContainer)
+		        							.button({text: false, icons: { primary: "ui-icon-closethick"}})
+		        							.css("width", "23px")
+		        							.click(function(evt: JQEvent): Void {
+		        								self.options.contentComp.show();
+		        								self.destroy();
+		        							});
 
 		        	var section: JQ = new JQ("<section id='postSection'></section>").appendTo(selfElement);
 
