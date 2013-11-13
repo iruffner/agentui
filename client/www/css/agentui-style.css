@@ -387,7 +387,11 @@ body {
 		position: relative;
 	}
 
-		#userId img {
+		#userId.targetChange .userImg {
+			width: 50px !important;
+		}
+
+		#userId .userImg {
 			float: left; 
 			margin-left: 5px; 
 			margin-top: -15px; 
@@ -396,8 +400,21 @@ body {
 			border: 1px solid #5c9ccc;
 		}
 
+		#userId .connectionAvatar {
+			float: left;
+			/*margin-left: 10px;*/
+			margin-left: -45px;
+		}
+
+			#userId .connectionAvatar img {
+				max-width: 80px;
+			}
+
 		#userId .userIdTxt {
-			padding-top: 15px;
+			/*padding-top: 15px;*/
+			max-width: 100px;
+			text-align: right;
+			float: right;
 		}
 
 		#userId .aliasToggle {
