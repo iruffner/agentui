@@ -39,6 +39,10 @@ class TestDao {
         var newman: Connection = new Connection("Newman", "", "media/test/newman.jpg");
         newman.uid = UidGenerator.create();
         connections.push(newman);
+
+        var bania: Connection = new Connection("Kenny", "Bania", "media/test/bania.jpg");
+        bania.uid = UidGenerator.create();
+        connections.push(bania);
 	}
 
 	private static function buildLabels(): Void {
