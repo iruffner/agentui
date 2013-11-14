@@ -89,6 +89,7 @@ enum EMEvent {
 	NewContentCreated;
 	ContentDeleted;
 	ContentUpdated;
+	EditContentClosed;
 
 	LoadAlias;
 	AliasLoaded;

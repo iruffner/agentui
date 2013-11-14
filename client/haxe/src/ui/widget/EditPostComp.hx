@@ -23,7 +23,6 @@ using ui.widget.ConnectionAvatar;
 
 typedef EditPostCompOptions = {
 	var content: Content;
-	var contentComp: JQ;
 }
 
 typedef EditPostCompWidgetDef = {
@@ -164,8 +163,9 @@ extern class EditPostComp extends JQ {
 		        								evt.stopPropagation();
 		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
 		        									function(){
-		        										self.options.contentComp.remove();
+		        										selfElement.remove();
 		        										self.destroy();
+											            EM.change(EMEvent.FitWindow);
 		        										EM.change(EMEvent.ContentDeleted, self.options.content);
 		        									});
 		        							});
@@ -176,10 +176,10 @@ extern class EditPostComp extends JQ {
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
 		        								self._updateContent();
+        										selfElement.remove();
+        										self.destroy();
+									            EM.change(EMEvent.FitWindow);
 		        								EM.change(EMEvent.ContentUpdated, self.options.content);
-
-		        								self.options.contentComp.show();
-		        								self.destroy();
 		        							});
 
 
@@ -188,8 +188,9 @@ extern class EditPostComp extends JQ {
 		        							.button({text: false, icons: { primary: "ui-icon-closethick"}})
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
-		        								self.options.contentComp.show();
+        										selfElement.remove();
 		        								self.destroy();
+		        								EM.change(EMEvent.EditContentClosed, self.options.content);
 		        							});
 
 				},
@@ -321,7 +322,6 @@ extern class EditPostComp extends JQ {
 		        },
 
 		        destroy: function() {
-		        	Widgets.getSelfElement().remove();
 		            untyped JQ.Widget.prototype.destroy.call(JQ.curNoWrap);
 		        }
 		    };

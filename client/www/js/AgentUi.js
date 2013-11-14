@@ -5512,6 +5512,7 @@ ui.api.TestDao.generateContent = function(node) {
 	content.push(textContent);
 	textContent = new ui.model.MessageContent();
 	textContent.set_uid(m3.util.UidGenerator.create());
+	textContent.text = "You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.";
 	if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
 	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
 	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
@@ -5519,6 +5520,13 @@ ui.api.TestDao.generateContent = function(node) {
 	textContent = new ui.model.MessageContent();
 	textContent.set_uid(m3.util.UidGenerator.create());
 	textContent.text = "I find tinsel distracting.";
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
+	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
+	content.push(textContent);
+	textContent = new ui.model.MessageContent();
+	textContent.set_uid(m3.util.UidGenerator.create());
+	textContent.text = "The Moops invaded Spain in the 8th century.";
 	if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
 	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
 	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
@@ -5870,7 +5878,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","ContentDeleted","ContentUpdated","LoadAlias","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","AliasCreate","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","CreateLabel","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","TARGET_CHANGE"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","ContentDeleted","ContentUpdated","EditContentClosed","LoadAlias","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","AliasCreate","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","CreateLabel","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","TARGET_CHANGE"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
@@ -5895,55 +5903,58 @@ ui.model.EMEvent.ContentDeleted.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.ContentUpdated = ["ContentUpdated",7];
 ui.model.EMEvent.ContentUpdated.toString = $estr;
 ui.model.EMEvent.ContentUpdated.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.LoadAlias = ["LoadAlias",8];
+ui.model.EMEvent.EditContentClosed = ["EditContentClosed",8];
+ui.model.EMEvent.EditContentClosed.toString = $estr;
+ui.model.EMEvent.EditContentClosed.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.LoadAlias = ["LoadAlias",9];
 ui.model.EMEvent.LoadAlias.toString = $estr;
 ui.model.EMEvent.LoadAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AliasLoaded = ["AliasLoaded",9];
+ui.model.EMEvent.AliasLoaded = ["AliasLoaded",10];
 ui.model.EMEvent.AliasLoaded.toString = $estr;
 ui.model.EMEvent.AliasLoaded.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AliasConnectionsLoaded = ["AliasConnectionsLoaded",10];
+ui.model.EMEvent.AliasConnectionsLoaded = ["AliasConnectionsLoaded",11];
 ui.model.EMEvent.AliasConnectionsLoaded.toString = $estr;
 ui.model.EMEvent.AliasConnectionsLoaded.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AliasLabelsLoaded = ["AliasLabelsLoaded",11];
+ui.model.EMEvent.AliasLabelsLoaded = ["AliasLabelsLoaded",12];
 ui.model.EMEvent.AliasLabelsLoaded.toString = $estr;
 ui.model.EMEvent.AliasLabelsLoaded.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AliasCreate = ["AliasCreate",12];
+ui.model.EMEvent.AliasCreate = ["AliasCreate",13];
 ui.model.EMEvent.AliasCreate.toString = $estr;
 ui.model.EMEvent.AliasCreate.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_LOGIN = ["USER_LOGIN",13];
+ui.model.EMEvent.USER_LOGIN = ["USER_LOGIN",14];
 ui.model.EMEvent.USER_LOGIN.toString = $estr;
 ui.model.EMEvent.USER_LOGIN.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_CREATE = ["USER_CREATE",14];
+ui.model.EMEvent.USER_CREATE = ["USER_CREATE",15];
 ui.model.EMEvent.USER_CREATE.toString = $estr;
 ui.model.EMEvent.USER_CREATE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_UPDATE = ["USER_UPDATE",15];
+ui.model.EMEvent.USER_UPDATE = ["USER_UPDATE",16];
 ui.model.EMEvent.USER_UPDATE.toString = $estr;
 ui.model.EMEvent.USER_UPDATE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",16];
+ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",17];
 ui.model.EMEvent.USER_SIGNUP.toString = $estr;
 ui.model.EMEvent.USER_SIGNUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_VALIDATE = ["USER_VALIDATE",17];
+ui.model.EMEvent.USER_VALIDATE = ["USER_VALIDATE",18];
 ui.model.EMEvent.USER_VALIDATE.toString = $estr;
 ui.model.EMEvent.USER_VALIDATE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_VALIDATED = ["USER_VALIDATED",18];
+ui.model.EMEvent.USER_VALIDATED = ["USER_VALIDATED",19];
 ui.model.EMEvent.USER_VALIDATED.toString = $estr;
 ui.model.EMEvent.USER_VALIDATED.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER = ["USER",19];
+ui.model.EMEvent.USER = ["USER",20];
 ui.model.EMEvent.USER.toString = $estr;
 ui.model.EMEvent.USER.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FitWindow = ["FitWindow",20];
+ui.model.EMEvent.FitWindow = ["FitWindow",21];
 ui.model.EMEvent.FitWindow.toString = $estr;
 ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateLabel = ["CreateLabel",21];
+ui.model.EMEvent.CreateLabel = ["CreateLabel",22];
 ui.model.EMEvent.CreateLabel.toString = $estr;
 ui.model.EMEvent.CreateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",22];
+ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",23];
 ui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",23];
+ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",24];
 ui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",24];
+ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",25];
 ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
 ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
@@ -7156,25 +7167,28 @@ var defineWidget = function() {
 			lc.position({ my : "top", at : "bottom", of : of, collision : "flipfit", within : self.tags});
 			of = lc;
 		}
-	}, _createButtonBlock : function(self1,selfElement) {
-		var buttonBlock = new $("<div></div>").css("text-align","right").appendTo(selfElement);
+	}, _createButtonBlock : function(self1,selfElement1) {
+		var buttonBlock = new $("<div></div>").css("text-align","right").appendTo(selfElement1);
 		var removeButton = new $("<button title='Remove Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-circle-close"}}).css("width","23px").click(function(evt) {
 			evt.stopPropagation();
 			m3.util.JqueryUtil.confirm("Delete Post","Are you sure you want to remove this post?",function() {
-				self1.options.contentComp.remove();
+				selfElement1.remove();
 				self1.destroy();
+				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 				ui.model.EM.change(ui.model.EMEvent.ContentDeleted,self1.options.content);
 			});
 		});
 		var updateButton = new $("<button title='Update Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-disk"}}).css("width","23px").click(function(evt) {
 			self1._updateContent();
-			ui.model.EM.change(ui.model.EMEvent.ContentUpdated,self1.options.content);
-			self1.options.contentComp.show();
+			selfElement1.remove();
 			self1.destroy();
+			ui.model.EM.change(ui.model.EMEvent.FitWindow);
+			ui.model.EM.change(ui.model.EMEvent.ContentUpdated,self1.options.content);
 		});
 		var closeButton = new $("<button title='Close'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-closethick"}}).css("width","23px").click(function(evt) {
-			self1.options.contentComp.show();
+			selfElement1.remove();
 			self1.destroy();
+			ui.model.EM.change(ui.model.EMEvent.EditContentClosed,self1.options.content);
 		});
 	}, _updateContent : function() {
 		var self2 = this;
@@ -7270,69 +7284,87 @@ var defineWidget = function() {
 		var jq = self3._initConections();
 		self3._initLabels(jq);
 	}, destroy : function() {
-		this.element.remove();
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
 $.widget("ui.editPostComp",defineWidget());
 var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentComp must be a div element");
-		selfElement.addClass("post container shadow " + m3.widget.Widgets.getWidgetClasses());
-		selfElement.click(function(evt) {
-			var comp = new $("<div id='edit-post-comp'></div>");
-			comp.insertBefore(selfElement);
-			comp.width(selfElement.width());
-			comp.height(selfElement.height() + 35);
-			selfElement.hide();
-			var editPostComp = new $(comp).editPostComp({ content : self.options.content, contentComp : selfElement});
-		});
+	return { _createWidgets : function(selfElement,content) {
+		selfElement.empty();
 		var postWr = new $("<section class='postWr'></section>");
 		selfElement.append(postWr);
 		var postContentWr = new $("<div class='postContentWr'></div>");
 		postWr.append(postContentWr);
 		var postContent = new $("<div class='postContent'></div>");
 		postContentWr.append(postContent);
-		switch( (self.options.content.type)[1] ) {
+		switch( (content.type)[1] ) {
 		case 0:
-			var audio = js.Boot.__cast(self.options.content , ui.model.AudioContent);
+			var audio = js.Boot.__cast(content , ui.model.AudioContent);
 			postContent.append(audio.title + "<br/>");
 			var audioControls = new $("<audio controls></audio>");
 			postContent.append(audioControls);
 			audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
 			break;
 		case 1:
-			var img = js.Boot.__cast(self.options.content , ui.model.ImageContent);
+			var img = js.Boot.__cast(content , ui.model.ImageContent);
 			postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");
 			break;
 		case 2:
-			var urlContent = js.Boot.__cast(self.options.content , ui.model.UrlContent);
+			var urlContent = js.Boot.__cast(content , ui.model.UrlContent);
 			postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
 			break;
 		case 3:
-			var textContent = js.Boot.__cast(self.options.content , ui.model.MessageContent);
+			var textContent = js.Boot.__cast(content , ui.model.MessageContent);
 			postContent.append("<p>" + textContent.text + "</p>");
 			break;
 		}
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
-		var connection = m3.helper.OSetHelper.getElementComplex(ui.AgentUi.USER.get_currentAlias().connectionSet,self.options.content.creator);
+		var connection = m3.helper.OSetHelper.getElementComplex(ui.AgentUi.USER.get_currentAlias().connectionSet,content.creator);
 		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AgentUi.USER.get_currentAlias());
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection}).appendTo(postCreator);
 		var postLabels = new $("<aside class='postLabels'></div>");
 		postWr.append(postLabels);
-		var labelIter = self.options.content.labelSet.iterator();
+		var labelIter = content.labelSet.iterator();
 		while(labelIter.hasNext()) {
 			var label = labelIter.next();
 			new $("<div class='small'></div>").labelComp({ dndEnabled : false, label : label}).appendTo(postLabels);
 		}
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
-		var connIter = self.options.content.connectionSet.iterator();
+		var connIter = content.connectionSet.iterator();
 		while(connIter.hasNext()) {
 			var connection1 = connIter.next();
 			new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection1}).appendTo(postConnections);
 		}
+	}, _create : function() {
+		var self = this;
+		var selfElement1 = this.element;
+		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of ContentComp must be a div element");
+		selfElement1.addClass("post container shadow " + m3.widget.Widgets.getWidgetClasses());
+		selfElement1.click(function(evt) {
+			var comp = new $("<div id='edit-post-comp'></div>");
+			comp.insertBefore(selfElement1);
+			comp.width(selfElement1.width());
+			comp.height(selfElement1.height() + 35);
+			selfElement1.hide();
+			var editPostComp = new $(comp).editPostComp({ content : self.options.content});
+		});
+		self._createWidgets(selfElement1,self.options.content);
+		ui.model.EM.addListener(ui.model.EMEvent.ContentDeleted,new ui.model.EMListener(function(content) {
+			if(content.get_uid() == self.options.content.get_uid()) {
+				selfElement1.remove();
+				self.destroy();
+			}
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.ContentUpdated,new ui.model.EMListener(function(content) {
+			if(content.get_uid() == self.options.content.get_uid()) {
+				self.options.content = content;
+				self._createWidgets(selfElement1,content);
+				selfElement1.show();
+			}
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.EditContentClosed,new ui.model.EMListener(function(content) {
+			if(content.get_uid() == self.options.content.get_uid()) selfElement1.show();
+		}));
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -8473,11 +8505,11 @@ ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.
 ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Label\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<parentUid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</parentUid>\n\t<color public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</color>\n\t<new public=\"1\" set=\"method\" line=\"165\"><f a=\"?text\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Connection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<fname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</fname>\n\t<lname public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</lname>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</imgSrc>\n\t<source public=\"1\"><c path=\"String\"/></source>\n\t<target public=\"1\"><c path=\"String\"/></target>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<name public=\"1\" set=\"method\" line=\"186\"><f a=\"\"><c path=\"String\"/></f></name>\n\t<new public=\"1\" set=\"method\" line=\"180\"><f a=\"?fname:?lname:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.BiConnection.__rtti = "<class path=\"ui.model.BiConnection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.BiConnection\"/></extends>\n\t<implements path=\"ui.model.Filterable\"/>\n\t<readConnection public=\"1\"><c path=\"ui.model.Connection\"/></readConnection>\n\t<writeConnection public=\"1\"><c path=\"ui.model.Connection\"/></writeConnection>\n\t<new public=\"1\" set=\"method\" line=\"195\"><f a=\"readConnection:writeConnection\">\n\t<c path=\"ui.model.Connection\"/>\n\t<c path=\"ui.model.Connection\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><e path=\"ui.model.ContentType\"/></type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<connections>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connections>\n\t<creator public=\"1\"><c path=\"String\"/></creator>\n\t<readResolve set=\"method\" line=\"252\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"257\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"245\"><f a=\"contentType\">\n\t<e path=\"ui.model.ContentType\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"267\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"277\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"285\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"294\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"><c path=\"ui.model.Content\"/></extends>\n\t<type public=\"1\"><e path=\"ui.model.ContentType\"/></type>\n\t<labelSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelSet>\n\t<connectionSet public=\"1\">\n\t\t<c path=\"m3.observable.ObservableSet\"><c path=\"ui.model.Connection\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionSet>\n\t<labels>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<connections>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connections>\n\t<creator public=\"1\"><c path=\"String\"/></creator>\n\t<readResolve set=\"method\" line=\"253\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"258\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"246\"><f a=\"contentType\">\n\t<e path=\"ui.model.ContentType\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\"><c path=\"String\"/></caption>\n\t<new public=\"1\" set=\"method\" line=\"268\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\"><c path=\"String\"/></audioType>\n\t<title public=\"1\"><c path=\"String\"/></title>\n\t<new public=\"1\" set=\"method\" line=\"278\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"286\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"295\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;

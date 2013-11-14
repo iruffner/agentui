@@ -234,6 +234,7 @@ class Content extends ModelObj<Content> {
 	@:transient public var labelSet: ObservableSet<Label>;
 	@:transient public var connectionSet: ObservableSet<Connection>;
 	
+	// TODO:  Deprecated
 	@:transient private var labels: Array<String>;
 	@:transient private var connections: Array<String>;
 	

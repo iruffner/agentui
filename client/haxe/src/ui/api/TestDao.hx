@@ -264,6 +264,7 @@ class TestDao {
 
         textContent = new MessageContent();
         textContent.uid = UidGenerator.create();
+        textContent.text = "You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.";
         if(availableConnections.hasValues()) {
             textContent.creator = getRandomFromArray(availableConnections).uid;
         } else {
