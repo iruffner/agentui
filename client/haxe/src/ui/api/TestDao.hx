@@ -293,6 +293,22 @@ class TestDao {
         }
         content.push(textContent);
 
+        textContent = new MessageContent();
+        textContent.uid = UidGenerator.create();
+        textContent.text = "The Moops invaded Spain in the 8th century.";
+        if(availableConnections.hasValues()) {
+            textContent.creator = getRandomFromArray(availableConnections).uid;
+        } else {
+            textContent.creator = AgentUi.USER.currentAlias.uid;
+        }
+        if(availableConnections.hasValues()) {
+            addConnections(availableConnections, textContent, 1);
+        }
+        if(availableLabels.hasValues()) {
+            addLabels(availableLabels, textContent, 2);
+        }
+        content.push(textContent);
+
         return content;
 	}
 
