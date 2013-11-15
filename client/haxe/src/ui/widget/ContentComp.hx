@@ -19,9 +19,11 @@ typedef ContentCompOptions = {
 
 typedef ContentCompWidgetDef = {
 	@:optional var options: ContentCompOptions;
+	@:optional var buttonBlock: JQ;
 	var _create: Void->Void;
-	var _createWidgets:JQ->Content->Void;
+	var _createWidgets:JQ->ContentCompWidgetDef->Void;
 	var destroy: Void->Void;
+	var toggleActive:Void->Void;
 }
 
 @:native("$")
@@ -34,9 +36,11 @@ extern class ContentComp extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->ContentCompWidgetDef = function(): ContentCompWidgetDef {
 			return {
-				_createWidgets: function(selfElement: JQ, content:Content): Void {
+				_createWidgets: function(selfElement: JQ, self:ContentCompWidgetDef): Void {
 
 					selfElement.empty();
+
+					var content:Content = self.options.content;
 
 		        	var postWr: JQ = new JQ("<section class='postWr'></section>");
 		        	selfElement.append(postWr);
@@ -59,8 +63,26 @@ extern class ContentComp extends JQ {
 		        			postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
 	        			case ContentType.TEXT:
 	        				var textContent: MessageContent = cast(content, MessageContent);
-	        				postContent.append("<p>" + textContent.text + "</p>"); 
+	        				postContent.append("<p style='padding-right: 80px;'>" + textContent.text + "</p>"); 
 		        	}
+
+					self.buttonBlock = new JQ("<div class='button-block' ></div>").css("text-align", "left").hide().appendTo(postContent);
+
+					new JQ("<button title='Edit Post'></button>")
+						.appendTo(self.buttonBlock)
+						.button({text: false,  icons: { primary: "ui-icon-pencil"}})
+						.css("width", "23px")
+						.click(function(evt: JQEvent): Void {
+							evt.stopPropagation();
+
+			        		var comp = new JQ("<div id='edit-post-comp'></div>");
+	            			comp.insertBefore(selfElement);
+							comp.width(selfElement.width());
+							comp.height(selfElement.height());
+
+							selfElement.hide();
+							var editPostComp = new EditPostComp(comp).editPostComp({content: self.options.content});
+						});
 		        	
 		        	var postCreator: JQ = new JQ("<aside class='postCreator'></aside>").appendTo(postWr);
 		        	var connection: Connection = AgentUi.USER.currentAlias.connectionSet.getElementComplex(content.creator);
@@ -104,16 +126,14 @@ extern class ContentComp extends JQ {
 
 		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());
 		        	selfElement.click(function(evt:js.JQuery.JqEvent){
-		        		var comp = new JQ("<div id='edit-post-comp'></div>");
-            			comp.insertBefore(selfElement);
-						comp.width(selfElement.width());
-						comp.height(selfElement.height() + 35);
-
-						selfElement.hide();
-						var editPostComp = new EditPostComp(comp).editPostComp({content: self.options.content});
+		        		if (!selfElement.hasClass("postActive")) {
+		        			new JQ(".postActive .button-block").toggle();
+		        			new JQ(".postActive").toggleClass("postActive");
+		        		}
+		        		self.toggleActive();
 		        	});
 
-		        	self._createWidgets(selfElement, self.options.content);
+		        	self._createWidgets(selfElement, self);
 
 		        	EM.addListener(EMEvent.ContentDeleted, new EMListener(function(content: Content): Void {
 		        		if (content.uid == self.options.content.uid) {
@@ -125,7 +145,8 @@ extern class ContentComp extends JQ {
 		        	EM.addListener(EMEvent.ContentUpdated, new EMListener(function(content: Content): Void {
 		        		if (content.uid == self.options.content.uid) {
 		        			self.options.content = content;
-		        			self._createWidgets(selfElement, content);
+		        			self._createWidgets(selfElement, self);
+		        			self.buttonBlock.show();
 		        			selfElement.show();
 		        		}
 		        	}));
@@ -135,6 +156,14 @@ extern class ContentComp extends JQ {
 		        			selfElement.show();
 		        		}
 		        	}));
+		        },
+
+		        toggleActive: function(): Void {
+		        	var self: ContentCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+	        		selfElement.toggleClass("postActive");
+	        		self.buttonBlock.toggle();
 		        },
 		        
 		        destroy: function() {

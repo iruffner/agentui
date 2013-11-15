@@ -109,10 +109,12 @@ class TestDao {
 		var availableLabels = getLabelsFromNode(node);
 
 		var content = new Array<Content>();
+
 		var audioContent: AudioContent = new AudioContent();
         audioContent.uid = UidGenerator.create();
         audioContent.audioSrc = "media/test/hello_newman.mp3";
         audioContent.audioType = "audio/mpeg";
+        audioContent.title = "Hello Newman Compilation";
         if(availableConnections.hasValues()) {
             audioContent.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -124,7 +126,6 @@ class TestDao {
         if(availableLabels.hasValues()) {
         	addLabels(availableLabels, audioContent, 2);
 	    }
-        audioContent.title = "Hello Newman Compilation";
         content.push(audioContent);
 
         var img: ImageContent = new ImageContent();
@@ -246,69 +247,30 @@ class TestDao {
         }
         content.push(urlContent);
 
-        var textContent = new MessageContent();
-        textContent.uid = UidGenerator.create();
-        textContent.text = "It's the best, Jerry! The best!";
-        if(availableConnections.hasValues()) {
-            textContent.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            textContent.creator = AgentUi.USER.currentAlias.uid;
+        var phrases = [
+            "It's the best, Jerry! The best!"
+            , "You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist."
+            , "I find tinsel distracting."
+            , "The Moops invaded Spain in the 8th century."
+            , "They don't have a decent piece of fruit at the supermarket. The apples are mealy, the oranges are dry... I don't know what's going on with the papayas!"
+        ];
+        for (i in 0...phrases.length) {
+            var textContent = new MessageContent();
+            textContent.uid = UidGenerator.create();
+            textContent.text = phrases[i];
+            if(availableConnections.hasValues()) {
+                textContent.creator = getRandomFromArray(availableConnections).uid;
+            } else {
+                textContent.creator = AgentUi.USER.currentAlias.uid;
+            }
+            if(availableConnections.hasValues()) {
+                addConnections(availableConnections, textContent, 1);
+            }
+            if(availableLabels.hasValues()) {
+                addLabels(availableLabels, textContent, 2);
+            }
+            content.push(textContent);
         }
-        if(availableConnections.hasValues()) {
-            addConnections(availableConnections, textContent, 1);
-        }
-        if(availableLabels.hasValues()) {
-            addLabels(availableLabels, textContent, 2);
-        }
-        content.push(textContent);
-
-        textContent = new MessageContent();
-        textContent.uid = UidGenerator.create();
-        textContent.text = "You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.";
-        if(availableConnections.hasValues()) {
-            textContent.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            textContent.creator = AgentUi.USER.currentAlias.uid;
-        }
-        if(availableConnections.hasValues()) {
-            addConnections(availableConnections, textContent, 1);
-        }
-        if(availableLabels.hasValues()) {
-            addLabels(availableLabels, textContent, 2);
-        }
-        content.push(textContent);
-
-        textContent = new MessageContent();
-        textContent.uid = UidGenerator.create();
-        textContent.text = "I find tinsel distracting.";
-        if(availableConnections.hasValues()) {
-            textContent.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            textContent.creator = AgentUi.USER.currentAlias.uid;
-        }
-        if(availableConnections.hasValues()) {
-            addConnections(availableConnections, textContent, 1);
-        }
-        if(availableLabels.hasValues()) {
-            addLabels(availableLabels, textContent, 2);
-        }
-        content.push(textContent);
-
-        textContent = new MessageContent();
-        textContent.uid = UidGenerator.create();
-        textContent.text = "The Moops invaded Spain in the 8th century.";
-        if(availableConnections.hasValues()) {
-            textContent.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            textContent.creator = AgentUi.USER.currentAlias.uid;
-        }
-        if(availableConnections.hasValues()) {
-            addConnections(availableConnections, textContent, 1);
-        }
-        if(availableLabels.hasValues()) {
-            addLabels(availableLabels, textContent, 2);
-        }
-        content.push(textContent);
 
         return content;
 	}

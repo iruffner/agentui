@@ -5442,10 +5442,10 @@ ui.api.TestDao.generateContent = function(node) {
 	audioContent.set_uid(m3.util.UidGenerator.create());
 	audioContent.audioSrc = "media/test/hello_newman.mp3";
 	audioContent.audioType = "audio/mpeg";
+	audioContent.title = "Hello Newman Compilation";
 	if(m3.helper.ArrayHelper.hasValues(availableConnections)) audioContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else audioContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
 	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,audioContent,2);
 	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,audioContent,2);
-	audioContent.title = "Hello Newman Compilation";
 	content.push(audioContent);
 	var img = new ui.model.ImageContent();
 	img.set_uid(m3.util.UidGenerator.create());
@@ -5503,34 +5503,18 @@ ui.api.TestDao.generateContent = function(node) {
 	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,urlContent,1);
 	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,urlContent,2);
 	content.push(urlContent);
-	var textContent = new ui.model.MessageContent();
-	textContent.set_uid(m3.util.UidGenerator.create());
-	textContent.text = "It's the best, Jerry! The best!";
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
-	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
-	content.push(textContent);
-	textContent = new ui.model.MessageContent();
-	textContent.set_uid(m3.util.UidGenerator.create());
-	textContent.text = "You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.";
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
-	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
-	content.push(textContent);
-	textContent = new ui.model.MessageContent();
-	textContent.set_uid(m3.util.UidGenerator.create());
-	textContent.text = "I find tinsel distracting.";
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
-	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
-	content.push(textContent);
-	textContent = new ui.model.MessageContent();
-	textContent.set_uid(m3.util.UidGenerator.create());
-	textContent.text = "The Moops invaded Spain in the 8th century.";
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
-	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
-	content.push(textContent);
+	var phrases = ["It's the best, Jerry! The best!","You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.","I find tinsel distracting.","The Moops invaded Spain in the 8th century.","They don't have a decent piece of fruit at the supermarket. The apples are mealy, the oranges are dry... I don't know what's going on with the papayas!"];
+	var _g1 = 0, _g = phrases.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var textContent = new ui.model.MessageContent();
+		textContent.set_uid(m3.util.UidGenerator.create());
+		textContent.text = phrases[i];
+		if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+		if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
+		if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
+		content.push(textContent);
+	}
 	return content;
 }
 ui.api.TestDao.addConnections = function(availableConnections,content,numToAdd) {
@@ -7289,8 +7273,9 @@ var defineWidget = function() {
 };
 $.widget("ui.editPostComp",defineWidget());
 var defineWidget = function() {
-	return { _createWidgets : function(selfElement,content) {
+	return { _createWidgets : function(selfElement,self) {
 		selfElement.empty();
+		var content = self.options.content;
 		var postWr = new $("<section class='postWr'></section>");
 		selfElement.append(postWr);
 		var postContentWr = new $("<div class='postContentWr'></div>");
@@ -7315,9 +7300,19 @@ var defineWidget = function() {
 			break;
 		case 3:
 			var textContent = js.Boot.__cast(content , ui.model.MessageContent);
-			postContent.append("<p>" + textContent.text + "</p>");
+			postContent.append("<p style='padding-right: 80px;'>" + textContent.text + "</p>");
 			break;
 		}
+		self.buttonBlock = new $("<div class='button-block' ></div>").css("text-align","left").hide().appendTo(postContent);
+		new $("<button title='Edit Post'></button>").appendTo(self.buttonBlock).button({ text : false, icons : { primary : "ui-icon-pencil"}}).css("width","23px").click(function(evt) {
+			evt.stopPropagation();
+			var comp = new $("<div id='edit-post-comp'></div>");
+			comp.insertBefore(selfElement);
+			comp.width(selfElement.width());
+			comp.height(selfElement.height());
+			selfElement.hide();
+			var editPostComp = new $(comp).editPostComp({ content : self.options.content});
+		});
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
 		var connection = m3.helper.OSetHelper.getElementComplex(ui.AgentUi.USER.get_currentAlias().connectionSet,content.creator);
 		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AgentUi.USER.get_currentAlias());
@@ -7336,35 +7331,40 @@ var defineWidget = function() {
 			new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection1}).appendTo(postConnections);
 		}
 	}, _create : function() {
-		var self = this;
+		var self1 = this;
 		var selfElement1 = this.element;
 		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of ContentComp must be a div element");
 		selfElement1.addClass("post container shadow " + m3.widget.Widgets.getWidgetClasses());
 		selfElement1.click(function(evt) {
-			var comp = new $("<div id='edit-post-comp'></div>");
-			comp.insertBefore(selfElement1);
-			comp.width(selfElement1.width());
-			comp.height(selfElement1.height() + 35);
-			selfElement1.hide();
-			var editPostComp = new $(comp).editPostComp({ content : self.options.content});
+			if(!selfElement1.hasClass("postActive")) {
+				new $(".postActive .button-block").toggle();
+				new $(".postActive").toggleClass("postActive");
+			}
+			self1.toggleActive();
 		});
-		self._createWidgets(selfElement1,self.options.content);
+		self1._createWidgets(selfElement1,self1);
 		ui.model.EM.addListener(ui.model.EMEvent.ContentDeleted,new ui.model.EMListener(function(content) {
-			if(content.get_uid() == self.options.content.get_uid()) {
+			if(content.get_uid() == self1.options.content.get_uid()) {
 				selfElement1.remove();
-				self.destroy();
+				self1.destroy();
 			}
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.ContentUpdated,new ui.model.EMListener(function(content) {
-			if(content.get_uid() == self.options.content.get_uid()) {
-				self.options.content = content;
-				self._createWidgets(selfElement1,content);
+			if(content.get_uid() == self1.options.content.get_uid()) {
+				self1.options.content = content;
+				self1._createWidgets(selfElement1,self1);
+				self1.buttonBlock.show();
 				selfElement1.show();
 			}
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.EditContentClosed,new ui.model.EMListener(function(content) {
-			if(content.get_uid() == self.options.content.get_uid()) selfElement1.show();
+			if(content.get_uid() == self1.options.content.get_uid()) selfElement1.show();
 		}));
+	}, toggleActive : function() {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.toggleClass("postActive");
+		self.buttonBlock.toggle();
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
