@@ -8,7 +8,7 @@
 set -e
 
 pushd proxy
-  mvn clean install
+  mvn --offline clean install
 popd
 
 set +e
@@ -16,7 +16,7 @@ set +e
   mkdir -p target/dist/webapp
 set -e
 
-cp -r client/ target/dist/webapp/cliebt/
+cp -r client/ target/dist/webapp/client/
 cp -r proxy/src/main/webapp/ target/dist/webapp/
 cp -r proxy/target/agentui-proxy-1.0-SNAPSHOT-jar-with-dependencies.jar target/dist/
 cp -r proxy/src/main/dist/ target/dist/

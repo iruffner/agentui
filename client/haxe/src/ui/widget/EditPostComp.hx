@@ -23,17 +23,20 @@ using ui.widget.ConnectionAvatar;
 
 typedef EditPostCompOptions = {
 	var content: Content;
-	var contentComp: JQ;
 }
 
 typedef EditPostCompWidgetDef = {
 	@:optional var options: EditPostCompOptions;
 	@:optional var tags: JQDroppable;
+	@:optional var valueElement: JQ;
+	@:optional var uploadComp:UploadComp;
 	var _create: Void->Void;
 	var _initConections:Void->JQ;
 	var _initLabels:JQ->Void;
 	var _addToTagsContainer:UIDroppable->Void;
 	var _getDragStop:Void->(JQEvent->UIDraggable->Void);
+	var _updateContent:Void->Void;
+	var _createButtonBlock:EditPostCompWidgetDef->JQ->Void;
 	var destroy: Void->Void;
 }
 
@@ -148,8 +151,80 @@ extern class EditPostComp extends JQ {
 		        	}
 				},
 
-		        _create: function(): Void {
+				_createButtonBlock:function(self: EditPostCompWidgetDef, selfElement:JQ): Void {
 
+					var buttonBlock = new JQ("<div></div>").css("text-align", "right").appendTo(selfElement);
+
+					var removeButton: JQ = new JQ("<button title='Remove Post'></button>")
+		        							.appendTo(buttonBlock)
+		        							.button({text: false,  icons: { primary: "ui-icon-circle-close"}})
+		        							.css("width", "23px")
+		        							.click(function(evt: JQEvent): Void {
+		        								evt.stopPropagation();
+		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
+		        									function(){
+		        										selfElement.remove();
+		        										self.destroy();
+											            EM.change(EMEvent.FitWindow);
+		        										EM.change(EMEvent.ContentDeleted, self.options.content);
+		        									});
+		        							});
+
+					var updateButton: JQ = new JQ("<button title='Update Post'></button>")
+		        							.appendTo(buttonBlock)
+		        							.button({text: false,   icons: { primary: "ui-icon-disk"}})
+		        							.css("width", "23px")
+		        							.click(function(evt: JQEvent): Void {
+		        								self._updateContent();
+        										selfElement.remove();
+        										self.destroy();
+									            EM.change(EMEvent.FitWindow);
+		        								EM.change(EMEvent.ContentUpdated, self.options.content);
+		        							});
+
+
+					var closeButton: JQ = new JQ("<button title='Close'></button>")
+		        							.appendTo(buttonBlock)
+		        							.button({text: false, icons: { primary: "ui-icon-closethick"}})
+		        							.css("width", "23px")
+		        							.click(function(evt: JQEvent): Void {
+        										selfElement.remove();
+		        								self.destroy();
+		        								EM.change(EMEvent.EditContentClosed, self.options.content);
+		        							});
+
+				},
+
+				_updateContent: function(): Void {
+		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+					switch (self.options.content.type) {
+						case ContentType.TEXT:
+							cast(self.options.content, MessageContent).text = self.valueElement.val();
+						case ContentType.URL:
+							cast(self.options.content, UrlContent).url = self.valueElement.val();
+						case ContentType.IMAGE:
+							cast(self.options.content, ImageContent).imgSrc = self.uploadComp.value();
+						case ContentType.AUDIO:
+							cast(self.options.content, AudioContent).audioSrc = self.uploadComp.value();
+					}
+
+					self.options.content.labelSet.clear();
+					self.options.content.connectionSet.clear();
+
+					self.tags.children(".label").each(function(i: Int, dom: Element): Void {
+						var labelComp: LabelComp = new LabelComp(dom);
+						self.options.content.labelSet.add(labelComp.getLabel());
+					});
+					
+					self.tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
+						var conn: ConnectionAvatar = new ConnectionAvatar(dom);
+						self.options.content.connectionSet.add( conn.getConnection() );
+					});
+				},
+
+		        _create: function(): Void {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
@@ -157,76 +232,45 @@ extern class EditPostComp extends JQ {
 		        	}
 		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());
 
+		        	self._createButtonBlock(self, selfElement);
+
 		        	var section: JQ = new JQ("<section id='postSection'></section>").appendTo(selfElement);
-
-		        	var addConnectionsAndLabels: Content->Void = null;
-
-		        	var doTextPost = function(evt: JQEvent, contentType: ContentType, value:String): Void {
-		        		ui.AgentUi.LOGGER.debug("Post new text content");
-						evt.preventDefault();
-						
-						var msg: MessageContent = new MessageContent();
-						msg.type          = contentType;
-						msg.uid           = UidGenerator.create();
-						msg.text          = value;
-						msg.connectionSet = new ObservableSet<Connection>(ModelObj.identifier);
-						msg.labelSet      = new ObservableSet<Label>(ModelObj.identifier);
-
-						addConnectionsAndLabels(msg);
-						EM.change(EMEvent.NewContentCreated, msg);
-		        	};
-
-		        	var doTextPostForElement = function(evt: JQEvent, contentType: ContentType, ele:JQ): Void {
-		        		doTextPost(evt, contentType, ele.val());
-						ele.val("");
-		        	};
-
-		        	// Define the elements.  Don't add them to the DOM unless they are to be displayed.
-		        	var textInput: JQ = new JQ("<div class='postContainer'></div>");
-		        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
-
-			        var options:UploadCompOptions = {contentType: ContentType.IMAGE};
-			        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
-
-		        	options.contentType = ContentType.AUDIO;
-		        	var audioInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 
 		        	var tab_class:String = "";
 
 		        	if (self.options.content.type == ContentType.TEXT) {
+			        	var textInput: JQ = new JQ("<div class='postContainer boxsizingBorder'></div>");
 			        	textInput.appendTo(section);
-			        	var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
+			        	self.valueElement = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
 			        			.appendTo(textInput)
-			        			.attr("id", "textInput_ta")
-			        			.keypress(function(evt: JQEvent): Void {
-		        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-		        						doTextPostForElement(evt, ContentType.TEXT, new JQ(evt.target));
-		        					}
-		        				});
-			        	ta.val(cast(self.options.content, MessageContent).text);
+			        			.attr("id", "textInput_ta");
+			        	self.valueElement.val(cast(self.options.content, MessageContent).text);
 			        	tab_class = "ui-icon-document";
 			        }
 
 		        	else if (self.options.content.type == ContentType.URL) {
-			        	urlComp
-			        		.appendTo(section)
-			        		.keypress(function(evt: JQEvent): Void {
-	        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-	        						doTextPostForElement(evt, ContentType.URL, new JQ(evt.target));
-	        					}
-	        				});
+			        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
+		        		self.valueElement = urlComp.urlInput();
+			        	urlComp.appendTo(section);
 			        	urlComp.urlInput().val(cast(self.options.content, UrlContent).url);
 			        	tab_class = "ui-icon-link";
 					}
 
 		        	else if (self.options.content.type == ContentType.IMAGE) {
+				        var options:UploadCompOptions = {contentType: ContentType.IMAGE};
+				        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		        		self.uploadComp = imageInput;
 			        	imageInput.appendTo(section);
 			        	imageInput.setPreviewImage(cast(self.options.content, ImageContent).imgSrc);
 			        	tab_class = "ui-icon-image";
 		        	}
 
 		        	else if (self.options.content.type == ContentType.AUDIO) {
+				        var options:UploadCompOptions = {contentType: ContentType.AUDIO};
+			        	var audioInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
+		        		self.uploadComp = audioInput;
 			        	audioInput.appendTo(section);
+			        	audioInput.setPreviewImage(cast(self.options.content, AudioContent).audioSrc);
 			        	tab_class = "ui-icon-volume-on";
 			        }
 
@@ -273,53 +317,12 @@ extern class EditPostComp extends JQ {
 
 					self.tags = tags;
 
-					addConnectionsAndLabels = function(content: Content): Void {
-						tags.children(".label").each(function(i: Int, dom: Element): Void {
-								var labelComp: LabelComp = new LabelComp(dom);
-								content.labelSet.add(labelComp.getLabel());
-							});
-						tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
-								var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-								content.connectionSet.add( conn.getConnection() );
-							});
-					}
-
-					var removeButton: JQ = new JQ("<button>Remove</button>")
-		        							.appendTo(selfElement)
-		        							.button()
-		        							.click(function(evt: JQEvent): Void {
-	        									self.destroy();
-	        									selfElement.remove();
-	        									self.options.contentComp.show();
-
-	        									EM.change(EMEvent.FitWindow);
-		        							});
-
-					var updateButton: JQ = new JQ("<button>Update</button>")
-		        							.appendTo(selfElement)
-		        							.button()
-		        							.click(function(evt: JQEvent): Void {
-		        								switch (self.options.content.type) {
-		        									case ContentType.TEXT:
-			        									var ta = new JQ("#textInput_ta");
-														doTextPostForElement(evt, ContentType.TEXT, ta);
-													case ContentType.URL:
-														doTextPostForElement(evt, ContentType.URL, urlComp.urlInput());
-													case ContentType.IMAGE:
-														doTextPost(evt, ContentType.IMAGE, imageInput.value());
-			        									imageInput.clear();
-			        								case ContentType.AUDIO:
-			        									doTextPost(evt, ContentType.AUDIO, audioInput.value());
-			        									audioInput.clear();
-		        								}
-		        							});
-
 		        	var jq = self._initConections();
 		        	self._initLabels(jq);
 		        },
 
 		        destroy: function() {
-		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
+		            untyped JQ.Widget.prototype.destroy.call(JQ.curNoWrap);
 		        }
 		    };
 		}

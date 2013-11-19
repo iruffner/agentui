@@ -236,6 +236,7 @@ class Content extends ModelObj<Content> {
 	@:transient public var labelSet: ObservableSet<Label>;
 	@:transient public var connectionSet: ObservableSet<Connection>;
 	
+	// TODO:  Deprecated
 	@:transient private var labels: Array<String>;
 	@:transient private var connections: Array<String>;
 	
@@ -243,6 +244,13 @@ class Content extends ModelObj<Content> {
 		UID of connection that created the content
 	*/
 	@:optional public var creator: String;
+
+	public function new (contentType:ContentType) {
+		this.type = contentType;
+        this.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
+        this.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+	}
+
 
 	private function readResolve(): Void {
 		// labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
@@ -259,7 +267,9 @@ class ImageContent extends Content {
 	public var imgSrc: String;
 	public var caption: String;
 
-	public function new () {}
+	public function new () {
+		super(ContentType.IMAGE);
+	}
 }
 
 class AudioContent extends Content {
@@ -267,17 +277,26 @@ class AudioContent extends Content {
 	public var audioType: String;
 	public var title: String;
 
-	public function new () {}
+	public function new () {
+		super(ContentType.AUDIO);
+	}
 }
 
 class MessageContent extends Content {
 	public var text: String;
 
-	public function new () {}
+	public function new () {
+		super(ContentType.TEXT);
+	}
 }
 
-class UrlContent extends MessageContent {
+class UrlContent extends Content {
 	public var url: String;
+	public var text: String;
+
+	public function new () {
+		super(ContentType.URL);
+	}	
 }
 
 enum ContentType {

@@ -300,6 +300,15 @@ body {
 			height: 100px;
 		}
 
+		#feed .postActive {
+			height:175px;
+			box-shadow: 0px 3px 10px 2px goldenrod;
+		}
+
+		#feed .postActive .postWr img {
+			max-height: 86%;
+		}
+
 			#feed .postWr {
 				height: 100%;
 				max-height: 100%;
@@ -310,6 +319,7 @@ body {
 
 				#feed .postWr img {
 					max-height: 100%;
+					border: 1px solid black;
 				}
 
 				#feed .postWr .postContentWr {
@@ -317,11 +327,8 @@ body {
 					float: left;
 					overflow: hidden;
 					margin-right: -100%;
+					text-align: left;
 				}
-
-					#feed .postWr .postContentWr .postContent {
-						padding: 0 20px;
-					}
 
 				#feed .postWr .postCreator {
 					float: left;

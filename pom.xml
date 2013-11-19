@@ -1,464 +1,464 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
- 	
-	<groupId>agentui</groupId>
-	<artifactId>super-pom</artifactId>
-	<version>1.0-trunk-SNAPSHOT</version>
+<?xml version="1.0" ?>
 
-	<packaging>pom</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<name>agentui-super-pom</name>
-	<description>agentui super POM</description>
-	<modelVersion>4.0.0</modelVersion>
-  
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
- 	</properties>
+    <groupId>agentui</groupId>
+    <artifactId>agentui-super-pom</artifactId>
+    <version>1.0-SNAPSHOT</version>
 
-	<modules>
-		<module>client</module>
-	</modules>
+    <packaging>pom</packaging>
+    <description>agentui super POM</description>
+    <modelVersion>4.0.0</modelVersion>
 
-	<repositories>
-	    <repository>
-      		<id>emeris</id>
-      		<name>emeris artifact server where all the net.model3 stuff lives</name>
-      		<url>http://ratchet.model3.net:8081/artifactory/remote-repos</url>
-    	    </repository>    
-	</repositories>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <scalaVersion>2.10.3</scalaVersion>
+    </properties>
 
-	<dependencyManagement>
-		<dependencies>
+    <modules>
+        <!--module>sideways</module-->
+        <module>proxy</module>
+    </modules>
 
-    		<dependency>
-      			<groupId>org.codehaus.groovy</groupId>
-      			<artifactId>groovy-all</artifactId>
-      			<version>1.7.5</version>
-    		</dependency>
-
-			<dependency>
-				<groupId>uk.me.lings</groupId>
-				<artifactId>scala-guice_2.9.2</artifactId>
-				<version>0.1</version>
-			</dependency>
-
-	        <dependency>
-	            <groupId>net.model3</groupId>
-	            <artifactId>m3-servlet</artifactId>
-	            <version>1.0-SNAPSHOT</version>
-	        </dependency>
+    <dependencyManagement>
+        <dependencies>
             <dependency>
-			    <groupId>net.liftweb</groupId>
-			    <artifactId>lift-json_2.9.2</artifactId>
-	            <version>2.4</version>
-		    </dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>1.7.5</version>
+            </dependency>
+            <dependency>
+                <groupId>net.codingwell</groupId>
+                <artifactId>scala-guice_2.10</artifactId>
+                <version>3.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-compiler</artifactId>
+                <version>${scalaVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-actors</artifactId>
+                <version>${scalaVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-reflect</artifactId>
+                <version>${scalaVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scalap</artifactId>
+                <version>${scalaVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalatest</groupId>
+                <artifactId>scalatest_2.10</artifactId>
+                <version>1.9.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalaz</groupId>
+                <artifactId>scalaz-core_2.10</artifactId>
+                <version>7.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-infoedge-server</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-server-scan</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-pedge-core</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>m3-servlet_2.10</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-infoedge-core</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>m3-json2</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-server-stickies</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-server-blob</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-server-cache</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-client-tools</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>m3-authnet</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>m3-scala_2.10</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>m3-query-parser_2.10</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>m3-query-client_2.10</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-server-core</artifactId>
+                <version>${ahsVersion}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.swinglabs</groupId>
+                <artifactId>jxlayer</artifactId>
+                <version>3.0.4</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>model3-ext</artifactId>
+                <version>3.5-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>codegen</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>model3-json</artifactId>
+                <version>1.5-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>m3-swing</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.jidesoft</groupId>
+                        <artifactId>jide-oss</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-client</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>m3-launcher</artifactId>
+                <version>1.0.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>jedis</groupId>
+                <artifactId>jedis</artifactId>
+                <version>1.5.2</version>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-core</artifactId>
+                <version>${ahsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>jetty-runner</artifactId>
+                <version>8.1-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>ahs</groupId>
+                <artifactId>ahs-dataedge-core</artifactId>
+                <version>${ahsVersion}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.4</version>
+            </dependency>
+            <dependency>
+                <groupId>log4jdbc</groupId>
+                <artifactId>log4jdbc4</artifactId>
+                <version>1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>com.miglayout</groupId>
+                <artifactId>miglayout-swing</artifactId>
+                <version>4.2</version>
+            </dependency>
+            <dependency>
+                <groupId>beanprops</groupId>
+                <artifactId>beanprops</artifactId>
+                <version>2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.thoughtworks.xstream</groupId>
+                <artifactId>xstream</artifactId>
+                <version>1.4.4</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-httpclient</groupId>
+                <artifactId>commons-httpclient</artifactId>
+                <version>3.1</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>net.sf.ehcache</groupId>
+                <artifactId>ehcache</artifactId>
+                <version>1.5.0</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>ant</groupId>
+                <artifactId>ant</artifactId>
+                <version>1.6.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scalaVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>m3</groupId>
+                <artifactId>javamail</artifactId>
+                <version>1.3.1</version>
+                <scope>compile</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>5.1.21</version>
+            </dependency>
+            <dependency>
+                <groupId>net.model3</groupId>
+                <artifactId>model3</artifactId>
+                <version>3.5-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>servlet-api</artifactId>
+                <version>2.5</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>jsx</groupId>
+                <artifactId>jsx</artifactId>
+                <version>1.0</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>aopalliance</groupId>
+                <artifactId>aopalliance</artifactId>
+                <version>1.0</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>m3</groupId>
+                <artifactId>database</artifactId>
+                <version>1.0</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>m3</groupId>
+                <artifactId>postgres</artifactId>
+                <version>8.0</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <version>2.7.1</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-dbcp</groupId>
+                <artifactId>commons-dbcp</artifactId>
+                <version>1.4</version>
+                <scope>compile</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>xml-apis</groupId>
+                        <artifactId>xml-apis</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>xerces</groupId>
+                        <artifactId>xercesImpl</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>m3</groupId>
+                <artifactId>logging</artifactId>
+                <scope>compile</scope>
+                <version>1.1.0</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+                <version>1.2.15</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.jms</groupId>
+                        <artifactId>jms</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.mail</groupId>
+                        <artifactId>mail</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.jdmk</groupId>
+                        <artifactId>jmxtools</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.jmx</groupId>
+                        <artifactId>jmxri</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-	        <dependency>
-	            <groupId>net.model3</groupId>
-	            <artifactId>m3-authnet</artifactId>
-	            <version>1.0-SNAPSHOT</version>
-	        </dependency>
+    <profiles>
 
-	        <dependency>
-	            <groupId>net.model3</groupId>
-	            <artifactId>m3-scala</artifactId>
-	            <version>1.0-SNAPSHOT</version>
-	        </dependency>
+        <profile>
+            <id>no-tests</id>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+        </profile>
 
-	        <dependency>
-		  		<groupId>net.model3</groupId>
-		  		<artifactId>m3-query-parser</artifactId>
-	            <version>1.0-SNAPSHOT</version>
-	        </dependency>
+        <profile>
+            <id>release</id>
+            <properties>
+                <performRelease>true</performRelease>
+            </properties>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>m3</groupId>
+                        <artifactId>maven-git-info-plugin</artifactId>
+                        <version>1.0.4</version>
+                        <configuration>
+                            <logMessageCount>10</logMessageCount>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>build-info</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <inherited>true</inherited>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <configuration>
+                            <updateReleaseInfo>true</updateReleaseInfo>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
-	        <dependency>
-		  		<groupId>net.model3</groupId>
-		  		<artifactId>m3-query-client</artifactId>
-	            <version>1.0-SNAPSHOT</version>
-	        </dependency>
+        <profile>
+            <id>scala-enable</id>
+            <activation>
+                <file>
+                    <exists>src/main/scala</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                        <configuration>
+                            <recompileMode>incremental</recompileMode>
+                            <useZincServer>true</useZincServer>
+                            <args>
+                                <arg>-feature</arg>
+                            </args>
+                            <javacArgs>
+                                <javacArg>-source</javacArg>
+                                <javacArg>1.6</javacArg>
+                                <javacArg>-target</javacArg>
+                                <javacArg>1.6</javacArg>
+                            </javacArgs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>compile</id>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <phase>compile</phase>
+                            </execution>
+                            <execution>
+                                <id>test-compile</id>
+                                <goals>
+                                    <goal>testCompile</goal>
+                                </goals>
+                                <phase>test-compile</phase>
+                            </execution>
+                            <execution>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
-	        <dependency>
-	            <groupId>org.swinglabs</groupId>
-	            <artifactId>jxlayer</artifactId>
-	            <version>3.0.4</version>
-	        </dependency>
-
-	        <dependency>
-	            <groupId>net.model3</groupId>
-	            <artifactId>model3-ext</artifactId>
-	            <version>3.5-SNAPSHOT</version>
-	        </dependency>
-
-	        <dependency>
-	            <groupId>net.model3</groupId>
-	            <artifactId>codegen</artifactId>
-	            <version>1.0-SNAPSHOT</version>
-				<scope>provided</scope>
-	        </dependency>
-			
-	        <dependency>
-	            <groupId>net.model3</groupId>
-	            <artifactId>m3-swing</artifactId>
-	            <version>1.0-SNAPSHOT</version>
-	            <exclusions>
-	                <exclusion>
-	                    <groupId>com.jidesoft</groupId>
-	                    <artifactId>jide-oss</artifactId>
-	                </exclusion>
-	            </exclusions>
-	        </dependency>
-
-	        <dependency>
-	            <groupId>net.model3</groupId>
-	            <artifactId>m3-launcher</artifactId>
-	            <version>1.0-SNAPSHOT</version>
-	        </dependency>
-
-	       <dependency>
-	            <groupId>jedis</groupId>
-	            <artifactId>jedis</artifactId>
-	            <version>1.5.2</version>
-	       </dependency>
-
-	       <dependency>
-	            <groupId>net.model3</groupId>
-	            <artifactId>jetty-runner</artifactId>
-	            <version>8.1-SNAPSHOT</version>
-	            <scope>compile</scope>
-	       </dependency>
-
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>4.4</version>
-			</dependency>
-
-			<dependency>
-				<groupId>log4jdbc</groupId>
-				<artifactId>log4jdbc4</artifactId>
-				<version>1.2</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.thoughtworks.xstream</groupId>
-				<artifactId>xstream</artifactId>
-				<version>1.3</version>
-				<scope>compile</scope>
-				<optional>true</optional>
-				<exclusions>
-					<exclusion>
-						<groupId>xpp3</groupId>
-						<artifactId>xpp3_min</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-
-			<dependency>
-				<groupId>commons-httpclient</groupId>
-				<artifactId>commons-httpclient</artifactId>
-				<version>3.1</version>
-				<exclusions>
-					<exclusion>
-						<groupId>commons-logging</groupId>
-						<artifactId>commons-logging</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-
-			<dependency>
-				<groupId>net.sf.ehcache</groupId>
-				<artifactId>ehcache</artifactId>
-				<version>1.5.0</version>
-				<scope>compile</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>ant</groupId>
-				<artifactId>ant</artifactId>
-				<version>1.6.5</version>
-			</dependency>
-
-	        <dependency>
-	            <groupId>org.scala-lang</groupId>
-	            <artifactId>scala-compiler</artifactId>
-	            <version>2.9.2</version>
-	        </dependency>
-
-	        <dependency>
-	            <groupId>org.scala-lang</groupId>
-	            <artifactId>scala-library</artifactId>
-	            <version>2.9.2</version>
-	        </dependency>
-
-			<dependency>
-				<groupId>m3</groupId>
-				<artifactId>javamail</artifactId>
-				<version>1.3.1</version>
-				<scope>compile</scope>
-				<type>pom</type>
-			</dependency>
-
-			<dependency>
-				<groupId>mysql</groupId>
-				<artifactId>mysql-connector-java</artifactId>
-				<version>5.1.21</version>
-			</dependency>
-
-			<dependency>
-				<groupId>net.model3</groupId>
-				<artifactId>model3</artifactId>
-				<version>3.5-SNAPSHOT</version>
-			</dependency>
-
-			<dependency>
-	      		<groupId>javax.servlet</groupId>
-	      		<artifactId>servlet-api</artifactId>
-	      		<version>2.5</version>
-				<scope>provided</scope>
-		    </dependency>
-
-			<dependency>
-				<groupId>jsx</groupId>
-				<artifactId>jsx</artifactId>
-				<version>1.0</version>
-				<scope>provided</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>aopalliance</groupId>
-				<artifactId>aopalliance</artifactId>
-				<version>1.0</version>
-				<scope>compile</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>m3</groupId>
-				<artifactId>database</artifactId>
-				<version>1.0</version>
-				<type>pom</type>
-			</dependency>
-
-			<dependency>
-				<groupId>m3</groupId>
-				<artifactId>postgres</artifactId>
-				<version>8.0</version>
-				<type>pom</type>
-			</dependency>
-
-			<dependency>
-				<artifactId>maven-surefire-plugin</artifactId>
-			  	<groupId>org.apache.maven.plugins</groupId>
-				<version>2.7.1</version>
-			</dependency>
-
-			<dependency>
-				<artifactId>xpp3</artifactId>
-			  	<groupId>xpp3_min</groupId>
-				<version>1.1.4c</version>
-			</dependency>
-
-			<dependency>
-				<groupId>commons-dbcp</groupId>
-				<artifactId>commons-dbcp</artifactId>
-				<version>1.4</version>
-				<scope>compile</scope>
-				<exclusions>
-					<exclusion>
-						<groupId>xml-apis</groupId>
-						<artifactId>xml-apis</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>xerces</groupId>
-						<artifactId>xercesImpl</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-
-	    	<dependency>
-	      		<groupId>m3</groupId>
-	      		<artifactId>logging</artifactId>
-	      		<scope>compile</scope>
-				<version>1.1.0</version>
-				<type>pom</type>
-	    	</dependency>
-
-	        <dependency>
-	            <groupId>log4j</groupId>
-	            <artifactId>log4j</artifactId>
-	            <version>1.2.15</version>
-				<exclusions>
-					<exclusion>
-						<groupId>javax.jms</groupId>
-						<artifactId>jms</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>javax.mail</groupId>
-						<artifactId>mail</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>com.sun.jdmk</groupId>
-						<artifactId>jmxtools</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>com.sun.jmx</groupId>
-						<artifactId>jmxri</artifactId>
-					</exclusion>
-				</exclusions>
-	        </dependency>
-
-		</dependencies>
-	</dependencyManagement>
-
-	<profiles>
-
-		<profile>
-			<id>no-tests</id>
-			<properties>
-				<maven.test.skip>true</maven.test.skip>
-			</properties>
-		</profile>
-
-		<profile>
-			<id>release</id>
-
-			<properties>
-				<performRelease>true</performRelease>
-			</properties>
-
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-
-			<build>
-				<plugins>
-                  <plugin>
-                    <groupId>m3</groupId>
-                    <artifactId>maven-git-info-plugin</artifactId>
-                    <version>1.0.3</version>
-                    <configuration>
-                      <logMessageCount>10</logMessageCount>
-                    </configuration>
-                    <executions>
-                      <execution>
-                        <goals>
-                          <goal>build-info</goal>
-                        </goals>
-                      </execution>
-                    </executions>
-                  </plugin>      
-<!--					
-          <plugin>
-						<groupId>m3</groupId>
-						<artifactId>maven-build-info-plugin</artifactId>
-            <version>2.0.1</version>
-						<configuration>
-							<verbose>true</verbose>
-							<failOnUnCommitted>true</failOnUnCommitted>
-							<failOnMixedRevisions>true</failOnMixedRevisions>
-						</configuration>
-            <executions>
-	            <execution>
-	              <goals>
-	                <goal>build-info</goal>
-	              </goals>
-	            </execution>
-            </executions>
-	        </plugin>
--->	        
-					<!-- package sources for jar and test jar
-					<plugin>
-						<inherited>true</inherited>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>attach-source</id>
-								<goals>
-									<goal>test-jar</goal>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
--->
-					<!-- package tests 
-					<plugin>
-						<inherited>true</inherited>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jar-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>attach-tests</id>
-								<goals>
-									<goal>test-jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
--->
-					<!-- package javadoc for main jar and tests 
-					<plugin>
-						<inherited>true</inherited>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>attach-javadocs</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
--->
-					<plugin>
-						<inherited>true</inherited>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-deploy-plugin</artifactId>
-						<configuration>
-							<updateReleaseInfo>true</updateReleaseInfo>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>quick-deploy</id>
-			<properties>
-				<maven.test.skip>true</maven.test.skip>
-			</properties>
-			<build>
-				<plugins>
-					<!--
-	                <plugin>
-						<groupId>m3</groupId>
-						<artifactId>maven-build-info-plugin</artifactId>
-	                    <version>2.0-SNAPSHOT</version>
-						<configuration>
-							<verbose>true</verbose>
-							<failOnUnCommitted>false</failOnUnCommitted>
-							<failOnMixedRevisions>true</failOnMixedRevisions>
-						</configuration>
-	                    <executions>
-	                        <execution>
-	                            <goals>
-	                                <goal>build-info</goal>
-	                            </goals>
-	                        </execution>
-	                    </executions>
-	                </plugin>
-	            -->
-				</plugins>
-			</build>
-		</profile>
-
-	</profiles>
-
-
+    </profiles>
     <distributionManagement>
         <!-- use the following if you're not using a snapshot version. -->
         <repository>
@@ -474,48 +474,40 @@
         </snapshotRepository>
     </distributionManagement>
 
-
-  <build> 
-    <pluginManagement>
-      <plugins>
-        
-        <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.7.2</version>
-        </plugin>
-        
-        <plugin>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.7</version>
-        </plugin>
-        
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.3.2</version>
-        </plugin>
-        
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>2.3.1</version>
-        </plugin>
-        
-        <plugin>
-          <groupId>net.alchim31.maven</groupId>
-  		  <artifactId>scala-maven-plugin</artifactId>
-        </plugin>
-        
-      </plugins>
-    </pluginManagement>
-
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.7.2</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>2.7</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.3.2</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>3.1.5</version>
-				<configuration>
-      				<recompileMode>incremental</recompileMode>
-					<useZincServer>true</useZincServer>
-    			</configuration>
+                <configuration>
+                    <recompileMode>incremental</recompileMode>
+                    <useZincServer>true</useZincServer>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -525,18 +517,15 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-
-	      	<plugin>
-	        	<groupId>org.apache.maven.plugins</groupId>
-	        	<artifactId>maven-resources-plugin</artifactId>
-	        	<version>2.5</version>
-	        	<configuration>
-	          		<encoding>UTF-8</encoding>
-	        	</configuration>
-	      	</plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
         </plugins>
-  </build>
-
+    </build>
+    
 </project>
-
