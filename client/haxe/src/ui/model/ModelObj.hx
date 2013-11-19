@@ -228,10 +228,9 @@ class ContentHandler implements TypeHandler {
 }
 
 class Content extends ModelObj<Content> {
-	/**
-		ContentType of this content
-	*/
 	public var type: ContentType;
+	public var created: Date;
+	public var modified: Date;
 	
 	@:transient public var labelSet: ObservableSet<Label>;
 	@:transient public var connectionSet: ObservableSet<Connection>;
@@ -246,7 +245,10 @@ class Content extends ModelObj<Content> {
 	@:optional public var creator: String;
 
 	public function new (contentType:ContentType) {
-		this.type = contentType;
+		this.type     = contentType;
+		this.created  = Date.now();
+		this.modified = Date.now();
+
         this.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
         this.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
 	}

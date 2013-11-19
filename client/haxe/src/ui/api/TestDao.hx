@@ -146,124 +146,58 @@ class TestDao {
 	    }
         content.push(audioContent);
 
-        var img: ImageContent = new ImageContent();
-        img.uid = UidGenerator.create();
-        img.imgSrc = "media/test/soupkitchen.jpg";
-        img.caption = "Soup Kitchen";
-        if(availableConnections.hasValues()) {
-            img.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            img.creator = AgentUi.USER.currentAlias.uid;
-        }
-        if(availableConnections.hasValues()) {
-        	addConnections(availableConnections, img, 1);
-	    }
-        if(availableLabels.hasValues()) {
-        	addLabels(availableLabels, img, 2);
-	    }
-        content.push(img);
+        var imgData:Array<Dynamic> = [
+            {imgSrc: "media/test/soupkitchen.jpg", caption: "Soup Kitchen"}
+            ,{imgSrc: "media/test/apt.jpg", caption: "Apartment"}
+            ,{imgSrc: "media/test/jrmint.jpg", caption: "The Junior Mint!!!"}
+            ,{imgSrc: "media/test/oldschool.jpg", caption: "Retro Jerry"}
+            ,{imgSrc: "media/test/mailman.jpg", caption: "Jerry Delivering the mail"}
+            ,{imgSrc: "media/test/closet.jpg", caption: "Stuck in the closet!"}
+        ];
 
-        img = new ImageContent();
-        img.uid = UidGenerator.create();
-        img.imgSrc = "media/test/apt.jpg";
-        img.caption = "Apartment";
-        if(availableConnections.hasValues()) {
-            img.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            img.creator = AgentUi.USER.currentAlias.uid;
+        for (i in 0...imgData.length) {
+            var img: ImageContent = new ImageContent();
+            img.uid = UidGenerator.create();
+            img.imgSrc = imgData[i].imgSrc;
+            img.caption = imgData[i].caption;
+            if(availableConnections.hasValues()) {
+                img.creator = getRandomFromArray(availableConnections).uid;
+            } else {
+                img.creator = AgentUi.USER.currentAlias.uid;
+            }
+            if(availableConnections.hasValues()) {
+            	addConnections(availableConnections, img, 1);
+    	    }
+            if(availableLabels.hasValues()) {
+            	addLabels(availableLabels, img, 2);
+    	    }
+            content.push(img);
         }
-        if(availableConnections.hasValues()) {
-        	addConnections(availableConnections, img, 1);
-	    }
-        if(availableLabels.hasValues()) {
-        	addLabels(availableLabels, img, 1);
-	    }
-        content.push(img);
 
-        img = new ImageContent();
-        img.uid = UidGenerator.create();
-        img.imgSrc = "media/test/jrmint.jpg";
-        img.caption = "The Junior Mint!";
-        if(availableConnections.hasValues()) {
-            img.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            img.creator = AgentUi.USER.currentAlias.uid;
-        }
-        if(availableConnections.hasValues()) {
-        	addConnections(availableConnections, img, 3);
-	    }
-        if(availableLabels.hasValues()) {
-        	addLabels(availableLabels, img, 2);
-	    }
-        content.push(img);
+        var url_data:Array<Dynamic> = [
+            {text: "Check out this link", url: "http://www.bing.com"}
+            ,{text: "CNN", url: "http://cnn.com"}
+            ,{text: "IMDB", url: "http://www.imdb.com"}
+        ];
 
-        img = new ImageContent();
-        img.uid = UidGenerator.create();
-        img.imgSrc = "media/test/oldschool.jpg";
-        img.caption = "Retro";
-        if(availableConnections.hasValues()) {
-            img.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            img.creator = AgentUi.USER.currentAlias.uid;
+        for (i in 0...url_data.length) {
+            var urlContent = new UrlContent();
+            urlContent.uid  = UidGenerator.create();
+            urlContent.text = url_data[i].text;
+            urlContent.url  = url_data[i].url;
+            if(availableConnections.hasValues()) {
+                urlContent.creator = getRandomFromArray(availableConnections).uid;
+            } else {
+                urlContent.creator = AgentUi.USER.currentAlias.uid;
+            }
+            if(availableConnections.hasValues()) {
+                addConnections(availableConnections, urlContent, 1);
+            }
+            if(availableLabels.hasValues()) {
+                addLabels(availableLabels, urlContent, 2);
+            }
+            content.push(urlContent);
         }
-        if(availableConnections.hasValues()) {
-        	addConnections(availableConnections, img, 3);
-	    }
-        if(availableLabels.hasValues()) {
-        	addLabels(availableLabels, img, 1);
-	    }
-        content.push(img);
-
-        img = new ImageContent();
-        img.uid = UidGenerator.create();
-        img.imgSrc = "media/test/mailman.jpg";
-        img.caption = "Jerry Delivering the mail";
-        if(availableConnections.hasValues()) {
-            img.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            img.creator = AgentUi.USER.currentAlias.uid;
-        }
-        if(availableConnections.hasValues()) {
-        	addConnections(availableConnections, img, 1);
-	    }
-        if(availableLabels.hasValues()) {
-        	addLabels(availableLabels, img, 1);
-	    }
-        content.push(img);
-
-        img = new ImageContent();
-        img.uid = UidGenerator.create();
-        img.imgSrc = "media/test/closet.jpg";
-        img.caption = "Stuck in the closet!";
-        if(availableConnections.hasValues()) {
-            img.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            img.creator = AgentUi.USER.currentAlias.uid;
-        }
-        if(availableConnections.hasValues()) {
-        	addConnections(availableConnections, img, 1);
-	    }
-        if(availableLabels.hasValues()) {
-        	addLabels(availableLabels, img, 2);
-	    }
-        content.push(img);
-
-        var urlContent = new UrlContent();
-        urlContent.uid = UidGenerator.create();
-        urlContent.text = "Check out this link";
-        urlContent.url = "http://www.bing.com";
-        if(availableConnections.hasValues()) {
-            urlContent.creator = getRandomFromArray(availableConnections).uid;
-        } else {
-            urlContent.creator = AgentUi.USER.currentAlias.uid;
-        }
-        if(availableConnections.hasValues()) {
-            addConnections(availableConnections, urlContent, 1);
-        }
-        if(availableLabels.hasValues()) {
-            addLabels(availableLabels, urlContent, 2);
-        }
-        content.push(urlContent);
 
         var phrases = [
             "It's the best, Jerry! The best!"

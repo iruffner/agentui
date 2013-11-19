@@ -301,12 +301,21 @@ body {
 		}
 
 		#feed .postActive {
-			height:175px;
+			height:185px;
 			box-shadow: 0px 3px 10px 2px goldenrod;
 		}
 
 		#feed .postActive .postWr img {
-			max-height: 86%;
+			max-height: 140px;
+		}
+
+		#feed .postActive .content-text {
+			height: 140px !important;
+		}
+
+		#feed .content-timestamp {
+			font-size:.5em;
+			padding-bottom: 4px;
 		}
 
 			#feed .postWr {
@@ -318,8 +327,14 @@ body {
 			}
 
 				#feed .postWr img {
-					max-height: 100%;
+					max-height: 80px;
 					border: 1px solid black;
+				}
+
+				#feed .postWr .content-text {
+					padding-right: 80px;
+					height: 80px;
+					overflow: auto;
 				}
 
 				#feed .postWr .postContentWr {

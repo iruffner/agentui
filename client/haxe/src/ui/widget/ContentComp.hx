@@ -48,6 +48,7 @@ extern class ContentComp extends JQ {
 		        	postWr.append(postContentWr);
 		        	var postContent: JQ = new JQ("<div class='postContent'></div>");
 		        	postContentWr.append(postContent);
+		        	postContent.append("<div class='content-timestamp'>" +  content.created + "</div>");
 		        	switch(content.type) {
 		        		case ContentType.AUDIO:
 			        		var audio: AudioContent = cast(content, AudioContent);
@@ -55,15 +56,19 @@ extern class ContentComp extends JQ {
 			        		var audioControls: JQ = new JQ("<audio controls></audio>");
 			        		postContent.append(audioControls);
 			        		audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
+
 		        		case ContentType.IMAGE:
 		        			var img: ImageContent = cast(content, ImageContent);
 		        			postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");// + img.caption);
+
 						case ContentType.URL:
 							var urlContent: UrlContent = cast(content, UrlContent);
-		        			postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
+							postContent.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.url + "'>");
+							// postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
+
 	        			case ContentType.TEXT:
 	        				var textContent: MessageContent = cast(content, MessageContent);
-	        				postContent.append("<p style='padding-right: 80px;'>" + textContent.text + "</p>"); 
+	        				postContent.append("<div class='content-text'>" + textContent.text + "</div>"); 
 		        	}
 
 					self.buttonBlock = new JQ("<div class='button-block' ></div>").css("text-align", "left").hide().appendTo(postContent);

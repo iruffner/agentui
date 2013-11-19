@@ -62,14 +62,14 @@ extern class LabelComp extends FilterableComponent {
 				            	if(labelComp.hasClass("clone")) return labelComp;
 				            	var clone: LabelComp = new LabelComp("<div class='clone'></div>");
 				            	clone.labelComp({
-				                        label: labelComp.labelComp("option", "label"),
-				                        isDragByHelper: isDragByHelper,
-				                        containment: containment,
-				                        dragstop: dragstop,
-				                        classes: labelComp.labelComp("option", "classes"),
-				                        cloneFcn: labelComp.labelComp("option", "cloneFcn"),
-				                        dropTargetClass: labelComp.labelComp("option", "dropTargetClass")
-				                    });
+			                        label: labelComp.labelComp("option", "label"),
+			                        isDragByHelper: isDragByHelper,
+			                        containment: containment,
+			                        dragstop: dragstop,
+			                        classes: labelComp.labelComp("option", "classes"),
+			                        cloneFcn: labelComp.labelComp("option", "cloneFcn"),
+			                        dropTargetClass: labelComp.labelComp("option", "dropTargetClass")
+			                    });
 				            	return clone;
 		            		}
 		        },
