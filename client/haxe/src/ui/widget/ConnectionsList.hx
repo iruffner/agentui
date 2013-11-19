@@ -1,14 +1,17 @@
 package ui.widget;
 
+import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
-import m3.widget.Widgets;
-import ui.model.ModelObj;
-import ui.model.EM;
 import m3.observable.OSet;
-import m3.exception.Exception;
+import m3.widget.Widgets;
+
+import ui.api.ProtocolMessage;
+import ui.model.EM;
+import ui.model.ModelObj;
 
 using ui.widget.ConnectionComp;
+using Lambda;
 
 typedef ConnectionsListOptions = {
 	@:optional var itemsClass: String;
@@ -41,7 +44,6 @@ extern class ConnectionsList extends JQ {
 		var defineWidget: Void->ConnectionsListWidgetDef = function(): ConnectionsListWidgetDef {
 			return {
 		        options: {
-		            // connections: null,
 		            itemsClass: null
 		        },
 
@@ -58,6 +60,27 @@ extern class ConnectionsList extends JQ {
 			                self._setConnections(alias.connectionSet);
 			            }, "ConnectionsList-Alias")
 			        );
+
+			        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn: Connection) {
+			        		if(conn != null)
+			                	self._setConnections(conn.connectionSet);
+		                	else 
+		                		self._setConnections(ui.AgentUi.USER.currentAlias.connectionSet);
+			            }, "ConnectionsList-TargetChange")
+			        );
+
+			        EM.addListener(EMEvent.INTRODUCTION_NOTIFICATION, new EMListener(function(notification: IntroductionNotification): Void {
+			        		var conn: Connection = notification.contentImpl.connection;
+			        		self.connectionsMap.iter(
+			        				function(cc: ConnectionComp): Void {
+			        					if(cc.connection().equals(conn)) {
+			        						cc.addNotification();
+			        						cc.prependTo(selfElement);//move to the top
+			        					}
+			        				}
+			        			);
+
+			        	}, "ConnectionsList-IntroductionNotification"));
 		        },
 
 		        _setConnections: function(connections: ObservableSet<Connection>): Void {

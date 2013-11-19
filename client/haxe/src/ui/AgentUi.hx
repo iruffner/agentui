@@ -38,6 +38,8 @@ class AgentUi {
     public static var URL: String = "";//"http://64.27.3.17";
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
     public static var agentURI: String;
+    public static var TARGET: Connection;
+    // public static var NOTIFICATIONS: 
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
@@ -54,9 +56,15 @@ class AgentUi {
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
                 LOGGER.debug("ALT + SHIFT + N");
-                new ConnectionComp(".connection").iter(function(cc: JQ): Void {
-                        cast(cc, ConnectionComp).connectionComp("addNotification");
-                    });
+                var connection: Connection = USER.currentAlias.connectionSet.asArray()[2];
+                var notification: ui.api.ProtocolMessage.IntroductionNotification = new ui.api.ProtocolMessage.IntroductionNotification();
+                notification.contentImpl = new ui.api.ProtocolMessage.IntroductionNotificationData();
+                notification.contentImpl.connection = connection;
+                notification.contentImpl.correlationId = "abc123";
+                EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
+                // new ConnectionComp(".connection").iter(function(cc: JQ): Void {
+                //         cast(cc, ConnectionComp).connectionComp("addNotification");
+                //     });
             }
         });
 

@@ -81,6 +81,7 @@ extern class UserComp extends JQ {
 				                		dragstopUi.helper.remove();
 				                		selfElement.removeClass("targetChange");
 				                		JqueryUtil.deleteEffects(dragstopEvt);
+				                		AgentUi.TARGET = null;
 				                		self._setUser();
 				                	}
 				                };
@@ -225,6 +226,7 @@ extern class UserComp extends JQ {
 	        			.empty()
 		        		.append("<strong>" + conn.name() + "</strong>");
 
+		        	AgentUi.TARGET = conn;
 	        		EM.change(EMEvent.TARGET_CHANGE, conn);
         		},
 

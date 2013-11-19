@@ -177,6 +177,11 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	public var target: String;
 	public var label: String;
 
+	@:transient public var connectionSet: ObservableSet<Connection>;
+	@:transient public var connectionLabelSet: ObservableSet<Label>;
+	@:transient public var userSharedLabelSet: ObservableSet<Label>;
+
+
 	public function new(?fname: String, ?lname: String, ?imgSrc: String) {
 		this.fname = fname;
 		this.lname = lname;
@@ -186,15 +191,12 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	public function name() : String {
 		return (this.fname.isNotBlank() ? this.fname : "") + " " + (this.lname.isNotBlank() ? this.lname:"");
 	}
-}
 
-class BiConnection extends ModelObj<BiConnection> implements Filterable {
-	public var readConnection:  Connection;
-	public var writeConnection: Connection;
-
-	public function new(readConnection:Connection, writeConnection: Connection) {
-		this.readConnection  = readConnection;
-		this.writeConnection = writeConnection;
+	public function equals(c: Connection): Bool {
+		return 
+			this.source == c.source &&
+			this.target == c.target &&
+			this.label == c.label;
 	}
 }
 
@@ -240,7 +242,7 @@ class Content extends ModelObj<Content> {
 	/**
 		UID of connection that created the content
 	*/
-	public var creator: String;
+	@:optional public var creator: String;
 
 	private function readResolve(): Void {
 		// labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);

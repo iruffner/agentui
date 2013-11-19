@@ -29,13 +29,17 @@ class ConnectionCompHelper {
 	public static function connection(c: ConnectionComp): Connection {
 		return c.connectionComp("option", "connection");
 	}
+
+	public static function addNotification(c: ConnectionComp): Void {
+		return c.connectionComp("addNotification");
+	}
 }
 
 
 @:native("$")
 extern class ConnectionComp extends JQ {
-	@:overload(function(cmd : String):Bool{})
-	@:overload(function(cmd:String, opt:String):Dynamic{})
+	@:overload(function<T>(cmd : String):T{})
+	@:overload(function<T>(cmd:String, opt:String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function connectionComp(opts: ConnectionCompOptions): ConnectionComp;
 

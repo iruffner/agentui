@@ -235,6 +235,19 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 
 		class EvalResponseData extends PayloadWithSessionURI {
 			public var pageOfPosts: Array<String>;
+
+			@:transient var content: Array<Content>;
+
+			private function readResolve(): Void {
+				if(pageOfPosts.hasValues()) {
+					content = new Array<Content>();
+					for(p_ in 0...pageOfPosts.length) {
+						var post: Dynamic = haxe.Json.parse(pageOfPosts[p_]);
+						content.push(ui.AgentUi.SERIALIZER.fromJsonX(post, Content));
+					}
+				}
+			}
+
 		}
 
 class EvalError extends ProtocolMessage<EvalErrorData> {
@@ -371,27 +384,51 @@ class InsertContent extends ProtocolMessage<InsertContentData> {
 			public var value: String;
 		}
 
-
+/** 
+	Introductions 
+**/
 class BeginIntroductionRequest extends ProtocolMessage<BeginIntroductionRequestData> {
 	public function new(alias:String, from:Connection, to:Connection, fromMessage:String, toMessage:String) {
 		super(MsgType.beginIntroductionRequest, BeginIntroductionRequestData);
 		this.contentImpl.alias = alias;
 
-		this.contentImpl.aBiConnection = new BiConnection(to, from);
-		this.contentImpl.aMessage = fromMessage;
+		// this.contentImpl.aBiConnection = new BiConnection(to, from);
+		// this.contentImpl.aMessage = fromMessage;
 		
-		this.contentImpl.bBiConnection = new BiConnection(from, to);
-		this.contentImpl.bMessage = toMessage;
+		// this.contentImpl.bBiConnection = new BiConnection(from, to);
+		// this.contentImpl.bMessage = toMessage;
 	}
 }
 	class BeginIntroductionRequestData extends PayloadWithSessionURI {
 		public var alias: String;
-		public var aBiConnection: BiConnection;
-		public var bBiConnection: BiConnection;
+		public var aConnection: Connection;
+		public var bConnection: Connection;
 
 		@:optional public var aMessage: String;
 		@:optional public var bMessage: String;
+	}
 
+class IntroductionNotification extends ProtocolMessage<IntroductionNotificationData> {
+	public function new() {
+		super(MsgType.introductionNotification, IntroductionNotificationData);
+	}
+}
+	class IntroductionNotificationData extends PayloadWithSessionURI {
+		public var correlationId: String;
+		public var connection: Connection;
+		public var message: String;
+		public var introProfile: UserData;
+	}
+
+class IntroductionConfirmation extends ProtocolMessage<IntroductionConfirmationData> {
+	public function new() {
+		super(MsgType.introductionConfirmation, IntroductionConfirmationData);
+	}
+}
+	class IntroductionConfirmationData extends PayloadWithSessionURI {
+		public var correlationId: String;
+		public var connection: Connection;
+		public var accepted: Bool;
 	}
 
 enum MsgType {
@@ -441,6 +478,8 @@ enum MsgType {
 	updateAliasLabelsResponse;
 
 	beginIntroductionRequest;
+	introductionNotification;
+	introductionConfirmation;
 }
 
 enum Reason {

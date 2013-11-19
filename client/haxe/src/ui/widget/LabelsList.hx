@@ -131,6 +131,10 @@ extern class LabelsList extends JQ {
 		            });
 
 		        	selfElement.prepend(labelTree);
+
+		        	var jqevent: JQEvent = null;
+
+		        	
 	        	},
 		        
 		        destroy: function() {

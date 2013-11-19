@@ -113,9 +113,15 @@ class ProtocolHandler {
         	EM.change(EMEvent.INTRODUCTION_RESPONSE);
         }));
 
+        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
+        	
+        	
+        }));
+
         processHash = new Map<MsgType,Dynamic->Void>();
         processHash.set(MsgType.evalSubscribeResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("*** evalResponse was received from the server");
+        		AgentUi.LOGGER.debug("evalResponse was received from the server");
+        		AgentUi.LOGGER.debug(data);
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
         		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.pageOfPosts); 
         	});
@@ -173,6 +179,12 @@ class ProtocolHandler {
         	});
         processHash.set(MsgType.getAliasLabelsError, function(data: Dynamic){
         		AgentUi.LOGGER.error("getAliasLabelsError was received from the server");
+        	});
+
+        processHash.set(MsgType.introductionNotification, function(data: Dynamic){
+        		AgentUi.LOGGER.error("introductionNotification was received from the server");
+        		var notification = AgentUi.SERIALIZER.fromJsonX(data, IntroductionNotification);
+        		EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
         	});
 	}
 
