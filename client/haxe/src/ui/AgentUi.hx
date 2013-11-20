@@ -115,7 +115,18 @@ class AgentUi {
                 EM.change(EMEvent.FitWindow);
             }, "FireFitWindowListener");
 
-        EM.addListener(EMEvent.MoreContent, fireFitWindow);
+        var processContent = new EMListener(function(arrOfContent: Array<Content>): Void {
+                if(arrOfContent.hasValues())
+                    AgentUi.CONTENT.addAll(arrOfContent);
+                EM.change(EMEvent.FitWindow);            
+            }, "ContentProcessor");
+
+        EM.addListener(EMEvent.MoreContent, processContent);
+        EM.addListener(EMEvent.EndOfContent, processContent);
+        EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(n: Nothing): Void {
+                AgentUi.CONTENT.clear();
+            })
+        );
 
         EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
         EM.addListener(EMEvent.USER_CREATE, fireFitWindow);

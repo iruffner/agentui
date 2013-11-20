@@ -123,12 +123,12 @@ class ProtocolHandler {
         		AgentUi.LOGGER.debug("evalResponse was received from the server");
         		AgentUi.LOGGER.debug(data);
         		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
-        		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.pageOfPosts); 
+        		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.content); 
         	});
         processHash.set(MsgType.evalComplete, function(data: Dynamic){
         		AgentUi.LOGGER.debug("evalComplete was received from the server");
         		var evalComplete: EvalComplete = AgentUi.SERIALIZER.fromJsonX(data, EvalComplete);
-        		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.pageOfPosts); 
+        		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.content); 
         	});
         processHash.set(MsgType.sessionPong, function(data: Dynamic){
         		//nothing to do with this message

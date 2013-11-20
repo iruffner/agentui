@@ -167,6 +167,16 @@ class InitializeSessionError extends ProtocolMessage<PayloadWithReason> {
 	}
 }
 
+class ConnectionProfileResponse extends ProtocolMessage<ConnectionProfileResponseData> {
+	public function new() {
+		super(MsgType.connectionProfileResponse, InitializeSessionRequestData);
+	}
+}
+
+		class InitializeSessionRequestData extends Payload {
+			public var agentURI: String;
+		}
+
 /** 
 	Ping/pop Request/Response 
 **/
@@ -236,7 +246,7 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 		class EvalResponseData extends PayloadWithSessionURI {
 			public var pageOfPosts: Array<String>;
 
-			@:transient var content: Array<Content>;
+			@:transient public var content: Array<Content>;
 
 			private function readResolve(): Void {
 				if(pageOfPosts.hasValues()) {
@@ -435,6 +445,7 @@ enum MsgType {
 	initializeSessionRequest;
 	initializeSessionResponse;
 	initializeSessionError;
+	connectionProfileResponse;
 	sessionPing;
 	sessionPong;
 	closeSessionRequest;
