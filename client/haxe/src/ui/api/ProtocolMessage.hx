@@ -367,7 +367,7 @@ class GetAliasLabelsResponse extends ProtocolMessage<AliasLabelsRequestData> {
 
 class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
 	public function new() {
-		super(MsgType.updateAliasLabelsRequest, AddAliasLabelsRequestData);
+		super(MsgType.addAliasLabelsRequest, AddAliasLabelsRequestData);
 	}
 }
 
@@ -378,10 +378,26 @@ class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
 
 class AddAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.updateAliasLabelsResponse, PayloadWithSessionURI);
+		super(MsgType.addAliasLabelsResponse, PayloadWithSessionURI);
 	}
 }
 
+class UpdateAliasLabelsRequest extends ProtocolMessage<UpdateAliasLabelsRequestData> {
+	public function new() {
+		super(MsgType.updateAliasLabelsRequest, UpdateAliasLabelsRequestData);
+	}
+}
+
+		class UpdateAliasLabelsRequestData extends PayloadWithSessionURI {
+			public var labels: Array<String>;
+			public var alias: String;
+		}
+
+class UpdateAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
+	public function new() {
+		super(MsgType.updateAliasLabelsResponse, PayloadWithSessionURI);
+	}
+}
 
 class InsertContent extends ProtocolMessage<InsertContentData> {
 	public function new() {

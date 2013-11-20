@@ -152,9 +152,13 @@ extern class ContentComp extends JQ {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
+					var showButtonBlock = self.buttonBlock.isVisible();
+
 					self.options.content = AgentUi.CONTENT.current(self.options.content);
         			self._createWidgets(selfElement, self);
-        			self.buttonBlock.show();
+        			if (showButtonBlock) {
+	        			self.buttonBlock.show();
+	        		}
         			selfElement.show();
 		        },
 
