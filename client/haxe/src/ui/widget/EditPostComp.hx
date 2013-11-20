@@ -152,6 +152,12 @@ extern class EditPostComp extends JQ {
 				},
 
 				_createButtonBlock:function(self: EditPostCompWidgetDef, selfElement:JQ): Void {
+					
+					var close:Void->Void = function():Void{
+						selfElement.remove();
+						self.destroy();
+			            EM.change(EMEvent.FitWindow);
+					};
 
 					var buttonBlock = new JQ("<div></div>").css("text-align", "right").appendTo(selfElement);
 
@@ -163,10 +169,8 @@ extern class EditPostComp extends JQ {
 		        								evt.stopPropagation();
 		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
 		        									function(){
-		        										selfElement.remove();
-		        										self.destroy();
-											            EM.change(EMEvent.FitWindow);
-		        										EM.change(EMEvent.ContentDeleted, self.options.content);
+		        										close();
+		        										AgentUi.CONTENT.delete(self.options.content);
 		        									});
 		        							});
 
@@ -176,10 +180,8 @@ extern class EditPostComp extends JQ {
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
 		        								self._updateContent();
-        										selfElement.remove();
-        										self.destroy();
-									            EM.change(EMEvent.FitWindow);
-		        								EM.change(EMEvent.ContentUpdated, self.options.content);
+		        								AgentUi.CONTENT.update(self.options.content);
+		        								close();
 		        							});
 
 
@@ -188,8 +190,7 @@ extern class EditPostComp extends JQ {
 		        							.button({text: false, icons: { primary: "ui-icon-closethick"}})
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
-        										selfElement.remove();
-		        								self.destroy();
+		        								close();
 		        								EM.change(EMEvent.EditContentClosed, self.options.content);
 		        							});
 
