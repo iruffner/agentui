@@ -20,42 +20,42 @@ class TestDao {
 	private static function buildConnections(): Void {
 		connections = new Array<Connection>();
 		 //connections
-        var george: Connection = new Connection("George", "Costanza", "media/test/george.jpg");
+        var george: Connection = new Connection(new UserData("George Costanza", "media/test/george.jpg"));
         george.source = "jerry";
         george.target = "george";
         george.label = "jerryToGeorge";
         george.uid = UidGenerator.create();
         connections.push(george);
 
-        var elaine: Connection = new Connection("Elaine", "Benes", "media/test/elaine.jpg");
+        var elaine: Connection = new Connection(new UserData("Elaine Benes", "media/test/elaine.jpg"));
         elaine.source = "jerry";
         elaine.target = "elaine";
         elaine.label = "jerryToElaine";
         elaine.uid = UidGenerator.create();
         connections.push(elaine);
 
-        var kramer: Connection = new Connection("Cosmo", "Kramer", "media/test/kramer.jpg");
+        var kramer: Connection = new Connection(new UserData("Cosmo Kramer", "media/test/kramer.jpg"));
         kramer.source = "jerry";
         kramer.target = "kramer";
         kramer.label = "jerryToKramer";
         kramer.uid = UidGenerator.create();
         connections.push(kramer);
 
-        var toms: Connection = new Connection("Tom's", "Restaurant", "media/test/toms.jpg");
+        var toms: Connection = new Connection(new UserData("Tom's Restaurant", "media/test/toms.jpg"));
         toms.source = "jerry";
         toms.target = "toms";
         toms.label = "jerryToToms";
         toms.uid = UidGenerator.create();
         connections.push(toms);
 
-        var newman: Connection = new Connection("Newman", "", "media/test/newman.jpg");
+        var newman: Connection = new Connection(new UserData("Newman", "media/test/newman.jpg"));
         newman.source = "jerry";
         newman.target = "newman";
         newman.label = "jerryToNewman";
         newman.uid = UidGenerator.create();
         connections.push(newman);
 
-        var bania: Connection = new Connection("Kenny", "Bania", "media/test/bania.jpg");
+        var bania: Connection = new Connection(new UserData("Kenny Bania", "media/test/bania.jpg"));
         bania.source = "jerry";
         bania.target = "bania";
         bania.label = "jerryToBania";

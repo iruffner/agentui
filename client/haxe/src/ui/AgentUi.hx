@@ -62,9 +62,6 @@ class AgentUi {
                 notification.contentImpl.connection = connection;
                 notification.contentImpl.correlationId = "abc123";
                 EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
-                // new ConnectionComp(".connection").iter(function(cc: JQ): Void {
-                //         cast(cc, ConnectionComp).connectionComp("addNotification");
-                //     });
             }
         });
 

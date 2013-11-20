@@ -125,7 +125,10 @@ class UserData extends ModelObj<UserData> {
 	public var name: String;
 	@:optional public var imgSrc: String;
 
-	public function new() { }
+	public function new(?name: String, ?imgSrc: String) {
+		this.name = name;
+		this.imgSrc = imgSrc;
+	}
 }
 
 class Alias extends ModelObj<Alias> {
@@ -169,27 +172,27 @@ class Label extends ModelObj<Label> implements Filterable {
 }
 
 class Connection extends ModelObj<Connection> implements Filterable {
-	@:transient public var fname: String;
-	@:transient public var lname: String;
-	@:transient public var imgSrc: String;
+	// @:transient public var fname: String;
+	// @:transient public var lname: String;
+	// @:transient public var imgSrc: String;
 
 	public var source: String;
 	public var target: String;
 	public var label: String;
+
+	public var profile: UserData;
 
 	@:transient public var connectionSet: ObservableSet<Connection>;
 	@:transient public var connectionLabelSet: ObservableSet<Label>;
 	@:transient public var userSharedLabelSet: ObservableSet<Label>;
 
 
-	public function new(?fname: String, ?lname: String, ?imgSrc: String) {
-		this.fname = fname;
-		this.lname = lname;
-		this.imgSrc = imgSrc;
+	public function new(?profile: UserData) {
+		this.profile = profile;
 	}
 
 	public function name() : String {
-		return (this.fname.isNotBlank() ? this.fname : "") + " " + (this.lname.isNotBlank() ? this.lname:"");
+		return this.profile != null ? this.profile.name : "";
 	}
 
 	public function equals(c: Connection): Bool {

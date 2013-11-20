@@ -1,5 +1,6 @@
 package ui.widget;
 
+import m3.util.M;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
@@ -86,8 +87,8 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.name());
 
 		        	var imgSrc: String = "media/default_avatar.jpg";
-		        	if(self.options.connection.imgSrc.isNotBlank()) {
-		        		imgSrc = self.options.connection.imgSrc;
+		        	if(M.getX(self.options.connection.profile.imgSrc, "").isNotBlank() ) {
+		        		imgSrc = self.options.connection.profile.imgSrc;
 		        	}
 
 		            var img: JQ = new JQ("<img src='" + imgSrc + "' class='shadow'/>");
@@ -170,8 +171,13 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	selfElement.children("img").attr("src", self.options.connection.imgSrc);
-		            selfElement.children("div").text(self.options.connection.name());
+					var imgSrc: String = "media/default_avatar.jpg";
+		        	if(M.getX(self.options.connection.profile.imgSrc, "").isNotBlank() ) {
+		        		imgSrc = self.options.connection.profile.imgSrc;
+		        	}
+
+		        	selfElement.children("img").attr("src", imgSrc);
+		            selfElement.children("div").text(M.getX(self.options.connection.profile.name,""));
 	        	},
 
 		        destroy: function() {

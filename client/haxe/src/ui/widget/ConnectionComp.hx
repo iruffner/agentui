@@ -1,5 +1,6 @@
 package ui.widget;
 
+import m3.util.M;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
@@ -9,6 +10,7 @@ import m3.observable.OSet.ObservableSet;
 import m3.exception.Exception;
 
 using ui.widget.ConnectionAvatar;
+using m3.helper.StringHelper;
 
 typedef ConnectionCompOptions = {
 	var connection: Connection;
@@ -99,8 +101,13 @@ extern class ConnectionComp extends JQ {
 		        	var self: ConnectionCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	selfElement.children("img").attr("src", self.options.connection.imgSrc);
-		            selfElement.children("div").text(self.options.connection.name());
+					var imgSrc: String = "media/default_avatar.jpg";
+		        	if(M.getX(self.options.connection.profile.imgSrc, "").isNotBlank() ) {
+		        		imgSrc = self.options.connection.profile.imgSrc;
+		        	}
+
+		        	selfElement.children("img").attr("src", imgSrc);
+		            selfElement.children("div").text(M.getX(self.options.connection.profile.name, ""));
 
 		            self._avatar.connectionAvatar("update");
 	        	},

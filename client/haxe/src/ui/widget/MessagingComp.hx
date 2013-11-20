@@ -1,5 +1,6 @@
 package ui.widget;
 
+import m3.util.M;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQSortable;
@@ -66,7 +67,9 @@ extern class MessagingComp extends JQ {
 					      		var id: String = "chat-" + connection.uid;
 					      		//create and add a new Chat Comp
 					      		var li: JQ = 
-					      			new JQ("<li><a href='#" + id + "'><img src='" + connection.imgSrc + "'></a></li>").appendTo(ul);
+					      			new JQ("<li><a href='#" + id + "'><img src='" + 
+					      					M.getX(connection.profile.imgSrc, "") + 
+					      					"'></a></li>").appendTo(ul);
 
 					      		var chatComp: ChatComp = new ChatComp("<div id='" + id + "'></div>").chatComp({
 					      				connection: connection,
