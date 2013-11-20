@@ -169,11 +169,11 @@ class InitializeSessionError extends ProtocolMessage<PayloadWithReason> {
 
 class ConnectionProfileResponse extends ProtocolMessage<ConnectionProfileResponseData> {
 	public function new() {
-		super(MsgType.connectionProfileResponse, InitializeSessionRequestData);
+		super(MsgType.connectionProfileResponse, ConnectionProfileResponseData);
 	}
 }
 
-		class InitializeSessionRequestData extends Payload {
+		class ConnectionProfileResponseData extends PayloadWithSessionURI {
 			public var agentURI: String;
 		}
 
