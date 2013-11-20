@@ -4450,6 +4450,14 @@ ui.AgentUi.start = function() {
 		ui.AgentUi.USER.set_currentAlias(alias);
 	},"AgentUi-Alias"));
 	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,fitWindowListener);
+	ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,new ui.model.EMListener(function(notification) {
+		var arr = ui.AgentUi.NOTIFICATION_STORAGE.get("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target);
+		if(arr == null) {
+			arr = new Array();
+			ui.AgentUi.NOTIFICATION_STORAGE.set("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target,arr);
+		}
+		arr.push(notification);
+	},"AgentUi-IntroNotification"));
 	new $("body").click(function(evt) {
 		new $(".nonmodalPopup").hide();
 	});
