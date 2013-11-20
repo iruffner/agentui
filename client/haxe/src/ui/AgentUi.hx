@@ -11,6 +11,7 @@ import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.EM;
 import ui.api.ProtocolHandler;
+import ui.api.ProtocolMessage;
 
 import m3.observable.OSet;
 
@@ -39,7 +40,7 @@ class AgentUi {
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
     public static var agentURI: String;
     public static var TARGET: Connection;
-    // public static var NOTIFICATIONS: 
+    public static var NOTIFICATION_STORAGE: Map<String, Dynamic>;
 
 	public static function main() {
         LOGGER = new Logga(LogLevel.DEBUG);
@@ -140,6 +141,16 @@ class AgentUi {
         );
 
         EM.addListener(EMEvent.FitWindow, fitWindowListener);
+
+        EM.addListener(EMEvent.INTRODUCTION_NOTIFICATION, new EMListener(function(notification: IntroductionNotification) {
+                var arr: Array<Dynamic> = NOTIFICATION_STORAGE.get("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target);
+                if(arr == null) {
+                    arr = new Array();
+                    NOTIFICATION_STORAGE.set( "cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target , arr );
+                }
+                arr.push(notification);
+            }, "AgentUi-IntroNotification")
+        );
 
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();
