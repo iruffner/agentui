@@ -113,8 +113,9 @@ class AgentUi {
             }, "FireFitWindowListener");
 
         var processContent = new EMListener(function(arrOfContent: Array<Content>): Void {
-                if(arrOfContent.hasValues())
+                if(arrOfContent.hasValues()) {
                     AgentUi.CONTENT.addAll(arrOfContent);
+                }
                 EM.change(EMEvent.FitWindow);            
             }, "ContentProcessor");
 

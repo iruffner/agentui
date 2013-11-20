@@ -258,12 +258,15 @@ class ProtocolHandler {
 	}
 
 	public function filter(filter: Filter): Void {
-		AgentUi.CONTENT.clear();
 		
 		if(filter.rootNode.hasChildren()) {
 			if (AgentUi.DEMO) {
-				var content: Array<Content> = TestDao.getContent(filter.rootNode);
-				ui.AgentUi.CONTENT.addAll(content);
+				var runFunc = function():Void {
+					var content: Array<Content> = TestDao.getContent(filter.rootNode);
+					EM.change(EMEvent.MoreContent, content);
+				};
+				haxe.Timer.delay(runFunc, 100);
+				return;
 			}
 
 			var request: EvalSubscribeRequest = new EvalSubscribeRequest();

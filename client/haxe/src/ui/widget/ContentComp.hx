@@ -22,6 +22,7 @@ typedef ContentCompWidgetDef = {
 	@:optional var buttonBlock: JQ;
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
+	var update: Void->Void;
 	var destroy: Void->Void;
 	var toggleActive:Void->Void;
 }
@@ -140,27 +141,21 @@ extern class ContentComp extends JQ {
 
 		        	self._createWidgets(selfElement, self);
 
-		        	EM.addListener(EMEvent.ContentDeleted, new EMListener(function(content: Content): Void {
-		        		if (content.uid == self.options.content.uid) {
-		        			selfElement.remove();
-		        			self.destroy();
-		        		}
-		        	}));
-
-		        	EM.addListener(EMEvent.ContentUpdated, new EMListener(function(content: Content): Void {
-		        		if (content.uid == self.options.content.uid) {
-		        			self.options.content = content;
-		        			self._createWidgets(selfElement, self);
-		        			self.buttonBlock.show();
-		        			selfElement.show();
-		        		}
-		        	}));
-
 		        	EM.addListener(EMEvent.EditContentClosed, new EMListener(function(content: Content): Void {
 		        		if (content.uid == self.options.content.uid) {
 		        			selfElement.show();
 		        		}
 		        	}));
+		        },
+
+		        update: function() : Void {
+		        	var self: ContentCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+					self.options.content = AgentUi.CONTENT.current(self.options.content.uid);
+        			self._createWidgets(selfElement, self);
+        			self.buttonBlock.show();
+        			selfElement.show();
 		        },
 
 		        toggleActive: function(): Void {
