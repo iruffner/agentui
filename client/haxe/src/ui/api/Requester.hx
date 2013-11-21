@@ -23,14 +23,14 @@ class StandardRequest implements Requester {
 	}
 
 	public function start(?opts: AjaxOptions): Void {
-		AgentUi.LOGGER.debug("send " + request.msgType);
+		AppContext.LOGGER.debug("send " + request.msgType);
 		var ajaxOpts: AjaxOptions = { 
 			async: true,
 			url: AgentUi.URL + "/api", 
 	        dataType: "json", 
 	        contentType: "application/json",
 	        // jsonp: "blah",
-	        data: AgentUi.SERIALIZER.toJsonString(request),
+	        data: AppContext.SERIALIZER.toJsonString(request),
 	        type: "POST",
 			success: successFcn,
    			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
@@ -58,12 +58,12 @@ class LongPollingRequest implements Requester {
 
 	public function new(requestToRepeat: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
 		this.request = requestToRepeat;
-		this.requestJson = AgentUi.SERIALIZER.toJsonString(this.request);
+		this.requestJson = AppContext.SERIALIZER.toJsonString(this.request);
 		this.successFcn = successFcn;
 		ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 80 /* ALT+SHIFT+P */) {
                 stop = !stop;
-                ui.AgentUi.LOGGER.debug("Long Polling is paused? " + stop);
+                AppContext.LOGGER.debug("Long Polling is paused? " + stop);
                 if(!stop) {
                 	poll();
                 }
@@ -86,7 +86,7 @@ class LongPollingRequest implements Requester {
 				jqXHR = null;
 			} catch (err: Dynamic) {
 				//TODO what happens if we error on abort?
-				AgentUi.LOGGER.error("error on poll abort | " + err);
+				AppContext.LOGGER.error("error on poll abort | " + err);
 			}
 		}
 	}
@@ -105,12 +105,12 @@ class LongPollingRequest implements Requester {
 			        	try {
 			        		this.successFcn(data,textStatus,jqXHR);
 		        		} catch (err: Dynamic) {
-		        			ui.AgentUi.LOGGER.error("long polling error", err);
+		        			AppContext.LOGGER.error("long polling error", err);
 		        		}
 			        }
 			    },
 			    error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String): Void {
-	   				AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+	   				AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 				},
 		        complete: function(jqXHR:JQXHR, textStatus:String): Void {
 		        	poll(); //to keep this going

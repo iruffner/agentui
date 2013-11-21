@@ -28,11 +28,11 @@ class ProtocolMessage<T>  {
 	}
 
 	private function readResolve(): Void {
-		contentImpl = AgentUi.SERIALIZER.fromJsonX(this.content, this.type);
+		contentImpl = AppContext.SERIALIZER.fromJsonX(this.content, this.type);
 	}
 
 	private function writeResolve(): Void {
-		this.content = AgentUi.SERIALIZER.toJson(this.contentImpl);
+		this.content = AppContext.SERIALIZER.toJson(this.contentImpl);
 	}
 }
 
@@ -46,8 +46,8 @@ class PayloadWithSessionURI extends Payload {
 
 	public function new() {
 		super();
-		if (AgentUi.USER != null) {
-			this.sessionURI = AgentUi.USER.sessionURI;
+		if (AppContext.USER != null) {
+			this.sessionURI = AppContext.USER.sessionURI;
 		}
 	}
 }
@@ -254,7 +254,7 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 					content = new Array<Content>();
 					for(p_ in 0...pageOfPosts.length) {
 						var post: Dynamic = haxe.Json.parse(pageOfPosts[p_]);
-						content.push(ui.AgentUi.SERIALIZER.fromJsonX(post, Content));
+						content.push(AppContext.SERIALIZER.fromJsonX(post, Content));
 					}
 				}
 			}

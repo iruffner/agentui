@@ -82,7 +82,7 @@ extern class FilterCombination extends FilterableComponent {
 		            	});
 
 					selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-	            				ui.AgentUi.LOGGER.debug("dragstop on filtercombo");
+	            				AppContext.LOGGER.debug("dragstop on filtercombo");
 		                		if(self.options.dragstop != null) {
 		                			self.options.dragstop(dragstopEvt, dragstopUi);
 		                		}

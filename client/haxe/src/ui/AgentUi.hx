@@ -30,34 +30,24 @@ using Lambda;
 @:expose
 class AgentUi {
     
-    public static var LOGGER: Logga;
 	public static var DEMO: Bool = false;
-    public static var CONTENT: ObservableSet<Content>;
-    public static var USER: User;
-    public static var SERIALIZER: Serializer;
     public static var PROTOCOL: ProtocolHandler;
     public static var URL: String = "";//"http://64.27.3.17";
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
     public static var agentURI: String;
-    public static var TARGET: Connection;
-    public static var NOTIFICATION_STORAGE: Map<String, Dynamic>;
 
 	public static function main() {
-        LOGGER = new Logga(LogLevel.DEBUG);
-        CONTENT = new ObservableSet<Content>(ModelObj.identifier);
+        AppContext.init();
+
         PROTOCOL = new ProtocolHandler();
-        SERIALIZER = new Serializer();
-
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
-
-        SERIALIZER.addHandler(Content, new ContentHandler());
     }
 
     public static function start(): Void {
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
-                LOGGER.debug("ALT + SHIFT + N");
-                var connection: Connection = USER.currentAlias.connectionSet.asArray()[2];
+                AppContext.LOGGER.debug("ALT + SHIFT + N");
+                var connection: Connection = AppContext.USER.currentAlias.connectionSet.asArray()[2];
                 var notification: ui.api.ProtocolMessage.IntroductionNotification = new ui.api.ProtocolMessage.IntroductionNotification();
                 notification.contentImpl = new ui.api.ProtocolMessage.IntroductionNotificationData();
                 notification.contentImpl.connection = connection;
@@ -96,7 +86,7 @@ class AgentUi {
         new FilterComp("#filter").filterComp(null);
 
         new ContentFeed("#feed").contentFeed({
-                content: AgentUi.CONTENT
+                content: AppContext.CONTENT
             });
 
         new UserComp("#userId").userComp();
@@ -104,61 +94,6 @@ class AgentUi {
         new PostComp("#postInput").postComp();
 
         new InviteComp("#sideRight #sideRightInvite").inviteComp();
-
-        //todo MOVE THESE
-
-        var fitWindowListener = new EMListener(function(n: Nothing) {
-                untyped __js__("fitWindow()");
-            }, "FitWindowListener");
-
-        var fireFitWindow = new EMListener(function(n: Nothing) {
-                EM.change(EMEvent.FitWindow);
-            }, "FireFitWindowListener");
-
-        var processContent = new EMListener(function(arrOfContent: Array<Content>): Void {
-                if(arrOfContent.hasValues()) {
-                    AgentUi.CONTENT.addAll(arrOfContent);
-                }
-                EM.change(EMEvent.FitWindow);            
-            }, "ContentProcessor");
-
-        EM.addListener(EMEvent.MoreContent, processContent);
-        EM.addListener(EMEvent.EndOfContent, processContent);
-        EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(n: Nothing): Void {
-                AgentUi.CONTENT.clear();
-            })
-        );
-
-        EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
-        EM.addListener(EMEvent.USER_CREATE, fireFitWindow);
-
-        EM.addListener(EMEvent.USER, new EMListener(function(user: User) {
-                USER = user;
-                EM.change(EMEvent.AliasLoaded, user.currentAlias);
-            }, "AgentUi-User")
-        );
-
-        EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-                USER.currentAlias = alias;
-            }, "AgentUi-Alias")
-        );
-
-        EM.addListener(EMEvent.FitWindow, fitWindowListener);
-
-        EM.addListener(EMEvent.INTRODUCTION_NOTIFICATION, new EMListener(function(notification: IntroductionNotification) {
-                var arr: Array<Dynamic> = NOTIFICATION_STORAGE.get("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target);
-                if(arr == null) {
-                    arr = new Array();
-                    NOTIFICATION_STORAGE.set( "cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target , arr );
-                }
-                arr.push(notification);
-            }, "AgentUi-IntroNotification")
-        );
-
-        EM.addListener(EMEvent.CONNECTION_UPDATE, new EMListener(function(conn: Connection): Void {
-                AgentUi.USER.currentAlias.connectionSet.update(conn);
-            }, "AgentUi-ConnUpdate")
-        );
 
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();

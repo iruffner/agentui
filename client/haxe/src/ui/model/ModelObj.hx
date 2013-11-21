@@ -88,7 +88,7 @@ class User extends ModelObj<User> {
 			currentAlias = aliasSet.iterator().next();
 		} else if (currentAlias == null) {
 			currentAlias = new Alias();
-			AgentUi.LOGGER.warn("No aliases found for user.");
+			AppContext.LOGGER.warn("No aliases found for user.");
 		}
 		return currentAlias;
 	}
@@ -100,7 +100,7 @@ class User extends ModelObj<User> {
 
 	public function hasValidSession(): Bool {
 		//TODO //IMPLEMENT ME
-		ui.AgentUi.LOGGER.warn("implement User.hasValidSession");
+		AppContext.LOGGER.warn("implement User.hasValidSession");
 		return true;
 	}
 
@@ -225,20 +225,20 @@ class ContentHandler implements TypeHandler {
 
         switch ( ContentType.createByName(fromJson.type) ) {
         	case ContentType.AUDIO:
-        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, AudioContent);
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, AudioContent);
         	case ContentType.IMAGE:
-        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, ImageContent);
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, ImageContent);
         	case ContentType.TEXT:
-        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, MessageContent);
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
         	case ContentType.URL:
-        		obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson, UrlContent);
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, UrlContent);
         }
 
         return obj;
     }
 
     public function write(value: Dynamic, writer: JsonWriter): Dynamic {
-        return ui.AgentUi.SERIALIZER.toJson(value);
+        return AppContext.SERIALIZER.toJson(value);
     }
 }
 

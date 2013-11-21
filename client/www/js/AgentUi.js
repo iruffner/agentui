@@ -4324,18 +4324,15 @@ $hxClasses["ui.AgentUi"] = ui.AgentUi;
 $hxExpose(ui.AgentUi, "ui.AgentUi");
 ui.AgentUi.__name__ = ["ui","AgentUi"];
 ui.AgentUi.main = function() {
-	ui.AgentUi.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
-	ui.AgentUi.CONTENT = new m3.observable.ObservableSet(ui.model.ModelObj.identifier);
+	ui.AppContext.init();
 	ui.AgentUi.PROTOCOL = new ui.api.ProtocolHandler();
-	ui.AgentUi.SERIALIZER = new m3.serialization.Serializer();
 	ui.AgentUi.HOT_KEY_ACTIONS = new Array();
-	ui.AgentUi.SERIALIZER.addHandler(ui.model.Content,new ui.model.ContentHandler());
 }
 ui.AgentUi.start = function() {
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 78) {
-			ui.AgentUi.LOGGER.debug("ALT + SHIFT + N");
-			var connection = ui.AgentUi.USER.get_currentAlias().connectionSet.asArray()[2];
+			ui.AppContext.LOGGER.debug("ALT + SHIFT + N");
+			var connection = ui.AppContext.USER.get_currentAlias().connectionSet.asArray()[2];
 			var notification = new ui.api.IntroductionNotification();
 			notification.contentImpl = new ui.api.IntroductionNotificationData();
 			notification.contentImpl.connection = connection;
@@ -4364,10 +4361,27 @@ ui.AgentUi.start = function() {
 	new $("#connections").connectionsList({ });
 	new $("#labelsList").labelsList();
 	new $("#filter").filterComp(null);
-	new $("#feed").contentFeed({ content : ui.AgentUi.CONTENT});
+	new $("#feed").contentFeed({ content : ui.AppContext.CONTENT});
 	new $("#userId").userComp();
 	new $("#postInput").postComp();
 	new $("#sideRight #sideRightInvite").inviteComp();
+	new $("body").click(function(evt) {
+		new $(".nonmodalPopup").hide();
+	});
+	if(m3.helper.StringHelper.isNotBlank(urlVars.agentURI)) ui.AgentUi.agentURI = urlVars.agentURI;
+	ui.widget.DialogManager.showLogin();
+}
+ui.AppContext = function() { }
+$hxClasses["ui.AppContext"] = ui.AppContext;
+ui.AppContext.__name__ = ["ui","AppContext"];
+ui.AppContext.init = function() {
+	ui.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
+	ui.AppContext.CONTENT = new m3.observable.ObservableSet(ui.model.ModelObj.identifier);
+	ui.AppContext.SERIALIZER = new m3.serialization.Serializer();
+	ui.AppContext.SERIALIZER.addHandler(ui.model.Content,new ui.model.ContentHandler());
+	ui.AppContext.registerGlobalListeners();
+}
+ui.AppContext.registerGlobalListeners = function() {
 	var fitWindowListener = new ui.model.EMListener(function(n) {
 		fitWindow();
 	},"FitWindowListener");
@@ -4375,40 +4389,35 @@ ui.AgentUi.start = function() {
 		ui.model.EM.change(ui.model.EMEvent.FitWindow);
 	},"FireFitWindowListener");
 	var processContent = new ui.model.EMListener(function(arrOfContent) {
-		if(m3.helper.ArrayHelper.hasValues(arrOfContent)) ui.AgentUi.CONTENT.addAll(arrOfContent);
+		if(m3.helper.ArrayHelper.hasValues(arrOfContent)) ui.AppContext.CONTENT.addAll(arrOfContent);
 		ui.model.EM.change(ui.model.EMEvent.FitWindow);
 	},"ContentProcessor");
 	ui.model.EM.addListener(ui.model.EMEvent.MoreContent,processContent);
 	ui.model.EM.addListener(ui.model.EMEvent.EndOfContent,processContent);
 	ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(n) {
-		ui.AgentUi.CONTENT.clear();
+		ui.AppContext.CONTENT.clear();
 	}));
 	ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,fireFitWindow);
 	ui.model.EM.addListener(ui.model.EMEvent.USER_CREATE,fireFitWindow);
 	ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
-		ui.AgentUi.USER = user;
+		ui.AppContext.USER = user;
 		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,user.get_currentAlias());
 	},"AgentUi-User"));
 	ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-		ui.AgentUi.USER.set_currentAlias(alias);
+		ui.AppContext.USER.set_currentAlias(alias);
 	},"AgentUi-Alias"));
 	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,fitWindowListener);
 	ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,new ui.model.EMListener(function(notification) {
-		var arr = ui.AgentUi.NOTIFICATION_STORAGE.get("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target);
+		var arr = ui.AppContext.NOTIFICATION_STORAGE.get("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target);
 		if(arr == null) {
 			arr = new Array();
-			ui.AgentUi.NOTIFICATION_STORAGE.set("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target,arr);
+			ui.AppContext.NOTIFICATION_STORAGE.set("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target,arr);
 		}
 		arr.push(notification);
 	},"AgentUi-IntroNotification"));
 	ui.model.EM.addListener(ui.model.EMEvent.CONNECTION_UPDATE,new ui.model.EMListener(function(conn) {
-		ui.AgentUi.USER.get_currentAlias().connectionSet.update(conn);
+		ui.AppContext.USER.get_currentAlias().connectionSet.update(conn);
 	},"AgentUi-ConnUpdate"));
-	new $("body").click(function(evt) {
-		new $(".nonmodalPopup").hide();
-	});
-	if(m3.helper.StringHelper.isNotBlank(urlVars.agentURI)) ui.AgentUi.agentURI = urlVars.agentURI;
-	ui.widget.DialogManager.showLogin();
 }
 ui.api = {}
 ui.api.ProtocolHandler = function() {
@@ -4458,70 +4467,70 @@ ui.api.ProtocolHandler = function() {
 	}));
 	this.processHash = new haxe.ds.EnumValueMap();
 	this.processHash.set(ui.api.MsgType.evalSubscribeResponse,function(data) {
-		ui.AgentUi.LOGGER.debug("evalResponse was received from the server");
-		ui.AgentUi.LOGGER.debug(data);
-		var evalResponse = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.EvalResponse);
+		ui.AppContext.LOGGER.debug("evalResponse was received from the server");
+		ui.AppContext.LOGGER.debug(data);
+		var evalResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.EvalResponse);
 		ui.model.EM.change(ui.model.EMEvent.MoreContent,evalResponse.contentImpl.content);
 	});
 	this.processHash.set(ui.api.MsgType.evalComplete,function(data) {
-		ui.AgentUi.LOGGER.debug("evalComplete was received from the server");
-		var evalComplete = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.EvalComplete);
+		ui.AppContext.LOGGER.debug("evalComplete was received from the server");
+		var evalComplete = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.EvalComplete);
 		ui.model.EM.change(ui.model.EMEvent.EndOfContent,evalComplete.contentImpl.content);
 	});
 	this.processHash.set(ui.api.MsgType.sessionPong,function(data) {
 	});
 	this.processHash.set(ui.api.MsgType.updateUserResponse,function(data) {
-		ui.AgentUi.LOGGER.debug("updateUserResponse was received from the server");
+		ui.AppContext.LOGGER.debug("updateUserResponse was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.addAliasLabelsResponse,function(data) {
-		ui.AgentUi.LOGGER.debug("addAliasLabelsResponse was received from the server");
+		ui.AppContext.LOGGER.debug("addAliasLabelsResponse was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.addAgentAliasesResponse,function(data) {
-		ui.AgentUi.LOGGER.debug("addAgentAliasesResponse was received from the server");
+		ui.AppContext.LOGGER.debug("addAgentAliasesResponse was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.addAgentAliasesError,function(data) {
-		ui.AgentUi.LOGGER.error("addAgentAliasesError was received from the server");
+		ui.AppContext.LOGGER.error("addAgentAliasesError was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.removeAgentAliasesResponse,function(data) {
-		ui.AgentUi.LOGGER.debug("removeAgentAliasesResponse was received from the server");
+		ui.AppContext.LOGGER.debug("removeAgentAliasesResponse was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.removeAgentAliasesError,function(data) {
-		ui.AgentUi.LOGGER.error("removeAgentAliasesError was received from the server");
+		ui.AppContext.LOGGER.error("removeAgentAliasesError was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.setDefaultAliasRequest,function(data) {
-		ui.AgentUi.LOGGER.debug("setDefaultAliasRequest was received from the server");
+		ui.AppContext.LOGGER.debug("setDefaultAliasRequest was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.setDefaultAliasError,function(data) {
-		ui.AgentUi.LOGGER.error("setDefaultAliasError was received from the server");
+		ui.AppContext.LOGGER.error("setDefaultAliasError was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.getAliasConnectionsResponse,function(data) {
-		ui.AgentUi.LOGGER.debug("getAliasConnectionsResponse was received from the server");
-		var resp = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.GetAliasConnectionsResponse);
-		ui.AgentUi.USER.get_currentAlias().connectionSet.clear();
-		ui.AgentUi.USER.get_currentAlias().connectionSet.addAll(resp.contentImpl.cnxns);
+		ui.AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
+		var resp = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.GetAliasConnectionsResponse);
+		ui.AppContext.USER.get_currentAlias().connectionSet.clear();
+		ui.AppContext.USER.get_currentAlias().connectionSet.addAll(resp.contentImpl.cnxns);
 	});
 	this.processHash.set(ui.api.MsgType.getAliasConnectionsError,function(data) {
-		ui.AgentUi.LOGGER.error("getAliasConnectionsError was received from the server");
+		ui.AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.getAliasLabelsResponse,function(data) {
-		ui.AgentUi.LOGGER.debug("getAliasLabelsResponse was received from the server");
-		var resp = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.GetAliasLabelsResponse);
-		ui.AgentUi.USER.get_currentAlias().labelSet.clear();
-		ui.AgentUi.USER.get_currentAlias().labelSet.addAll(resp.contentImpl.labels.map(function(str) {
+		ui.AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
+		var resp = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.GetAliasLabelsResponse);
+		ui.AppContext.USER.get_currentAlias().labelSet.clear();
+		ui.AppContext.USER.get_currentAlias().labelSet.addAll(resp.contentImpl.labels.map(function(str) {
 			return new ui.model.Label(str);
 		}));
 	});
 	this.processHash.set(ui.api.MsgType.getAliasLabelsError,function(data) {
-		ui.AgentUi.LOGGER.error("getAliasLabelsError was received from the server");
+		ui.AppContext.LOGGER.error("getAliasLabelsError was received from the server");
 	});
 	this.processHash.set(ui.api.MsgType.introductionNotification,function(data) {
-		ui.AgentUi.LOGGER.error("introductionNotification was received from the server");
-		var notification = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.IntroductionNotification);
+		ui.AppContext.LOGGER.error("introductionNotification was received from the server");
+		var notification = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.IntroductionNotification);
 		ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,notification);
 	});
 	this.processHash.set(ui.api.MsgType.connectionProfileResponse,function(data) {
-		ui.AgentUi.LOGGER.error("connectionProfileResponse was received from the server");
-		var connectionProfileResponse = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.ConnectionProfileResponse);
+		ui.AppContext.LOGGER.error("connectionProfileResponse was received from the server");
+		var connectionProfileResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.ConnectionProfileResponse);
 		var c = connectionProfileResponse.contentImpl.connection;
 		c.profile = connectionProfileResponse.contentImpl.jsonBlob;
 		ui.model.EM.change(ui.model.EMEvent.CONNECTION_UPDATE,c);
@@ -4535,11 +4544,11 @@ ui.api.ProtocolHandler.prototype = {
 		request.contentImpl.aliases = [alias.label];
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("getAliasLabels successfully submitted");
+				ui.AppContext.LOGGER.debug("getAliasLabels successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing getAliasLabels",ex);
+			ui.AppContext.LOGGER.error("Error executing getAliasLabels",ex);
 		}
 	}
 	,getAliasConnections: function(alias) {
@@ -4547,11 +4556,11 @@ ui.api.ProtocolHandler.prototype = {
 		request.contentImpl.aliases = [alias.label];
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("getAliasConnections successfully submitted");
+				ui.AppContext.LOGGER.debug("getAliasConnections successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing getAliasConnections",ex);
+			ui.AppContext.LOGGER.error("Error executing getAliasConnections",ex);
 		}
 	}
 	,setDefaultAlias: function(alias) {
@@ -4559,11 +4568,11 @@ ui.api.ProtocolHandler.prototype = {
 		request.contentImpl.aliases = [alias.label];
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("setDefaultAlias successfully submitted");
+				ui.AppContext.LOGGER.debug("setDefaultAlias successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing setDefaultAlias",ex);
+			ui.AppContext.LOGGER.error("Error executing setDefaultAlias",ex);
 		}
 	}
 	,removeAlias: function(alias) {
@@ -4571,11 +4580,11 @@ ui.api.ProtocolHandler.prototype = {
 		request.contentImpl.aliases = [alias.label];
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("removeAlias successfully submitted");
+				ui.AppContext.LOGGER.debug("removeAlias successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing removeAlias",ex);
+			ui.AppContext.LOGGER.error("Error executing removeAlias",ex);
 		}
 	}
 	,addAlias: function(alias) {
@@ -4583,37 +4592,37 @@ ui.api.ProtocolHandler.prototype = {
 		request.contentImpl.aliases = [alias.label];
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("addAlias successfully submitted");
+				ui.AppContext.LOGGER.debug("addAlias successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing addAlias",ex);
+			ui.AppContext.LOGGER.error("Error executing addAlias",ex);
 		}
 	}
 	,_updateLabels: function() {
 		var request = new ui.api.AddAliasLabelsRequest();
-		var labelsArray = ui.helper.PrologHelper.tagTreeAsStrings(ui.AgentUi.USER.get_currentAlias().labelSet);
+		var labelsArray = ui.helper.PrologHelper.tagTreeAsStrings(ui.AppContext.USER.get_currentAlias().labelSet);
 		request.contentImpl.labels = labelsArray;
-		request.contentImpl.alias = ui.AgentUi.USER.get_currentAlias().label;
+		request.contentImpl.alias = ui.AppContext.USER.get_currentAlias().label;
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("label successfully submitted");
+				ui.AppContext.LOGGER.debug("label successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing label post",ex);
+			ui.AppContext.LOGGER.error("Error executing label post",ex);
 		}
 	}
 	,deleteLabels: function(labels) {
 		var _g1 = 1, _g = labels.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			ui.AgentUi.USER.get_currentAlias().labelSet["delete"](labels[i]);
+			ui.AppContext.USER.get_currentAlias().labelSet["delete"](labels[i]);
 		}
 		this._updateLabels();
 	}
 	,createLabel: function(label) {
-		ui.AgentUi.USER.get_currentAlias().labelSet.add(label);
+		ui.AppContext.USER.get_currentAlias().labelSet.add(label);
 		ui.model.EM.change(ui.model.EMEvent.FitWindow);
 		this._updateLabels();
 	}
@@ -4623,15 +4632,15 @@ ui.api.ProtocolHandler.prototype = {
 		var insertData = new ui.api.InsertContentData();
 		request.contentImpl.expression.contentImpl = insertData;
 		insertData.label = ui.helper.PrologHelper.labelsToProlog(content.labelSet);
-		insertData.value = ui.AgentUi.SERIALIZER.toJsonString(content);
-		insertData.cnxns = [ui.AgentUi.USER.getSelfConnection()];
+		insertData.value = ui.AppContext.SERIALIZER.toJsonString(content);
+		insertData.cnxns = [ui.AppContext.USER.getSelfConnection()];
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("content successfully submitted");
+				ui.AppContext.LOGGER.debug("content successfully submitted");
 			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing content post",ex);
+			ui.AppContext.LOGGER.error("Error executing content post",ex);
 		}
 	}
 	,updateUser: function(user) {
@@ -4639,12 +4648,12 @@ ui.api.ProtocolHandler.prototype = {
 		request.contentImpl.jsonBlob = user.userData;
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
+				ui.AppContext.LOGGER.debug("updateUserRequest successfully submitted");
 				ui.model.EM.change(ui.model.EMEvent.USER,user);
 			}).start({ dataType : "text"});
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing user creation",ex);
+			ui.AppContext.LOGGER.error("Error executing user creation",ex);
 		}
 	}
 	,validateUser: function(token) {
@@ -4653,21 +4662,21 @@ ui.api.ProtocolHandler.prototype = {
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				if(data.msgType == ui.api.MsgType.createUserResponse) try {
-					var response = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.CreateUserResponse,false);
+					var response = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.CreateUserResponse,false);
 					ui.AgentUi.agentURI = response.contentImpl.agentURI;
 					ui.model.EM.change(ui.model.EMEvent.USER_VALIDATED);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
-						ui.AgentUi.LOGGER.error("Serialization error",e);
+						ui.AppContext.LOGGER.error("Serialization error",e);
 					} else throw(e);
 				} else {
-					ui.AgentUi.LOGGER.error("Unknown user creation error | " + Std.string(data));
+					ui.AppContext.LOGGER.error("Unknown user creation error | " + Std.string(data));
 					m3.util.JqueryUtil.alert("There was an unexpected error creating your agent. Please try again.");
 				}
 			}).start();
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing user creation",ex);
+			ui.AppContext.LOGGER.error("Error executing user creation",ex);
 		}
 	}
 	,createUser: function(newUser) {
@@ -4679,32 +4688,32 @@ ui.api.ProtocolHandler.prototype = {
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				if(data.msgType == ui.api.MsgType.createUserResponse) try {
-					var response = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.CreateUserResponse,false);
+					var response = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.CreateUserResponse,false);
 					ui.AgentUi.agentURI = response.contentImpl.agentURI;
 					ui.model.EM.change(ui.model.EMEvent.USER_SIGNUP);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
-						ui.AgentUi.LOGGER.error("Serialization error",e);
+						ui.AppContext.LOGGER.error("Serialization error",e);
 					} else throw(e);
 				} else if(data.msgType == ui.api.MsgType.createUserWaiting) try {
-					var response = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.CreateUserWaiting,false);
+					var response = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.CreateUserWaiting,false);
 					ui.widget.DialogManager.showSignupConfirmation();
 					ui.model.EM.change(ui.model.EMEvent.USER_SIGNUP);
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
-						ui.AgentUi.LOGGER.error("Serialization error",e);
+						ui.AppContext.LOGGER.error("Serialization error",e);
 					} else throw(e);
 				} else if(data.msgType == ui.api.MsgType.createUserError) {
-					var error = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionError);
+					var error = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionError);
 					m3.util.JqueryUtil.alert("User creation error: " + error.contentImpl.reason);
 				} else {
-					ui.AgentUi.LOGGER.error("Unknown user creation error | " + Std.string(data));
+					ui.AppContext.LOGGER.error("Unknown user creation error | " + Std.string(data));
 					m3.util.JqueryUtil.alert("There was an unexpected error creating your agent. Please try again.");
 				}
 			}).start();
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing user creation",ex);
+			ui.AppContext.LOGGER.error("Error executing user creation",ex);
 		}
 	}
 	,_startPolling: function(sessionURI) {
@@ -4726,14 +4735,14 @@ ui.api.ProtocolHandler.prototype = {
 					}(this));
 					var processor = _g.processHash.get(msgType);
 					if(processor == null) {
-						if(data != null) ui.AgentUi.LOGGER.info("no processor for " + data.msgType); else ui.AgentUi.LOGGER.info("no data returned on polling channel response");
+						if(data != null) ui.AppContext.LOGGER.info("no processor for " + data.msgType); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
 						return;
 					} else {
-						ui.AgentUi.LOGGER.debug("received " + data.msgType);
+						ui.AppContext.LOGGER.debug("received " + data.msgType);
 						processor(data);
 					}
 				} catch( err ) {
-					ui.AgentUi.LOGGER.error("Error processing msg\n" + Std.string(data) + "\n" + Std.string(err));
+					ui.AppContext.LOGGER.error("Error processing msg\n" + Std.string(data) + "\n" + Std.string(err));
 				}
 			});
 		});
@@ -4748,11 +4757,11 @@ ui.api.ProtocolHandler.prototype = {
 		request.contentImpl.nextPage = nextPageURI;
 		try {
 			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
-				ui.AgentUi.LOGGER.debug("next page request successfully submitted");
+				ui.AppContext.LOGGER.debug("next page request successfully submitted");
 			}).start();
 		} catch( err ) {
 			var ex = m3.log.Logga.getExceptionInst(err);
-			ui.AgentUi.LOGGER.error("Error executing next page request",ex);
+			ui.AppContext.LOGGER.error("Error executing next page request",ex);
 		}
 	}
 	,filter: function(filter) {
@@ -4770,15 +4779,15 @@ ui.api.ProtocolHandler.prototype = {
 			request.contentImpl.expression = feedExpr;
 			var data = new ui.api.FeedExprData();
 			feedExpr.contentImpl = data;
-			data.cnxns = [ui.AgentUi.USER.getSelfConnection()];
+			data.cnxns = [ui.AppContext.USER.getSelfConnection()];
 			data.label = filter.labelsProlog();
 			try {
 				new ui.api.StandardRequest(request,function(data1,textStatus,jqXHR) {
-					ui.AgentUi.LOGGER.debug("filter successfully submitted");
+					ui.AppContext.LOGGER.debug("filter successfully submitted");
 				}).start({ dataType : "text"});
 			} catch( err ) {
 				var ex = m3.log.Logga.getExceptionInst(err);
-				ui.AgentUi.LOGGER.error("Error executing filter request",ex);
+				ui.AppContext.LOGGER.error("Error executing filter request",ex);
 			}
 		}
 	}
@@ -4793,7 +4802,7 @@ ui.api.ProtocolHandler.prototype = {
 		try {
 			var loginRequest = new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
 				if(data.msgType == ui.api.MsgType.initializeSessionResponse) try {
-					var response = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionResponse,false);
+					var response = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionResponse,false);
 					var user = new ui.model.User();
 					user.aliasSet = new m3.observable.ObservableSet(ui.model.Alias.identifier);
 					user.aliasSet.visualId = "User Aliases";
@@ -4807,7 +4816,7 @@ ui.api.ProtocolHandler.prototype = {
 						user.aliasSet.add(alias);
 					}
 					if(!m3.helper.OSetHelper.hasValues(user.aliasSet)) {
-						ui.AgentUi.LOGGER.error("Agent has no Aliases!!");
+						ui.AppContext.LOGGER.error("Agent has no Aliases!!");
 						user.set_currentAlias(new ui.model.Alias());
 						user.get_currentAlias().label = "default";
 						user.get_currentAlias().set_uid(m3.util.UidGenerator.create(12));
@@ -4825,13 +4834,13 @@ ui.api.ProtocolHandler.prototype = {
 					}
 				} catch( e ) {
 					if( js.Boot.__instanceof(e,m3.serialization.JsonException) ) {
-						ui.AgentUi.LOGGER.error("Serialization error",e);
+						ui.AppContext.LOGGER.error("Serialization error",e);
 					} else throw(e);
 				} else if(data.msgType == ui.api.MsgType.initializeSessionError) {
-					var error = ui.AgentUi.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionError);
+					var error = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.InitializeSessionError);
 					m3.util.JqueryUtil.alert("Login error: " + error.contentImpl.reason);
 				} else {
-					ui.AgentUi.LOGGER.error("Unknown user login error | " + Std.string(data));
+					ui.AppContext.LOGGER.error("Unknown user login error | " + Std.string(data));
 					m3.util.JqueryUtil.alert("There was an unexpected error attempting to login. Please try again.");
 				}
 			});
@@ -4857,10 +4866,10 @@ $hxClasses["ui.api.ProtocolMessage"] = ui.api.ProtocolMessage;
 ui.api.ProtocolMessage.__name__ = ["ui","api","ProtocolMessage"];
 ui.api.ProtocolMessage.prototype = {
 	writeResolve: function() {
-		this.content = ui.AgentUi.SERIALIZER.toJson(this.contentImpl);
+		this.content = ui.AppContext.SERIALIZER.toJson(this.contentImpl);
 	}
 	,readResolve: function() {
-		this.contentImpl = ui.AgentUi.SERIALIZER.fromJsonX(this.content,this.type);
+		this.contentImpl = ui.AppContext.SERIALIZER.fromJsonX(this.content,this.type);
 	}
 	,__class__: ui.api.ProtocolMessage
 }
@@ -4873,7 +4882,7 @@ ui.api.Payload.prototype = {
 }
 ui.api.PayloadWithSessionURI = function() {
 	ui.api.Payload.call(this);
-	if(ui.AgentUi.USER != null) this.sessionURI = ui.AgentUi.USER.sessionURI;
+	if(ui.AppContext.USER != null) this.sessionURI = ui.AppContext.USER.sessionURI;
 };
 $hxClasses["ui.api.PayloadWithSessionURI"] = ui.api.PayloadWithSessionURI;
 ui.api.PayloadWithSessionURI.__name__ = ["ui","api","PayloadWithSessionURI"];
@@ -5168,7 +5177,7 @@ ui.api.EvalResponseData.prototype = $extend(ui.api.PayloadWithSessionURI.prototy
 			while(_g1 < _g) {
 				var p_ = _g1++;
 				var post = haxe.Json.parse(this.pageOfPosts[p_]);
-				this.content.push(ui.AgentUi.SERIALIZER.fromJsonX(post,ui.model.Content));
+				this.content.push(ui.AppContext.SERIALIZER.fromJsonX(post,ui.model.Content));
 			}
 		}
 	}
@@ -5617,8 +5626,8 @@ ui.api.StandardRequest.prototype = {
 	abort: function() {
 	}
 	,start: function(opts) {
-		ui.AgentUi.LOGGER.debug("send " + Std.string(this.request.msgType));
-		var ajaxOpts = { async : true, url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : ui.AgentUi.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
+		ui.AppContext.LOGGER.debug("send " + Std.string(this.request.msgType));
+		var ajaxOpts = { async : true, url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : ui.AppContext.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
 			m3.util.JqueryUtil.alert("There was an error making your request.\n" + jqXHR.message);
 			throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 		}};
@@ -5631,12 +5640,12 @@ ui.api.LongPollingRequest = function(requestToRepeat,successFcn) {
 	this.stop = false;
 	var _g = this;
 	this.request = requestToRepeat;
-	this.requestJson = ui.AgentUi.SERIALIZER.toJsonString(this.request);
+	this.requestJson = ui.AppContext.SERIALIZER.toJsonString(this.request);
 	this.successFcn = successFcn;
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 80) {
 			_g.stop = !_g.stop;
-			ui.AgentUi.LOGGER.debug("Long Polling is paused? " + Std.string(_g.stop));
+			ui.AppContext.LOGGER.debug("Long Polling is paused? " + Std.string(_g.stop));
 			if(!_g.stop) _g.poll();
 		}
 	});
@@ -5652,10 +5661,10 @@ ui.api.LongPollingRequest.prototype = {
 				if(!_g.stop) try {
 					_g.successFcn(data,textStatus,jqXHR);
 				} catch( err ) {
-					ui.AgentUi.LOGGER.error("long polling error",err);
+					ui.AppContext.LOGGER.error("long polling error",err);
 				}
 			}, error : function(jqXHR,textStatus,errorThrown) {
-				ui.AgentUi.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+				ui.AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 			}, complete : function(jqXHR,textStatus) {
 				_g.poll();
 			}, timeout : 30000};
@@ -5668,7 +5677,7 @@ ui.api.LongPollingRequest.prototype = {
 			this.jqXHR.abort();
 			this.jqXHR = null;
 		} catch( err ) {
-			ui.AgentUi.LOGGER.error("error on poll abort | " + Std.string(err));
+			ui.AppContext.LOGGER.error("error on poll abort | " + Std.string(err));
 		}
 	}
 	,start: function(opts) {
@@ -5773,7 +5782,7 @@ ui.api.TestDao.generateContent = function(node) {
 	audioContent.audioSrc = "media/test/hello_newman.mp3";
 	audioContent.audioType = "audio/mpeg";
 	audioContent.title = "Hello Newman Compilation";
-	if(m3.helper.ArrayHelper.hasValues(availableConnections)) audioContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else audioContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+	if(m3.helper.ArrayHelper.hasValues(availableConnections)) audioContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else audioContent.creator = ui.AppContext.USER.get_currentAlias().get_uid();
 	if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,audioContent,2);
 	if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,audioContent,2);
 	content.push(audioContent);
@@ -5785,7 +5794,7 @@ ui.api.TestDao.generateContent = function(node) {
 		img.set_uid(m3.util.UidGenerator.create());
 		img.imgSrc = imgData[i].imgSrc;
 		img.caption = imgData[i].caption;
-		if(m3.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else img.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+		if(m3.helper.ArrayHelper.hasValues(availableConnections)) img.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else img.creator = ui.AppContext.USER.get_currentAlias().get_uid();
 		if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,img,1);
 		if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,img,2);
 		content.push(img);
@@ -5798,7 +5807,7 @@ ui.api.TestDao.generateContent = function(node) {
 		urlContent.set_uid(m3.util.UidGenerator.create());
 		urlContent.text = url_data[i].text;
 		urlContent.url = url_data[i].url;
-		if(m3.helper.ArrayHelper.hasValues(availableConnections)) urlContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else urlContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+		if(m3.helper.ArrayHelper.hasValues(availableConnections)) urlContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else urlContent.creator = ui.AppContext.USER.get_currentAlias().get_uid();
 		if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,urlContent,1);
 		if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,urlContent,2);
 		content.push(urlContent);
@@ -5810,7 +5819,7 @@ ui.api.TestDao.generateContent = function(node) {
 		var textContent = new ui.model.MessageContent();
 		textContent.set_uid(m3.util.UidGenerator.create());
 		textContent.text = phrases[i];
-		if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AgentUi.USER.get_currentAlias().get_uid();
+		if(m3.helper.ArrayHelper.hasValues(availableConnections)) textContent.creator = ui.api.TestDao.getRandomFromArray(availableConnections).get_uid(); else textContent.creator = ui.AppContext.USER.get_currentAlias().get_uid();
 		if(m3.helper.ArrayHelper.hasValues(availableConnections)) ui.api.TestDao.addConnections(availableConnections,textContent,1);
 		if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,textContent,2);
 		content.push(textContent);
@@ -5900,7 +5909,7 @@ ui.api.TestDao.randomizeOrder = function(arr) {
 	return newArr;
 }
 ui.api.TestDao.getRandomNumber = function(arr,amount) {
-	ui.AgentUi.LOGGER.debug("return " + amount);
+	ui.AppContext.LOGGER.debug("return " + amount);
 	var newArr = new Array();
 	do {
 		var randomIndex = Std.random(arr.length);
@@ -6087,7 +6096,7 @@ ui.helper.PrologHelper.labelsToProlog = function(contentTags) {
 		var traveler = label;
 		while(traveler != null) {
 			path.push(traveler.text);
-			traveler = m3.helper.OSetHelper.getElement(ui.AgentUi.USER.get_currentAlias().labelSet,traveler.parentUid);
+			traveler = m3.helper.OSetHelper.getElement(ui.AppContext.USER.get_currentAlias().labelSet,traveler.parentUid);
 		}
 		sarray.push("[" + path.join(",") + "]");
 	});
@@ -6097,7 +6106,7 @@ ui.helper.PrologHelper.connectionsToProlog = function(connections) {
 	var sarray = [];
 	Lambda.iter(connections,function(c) {
 		var s = "";
-		sarray.push(ui.AgentUi.SERIALIZER.toJsonString(c));
+		sarray.push(ui.AppContext.SERIALIZER.toJsonString(c));
 	});
 	var str = sarray.join(",");
 	return "all(" + (m3.helper.StringHelper.isBlank(str)?"_":"[" + str + "]") + ")";
@@ -6125,16 +6134,16 @@ ui.model.EM.removeListener = function(id,listenerUid) {
 	if(map != null) map.remove(listenerUid);
 }
 ui.model.EM.change = function(id,t) {
-	ui.AgentUi.LOGGER.debug("EVENTMODEL: Change to " + Std.string(id));
+	ui.AppContext.LOGGER.debug("EVENTMODEL: Change to " + Std.string(id));
 	var map = ui.model.EM.hash.get(id);
 	if(map == null) {
-		ui.AgentUi.LOGGER.warn("No listeners for event " + Std.string(id));
+		ui.AppContext.LOGGER.warn("No listeners for event " + Std.string(id));
 		return;
 	}
 	var iter = map.iterator();
 	while(iter.hasNext()) {
 		var listener = iter.next();
-		ui.AgentUi.LOGGER.debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
+		ui.AppContext.LOGGER.debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
 		listener.change(t);
 		if(HxOverrides.remove(ui.model.EM.oneTimers,listener.get_uid())) map.remove(listener.get_uid());
 	}
@@ -6371,7 +6380,7 @@ ui.model.User.prototype = $extend(ui.model.ModelObj.prototype,{
 		this.aliasSet = new m3.observable.ObservableSet(ui.model.Alias.identifier,this.aliases);
 	}
 	,hasValidSession: function() {
-		ui.AgentUi.LOGGER.warn("implement User.hasValidSession");
+		ui.AppContext.LOGGER.warn("implement User.hasValidSession");
 		return true;
 	}
 	,set_currentAlias: function(alias) {
@@ -6381,7 +6390,7 @@ ui.model.User.prototype = $extend(ui.model.ModelObj.prototype,{
 	,get_currentAlias: function() {
 		if(this.currentAlias == null && this.aliasSet != null) this.set_currentAlias(this.aliasSet.iterator().next()); else if(this.currentAlias == null) {
 			this.set_currentAlias(new ui.model.Alias());
-			ui.AgentUi.LOGGER.warn("No aliases found for user.");
+			ui.AppContext.LOGGER.warn("No aliases found for user.");
 		}
 		return this.currentAlias;
 	}
@@ -6460,23 +6469,23 @@ ui.model.ContentHandler.__name__ = ["ui","model","ContentHandler"];
 ui.model.ContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
 ui.model.ContentHandler.prototype = {
 	write: function(value,writer) {
-		return ui.AgentUi.SERIALIZER.toJson(value);
+		return ui.AppContext.SERIALIZER.toJson(value);
 	}
 	,read: function(fromJson,reader,instance) {
 		var obj = null;
 		var _g = Type.createEnum(ui.model.ContentType,fromJson.type,null);
 		switch( (_g)[1] ) {
 		case 0:
-			obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson,ui.model.AudioContent);
+			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.AudioContent);
 			break;
 		case 1:
-			obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson,ui.model.ImageContent);
+			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.ImageContent);
 			break;
 		case 3:
-			obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson,ui.model.MessageContent);
+			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.MessageContent);
 			break;
 		case 2:
-			obj = ui.AgentUi.SERIALIZER.fromJsonX(fromJson,ui.model.UrlContent);
+			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.UrlContent);
 			break;
 		}
 		return obj;
@@ -7002,7 +7011,7 @@ var defineWidget = function() {
 			} else if(evt.isDelete()) self._remove(fc);
 		});
 		selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
-			ui.AgentUi.LOGGER.debug("dragstop on filtercombo");
+			ui.AppContext.LOGGER.debug("dragstop on filtercombo");
 			if(self.options.dragstop != null) self.options.dragstop(dragstopEvt,dragstopUi);
 		});
 		selfElement.addClass("ui-state-highlight connectionDT labelDT filterable dropCombiner filterCombination filterTrashable container shadow" + m3.widget.Widgets.getWidgetClasses());
@@ -7262,7 +7271,7 @@ var defineWidget = function() {
 			self._setConnections(alias.connectionSet);
 		},"ConnectionsList-Alias"));
 		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
-			if(conn != null) self._setConnections(conn.connectionSet); else self._setConnections(ui.AgentUi.USER.get_currentAlias().connectionSet);
+			if(conn != null) self._setConnections(conn.connectionSet); else self._setConnections(ui.AppContext.USER.get_currentAlias().connectionSet);
 		},"ConnectionsList-TargetChange"));
 		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,new ui.model.EMListener(function(notification) {
 			var conn1 = notification.contentImpl.connection;
@@ -7334,7 +7343,7 @@ var defineWidget = function() {
 			var helper = "clone";
 			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
 			selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
-				ui.AgentUi.LOGGER.debug("dragstop on label | " + self.options.label.text);
+				ui.AppContext.LOGGER.debug("dragstop on label | " + self.options.label.text);
 				if(self.options.dragstop != null) self.options.dragstop(dragstopEvt,dragstopUi);
 			});
 			(js.Boot.__cast(selfElement , $)).draggable({ containment : self.options.containment, helper : helper, distance : 10, scroll : false, revertDuration : 200, start : function(evt,_ui) {
@@ -7374,7 +7383,7 @@ var defineWidget = function() {
 	}, _post : function() {
 		var self = this;
 		var selfElement = this.element;
-		ui.AgentUi.LOGGER.debug("post " + self.urlInput.val());
+		ui.AppContext.LOGGER.debug("post " + self.urlInput.val());
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}, valEle : function() {
@@ -7391,25 +7400,25 @@ var defineWidget = function() {
 		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
 		self._createFileUploadComponent();
 		selfElement.on("dragleave",function(evt,d) {
-			ui.AgentUi.LOGGER.debug("dragleave");
+			ui.AppContext.LOGGER.debug("dragleave");
 			var target = evt.target;
 			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
 		selfElement.on("dragenter",function(evt,d) {
-			ui.AgentUi.LOGGER.debug("dragenter");
+			ui.AppContext.LOGGER.debug("dragenter");
 			$(this).addClass("over");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
 		selfElement.on("dragover",function(evt,d) {
-			ui.AgentUi.LOGGER.debug("dragover");
+			ui.AppContext.LOGGER.debug("dragover");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
 		selfElement.on("drop",function(evt,d) {
-			ui.AgentUi.LOGGER.debug("drop");
+			ui.AppContext.LOGGER.debug("drop");
 			self._traverseFiles(evt.originalEvent.dataTransfer.files);
 			$(this).removeClass("drop");
 			evt.preventDefault();
@@ -7439,7 +7448,7 @@ var defineWidget = function() {
 			m3.util.JqueryUtil.alert("Please select an audio file.");
 			return;
 		}
-		ui.AgentUi.LOGGER.debug("upload " + Std.string(file.name));
+		ui.AppContext.LOGGER.debug("upload " + Std.string(file.name));
 		var reader = new FileReader();
 		reader.onload = function(evt) {
 			self2.setPreviewImage(evt.target.result);
@@ -7453,7 +7462,7 @@ var defineWidget = function() {
 		}
 		self.previewImg.attr("src",src);
 	}, _traverseFiles : function(files) {
-		ui.AgentUi.LOGGER.debug("traverse the files");
+		ui.AppContext.LOGGER.debug("traverse the files");
 		var self = this;
 		if(m3.helper.ArrayHelper.hasValues(files)) {
 			var _g = 0;
@@ -7529,12 +7538,12 @@ var defineWidget = function() {
 			evt.stopPropagation();
 			m3.util.JqueryUtil.confirm("Delete Post","Are you sure you want to remove this post?",function() {
 				close();
-				ui.AgentUi.CONTENT["delete"](self1.options.content);
+				ui.AppContext.CONTENT["delete"](self1.options.content);
 			});
 		});
 		var updateButton = new $("<button title='Update Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-disk"}}).css("width","23px").click(function(evt) {
 			self1._updateContent();
-			ui.AgentUi.CONTENT.update(self1.options.content);
+			ui.AppContext.CONTENT.update(self1.options.content);
 			close();
 		});
 		var closeButton = new $("<button title='Close'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-closethick"}}).css("width","23px").click(function(evt) {
@@ -7682,8 +7691,8 @@ var defineWidget = function() {
 			var editPostComp = new $(comp).editPostComp({ content : self.options.content});
 		});
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
-		var connection = m3.helper.OSetHelper.getElementComplex(ui.AgentUi.USER.get_currentAlias().connectionSet,content.creator);
-		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AgentUi.USER.get_currentAlias());
+		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.USER.get_currentAlias().connectionSet,content.creator);
+		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AppContext.USER.get_currentAlias());
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection}).appendTo(postCreator);
 		var postLabels = new $("<aside class='postLabels'></div>");
 		postWr.append(postLabels);
@@ -7718,7 +7727,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		var showButtonBlock = self.buttonBlock.isVisible();
-		self.options.content = ui.AgentUi.CONTENT.current(self.options.content);
+		self.options.content = ui.AppContext.CONTENT.current(self.options.content);
 		self._createWidgets(selfElement,self);
 		if(showButtonBlock) self.buttonBlock.show();
 		selfElement.show();
@@ -7928,16 +7937,16 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTree must be a div element");
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
 		self.mappedLabels = new m3.observable.MappedSet(self.options.labels,function(label) {
-			var children = new m3.observable.FilteredSet(ui.AgentUi.USER.get_currentAlias().labelSet,function(child) {
+			var children = new m3.observable.FilteredSet(ui.AppContext.USER.get_currentAlias().labelSet,function(child) {
 				return child.parentUid == label.get_uid();
 			});
 			children.visualId = "filteredLabelTree--" + label.text;
 			return new $("<div></div>").labelTreeBranch({ label : label, children : children});
 		});
 		self.mappedLabels.visualId = self.options.labels.getVisualId() + "_map";
-		ui.AgentUi.LOGGER.debug("Listen to " + self.mappedLabels.visualId);
+		ui.AppContext.LOGGER.debug("Listen to " + self.mappedLabels.visualId);
 		self.mappedLabels.listen(function(labelTreeBranch,evt) {
-			ui.AgentUi.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
+			ui.AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) labelTreeBranch.labelTreeBranch("update"); else if(evt.isDelete()) labelTreeBranch.remove();
 		});
 	}, destroy : function() {
@@ -7981,7 +7990,7 @@ var defineWidget = function() {
 			container.append("<label for='labelParent'>Parent: </label> ");
 			var parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value=''>No Parent</option></select>").appendTo(container);
 			parent.click(stopFcn);
-			var iter = ui.AgentUi.USER.get_currentAlias().labelSet.iterator();
+			var iter = ui.AppContext.USER.get_currentAlias().labelSet.iterator();
 			while(iter.hasNext()) {
 				var label = iter.next();
 				var option = "<option value='" + label.get_uid() + "'";
@@ -8000,7 +8009,7 @@ var defineWidget = function() {
 				createLabel();
 			});
 			createLabel = function() {
-				ui.AgentUi.LOGGER.info("Create new label | " + input.val());
+				ui.AppContext.LOGGER.info("Create new label | " + input.val());
 				var text = input.val();
 				var alnum = new EReg("(^[a-zA-Z0-9]*$)","");
 				if(text.length == 0 || !alnum.match(text)) m3.util.JqueryUtil.alert("Only alphanumeric labels allowed."); else {
@@ -8008,7 +8017,7 @@ var defineWidget = function() {
 					label.parentUid = parent.val();
 					label.text = input.val();
 					label.set_uid(m3.util.UidGenerator.create());
-					ui.AgentUi.LOGGER.debug("add to " + self.labels.visualId);
+					ui.AppContext.LOGGER.debug("add to " + self.labels.visualId);
 					ui.model.EM.change(ui.model.EMEvent.CreateLabel,label);
 					new $("body").click();
 				}
@@ -8423,7 +8432,7 @@ var defineWidget = function() {
 		var section = new $("<section id='postSection'></section>").appendTo(selfElement);
 		var addConnectionsAndLabels = null;
 		var doTextPost = function(evt,contentType,value) {
-			ui.AgentUi.LOGGER.debug("Post new text content");
+			ui.AppContext.LOGGER.debug("Post new text content");
 			evt.preventDefault();
 			var msg = new ui.model.MessageContent();
 			msg.type = contentType;
@@ -8582,7 +8591,7 @@ var defineWidget = function() {
 			}
 		};
 		var divTa1 = new $("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
-		var from_text = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AgentUi.USER.userData.name);
+		var from_text = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AppContext.USER.userData.name);
 		var divTa2 = new $("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
 		var to_text = new $("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","to_text").val(from_text.val());
 	}, _appendConnectionAvatar : function(connection,parent) {
@@ -8591,7 +8600,7 @@ var defineWidget = function() {
 	}, initialized : false, _sendRequest : function() {
 		var self = this;
 		var selfElement1 = this.element;
-		var alias = ui.AgentUi.USER.get_currentAlias().label;
+		var alias = ui.AppContext.USER.get_currentAlias().label;
 		var msg = new ui.api.BeginIntroductionRequest(alias,self.options.to,self.options.from,new $("#to_text").val(),new $("#from_text").val());
 		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_RESPONSE,new ui.model.EMListener(function(n) {
 			selfElement1.dialog("close");
@@ -8708,7 +8717,7 @@ var defineWidget = function() {
 					dragstopUi.helper.remove();
 					selfElement.removeClass("targetChange");
 					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
-					ui.AgentUi.TARGET = null;
+					ui.AppContext.TARGET = null;
 					self._setUser();
 				}
 			};
@@ -8740,8 +8749,8 @@ var defineWidget = function() {
 			dlg.m3dialog({ width : 800, height : 305, title : "Profile Picture Uploader", buttons : { Cancel : function() {
 				$(this).m3dialog("close");
 			}, 'Set Profile Image' : function() {
-				ui.AgentUi.USER.userData.imgSrc = ui.widget.UploadCompHelper.value(uploadComp);
-				ui.model.EM.change(ui.model.EMEvent.USER_UPDATE,ui.AgentUi.USER);
+				ui.AppContext.USER.userData.imgSrc = ui.widget.UploadCompHelper.value(uploadComp);
+				ui.model.EM.change(ui.model.EMEvent.USER_UPDATE,ui.AppContext.USER);
 				$(this).m3dialog("close");
 			}}});
 		}}], width : 225}).hide();
@@ -8828,7 +8837,7 @@ var defineWidget = function() {
 		var self = this;
 		self.changeAliasLink.hide();
 		self.userIdTxt.empty().append("<strong>" + conn.name() + "</strong>");
-		ui.AgentUi.TARGET = conn;
+		ui.AppContext.TARGET = conn;
 		ui.model.EM.change(ui.model.EMEvent.TARGET_CHANGE,conn);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);

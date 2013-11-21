@@ -69,7 +69,7 @@ extern class UploadComp extends JQ {
 		        	self._createFileUploadComponent();
 					
 					selfElement.on("dragleave", function (evt: JQEvent, d: Dynamic) {
-						ui.AgentUi.LOGGER.debug("dragleave");
+						AppContext.LOGGER.debug("dragleave");
 
 						var target = evt.target;
 						
@@ -81,7 +81,7 @@ extern class UploadComp extends JQ {
 					});
 					
 					selfElement.on("dragenter", function (evt: JQEvent, d: Dynamic) {
-						ui.AgentUi.LOGGER.debug("dragenter");
+						AppContext.LOGGER.debug("dragenter");
 
 						JQ.cur.addClass("over");
 						evt.preventDefault();
@@ -89,14 +89,14 @@ extern class UploadComp extends JQ {
 					});
 					
 					selfElement.on("dragover", function (evt: JQEvent, d: Dynamic) {
-						ui.AgentUi.LOGGER.debug("dragover");
+						AppContext.LOGGER.debug("dragover");
 
 						evt.preventDefault();
 						evt.stopPropagation();
 					});
 					
 					selfElement.on("drop", function (evt: JQEvent, d: Dynamic) {
-						ui.AgentUi.LOGGER.debug("drop");
+						AppContext.LOGGER.debug("drop");
 
 						self._traverseFiles(evt.originalEvent.dataTransfer.files);
 						JQ.cur.removeClass("drop");
@@ -139,7 +139,7 @@ extern class UploadComp extends JQ {
 		        		return;
 		        	}
 
-					ui.AgentUi.LOGGER.debug("upload " + file.name);
+					AppContext.LOGGER.debug("upload " + file.name);
 
 
 					// TODO:  Add controls for previewing audio content
@@ -165,7 +165,7 @@ extern class UploadComp extends JQ {
 				},
 
 				_traverseFiles: function(files: Array<Dynamic>) {
-					ui.AgentUi.LOGGER.debug("traverse the files");
+					AppContext.LOGGER.debug("traverse the files");
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 
 					if (files.hasValues()) {

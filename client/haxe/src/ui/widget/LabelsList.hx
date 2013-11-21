@@ -54,7 +54,7 @@ extern class LabelsList extends JQ {
         						container.append("<label for='labelParent'>Parent: </label> ");
         						var parent: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value=''>No Parent</option></select>").appendTo(container);
         						parent.click(stopFcn);
-        						var iter: Iterator<Label> = ui.AgentUi.USER.currentAlias.labelSet.iterator();
+        						var iter: Iterator<Label> = AppContext.USER.currentAlias.labelSet.iterator();
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
         							var option = "<option value='" + label.uid + "'";
@@ -81,7 +81,7 @@ extern class LabelsList extends JQ {
         								});
 
         						createLabel = function(): Void {
-									AgentUi.LOGGER.info("Create new label | " + input.val());
+									AppContext.LOGGER.info("Create new label | " + input.val());
 
 									var text = input.val();
 									var alnum: EReg = ~/(^[a-zA-Z0-9]*$)/;
@@ -93,7 +93,7 @@ extern class LabelsList extends JQ {
 										label.parentUid = parent.val();
 										label.text = input.val();
 										label.uid = UidGenerator.create();
-      									AgentUi.LOGGER.debug("add to " + self.labels.visualId);
+      									AppContext.LOGGER.debug("add to " + self.labels.visualId);
 	  									EM.change(EMEvent.CreateLabel, label);
 										new JQ("body").click();
 									}

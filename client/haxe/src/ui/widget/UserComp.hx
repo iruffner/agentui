@@ -81,7 +81,7 @@ extern class UserComp extends JQ {
 				                		dragstopUi.helper.remove();
 				                		selfElement.removeClass("targetChange");
 				                		JqueryUtil.deleteEffects(dragstopEvt);
-				                		AgentUi.TARGET = null;
+				                		AppContext.TARGET = null;
 				                		self._setUser();
 				                	}
 				                };
@@ -138,8 +138,8 @@ extern class UserComp extends JQ {
 														M3Dialog.cur.m3dialog("close");
 													},
 													"Set Profile Image": function() {
-														ui.AgentUi.USER.userData.imgSrc = uploadComp.value();
-														EM.change(EMEvent.USER_UPDATE, ui.AgentUi.USER);
+														AppContext.USER.userData.imgSrc = uploadComp.value();
+														EM.change(EMEvent.USER_UPDATE, AppContext.USER);
 														M3Dialog.cur.m3dialog("close");
 													}
         										}
@@ -226,7 +226,7 @@ extern class UserComp extends JQ {
 	        			.empty()
 		        		.append("<strong>" + conn.name() + "</strong>");
 
-		        	AgentUi.TARGET = conn;
+		        	AppContext.TARGET = conn;
 	        		EM.change(EMEvent.TARGET_CHANGE, conn);
         		},
 

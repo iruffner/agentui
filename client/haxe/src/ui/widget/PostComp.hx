@@ -56,7 +56,7 @@ extern class PostComp extends JQ {
 		        	var addConnectionsAndLabels: Content->Void = null;
 
 		        	var doTextPost: JQEvent->ContentType->String->Void = function(evt: JQEvent, contentType: ContentType, value:String): Void {
-		        		ui.AgentUi.LOGGER.debug("Post new text content");
+		        		AppContext.LOGGER.debug("Post new text content");
 						evt.preventDefault();
 						
 						var msg: MessageContent = new MessageContent();

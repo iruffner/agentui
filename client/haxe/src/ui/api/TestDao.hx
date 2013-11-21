@@ -136,7 +136,7 @@ class TestDao {
         if(availableConnections.hasValues()) {
             audioContent.creator = getRandomFromArray(availableConnections).uid;
         } else {
-            audioContent.creator = AgentUi.USER.currentAlias.uid;
+            audioContent.creator = AppContext.USER.currentAlias.uid;
         }
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, audioContent, 2);
@@ -163,7 +163,7 @@ class TestDao {
             if(availableConnections.hasValues()) {
                 img.creator = getRandomFromArray(availableConnections).uid;
             } else {
-                img.creator = AgentUi.USER.currentAlias.uid;
+                img.creator = AppContext.USER.currentAlias.uid;
             }
             if(availableConnections.hasValues()) {
             	addConnections(availableConnections, img, 1);
@@ -188,7 +188,7 @@ class TestDao {
             if(availableConnections.hasValues()) {
                 urlContent.creator = getRandomFromArray(availableConnections).uid;
             } else {
-                urlContent.creator = AgentUi.USER.currentAlias.uid;
+                urlContent.creator = AppContext.USER.currentAlias.uid;
             }
             if(availableConnections.hasValues()) {
                 addConnections(availableConnections, urlContent, 1);
@@ -214,7 +214,7 @@ class TestDao {
             if(availableConnections.hasValues()) {
                 textContent.creator = getRandomFromArray(availableConnections).uid;
             } else {
-                textContent.creator = AgentUi.USER.currentAlias.uid;
+                textContent.creator = AppContext.USER.currentAlias.uid;
             }
             if(availableConnections.hasValues()) {
                 addConnections(availableConnections, textContent, 1);
@@ -341,7 +341,7 @@ class TestDao {
 	}
 
 	private static function getRandomNumber<T>(arr: Array<T>, amount: Int): Array<T> {
-		ui.AgentUi.LOGGER.debug("return " + amount);
+		AppContext.LOGGER.debug("return " + amount);
 		var newArr: Array<Dynamic> = new Array<Dynamic>();
 		do {
 			var randomIndex: Int = Std.random(arr.length);

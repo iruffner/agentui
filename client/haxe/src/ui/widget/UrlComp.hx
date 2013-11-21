@@ -59,7 +59,7 @@ extern class UrlComp extends JQ {
 		        	var self: UrlCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-					ui.AgentUi.LOGGER.debug("post " + self.urlInput.val());
+					AppContext.LOGGER.debug("post " + self.urlInput.val());
 				},
 
 		        destroy: function() {

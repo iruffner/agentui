@@ -125,76 +125,76 @@ class ProtocolHandler {
 
         processHash = new Map<MsgType,Dynamic->Void>();
         processHash.set(MsgType.evalSubscribeResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("evalResponse was received from the server");
-        		AgentUi.LOGGER.debug(data);
-        		var evalResponse: EvalResponse = AgentUi.SERIALIZER.fromJsonX(data, EvalResponse);
+        		AppContext.LOGGER.debug("evalResponse was received from the server");
+        		AppContext.LOGGER.debug(data);
+        		var evalResponse: EvalResponse = AppContext.SERIALIZER.fromJsonX(data, EvalResponse);
         		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.content); 
         	});
         processHash.set(MsgType.evalComplete, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("evalComplete was received from the server");
-        		var evalComplete: EvalComplete = AgentUi.SERIALIZER.fromJsonX(data, EvalComplete);
+        		AppContext.LOGGER.debug("evalComplete was received from the server");
+        		var evalComplete: EvalComplete = AppContext.SERIALIZER.fromJsonX(data, EvalComplete);
         		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.content); 
         	});
         processHash.set(MsgType.sessionPong, function(data: Dynamic){
         		//nothing to do with this message
         	});
         processHash.set(MsgType.updateUserResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("updateUserResponse was received from the server");
+        		AppContext.LOGGER.debug("updateUserResponse was received from the server");
         	});
         processHash.set(MsgType.addAliasLabelsResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("addAliasLabelsResponse was received from the server");
+        		AppContext.LOGGER.debug("addAliasLabelsResponse was received from the server");
         	});
         
 
         processHash.set(MsgType.addAgentAliasesResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("addAgentAliasesResponse was received from the server");
+        		AppContext.LOGGER.debug("addAgentAliasesResponse was received from the server");
         	});
         processHash.set(MsgType.addAgentAliasesError, function(data: Dynamic){
-        		AgentUi.LOGGER.error("addAgentAliasesError was received from the server");
+        		AppContext.LOGGER.error("addAgentAliasesError was received from the server");
         	});
         processHash.set(MsgType.removeAgentAliasesResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("removeAgentAliasesResponse was received from the server");
+        		AppContext.LOGGER.debug("removeAgentAliasesResponse was received from the server");
         	});
         processHash.set(MsgType.removeAgentAliasesError, function(data: Dynamic){
-        		AgentUi.LOGGER.error("removeAgentAliasesError was received from the server");
+        		AppContext.LOGGER.error("removeAgentAliasesError was received from the server");
         	});
         processHash.set(MsgType.setDefaultAliasRequest, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("setDefaultAliasRequest was received from the server");
+        		AppContext.LOGGER.debug("setDefaultAliasRequest was received from the server");
         	});
         processHash.set(MsgType.setDefaultAliasError, function(data: Dynamic){
-        		AgentUi.LOGGER.error("setDefaultAliasError was received from the server");
+        		AppContext.LOGGER.error("setDefaultAliasError was received from the server");
         	});
 
         processHash.set(MsgType.getAliasConnectionsResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("getAliasConnectionsResponse was received from the server");
-        		var resp: GetAliasConnectionsResponse = AgentUi.SERIALIZER.fromJsonX(data, GetAliasConnectionsResponse);
-        		AgentUi.USER.currentAlias.connectionSet.clear();
-        		AgentUi.USER.currentAlias.connectionSet.addAll(resp.contentImpl.cnxns);
+        		AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
+        		var resp: GetAliasConnectionsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasConnectionsResponse);
+        		AppContext.USER.currentAlias.connectionSet.clear();
+        		AppContext.USER.currentAlias.connectionSet.addAll(resp.contentImpl.cnxns);
         	});
         processHash.set(MsgType.getAliasConnectionsError, function(data: Dynamic){
-        		AgentUi.LOGGER.error("getAliasConnectionsError was received from the server");
+        		AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
         	});
         processHash.set(MsgType.getAliasLabelsResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.debug("getAliasLabelsResponse was received from the server");
-        		var resp: GetAliasLabelsResponse = AgentUi.SERIALIZER.fromJsonX(data, GetAliasLabelsResponse);
-        		AgentUi.USER.currentAlias.labelSet.clear();
-        		AgentUi.USER.currentAlias.labelSet.addAll(resp.contentImpl.labels.map(function(str: String): Label {
+        		AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
+        		var resp: GetAliasLabelsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasLabelsResponse);
+        		AppContext.USER.currentAlias.labelSet.clear();
+        		AppContext.USER.currentAlias.labelSet.addAll(resp.contentImpl.labels.map(function(str: String): Label {
         				return new Label( str );
         			}));
         	});
         processHash.set(MsgType.getAliasLabelsError, function(data: Dynamic){
-        		AgentUi.LOGGER.error("getAliasLabelsError was received from the server");
+        		AppContext.LOGGER.error("getAliasLabelsError was received from the server");
         	});
 
         processHash.set(MsgType.introductionNotification, function(data: Dynamic){
-        		AgentUi.LOGGER.error("introductionNotification was received from the server");
-        		var notification = AgentUi.SERIALIZER.fromJsonX(data, IntroductionNotification);
+        		AppContext.LOGGER.error("introductionNotification was received from the server");
+        		var notification = AppContext.SERIALIZER.fromJsonX(data, IntroductionNotification);
         		EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
         	});
 
         processHash.set(MsgType.connectionProfileResponse, function(data: Dynamic){
-        		AgentUi.LOGGER.error("connectionProfileResponse was received from the server");
-        		var connectionProfileResponse = AgentUi.SERIALIZER.fromJsonX(data, ConnectionProfileResponse);
+        		AppContext.LOGGER.error("connectionProfileResponse was received from the server");
+        		var connectionProfileResponse = AppContext.SERIALIZER.fromJsonX(data, ConnectionProfileResponse);
         		var c: Connection = connectionProfileResponse.contentImpl.connection;
         		c.profile = connectionProfileResponse.contentImpl.jsonBlob;
         		EM.change(EMEvent.CONNECTION_UPDATE, c);
@@ -215,7 +215,7 @@ class ProtocolHandler {
 				function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
 					if(data.msgType == MsgType.initializeSessionResponse) {
 						try {
-				        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
+				        	var response: InitializeSessionResponse = AppContext.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
 
 				        	var user: User = new User();
 				        	user.aliasSet = new ObservableSet<Alias>(Alias.identifier);
@@ -227,7 +227,7 @@ class ProtocolHandler {
 				        		user.aliasSet.add(alias);
 				        	}
 				        	if(!user.aliasSet.hasValues()) {
-				        		AgentUi.LOGGER.error("Agent has no Aliases!!");
+				        		AppContext.LOGGER.error("Agent has no Aliases!!");
 				        		user.currentAlias = new Alias();
 				        		user.currentAlias.label = "default";
 				        		user.currentAlias.uid = UidGenerator.create(12);
@@ -252,14 +252,14 @@ class ProtocolHandler {
 								EM.change(EMEvent.FitWindow);
 							}
 						} catch (e: JsonException) {
-							AgentUi.LOGGER.error("Serialization error", e);
+							AppContext.LOGGER.error("Serialization error", e);
 						}
 			        } else if(data.msgType == MsgType.initializeSessionError) {
-			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        	var error: InitializeSessionError = AppContext.SERIALIZER.fromJsonX(data, InitializeSessionError);
 			        	JqueryUtil.alert("Login error: " + error.contentImpl.reason);
 			        } else {
 			        	//something unexpected..
-			        	AgentUi.LOGGER.error("Unknown user login error | " + data);
+			        	AppContext.LOGGER.error("Unknown user login error | " + data);
 			        	JqueryUtil.alert("There was an unexpected error attempting to login. Please try again.");
 			        }
 				});
@@ -288,16 +288,16 @@ class ProtocolHandler {
 			request.contentImpl.expression = feedExpr;
 			var data: FeedExprData = new FeedExprData();
 			feedExpr.contentImpl = data;
-			data.cnxns = [AgentUi.USER.getSelfConnection()];
+			data.cnxns = [AppContext.USER.getSelfConnection()];
 			data.label = filter.labelsProlog();
 			try {
 				//we don't expect anything back here
 				new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-						AgentUi.LOGGER.debug("filter successfully submitted");
+						AppContext.LOGGER.debug("filter successfully submitted");
 					}).start({dataType: "text"});
 			} catch (err: Dynamic) {
 				var ex: Exception = Logga.getExceptionInst(err);
-				AgentUi.LOGGER.error("Error executing filter request", ex);
+				AppContext.LOGGER.error("Error executing filter request", ex);
 			}
 		}
 	}
@@ -308,11 +308,11 @@ class ProtocolHandler {
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("next page request successfully submitted");
+					AppContext.LOGGER.debug("next page request successfully submitted");
 				}).start();
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing next page request", ex);
+			AppContext.LOGGER.error("Error executing next page request", ex);
 		}
 	}
 
@@ -340,17 +340,17 @@ class ProtocolHandler {
 								var processor: Dynamic->Void = processHash.get(msgType);
 								if(processor == null) {
 									if(data != null)
-										AgentUi.LOGGER.info("no processor for " + data.msgType);
+										AppContext.LOGGER.info("no processor for " + data.msgType);
 									else 
-										AgentUi.LOGGER.info("no data returned on polling channel response");
+										AppContext.LOGGER.info("no data returned on polling channel response");
 									// JqueryUtil.alert("Don't know how to handle " + data.msgType);
 									return;
 								} else {
-									AgentUi.LOGGER.debug("received " + data.msgType);
+									AppContext.LOGGER.debug("received " + data.msgType);
 									processor(data);
 								}
 							} catch (err: Dynamic) {
-								AgentUi.LOGGER.error("Error processing msg\n" + data + "\n" + err);
+								AppContext.LOGGER.error("Error processing msg\n" + data + "\n" + err);
 							}
 						});
 				}
@@ -369,41 +369,41 @@ class ProtocolHandler {
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					if(data.msgType == MsgType.createUserResponse) {
 						try {
-				        	var response: CreateUserResponse = AgentUi.SERIALIZER.fromJsonX(data, CreateUserResponse, false);
+				        	var response: CreateUserResponse = AppContext.SERIALIZER.fromJsonX(data, CreateUserResponse, false);
 
 				        	AgentUi.agentURI = response.contentImpl.agentURI;
 				        	//TODO put this value into the url
 							//DialogManager.showLogin(); -> firing the USER_SIGNUP will close the NewUserDialog, 
 							EM.change(EMEvent.USER_SIGNUP);
 						} catch (e: JsonException) {
-							AgentUi.LOGGER.error("Serialization error", e);
+							AppContext.LOGGER.error("Serialization error", e);
 						}
 			        // } else if(data.msgType == MsgType.initializeSessionError) {
 			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
 			        // 	throw new InitializeSessionException(error, "Login error");
 			    	} else if(data.msgType == MsgType.createUserWaiting) {
 						try {
-				        	var response: CreateUserWaiting = AgentUi.SERIALIZER.fromJsonX(data, CreateUserWaiting, false);
+				        	var response: CreateUserWaiting = AppContext.SERIALIZER.fromJsonX(data, CreateUserWaiting, false);
 
 				        	DialogManager.showSignupConfirmation();
 				        	//TODO put this value into the url
 							//DialogManager.showLogin(); -> firing the USER_SIGNUP will close the NewUserDialog, 
 							EM.change(EMEvent.USER_SIGNUP);
 						} catch (e: JsonException) {
-							AgentUi.LOGGER.error("Serialization error", e);
+							AppContext.LOGGER.error("Serialization error", e);
 						}
 					} else if(data.msgType == MsgType.createUserError) {
-			        	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        	var error: InitializeSessionError = AppContext.SERIALIZER.fromJsonX(data, InitializeSessionError);
 			        	JqueryUtil.alert("User creation error: " + error.contentImpl.reason);
 			        } else {
 			        	//something unexpected..
-			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);
+			        	AppContext.LOGGER.error("Unknown user creation error | " + data);
 			        	JqueryUtil.alert("There was an unexpected error creating your agent. Please try again.");
 			        }
 				}).start();
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing user creation", ex);
+			AppContext.LOGGER.error("Error executing user creation", ex);
 		}
 	}
 
@@ -414,27 +414,27 @@ class ProtocolHandler {
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					if(data.msgType == MsgType.createUserResponse) {
 						try {
-				        	var response: CreateUserResponse = AgentUi.SERIALIZER.fromJsonX(data, CreateUserResponse, false);
+				        	var response: CreateUserResponse = AppContext.SERIALIZER.fromJsonX(data, CreateUserResponse, false);
 
 				        	AgentUi.agentURI = response.contentImpl.agentURI;
 				        	//TODO put this value into the url
 							//AgentUi.showLogin(); -> firing the USER_VALIDATED will close the SignupConfirmationDialog, 
 							EM.change(EMEvent.USER_VALIDATED);
 						} catch (e: JsonException) {
-							AgentUi.LOGGER.error("Serialization error", e);
+							AppContext.LOGGER.error("Serialization error", e);
 						}
 			        // } else if(data.msgType == MsgType.initializeSessionError) {
 			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
 			        // 	throw new InitializeSessionException(error, "Login error");
 			        } else {
 			        	//something unexpected..
-			        	AgentUi.LOGGER.error("Unknown user creation error | " + data);
+			        	AppContext.LOGGER.error("Unknown user creation error | " + data);
 			        	JqueryUtil.alert("There was an unexpected error creating your agent. Please try again.");
 			        }
 				}).start();
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing user creation", ex);
+			AppContext.LOGGER.error("Error executing user creation", ex);
 		}
 	}
 
@@ -444,12 +444,12 @@ class ProtocolHandler {
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("updateUserRequest successfully submitted");
+					AppContext.LOGGER.debug("updateUserRequest successfully submitted");
 					EM.change(EMEvent.USER, user);
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing user creation", ex);
+			AppContext.LOGGER.error("Error executing user creation", ex);
 		}
 	}
 
@@ -459,22 +459,22 @@ class ProtocolHandler {
 		var insertData: InsertContentData = new InsertContentData();
 		request.contentImpl.expression.contentImpl = insertData;
 		insertData.label = PrologHelper.labelsToProlog(content.labelSet);
-		insertData.value = AgentUi.SERIALIZER.toJsonString(content);
-		insertData.cnxns = [AgentUi.USER.getSelfConnection()];
+		insertData.value = AppContext.SERIALIZER.toJsonString(content);
+		insertData.cnxns = [AppContext.USER.getSelfConnection()];
 
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("content successfully submitted");
+					AppContext.LOGGER.debug("content successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing content post", ex);
+			AppContext.LOGGER.error("Error executing content post", ex);
 		}
 	}
 
 	public function createLabel(label: Label): Void {
-		AgentUi.USER.currentAlias.labelSet.add(label);
+		AppContext.USER.currentAlias.labelSet.add(label);
 		EM.change(EMEvent.FitWindow);
 		_updateLabels();
 	}
@@ -482,25 +482,25 @@ class ProtocolHandler {
 	public function deleteLabels(labels: Array<Label>): Void {
 		// var request: UpdateAliasLabelsRequest = new UpdateAliasLabelsRequest();
 		for (i in 1...labels.length) {
-			AgentUi.USER.currentAlias.labelSet.delete(labels[i]);
+			AppContext.USER.currentAlias.labelSet.delete(labels[i]);
 		}
 		_updateLabels();
 	}
 
 	private function _updateLabels(): Void {
 		var request: AddAliasLabelsRequest = new AddAliasLabelsRequest();  // if we are not sending the same msg for add/update/delete.. this will need to be changed
-		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AgentUi.USER.currentAlias.labelSet);
+		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AppContext.USER.currentAlias.labelSet);
 		request.contentImpl.labels = labelsArray;
-		request.contentImpl.alias = AgentUi.USER.currentAlias.label;
+		request.contentImpl.alias = AppContext.USER.currentAlias.label;
 
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("label successfully submitted");
+					AppContext.LOGGER.debug("label successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing label post", ex);
+			AppContext.LOGGER.error("Error executing label post", ex);
 		}
 	}
 
@@ -511,11 +511,11 @@ class ProtocolHandler {
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("addAlias successfully submitted");
+					AppContext.LOGGER.debug("addAlias successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing addAlias", ex);
+			AppContext.LOGGER.error("Error executing addAlias", ex);
 		}
 	}
 
@@ -526,11 +526,11 @@ class ProtocolHandler {
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("removeAlias successfully submitted");
+					AppContext.LOGGER.debug("removeAlias successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing removeAlias", ex);
+			AppContext.LOGGER.error("Error executing removeAlias", ex);
 		}
 	}
 
@@ -541,11 +541,11 @@ class ProtocolHandler {
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("setDefaultAlias successfully submitted");
+					AppContext.LOGGER.debug("setDefaultAlias successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing setDefaultAlias", ex);
+			AppContext.LOGGER.error("Error executing setDefaultAlias", ex);
 		}
 	}
 
@@ -556,11 +556,11 @@ class ProtocolHandler {
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("getAliasConnections successfully submitted");
+					AppContext.LOGGER.debug("getAliasConnections successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing getAliasConnections", ex);
+			AppContext.LOGGER.error("Error executing getAliasConnections", ex);
 		}
 	}
 
@@ -571,11 +571,11 @@ class ProtocolHandler {
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("getAliasLabels successfully submitted");
+					AppContext.LOGGER.debug("getAliasLabels successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing getAliasLabels", ex);
+			AppContext.LOGGER.error("Error executing getAliasLabels", ex);
 		}
 	}
 }

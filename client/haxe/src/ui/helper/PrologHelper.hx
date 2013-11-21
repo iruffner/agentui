@@ -103,7 +103,7 @@ class PrologHelper {
 				var traveler: Label = label;
 				while(traveler != null) {
 					path.push(traveler.text);
-					traveler = AgentUi.USER.currentAlias.labelSet.getElement(traveler.parentUid);
+					traveler = AppContext.USER.currentAlias.labelSet.getElement(traveler.parentUid);
 				}
 				sarray.push("[" + path.join(",") + "]");
 			});
@@ -116,7 +116,7 @@ class PrologHelper {
 		connections.iter(function(c: Connection): Void {
 				var s: String = "";
 				sarray.push(
-					AgentUi.SERIALIZER.toJsonString(c)
+					AppContext.SERIALIZER.toJsonString(c)
 				);
 			});
 

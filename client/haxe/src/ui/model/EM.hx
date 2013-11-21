@@ -37,16 +37,16 @@ class EM {
 	}
 
 	public static function change<T>(id: EMEvent, ?t: T): Void {
-		AgentUi.LOGGER.debug("EVENTMODEL: Change to " + id);
+		AppContext.LOGGER.debug("EVENTMODEL: Change to " + id);
 		var map: Map<String, EMListener> = hash.get(id);
 		if(map == null) {
-			AgentUi.LOGGER.warn("No listeners for event " + id);
+			AppContext.LOGGER.warn("No listeners for event " + id);
 			return;
 		}
 		var iter: Iterator<EMListener> = map.iterator();
 		while(iter.hasNext()) {
 			var listener: EMListener = iter.next();
-			AgentUi.LOGGER.debug("Notifying " + listener.name + " of " + id + " event");
+			AppContext.LOGGER.debug("Notifying " + listener.name + " of " + id + " event");
 			listener.change(t);
 			if(oneTimers.remove(listener.uid)) {
 				map.remove(listener.uid);

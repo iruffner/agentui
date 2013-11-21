@@ -170,7 +170,7 @@ extern class EditPostComp extends JQ {
 		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
 		        									function(){
 		        										close();
-		        										AgentUi.CONTENT.delete(self.options.content);
+		        										AppContext.CONTENT.delete(self.options.content);
 		        									});
 		        							});
 
@@ -180,7 +180,7 @@ extern class EditPostComp extends JQ {
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
 		        								self._updateContent();
-		        								AgentUi.CONTENT.update(self.options.content);
+		        								AppContext.CONTENT.update(self.options.content);
 		        								close();
 		        							});
 

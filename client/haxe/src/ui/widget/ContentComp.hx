@@ -91,9 +91,9 @@ extern class ContentComp extends JQ {
 						});
 		        	
 		        	var postCreator: JQ = new JQ("<aside class='postCreator'></aside>").appendTo(postWr);
-		        	var connection: Connection = AgentUi.USER.currentAlias.connectionSet.getElementComplex(content.creator);
+		        	var connection: Connection = AppContext.USER.currentAlias.connectionSet.getElementComplex(content.creator);
 		        	if(connection == null) {
-		        		connection = AgentUi.USER.currentAlias.asConnection();
+		        		connection = AppContext.USER.currentAlias.asConnection();
 		        	}
 	        		new ConnectionAvatar("<div></div>").connectionAvatar({
 	        				dndEnabled: false,
@@ -154,7 +154,7 @@ extern class ContentComp extends JQ {
 
 					var showButtonBlock = self.buttonBlock.isVisible();
 
-					self.options.content = AgentUi.CONTENT.current(self.options.content);
+					self.options.content = AppContext.CONTENT.current(self.options.content);
         			self._createWidgets(selfElement, self);
         			if (showButtonBlock) {
 	        			self.buttonBlock.show();

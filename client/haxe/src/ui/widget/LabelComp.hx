@@ -116,7 +116,7 @@ extern class LabelComp extends FilterableComponent {
 			            }
 
 		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-		            				ui.AgentUi.LOGGER.debug("dragstop on label | " + self.options.label.text);
+		            				AppContext.LOGGER.debug("dragstop on label | " + self.options.label.text);
 			                		if(self.options.dragstop != null) {
 			                			self.options.dragstop(dragstopEvt, dragstopUi);
 			                		}

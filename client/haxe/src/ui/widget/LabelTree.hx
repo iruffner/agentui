@@ -43,7 +43,7 @@ extern class LabelTree extends JQ {
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
 		        	self.mappedLabels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
-		        			var children: FilteredSet<Label> = new FilteredSet<Label>(AgentUi.USER.currentAlias.labelSet, function(child: Label): Bool{
+		        			var children: FilteredSet<Label> = new FilteredSet<Label>(AppContext.USER.currentAlias.labelSet, function(child: Label): Bool{
 		        						return child.parentUid == label.uid;
 		        					});
 		        			children.visualId = "filteredLabelTree--" + label.text;
@@ -53,9 +53,9 @@ extern class LabelTree extends JQ {
 		        			});
 		        		});
 		        	self.mappedLabels.visualId = self.options.labels.getVisualId() + "_map";
-		        	AgentUi.LOGGER.debug("Listen to " + self.mappedLabels.visualId);
+		        	AppContext.LOGGER.debug("Listen to " + self.mappedLabels.visualId);
 		        	self.mappedLabels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
-		        			ui.AgentUi.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
+		        			AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
 		            		if(evt.isAdd()) {
 		            			selfElement.append(labelTreeBranch);
 		            		} else if (evt.isUpdate()) {
