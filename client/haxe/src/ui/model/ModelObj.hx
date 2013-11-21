@@ -7,7 +7,6 @@ import m3.serialization.Serialization;
 import m3.exception.Exception;
 
 import ui.helper.LabelStringParser;
-import ui.model.EM;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
@@ -144,9 +143,6 @@ class Alias extends ModelObj<Alias> {
 
 
 	public function new () {
-		labelSet.listen(function(l: Label, evt: EventType): Void {
-				EM.change(EMEvent.CreateLabel);
-			});
 	}
 
 	private function readResolve(): Void {
