@@ -174,7 +174,8 @@ class ConnectionProfileResponse extends ProtocolMessage<ConnectionProfileRespons
 }
 
 		class ConnectionProfileResponseData extends PayloadWithSessionURI {
-			public var agentURI: String;
+			public var connection: Connection;
+			public var jsonBlob: UserData;
 		}
 
 /** 

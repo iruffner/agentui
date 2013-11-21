@@ -105,6 +105,8 @@ class AgentUi {
 
         new InviteComp("#sideRight #sideRightInvite").inviteComp();
 
+        //todo MOVE THESE
+
         var fitWindowListener = new EMListener(function(n: Nothing) {
                 untyped __js__("fitWindow()");
             }, "FitWindowListener");
@@ -151,6 +153,11 @@ class AgentUi {
                 }
                 arr.push(notification);
             }, "AgentUi-IntroNotification")
+        );
+
+        EM.addListener(EMEvent.CONNECTION_UPDATE, new EMListener(function(conn: Connection): Void {
+                AgentUi.USER.currentAlias.connectionSet.update(conn);
+            }, "AgentUi-ConnUpdate")
         );
 
         new JQ("body").click(function(evt: JqEvent): Void {

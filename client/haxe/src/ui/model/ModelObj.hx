@@ -105,7 +105,7 @@ class User extends ModelObj<User> {
 	}
 
 	private function readResolve(): Void {
-		aliasSet = new ObservableSet<Alias>(ModelObj.identifier, aliases);
+		aliasSet = new ObservableSet<Alias>(Alias.identifier, aliases);
 	}
 
 	private function writeResolve(): Void {
@@ -145,13 +145,17 @@ class Alias extends ModelObj<Alias> {
 	public function new () {}
 
 	private function readResolve(): Void {
-		labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
-		connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+		labelSet = new ObservableSet<Label>(Label.identifier, labels);
+		connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
 	}
 
 	private function writeResolve(): Void {
 		labels = labelSet.asArray();
 		connections = connectionSet.asArray();
+	}
+
+	public static function identifier(alias: Alias): String {
+		return alias.label;
 	}
 }
 
@@ -169,6 +173,10 @@ class Label extends ModelObj<Label> implements Filterable {
 		this.text = text;
 		color = ColorProvider.getNextColor();
 	}
+
+	public static function identifier(l: Label): String {
+		return l.parentUid + "_" + l.text;
+	}
 }
 
 class Connection extends ModelObj<Connection> implements Filterable {
@@ -185,6 +193,10 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	@:transient public var connectionSet: ObservableSet<Connection>;
 	@:transient public var connectionLabelSet: ObservableSet<Label>;
 	@:transient public var userSharedLabelSet: ObservableSet<Label>;
+
+	public static function identifier(c: Connection): String {
+		return c.label + "_" + c.target;
+	}
 
 
 	public function new(?profile: UserData) {
@@ -252,8 +264,8 @@ class Content extends ModelObj<Content> {
 		this.created  = Date.now();
 		this.modified = Date.now();
 
-        this.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, []);
-        this.labelSet = new ObservableSet<Label>(ModelObj.identifier, []);
+        this.connectionSet = new ObservableSet<Connection>(Connection.identifier, []);
+        this.labelSet = new ObservableSet<Label>(Label.identifier, []);
 	}
 
 

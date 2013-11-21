@@ -382,13 +382,13 @@ class TestDao {
         user.userData.name = "Jerry Seinfeld";
         user.uid = UidGenerator.create();
         user.userData.imgSrc = "media/test/jerry_default.jpg";
-        user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);
+        user.aliasSet = new ObservableSet<Alias>(Alias.identifier);
         user.aliasSet.visualId = "TestAlias";
         user.aliasSet.addAll(aliases);
         var alias: Alias = aliases[0];
-        alias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+        alias.connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
         alias.connectionSet.visualId = "TestAliasConnections";
-        alias.labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
+        alias.labelSet = new ObservableSet<Label>(Label.identifier, labels);
         alias.labelSet.visualId = "TestAliasLabels";
         user.currentAlias = alias;
         
@@ -398,9 +398,9 @@ class TestDao {
 	public static function getAlias(uid: String): Alias {
 		if(!initialized) initialize();
 		var alias: Alias = aliases.getElementComplex(uid, "uid");
-		alias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+		alias.connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
         alias.connectionSet.visualId = "TestAliasConnections";
-        alias.labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
+        alias.labelSet = new ObservableSet<Label>(Label.identifier, labels);
         alias.labelSet.visualId = "TestAliasLabels";
 		return alias;
 	}

@@ -60,12 +60,12 @@ class ContentNode<T> extends Node {
 
 class LabelNode extends ContentNode<Label> {
 	override public function getProlog(): String {
-		return PrologHelper.labelsToProlog(new ObservableSet<Label>(ModelObj.identifier, [this.content]));
+		return PrologHelper.labelsToProlog(new ObservableSet<Label>(Label.identifier, [this.content]));
 	}
 }
 
 class ConnectionNode extends ContentNode<Connection> {
 	override public function getProlog(): String {
-		return PrologHelper.connectionsToProlog(new ObservableSet<Connection>(ModelObj.identifier, [this.content]));
+		return PrologHelper.connectionsToProlog(new ObservableSet<Connection>(Connection.identifier, [this.content]));
 	}
 }

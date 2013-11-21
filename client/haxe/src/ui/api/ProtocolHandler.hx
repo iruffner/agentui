@@ -186,6 +186,14 @@ class ProtocolHandler {
         		var notification = AgentUi.SERIALIZER.fromJsonX(data, IntroductionNotification);
         		EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
         	});
+
+        processHash.set(MsgType.connectionProfileResponse, function(data: Dynamic){
+        		AgentUi.LOGGER.error("connectionProfileResponse was received from the server");
+        		var connectionProfileResponse = AgentUi.SERIALIZER.fromJsonX(data, ConnectionProfileResponse);
+        		var c: Connection = connectionProfileResponse.contentImpl.connection;
+        		c.profile = connectionProfileResponse.contentImpl.jsonBlob;
+        		EM.change(EMEvent.CONNECTION_UPDATE, c);
+        	});
 	}
 
 	public function getUser(login: Login): Void {
@@ -205,7 +213,7 @@ class ProtocolHandler {
 				        	var response: InitializeSessionResponse = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionResponse, false);
 
 				        	var user: User = new User();
-				        	user.aliasSet = new ObservableSet<Alias>(ModelObj.identifier);
+				        	user.aliasSet = new ObservableSet<Alias>(Alias.identifier);
 				        	user.aliasSet.visualId = "User Aliases";
 				        	for( alias_ in response.contentImpl.listOfAliases) {
 				        		var alias: Alias = new Alias();
@@ -228,8 +236,8 @@ class ProtocolHandler {
 				        	}
 							
 							user.sessionURI = response.contentImpl.sessionURI;
-							user.currentAlias.connectionSet = new ObservableSet<Connection>(ModelObj.identifier, response.contentImpl.listOfConnections);
-							user.currentAlias.labelSet = new ObservableSet<Label>(ModelObj.identifier, response.contentImpl.labels);
+							user.currentAlias.connectionSet = new ObservableSet<Connection>(Connection.identifier, response.contentImpl.listOfConnections);
+							user.currentAlias.labelSet = new ObservableSet<Label>(Label.identifier, response.contentImpl.labels);
 							user.userData = response.contentImpl.jsonBlob;
 							//open comm's with server
 							_startPolling(user.sessionURI);
