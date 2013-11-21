@@ -474,29 +474,21 @@ class ProtocolHandler {
 	}
 
 	public function createLabel(label: Label): Void {
-		var request: AddAliasLabelsRequest = new AddAliasLabelsRequest();
 		AgentUi.USER.currentAlias.labelSet.add(label);
 		EM.change(EMEvent.FitWindow);
-		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AgentUi.USER.currentAlias.labelSet);
-		request.contentImpl.labels = labelsArray;
-		request.contentImpl.alias = AgentUi.USER.currentAlias.label;
-
-		try {
-			//we don't expect anything back here
-			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-					AgentUi.LOGGER.debug("label successfully submitted");
-				}).start({dataType: "text"});
-		} catch (err: Dynamic) {
-			var ex: Exception = Logga.getExceptionInst(err);
-			AgentUi.LOGGER.error("Error executing label post", ex);
-		}
+		_updateLabels();
 	}
 
 	public function deleteLabels(labels: Array<Label>): Void {
-		var request: UpdateAliasLabelsRequest = new UpdateAliasLabelsRequest();
+		// var request: UpdateAliasLabelsRequest = new UpdateAliasLabelsRequest();
 		for (i in 1...labels.length) {
 			AgentUi.USER.currentAlias.labelSet.delete(labels[i]);
 		}
+		_updateLabels();
+	}
+
+	private function _updateLabels(): Void {
+		var request: AddAliasLabelsRequest = new AddAliasLabelsRequest();  // if we are not sending the same msg for add/update/delete.. this will need to be changed
 		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AgentUi.USER.currentAlias.labelSet);
 		request.contentImpl.labels = labelsArray;
 		request.contentImpl.alias = AgentUi.USER.currentAlias.label;
