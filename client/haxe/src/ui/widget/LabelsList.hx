@@ -17,7 +17,7 @@ using ui.widget.LabelComp;
 
 typedef LabelsListWidgetDef = {
 	@:optional var labels: ObservableSet<Label>;
-	@:optional var selectedLabel:LabelComp;
+	@:optional var selectedLabelComp:LabelComp;
 	var _create: Void->Void;
 	var _setLabels: ObservableSet<Label>->Void;
 	var _showNewLabelPopup:JQ->Void;
@@ -58,7 +58,7 @@ extern class LabelsList extends JQ {
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
         							var option = "<option value='" + label.uid + "'";
-        							if (self.selectedLabel != null && self.selectedLabel.getLabel().uid == label.uid) {
+        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().uid == label.uid) {
         								option += " SELECTED";
         							}
         							option += ">" + label.text + "</option>";
@@ -122,7 +122,7 @@ extern class LabelsList extends JQ {
 		        	selfElement.append(newLabelButton).append("<div class='clear'></div>");
 		        	newLabelButton.button().click(function(evt: JQEvent): Void {
 		        			evt.stopPropagation();
-		        			self.selectedLabel = null;
+		        			self.selectedLabelComp = null;
 		        			self._showNewLabelPopup(newLabelButton);
 		        		});
 
@@ -148,7 +148,7 @@ extern class LabelsList extends JQ {
     							icon: "ui-icon-star",
     							action: function(evt: JQEvent, m: M3Menu): Dynamic {
     								evt.stopPropagation();
-    								var reference:JQ = self.selectedLabel;
+    								var reference:JQ = self.selectedLabelComp;
     								if (reference == null) {
     									reference = new JQ(evt.target);
     								}
@@ -161,15 +161,13 @@ extern class LabelsList extends JQ {
     							label: "Delete Label",
     							icon: "ui-icon-circle-close",
     							action: function(evt: JQEvent, m: M3Menu): Void {
-    								if (self.selectedLabel != null) {
+    								if (self.selectedLabelComp != null) {
     									JqueryUtil.confirm("Delete Label", "Are you sure you want to delete this label?", 
    		        							function(){
    		        								var labelsToDelete:Array<Label> = [];
+   		        								getLabelDescendents(self.selectedLabelComp.getLabel(), labelsToDelete);
 
-   		        								// Delete the label and any children from the list of labels
-   		        								var label = self.selectedLabel.getLabel();
-
-   		        								getLabelDescendents(label, labelsToDelete);
+   		        								EM.change(EMEvent.DeleteLabels, labelsToDelete);
 
    		        								for (i in 0...labelsToDelete.length) {
 	   		        								self.labels.delete(labelsToDelete[i]);
@@ -204,9 +202,9 @@ extern class LabelsList extends JQ {
 	        			}
 
 	        			if (target != null) {
-	        				self.selectedLabel = new LabelComp(target);
+	        				self.selectedLabelComp = new LabelComp(target);
 	        			} else {
-	        				self.selectedLabel = null;
+	        				self.selectedLabelComp = null;
 	        			}
 
 						evt.preventDefault();

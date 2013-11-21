@@ -108,6 +108,11 @@ class ProtocolHandler {
     		})
         );
 
+        EM.addListener(EMEvent.DeleteLabels, new EMListener(function(labels: Array<Label>): Void {
+        		deleteLabels(labels);
+    		})
+        );
+
         EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(msg:BeginIntroductionRequest):Void{
         	// TODO:  send the message to the server
         	EM.change(EMEvent.INTRODUCTION_RESPONSE);
@@ -472,6 +477,26 @@ class ProtocolHandler {
 		var request: AddAliasLabelsRequest = new AddAliasLabelsRequest();
 		AgentUi.USER.currentAlias.labelSet.add(label);
 		EM.change(EMEvent.FitWindow);
+		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AgentUi.USER.currentAlias.labelSet);
+		request.contentImpl.labels = labelsArray;
+		request.contentImpl.alias = AgentUi.USER.currentAlias.label;
+
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AgentUi.LOGGER.debug("label successfully submitted");
+				}).start({dataType: "text"});
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AgentUi.LOGGER.error("Error executing label post", ex);
+		}
+	}
+
+	public function deleteLabels(labels: Array<Label>): Void {
+		var request: UpdateAliasLabelsRequest = new UpdateAliasLabelsRequest();
+		for (i in 1...labels.length) {
+			AgentUi.USER.currentAlias.labelSet.delete(labels[i]);
+		}
 		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AgentUi.USER.currentAlias.labelSet);
 		request.contentImpl.labels = labelsArray;
 		request.contentImpl.alias = AgentUi.USER.currentAlias.label;
