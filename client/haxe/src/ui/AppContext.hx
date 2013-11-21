@@ -19,12 +19,23 @@ class AppContext {
     public static var TARGET: Connection;
     public static var CONTENT: ObservableSet<Content>;
     public static var SERIALIZER: Serializer;
-    public static var NOTIFICATION_STORAGE: Map<String, Dynamic>;
+    public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
 	
     public static function init() {
     	LOGGER = new Logga(LogLevel.DEBUG);
         
         CONTENT = new ObservableSet<Content>(ModelObj.identifier);
+
+        INTRODUCTIONS = new GroupedSet<IntroductionNotification>( 
+        	new ObservableSet<IntroductionNotification>(
+        			function(n: IntroductionNotification): String {
+        				return n.contentImpl.correlationId;
+        			}
+        		) , 
+        	function(n: IntroductionNotification): String {
+        		return Connection.identifier(n.contentImpl.connection);
+        	}
+    	);
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());
 
@@ -73,12 +84,7 @@ class AppContext {
         EM.addListener(EMEvent.FitWindow, fitWindowListener);
 
         EM.addListener(EMEvent.INTRODUCTION_NOTIFICATION, new EMListener(function(notification: IntroductionNotification) {
-                var arr: Array<Dynamic> = NOTIFICATION_STORAGE.get("cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target);
-                if(arr == null) {
-                    arr = new Array();
-                    NOTIFICATION_STORAGE.set( "cnxn_" + notification.contentImpl.connection.label + "_" + notification.contentImpl.connection.target , arr );
-                }
-                arr.push(notification);
+                // AppContext.INTRODUCTIONS.add(notification);
             }, "AgentUi-IntroNotification")
         );
 

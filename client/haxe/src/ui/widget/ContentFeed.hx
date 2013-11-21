@@ -46,7 +46,7 @@ extern class ContentFeed extends JQ {
 		        				content: content
 		        			});
 		        		});
-		        	self.content.listen(function(contentComp: ContentComp, evt: EventType): Void {
+		        	self.content.mapListen(function(content: Content, contentComp: ContentComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {
 		            			new JQ("#postInput").after(contentComp);
 								EM.change(EMEvent.FitWindow);

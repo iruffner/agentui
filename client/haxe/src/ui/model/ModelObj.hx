@@ -7,6 +7,7 @@ import m3.serialization.Serialization;
 import m3.exception.Exception;
 
 import ui.helper.LabelStringParser;
+import ui.model.EM;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
@@ -142,7 +143,13 @@ class Alias extends ModelObj<Alias> {
 	@:transient var loadedFromDb: Bool = false;
 
 
-	public function new () {}
+	public function new () {
+		function(arr: {l: Label, evt: EventType}): Void {}
+		
+		labelSet.listen(function(l: Label, evt: EventType): Void {
+				EM.change(EMEvent.CreateLabel);
+			});
+	}
 
 	private function readResolve(): Void {
 		labelSet = new ObservableSet<Label>(Label.identifier, labels);
