@@ -4341,7 +4341,7 @@ ui.AgentUi.start = function() {
 		}
 	});
 	var urlVars = m3.util.HtmlUtil.getUrlVars();
-	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "yes" || urlVars.demo == "true")) ui.AgentUi.DEMO = true;
+	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "yes" || urlVars.demo == "true")) ui.AppContext.DEMO = true;
 	new $("body").keyup(function(evt) {
 		if(m3.helper.ArrayHelper.hasValues(ui.AgentUi.HOT_KEY_ACTIONS)) {
 			var _g1 = 0, _g = ui.AgentUi.HOT_KEY_ACTIONS.length;
@@ -4766,7 +4766,7 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,filter: function(filter) {
 		if(filter.rootNode.hasChildren()) {
-			if(ui.AgentUi.DEMO) {
+			if(ui.AppContext.DEMO) {
 				var runFunc = function() {
 					var content = ui.api.TestDao.getContent(filter.rootNode);
 					ui.model.EM.change(ui.model.EMEvent.MoreContent,content);
@@ -4793,7 +4793,7 @@ ui.api.ProtocolHandler.prototype = {
 	}
 	,getUser: function(login) {
 		var _g = this;
-		if(ui.AgentUi.DEMO) {
+		if(ui.AppContext.DEMO) {
 			ui.model.EM.change(ui.model.EMEvent.USER,ui.api.TestDao.getUser(null));
 			return;
 		}
@@ -4828,7 +4828,7 @@ ui.api.ProtocolHandler.prototype = {
 					user.get_currentAlias().labelSet = new m3.observable.ObservableSet(ui.model.Label.identifier,response.contentImpl.get_labels());
 					user.userData = response.contentImpl.jsonBlob;
 					_g._startPolling(user.sessionURI);
-					if(!ui.AgentUi.DEMO) {
+					if(!ui.AppContext.DEMO) {
 						ui.model.EM.change(ui.model.EMEvent.USER,user);
 						ui.model.EM.change(ui.model.EMEvent.FitWindow);
 					}
@@ -8120,7 +8120,7 @@ var defineWidget = function() {
 		}
 		self.input_pw = new $("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		if(ui.AgentUi.DEMO) {
+		if(ui.AppContext.DEMO) {
 			self.input_un.val("George.Costanza");
 			self.input_pw.val("Bosco");
 		}
@@ -8872,8 +8872,8 @@ m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params
 m3.util.ColorProvider._INDEX = 0;
 m3.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 m3.util.UidGenerator.nums = "0123456789";
-ui.AgentUi.DEMO = false;
 ui.AgentUi.URL = "";
+ui.AppContext.DEMO = false;
 ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<content>\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl public=\"1\">\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"30\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"34\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"41\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.PayloadWithSessionURI.__rtti = "<class path=\"ui.api.PayloadWithSessionURI\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"47\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

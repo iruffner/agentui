@@ -30,7 +30,6 @@ using Lambda;
 @:expose
 class AgentUi {
     
-	public static var DEMO: Bool = false;
     public static var PROTOCOL: ProtocolHandler;
     public static var URL: String = "";//"http://64.27.3.17";
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
@@ -59,7 +58,7 @@ class AgentUi {
 
         var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
         if(urlVars.demo.isNotBlank() && (urlVars.demo == "yes" || urlVars.demo == "true")) {
-            DEMO = true;
+            AppContext.DEMO = true;
         } 
 
         new JQ("body").keyup(function(evt: JQEvent) {

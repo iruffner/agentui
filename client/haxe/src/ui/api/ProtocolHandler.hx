@@ -202,7 +202,7 @@ class ProtocolHandler {
 	}
 
 	public function getUser(login: Login): Void {
-		if(AgentUi.DEMO) {
+		if(AppContext.DEMO) {
 			EM.change(EMEvent.USER, TestDao.getUser(null));
 			return;
 		} 
@@ -247,7 +247,7 @@ class ProtocolHandler {
 							//open comm's with server
 							_startPolling(user.sessionURI);
 
-							if(!ui.AgentUi.DEMO) {
+							if(!AppContext.DEMO) {
 								EM.change(EMEvent.USER, user);
 								EM.change(EMEvent.FitWindow);
 							}
@@ -273,7 +273,7 @@ class ProtocolHandler {
 	public function filter(filter: Filter): Void {
 		
 		if(filter.rootNode.hasChildren()) {
-			if (AgentUi.DEMO) {
+			if (AppContext.DEMO) {
 				var runFunc = function():Void {
 					var content: Array<Content> = TestDao.getContent(filter.rootNode);
 					EM.change(EMEvent.MoreContent, content);
