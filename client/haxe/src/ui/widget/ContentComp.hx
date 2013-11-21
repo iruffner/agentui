@@ -22,7 +22,7 @@ typedef ContentCompWidgetDef = {
 	@:optional var buttonBlock: JQ;
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
-	var update: Void->Void;
+	var update: Content->Void;
 	var destroy: Void->Void;
 	var toggleActive:Void->Void;
 }
@@ -30,7 +30,8 @@ typedef ContentCompWidgetDef = {
 @:native("$")
 extern class ContentComp extends JQ {
 
-	@:overload(function(cmd : String):Bool{})
+	@:overload(function<T>(cmd : String):T{})
+	@:overload(function<T>(cmd : String, param:Dynamic):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function contentComp(?opts: ContentCompOptions): ContentComp;
 
@@ -148,13 +149,13 @@ extern class ContentComp extends JQ {
 		        	}));
 		        },
 
-		        update: function() : Void {
+		        update: function(content:Content) : Void {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					var showButtonBlock = self.buttonBlock.isVisible();
 
-					self.options.content = AppContext.CONTENT.current(self.options.content);
+					self.options.content = content;
         			self._createWidgets(selfElement, self);
         			if (showButtonBlock) {
 	        			self.buttonBlock.show();
