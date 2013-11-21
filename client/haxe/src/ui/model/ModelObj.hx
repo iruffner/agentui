@@ -144,8 +144,6 @@ class Alias extends ModelObj<Alias> {
 
 
 	public function new () {
-		function(arr: {l: Label, evt: EventType}): Void {}
-		
 		labelSet.listen(function(l: Label, evt: EventType): Void {
 				EM.change(EMEvent.CreateLabel);
 			});
