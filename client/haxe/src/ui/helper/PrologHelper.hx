@@ -74,7 +74,6 @@ class PrologHelper {
 			if(term.startsWith("n")) { // this node has children
 				term = term.substring(1);
 				var l: Label = new Label(term);
-				l.uid = UidGenerator.create(10);
 				if(parentLabel != null) l.parentUid = parentLabel.uid;
 				larray.push(l);
 				var children: Array<Label> = _processDataLogChildren(l, parser);
@@ -82,7 +81,6 @@ class PrologHelper {
 			} else if(term.isNotBlank() && term.startsWith("l") /*!term.contains(",")*/) { // this is a leaf
 				term = term.substring(1);
 				var l: Label = new Label(term);
-				l.uid = UidGenerator.create(10);
 				if(parentLabel != null) l.parentUid = parentLabel.uid;
 				larray.push(l);
 				parser.nextTerm();// "("

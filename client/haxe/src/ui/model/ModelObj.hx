@@ -20,13 +20,17 @@ class ModelObj<T> {
 	@:transient 
 	public var uid(get,set): String;
 
+	public function new() {
+		this.uid = UidGenerator.create();
+	}
+
 	public static function identifier<T>(t: ModelObj<T>): String {
 		return t.uid;
 	}
 
 	private function get_uid(): String {
 		if(this.uid.isBlank()) {
-			this.uid = UidGenerator.create(10);
+			this.uid = UidGenerator.create();
 		}
 		return this.uid;
 	}
@@ -38,7 +42,9 @@ class ModelObj<T> {
 }
 
 class Login extends ModelObj<Login> {
-	public function new () {}
+	public function new () {
+		super();
+	}
 	public var password: String;
 
 	public function getUri(): String {
@@ -70,7 +76,9 @@ class NewUser extends ModelObj<NewUser> {
 	public var email: String;
 	public var pwd: String;
 
-	public function new () {}
+	public function new () {
+		super();
+	}
 }
 
 class User extends ModelObj<User> {
@@ -81,7 +89,9 @@ class User extends ModelObj<User> {
 	@:isVar public var currentAlias (get,set): Alias;
 
 
-	public function new () {}
+	public function new () {
+		super();
+	}
 
 	private function get_currentAlias(): Alias {
 		if(currentAlias == null && aliasSet != null) {
@@ -126,6 +136,7 @@ class UserData extends ModelObj<UserData> {
 	@:optional public var imgSrc: String;
 
 	public function new(?name: String, ?imgSrc: String) {
+		super();
 		this.name = name;
 		this.imgSrc = imgSrc;
 	}
@@ -143,6 +154,7 @@ class Alias extends ModelObj<Alias> {
 
 
 	public function new () {
+		super();
 	}
 
 	private function readResolve(): Void {
@@ -171,6 +183,7 @@ class Label extends ModelObj<Label> implements Filterable {
 	@:transient public var color: String;
 
 	public function new(?text: String) {
+		super();
 		this.text = text;
 		color = ColorProvider.getNextColor();
 	}
@@ -201,6 +214,7 @@ class Connection extends ModelObj<Connection> implements Filterable {
 
 
 	public function new(?profile: UserData) {
+		super();
 		this.profile = profile;
 	}
 
@@ -261,6 +275,7 @@ class Content extends ModelObj<Content> {
 	@:optional public var creator: String;
 
 	public function new (contentType:ContentType) {
+		super();
 		this.type     = contentType;
 		this.created  = Date.now();
 		this.modified = Date.now();

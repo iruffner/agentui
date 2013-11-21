@@ -223,14 +223,12 @@ class ProtocolHandler {
 				        	for( alias_ in response.contentImpl.listOfAliases) {
 				        		var alias: Alias = new Alias();
 				        		alias.label = alias_;
-				        		alias.uid = UidGenerator.create(12);
 				        		user.aliasSet.add(alias);
 				        	}
 				        	if(!user.aliasSet.hasValues()) {
 				        		AppContext.LOGGER.error("Agent has no Aliases!!");
 				        		user.currentAlias = new Alias();
 				        		user.currentAlias.label = "default";
-				        		user.currentAlias.uid = UidGenerator.create(12);
 				        		user.aliasSet.add(user.currentAlias);
 				        	}
 

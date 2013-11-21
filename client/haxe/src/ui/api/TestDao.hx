@@ -24,42 +24,36 @@ class TestDao {
         george.source = "jerry";
         george.target = "george";
         george.label = "jerryToGeorge";
-        george.uid = UidGenerator.create();
         connections.push(george);
 
         var elaine: Connection = new Connection(new UserData("Elaine Benes", "media/test/elaine.jpg"));
         elaine.source = "jerry";
         elaine.target = "elaine";
         elaine.label = "jerryToElaine";
-        elaine.uid = UidGenerator.create();
         connections.push(elaine);
 
         var kramer: Connection = new Connection(new UserData("Cosmo Kramer", "media/test/kramer.jpg"));
         kramer.source = "jerry";
         kramer.target = "kramer";
         kramer.label = "jerryToKramer";
-        kramer.uid = UidGenerator.create();
         connections.push(kramer);
 
         var toms: Connection = new Connection(new UserData("Tom's Restaurant", "media/test/toms.jpg"));
         toms.source = "jerry";
         toms.target = "toms";
         toms.label = "jerryToToms";
-        toms.uid = UidGenerator.create();
         connections.push(toms);
 
         var newman: Connection = new Connection(new UserData("Newman", "media/test/newman.jpg"));
         newman.source = "jerry";
         newman.target = "newman";
         newman.label = "jerryToNewman";
-        newman.uid = UidGenerator.create();
         connections.push(newman);
 
         var bania: Connection = new Connection(new UserData("Kenny Bania", "media/test/bania.jpg"));
         bania.source = "jerry";
         bania.target = "bania";
         bania.label = "jerryToBania";
-        bania.uid = UidGenerator.create();
         connections.push(bania);
 	}
 
@@ -68,35 +62,28 @@ class TestDao {
 		
         //labels
         var locations: Label = new Label("Locations");
-        locations.uid = UidGenerator.create();
         labels.push(locations);
 
         var home: Label = new Label("Home");
-        home.uid = UidGenerator.create();
         home.parentUid = locations.uid;
         labels.push(home);
 
         var city: Label = new Label("City");
-        city.uid = UidGenerator.create();
         city.parentUid = locations.uid;
         labels.push(city);
 
         var media: Label = new Label("Media");
-        media.uid = UidGenerator.create();
         labels.push(media);
 
         var personal: Label = new Label("Personal");
-        personal.uid = UidGenerator.create();
         personal.parentUid = media.uid;
         labels.push(personal);
 
         var work: Label = new Label("Work");
-        work.uid = UidGenerator.create();
         work.parentUid = media.uid;
         labels.push(work);
 
         var interests = new Label("Interests");
-        interests.uid = UidGenerator.create();
         labels.push(interests);
 	}
 
@@ -104,19 +91,16 @@ class TestDao {
 		aliases = new Array<Alias>();
 
 		var alias: Alias = new Alias();
-        alias.uid = UidGenerator.create();
         alias.label = "Comedian";
         alias.imgSrc = "media/test/jerry_comedy.jpg";
         aliases.push(alias);
 
         alias = new Alias();
-        alias.uid = UidGenerator.create();
         alias.label = "Actor";
         alias.imgSrc = "media/test/jerry_bee.jpg";
         aliases.push(alias);
 
         alias = new Alias();
-        alias.uid = UidGenerator.create();
         alias.label = "Private";
         alias.imgSrc = "media/default_avatar.jpg";
         aliases.push(alias);
@@ -129,7 +113,6 @@ class TestDao {
 		var content = new Array<Content>();
 
 		var audioContent: AudioContent = new AudioContent();
-        audioContent.uid = UidGenerator.create();
         audioContent.audioSrc = "media/test/hello_newman.mp3";
         audioContent.audioType = "audio/mpeg";
         audioContent.title = "Hello Newman Compilation";
@@ -157,7 +140,6 @@ class TestDao {
 
         for (i in 0...imgData.length) {
             var img: ImageContent = new ImageContent();
-            img.uid = UidGenerator.create();
             img.imgSrc = imgData[i].imgSrc;
             img.caption = imgData[i].caption;
             if(availableConnections.hasValues()) {
@@ -182,7 +164,6 @@ class TestDao {
 
         for (i in 0...url_data.length) {
             var urlContent = new UrlContent();
-            urlContent.uid  = UidGenerator.create();
             urlContent.text = url_data[i].text;
             urlContent.url  = url_data[i].url;
             if(availableConnections.hasValues()) {
@@ -209,7 +190,6 @@ class TestDao {
         ];
         for (i in 0...phrases.length) {
             var textContent = new MessageContent();
-            textContent.uid = UidGenerator.create();
             textContent.text = phrases[i];
             if(availableConnections.hasValues()) {
                 textContent.creator = getRandomFromArray(availableConnections).uid;
@@ -380,7 +360,6 @@ class TestDao {
         user.sessionURI = "agent-session://ArtVandelay@session1";
         user.userData = new UserData();
         user.userData.name = "Jerry Seinfeld";
-        user.uid = UidGenerator.create();
         user.userData.imgSrc = "media/test/jerry_default.jpg";
         user.aliasSet = new ObservableSet<Alias>(Alias.identifier);
         user.aliasSet.visualId = "TestAlias";

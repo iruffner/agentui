@@ -92,7 +92,6 @@ extern class LabelsList extends JQ {
 										var label: Label = new Label();
 										label.parentUid = parent.val();
 										label.text = input.val();
-										label.uid = UidGenerator.create();
       									AppContext.LOGGER.debug("add to " + self.labels.visualId);
 	  									EM.change(EMEvent.CreateLabel, label);
 										new JQ("body").click();

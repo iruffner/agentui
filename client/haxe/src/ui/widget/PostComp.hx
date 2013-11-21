@@ -61,7 +61,6 @@ extern class PostComp extends JQ {
 						
 						var msg: MessageContent = new MessageContent();
 						msg.type = contentType;
-						msg.uid  = UidGenerator.create();
 						msg.text = value;
 
 						addConnectionsAndLabels(msg);
