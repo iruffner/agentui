@@ -74,13 +74,25 @@ extern class ConnectionsList extends JQ {
 			        		self.connectionsMap.iter(
 			        				function(cc: ConnectionComp): Void {
 			        					if(cc.connection().equals(conn)) {
-			        						cc.addNotification();
+			        						cc.addNotification(notification);
 			        						cc.prependTo(selfElement);//move to the top
 			        					}
 			        				}
 			        			);
 
 			        	}, "ConnectionsList-IntroductionNotification"));
+
+			        EM.addListener(EMEvent.DELETE_NOTIFICATION, new EMListener(function(notification: IntroductionNotification): Void {
+			        		var conn: Connection = notification.contentImpl.connection;
+			        		self.connectionsMap.iter(
+			        				function(cc: ConnectionComp): Void {
+			        					if(cc.connection().equals(conn)) {
+			        						cc.deleteNotification(notification);
+			        					}
+			        				}
+			        			);
+
+			        	}, "ConnectionsList-DeleteNotification"));
 		        },
 
 		        _setConnections: function(connections: ObservableSet<Connection>): Void {
