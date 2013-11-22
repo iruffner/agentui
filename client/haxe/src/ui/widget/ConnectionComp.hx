@@ -23,7 +23,7 @@ typedef ConnectionCompWidgetDef = {
 	var _create: Void->Void;
 	@:optional var _avatar: ConnectionAvatar;
 	@:optional var _notifications: JQ;
-	var update: Void->Void;
+	var update: Connection->Void;
 	var destroy: Void->Void;
 	var addNotification: NotificationMessage->Void;
 	var deleteNotification: NotificationMessage->Void;
@@ -32,6 +32,10 @@ typedef ConnectionCompWidgetDef = {
 class ConnectionCompHelper {
 	public static function connection(c: ConnectionComp): Connection {
 		return c.connectionComp("option", "connection");
+	}
+
+	public static function update(c: ConnectionComp, connection: Connection): Connection {
+		return c.connectionComp("update", connection);
 	}
 
 	public static function addNotification(c: ConnectionComp, n:NotificationMessage): Void {
@@ -103,17 +107,12 @@ extern class ConnectionComp extends JQ {
 
 		        },
 
-		        update: function(): Void {
+		        update: function(conn: Connection): Void {
 		        	var self: ConnectionCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+					self.options.connection = conn;
 
-					var imgSrc: String = "media/default_avatar.jpg";
-		        	if(M.getX(self.options.connection.profile.imgSrc, "").isNotBlank() ) {
-		        		imgSrc = self.options.connection.profile.imgSrc;
-		        	}
-
-		        	selfElement.children("img").attr("src", imgSrc);
-		            selfElement.children("div").text(M.getX(self.options.connection.profile.name, ""));
+		            selfElement.children(".name").text(M.getX(self.options.connection.profile.name, ""));
 
 		            self._avatar.connectionAvatar("update");
 	        	},

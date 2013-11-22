@@ -106,11 +106,11 @@ extern class ConnectionsList extends JQ {
 		        		return new ConnectionComp("<div></div>").connectionComp({connection: conn});
 		        	});
 		        	
-		        	self.connectionsMap.listen(function(connComp: ConnectionComp, evt: EventType): Void {
+		        	self.connectionsMap.mapListen(function(conn: Connection, connComp: ConnectionComp, evt: EventType): Void {
 	            		if(evt.isAdd()) {
 	            			spacer.before(connComp);
 	            		} else if (evt.isUpdate()) {
-	            			connComp.connectionComp("update");
+	            			connComp.update(conn);
 	            		} else if (evt.isDelete()) {
 	            			connComp.remove();
 	            		}
