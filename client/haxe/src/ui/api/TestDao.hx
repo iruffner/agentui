@@ -87,6 +87,17 @@ class TestDao {
         labels.push(interests);
 	}
 
+    private static function randomDate():Date {
+        var  year : Int = 2012 + Std.random(2);
+        var month : Int = Std.random(12);
+        var day : Int   = 1 + Std.random(28);
+        var hour : Int  = Std.random(24);
+        var min : Int = Std.random(60);
+        var sec : Int = Std.random(60);
+
+        return new Date(year, month, day, hour, min, sec);
+    }
+
 	private static function buildAliases(): Void {
 		aliases = new Array<Alias>();
 
@@ -107,12 +118,6 @@ class TestDao {
 	}
 
 	private static function generateContent(node: Node): Array<Content> {
-        var  year : Int = 2013;
-        var month : Int = 0;
-        var day : Int   = 1;
-        var hour : Int  = 12;
-        var min : Int = 10;
-        var sec : Int = 13;
 
 		var availableConnections = getConnectionsFromNode(node);
 		var availableLabels = getLabelsFromNode(node);
@@ -123,7 +128,7 @@ class TestDao {
         audioContent.audioSrc = "media/test/hello_newman.mp3";
         audioContent.audioType = "audio/mpeg";
         audioContent.title = "Hello Newman Compilation";
-        audioContent.created = new Date(year, month, day, hour, min, sec);
+        audioContent.created = randomDate();
         if(availableConnections.hasValues()) {
             audioContent.creator = getRandomFromArray(availableConnections).uid;
         } else {
@@ -147,11 +152,10 @@ class TestDao {
         ];
 
         for (i in 0...imgData.length) {
-            day += 1;
             var img: ImageContent = new ImageContent();
             img.imgSrc = imgData[i].imgSrc;
             img.caption = imgData[i].caption;
-            img.created = new Date(year, month, day, hour, min, sec);
+            img.created = randomDate();
             if(availableConnections.hasValues()) {
                 img.creator = getRandomFromArray(availableConnections).uid;
             } else {
@@ -173,12 +177,10 @@ class TestDao {
         ];
 
         for (i in 0...url_data.length) {
-            day -= 1;
-            hour += 1;
             var urlContent = new UrlContent();
             urlContent.text = url_data[i].text;
             urlContent.url  = url_data[i].url;
-            urlContent.created = new Date(year, month, day, hour, min, sec);
+            urlContent.created = randomDate();
             if(availableConnections.hasValues()) {
                 urlContent.creator = getRandomFromArray(availableConnections).uid;
             } else {
@@ -202,13 +204,9 @@ class TestDao {
             , "They don't have a decent piece of fruit at the supermarket. The apples are mealy, the oranges are dry... I don't know what's going on with the papayas!"
         ];
         for (i in 0...phrases.length) {
-            month += 2;
-            day += 2;
-            hour += 1;
-            min += 4;
             var textContent = new MessageContent();
             textContent.text = phrases[i];
-            textContent.created = new Date(year, month, day, hour, min, sec);
+            textContent.created = randomDate();
             if(availableConnections.hasValues()) {
                 textContent.creator = getRandomFromArray(availableConnections).uid;
             } else {
