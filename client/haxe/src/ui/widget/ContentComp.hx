@@ -27,6 +27,17 @@ typedef ContentCompWidgetDef = {
 	var toggleActive:Void->Void;
 }
 
+class ContentCompHelper {
+	public static function content(cc: ContentComp): Content {
+		return cc.contentComp("option", "content");
+	}
+
+	public static function update(cc: ContentComp, c:Content): Void {
+		return cc.contentComp("update", c);
+	}
+}
+
+
 @:native("$")
 extern class ContentComp extends JQ {
 
@@ -131,7 +142,7 @@ extern class ContentComp extends JQ {
 		        		throw new Exception("Root of ContentComp must be a div element");
 		        	}
 
-		        	selfElement.addClass("post container shadow " + Widgets.getWidgetClasses());
+		        	selfElement.addClass("contentComp post container shadow " + Widgets.getWidgetClasses());
 		        	selfElement.click(function(evt:js.JQuery.JqEvent){
 		        		if (!selfElement.hasClass("postActive")) {
 		        			new JQ(".postActive .button-block").toggle();

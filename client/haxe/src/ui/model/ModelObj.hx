@@ -263,10 +263,6 @@ class Content extends ModelObj<Content> {
 	public var created: Date;
 	public var modified: Date;
 	
-	public static function getTimestamp(t: Content): String {
-		return DateTools.format(t.modified, "%F %T");
-	}
-
 	@:transient public var labelSet: ObservableSet<Label>;
 	@:transient public var connectionSet: ObservableSet<Connection>;
 		
@@ -283,6 +279,10 @@ class Content extends ModelObj<Content> {
 
         this.connectionSet = new ObservableSet<Connection>(Connection.identifier, []);
         this.labelSet = new ObservableSet<Label>(Label.identifier, []);
+	}
+
+	public function getTimestamp(): String {
+		return DateTools.format(this.created, "%Y-%m-%d %T");
 	}
 
 	private function readResolve(): Void {

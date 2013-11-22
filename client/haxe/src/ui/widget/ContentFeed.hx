@@ -1,5 +1,7 @@
 package ui.widget;
 
+import js.html.Element;
+
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import ui.model.EM;
@@ -8,7 +10,9 @@ import m3.observable.OSet;
 import ui.widget.LabelComp;
 import m3.exception.Exception;
 import m3.widget.Widgets;
+import m3.helper.StringHelper;
 
+using ui.widget.ContentComp;
 
 typedef ContentFeedOptions = {
 	var content: OSet<Content>;
@@ -48,10 +52,31 @@ extern class ContentFeed extends JQ {
 		        		});
 		        	self.content.mapListen(function(content: Content, contentComp: ContentComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {
-		            			new JQ("#postInput").after(contentComp);
+		            			var contentComps = new JQ(".contentComp");
+		            			if (contentComps.length == 0) {
+			            			new JQ("#postInput").after(contentComp);
+		            			} else {
+		            				var comps = new JQ(".contentComp");
+		            				var inserted = false;
+		            				comps.each(function(i: Int, dom: Element):Dynamic{
+		            					var cc = new ContentComp(dom);
+		            					var cmp = StringHelper.compare(contentComp.content().getTimestamp(), cc.content().getTimestamp());
+		            					if (cmp > 0) {
+		            						cc.before(contentComp);
+		            						inserted = true;
+		            						return false;
+		            					} else {
+		            						return true;
+		            					}
+		            				});
+
+		            				if (!inserted) {
+		            					comps.last().after(contentComp);
+		            				}
+		            			}
 								EM.change(EMEvent.FitWindow);
 		            		} else if (evt.isUpdate()) {
-		            			contentComp.contentComp("update", content);
+		            			contentComp.update(content);
 		            		} else if (evt.isDelete()) {
 		            			contentComp.remove();
 		            		}
