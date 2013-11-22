@@ -732,9 +732,8 @@ body {
 				color: white;
 				min-width: 20px;
 				min-height: 20px;
-				padding: 2px;
+				padding: 4px 2px 2px 2px;
 				visibility: hidden;
-				font-weight: bold;
 			}
 
 			#connections .connection:nth-child(odd) div.notifications {

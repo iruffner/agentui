@@ -321,7 +321,6 @@ class ProtocolHandler {
 
 	private function _startPolling(sessionURI: String): Void {
 		var ping: SessionPingRequest = new SessionPingRequest();
-		ping.contentImpl = new PayloadWithSessionURI();
 		ping.contentImpl.sessionURI = sessionURI;
 
 		listeningChannel = new LongPollingRequest(ping, function(dataArr: Array<{msgType: String, content: Dynamic}>, textStatus: String, jqXHR: JQXHR): Void {
@@ -421,13 +420,16 @@ class ProtocolHandler {
 						} catch (e: JsonException) {
 							AppContext.LOGGER.error("Serialization error", e);
 						}
+					} else if(data.msgType == MsgType.createUserError) {
+			        	var error: InitializeSessionError = AppContext.SERIALIZER.fromJsonX(data, InitializeSessionError);
+			        	JqueryUtil.alert("Email validation error:\n" + error.contentImpl.reason);
 			        // } else if(data.msgType == MsgType.initializeSessionError) {
 			        // 	var error: InitializeSessionError = AgentUi.SERIALIZER.fromJsonX(data, InitializeSessionError);
 			        // 	throw new InitializeSessionException(error, "Login error");
 			        } else {
 			        	//something unexpected..
 			        	AppContext.LOGGER.error("Unknown user creation error | " + data);
-			        	JqueryUtil.alert("There was an unexpected error creating your agent. Please try again.");
+			        	JqueryUtil.alert("There was an unexpected error validating your token. Please try again.");
 			        }
 				}).start();
 		} catch (err: Dynamic) {

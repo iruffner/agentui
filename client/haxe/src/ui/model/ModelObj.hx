@@ -11,6 +11,7 @@ import ui.helper.LabelStringParser;
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
+import DateTools;
 using StringTools;
 using Lambda;
 
@@ -262,13 +263,13 @@ class Content extends ModelObj<Content> {
 	public var created: Date;
 	public var modified: Date;
 	
+	public static function getTimestamp(t: Content): String {
+		return DateTools.format(t.modified, "%F %T");
+	}
+
 	@:transient public var labelSet: ObservableSet<Label>;
 	@:transient public var connectionSet: ObservableSet<Connection>;
-	
-	// TODO:  Deprecated
-	@:transient private var labels: Array<String>;
-	@:transient private var connections: Array<String>;
-	
+		
 	/**
 		UID of connection that created the content
 	*/
@@ -283,7 +284,6 @@ class Content extends ModelObj<Content> {
         this.connectionSet = new ObservableSet<Connection>(Connection.identifier, []);
         this.labelSet = new ObservableSet<Label>(Label.identifier, []);
 	}
-
 
 	private function readResolve(): Void {
 		// labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);

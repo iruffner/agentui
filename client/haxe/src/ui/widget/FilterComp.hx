@@ -94,6 +94,7 @@ extern class FilterComp extends JQ {
 	                    		});
 			                }
 
+			                // if there is a notification waiting to be displayed on this connection, load it here.
 			                // fire off a filterable
 			                self.fireFilter();
 				      	}

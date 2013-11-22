@@ -8,6 +8,7 @@ import m3.widget.Widgets;
 import ui.model.ModelObj;
 import m3.observable.OSet.ObservableSet;
 import m3.exception.Exception;
+import ui.api.ProtocolMessage;
 
 using ui.widget.ConnectionAvatar;
 using m3.helper.StringHelper;
@@ -24,7 +25,8 @@ typedef ConnectionCompWidgetDef = {
 	@:optional var _notifications: JQ;
 	var update: Void->Void;
 	var destroy: Void->Void;
-	var addNotification: Void->Void;
+	var addNotification: NotificationMessage->Void;
+	var deleteNotification: NotificationMessage->Void;
 }
 
 class ConnectionCompHelper {
@@ -32,8 +34,12 @@ class ConnectionCompHelper {
 		return c.connectionComp("option", "connection");
 	}
 
-	public static function addNotification(c: ConnectionComp): Void {
-		return c.connectionComp("addNotification");
+	public static function addNotification(c: ConnectionComp, n:NotificationMessage): Void {
+		return c.connectionComp("addNotification", n);
+	}
+
+	public static function deleteNotification(c: ConnectionComp, n:NotificationMessage): Void {
+		return c.connectionComp("deleteNotification", n);
 	}
 }
 
@@ -41,7 +47,7 @@ class ConnectionCompHelper {
 @:native("$")
 extern class ConnectionComp extends JQ {
 	@:overload(function<T>(cmd : String):T{})
-	@:overload(function<T>(cmd:String, opt:String):T{})
+	@:overload(function<T>(cmd:String, opt:Dynamic):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function connectionComp(opts: ConnectionCompOptions): ConnectionComp;
 
@@ -69,7 +75,7 @@ extern class ConnectionComp extends JQ {
 	        		});
 	        		var notificationDiv: JQ = new JQ(".notifications", selfElement);
 					if(!notificationDiv.exists()) {
-						notificationDiv = new JQ("<div class='notifications'>1</div>");
+						notificationDiv = new JQ("<div class='notifications'>0</div>");
 					}
 
 					notificationDiv.appendTo(selfElement);
@@ -112,12 +118,30 @@ extern class ConnectionComp extends JQ {
 		            self._avatar.connectionAvatar("update");
 	        	},
 
-	        	addNotification: function(): Void {
+	        	addNotification: function(notification:NotificationMessage): Void {
 	        		var self: ConnectionCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					var notificationDiv: JQ = new JQ(".notifications", selfElement);
+					var count:Int = Std.parseInt(notificationDiv.html());
+					count += 1;
+					notificationDiv.html(Std.string(count));
 					notificationDiv.css("visibility", "visible");
+        		},
+
+        		deleteNotification: function(notification:NotificationMessage): Void {
+	        		var self: ConnectionCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+					var notificationDiv: JQ = new JQ(".notifications", selfElement);
+					var count:Int = Std.parseInt(notificationDiv.html());
+					if (count <= 1) {
+						notificationDiv.html("0");
+						notificationDiv.css("visibility", "hidden");
+					} else {
+						count -= 1;
+						notificationDiv.html(Std.string(count));
+					}
         		},
 		        
 		        destroy: function() {

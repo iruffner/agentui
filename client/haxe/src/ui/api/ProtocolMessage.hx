@@ -435,7 +435,11 @@ class BeginIntroductionRequest extends ProtocolMessage<BeginIntroductionRequestD
 		@:optional public var bMessage: String;
 	}
 
-class IntroductionNotification extends ProtocolMessage<IntroductionNotificationData> {
+// This blank interface is defined to provide some means of indicting that a message is a notification
+interface NotificationMessage {
+}
+
+class IntroductionNotification extends ProtocolMessage<IntroductionNotificationData> implements NotificationMessage{
 	public function new() {
 		super(MsgType.introductionNotification, IntroductionNotificationData);
 	}
