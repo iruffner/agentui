@@ -114,7 +114,7 @@ extern class ConnectionComp extends JQ {
 
 		            selfElement.children(".name").text(M.getX(self.options.connection.profile.name, ""));
 
-		            self._avatar.connectionAvatar("update");
+		            self._avatar.update(conn);
 	        	},
 
 	        	addNotification: function(notification:NotificationMessage): Void {

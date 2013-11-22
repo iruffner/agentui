@@ -24,7 +24,7 @@ typedef ConnectionAvatarWidgetDef = {
 	var options: ConnectionAvatarOptions;
 	var _create: Void->Void;
 	@:optional var _super: Void->Void;
-	var update: Void->Void;
+	var update: Connection->Void;
 	var destroy: Void->Void;
 }
 
@@ -32,13 +32,17 @@ class ConnectionAvatarHelper {
 	public static function getConnection(c: ConnectionAvatar): Connection {
 		return c.connectionAvatar("option", "connection");
 	}
+
+	public static function update(c: ConnectionAvatar, connection: Connection): Connection {
+		return c.connectionAvatar("update", connection);
+	}
 }
 
 @:native("$")
 extern class ConnectionAvatar extends FilterableComponent {
 	
-	@:overload(function(cmd : String):Bool{})
-	@:overload(function(cmd:String, opt:String):Dynamic{})
+	@:overload(function<T>(cmd : String):T{})
+	@:overload(function<T>(cmd:String, opt:Dynamic):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function connectionAvatar(opts: ConnectionAvatarOptions): ConnectionAvatar;
 
@@ -167,9 +171,10 @@ extern class ConnectionAvatar extends FilterableComponent {
 					}
 		        },
 
-		        update: function(): Void {
+		        update: function(conn: Connection): Void {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+					self.options.connection = conn;
 
 					var imgSrc: String = "media/default_avatar.jpg";
 		        	if(M.getX(self.options.connection.profile.imgSrc, "").isNotBlank() ) {
@@ -177,7 +182,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	}
 
 		        	selfElement.children("img").attr("src", imgSrc);
-		            selfElement.children("div").text(M.getX(self.options.connection.profile.name,""));
+		            selfElement.attr("title", M.getX(self.options.connection.profile.name,""));
 	        	},
 
 		        destroy: function() {

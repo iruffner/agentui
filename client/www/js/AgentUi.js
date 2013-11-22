@@ -6780,6 +6780,9 @@ ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelp
 ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
 	return c.connectionAvatar("option","connection");
 }
+ui.widget.ConnectionAvatarHelper.update = function(c,connection) {
+	return c.connectionAvatar("update",connection);
+}
 ui.widget.ConnectionCompHelper = function() { }
 $hxClasses["ui.widget.ConnectionCompHelper"] = ui.widget.ConnectionCompHelper;
 ui.widget.ConnectionCompHelper.__name__ = ["ui","widget","ConnectionCompHelper"];
@@ -7325,9 +7328,10 @@ var defineWidget = function() {
 				filterCombiner.filterCombination("position");
 			}, tolerance : "pointer"});
 		}
-	}, update : function() {
+	}, update : function(conn) {
 		var self = this;
 		var selfElement = this.element;
+		self.options.connection = conn;
 		var imgSrc = "media/default_avatar.jpg";
 		if(m3.helper.StringHelper.isNotBlank((function($this) {
 			var $r;
@@ -7339,7 +7343,7 @@ var defineWidget = function() {
 			return $r;
 		}(this)))) imgSrc = self.options.connection.profile.imgSrc;
 		selfElement.children("img").attr("src",imgSrc);
-		selfElement.children("div").text((function($this) {
+		selfElement.attr("title",(function($this) {
 			var $r;
 			try {
 				$r = self.options.connection.profile.name;
@@ -7386,7 +7390,7 @@ var defineWidget = function() {
 			}
 			return $r;
 		}(this)));
-		self._avatar.connectionAvatar("update");
+		ui.widget.ConnectionAvatarHelper.update(self._avatar,conn);
 	}, addNotification : function(notification) {
 		var self = this;
 		var selfElement = this.element;
