@@ -36,7 +36,7 @@ class ConnectionListHelper {
 @:native("$")
 extern class ConnectionsList extends JQ {
 	@:overload(function<T>(cmd : String):T{})
-	@:overload(function(cmd:String, opt:String):Dynamic{})
+	@:overload(function<T>(cmd:String, opt:String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function connectionsList(opts: ConnectionsListOptions): ConnectionsList;
 

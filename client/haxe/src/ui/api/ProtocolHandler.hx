@@ -193,10 +193,10 @@ class ProtocolHandler {
         	});
 
         processHash.set(MsgType.connectionProfileResponse, function(data: Dynamic){
-        		AppContext.LOGGER.error("connectionProfileResponse was received from the server");
+        		AppContext.LOGGER.debug("connectionProfileResponse was received from the server");
         		var connectionProfileResponse = AppContext.SERIALIZER.fromJsonX(data, ConnectionProfileResponse);
         		var c: Connection = connectionProfileResponse.contentImpl.connection;
-        		c.profile = connectionProfileResponse.contentImpl.jsonBlob;
+        		c.profile = connectionProfileResponse.contentImpl.profile;
         		EM.change(EMEvent.CONNECTION_UPDATE, c);
         	});
 	}

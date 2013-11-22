@@ -7,6 +7,7 @@ import m3.exception.Exception;
 import ui.helper.PrologHelper;
 
 using m3.helper.ArrayHelper;
+using m3.helper.StringHelper;
 
 interface HasContent<T> {
 	function getContent(): T;
@@ -175,7 +176,19 @@ class ConnectionProfileResponse extends ProtocolMessage<ConnectionProfileRespons
 
 		class ConnectionProfileResponseData extends PayloadWithSessionURI {
 			public var connection: Connection;
-			public var jsonBlob: UserData;
+			// public var jsonBlob: UserData;
+			var jsonBlob: String;
+
+			@:transient public var profile: UserData;
+
+			private function readResolve(): Void {
+				if(jsonBlob.isNotBlank()) {
+					var p: Dynamic = haxe.Json.parse(jsonBlob);
+					profile = AppContext.SERIALIZER.fromJsonX(p, UserData);
+				} else {
+					profile = new UserData();
+				}
+			}
 		}
 
 /** 
@@ -246,6 +259,8 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 
 		class EvalResponseData extends PayloadWithSessionURI {
 			public var pageOfPosts: Array<String>;
+			@:optional public var connection: Connection;
+			@:optional public var filter: String;
 
 			@:transient public var content: Array<Content>;
 

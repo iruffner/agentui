@@ -19,6 +19,7 @@ class AppContext {
     public static var TARGET: Connection;
     public static var CONTENT: ObservableSet<Content>;
     public static var SERIALIZER: Serializer;
+    private static var _i: ObservableSet<IntroductionNotification>;
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
 	
     public static function init() {
@@ -26,12 +27,14 @@ class AppContext {
         
         CONTENT = new ObservableSet<Content>(ModelObj.identifier);
 
+        _i = new ObservableSet<IntroductionNotification>(
+                    function(n: IntroductionNotification): String {
+                        return n.contentImpl.correlationId;
+                    }
+                );
+
         INTRODUCTIONS = new GroupedSet<IntroductionNotification>( 
-        	new ObservableSet<IntroductionNotification>(
-        			function(n: IntroductionNotification): String {
-        				return n.contentImpl.correlationId;
-        			}
-        		) , 
+        	_i , 
         	function(n: IntroductionNotification): String {
         		return Connection.identifier(n.contentImpl.connection);
         	}
@@ -84,7 +87,7 @@ class AppContext {
         EM.addListener(EMEvent.FitWindow, fitWindowListener);
 
         EM.addListener(EMEvent.INTRODUCTION_NOTIFICATION, new EMListener(function(notification: IntroductionNotification) {
-                // AppContext.INTRODUCTIONS.add(notification);
+                _i.add(notification);
             }, "AgentUi-IntroNotification")
         );
 

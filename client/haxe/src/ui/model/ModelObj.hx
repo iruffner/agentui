@@ -202,7 +202,7 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	public var target: String;
 	public var label: String;
 
-	public var profile: UserData;
+	@:transient public var profile: UserData;
 
 	@:transient public var connectionSet: ObservableSet<Connection>;
 	@:transient public var connectionLabelSet: ObservableSet<Label>;

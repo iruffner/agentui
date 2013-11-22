@@ -47,8 +47,8 @@ class AgentUi {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + N");
                 var connection: Connection = AppContext.USER.currentAlias.connectionSet.asArray()[2];
-                var notification: ui.api.ProtocolMessage.IntroductionNotification = new ui.api.ProtocolMessage.IntroductionNotification();
-                notification.contentImpl = new ui.api.ProtocolMessage.IntroductionNotificationData();
+                var notification: ui.api.ProtocolMessage.IntroductionNotification = new IntroductionNotification();
+                notification.contentImpl = new IntroductionNotificationData();
                 notification.contentImpl.connection = connection;
                 notification.contentImpl.correlationId = "abc123";
                 EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
