@@ -80,8 +80,9 @@ extern class LabelTreeBranch extends JQ {
 		            			if(self.options.children.hasValues()) {
 		            				labelChildren.toggle();
 		            				labelChildren.toggleClass("labelTreeFullWidth");
-	            				} else
+	            				} else {
 	            					labelChildren.hide();
+	            				}
 		            			EM.change(EMEvent.FitWindow);
 		            		}
 	            		);
