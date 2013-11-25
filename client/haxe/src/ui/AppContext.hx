@@ -40,6 +40,7 @@ class AppContext {
         		return Connection.identifier(n.contentImpl.connection);
         	}
     	);
+        
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());
 

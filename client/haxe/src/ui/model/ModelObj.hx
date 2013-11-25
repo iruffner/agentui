@@ -16,12 +16,12 @@ using StringTools;
 using Lambda;
 
 @:rtti
-class ModelObj<T> {
+class ModelObj {
 	public function new() {
 	}
 }
 
-class ModelObjWithUid<T> extends ModelObj<T>{
+class ModelObjWithUid<T> extends ModelObj{
 	@:isVar public var uid(get,set): String;
 
 	public function new() {
@@ -35,7 +35,7 @@ class ModelObjWithUid<T> extends ModelObj<T>{
 
 	private function get_uid(): String {
 		if(this.uid.isBlank()) {
-			this.uid = UidGenerator.create();
+			this.uid = UidGenerator.create(32);
 		}
 		return this.uid;
 	}
@@ -46,7 +46,7 @@ class ModelObjWithUid<T> extends ModelObj<T>{
 	}
 }
 
-class Login extends ModelObj<Login> {
+class Login extends ModelObj {
 	public function new () {
 		super();
 	}
@@ -75,7 +75,7 @@ class LoginById extends Login {
 	}
 }
 
-class NewUser extends ModelObj<NewUser> {
+class NewUser extends ModelObj {
 	public var name: String;
 	public var userName: String;
 	public var email: String;
@@ -86,7 +86,7 @@ class NewUser extends ModelObj<NewUser> {
 	}
 }
 
-class User extends ModelObj<User> {
+class User extends ModelObj {
 	public var sessionURI: String;
 	public var userData: UserData; 
 	@:transient public var aliasSet: ObservableSet<Alias>;
@@ -136,7 +136,7 @@ class User extends ModelObj<User> {
 	}
 }
 
-class UserData extends ModelObj<UserData> {
+class UserData extends ModelObj {
 	public var name: String;
 	@:optional public var imgSrc: String;
 
@@ -147,7 +147,7 @@ class UserData extends ModelObj<UserData> {
 	}
 }
 
-class Alias extends ModelObj<Alias> {
+class Alias extends ModelObj {
 	@:optional public var imgSrc: String;
 	public var label: String;
 	@:transient public var labelSet: ObservableSet<Label>;
@@ -181,7 +181,7 @@ interface Filterable {
 
 }
 
-class Label extends ModelObj<Label> implements Filterable {
+class Label extends ModelObj implements Filterable {
 	@:transient public var uid: String;
 	public var text: String;
 	@:transient public var parentUid: String;
@@ -200,7 +200,7 @@ class Label extends ModelObj<Label> implements Filterable {
 	}
 }
 
-class Connection extends ModelObj<Connection> implements Filterable {
+class Connection extends ModelObj implements Filterable {
 	// @:transient public var fname: String;
 	// @:transient public var lname: String;
 	// @:transient public var imgSrc: String;
