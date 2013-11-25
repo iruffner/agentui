@@ -1,5 +1,6 @@
 package ui;
 
+import m3.jq.JQ;
 import m3.log.Logga;
 import m3.log.LogLevel;
 import m3.observable.OSet;
@@ -48,6 +49,9 @@ class AppContext {
 
 
 	static function registerGlobalListeners() {
+        new JQ(js.Browser.window).on("unload", function(evt: JQEvent){
+                EM.change(EMEvent.PAGE_CLOSE);
+            });
 		var fitWindowListener = new EMListener(function(n: Nothing) {
                 untyped __js__("fitWindow()");
             }, "FitWindowListener");

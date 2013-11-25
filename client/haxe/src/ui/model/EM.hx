@@ -104,6 +104,7 @@ enum EMEvent {
 	USER;
 
 	FitWindow;
+	PAGE_CLOSE;
 
 	CreateLabel;
 	DeleteLabels;

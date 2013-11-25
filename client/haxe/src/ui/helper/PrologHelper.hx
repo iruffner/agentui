@@ -122,4 +122,9 @@ class PrologHelper {
 		var str: String = sarray.join(",");
 		return "all(" + (str.isBlank() ? "_" : "[" + str + "]") + ")";
 	}
+
+	public static function labelsFromFilter(filterString: String): Array<Label> {
+
+		return null;
+	}
 }

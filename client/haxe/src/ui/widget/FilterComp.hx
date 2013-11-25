@@ -17,6 +17,8 @@ import ui.model.Filter;
 import ui.model.EM;
 import ui.widget.LabelComp;
 
+using ui.widget.LiveBuildToggle;
+
 typedef FilterCompOptions = {
 }
 
@@ -27,11 +29,17 @@ typedef FilterCompWidgetDef = {
 	var fireFilter: Void->Void;
 }
 
+class FilterCompHelper {
+	public static function fireFilter(f: FilterComp): Void {
+		f.filterComp("fireFilter");
+	}
+}
+
 @:native("$")
 extern class FilterComp extends JQ {
 
-	@:overload(function(cmd : String):Bool{})
-	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
+	@:overload(function<T>(cmd : String):T{})
+	@:overload(function<T>(cmd:String, opt:String, newVal:Dynamic):T{})
 	function filterComp(?opts: FilterCompOptions): FilterComp;
 
 	private static function __init__(): Void {
@@ -64,6 +72,7 @@ extern class FilterComp extends JQ {
 			                	if (!selfElement.intersects(dragstopUi.helper)) {
 			                		dragstopUi.helper.remove();
 			                		JqueryUtil.deleteEffects(dragstopEvt);
+			                		self.fireFilter();
 			                	}
 			                };
 
@@ -75,12 +84,6 @@ extern class FilterComp extends JQ {
 							clone.css({
 			                    "position": "absolute"
 			                });
-
-			                // var isInFilterCombination: Bool = _ui.draggable.parent(".filterCombination").length > 0;
-			                // if(isInFilterCombination) {
-			                // 	var filterCombination: FilterCombination = cast(_ui.draggable.parent(), FilterCombination);
-			                // 	filterCombination.filterCombination("removeFilterable", _ui.draggable);
-			                // }
 
 			                if(cloneOffset.top != 0) {
 			                	clone.offset(cloneOffset);
@@ -99,77 +102,6 @@ extern class FilterComp extends JQ {
 			                self.fireFilter();
 				      	}
 				    });
-
-					var trashDiv: JQ = selfElement.children("#filterTrash");
-					var trashCan: JQ = trashDiv.children("img");
-
-					var grow: Int->Void = function(?duration: Int = 300): Void {
-						trashDiv.animate({
-			    				width: "100px"
-			    			}, duration);
-			    		trashCan.animate({
-			    				"max-width": "100px",
-			    				"margin-top": "35px"
-			    			}, duration);
-					}
-
-					var shrink: Void->Void = function(): Void {
-						trashDiv.animate({
-			    				width: "50px"
-			    			}, 200);
-			    		trashCan.animate({
-			    				"max-width": "50px",
-			    				"margin-top": "50px"
-			    			}, 200);
-					}
-
-				    cast(
-				    	cast(trashDiv, JQDroppable).droppable({
-					    	accept: function(d) {
-				    			return d.is(".filterTrashable");
-				    		},
-							activeClass: "ui-state-hover",
-					      	hoverClass: "ui-state-active",
-					      	greedy: true,
-					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
-				                //fire off a filterable
-				                _ui.draggable.remove();
-				                shrink();
-				                self.fireFilter();
-					      	},
-					      	tolerance: "touch",
-					      	over: function( event: JQEvent, _ui: UIDroppable) {
-					    		grow(300);
-					      	},
-					      	out: function( event: JQEvent, _ui: UIDroppable) {
-					      		shrink();
-					      	}
-				    	}),
-				    JQTooltip).tooltip().dblclick(function(event: JQEvent) {
-			    			grow(150);
-		    				var trashables: JQ = selfElement.children(".filterTrashable");
-			    			trashables.position({
-			    					"my": "center",
-			    					"at": "center",
-			    					"of": trashCan,
-			    					"using": function(pos: {top: Int, left: Int}): Void {
-			    						JQ.cur.animate({
-			    								left: pos.left,
-			    								top: pos.top
-			    							}, 500, function(): Void {
-			    									// JQ.cur.animate({
-			    									// 		width: "10px",
-			    									// 		height: "10px"
-			    									// 	}, 250, function(): Void {
-			    									// 		JQ.cur.remove();
-			    									// 	});
-			    									JQ.cur.remove();
-			    									shrink();
-			    								});
-			    					}
-			    				});
-			    			self.fireFilter();
-			    		});
 		        },
 
 		        fireFilter: function(): Void {
@@ -188,7 +120,7 @@ extern class FilterComp extends JQ {
 		        			root.addNode(node);
 		        		});
 					
-					if(!cast(liveToggle.liveBuildToggle("isLive"), Bool)) {
+					if(!liveToggle.isLive()) {
 						EM.change(EMEvent.FILTER_CHANGE, new Filter(root));
 					} else {
 		        		EM.change(EMEvent.FILTER_RUN, new Filter(root));

@@ -5,6 +5,8 @@ import m3.widget.Widgets;
 import ui.model.Node;
 import m3.exception.Exception;
 
+using ui.widget.FilterComp;
+
 typedef LiveBuildToggleOptions = {
 }
 
@@ -16,10 +18,16 @@ typedef LiveBuildToggleWidgetDef = {
 	var _fireFilter: Void->Void;
 }
 
+class LiveBuildToggleHelper {
+	public static function isLive(l: LiveBuildToggle): Bool {
+		return cast l.liveBuildToggle("isLive");
+	}
+}
+
 @:native("$")
 extern class LiveBuildToggle extends JQ {
-	@:overload(function(cmd : String):Bool{})
-	@:overload(function(cmd : String, arg : Dynamic):Void{})
+	@:overload(function<T>(cmd : String):T{})
+	@:overload(function<T>(cmd : String, arg : Dynamic):T{})
 	@:overload(function(cmd : String, opt : String, newVal : Dynamic):JQ{})
 	function liveBuildToggle(?opts: LiveBuildToggleOptions): LiveBuildToggle;
 
@@ -65,7 +73,7 @@ extern class LiveBuildToggle extends JQ {
 	        	_fireFilter: function() {
 		        	var selfElement: JQ = Widgets.getSelfElement();
 		        	var filter: FilterComp = cast(selfElement.closest("#filter"), FilterComp);
-	      			filter.filterComp("fireFilter");
+	      			filter.fireFilter();
         		},
 		        
 		        destroy: function() {

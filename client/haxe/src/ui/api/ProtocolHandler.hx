@@ -28,33 +28,29 @@ using Lambda;
 class ProtocolHandler {
 
 	private var filterIsRunning: Bool = false;
+	private var runningFilter: {filter: String, connections: Array<Connection>} = null;
 	private var listeningChannel: Requester;
 	private var processHash: Map<MsgType,Dynamic->Void>;
 
 	public function new() {
 		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
-				// TODO:  The server does not support StopEvalRequest
-				/*
 				if(filterIsRunning) {
-					AgentUi.LOGGER.debug("stopEval successfully submitted");
-					try {
-						var stopEval: StopEvalRequest = new StopEvalRequest();
-						var stopData: PayloadWithSessionURI = new PayloadWithSessionURI();
-						stopEval.contentImpl = stopData;
-						new StandardRequest(stopEval, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
-							AgentUi.LOGGER.debug("stopEval successfully submitted");
-	                		this.filter(filter);
-						}).start();
-					} catch (err: Dynamic) {
-						var exc: Exception = Logga.getExceptionInst(err);
-						AgentUi.LOGGER.error("Error executing stop evaluation request", exc);
-                		this.filter(filter);
-					}
+					this.stopCurrentFilter(
+						function() { 
+								this.filter(filter); 
+							} 
+					);
 				} else {
-				*/
             		this.filter(filter);
-				/* } */
+				} 
 				filterIsRunning = true;
+            })
+        );
+
+        EM.addListener(EMEvent.PAGE_CLOSE, new EMListener(function(n: Nothing): Void {
+				if(filterIsRunning) {
+					this.stopCurrentFilter(JQ.noop, false);
+				} 
             })
         );
 
@@ -137,6 +133,9 @@ class ProtocolHandler {
         	});
         processHash.set(MsgType.sessionPong, function(data: Dynamic){
         		//nothing to do with this message
+        	});
+        processHash.set(MsgType.evalSubscribeCancelResponse, function(data: Dynamic){
+        		AppContext.LOGGER.debug("evalSubscribeCancelResponse was received from the server");
         	});
         processHash.set(MsgType.updateUserResponse, function(data: Dynamic){
         		AppContext.LOGGER.debug("updateUserResponse was received from the server");
@@ -288,6 +287,10 @@ class ProtocolHandler {
 			feedExpr.contentImpl = data;
 			data.cnxns = [AppContext.USER.getSelfConnection()];
 			data.label = filter.labelsProlog();
+			this.runningFilter = {
+				connections: data.cnxns,
+				filter: data.label
+			};
 			try {
 				//we don't expect anything back here
 				new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -297,6 +300,24 @@ class ProtocolHandler {
 				var ex: Exception = Logga.getExceptionInst(err);
 				AppContext.LOGGER.error("Error executing filter request", ex);
 			}
+		} else {
+			stopCurrentFilter(JQ.noop);
+		}
+	}
+
+	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool = true): Void {
+		try {
+			var stopEval: EvalSubscribeCancelRequest = new EvalSubscribeCancelRequest();
+			stopEval.contentImpl.connections = runningFilter.connections;
+			stopEval.contentImpl.filter = runningFilter.filter;
+			new StandardRequest(stopEval, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+				AppContext.LOGGER.debug("evalSubscribeCancelRequest successfully submitted");
+        		onSuccessOrError();
+			}).start({dataType: "text", async: async});
+		} catch (err: Dynamic) {
+			var exc: Exception = Logga.getExceptionInst(err);
+			AppContext.LOGGER.error("Error executing evalSubscribeCancelRequest", exc);
+    		onSuccessOrError();
 		}
 	}
 

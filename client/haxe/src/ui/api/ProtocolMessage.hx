@@ -300,15 +300,20 @@ class FeedExpr extends ProtocolMessage<FeedExprData> {
 /** 
 	Stop Evaluation Request/Response 
 **/
-class StopEvalRequest extends ProtocolMessage<PayloadWithSessionURI> {
+class EvalSubscribeCancelRequest extends ProtocolMessage<EvalSubscribeCancelRequestData> {
 	public function new() {
-		super(MsgType.stopEvalRequest, PayloadWithSessionURI);
+		super(MsgType.evalSubscribeCancelRequest, EvalSubscribeCancelRequestData);
 	}
 }
 
-class StopEvalResponse extends ProtocolMessage<PayloadWithSessionURI> {
+		class EvalSubscribeCancelRequestData extends PayloadWithSessionURI {
+			public var connections: Array<Connection>;
+			public var filter: String;
+		}
+
+class EvalSubscribeCancelResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.stopEvalResponse, PayloadWithSessionURI);
+		super(MsgType.evalSubscribeCancelResponse, PayloadWithSessionURI);
 	}
 }
 
@@ -490,8 +495,8 @@ enum MsgType {
 	evalSubscribeResponse;
 	evalComplete;
 	evalError;
-	stopEvalRequest;
-	stopEvalResponse;
+	evalSubscribeCancelRequest;
+	evalSubscribeCancelResponse;
 	createUserRequest;
 	createUserError;
 	createUserWaiting;

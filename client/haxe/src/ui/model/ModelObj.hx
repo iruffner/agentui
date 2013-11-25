@@ -17,9 +17,7 @@ using Lambda;
 
 @:rtti
 class ModelObj<T> {
-	@:isVar 
-	@:transient 
-	public var uid(get,set): String;
+	@:transient @:isVar public var uid(get,set): String;
 
 	public function new() {
 		this.uid = UidGenerator.create();
