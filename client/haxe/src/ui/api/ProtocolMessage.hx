@@ -435,15 +435,8 @@ class InsertContent extends ProtocolMessage<InsertContentData> {
 	Introductions 
 **/
 class BeginIntroductionRequest extends ProtocolMessage<BeginIntroductionRequestData> {
-	public function new(alias:String, from:Connection, to:Connection, fromMessage:String, toMessage:String) {
+	public function new() {
 		super(MsgType.beginIntroductionRequest, BeginIntroductionRequestData);
-		this.contentImpl.alias = alias;
-
-		// this.contentImpl.aBiConnection = new BiConnection(to, from);
-		// this.contentImpl.aMessage = fromMessage;
-		
-		// this.contentImpl.bBiConnection = new BiConnection(from, to);
-		// this.contentImpl.bMessage = toMessage;
 	}
 }
 	class BeginIntroductionRequestData extends PayloadWithSessionURI {
@@ -455,6 +448,12 @@ class BeginIntroductionRequest extends ProtocolMessage<BeginIntroductionRequestD
 		@:optional public var bMessage: String;
 	}
 
+class BeginIntroductionResponse extends ProtocolMessage<PayloadWithSessionURI> {
+	public function new() {
+		super(MsgType.beginIntroductionResponse, PayloadWithSessionURI);
+	}
+}
+
 // This blank interface is defined to provide some means of indicting that a message is a notification
 interface NotificationMessage {
 }
@@ -465,21 +464,39 @@ class IntroductionNotification extends ProtocolMessage<IntroductionNotificationD
 	}
 }
 	class IntroductionNotificationData extends PayloadWithSessionURI {
+		public var introSessionId: String;
 		public var correlationId: String;
 		public var connection: Connection;
 		public var message: String;
 		public var introProfile: UserData;
 	}
 
-class IntroductionConfirmation extends ProtocolMessage<IntroductionConfirmationData> {
+class IntroductionConfirmationRequest extends ProtocolMessage<IntroductionConfirmationRequestData> {
 	public function new() {
-		super(MsgType.introductionConfirmation, IntroductionConfirmationData);
+		super(MsgType.introductionConfirmationRequest, IntroductionConfirmationRequestData);
 	}
 }
-	class IntroductionConfirmationData extends PayloadWithSessionURI {
+	class IntroductionConfirmationRequestData extends PayloadWithSessionURI {
+		public var alias: String;
+		public var introSessionId: String;
 		public var correlationId: String;
-		public var connection: Connection;
 		public var accepted: Bool;
+	}
+
+class IntroductionConfirmationResponse extends ProtocolMessage<PayloadWithSessionURI> {
+	public function new() {
+		super(MsgType.IntroductionConfirmationResponse, PayloadWithSessionURI);
+	}
+}
+
+class ConnectNotification extends ProtocolMessage<ConnectNotificationData> {
+	public function new() {
+		super(MsgType.connectNotification, ConnectNotificationData);
+	}
+}
+	class ConnectNotificationData extends PayloadWithSessionURI {
+		public var connection: Connection;
+		public var introProfile: UserData;
 	}
 
 enum MsgType {
@@ -530,8 +547,10 @@ enum MsgType {
 	updateAliasLabelsResponse;
 
 	beginIntroductionRequest;
-	introductionNotification;
-	introductionConfirmation;
+	beginIntroductionResponse;
+	introductionConfirmationRequest;
+	introductionConfirmationResponse;
+	connectNotification;
 }
 
 enum Reason {
