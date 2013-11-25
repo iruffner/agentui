@@ -123,8 +123,8 @@ class PrologHelper {
 		return "all(" + (str.isBlank() ? "_" : "[" + str + "]") + ")";
 	}
 
-	public static function labelsFromFilter(filterString: String): Array<Label> {
+	// public static function labelsFromFilter(filterString: String): Array<Label> {
 
-		return null;
-	}
+	// 	return null;
+	// }
 }

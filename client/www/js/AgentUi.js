@@ -6260,9 +6260,6 @@ ui.helper.PrologHelper.connectionsToProlog = function(connections) {
 	var str = sarray.join(",");
 	return "all(" + (m3.helper.StringHelper.isBlank(str)?"_":"[" + str + "]") + ")";
 }
-ui.helper.PrologHelper.labelsFromFilter = function(filterString) {
-	return null;
-}
 ui.model = {}
 ui.model.EM = function() { }
 $hxClasses["ui.model.EM"] = ui.model.EM;
@@ -7928,6 +7925,8 @@ var defineWidget = function() {
 		var connIter = content.connectionSet.iterator();
 		while(connIter.hasNext()) {
 			var connection1 = connIter.next();
+			var connWithProfile = m3.helper.OSetHelper.getElement(ui.AppContext.USER.get_currentAlias().connectionSet,connection1.get_uid());
+			if(connWithProfile != null) connection1 = connWithProfile;
 			new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection1}).appendTo(postConnections);
 		}
 	}, _create : function() {
