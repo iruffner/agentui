@@ -123,13 +123,17 @@ extern class RequestIntroductionDialog extends JQ {
 
 					// Build out the introduction request message
 					var alias:String = AppContext.USER.currentAlias.label;
-					var msg = new BeginIntroductionRequest(alias, self.options.to, self.options.from, new JQ("#to_text").val(), new JQ("#from_text").val());
+					var intro: Introduction = new Introduction();
+					intro.aConn = self.options.to;
+					intro.bConn = self.options.from;
+					intro.aMsg = new JQ("#to_text").val();
+					intro.bMsg = new JQ("#from_text").val();
 
     				EM.addListener(EMEvent.INTRODUCTION_RESPONSE, new EMListener(function(n: Nothing): Void {
     					selfElement.dialog("close");
     				}, "RequestIntroductionDialog-Introduction-Response"));
 
-    				EM.change(EMEvent.INTRODUCTION_REQUEST, msg);
+    				EM.change(EMEvent.INTRODUCTION_REQUEST, intro);
 	        	},
 
 

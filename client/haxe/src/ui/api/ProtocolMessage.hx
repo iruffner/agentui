@@ -485,7 +485,7 @@ class IntroductionConfirmationRequest extends ProtocolMessage<IntroductionConfir
 
 class IntroductionConfirmationResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	public function new() {
-		super(MsgType.IntroductionConfirmationResponse, PayloadWithSessionURI);
+		super(MsgType.introductionConfirmationResponse, PayloadWithSessionURI);
 	}
 }
 
@@ -548,6 +548,7 @@ enum MsgType {
 
 	beginIntroductionRequest;
 	beginIntroductionResponse;
+	introductionNotification;
 	introductionConfirmationRequest;
 	introductionConfirmationResponse;
 	connectNotification;

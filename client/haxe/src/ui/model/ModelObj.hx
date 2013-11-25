@@ -353,3 +353,11 @@ enum ContentType {
 	URL;
 	TEXT;
 }
+
+class Introduction extends ModelObj {
+	public var aConn: Connection;
+	public var bConn: Connection;
+
+	public var aMsg: String;
+	public var bMsg: String;
+}

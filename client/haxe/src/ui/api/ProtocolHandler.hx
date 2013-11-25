@@ -109,9 +109,8 @@ class ProtocolHandler {
     		})
         );
 
-        EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(msg:BeginIntroductionRequest):Void{
-        	// TODO:  send the message to the server
-        	EM.change(EMEvent.INTRODUCTION_RESPONSE);
+        EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(intro: Introduction):Void{
+        		beginIntroduction(intro);
         }));
 
         EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
@@ -189,6 +188,11 @@ class ProtocolHandler {
         		AppContext.LOGGER.error("introductionNotification was received from the server");
         		var notification = AppContext.SERIALIZER.fromJsonX(data, IntroductionNotification);
         		EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
+        	});
+
+        processHash.set(MsgType.beginIntroductionResponse, function(data: Dynamic){
+        		AppContext.LOGGER.debug("beginIntroductionResponse was received from the server");
+        		EM.change(EMEvent.INTRODUCTION_RESPONSE);
         	});
 
         processHash.set(MsgType.connectionProfileResponse, function(data: Dynamic){
@@ -597,6 +601,24 @@ class ProtocolHandler {
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AppContext.LOGGER.error("Error executing getAliasLabels", ex);
+		}
+	}
+
+	public function beginIntroduction(intro: Introduction): Void {
+		var request: BeginIntroductionRequest = new BeginIntroductionRequest();
+		request.contentImpl.aConnection = intro.aConn;
+		request.contentImpl.bConnection = intro.bConn;
+		request.contentImpl.aMessage = intro.bMsg;
+		request.contentImpl.bMessage = intro.bMsg;
+		request.contentImpl.alias = ui.AppContext.USER.currentAlias.label;
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AppContext.LOGGER.debug("beginIntroductionRequest successfully submitted");
+				}).start({dataType: "text"});
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AppContext.LOGGER.error("Error executing beginIntroductionRequest", ex);
 		}
 	}
 }
