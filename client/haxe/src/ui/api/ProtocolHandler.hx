@@ -113,6 +113,10 @@ class ProtocolHandler {
         		beginIntroduction(intro);
         }));
 
+        EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION, new EMListener(function(confirmation: IntroductionConfirmation):Void{
+        		confirmIntroduction(confirmation);
+        }));
+
         EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
         	
         	
@@ -193,6 +197,19 @@ class ProtocolHandler {
         processHash.set(MsgType.beginIntroductionResponse, function(data: Dynamic){
         		AppContext.LOGGER.debug("beginIntroductionResponse was received from the server");
         		EM.change(EMEvent.INTRODUCTION_RESPONSE);
+        	});
+
+        processHash.set(MsgType.introductionConfirmationResponse, function(data: Dynamic){
+        		AppContext.LOGGER.debug("introductionConfirmationResponse was received from the server");
+        		EM.change(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE);
+        	});
+
+        processHash.set(MsgType.connectNotification, function(data: Dynamic){
+        		AppContext.LOGGER.debug("connectNotification was received from the server");
+        		var notification: ConnectNotification = AppContext.SERIALIZER.fromJsonX(data, ConnectNotification);
+        		var conn: Connection = notification.contentImpl.connection;
+        		conn.profile = notification.contentImpl.introProfile;
+        		EM.change(EMEvent.NEW_CONNECTION, conn);
         	});
 
         processHash.set(MsgType.connectionProfileResponse, function(data: Dynamic){
@@ -615,6 +632,23 @@ class ProtocolHandler {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
 					AppContext.LOGGER.debug("beginIntroductionRequest successfully submitted");
+				}).start({dataType: "text"});
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AppContext.LOGGER.error("Error executing beginIntroductionRequest", ex);
+		}
+	}
+
+	public function confirmIntroduction(confirmation: IntroductionConfirmation): Void {
+		var request: IntroductionConfirmationRequest = new IntroductionConfirmationRequest();
+		request.contentImpl.accepted = confirmation.accepted;
+		request.contentImpl.alias = ui.AppContext.USER.currentAlias.label;
+		request.contentImpl.introSessionId = confirmation.introSessionId;
+		request.contentImpl.correlationId = confirmation.correlationId;
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AppContext.LOGGER.debug("introductionConfirmationRequest successfully submitted");
 				}).start({dataType: "text"});
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);

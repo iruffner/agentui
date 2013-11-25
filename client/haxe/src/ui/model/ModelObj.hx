@@ -361,3 +361,9 @@ class Introduction extends ModelObj {
 	public var aMsg: String;
 	public var bMsg: String;
 }
+
+class IntroductionConfirmation extends ModelObj {
+	public var accepted: Bool;
+	public var introSessionId: String;
+	public var correlationId: String;
+}
