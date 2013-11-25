@@ -26,7 +26,7 @@ class AppContext {
     public static function init() {
     	LOGGER = new Logga(LogLevel.DEBUG);
         
-        CONTENT = new ObservableSet<Content>(ModelObj.identifier);
+        CONTENT = new ObservableSet<Content>(ModelObjWithUid.identifier);
 
         _i = new ObservableSet<IntroductionNotification>(
                     function(n: IntroductionNotification): String {
@@ -71,6 +71,7 @@ class AppContext {
         EM.addListener(EMEvent.EndOfContent, processContent);
         EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(n: Nothing): Void {
                 AppContext.CONTENT.clear();
+                EM.change(EMEvent.FitWindow);
             })
         );
 

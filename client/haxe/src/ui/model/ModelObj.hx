@@ -17,13 +17,19 @@ using Lambda;
 
 @:rtti
 class ModelObj<T> {
-	@:transient @:isVar public var uid(get,set): String;
+	public function new() {
+	}
+}
+
+class ModelObjWithUid<T> extends ModelObj<T>{
+	@:isVar public var uid(get,set): String;
 
 	public function new() {
-		this.uid = UidGenerator.create();
+		super();
+		this.uid = UidGenerator.create(32);
 	}
 
-	public static function identifier<T>(t: ModelObj<T>): String {
+	public static function identifier<T>(t: ModelObjWithUid<T>): String {
 		return t.uid;
 	}
 
@@ -176,6 +182,7 @@ interface Filterable {
 }
 
 class Label extends ModelObj<Label> implements Filterable {
+	@:transient public var uid: String;
 	public var text: String;
 	@:transient public var parentUid: String;
 
@@ -183,6 +190,7 @@ class Label extends ModelObj<Label> implements Filterable {
 
 	public function new(?text: String) {
 		super();
+		uid = UidGenerator.create(32);
 		this.text = text;
 		color = ColorProvider.getNextColor();
 	}
@@ -197,6 +205,8 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	// @:transient public var lname: String;
 	// @:transient public var imgSrc: String;
 
+	@:transient public var uid(get, null): String;
+
 	public var source: String;
 	public var target: String;
 	public var label: String;
@@ -206,6 +216,10 @@ class Connection extends ModelObj<Connection> implements Filterable {
 	@:transient public var connectionSet: ObservableSet<Connection>;
 	@:transient public var connectionLabelSet: ObservableSet<Label>;
 	@:transient public var userSharedLabelSet: ObservableSet<Label>;
+
+	function get_uid(): String {
+		return Connection.identifier(this);
+	}
 
 	public static function identifier(c: Connection): String {
 		return c.label + "_" + c.target;
@@ -256,13 +270,16 @@ class ContentHandler implements TypeHandler {
     }
 }
 
-class Content extends ModelObj<Content> {
+class Content extends ModelObjWithUid<Content> {
 	public var type: ContentType;
 	public var created: Date;
 	public var modified: Date;
 	
 	@:transient public var labelSet: ObservableSet<Label>;
 	@:transient public var connectionSet: ObservableSet<Connection>;
+
+	@:optional public var labels: Array<Label>;
+	@:optional public var connections: Array<Connection>;
 		
 	/**
 		UID of connection that created the content
@@ -284,13 +301,13 @@ class Content extends ModelObj<Content> {
 	}
 
 	private function readResolve(): Void {
-		// labelSet = new ObservableSet<Label>(ModelObj.identifier, labels);
-		// connectionSet = new ObservableSet<Connection>(ModelObj.identifier, connections);
+		labelSet = new ObservableSet<Label>(Label.identifier, labels);
+		connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
 	}
 
 	private function writeResolve(): Void {
-		// labels = labelSet.asArray();
-		// connections = connectionSet.asArray();
+		labels = labelSet.asArray();
+		connections = connectionSet.asArray();
 	}
 }
 

@@ -178,8 +178,8 @@ extern class UserComp extends JQ {
 			        	if(iter != null) {
 				        	while(iter.hasNext()) {
 				        		var alias: Alias = iter.next();
-				        		var btn: JQ = new JQ("<div id='" + alias.uid + "' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>" + alias.label + "</div>");
-				        		if(alias.uid == user.currentAlias.uid) {
+				        		var btn: JQ = new JQ("<div id='" + alias.label + "' class='aliasBtn ui-widget ui-button boxsizingBorder ui-state-default'>" + alias.label + "</div>");
+				        		if(alias.label == user.currentAlias.label) {
 				        			btn.addClass("ui-state-active");
 				        		}
 				        		aliases.append(btn);

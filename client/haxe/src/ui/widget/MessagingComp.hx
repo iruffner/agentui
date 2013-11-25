@@ -73,7 +73,7 @@ extern class MessagingComp extends JQ {
 
 					      		var chatComp: ChatComp = new ChatComp("<div id='" + id + "'></div>").chatComp({
 					      				connection: connection,
-					      				messages: new ObservableSet<MessageContent>(ModelObj.identifier)
+					      				messages: new ObservableSet<MessageContent>(ModelObjWithUid.identifier)
 					      			});
 					      		chatComp.appendTo(selfElement);
 					      		selfElement.tabs("refresh");

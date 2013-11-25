@@ -132,7 +132,7 @@ class TestDao {
         if(availableConnections.hasValues()) {
             audioContent.creator = getRandomFromArray(availableConnections).uid;
         } else {
-            audioContent.creator = AppContext.USER.currentAlias.uid;
+            audioContent.creator = AppContext.USER.currentAlias.label;
         }
         if(availableConnections.hasValues()) {
         	addConnections(availableConnections, audioContent, 2);
@@ -159,7 +159,7 @@ class TestDao {
             if(availableConnections.hasValues()) {
                 img.creator = getRandomFromArray(availableConnections).uid;
             } else {
-                img.creator = AppContext.USER.currentAlias.uid;
+                img.creator = AppContext.USER.currentAlias.label;
             }
             if(availableConnections.hasValues()) {
             	addConnections(availableConnections, img, 1);
@@ -184,7 +184,7 @@ class TestDao {
             if(availableConnections.hasValues()) {
                 urlContent.creator = getRandomFromArray(availableConnections).uid;
             } else {
-                urlContent.creator = AppContext.USER.currentAlias.uid;
+                urlContent.creator = AppContext.USER.currentAlias.label;
             }
             if(availableConnections.hasValues()) {
                 addConnections(availableConnections, urlContent, 1);
@@ -210,7 +210,7 @@ class TestDao {
             if(availableConnections.hasValues()) {
                 textContent.creator = getRandomFromArray(availableConnections).uid;
             } else {
-                textContent.creator = AppContext.USER.currentAlias.uid;
+                textContent.creator = AppContext.USER.currentAlias.label;
             }
             if(availableConnections.hasValues()) {
                 addConnections(availableConnections, textContent, 1);
