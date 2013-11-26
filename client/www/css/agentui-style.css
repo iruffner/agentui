@@ -103,27 +103,43 @@ body {
 /* Introduction Response */
 
 .introductionNotificationComp {
-	min-height: 150px;
-	width:100%;
-	margin-top:7px;
-	padding-right:0px;
+	   min-height: 150px;
+	        width: 100%;
+	   margin-top: 7px;
+	padding-right: 0px;
+	 border-width: 5px !important;
+}
+
+#intro-table {
+	height: 100%;
+	 width: 100%;
 }
 
 .introductionNotificationComp .invitationText {
-	float:right;
+	     float:right;
 	text-align:left;
 }
 
 .introductionNotificationComp .intro-title {
-	font-size: 1.2em;
-	font-weight: bold;
+	    font-size: 1.2em;
+	  font-weight: bold;
 	margin-bottom: 5px;
 }
 
 .invitation-message {
 		width: 400px;
 	font-size: .7em;
-	padding: 15px;
+	  padding: 15px;
+}
+
+.introduction-avatar {
+	 float:left;
+	 width:100px;
+	height:150px;
+}
+.intro-profile-img {
+	max-height: 150px;
+	border-radius: 70px;
 }
 	/* Filter
 	-----------------------------------------------------------------------------*/
