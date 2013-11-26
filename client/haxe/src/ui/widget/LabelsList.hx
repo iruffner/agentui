@@ -141,10 +141,11 @@ extern class LabelsList extends JQ {
 		        	var menu: M3Menu = new M3Menu("<ul id='label-action-menu'></ul>");
 		        	menu.appendTo(selfElement);
         			menu.m3menu({
+        				classes: "container shadow",
     					menuOptions: [
     						{ 
     							label: "New Child Label",
-    							icon: "ui-icon-star",
+    							icon: "ui-icon-circle-plus",
     							action: function(evt: JQEvent, m: M3Menu): Dynamic {
     								evt.stopPropagation();
     								var reference:JQ = self.selectedLabelComp;
@@ -158,7 +159,7 @@ extern class LabelsList extends JQ {
     						},
     						{ 
     							label: "Delete Label",
-    							icon: "ui-icon-circle-close",
+    							icon: "ui-icon-circle-minus",
     							action: function(evt: JQEvent, m: M3Menu): Void {
     								if (self.selectedLabelComp != null) {
     									JqueryUtil.confirm("Delete Label", "Are you sure you want to delete this label?", 

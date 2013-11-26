@@ -302,6 +302,14 @@ class ProtocolHandler {
 			var data: FeedExprData = new FeedExprData();
 			feedExpr.contentImpl = data;
 			data.cnxns = [AppContext.USER.getSelfConnection()];
+			if(filter.connectionNodes.hasValues()) {
+				data.cnxns = data.cnxns.concat(filter.connectionNodes.map(
+					function(n: Node): Connection {
+						var cn: ConnectionNode = cast(n, ConnectionNode);
+						return cn.content;
+					}
+				));				
+			}
 			data.label = filter.labelsProlog();
 			this.runningFilter = {
 				connections: data.cnxns,
@@ -322,7 +330,10 @@ class ProtocolHandler {
 	}
 
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool = true): Void {
-		if(this.runningFilter == null) return;
+		if(this.runningFilter == null) {
+			onSuccessOrError();
+			return;
+		}
 		try {
 			var stopEval: EvalSubscribeCancelRequest = new EvalSubscribeCancelRequest();
 			stopEval.contentImpl.connections = runningFilter.connections;
@@ -499,6 +510,9 @@ class ProtocolHandler {
 		insertData.label = PrologHelper.labelsToProlog(content.labelSet);
 		insertData.value = AppContext.SERIALIZER.toJsonString(content);
 		insertData.cnxns = [AppContext.USER.getSelfConnection()];
+		if(content.connectionSet.hasValues()) {
+			insertData.cnxns = insertData.cnxns.concat(content.connectionSet.asArray());
+		}
 		insertData.uid = content.uid;
 
 		try {

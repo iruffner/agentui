@@ -268,8 +268,8 @@ class Content extends ModelObjWithUid<Content> {
 	@:transient public var labelSet: ObservableSet<Label>;
 	@:transient public var connectionSet: ObservableSet<Connection>;
 
-	@:optional public var labels: Array<Label>;
-	@:optional public var connections: Array<Connection>;
+	@:optional var labels: Array<Label>;
+	@:optional var connections: Array<Connection>;
 		
 	/**
 		UID of connection that created the content
