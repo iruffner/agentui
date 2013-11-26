@@ -101,20 +101,19 @@ class TestDao {
 	private static function buildAliases(): Void {
 		aliases = new Array<Alias>();
 
-		var alias: Alias = new Alias();
-        alias.label = "Comedian";
-        alias.imgSrc = "media/test/jerry_comedy.jpg";
-        aliases.push(alias);
+        var aliasData:Array<Dynamic> = [
+              {label: "Comedian", imgSrc:"media/test/jerry_comedy.jpg"}
+            , {label: "Actor", imgSrc:"media/test/jerry_bee.jpg"}
+            , {label: "Private", imgSrc:"media/test/default_avatar.jpg"}
+            , {label: "Philatelist", imgSrc:"media/test/jerry_stamp.jpg"}
+        ];
 
-        alias = new Alias();
-        alias.label = "Actor";
-        alias.imgSrc = "media/test/jerry_bee.jpg";
-        aliases.push(alias);
-
-        alias = new Alias();
-        alias.label = "Private";
-        alias.imgSrc = "media/default_avatar.jpg";
-        aliases.push(alias);
+        for (i in 0...aliasData.length) {
+    		var alias: Alias = new Alias();
+            alias.label  = aliasData[i].label;
+            alias.imgSrc = aliasData[i].imgSrc;
+            aliases.push(alias);
+        }
 	}
 
 	private static function generateContent(node: Node): Array<Content> {

@@ -11,6 +11,7 @@ import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
+import ui.api.ProtocolMessage;
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
@@ -18,6 +19,8 @@ import ui.model.EM;
 import ui.widget.LabelComp;
 
 using ui.widget.LiveBuildToggle;
+using ui.widget.ConnectionAvatar;
+using m3.helper.OSetHelper;
 
 typedef FilterCompOptions = {
 }
@@ -75,6 +78,22 @@ extern class FilterComp extends JQ {
 			                		self.fireFilter();
 			                	}
 			                };
+
+			                if (JQ.cur.children(".connectionAvatar").length == 0) {
+				                if (_ui.draggable.hasClass("connectionAvatar")) {
+				                	var connection = cast(_ui.draggable, ConnectionAvatar).getConnection();
+				                	var set: OSet<IntroductionNotification> = AppContext.INTRODUCTIONS.getElement(connection.uid);
+				                	if (set.hasValues()) {
+				                		var iter = set.iterator();
+				                		var introComp = new IntroductionNotificationComp("<div></div>").introductionNotificationComp({
+				  		        				notification: iter.next()
+				 		        			});
+
+				                		introComp.insertAfter(new JQ("#filter"));
+				                		return;
+				                	}
+				                }
+			                }
 
 			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, false, dragstop);
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));

@@ -471,6 +471,11 @@ class IntroductionNotification extends ProtocolMessage<IntroductionNotificationD
 		public var connection: Connection;
 		public var message: String;
 		public var introProfile: UserData;
+
+		public function new() {
+			super();
+			this.introProfile = new UserData();
+		}
 	}
 
 class IntroductionConfirmationRequest extends ProtocolMessage<IntroductionConfirmationRequestData> {

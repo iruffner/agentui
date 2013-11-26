@@ -52,6 +52,10 @@ class AgentUi {
                 notification.contentImpl = new IntroductionNotificationData();
                 notification.contentImpl.connection = connection;
                 notification.contentImpl.correlationId = "abc123";
+                notification.contentImpl.message = "hey guys!  Are you ready to get to know eachother???";
+                notification.contentImpl.introProfile.name = "Uncle Leo";
+                notification.contentImpl.introProfile.imgSrc = "media/test/uncle_leo.jpg";
+
                 EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
             }
             else if(evt.altKey && evt.shiftKey && evt.keyCode == 77 /* ALT+SHIFT+N */) {
