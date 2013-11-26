@@ -295,6 +295,7 @@ class FeedExpr extends ProtocolMessage<FeedExprData> {
 		class FeedExprData extends Payload {
 			public var cnxns: Array<Connection>;
 			public var label: String;
+			// public var uid: String; // this is a valid option, but currently have no UI actions that would warrant it
 		}
 
 /** 
@@ -316,6 +317,18 @@ class EvalSubscribeCancelResponse extends ProtocolMessage<PayloadWithSessionURI>
 		super(MsgType.evalSubscribeCancelResponse, PayloadWithSessionURI);
 	}
 }
+
+class InsertContent extends ProtocolMessage<InsertContentData> {
+	public function new() {
+		super(MsgType.insertContent, InsertContentData);
+	}
+}
+		class InsertContentData extends Payload {
+			public var cnxns: Array<Connection>;
+			public var label: String;
+			public var value: String;
+			public var uid: String;
+		}
 
 /** 
 	Aliases 
@@ -419,17 +432,6 @@ class UpdateAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
 		super(MsgType.updateAliasLabelsResponse, PayloadWithSessionURI);
 	}
 }
-
-class InsertContent extends ProtocolMessage<InsertContentData> {
-	public function new() {
-		super(MsgType.insertContent, InsertContentData);
-	}
-}
-		class InsertContentData extends Payload {
-			public var cnxns: Array<Connection>;
-			public var label: String;
-			public var value: String;
-		}
 
 /** 
 	Introductions 

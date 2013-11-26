@@ -108,6 +108,7 @@ enum EMEvent {
 
 	CreateLabel;
 	DeleteLabels;
+	UPDATE_LABELS; //occurs after a CreateLabel or DeleteLabels event, and should be called once the model has been updated
 
 	INTRODUCTION_REQUEST;
 	INTRODUCTION_RESPONSE;
@@ -117,8 +118,8 @@ enum EMEvent {
 
 	DELETE_NOTIFICATION;
 
-	NEW_CONNECTION;
-	CONNECTION_UPDATE;
+	NewConnection;
+	ConnectionUpdate;
 
 	TARGET_CHANGE;
 }

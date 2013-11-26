@@ -96,10 +96,5 @@ class AppContext {
                 _i.add(notification);
             }, "AgentUi-IntroNotification")
         );
-
-        EM.addListener(EMEvent.CONNECTION_UPDATE, new EMListener(function(conn: Connection): Void {
-                AppContext.USER.currentAlias.connectionSet.update(conn);
-            }, "AgentUi-ConnUpdate")
-        );
 	}
 }

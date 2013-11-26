@@ -99,13 +99,8 @@ class ProtocolHandler {
     		})
         );
 
-        EM.addListener(EMEvent.CreateLabel, new EMListener(function(label: Label): Void {
-        		createLabel(label);
-    		})
-        );
-
-        EM.addListener(EMEvent.DeleteLabels, new EMListener(function(labels: Array<Label>): Void {
-        		deleteLabels(labels);
+        EM.addListener(EMEvent.UPDATE_LABELS, new EMListener(function(n: Nothing): Void {
+        		updateLabels();
     		})
         );
 
@@ -209,7 +204,7 @@ class ProtocolHandler {
         		var notification: ConnectNotification = AppContext.SERIALIZER.fromJsonX(data, ConnectNotification);
         		var conn: Connection = notification.contentImpl.connection;
         		conn.profile = notification.contentImpl.introProfile;
-        		EM.change(EMEvent.NEW_CONNECTION, conn);
+        		EM.change(EMEvent.NewConnection, conn);
         	});
 
         processHash.set(MsgType.connectionProfileResponse, function(data: Dynamic){
@@ -217,7 +212,7 @@ class ProtocolHandler {
         		var connectionProfileResponse = AppContext.SERIALIZER.fromJsonX(data, ConnectionProfileResponse);
         		var c: Connection = connectionProfileResponse.contentImpl.connection;
         		c.profile = connectionProfileResponse.contentImpl.profile;
-        		EM.change(EMEvent.CONNECTION_UPDATE, c);
+        		EM.change(EMEvent.ConnectionUpdate, c);
         	});
 	}
 
@@ -327,6 +322,7 @@ class ProtocolHandler {
 	}
 
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool = true): Void {
+		if(this.runningFilter == null) return;
 		try {
 			var stopEval: EvalSubscribeCancelRequest = new EvalSubscribeCancelRequest();
 			stopEval.contentImpl.connections = runningFilter.connections;
@@ -503,6 +499,7 @@ class ProtocolHandler {
 		insertData.label = PrologHelper.labelsToProlog(content.labelSet);
 		insertData.value = AppContext.SERIALIZER.toJsonString(content);
 		insertData.cnxns = [AppContext.USER.getSelfConnection()];
+		insertData.uid = content.uid;
 
 		try {
 			//we don't expect anything back here
@@ -515,21 +512,7 @@ class ProtocolHandler {
 		}
 	}
 
-	public function createLabel(label: Label): Void {
-		AppContext.USER.currentAlias.labelSet.add(label);
-		EM.change(EMEvent.FitWindow);
-		_updateLabels();
-	}
-
-	public function deleteLabels(labels: Array<Label>): Void {
-		// var request: UpdateAliasLabelsRequest = new UpdateAliasLabelsRequest();
-		for (i in 1...labels.length) {
-			AppContext.USER.currentAlias.labelSet.delete(labels[i]);
-		}
-		_updateLabels();
-	}
-
-	private function _updateLabels(): Void {
+	public function updateLabels(): Void {
 		var request: AddAliasLabelsRequest = new AddAliasLabelsRequest();  // if we are not sending the same msg for add/update/delete.. this will need to be changed
 		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AppContext.USER.currentAlias.labelSet);
 		request.contentImpl.labels = labelsArray;

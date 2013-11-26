@@ -7,6 +7,7 @@ import m3.serialization.Serialization;
 import m3.exception.Exception;
 
 import ui.helper.LabelStringParser;
+import ui.model.EM;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
@@ -46,56 +47,44 @@ class ModelObjWithUid<T> extends ModelObj{
 	}
 }
 
-class Login extends ModelObj {
-	public function new () {
-		super();
-	}
-	public var password: String;
-
-	public function getUri(): String {
-		return throw new Exception("don't call me!");
-	}
-}
-
-class LoginByUn extends Login {
-	public var email: String;
-	// public var agency: String;
-
-	override public function getUri(): String {
-		// return "agent://" + username + ":" + password + "@server:9876/" + agency + "?email=george@costanza.com&fullname=George+Costanza";
-		return "agent://email/" + email + "?password=" + password;
-	}
-}
-
-class LoginById extends Login {
-	public var uuid: String;
-
-	override public function getUri(): String {
-		return uuid + "?password=" + password;
-	}
-}
-
-class NewUser extends ModelObj {
-	public var name: String;
-	public var userName: String;
-	public var email: String;
-	public var pwd: String;
-
-	public function new () {
-		super();
-	}
-}
-
 class User extends ModelObj {
 	public var sessionURI: String;
 	public var userData: UserData; 
+	
 	@:transient public var aliasSet: ObservableSet<Alias>;
 	private var aliases: Array<Alias>;
+	
 	@:isVar public var currentAlias (get,set): Alias;
 
 
 	public function new () {
 		super();
+		registerModelListeners();
+	}
+
+	private function registerModelListeners(): Void {
+		EM.addListener(EMEvent.CreateLabel, new EMListener(function(label: Label): Void {
+        		this.currentAlias.labelSet.add(label);
+        		EM.change(EMEvent.UPDATE_LABELS);
+				EM.change(EMEvent.FitWindow);
+    		}, "User-CreateLabel")
+        );
+        EM.addListener(EMEvent.DeleteLabels, new EMListener(function(labels: Array<Label>): Void {
+        		for (i in 1...labels.length) {
+					this.currentAlias.labelSet.delete(labels[i]);
+				}
+        		EM.change(EMEvent.UPDATE_LABELS);
+				EM.change(EMEvent.FitWindow);
+    		}, "User-DeleteLabel")
+        );
+        EM.addListener(EMEvent.ConnectionUpdate, new EMListener(function(conn: Connection): Void {
+                this.currentAlias.connectionSet.update(conn);
+            }, "User-ConnUpdate")
+        );
+        EM.addListener(EMEvent.NewConnection, new EMListener(function(conn: Connection): Void {
+                this.currentAlias.connectionSet.update(conn);
+            }, "User-ConnUpdate")
+        );
 	}
 
 	private function get_currentAlias(): Alias {
@@ -150,12 +139,13 @@ class UserData extends ModelObj {
 class Alias extends ModelObj {
 	@:optional public var imgSrc: String;
 	public var label: String;
+	
 	@:transient public var labelSet: ObservableSet<Label>;
-	private var labels: Array<Label>;
 	@:transient public var connectionSet: ObservableSet<Connection>;
+	private var labels: Array<Label>;
 	private var connections: Array<Connection>;
 
-	@:transient var loadedFromDb: Bool = false;
+	// @:transient var loadedFromDb: Bool = false;
 
 
 	public function new () {
@@ -352,6 +342,46 @@ enum ContentType {
 	IMAGE;
 	URL;
 	TEXT;
+}
+
+class Login extends ModelObj {
+	public function new () {
+		super();
+	}
+	public var password: String;
+
+	public function getUri(): String {
+		return throw new Exception("don't call me!");
+	}
+}
+
+class LoginByUn extends Login {
+	public var email: String;
+	// public var agency: String;
+
+	override public function getUri(): String {
+		// return "agent://" + username + ":" + password + "@server:9876/" + agency + "?email=george@costanza.com&fullname=George+Costanza";
+		return "agent://email/" + email + "?password=" + password;
+	}
+}
+
+class LoginById extends Login {
+	public var uuid: String;
+
+	override public function getUri(): String {
+		return uuid + "?password=" + password;
+	}
+}
+
+class NewUser extends ModelObj {
+	public var name: String;
+	public var userName: String;
+	public var email: String;
+	public var pwd: String;
+
+	public function new () {
+		super();
+	}
 }
 
 class Introduction extends ModelObj {
