@@ -396,4 +396,11 @@ class IntroductionConfirmation extends ModelObj {
 	public var accepted: Bool;
 	public var introSessionId: String;
 	public var correlationId: String;
+
+	public function new(accepted:Bool, introSessionId:String, correlationId:String) {
+		super();
+		this.accepted       = accepted;
+		this.introSessionId = introSessionId;
+		this.correlationId  = correlationId;
+	}
 }

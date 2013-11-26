@@ -99,6 +99,32 @@ body {
 #content {
 	padding: 0 20px;
 }
+
+/* Introduction Response */
+
+.introductionNotificationComp {
+	min-height: 150px;
+	width:100%;
+	margin-top:7px;
+	padding-right:0px;
+}
+
+.introductionNotificationComp .invitationText {
+	float:right;
+	text-align:left;
+}
+
+.introductionNotificationComp .intro-title {
+	font-size: 1.2em;
+	font-weight: bold;
+	margin-bottom: 5px;
+}
+
+.invitation-message {
+		width: 400px;
+	font-size: .7em;
+	padding: 15px;
+}
 	/* Filter
 	-----------------------------------------------------------------------------*/
 	#filter {
@@ -313,7 +339,7 @@ body {
 			height: 140px !important;
 		}
 
-		#feed .content-timestamp {
+		.content-timestamp {
 			font-size:.5em;
 			padding-bottom: 4px;
 		}

@@ -62,10 +62,11 @@ extern class ConnectionsList extends JQ {
 			        );
 
 			        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn: Connection) {
-			        		if(conn != null)
+			        		if(conn != null) {
 			                	self._setConnections(conn.connectionSet);
-		                	else 
+			        		} else { 
 		                		self._setConnections(AppContext.USER.currentAlias.connectionSet);
+		                	}
 			            }, "ConnectionsList-TargetChange")
 			        );
 
@@ -74,8 +75,8 @@ extern class ConnectionsList extends JQ {
 			        		self.connectionsMap.iter(
 			        				function(cc: ConnectionComp): Void {
 			        					if(cc.connection().equals(conn)) {
-			        						cc.addNotification(notification);
-			        						cc.prependTo(selfElement);//move to the top
+			        						cc.addNotification();
+			        						cc.prependTo(selfElement); // move to the top
 			        					}
 			        				}
 			        			);
@@ -87,7 +88,7 @@ extern class ConnectionsList extends JQ {
 			        		self.connectionsMap.iter(
 			        				function(cc: ConnectionComp): Void {
 			        					if(cc.connection().equals(conn)) {
-			        						cc.deleteNotification(notification);
+			        						cc.deleteNotification();
 			        					}
 			        				}
 			        			);

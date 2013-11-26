@@ -25,8 +25,8 @@ typedef ConnectionCompWidgetDef = {
 	@:optional var _notifications: JQ;
 	var update: Connection->Void;
 	var destroy: Void->Void;
-	var addNotification: NotificationMessage->Void;
-	var deleteNotification: NotificationMessage->Void;
+	var addNotification: Void->Void;
+	var deleteNotification: Void->Void;
 }
 
 class ConnectionCompHelper {
@@ -38,12 +38,12 @@ class ConnectionCompHelper {
 		return c.connectionComp("update", connection);
 	}
 
-	public static function addNotification(c: ConnectionComp, n:NotificationMessage): Void {
-		return c.connectionComp("addNotification", n);
+	public static function addNotification(c: ConnectionComp): Void {
+		return c.connectionComp("addNotification");
 	}
 
-	public static function deleteNotification(c: ConnectionComp, n:NotificationMessage): Void {
-		return c.connectionComp("deleteNotification", n);
+	public static function deleteNotification(c: ConnectionComp): Void {
+		return c.connectionComp("deleteNotification");
 	}
 }
 
@@ -117,7 +117,7 @@ extern class ConnectionComp extends JQ {
 		            self._avatar.update(conn);
 	        	},
 
-	        	addNotification: function(notification:NotificationMessage): Void {
+	        	addNotification: function(): Void {
 	        		var self: ConnectionCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -128,7 +128,7 @@ extern class ConnectionComp extends JQ {
 					notificationDiv.css("visibility", "visible");
         		},
 
-        		deleteNotification: function(notification:NotificationMessage): Void {
+        		deleteNotification: function(): Void {
 	        		var self: ConnectionCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
