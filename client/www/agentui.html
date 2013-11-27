@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 	<head>
         <title>Agent UI</title>
@@ -9,10 +9,10 @@
         <style type="text/css" media="all">
             @import url("css/jquery-ui-1.10.3.custom/redmond/jquery-ui-1.10.3.custom.min.css");
         </style>
-        <script type="text/javascript" src="js/jquery-1.10.2.js"></script>
-        <script type="text/javascript" src="js/jquery-ui-1.10.3.js"></script>
-        <script type="text/javascript" src="js/AgentUi.js"></script>
-		<script type="text/javascript">
+        <script src="js/jquery-1.10.2.js"></script>
+        <script src="js/jquery-ui-1.10.3.js"></script>
+        <script src="js/AgentUi.js"></script>
+		<script>
             $(document).ready(function() {
             	ui.AgentUi.start();
 
@@ -27,7 +27,6 @@
 			    var middleContainer = $('#middleContainer');
 			    var leftContainer = $('#sideLeft');
 			    var rightContainer = $('#sideRight');
-
 
 			    fixHeight($('#middleContainer'), $('#middleContainerSpacer'));
 			    fixHeight($('#sideLeft'), $('#sideLeftSpacer'));
@@ -55,16 +54,16 @@
 				<div id="middleContainer">
 					<div id="content">
 						<div id="tabs" class="shadow">
+							<div id="filter" class="container " style="">
+								<!-- <div id="filterTrash">
+									<img src="media/trash.png" alt="trash"  title="Drag items here to remove them from the filter, or double-click to clear." style=""/>
+								</div> -->
+							</div>
 							<ul>
 							    <li><a href="#tabs-feed">Feed</a></li>
 							    <li><a href="#tabs-score">Score</a></li>
 							</ul>
 							<div id="tabs-feed">
-								<div id="filter" class="container " style="">
-									<!-- <div id="filterTrash">
-										<img src="media/trash.png" alt="trash"  title="Drag items here to remove them from the filter, or double-click to clear." style=""/>
-									</div> -->
-								</div>
 								<div id="feed" class="container" style="padding: 10px;">
 									<div id="postInput"></div>
 									<div id="middleContainerSpacer" class="spacer"></div>
