@@ -28,6 +28,7 @@
 			    var leftContainer = $('#sideLeft');
 			    var rightContainer = $('#sideRight');
 
+
 			    fixHeight($('#middleContainer'), $('#middleContainerSpacer'));
 			    fixHeight($('#sideLeft'), $('#sideLeftSpacer'));
 			    fixHeight($('#sideRight'), $('#sideRightSpacer'));
@@ -53,12 +54,12 @@
 
 				<div id="middleContainer">
 					<div id="content">
+						<div id="filter" class="container " style="">
+							<!-- <div id="filterTrash">
+								<img src="media/trash.png" alt="trash"  title="Drag items here to remove them from the filter, or double-click to clear." style=""/>
+							</div> -->
+						</div>
 						<div id="tabs" class="shadow">
-							<div id="filter" class="container " style="">
-								<!-- <div id="filterTrash">
-									<img src="media/trash.png" alt="trash"  title="Drag items here to remove them from the filter, or double-click to clear." style=""/>
-								</div> -->
-							</div>
 							<ul>
 							    <li><a href="#tabs-feed">Feed</a></li>
 							    <li><a href="#tabs-score">Score</a></li>
@@ -70,7 +71,7 @@
 								</div>
 							</div><!-- #tabs-feed-->
 							<div id="tabs-score">
-								<div id=""></div>
+								<div id="score-div" class="container"></div>
 							</div><!-- #tabs-score-->
 						</div>
 						

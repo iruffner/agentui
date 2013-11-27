@@ -101,7 +101,12 @@ class AgentUi {
             cl.filterConnections(search.val());
         });
 
-        new JQ("#middleContainer #content #tabs").tabs();
+        new JQ("#middleContainer #content #tabs").tabs({
+            beforeActivate: function(evt:JqEvent, ui:Dynamic) {
+                var max_height = Math.max(new JQ("#tabs-feed").height(), new JQ("#tabs-score").height());
+                ui.newPanel.height(max_height);
+            }
+        });
         new MessagingComp("#sideRight #chat").messagingComp();
 
         new ConnectionsList("#connections").connectionsList({
