@@ -4544,6 +4544,23 @@ ui.api.ProtocolHandler = function() {
 	this.filterIsRunning = false;
 	var _g = this;
 	ui.model.EM.addListener(ui.model.EMEvent.TEST,new ui.model.EMListener(function(data) {
+		var msgType = (function($this) {
+			var $r;
+			try {
+				$r = Type.createEnum(ui.api.MsgType,data.msgType);
+			} catch( err ) {
+				$r = null;
+			}
+			return $r;
+		}(this));
+		var processor = _g.processHash.get(msgType);
+		if(processor == null) {
+			if(data != null) ui.AppContext.LOGGER.info("no processor for " + Std.string(data.msgType)); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
+			return;
+		} else {
+			ui.AppContext.LOGGER.debug("received " + Std.string(data.msgType));
+			processor(data);
+		}
 	}));
 	ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filter) {
 		if(_g.filterIsRunning) _g.stopCurrentFilter(function() {

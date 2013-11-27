@@ -34,7 +34,25 @@ class ProtocolHandler {
 
 	public function new() {
 		EM.addListener(EMEvent.TEST, new EMListener(function(data: Dynamic): Void {
-
+				var msgType: MsgType = {
+					try {
+						Type.createEnum(MsgType, data.msgType);
+					} catch (err: Dynamic) {
+						null;
+					}
+				}
+				var processor: Dynamic->Void = processHash.get(msgType);
+				if(processor == null) {
+					if(data != null)
+						AppContext.LOGGER.info("no processor for " + data.msgType);
+					else 
+						AppContext.LOGGER.info("no data returned on polling channel response");
+					// JqueryUtil.alert("Don't know how to handle " + data.msgType);
+					return;
+				} else {
+					AppContext.LOGGER.debug("received " + data.msgType);
+					processor(data);
+				}
 			})
 		);
 		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
