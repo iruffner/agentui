@@ -43,6 +43,14 @@ class AgentUi {
     }
 
     public static function start(): Void {
+        var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
+        if(urlVars.demo.isNotBlank() && (urlVars.demo == "yes" || urlVars.demo == "true")) {
+            AppContext.DEMO = true;
+        } 
+
+        var z: ZWidget = new ZWidget("<div></div>");
+        
+
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + N");
@@ -58,7 +66,7 @@ class AgentUi {
 
                 EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
             }
-            else if(evt.altKey && evt.shiftKey && evt.keyCode == 77 /* ALT+SHIFT+N */) {
+            else if(evt.altKey && evt.shiftKey && evt.keyCode == 77 /* ALT+SHIFT+M */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + M");
                 var connection: Connection = AppContext.USER.currentAlias.connectionSet.asArray()[2];
                 var notification: IntroductionNotification = new IntroductionNotification();
@@ -66,19 +74,24 @@ class AgentUi {
                 notification.contentImpl.correlationId = "abc123";
                 EM.change(EMEvent.DELETE_NOTIFICATION, notification);
             }
+            else if(evt.altKey && evt.shiftKey && evt.keyCode == 79 /* ALT+SHIFT+T */) {
+                AppContext.LOGGER.debug("ALT + SHIFT + T");
+                if(ui.AppContext.DEMO) {
+                    z.zWidget("open");
+                }
+            }
         });
 
 
-        var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
-        if(urlVars.demo.isNotBlank() && (urlVars.demo == "yes" || urlVars.demo == "true")) {
-            AppContext.DEMO = true;
-        } 
+        
 
         new JQ("body").keyup(function(evt: JQEvent) {
             if(HOT_KEY_ACTIONS.hasValues()) {
-                for(action_ in 0...HOT_KEY_ACTIONS.length) {
-                    HOT_KEY_ACTIONS[action_](evt);
-                }
+                HOT_KEY_ACTIONS.iter(
+                        function(act: JQEvent->Void) {
+                            act(evt);
+                        }
+                    );
             }
         });
 
@@ -111,6 +124,11 @@ class AgentUi {
             new JQ(".nonmodalPopup").hide();
         });
 
+        if(ui.AppContext.DEMO) {
+            z.appendTo(new JQ(js.Browser.document.body));
+            z.zWidget();
+        }
+
         if(urlVars.agentURI.isNotBlank()) {
             agentURI = urlVars.agentURI;
             // LOGGER.info("Login via id | " + urlVars.uuid);
@@ -123,4 +141,6 @@ class AgentUi {
         }
         DialogManager.showLogin();
     }
+
+
 }

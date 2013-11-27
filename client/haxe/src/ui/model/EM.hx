@@ -80,6 +80,8 @@ class EMListener {
 class Nothing {}
 
 enum EMEvent {
+	TEST;
+	
 	FILTER_RUN; //occurs when filter is in live mode and there is a change to the filter, or the filter is switched to live mode
 	FILTER_CHANGE; //occurs when filter is in build mode and there is a change to the filter
 

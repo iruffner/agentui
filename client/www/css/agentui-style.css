@@ -659,6 +659,10 @@ body {
 		border-right-color: #976CD0;
 	}
 
+	#label-action-menu span.ui-icon {
+		top: .4em;
+	}
+
 /* Sidebar Right
 -----------------------------------------------------------------------------*/
 #sideRight {
