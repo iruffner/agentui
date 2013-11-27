@@ -207,7 +207,7 @@ class ProtocolHandler {
 
         processHash.set(MsgType.introductionNotification, function(data: Dynamic){
         		AppContext.LOGGER.error("introductionNotification was received from the server");
-        		var notification = AppContext.SERIALIZER.fromJsonX(data, IntroductionNotification);
+        		var notification: IntroductionNotification = AppContext.SERIALIZER.fromJsonX(data, IntroductionNotification);
         		EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
         	});
 

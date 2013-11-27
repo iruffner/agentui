@@ -52,9 +52,13 @@ extern class IntroductionNotificationComp extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of IntroductionNotificationComp must be a div element");
 		        	}
-		        	selfElement.addClass("introductionNotificationComp container");
+		        	selfElement.addClass("introductionNotificationComp container boxsizingBorder");
 
 		        	var data = self.options.notification.contentImpl;
+
+		        	var conn: Connection = data.connection;
+		        	var connFromAlias: Connection = AppContext.USER.currentAlias.connectionSet.getElement(conn.uid);
+		        	if(connFromAlias != null) conn.profile = connFromAlias.profile;
 
 		        	self.listenerUid = EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, new EMListener(function(e:Dynamic) {
 		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {

@@ -81,6 +81,7 @@ body {
 	margin-right: 250px;
 	height: 1%;
 	position: relative;
+	min-width: 650px;
 }
 
 #middleSection:after {
@@ -98,6 +99,7 @@ body {
 
 #content {
 	padding: 0 20px;
+	/*min-width: 610px;*/
 }
 
 /* Introduction Response */
@@ -106,8 +108,10 @@ body {
 	   min-height: 150px;
 	        width: 100%;
 	   margin-top: 7px;
+	   margin-bottom: 9px;
 	padding-right: 0px;
 	 border-width: 5px !important;
+	 overflow: auto;
 }
 
 #intro-table {
@@ -127,7 +131,7 @@ body {
 }
 
 .invitation-message {
-		width: 400px;
+		/*width: 400px;*/
 	font-size: .7em;
 	  padding: 15px;
 }
@@ -138,7 +142,7 @@ body {
 	height:150px;
 }
 .intro-profile-img {
-	max-height: 150px;
+	max-height: 125px;
 	border-radius: 70px;
 }
 
