@@ -28,6 +28,7 @@ typedef IntroductionNotificationCompOptions = {
 
 typedef IntroductionNotificationCompWidgetDef = {
 	@:optional var options: IntroductionNotificationCompOptions;
+	@:optional var listenerUid: String;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -55,7 +56,7 @@ extern class IntroductionNotificationComp extends JQ {
 
 		        	var data = self.options.notification.contentImpl;
 
-		        	EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, new EMListener(function(e:Dynamic) {
+		        	self.listenerUid = EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, new EMListener(function(e:Dynamic) {
 		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {
 		        			EM.change(EMEvent.DELETE_NOTIFICATION);
 		        			self.destroy();
@@ -99,6 +100,8 @@ extern class IntroductionNotificationComp extends JQ {
 		        },
 
 		        destroy: function() {
+		        	var self: IntroductionNotificationCompWidgetDef = Widgets.getSelf();
+		        	EM.removeListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, self.listenerUid);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

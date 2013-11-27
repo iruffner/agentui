@@ -8206,7 +8206,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
 		selfElement.addClass("introductionNotificationComp container");
 		var data = self.options.notification.contentImpl;
-		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE,new ui.model.EMListener(function(e) {
+		self.listenerUid = ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE,new ui.model.EMListener(function(e) {
 			m3.util.JqueryUtil.alert("Your response has been received.","Introduction",function() {
 				ui.model.EM.change(ui.model.EMEvent.DELETE_NOTIFICATION);
 				self.destroy();
@@ -8232,6 +8232,8 @@ var defineWidget = function() {
 		});
 		intro_table.find("td:nth-child(3)").append("<div>" + data.introProfile.name + "</div><div><img class='intro-profile-img container' src='" + data.introProfile.imgSrc + "'/></div>");
 	}, destroy : function() {
+		var self = this;
+		ui.model.EM.removeListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE,self.listenerUid);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
