@@ -115,6 +115,7 @@ extern class ConnectionsList extends JQ {
 	            		} else if (evt.isDelete()) {
 	            			connComp.remove();
 	            		}
+						EM.change(EMEvent.FitWindow);
 	            	});
 		        },
 		        

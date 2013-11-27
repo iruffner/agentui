@@ -79,10 +79,12 @@ class User extends ModelObj {
         );
         EM.addListener(EMEvent.ConnectionUpdate, new EMListener(function(conn: Connection): Void {
                 this.currentAlias.connectionSet.update(conn);
+				EM.change(EMEvent.FitWindow);
             }, "User-ConnUpdate")
         );
         EM.addListener(EMEvent.NewConnection, new EMListener(function(conn: Connection): Void {
                 this.currentAlias.connectionSet.update(conn);
+				EM.change(EMEvent.FitWindow);
             }, "User-ConnUpdate")
         );
 	}

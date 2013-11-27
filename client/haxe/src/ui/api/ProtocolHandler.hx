@@ -33,6 +33,10 @@ class ProtocolHandler {
 	private var processHash: Map<MsgType,Dynamic->Void>;
 
 	public function new() {
+		EM.addListener(EMEvent.TEST, new EMListener(function(data: Dynamic): Void {
+
+			})
+		);
 		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
 				if(filterIsRunning) {
 					this.stopCurrentFilter(

@@ -106,7 +106,7 @@ class PrologHelper {
 				sarray.push("[" + path.join(",") + "]");
 			});
 
-		return (sarray.length > 1? "each(":"") + sarray.join(",") + (sarray.length > 1? ")":"");
+		return (sarray.length > 1 ? "each(":"") + sarray.join(",") + (sarray.length > 1? ")":"");
 	}
 
 	public static function connectionsToProlog(connections: OSet<Connection>): String {
