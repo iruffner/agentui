@@ -52,24 +52,35 @@ extern class IntroductionNotificationComp extends JQ {
 		        		throw new Exception("Root of IntroductionNotificationComp must be a div element");
 		        	}
 		        	selfElement.addClass("introductionNotificationComp container");
+
 		        	var data = self.options.notification.contentImpl;
-		        	var avatar = new ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({
+
+		        	EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, new EMListener(function(e:Dynamic) {
+		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {
+		        			EM.change(EMEvent.DELETE_NOTIFICATION);
+		        			self.destroy();
+		        			selfElement.remove();
+		        		});
+		        	}));
+
+		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
+
+		        	var avatar = new ConnectionAvatar("<div class='avatar introduction-avatar'></div>").connectionAvatar({
 		        		connection: data.connection,
 		        		dndEnabled: false,
 		        		isDragByHelper: true,
 		        		containment: false
-	        		}).appendTo(selfElement).css("float", "left").css("width", "100px").css("height", "150px");
+	        		}).appendTo(intro_table.find("td:nth-child(1)"));
 
 	        		var invitationConfirmation = function(accepted:Bool) {
 	        			var confirmation = new IntroductionConfirmation( accepted, data.introSessionId, data.correlationId);
 	        			EM.change(EMEvent.INTRODUCTION_CONFIRMATION, confirmation);
-	        			selfElement.remove();
 	        		}
 
-		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(selfElement);
+		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		        	var title = new JQ("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
-		        	var date  =	new JQ("<div class='content-timestamp'>From: " + Date.now() + "</div>").appendTo(invitationText);
-		        	var date  =	new JQ("<div class='content-timestamp'>" + Date.now() + "</div>").appendTo(invitationText);
+		        	var date  =	new JQ("<div class='content-timestamp'><b>From:</b> " + data.connection.profile.name + "</div>").appendTo(invitationText);
+		        	var date  =	new JQ("<div class='content-timestamp'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='invitation-message'>" + data.message + "</div>").appendTo(invitationText);
 					var accept = new JQ("<button>Accept</button>")
 							        .appendTo(invitationText)
@@ -83,6 +94,8 @@ extern class IntroductionNotificationComp extends JQ {
 							        .click(function(evt: JQEvent): Void {
 							        	invitationConfirmation(false);
 							        });
+
+					intro_table.find("td:nth-child(3)").append("<div>" + data.introProfile.name + "</div><div><img class='intro-profile-img container' src='" + data.introProfile.imgSrc + "'/></div>");
 		        },
 
 		        destroy: function() {

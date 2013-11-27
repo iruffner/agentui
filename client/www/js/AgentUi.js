@@ -8234,16 +8234,23 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
 		selfElement.addClass("introductionNotificationComp container");
 		var data = self.options.notification.contentImpl;
-		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connection : data.connection, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(selfElement).css("float","left").css("width","100px").css("height","150px");
+		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE,new ui.model.EMListener(function(e) {
+			m3.util.JqueryUtil.alert("Your response has been received.","Introduction",function() {
+				ui.model.EM.change(ui.model.EMEvent.DELETE_NOTIFICATION);
+				self.destroy();
+				selfElement.remove();
+			});
+		}));
+		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
+		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connection : data.connection, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationConfirmation = function(accepted) {
 			var confirmation = new ui.model.IntroductionConfirmation(accepted,data.introSessionId,data.correlationId);
 			ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_CONFIRMATION,confirmation);
-			selfElement.remove();
 		};
-		var invitationText = new $("<div class='invitationText'></div>").appendTo(selfElement);
+		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
-		var date = new $("<div class='content-timestamp'>From: " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var date1 = new $("<div class='content-timestamp'>" + Std.string(new Date()) + "</div>").appendTo(invitationText);
+		var date = new $("<div class='content-timestamp'><b>From:</b> " + data.connection.profile.name + "</div>").appendTo(invitationText);
+		var date1 = new $("<div class='content-timestamp'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
 		var message = new $("<div class='invitation-message'>" + data.message + "</div>").appendTo(invitationText);
 		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
 			invitationConfirmation(true);
@@ -8251,6 +8258,7 @@ var defineWidget = function() {
 		var reject = new $("<button>Reject</button>").appendTo(invitationText).button().click(function(evt) {
 			invitationConfirmation(false);
 		});
+		intro_table.find("td:nth-child(3)").append("<div>" + data.introProfile.name + "</div><div><img class='intro-profile-img container' src='" + data.introProfile.imgSrc + "'/></div>");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
