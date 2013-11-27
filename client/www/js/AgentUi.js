@@ -8281,8 +8281,8 @@ var defineWidget = function() {
 		};
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
-		var date = new $("<div class='content-timestamp'><b>From:</b> " + data.connection.profile.name + "</div>").appendTo(invitationText);
-		var date1 = new $("<div class='content-timestamp'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
+		var from = new $("<div class='content-timestamp'><b>From:</b> " + data.connection.profile.name + "</div>").appendTo(invitationText);
+		var date = new $("<div class='content-timestamp'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
 		var message = new $("<div class='invitation-message'>" + data.message + "</div>").appendTo(invitationText);
 		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
 			invitationConfirmation(true);
