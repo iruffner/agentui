@@ -48,6 +48,8 @@ class StandardRequest implements Requester {
 }
 
 class LongPollingRequest implements Requester {
+	public static var reqId: Int = 1;
+
 	private var jqXHR: Dynamic;
 	private var request: ProtocolMessage<Dynamic>;
 	private var requestJson: String;

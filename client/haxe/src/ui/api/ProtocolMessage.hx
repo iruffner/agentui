@@ -470,12 +470,24 @@ class IntroductionNotification extends ProtocolMessage<IntroductionNotificationD
 		public var correlationId: String;
 		public var connection: Connection;
 		public var message: String;
-		public var introProfile: UserData;
+		var introProfile: String;
+		@:transient public var profile: UserData;
 
 		public function new() {
 			super();
-			this.introProfile = new UserData();
+			this.profile = new UserData();
 		}
+
+		private function readResolve(): Void {
+			if(introProfile.isNotBlank()) {
+				var p: Dynamic = haxe.Json.parse(introProfile);
+				profile = AppContext.SERIALIZER.fromJsonX(p, UserData);
+			} else {
+				profile = new UserData();
+			}
+		}
+
+
 	}
 
 class IntroductionConfirmationRequest extends ProtocolMessage<IntroductionConfirmationRequestData> {
@@ -503,7 +515,17 @@ class ConnectNotification extends ProtocolMessage<ConnectNotificationData> {
 }
 	class ConnectNotificationData extends PayloadWithSessionURI {
 		public var connection: Connection;
-		public var introProfile: UserData;
+		var introProfile: String;
+		@:transient public var profile: UserData;
+
+		private function readResolve(): Void {
+			if(introProfile.isNotBlank()) {
+				var p: Dynamic = haxe.Json.parse(introProfile);
+				profile = AppContext.SERIALIZER.fromJsonX(p, UserData);
+			} else {
+				profile = new UserData();
+			}
+		}
 	}
 
 enum MsgType {

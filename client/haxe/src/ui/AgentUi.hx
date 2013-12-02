@@ -61,8 +61,8 @@ class AgentUi {
                 notification.contentImpl.connection = connection;
                 notification.contentImpl.correlationId = "abc123";
                 notification.contentImpl.message = "hey guys!  Are you ready to get to know eachother???";
-                notification.contentImpl.introProfile.name = "Uncle Leo";
-                notification.contentImpl.introProfile.imgSrc = "media/test/uncle_leo.jpg";
+                notification.contentImpl.profile.name = "Uncle Leo";
+                notification.contentImpl.profile.imgSrc = "media/test/uncle_leo.jpg";
 
                 EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
             }

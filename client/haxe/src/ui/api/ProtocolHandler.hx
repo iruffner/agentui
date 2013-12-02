@@ -225,7 +225,7 @@ class ProtocolHandler {
         		AppContext.LOGGER.debug("connectNotification was received from the server");
         		var notification: ConnectNotification = AppContext.SERIALIZER.fromJsonX(data, ConnectNotification);
         		var conn: Connection = notification.contentImpl.connection;
-        		conn.profile = notification.contentImpl.introProfile;
+        		conn.profile = notification.contentImpl.profile;
         		EM.change(EMEvent.NewConnection, conn);
         	});
 

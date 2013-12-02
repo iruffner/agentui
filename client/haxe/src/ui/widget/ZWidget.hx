@@ -62,8 +62,8 @@ extern class ZWidget extends JQ {
 					                notification.contentImpl.connection = connection;
 					                notification.contentImpl.correlationId = "abc123";
 					                notification.contentImpl.message = "Hey guys!  Are you ready to get to know each other???";
-					                notification.contentImpl.introProfile.name = "Uncle Leo";
-					                notification.contentImpl.introProfile.imgSrc = "media/test/uncle_leo.jpg";
+					                notification.contentImpl.profile.name = "Uncle Leo";
+					                notification.contentImpl.profile.imgSrc = "media/test/uncle_leo.jpg";
 
 					                EM.change(EMEvent.TEST, AppContext.SERIALIZER.toJson(notification));
         						})
@@ -82,8 +82,8 @@ extern class ZWidget extends JQ {
         					.button()
         					.click(function(evt: JQEvent): Void {
         							var notification: ConnectNotification = new ConnectNotification();
-        							notification.contentImpl.introProfile.name = "Uncle Leo";
-					                notification.contentImpl.introProfile.imgSrc = "media/test/uncle_leo.jpg";
+        							notification.contentImpl.profile.name = "Uncle Leo";
+					                notification.contentImpl.profile.imgSrc = "media/test/uncle_leo.jpg";
 					                notification.contentImpl.connection = new Connection();
 					                notification.contentImpl.connection.source = "fakesource";
 					                notification.contentImpl.connection.target = "faketarget";

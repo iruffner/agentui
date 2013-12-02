@@ -100,7 +100,7 @@ extern class IntroductionNotificationComp extends JQ {
 							        	invitationConfirmation(false);
 							        });
 
-					intro_table.find("td:nth-child(3)").append("<div>" + data.introProfile.name + "</div><div><img class='intro-profile-img container' src='" + data.introProfile.imgSrc + "'/></div>");
+					intro_table.find("td:nth-child(3)").append("<div>" + data.profile.name + "</div><div><img class='intro-profile-img container' src='" + data.profile.imgSrc + "'/></div>");
 		        },
 
 		        destroy: function() {
