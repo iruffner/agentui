@@ -465,7 +465,7 @@ class IntroductionNotification extends ProtocolMessage<IntroductionNotificationD
 		super(MsgType.introductionNotification, IntroductionNotificationData);
 	}
 }
-	class IntroductionNotificationData extends PayloadWithSessionURI {
+	class IntroductionNotificationData extends Payload {
 		public var introSessionId: String;
 		public var correlationId: String;
 		public var connection: Connection;
@@ -513,7 +513,7 @@ class ConnectNotification extends ProtocolMessage<ConnectNotificationData> {
 		super(MsgType.connectNotification, ConnectNotificationData);
 	}
 }
-	class ConnectNotificationData extends PayloadWithSessionURI {
+	class ConnectNotificationData extends Payload {
 		public var connection: Connection;
 		var introProfile: String;
 		@:transient public var profile: UserData;

@@ -62,7 +62,7 @@ extern class IntroductionNotificationComp extends JQ {
 
 		        	self.listenerUid = EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, new EMListener(function(e:Dynamic) {
 		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {
-		        			EM.change(EMEvent.DELETE_NOTIFICATION);
+		        			EM.change(EMEvent.DELETE_NOTIFICATION, self.options.notification);
 		        			self.destroy();
 		        			selfElement.remove();
 		        		});

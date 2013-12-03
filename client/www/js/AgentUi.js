@@ -5683,13 +5683,13 @@ ui.api.IntroductionNotification.prototype = $extend(ui.api.ProtocolMessage.proto
 	__class__: ui.api.IntroductionNotification
 });
 ui.api.IntroductionNotificationData = function() {
-	ui.api.PayloadWithSessionURI.call(this);
+	ui.api.Payload.call(this);
 	this.profile = new ui.model.UserData();
 };
 $hxClasses["ui.api.IntroductionNotificationData"] = ui.api.IntroductionNotificationData;
 ui.api.IntroductionNotificationData.__name__ = ["ui","api","IntroductionNotificationData"];
-ui.api.IntroductionNotificationData.__super__ = ui.api.PayloadWithSessionURI;
-ui.api.IntroductionNotificationData.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
+ui.api.IntroductionNotificationData.__super__ = ui.api.Payload;
+ui.api.IntroductionNotificationData.prototype = $extend(ui.api.Payload.prototype,{
 	readResolve: function() {
 		if(m3.helper.StringHelper.isNotBlank(this.introProfile)) {
 			var p = haxe.Json.parse(this.introProfile);
@@ -5735,12 +5735,12 @@ ui.api.ConnectNotification.prototype = $extend(ui.api.ProtocolMessage.prototype,
 	__class__: ui.api.ConnectNotification
 });
 ui.api.ConnectNotificationData = function() {
-	ui.api.PayloadWithSessionURI.call(this);
+	ui.api.Payload.call(this);
 };
 $hxClasses["ui.api.ConnectNotificationData"] = ui.api.ConnectNotificationData;
 ui.api.ConnectNotificationData.__name__ = ["ui","api","ConnectNotificationData"];
-ui.api.ConnectNotificationData.__super__ = ui.api.PayloadWithSessionURI;
-ui.api.ConnectNotificationData.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
+ui.api.ConnectNotificationData.__super__ = ui.api.Payload;
+ui.api.ConnectNotificationData.prototype = $extend(ui.api.Payload.prototype,{
 	readResolve: function() {
 		if(m3.helper.StringHelper.isNotBlank(this.introProfile)) {
 			var p = haxe.Json.parse(this.introProfile);
@@ -8226,7 +8226,7 @@ var defineWidget = function() {
 		if(connFromAlias != null) conn.profile = connFromAlias.profile;
 		self.listenerUid = ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE,new ui.model.EMListener(function(e) {
 			m3.util.JqueryUtil.alert("Your response has been received.","Introduction",function() {
-				ui.model.EM.change(ui.model.EMEvent.DELETE_NOTIFICATION);
+				ui.model.EM.change(ui.model.EMEvent.DELETE_NOTIFICATION,self.options.notification);
 				self.destroy();
 				selfElement.remove();
 			});
@@ -9427,12 +9427,12 @@ ui.api.BeginIntroductionRequest.__rtti = "<class path=\"ui.api.BeginIntroduction
 ui.api.BeginIntroductionRequestData.__rtti = "<class path=\"ui.api.BeginIntroductionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<alias public=\"1\"><c path=\"String\"/></alias>\n\t<aConnection public=\"1\"><c path=\"ui.model.Connection\"/></aConnection>\n\t<bConnection public=\"1\"><c path=\"ui.model.Connection\"/></bConnection>\n\t<aMessage public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aMessage>\n\t<bMessage public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</bMessage>\n\t<new public=\"1\" set=\"method\" line=\"444\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.BeginIntroductionResponse.__rtti = "<class path=\"ui.api.BeginIntroductionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"454\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.IntroductionNotification.__rtti = "<class path=\"ui.api.IntroductionNotification\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.IntroductionNotificationData\"/></extends>\n\t<implements path=\"ui.api.NotificationMessage\"/>\n\t<new public=\"1\" set=\"method\" line=\"464\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.IntroductionNotificationData.__rtti = "<class path=\"ui.api.IntroductionNotificationData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<introSessionId public=\"1\"><c path=\"String\"/></introSessionId>\n\t<correlationId public=\"1\"><c path=\"String\"/></correlationId>\n\t<connection public=\"1\"><c path=\"ui.model.Connection\"/></connection>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<introProfile><c path=\"String\"/></introProfile>\n\t<profile public=\"1\">\n\t\t<c path=\"ui.model.UserData\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<readResolve set=\"method\" line=\"481\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<new public=\"1\" set=\"method\" line=\"476\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.IntroductionNotificationData.__rtti = "<class path=\"ui.api.IntroductionNotificationData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<introSessionId public=\"1\"><c path=\"String\"/></introSessionId>\n\t<correlationId public=\"1\"><c path=\"String\"/></correlationId>\n\t<connection public=\"1\"><c path=\"ui.model.Connection\"/></connection>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<introProfile><c path=\"String\"/></introProfile>\n\t<profile public=\"1\">\n\t\t<c path=\"ui.model.UserData\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<readResolve set=\"method\" line=\"481\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<new public=\"1\" set=\"method\" line=\"476\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.IntroductionConfirmationRequest.__rtti = "<class path=\"ui.api.IntroductionConfirmationRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.IntroductionConfirmationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"494\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.IntroductionConfirmationRequestData.__rtti = "<class path=\"ui.api.IntroductionConfirmationRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<alias public=\"1\"><c path=\"String\"/></alias>\n\t<introSessionId public=\"1\"><c path=\"String\"/></introSessionId>\n\t<correlationId public=\"1\"><c path=\"String\"/></correlationId>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"498\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.IntroductionConfirmationResponse.__rtti = "<class path=\"ui.api.IntroductionConfirmationResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"506\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.ConnectNotification.__rtti = "<class path=\"ui.api.ConnectNotification\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ConnectNotificationData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"512\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ConnectNotificationData.__rtti = "<class path=\"ui.api.ConnectNotificationData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<connection public=\"1\"><c path=\"ui.model.Connection\"/></connection>\n\t<introProfile><c path=\"String\"/></introProfile>\n\t<profile public=\"1\">\n\t\t<c path=\"ui.model.UserData\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<readResolve set=\"method\" line=\"521\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<new public=\"1\" set=\"method\" line=\"516\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.ConnectNotificationData.__rtti = "<class path=\"ui.api.ConnectNotificationData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<connection public=\"1\"><c path=\"ui.model.Connection\"/></connection>\n\t<introProfile><c path=\"String\"/></introProfile>\n\t<profile public=\"1\">\n\t\t<c path=\"ui.model.UserData\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<readResolve set=\"method\" line=\"521\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<new public=\"1\" set=\"method\" line=\"516\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.LongPollingRequest.reqId = 1;
 ui.api.TestDao.initialized = false;
 ui.api.TestDao._lastRandom = 0;
