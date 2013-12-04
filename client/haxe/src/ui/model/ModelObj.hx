@@ -53,6 +53,7 @@ class User extends ModelObj {
 	
 	@:transient public var aliasSet: ObservableSet<Alias>;
 	private var aliases: Array<Alias>;
+	public var defaultAlias: Alias;
 	
 	@:isVar public var currentAlias (get,set): Alias;
 
@@ -139,13 +140,13 @@ class UserData extends ModelObj {
 }
 
 class Alias extends ModelObj {
-	@:optional public var imgSrc: String;
+	public var profile: UserData;
 	public var label: String;
 	
-	@:transient public var labelSet: ObservableSet<Label>;
-	@:transient public var connectionSet: ObservableSet<Connection>;
-	private var labels: Array<Label>;
-	private var connections: Array<Connection>;
+	@:isVar public var labelSet(get, null): ObservableSet<Label>;
+	@:isVar public var connectionSet(get, null): ObservableSet<Connection>;
+	// private var labels: Array<Label>;
+	// private var connections: Array<Connection>;
 
 	// @:transient var loadedFromDb: Bool = false;
 
@@ -154,18 +155,28 @@ class Alias extends ModelObj {
 		super();
 	}
 
-	private function readResolve(): Void {
-		labelSet = new ObservableSet<Label>(Label.identifier, labels);
-		connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
-	}
+	// private function readResolve(): Void {
+	// 	labelSet = new ObservableSet<Label>(Label.identifier, labels);
+	// 	connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
+	// }
 
-	private function writeResolve(): Void {
-		labels = labelSet.asArray();
-		connections = connectionSet.asArray();
-	}
+	// private function writeResolve(): Void {
+	// 	labels = labelSet.asArray();
+	// 	connections = connectionSet.asArray();
+	// }
 
 	public static function identifier(alias: Alias): String {
 		return alias.label;
+	}
+
+	private function get_labelSet(): ObservableSet<Label> {
+		if(labelSet == null) labelSet = new ObservableSet<Label>(Label.identifier);
+		return labelSet;
+	}
+
+	private function get_connectionSet(): ObservableSet<Connection> {
+		if(connectionSet == null) connectionSet = new ObservableSet<Connection>(Connection.identifier);
+		return connectionSet;
 	}
 }
 

@@ -91,11 +91,11 @@ enum EMEvent {
 	NewContentCreated;
 	EditContentClosed;
 
-	LoadAlias;
+	LOAD_ALIAS;
 	AliasLoaded;
 	AliasConnectionsLoaded;
 	AliasLabelsLoaded;
-	AliasCreate;
+	ALIAS_CREATE;
 
 	USER_LOGIN;
 	USER_CREATE;

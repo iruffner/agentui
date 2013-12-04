@@ -111,7 +111,8 @@ class TestDao {
         for (i in 0...aliasData.length) {
     		var alias: Alias = new Alias();
             alias.label  = aliasData[i].label;
-            alias.imgSrc = aliasData[i].imgSrc;
+            alias.profile = new UserData();
+            alias.profile.imgSrc = aliasData[i].imgSrc;
             aliases.push(alias);
         }
 	}
@@ -380,10 +381,10 @@ class TestDao {
         user.aliasSet.visualId = "TestAlias";
         user.aliasSet.addAll(aliases);
         var alias: Alias = aliases[0];
-        alias.connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
         alias.connectionSet.visualId = "TestAliasConnections";
-        alias.labelSet = new ObservableSet<Label>(Label.identifier, labels);
+        alias.connectionSet.addAll(connections);
         alias.labelSet.visualId = "TestAliasLabels";
+        alias.labelSet.addAll(labels);
         user.currentAlias = alias;
         
         return user;
@@ -392,10 +393,10 @@ class TestDao {
 	public static function getAlias(uid: String): Alias {
 		if(!initialized) initialize();
 		var alias: Alias = aliases.getElementComplex(uid, "uid");
-		alias.connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
         alias.connectionSet.visualId = "TestAliasConnections";
-        alias.labelSet = new ObservableSet<Label>(Label.identifier, labels);
+        alias.connectionSet.addAll(connections);
         alias.labelSet.visualId = "TestAliasLabels";
+        alias.labelSet.addAll(labels);
 		return alias;
 	}
 }

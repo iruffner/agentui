@@ -86,12 +86,12 @@ class ProtocolHandler {
             })
         );
 
-        EM.addListener(EMEvent.LoadAlias, new EMListener(function(alias: Alias): Void {
+        EM.addListener(EMEvent.LOAD_ALIAS, new EMListener(function(alias: Alias): Void {
                 this.getAliasInfo(alias);
             })
         );
 
-        EM.addListener(EMEvent.AliasCreate, new EMListener(function(alias: Alias): Void {
+        EM.addListener(EMEvent.ALIAS_CREATE, new EMListener(function(alias: Alias): Void {
                 addAlias(alias);
             })
         );
@@ -164,7 +164,6 @@ class ProtocolHandler {
         		AppContext.LOGGER.debug("addAliasLabelsResponse was received from the server");
         	});
         
-
         processHash.set(MsgType.addAgentAliasesResponse, function(data: Dynamic){
         		AppContext.LOGGER.debug("addAgentAliasesResponse was received from the server");
         	});
@@ -188,7 +187,7 @@ class ProtocolHandler {
         		AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
         		var resp: GetAliasConnectionsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasConnectionsResponse);
         		AppContext.USER.currentAlias.connectionSet.clear();
-        		AppContext.USER.currentAlias.connectionSet.addAll(resp.contentImpl.cnxns);
+        		AppContext.USER.currentAlias.connectionSet.addAll(resp.contentImpl.connections);
         	});
         processHash.set(MsgType.getAliasConnectionsError, function(data: Dynamic){
         		AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
@@ -206,7 +205,7 @@ class ProtocolHandler {
         	});
 
         processHash.set(MsgType.introductionNotification, function(data: Dynamic){
-        		AppContext.LOGGER.error("introductionNotification was received from the server");
+        		AppContext.LOGGER.debug("introductionNotification was received from the server");
         		var notification: IntroductionNotification = AppContext.SERIALIZER.fromJsonX(data, IntroductionNotification);
         		EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
         	});
@@ -271,13 +270,14 @@ class ProtocolHandler {
 
 				        	if(response.contentImpl.defaultAlias.isNotBlank()) {
 				        		user.currentAlias = user.aliasSet.getElementComplex( response.contentImpl.defaultAlias , "label" );
+				        		user.defaultAlias = user.currentAlias;
 				        	} else {
 				        		user.currentAlias = user.aliasSet.iterator().next();
 				        	}
 							
 							user.sessionURI = response.contentImpl.sessionURI;
-							user.currentAlias.connectionSet = new ObservableSet<Connection>(Connection.identifier, response.contentImpl.listOfConnections);
-							user.currentAlias.labelSet = new ObservableSet<Label>(Label.identifier, response.contentImpl.labels);
+							user.currentAlias.connectionSet.addAll(response.contentImpl.listOfConnections);
+							user.currentAlias.labelSet.addAll(response.contentImpl.labels);
 							user.userData = response.contentImpl.jsonBlob;
 							//open comm's with server
 							_startPolling(user.sessionURI);
@@ -566,7 +566,7 @@ class ProtocolHandler {
 	}
 
 	public function addAlias(alias: Alias): Void {
-		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.addAgentAliasesRequest);
+		var request: BaseAgentAliasesRequest = new BaseAgentAliasesRequest(MsgType.addAgentAliasesRequest);
 		request.contentImpl.aliases = [alias.label];
 
 		try {
@@ -581,7 +581,7 @@ class ProtocolHandler {
 	}
 
 	public function removeAlias(alias: Alias): Void {
-		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.removeAgentAliasesRequest);
+		var request: BaseAgentAliasesRequest = new BaseAgentAliasesRequest(MsgType.removeAgentAliasesRequest);
 		request.contentImpl.aliases = [alias.label];
 
 		try {
@@ -597,7 +597,7 @@ class ProtocolHandler {
 
 	public function setDefaultAlias(alias: Alias): Void {
 		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.setDefaultAliasRequest);
-		request.contentImpl.aliases = [alias.label];
+		request.contentImpl.alias = alias.label;
 
 		try {
 			//we don't expect anything back here
@@ -612,7 +612,7 @@ class ProtocolHandler {
 
 	public function getAliasConnections(alias: Alias): Void {
 		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.getAliasConnectionsRequest);
-		request.contentImpl.aliases = [alias.label];
+		request.contentImpl.alias = alias.label;
 
 		try {
 			//we don't expect anything back here
@@ -627,7 +627,7 @@ class ProtocolHandler {
 
 	public function getAliasLabels(alias: Alias): Void {
 		var request: BaseAgentAliasRequest = new BaseAgentAliasRequest(MsgType.getAliasLabelsRequest);
-		request.contentImpl.aliases = [alias.label];
+		request.contentImpl.alias = alias.label;
 
 		try {
 			//we don't expect anything back here

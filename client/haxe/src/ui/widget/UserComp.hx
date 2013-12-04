@@ -65,7 +65,7 @@ extern class UserComp extends JQ {
 		        		}, "UserComp-User")
 		        	);
 
-		        	EM.addListener(EMEvent.LoadAlias, new EMListener(function(alias: Alias): Void {
+		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
 		        			self._setUser();
 		        		}, "UserComp-Alias")
 		        	);
@@ -142,12 +142,12 @@ extern class UserComp extends JQ {
 		        	var menu: M3Menu = new M3Menu("<ul id='userAliasMenu'></ul>");
 		        	menu.appendTo(self.container);
 
-		        	var menuOptions:Array<m3.jq.MenuOption> = [];
+		        	var menuOptions:Array<MenuOption> = [];
 
 					var user = self.user;
 					var iter: Iterator<Alias> = M.getX(user.aliasSet.iterator());
 
-					var menuOption:Dynamic;
+					var menuOption: MenuOption;
 
 			        if(iter != null) {
 						while(iter.hasNext()) {
@@ -156,7 +156,9 @@ extern class UserComp extends JQ {
     							label: alias.label,
     							icon: "ui-icon-person",
     							action: function(evt: JQEvent, m: M3Menu): Void {
-    								EM.change(EMEvent.LoadAlias, alias);
+    								user.currentAlias = alias;
+    								EM.change(EMEvent.LOAD_ALIAS, alias);
+    								EM.change(EMEvent.AliasLoaded, alias);
     							}
     						};
     						menuOptions.push(menuOption);
@@ -186,8 +188,8 @@ extern class UserComp extends JQ {
 					self.container.empty();
 					var imgSrc: String = "media/default_avatar.jpg";
 					if(user != null) {
-						if (user.currentAlias != null && user.currentAlias.imgSrc.isNotBlank()) {
-							imgSrc = user.currentAlias.imgSrc;
+						if ( M.getX(user.currentAlias.profile.imgSrc, "").isNotBlank()) {
+							imgSrc = user.currentAlias.profile.imgSrc;
 						} else if (user.userData.imgSrc.isNotBlank()){
 							imgSrc = user.userData.imgSrc;
 						}

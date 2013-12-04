@@ -333,7 +333,7 @@ class InsertContent extends ProtocolMessage<InsertContentData> {
 /** 
 	Aliases 
 **/
-class BaseAgentAliasRequest extends ProtocolMessage<AgentAliasesRequestData> {
+class BaseAgentAliasesRequest extends ProtocolMessage<AgentAliasesRequestData> {
 	public function new(msgType: MsgType) {
 		super(msgType, AgentAliasesRequestData);
 	}
@@ -341,6 +341,16 @@ class BaseAgentAliasRequest extends ProtocolMessage<AgentAliasesRequestData> {
 
 		class AgentAliasesRequestData extends PayloadWithSessionURI {
 			public var aliases: Array<String>;
+		}
+
+class BaseAgentAliasRequest extends ProtocolMessage<AgentAliasRequestData> {
+	public function new(msgType: MsgType) {
+		super(msgType, AgentAliasRequestData);
+	}
+}
+
+		class AgentAliasRequestData extends PayloadWithSessionURI {
+			public var alias: String;
 		}
 
 class AddAgentAliasesResponse extends ProtocolMessage<PayloadWithSessionURI> {
@@ -379,14 +389,14 @@ class SetDefaultAliasError extends ProtocolMessage<ErrorPayload> {
 	}
 }
 
-class GetAliasConnectionsResponse extends ProtocolMessage<AliasConnectionsRequestData> {
+class GetAliasConnectionsResponse extends ProtocolMessage<AliasConnectionsResponseData> {
 	public function new() {
-		super(MsgType.getAliasConnectionsResponse, AliasConnectionsRequestData);
+		super(MsgType.getAliasConnectionsResponse, AliasConnectionsResponseData);
 	}
 }
 
-		class AliasConnectionsRequestData extends PayloadWithSessionURI {
-			public var cnxns: Array<Connection>;
+		class AliasConnectionsResponseData extends PayloadWithSessionURI {
+			public var connections: Array<Connection>;
 		}
 
 class GetAliasLabelsResponse extends ProtocolMessage<AliasLabelsRequestData> {

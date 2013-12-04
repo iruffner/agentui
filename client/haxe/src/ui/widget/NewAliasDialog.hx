@@ -82,7 +82,7 @@ extern class NewAliasDialog extends JQ {
     				}
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EM.change(EMEvent.AliasCreate, alias);
+    				EM.change(EMEvent.ALIAS_CREATE, alias);
 
 	        	},
 

@@ -85,11 +85,6 @@ class AppContext {
             }, "AgentUi-User")
         );
 
-        EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-                USER.currentAlias = alias;
-            }, "AgentUi-Alias")
-        );
-
         EM.addListener(EMEvent.FitWindow, fitWindowListener);
 
         EM.addListener(EMEvent.INTRODUCTION_NOTIFICATION, new EMListener(function(notification: IntroductionNotification) {
