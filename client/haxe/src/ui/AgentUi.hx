@@ -109,15 +109,15 @@ class AgentUi {
         });
         new MessagingComp("#sideRight #chat").messagingComp();
 
-        new ConnectionsList("#connections").connectionsList({
-            });
+        new ConnectionsList("#connections").connectionsList();
+
         new LabelsList("#labelsList").labelsList();
 
         new FilterComp("#filter").filterComp(null);
 
         new ContentFeed("#feed").contentFeed({
-                content: AppContext.CONTENT
-            });
+            content: AppContext.CONTENT
+        });
 
         new UserComp("#userId").userComp();
         
@@ -125,6 +125,9 @@ class AgentUi {
 
         new InviteComp("#sideRight #sideRightInvite").inviteComp();
 
+        new ScoreComp("#score-div").scoreComp({
+            content: AppContext.CONTENT
+        });
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();
         });

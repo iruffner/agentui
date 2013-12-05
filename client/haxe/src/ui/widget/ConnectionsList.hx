@@ -38,7 +38,7 @@ extern class ConnectionsList extends JQ {
 	@:overload(function<T>(cmd : String):T{})
 	@:overload(function<T>(cmd:String, opt:String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function connectionsList(opts: ConnectionsListOptions): ConnectionsList;
+	function connectionsList(?opts: ConnectionsListOptions): ConnectionsList;
 
 	private static function __init__(): Void {
 		var defineWidget: Void->ConnectionsListWidgetDef = function(): ConnectionsListWidgetDef {
