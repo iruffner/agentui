@@ -197,9 +197,7 @@ class ProtocolHandler {
         		AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
         		var resp: GetAliasLabelsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasLabelsResponse);
         		AppContext.USER.currentAlias.labelSet.clear();
-        		AppContext.USER.currentAlias.labelSet.addAll(resp.contentImpl.labels.map(function(str: String): Label {
-        				return new Label( str );
-        			}));
+        		AppContext.USER.currentAlias.labelSet.addAll(resp.contentImpl.aliasLabels);
         	});
         processHash.set(MsgType.getAliasLabelsError, function(data: Dynamic){
         		AppContext.LOGGER.error("getAliasLabelsError was received from the server");

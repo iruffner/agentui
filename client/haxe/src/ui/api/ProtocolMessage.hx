@@ -406,7 +406,20 @@ class GetAliasLabelsResponse extends ProtocolMessage<AliasLabelsRequestData> {
 }
 
 		class AliasLabelsRequestData extends PayloadWithSessionURI {
-			public var labels: Array<String>;
+			var labels: Array<String>;
+			@:transient public var aliasLabels(get,never): Array<Label>;
+
+			function get_aliasLabels(): Array<Label> {
+				if(labels.hasValues()) {
+					var aliasLabels: Array<Label> = [];
+					var i: Int;
+					for (i in 0...labels.length) {
+						aliasLabels = aliasLabels.concat(PrologHelper.tagTreeFromString(labels[i]));
+					}
+					return aliasLabels;
+				}
+				else return null;
+			}
 		}
 
 class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
