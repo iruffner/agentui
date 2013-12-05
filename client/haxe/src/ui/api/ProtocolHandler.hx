@@ -166,6 +166,7 @@ class ProtocolHandler {
         
         processHash.set(MsgType.addAgentAliasesResponse, function(data: Dynamic){
         		AppContext.LOGGER.debug("addAgentAliasesResponse was received from the server");
+        		EM.change(EMEvent.NewAlias);
         	});
         processHash.set(MsgType.addAgentAliasesError, function(data: Dynamic){
         		AppContext.LOGGER.error("addAgentAliasesError was received from the server");

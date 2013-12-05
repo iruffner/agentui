@@ -96,6 +96,7 @@ enum EMEvent {
 	AliasConnectionsLoaded;
 	AliasLabelsLoaded;
 	ALIAS_CREATE;
+	NewAlias; //fired when response is received that a new alias has been created
 
 	USER_LOGIN;
 	USER_CREATE;

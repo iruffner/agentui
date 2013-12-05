@@ -1,13 +1,13 @@
 package ui.widget;
 
 import m3.jq.JQ;
-import m3.jq.JQDialog;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
 import m3.exception.Exception;
 
 using m3.helper.StringHelper;
+using m3.jq.JQDialog;
 
 typedef NewAliasDialogOptions = {
 }
@@ -84,6 +84,13 @@ extern class NewAliasDialog extends JQ {
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EM.change(EMEvent.ALIAS_CREATE, alias);
 
+    				EM.listenOnce(EMEvent.NewAlias, new EMListener(function(n:Nothing): Void {
+    						selfElement.close();
+    						AppContext.USER.aliasSet.add(alias);
+    						AppContext.USER.currentAlias = alias;
+    						EM.change(EMEvent.AliasLoaded, alias);
+    					}, "NewAliasDialog-NewAlias")
+    				);
 	        	},
 
 		        _buildDialog: function(): Void {
@@ -127,7 +134,7 @@ extern class NewAliasDialog extends JQ {
 		        	}
 		        	// selfElement.children("#n_label").focus();
 		        	// self.input_n.blur();
-	        		selfElement.dialog("open");
+	        		selfElement.open();
         		},
 		        
 		        destroy: function() {
