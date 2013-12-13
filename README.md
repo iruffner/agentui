@@ -1,5 +1,24 @@
 
+Run Instructions
+----------------
 
+Using a proper bash shell run the run-proxy.sh shell script.  It will download a prebuild of the latest 
+
+
+Configuring Proxy Server
+------------------------
+
+Edit the proxy/proxy-server.conf file to reflect the full path to the protocol end point on gloseval.  If it doesn't exist there is a sample at proxy/proxy-server.conf.sample  For example
+
+http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api
+
+The proxy server does NOT need to be restarted to pick up changes to this file.
+
+
+
+
+Build Instructions
+------------------
 
 Step 1) Download and install HaXe 3 (it is fairly benign install and installs HaXe)
 
