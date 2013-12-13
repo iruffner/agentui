@@ -4,6 +4,10 @@ Run Instructions
 
 Using a proper bash shell run the run-proxy.sh shell script.  It will download a prebuild of the latest proxy jar (if it isn't there already), setup the symlink between the client project and the proxy project (if it isn't there already) and then run it all.  You need to be in the project root of the git clone in order for it to work, no relative paths allowed.
 
+Oh and once that looks like it's running you can load the client via (note you will want to configure the proxy server to point to the gloseval you want to use)
+
+http://localhost:8080/client/www/agentui.html
+
 
 Configuring Proxy Server
 ------------------------
