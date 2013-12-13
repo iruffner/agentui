@@ -2,7 +2,7 @@
 Run Instructions
 ----------------
 
-Using a proper bash shell run the run-proxy.sh shell script.  It will download a prebuild of the latest 
+Using a proper bash shell run the run-proxy.sh shell script.  It will download a prebuild of the latest proxy jar (if it isn't there already), setup the symlink between the client project and the proxy project (if it isn't there already) and then run it all.  You need to be in the project root of the git clone in order for it to work, no relative paths allowed.
 
 
 Configuring Proxy Server
