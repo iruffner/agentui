@@ -8,3 +8,5 @@ client/haxe_src/m3
 target
 proxy/src/main/webapp/client
 *.tmproj
+/agentui-proxy-dl-1.0.0.jar
+/agentui-proxy-1.0.0.jar
