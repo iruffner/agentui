@@ -13,7 +13,7 @@ fi
 if [ ! -h proxy/src/main/webapp/client ]; then
   echo "creating symlink between webapp and agentui client"
   pushd proxy/src/main/webapp
-  ln -s ../../../../haxe client
+  ln -s ../../../../client client
   popd
 fi
 

@@ -8,6 +8,10 @@ Oh and once that looks like it's running you can load the client via (note you w
 
 http://localhost:8080/client/www/agentui.html
 
+Caveat 1: this doesn't work under windows (even with cygwin).  You need to create a symlink so that proxy/src/main/webapp/client --> client   you can do this manually on windows with mklink.  For example on Raph's ahem windwos system the following command did the trick (where https://github.com/iruffner/agentui is cloned to c:\code\agentui)
+
+mklink /D c:\code\agentui\proxy\src\main\webapp\client c:\code\agentui\client 
+
 
 Configuring Proxy Server
 ------------------------
