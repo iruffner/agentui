@@ -1,4 +1,4 @@
-package ui.widget;
+package ui.widget.score;
 
 import haxe.ds.StringMap;
 import m3.jq.JQ;
