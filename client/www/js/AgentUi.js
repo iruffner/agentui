@@ -7315,30 +7315,6 @@ ui.widget.LiveBuildToggleHelper.isLive = function(l) {
 ui.widget.IntroductionNotificationCompHelper = function() { }
 $hxClasses["ui.widget.IntroductionNotificationCompHelper"] = ui.widget.IntroductionNotificationCompHelper;
 ui.widget.IntroductionNotificationCompHelper.__name__ = ["ui","widget","IntroductionNotificationCompHelper"];
-ui.widget.TimeMarker = function(paper,width) {
-	this.paper = paper;
-	this.width = width;
-	this.drawTimeLine();
-};
-$hxClasses["ui.widget.TimeMarker"] = ui.widget.TimeMarker;
-ui.widget.TimeMarker.__name__ = ["ui","widget","TimeMarker"];
-ui.widget.TimeMarker.prototype = {
-	drawTimeLine: function() {
-		var margin = 7;
-		var y = 3 * margin;
-		var attrs = { strokeOpacity : 0.6, stroke : "#cccccc", strokeWidth : 1};
-		this.line = this.paper.line(margin,y,this.width - margin,y).attr(attrs);
-		var interval = (this.width - 2 * margin) / 24;
-		var x = margin;
-		var _g = 0;
-		while(_g < 25) {
-			var i = _g++;
-			this.paper.line(x,y,x,y + margin).attr(attrs);
-			x += interval;
-		}
-	}
-	,__class__: ui.widget.TimeMarker
-}
 ui.widget.ContentTimeLine = function(paper,connection,startTime,endTime) {
 	this.paper = paper;
 	this.connection = connection;
@@ -7348,6 +7324,8 @@ ui.widget.ContentTimeLine = function(paper,connection,startTime,endTime) {
 	this.contentElements = new Array();
 	if(ui.widget.ContentTimeLine.y_pos > 0) ui.widget.ContentTimeLine.y_pos += ui.widget.ContentTimeLine.height + 20;
 	ui.widget.ContentTimeLine.y_pos += 10;
+	this.time_line_x = ui.widget.ContentTimeLine.x_pos + ui.widget.ContentTimeLine.width;
+	this.time_line_y = ui.widget.ContentTimeLine.y_pos + ui.widget.ContentTimeLine.height / 2;
 	this.createConnectionElement();
 };
 $hxClasses["ui.widget.ContentTimeLine"] = ui.widget.ContentTimeLine;
@@ -7358,13 +7336,19 @@ ui.widget.ContentTimeLine.resetPositions = function() {
 }
 ui.widget.ContentTimeLine.prototype = {
 	createContentElement: function(content) {
-		var radius = 25;
+		var radius = 10;
 		var gap = 10;
-		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * 700;
-		var y = ui.widget.ContentTimeLine.y_pos + ui.widget.ContentTimeLine.height / 2;
-		var circle = this.paper.circle(x,y,radius);
+		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * 700 + this.time_line_x;
+		var circle = this.paper.circle(x,this.time_line_y,radius);
 		circle.attr({ fill : "#ff0000", stroke : "#0000ff"});
-		this.contentElements.push(circle);
+		var text = this.paper.text(x,this.time_line_y,content.created).attr({ fontSize : "8px"});
+		this.contentElements.push((function($this) {
+			var $r;
+			var e123 = [circle,text];
+			var me123 = $this.paper;
+			$r = me123.group.apply(me123, e123);
+			return $r;
+		}(this)));
 	}
 	,addContent: function(content) {
 		this.contents.push(content);
@@ -7388,6 +7372,31 @@ ui.widget.ContentTimeLine.prototype = {
 		while(iter.hasNext()) iter.next().remove();
 	}
 	,__class__: ui.widget.ContentTimeLine
+}
+ui.widget.score = {}
+ui.widget.score.TimeMarker = function(paper,width) {
+	this.paper = paper;
+	this.width = width;
+	this.drawTimeLine();
+};
+$hxClasses["ui.widget.score.TimeMarker"] = ui.widget.score.TimeMarker;
+ui.widget.score.TimeMarker.__name__ = ["ui","widget","score","TimeMarker"];
+ui.widget.score.TimeMarker.prototype = {
+	drawTimeLine: function() {
+		var margin = 7;
+		var y = 3 * margin;
+		var attrs = { strokeOpacity : 0.6, stroke : "#cccccc", strokeWidth : 1};
+		this.line = this.paper.line(margin,y,this.width - margin,y).attr(attrs);
+		var interval = (this.width - 2 * margin) / 24;
+		var x = margin;
+		var _g = 0;
+		while(_g < 25) {
+			var i = _g++;
+			this.paper.line(x,y,x,y + margin).attr(attrs);
+			x += interval;
+		}
+	}
+	,__class__: ui.widget.score.TimeMarker
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;
@@ -8420,6 +8429,7 @@ var defineWidget = function() {
 		});
 		self.content.mapListen(function(content,contentComp,evt) {
 			if(evt.isAdd()) {
+				ui.AppContext.LOGGER.debug(">>>>> ContentFeed: " + content.creator);
 				var contentComps = new $(".contentComp");
 				if(contentComps.length == 0) new $("#postInput").after(contentComp); else {
 					var comps = new $(".contentComp");
@@ -9349,12 +9359,11 @@ var defineWidget = function() {
 	return { _addContent : function(content) {
 		var self = this;
 		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.USER.get_currentAlias().get_connectionSet(),content.creator);
-		var timeLine = self.contentTimeLines.get(content.creator);
-		if(timeLine == null) {
-			timeLine = new ui.widget.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime());
+		if(self.contentTimeLines.get(content.creator) == null) {
+			var timeLine = new ui.widget.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime());
 			self.contentTimeLines.set(content.creator,timeLine);
 		}
-		timeLine.addContent(content);
+		self.contentTimeLines.get(content.creator).addContent(content);
 	}, _deleteContent : function(content) {
 		var self = this;
 		var ctl = self.contentTimeLines.get(content.creator);
@@ -9370,7 +9379,10 @@ var defineWidget = function() {
 		selfElement.addClass("container shadow scoreComp");
 		self1.contentTimeLines = new haxe.ds.StringMap();
 		self1.options.content.listen(function(content,evt) {
-			if(evt.isAdd()) self1._addContent(content); else if(evt.isUpdate()) {
+			if(evt.isAdd()) {
+				ui.AppContext.LOGGER.debug(">>>>> ScoreComp: " + content.creator);
+				self1._addContent(content);
+			} else if(evt.isUpdate()) {
 			} else if(evt.isDelete()) self1._deleteContent(content);
 		});
 		var max_x = 700;
@@ -9386,7 +9398,7 @@ var defineWidget = function() {
 		self1.paper.line(max_x,0,0,0).attr(line_attrs);
 		self1.startTime = new Date(2012,1,1,0,0,0);
 		self1.endTime = new Date(2013,12,31,0,0,0);
-		self1.timeMarker = new ui.widget.TimeMarker(self1.paper,max_x);
+		self1.timeMarker = new ui.widget.score.TimeMarker(self1.paper,max_x);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};

@@ -11,38 +11,7 @@ import snap.Snap;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 
-class TimeMarker
-{
-	private var paper: Snap;
-	private var width: Int;
-	private var line:SnapElement;
-
-	public function new(paper:Snap, width:Int) {
-		this.paper = paper;
-		this.width = width;
-
-		drawTimeLine();
-	}
-
-	private function drawTimeLine() {
-		var margin = 7;
-		var y = 3*margin;
-		var attrs = {
-			strokeOpacity: 0.6,
-			stroke: "#cccccc", 
-			strokeWidth: 1
-		};
-
-	  	this.line = paper.line(margin, y, width-margin, y).attr(attrs);
-
-	  	var interval:Float = (width - 2*margin) / 24;
-		var x:Float = margin;
-	  	for(i in 0...25) {
-	  		paper.line(x, y, x, y+margin).attr(attrs);
-	  		x += interval;
-	  	}
-	}
-}
+import ui.widget.score.TimeMarker;
 
 
 class ContentTimeLine {
@@ -60,6 +29,9 @@ class ContentTimeLine {
 
  	private var startTime:Float;
  	private var endTime:Float;
+
+ 	private var time_line_x:Float;
+ 	private var time_line_y:Float;
 
  	public static function resetPositions(): Void {
 		ContentTimeLine.y_pos = 60;
@@ -82,7 +54,11 @@ class ContentTimeLine {
 		}
 		ContentTimeLine.y_pos += 10;
 
+	 	time_line_x = ContentTimeLine.x_pos + ContentTimeLine.width;
+	 	time_line_y = ContentTimeLine.y_pos + height/2;
+
    		createConnectionElement();
+
 	}
 
 	public function removeElements() {
@@ -107,19 +83,19 @@ class ContentTimeLine {
 	}
 
 	private function createContentElement(content:Content):Void {
-		var radius = 25;
+		var radius = 10;
 		var gap = 10;
 
-		var x:Float = (this.endTime - content.created.getTime())/(this.endTime - this.startTime) * 700;
-		var y:Float = y_pos + height/2;
+		var x:Float = (this.endTime - content.created.getTime())/(this.endTime - this.startTime) * 700 + time_line_x;
 
-		var circle = paper.circle(x, y, radius);
+		var circle = paper.circle(x, time_line_y, radius);
 		circle.attr({
 		    fill: "#ff0000",
 		    stroke: "#0000ff"
 		});
+		var text = paper.text(x, time_line_y, content.created).attr({fontSize: "8px"});
 
-		this.contentElements.push(circle);
+		this.contentElements.push(paper.group(paper, [circle, text]));
 	}
 }
 
@@ -156,15 +132,12 @@ extern class ScoreComp extends JQ {
 				_addContent: function(content:Content): Void {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
 	            	var connection: Connection = AppContext.USER.currentAlias.connectionSet.getElementComplex(content.creator);
- 	            	
- 	            	var timeLine:ContentTimeLine = self.contentTimeLines.get(content.creator);
-
- 	            	if (timeLine == null) {
- 	            		timeLine = new ContentTimeLine(self.paper, connection, self.startTime.getTime(), self.endTime.getTime());
+ 	            	if (self.contentTimeLines.get(content.creator) == null) {
+ 	            		var timeLine = new ContentTimeLine(self.paper, connection, self.startTime.getTime(), self.endTime.getTime());
  	            		self.contentTimeLines.set(content.creator, timeLine);
 		            }
 
-	            	timeLine.addContent(content);
+	            	self.contentTimeLines.get(content.creator).addContent(content);
 				},
 
 				_deleteContent: function (content:Content) {
