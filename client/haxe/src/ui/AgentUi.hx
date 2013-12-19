@@ -19,6 +19,7 @@ import m3.util.UidGenerator;
 import m3.util.HtmlUtil;
 
 import ui.widget.*;
+import ui.widget.score.ScoreComp;
 
 import m3.serialization.Serialization;
 

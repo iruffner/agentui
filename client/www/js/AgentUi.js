@@ -7315,26 +7315,27 @@ ui.widget.LiveBuildToggleHelper.isLive = function(l) {
 ui.widget.IntroductionNotificationCompHelper = function() { }
 $hxClasses["ui.widget.IntroductionNotificationCompHelper"] = ui.widget.IntroductionNotificationCompHelper;
 ui.widget.IntroductionNotificationCompHelper.__name__ = ["ui","widget","IntroductionNotificationCompHelper"];
-ui.widget.ContentTimeLine = function(paper,connection,startTime,endTime) {
+ui.widget.score = {}
+ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime) {
 	this.paper = paper;
 	this.connection = connection;
 	this.startTime = startTime;
 	this.endTime = endTime;
 	this.contents = new Array();
 	this.contentElements = new Array();
-	if(ui.widget.ContentTimeLine.y_pos > 0) ui.widget.ContentTimeLine.y_pos += ui.widget.ContentTimeLine.height + 20;
-	ui.widget.ContentTimeLine.y_pos += 10;
-	this.time_line_x = ui.widget.ContentTimeLine.x_pos + ui.widget.ContentTimeLine.width;
-	this.time_line_y = ui.widget.ContentTimeLine.y_pos + ui.widget.ContentTimeLine.height / 2;
+	if(ui.widget.score.ContentTimeLine.y_pos > 0) ui.widget.score.ContentTimeLine.y_pos += ui.widget.score.ContentTimeLine.height + 20;
+	ui.widget.score.ContentTimeLine.y_pos += 10;
+	this.time_line_x = ui.widget.score.ContentTimeLine.x_pos + ui.widget.score.ContentTimeLine.width;
+	this.time_line_y = ui.widget.score.ContentTimeLine.y_pos + ui.widget.score.ContentTimeLine.height / 2;
 	this.createConnectionElement();
 };
-$hxClasses["ui.widget.ContentTimeLine"] = ui.widget.ContentTimeLine;
-ui.widget.ContentTimeLine.__name__ = ["ui","widget","ContentTimeLine"];
-ui.widget.ContentTimeLine.resetPositions = function() {
-	ui.widget.ContentTimeLine.y_pos = 60;
-	ui.widget.ContentTimeLine.x_pos = 10;
+$hxClasses["ui.widget.score.ContentTimeLine"] = ui.widget.score.ContentTimeLine;
+ui.widget.score.ContentTimeLine.__name__ = ["ui","widget","score","ContentTimeLine"];
+ui.widget.score.ContentTimeLine.resetPositions = function() {
+	ui.widget.score.ContentTimeLine.y_pos = 60;
+	ui.widget.score.ContentTimeLine.x_pos = 10;
 }
-ui.widget.ContentTimeLine.prototype = {
+ui.widget.score.ContentTimeLine.prototype = {
 	createContentElement: function(content) {
 		var radius = 10;
 		var gap = 10;
@@ -7355,9 +7356,9 @@ ui.widget.ContentTimeLine.prototype = {
 		this.createContentElement(content);
 	}
 	,createConnectionElement: function() {
-		var line = this.paper.line(ui.widget.ContentTimeLine.x_pos,ui.widget.ContentTimeLine.y_pos + ui.widget.ContentTimeLine.height / 2,1000,ui.widget.ContentTimeLine.y_pos + ui.widget.ContentTimeLine.height / 2).attr({ stroke : "red", strokeWidth : 1});
-		var img = this.paper.image(this.connection.profile.imgSrc,ui.widget.ContentTimeLine.x_pos,ui.widget.ContentTimeLine.y_pos,ui.widget.ContentTimeLine.width,ui.widget.ContentTimeLine.height);
-		var rect = this.paper.rect(ui.widget.ContentTimeLine.x_pos,ui.widget.ContentTimeLine.y_pos,ui.widget.ContentTimeLine.width,ui.widget.ContentTimeLine.height,10,10).attr({ fill : "none", stroke : "#bada55", strokeWidth : 1});
+		var line = this.paper.line(ui.widget.score.ContentTimeLine.x_pos,ui.widget.score.ContentTimeLine.y_pos + ui.widget.score.ContentTimeLine.height / 2,1000,ui.widget.score.ContentTimeLine.y_pos + ui.widget.score.ContentTimeLine.height / 2).attr({ stroke : "red", strokeWidth : 1});
+		var img = this.paper.image(this.connection.profile.imgSrc,ui.widget.score.ContentTimeLine.x_pos,ui.widget.score.ContentTimeLine.y_pos,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height);
+		var rect = this.paper.rect(ui.widget.score.ContentTimeLine.x_pos,ui.widget.score.ContentTimeLine.y_pos,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height,10,10).attr({ fill : "none", stroke : "#bada55", strokeWidth : 1});
 		this.connectionElement = (function($this) {
 			var $r;
 			var e123 = [line,img,rect];
@@ -7371,9 +7372,8 @@ ui.widget.ContentTimeLine.prototype = {
 		var iter = HxOverrides.iter(this.contentElements);
 		while(iter.hasNext()) iter.next().remove();
 	}
-	,__class__: ui.widget.ContentTimeLine
+	,__class__: ui.widget.score.ContentTimeLine
 }
-ui.widget.score = {}
 ui.widget.score.TimeMarker = function(paper,width) {
 	this.paper = paper;
 	this.width = width;
@@ -8429,7 +8429,6 @@ var defineWidget = function() {
 		});
 		self.content.mapListen(function(content,contentComp,evt) {
 			if(evt.isAdd()) {
-				ui.AppContext.LOGGER.debug(">>>>> ContentFeed: " + content.creator);
 				var contentComps = new $(".contentComp");
 				if(contentComps.length == 0) new $("#postInput").after(contentComp); else {
 					var comps = new $(".contentComp");
@@ -9356,55 +9355,6 @@ var defineWidget = function() {
 };
 $.widget("ui.requestIntroductionDialog",defineWidget());
 var defineWidget = function() {
-	return { _addContent : function(content) {
-		var self = this;
-		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.USER.get_currentAlias().get_connectionSet(),content.creator);
-		if(self.contentTimeLines.get(content.creator) == null) {
-			var timeLine = new ui.widget.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime());
-			self.contentTimeLines.set(content.creator,timeLine);
-		}
-		self.contentTimeLines.get(content.creator).addContent(content);
-	}, _deleteContent : function(content) {
-		var self = this;
-		var ctl = self.contentTimeLines.get(content.creator);
-		if(ctl != null) {
-			ctl.removeElements();
-			self.contentTimeLines.remove(content.creator);
-			if(!self.contentTimeLines.iterator().hasNext()) ui.widget.ContentTimeLine.resetPositions();
-		}
-	}, _create : function() {
-		var self1 = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ScoreComp must be a div element");
-		selfElement.addClass("container shadow scoreComp");
-		self1.contentTimeLines = new haxe.ds.StringMap();
-		self1.options.content.listen(function(content,evt) {
-			if(evt.isAdd()) {
-				ui.AppContext.LOGGER.debug(">>>>> ScoreComp: " + content.creator);
-				self1._addContent(content);
-			} else if(evt.isUpdate()) {
-			} else if(evt.isDelete()) self1._deleteContent(content);
-		});
-		var max_x = 700;
-		var max_y = 500;
-		var viewBox = "0 0 " + max_x + " " + max_y;
-		var svg = new $("<svg id=\"score-comp-svg\" viewBox=\"" + viewBox + "\" xmlns=\"http://www.w3.org/2000/svg\"></svg>");
-		selfElement.append(svg);
-		self1.paper = new Snap("#score-comp-svg");
-		var line_attrs = { stroke : "#bada55", strokeWidth : 1};
-		self1.paper.line(0,0,0,max_y).attr(line_attrs);
-		self1.paper.line(0,max_y,max_x,max_y).attr(line_attrs);
-		self1.paper.line(max_x,max_y,max_x,0).attr(line_attrs);
-		self1.paper.line(max_x,0,0,0).attr(line_attrs);
-		self1.startTime = new Date(2012,1,1,0,0,0);
-		self1.endTime = new Date(2013,12,31,0,0,0);
-		self1.timeMarker = new ui.widget.score.TimeMarker(self1.paper,max_x);
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.scoreComp",defineWidget());
-var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -9667,6 +9617,52 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.zWidget",defineWidget());
+var defineWidget = function() {
+	return { _addContent : function(content) {
+		var self = this;
+		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.USER.get_currentAlias().get_connectionSet(),content.creator);
+		if(self.contentTimeLines.get(content.creator) == null) {
+			var timeLine = new ui.widget.score.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime());
+			self.contentTimeLines.set(content.creator,timeLine);
+		}
+		self.contentTimeLines.get(content.creator).addContent(content);
+	}, _deleteContent : function(content) {
+		var self = this;
+		var ctl = self.contentTimeLines.get(content.creator);
+		if(ctl != null) {
+			ctl.removeElements();
+			self.contentTimeLines.remove(content.creator);
+			if(!self.contentTimeLines.iterator().hasNext()) ui.widget.score.ContentTimeLine.resetPositions();
+		}
+	}, _create : function() {
+		var self1 = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ScoreComp must be a div element");
+		selfElement.addClass("container shadow scoreComp");
+		self1.contentTimeLines = new haxe.ds.StringMap();
+		self1.options.content.listen(function(content,evt) {
+			if(evt.isAdd()) self1._addContent(content); else if(evt.isUpdate()) {
+			} else if(evt.isDelete()) self1._deleteContent(content);
+		});
+		var max_x = 700;
+		var max_y = 500;
+		var viewBox = "0 0 " + max_x + " " + max_y;
+		var svg = new $("<svg id=\"score-comp-svg\" viewBox=\"" + viewBox + "\" xmlns=\"http://www.w3.org/2000/svg\"></svg>");
+		selfElement.append(svg);
+		self1.paper = new Snap("#score-comp-svg");
+		var line_attrs = { stroke : "#bada55", strokeWidth : 1};
+		self1.paper.line(0,0,0,max_y).attr(line_attrs);
+		self1.paper.line(0,max_y,max_x,max_y).attr(line_attrs);
+		self1.paper.line(max_x,max_y,max_x,0).attr(line_attrs);
+		self1.paper.line(max_x,0,0,0).attr(line_attrs);
+		self1.startTime = new Date(2012,1,1,0,0,0);
+		self1.endTime = new Date(2013,12,31,0,0,0);
+		self1.timeMarker = new ui.widget.score.TimeMarker(self1.paper,max_x);
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.scoreComp",defineWidget());
 haxe.xml.Parser.escapes = (function($this) {
 	var $r;
 	var h = new haxe.ds.StringMap();
@@ -9790,10 +9786,10 @@ ui.model.LoginById.__rtti = "<class path=\"ui.model.LoginById\" params=\"\" modu
 ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"395\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Introduction.__rtti = "<class path=\"ui.model.Introduction\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<aConn public=\"1\"><c path=\"ui.model.Connection\"/></aConn>\n\t<bConn public=\"1\"><c path=\"ui.model.Connection\"/></bConn>\n\t<aMsg public=\"1\"><c path=\"String\"/></aMsg>\n\t<bMsg public=\"1\"><c path=\"String\"/></bMsg>\n\t<new public=\"1\" set=\"method\" line=\"400\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.IntroductionConfirmation.__rtti = "<class path=\"ui.model.IntroductionConfirmation\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<introSessionId public=\"1\"><c path=\"String\"/></introSessionId>\n\t<correlationId public=\"1\"><c path=\"String\"/></correlationId>\n\t<new public=\"1\" set=\"method\" line=\"413\"><f a=\"accepted:introSessionId:correlationId\">\n\t<x path=\"Bool\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.widget.ContentTimeLine.y_pos = 60;
-ui.widget.ContentTimeLine.x_pos = 10;
-ui.widget.ContentTimeLine.width = 62;
-ui.widget.ContentTimeLine.height = 74;
+ui.widget.score.ContentTimeLine.y_pos = 60;
+ui.widget.score.ContentTimeLine.x_pos = 10;
+ui.widget.score.ContentTimeLine.width = 62;
+ui.widget.score.ContentTimeLine.height = 74;
 ui.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
