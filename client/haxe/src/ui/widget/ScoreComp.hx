@@ -11,6 +11,40 @@ import snap.Snap;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 
+class TimeMarker
+{
+	private var paper: Snap;
+	private var width: Int;
+	private var line:SnapElement;
+
+	public function new(paper:Snap, width:Int) {
+		this.paper = paper;
+		this.width = width;
+
+		drawTimeLine();
+	}
+
+	private function drawTimeLine() {
+		var margin = 7;
+		var y = 3*margin;
+		var attrs = {
+			strokeOpacity: 0.6,
+			stroke: "#cccccc", 
+			strokeWidth: 1
+		};
+
+	  	this.line = paper.line(margin, y, width-margin, y).attr(attrs);
+
+	  	var interval:Float = (width - 2*margin) / 24;
+		var x:Float = margin;
+	  	for(i in 0...25) {
+	  		paper.line(x, y, x, y+margin).attr(attrs);
+	  		x += interval;
+	  	}
+	}
+}
+
+
 class ContentTimeLine {
 	public var paper: Snap;
 	public var connection: Connection;
@@ -19,21 +53,29 @@ class ContentTimeLine {
 	public var contents: Array<Content>;
 	public var contentElements: Array<SnapElement>;
 
-	public static var y_pos:Int = 0;
+	public static var y_pos:Int = 60;
 	public static var x_pos:Int = 10;
 	public static var width:Int = 62;
  	public static var height:Int = 74;
 
+ 	private var startTime:Float;
+ 	private var endTime:Float;
+
  	public static function resetPositions(): Void {
-		ContentTimeLine.y_pos = 0;
+		ContentTimeLine.y_pos = 60;
 		ContentTimeLine.x_pos = 10;
  	}
 
-	public function new (paper:Snap, connection: Connection) {
+	public function new (paper:Snap, connection: Connection, startTime:Float, endTime:Float) {
 		this.paper = paper;
 		this.connection = connection;
+		this.startTime = startTime;
+		this.endTime   = endTime;
+
 		this.contents = new Array<Content>();
 		this.contentElements = new Array<SnapElement>();
+
+		// TODO:  add a class instance for x and y
 
 		if (ContentTimeLine.y_pos > 0) {
 			ContentTimeLine.y_pos += ContentTimeLine.height + 20;
@@ -43,8 +85,17 @@ class ContentTimeLine {
    		createConnectionElement();
 	}
 
+	public function removeElements() {
+		connectionElement.remove();
+
+		var iter = contentElements.iterator();
+		while (iter.hasNext()) {
+			iter.next().remove();
+		}
+	}
+
 	private function createConnectionElement(): Void {
-		var line = paper.line(x_pos, y_pos + height/2, 1000, y_pos + height/2).attr({{stroke: "red", strokeWidth: 3}});
+		var line = paper.line(x_pos, y_pos + height/2, 1000, y_pos + height/2).attr({{stroke: "red", strokeWidth: 1}});
 		var img = paper.image(connection.profile.imgSrc, x_pos, y_pos, width, height);
 		var rect = paper.rect(x_pos, y_pos, width, height, 10, 10).attr({fill:"none", stroke: "#bada55", strokeWidth: 1});
 		connectionElement = paper.group(paper, [line, img, rect]);
@@ -56,7 +107,19 @@ class ContentTimeLine {
 	}
 
 	private function createContentElement(content:Content):Void {
+		var radius = 25;
+		var gap = 10;
 
+		var x:Float = (this.endTime - content.created.getTime())/(this.endTime - this.startTime) * 700;
+		var y:Float = y_pos + height/2;
+
+		var circle = paper.circle(x, y, radius);
+		circle.attr({
+		    fill: "#ff0000",
+		    stroke: "#0000ff"
+		});
+
+		this.contentElements.push(circle);
 	}
 }
 
@@ -68,6 +131,10 @@ typedef ScoreCompWidgetDef = {
 	@:optional var options: ScoreCompOptions;
 	@:optional var contentTimeLines: StringMap<ContentTimeLine>;
 	@:optional var paper:Snap;
+	@:optional var timeMarker:TimeMarker;
+	@:optional var startTime:Date;
+	@:optional var endTime:Date;
+
 	var _addContent:Content->Void;
 	var _deleteContent:Content->Void;
 	var _create: Void->Void;
@@ -85,6 +152,7 @@ extern class ScoreComp extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->ScoreCompWidgetDef = function(): ScoreCompWidgetDef {
 			return {
+
 				_addContent: function(content:Content): Void {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
 	            	var connection: Connection = AppContext.USER.currentAlias.connectionSet.getElementComplex(content.creator);
@@ -92,7 +160,7 @@ extern class ScoreComp extends JQ {
  	            	var timeLine:ContentTimeLine = self.contentTimeLines.get(content.creator);
 
  	            	if (timeLine == null) {
- 	            		timeLine = new ContentTimeLine(self.paper, connection);
+ 	            		timeLine = new ContentTimeLine(self.paper, connection, self.startTime.getTime(), self.endTime.getTime());
  	            		self.contentTimeLines.set(content.creator, timeLine);
 		            }
 
@@ -103,7 +171,7 @@ extern class ScoreComp extends JQ {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
 		        	var ctl = self.contentTimeLines.get(content.creator);
 		        	if (ctl != null) {
-			        	ctl.connectionElement.remove();
+			        	ctl.removeElements();
 						self.contentTimeLines.remove(content.creator);
 						if (!self.contentTimeLines.iterator().hasNext()) {
 							ContentTimeLine.resetPositions();
@@ -144,6 +212,10 @@ extern class ScoreComp extends JQ {
 					self.paper.line(0, max_y, max_x, max_y).attr(line_attrs);
 					self.paper.line(max_x, max_y, max_x, 0).attr(line_attrs);
 					self.paper.line(max_x, 0, 0, 0).attr(line_attrs);
+
+					self.startTime = new Date(2012, 1, 1, 0, 0, 0);
+					self.endTime = new Date(2013, 12, 31, 0, 0, 0);
+					self.timeMarker = new TimeMarker(self.paper, max_x);
 		        },
 
 		        destroy: function() {
