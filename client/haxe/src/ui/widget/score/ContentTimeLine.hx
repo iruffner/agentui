@@ -59,7 +59,11 @@ class ContentTimeLine {
 	}
 
 	private function createConnectionElement(): Void {
-		var line = paper.line(time_line_x, time_line_y + height/2, 1000, time_line_y + height/2).attr({{stroke: "red", strokeWidth: 1}});
+		var line = paper.line(time_line_x, time_line_y + height/2, 1000, time_line_y + height/2)
+		                .attr({strokeOpacity: 0.6,
+			                   stroke: "#cccccc", 
+			                   strokeWidth: 1
+        			});
 		var img = paper.image(connection.profile.imgSrc, time_line_x, time_line_y, width, height);
 		var rect = paper.rect(time_line_x, time_line_y, width, height, 10, 10).attr({fill:"none", stroke: "#bada55", strokeWidth: 1});
 		connectionElement = paper.group(paper, [line, img, rect]);
@@ -97,8 +101,14 @@ class ContentTimeLine {
 */
 	private function addContentElement(content:Content, ele:SnapElement) {
 		ele = ele.click(function(evt:Event):Void {
-			m3.util.JqueryUtil.alert(content.creator);
-		});
+			var clone = ele.clone();
+			clone.click(function(evt:Event){
+				clone.remove();
+			});
+			clone.animate({
+			    transform: "t10,10 s5",    
+			   }, 200);		
+			});
 // 		ele = ele.hover(hover_in, hover_out);
 		this.contentElements.push(ele);		
 	}
