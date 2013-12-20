@@ -29,8 +29,33 @@ class TimeMarker
 	  	var interval:Float = (width - 2*margin) / 24;
 		var x:Float = margin;
 	  	for(i in 0...25) {
-	  		paper.line(x, y, x, y+margin).attr(attrs);
-	  		x += interval;
+	  		switch(i) {
+	  			case 0, 12, 24: 
+	  				paper.line(x, y-margin, x, y+margin).attr(attrs);
+	  				if(i == 0)
+			  			paper.text(x+3, y - margin + 1, "2013").attr({fontSize: "8px"});
+		  			else if(i == 12)
+		  				paper.text(x+3, y - margin + 1, "2012").attr({fontSize: "8px"});
+			  		if(i == 0 || i == 12)
+			  			paper.text(x+10, y + margin, "Dec").transform("rotate(30," + x + "," + y + ")").attr({fontSize: "8px"});
+			  		x += interval;
+		  		case 3, 15: 
+	  				paper.line(x, y, x, y+margin+2).attr(attrs);
+			  		paper.text(x+10, y + margin, "Sep").transform("rotate(30," + x + "," + y + ")").attr({fontSize: "8px"});
+			  		x += interval;
+			  	case 6, 18: 
+	  				paper.line(x, y, x, y+margin+2).attr(attrs);
+			  		paper.text(x+10, y + margin, "Jun").transform("rotate(30," + x + "," + y + ")").attr({fontSize: "8px"});
+			  		x += interval;
+			  	case 9, 21: 
+	  				paper.line(x, y, x, y+margin+2).attr(attrs);
+			  		paper.text(x+10, y + margin, "Mar").transform("rotate(30," + x + "," + y + ")").attr({fontSize: "8px"});
+			  		x += interval;
+
+	  			case _: 
+			  		paper.line(x, y, x, y+margin).attr(attrs);
+			  		x += interval;
+	  		}
 	  	}
 	}
 }
