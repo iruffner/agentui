@@ -7323,42 +7323,82 @@ ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime) {
 	this.endTime = endTime;
 	this.contents = new Array();
 	this.contentElements = new Array();
-	if(ui.widget.score.ContentTimeLine.y_pos > 0) ui.widget.score.ContentTimeLine.y_pos += ui.widget.score.ContentTimeLine.height + 20;
-	ui.widget.score.ContentTimeLine.y_pos += 10;
-	this.time_line_x = ui.widget.score.ContentTimeLine.x_pos + ui.widget.score.ContentTimeLine.width;
-	this.time_line_y = ui.widget.score.ContentTimeLine.y_pos + ui.widget.score.ContentTimeLine.height / 2;
+	if(ui.widget.score.ContentTimeLine.next_y_pos > 0) ui.widget.score.ContentTimeLine.next_y_pos += ui.widget.score.ContentTimeLine.height + 20;
+	ui.widget.score.ContentTimeLine.next_y_pos += 10;
+	this.time_line_x = ui.widget.score.ContentTimeLine.next_x_pos;
+	this.time_line_y = ui.widget.score.ContentTimeLine.next_y_pos;
 	this.createConnectionElement();
 };
 $hxClasses["ui.widget.score.ContentTimeLine"] = ui.widget.score.ContentTimeLine;
 ui.widget.score.ContentTimeLine.__name__ = ["ui","widget","score","ContentTimeLine"];
 ui.widget.score.ContentTimeLine.resetPositions = function() {
-	ui.widget.score.ContentTimeLine.y_pos = 60;
-	ui.widget.score.ContentTimeLine.x_pos = 10;
+	ui.widget.score.ContentTimeLine.next_y_pos = 60;
+	ui.widget.score.ContentTimeLine.next_x_pos = 10;
 }
 ui.widget.score.ContentTimeLine.prototype = {
-	createContentElement: function(content) {
-		var radius = 10;
-		var gap = 10;
-		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * 700 + this.time_line_x;
-		var circle = this.paper.circle(x,this.time_line_y,radius);
-		circle.attr({ fill : "#ff0000", stroke : "#0000ff"});
-		var text = this.paper.text(x,this.time_line_y,content.created).attr({ fontSize : "8px"});
-		this.contentElements.push((function($this) {
+	createLinkElement: function(content,x,y) {
+		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,30);
+		hex.attr({ stroke : "#00FF00", strokeWidth : "1px", fill : "cyan"});
+		return (function($this) {
 			var $r;
-			var e123 = [circle,text];
+			var e123 = [hex];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
-		}(this)));
+		}(this));
+	}
+	,createImageElement: function(content,x,y) {
+		var ele_width = 60;
+		var ele_height = 40;
+		var img = this.paper.image(content.imgSrc,x,y - ele_height / 2,ele_width,ele_height);
+		return (function($this) {
+			var $r;
+			var e123 = [img];
+			var me123 = $this.paper;
+			$r = me123.group.apply(me123, e123);
+			return $r;
+		}(this));
+	}
+	,createTextElement: function(content,x,y) {
+		var ele_width = 60;
+		var ele_height = 40;
+		var text = HxOverrides.substr(content.text,0,20) + "\n" + content.text.substring(20,content.text.length);
+		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ stroke : "#00FF00", strokeWidth : "1px", fill : "orange"});
+		var text1 = this.paper.text(x - ele_width / 2 + 4,y - ele_height / 2 + 10,text).attr({ color : "#ff00ff", fontSize : "6px"});
+		return (function($this) {
+			var $r;
+			var e123 = [rect,text1];
+			var me123 = $this.paper;
+			$r = me123.group.apply(me123, e123);
+			return $r;
+		}(this));
+	}
+	,createContentElement: function(content) {
+		var radius = 10;
+		var gap = 10;
+		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * 700 + this.time_line_x + ui.widget.score.ContentTimeLine.width;
+		var y = this.time_line_y + ui.widget.score.ContentTimeLine.height / 2;
+		if(content.type == ui.model.ContentType.TEXT) this.contentElements.push(this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y)); else if(content.type == ui.model.ContentType.IMAGE) this.contentElements.push(this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y)); else if(content.type == ui.model.ContentType.URL) this.contentElements.push(this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y)); else {
+			var circle = this.paper.circle(x,y,radius);
+			circle.attr({ fill : "#ff0000", stroke : "#0000ff"});
+			var text = this.paper.text(x,this.time_line_y,content.created).attr({ fontSize : "8px"});
+			this.contentElements.push((function($this) {
+				var $r;
+				var e123 = [circle,text];
+				var me123 = $this.paper;
+				$r = me123.group.apply(me123, e123);
+				return $r;
+			}(this)));
+		}
 	}
 	,addContent: function(content) {
 		this.contents.push(content);
 		this.createContentElement(content);
 	}
 	,createConnectionElement: function() {
-		var line = this.paper.line(ui.widget.score.ContentTimeLine.x_pos,ui.widget.score.ContentTimeLine.y_pos + ui.widget.score.ContentTimeLine.height / 2,1000,ui.widget.score.ContentTimeLine.y_pos + ui.widget.score.ContentTimeLine.height / 2).attr({ stroke : "red", strokeWidth : 1});
-		var img = this.paper.image(this.connection.profile.imgSrc,ui.widget.score.ContentTimeLine.x_pos,ui.widget.score.ContentTimeLine.y_pos,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height);
-		var rect = this.paper.rect(ui.widget.score.ContentTimeLine.x_pos,ui.widget.score.ContentTimeLine.y_pos,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height,10,10).attr({ fill : "none", stroke : "#bada55", strokeWidth : 1});
+		var line = this.paper.line(this.time_line_x,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,1000,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2).attr({ stroke : "red", strokeWidth : 1});
+		var img = this.paper.image(this.connection.profile.imgSrc,this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height);
+		var rect = this.paper.rect(this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height,10,10).attr({ fill : "none", stroke : "#bada55", strokeWidth : 1});
 		this.connectionElement = (function($this) {
 			var $r;
 			var e123 = [line,img,rect];
@@ -7397,6 +7437,13 @@ ui.widget.score.TimeMarker.prototype = {
 		}
 	}
 	,__class__: ui.widget.score.TimeMarker
+}
+ui.widget.score.Shapes = function() { }
+$hxClasses["ui.widget.score.Shapes"] = ui.widget.score.Shapes;
+ui.widget.score.Shapes.__name__ = ["ui","widget","score","Shapes"];
+ui.widget.score.Shapes.createHexagon = function(paper,x,y,r) {
+	var theta = 0.523598775;
+	return paper.polygon([x - r * Math.sin(theta),y - r * Math.cos(theta),x - r,y,x - r * Math.sin(theta),y + r * Math.cos(theta),x + r * Math.sin(theta),y + r * Math.cos(theta),x + r,y,x + r * Math.sin(theta),y - r * Math.cos(theta)]);
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;
@@ -9634,6 +9681,7 @@ var defineWidget = function() {
 			self.contentTimeLines.remove(content.creator);
 			if(!self.contentTimeLines.iterator().hasNext()) ui.widget.score.ContentTimeLine.resetPositions();
 		}
+	}, _updateContent : function(content) {
 	}, _create : function() {
 		var self1 = this;
 		var selfElement = this.element;
@@ -9641,8 +9689,7 @@ var defineWidget = function() {
 		selfElement.addClass("container shadow scoreComp");
 		self1.contentTimeLines = new haxe.ds.StringMap();
 		self1.options.content.listen(function(content,evt) {
-			if(evt.isAdd()) self1._addContent(content); else if(evt.isUpdate()) {
-			} else if(evt.isDelete()) self1._deleteContent(content);
+			if(evt.isAdd()) self1._addContent(content); else if(evt.isUpdate()) self1._updateContent(content); else if(evt.isDelete()) self1._deleteContent(content);
 		});
 		var max_x = 700;
 		var max_y = 500;
@@ -9786,10 +9833,10 @@ ui.model.LoginById.__rtti = "<class path=\"ui.model.LoginById\" params=\"\" modu
 ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"395\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Introduction.__rtti = "<class path=\"ui.model.Introduction\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<aConn public=\"1\"><c path=\"ui.model.Connection\"/></aConn>\n\t<bConn public=\"1\"><c path=\"ui.model.Connection\"/></bConn>\n\t<aMsg public=\"1\"><c path=\"String\"/></aMsg>\n\t<bMsg public=\"1\"><c path=\"String\"/></bMsg>\n\t<new public=\"1\" set=\"method\" line=\"400\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.IntroductionConfirmation.__rtti = "<class path=\"ui.model.IntroductionConfirmation\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<introSessionId public=\"1\"><c path=\"String\"/></introSessionId>\n\t<correlationId public=\"1\"><c path=\"String\"/></correlationId>\n\t<new public=\"1\" set=\"method\" line=\"413\"><f a=\"accepted:introSessionId:correlationId\">\n\t<x path=\"Bool\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.widget.score.ContentTimeLine.y_pos = 60;
-ui.widget.score.ContentTimeLine.x_pos = 10;
-ui.widget.score.ContentTimeLine.width = 62;
-ui.widget.score.ContentTimeLine.height = 74;
+ui.widget.score.ContentTimeLine.next_y_pos = 60;
+ui.widget.score.ContentTimeLine.next_x_pos = 10;
+ui.widget.score.ContentTimeLine.width = 40;
+ui.widget.score.ContentTimeLine.height = 50;
 ui.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
