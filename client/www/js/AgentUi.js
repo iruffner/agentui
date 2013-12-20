@@ -7373,14 +7373,37 @@ ui.widget.score.ContentTimeLine.prototype = {
 		}(this));
 	}
 	,createTextElement: function(content,x,y) {
-		var ele_width = 60;
+		var ele_width = 80;
 		var ele_height = 40;
-		var text = HxOverrides.substr(content.text,0,20) + "\n" + content.text.substring(20,content.text.length);
+		var eles = [];
 		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ stroke : "#00FF00", strokeWidth : "1px", fill : "orange"});
-		var text1 = this.paper.text(x - ele_width / 2 + 4,y - ele_height / 2 + 10,text).attr({ color : "#ff00ff", fontSize : "6px"});
+		eles.push(rect);
+		var max_chars = 22;
+		var words = content.text.split(" ");
+		var lines = [];
+		var line_no = 0;
+		lines[line_no] = "";
+		var _g1 = 0, _g = words.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(lines[line_no].length + words[i].length > max_chars) {
+				line_no += 1;
+				if(line_no == 3) break;
+				lines[line_no] = "";
+			}
+			lines[line_no] += words[i] + " ";
+		}
+		var y_pos = y - ele_height / 2 + 10;
+		var _g1 = 0, _g = line_no + 1;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var text = this.paper.text(x - ele_width / 2 + 4,y_pos,lines[i]).attr({ color : "#ff00ff", fontSize : "6px"});
+			eles.push(text);
+			y_pos += 10;
+		}
 		return (function($this) {
 			var $r;
-			var e123 = [rect,text1];
+			var e123 = eles;
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
