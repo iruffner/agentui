@@ -7336,8 +7336,21 @@ ui.widget.score.ContentTimeLine.resetPositions = function() {
 	ui.widget.score.ContentTimeLine.next_x_pos = 10;
 }
 ui.widget.score.ContentTimeLine.prototype = {
-	createLinkElement: function(content,x,y) {
-		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,30);
+	createAudioElement: function(content,x,y) {
+		var ellipse = this.paper.ellipse(x,y,40,20);
+		ellipse.attr({ stroke : "wheat", strokeWidth : "1px", fill : "tomato"});
+		var triangle = this.paper.polygon([x + 10,y,x - 10,y - 10,x - 10,y + 10]);
+		triangle.attr({ stroke : "green", strokeWidth : "1px", fill : "red", strokeOpacity : 0.6, fillOpacity : 0.6});
+		return (function($this) {
+			var $r;
+			var e123 = [ellipse,triangle];
+			var me123 = $this.paper;
+			$r = me123.group.apply(me123, e123);
+			return $r;
+		}(this));
+	}
+	,createLinkElement: function(content,x,y) {
+		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,20);
 		hex.attr({ stroke : "#00FF00", strokeWidth : "1px", fill : "cyan"});
 		return (function($this) {
 			var $r;
@@ -7348,8 +7361,8 @@ ui.widget.score.ContentTimeLine.prototype = {
 		}(this));
 	}
 	,createImageElement: function(content,x,y) {
-		var ele_width = 60;
-		var ele_height = 40;
+		var ele_width = 40;
+		var ele_height = 30;
 		var img = this.paper.image(content.imgSrc,x,y - ele_height / 2,ele_width,ele_height);
 		return (function($this) {
 			var $r;
@@ -7373,23 +7386,18 @@ ui.widget.score.ContentTimeLine.prototype = {
 			return $r;
 		}(this));
 	}
+	,addContentElement: function(content,ele) {
+		ele = ele.click(function(evt) {
+			m3.util.JqueryUtil.alert(content.creator);
+		});
+		this.contentElements.push(ele);
+	}
 	,createContentElement: function(content) {
 		var radius = 10;
 		var gap = 10;
 		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * 700 + this.time_line_x + ui.widget.score.ContentTimeLine.width;
 		var y = this.time_line_y + ui.widget.score.ContentTimeLine.height / 2;
-		if(content.type == ui.model.ContentType.TEXT) this.contentElements.push(this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y)); else if(content.type == ui.model.ContentType.IMAGE) this.contentElements.push(this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y)); else if(content.type == ui.model.ContentType.URL) this.contentElements.push(this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y)); else {
-			var circle = this.paper.circle(x,y,radius);
-			circle.attr({ fill : "#ff0000", stroke : "#0000ff"});
-			var text = this.paper.text(x,this.time_line_y,content.created).attr({ fontSize : "8px"});
-			this.contentElements.push((function($this) {
-				var $r;
-				var e123 = [circle,text];
-				var me123 = $this.paper;
-				$r = me123.group.apply(me123, e123);
-				return $r;
-			}(this)));
-		}
+		if(content.type == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y)); else if(content.type == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y)); else if(content.type == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y)); else if(content.type == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y));
 	}
 	,addContent: function(content) {
 		this.contents.push(content);

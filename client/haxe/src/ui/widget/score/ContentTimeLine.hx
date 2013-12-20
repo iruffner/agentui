@@ -2,19 +2,21 @@ package ui.widget.score;
 
 import snap.Snap;
 import ui.model.ModelObj;
+import js.html.*;
+
 
 class ContentTimeLine {
-	public var paper: Snap;
-	public var connection: Connection;
-	public var connectionElement:SnapElement;
+	private static var next_y_pos:Int = 60;
+	private static var next_x_pos:Int = 10;
+	private static var width:Int = 40;
+ 	private static var height:Int = 50;
 
-	public var contents: Array<Content>;
-	public var contentElements: Array<SnapElement>;
+	private var paper: Snap;
+	private var connection: Connection;
+	private var connectionElement:SnapElement;
 
-	public static var next_y_pos:Int = 60;
-	public static var next_x_pos:Int = 10;
-	public static var width:Int = 40;
- 	public static var height:Int = 50;
+	private var contents: Array<Content>;
+	private var contentElements: Array<SnapElement>;
 
  	private var startTime:Float;
  	private var endTime:Float;
@@ -27,16 +29,14 @@ class ContentTimeLine {
 		ContentTimeLine.next_x_pos = 10;
  	}
 
-	public function new (paper:Snap, connection: Connection, startTime:Float, endTime:Float) {
-		this.paper = paper;
+	public function new(paper:Snap, connection: Connection, startTime:Float, endTime:Float) {
+		this.paper      = paper;
 		this.connection = connection;
-		this.startTime = startTime;
-		this.endTime   = endTime;
+		this.startTime  = startTime;
+		this.endTime    = endTime;
 
 		this.contents = new Array<Content>();
 		this.contentElements = new Array<SnapElement>();
-
-		// TODO:  add a class instance for x and y
 
 		if (ContentTimeLine.next_y_pos > 0) {
 			ContentTimeLine.next_y_pos += ContentTimeLine.height + 20;
@@ -72,27 +72,35 @@ class ContentTimeLine {
 
 	private function createContentElement(content:Content):Void {
 		var radius = 10;
-		var gap = 10;
+		var gap    = 10;
 
 		var x:Float = (this.endTime - content.created.getTime())/(this.endTime - this.startTime) * 700 + time_line_x + ContentTimeLine.width;
 		var y:Float = time_line_y  + height/2;
 
 		if (content.type == ContentType.TEXT) {
-			this.contentElements.push(createTextElement(cast(content, MessageContent), x, y));
+			addContentElement(content, createTextElement(cast(content, MessageContent), x, y));
 		} else if (content.type == ContentType.IMAGE) {
-			this.contentElements.push(createImageElement(cast(content, ImageContent), x, y));
+			addContentElement(content, createImageElement(cast(content, ImageContent), x, y));
 		} else if (content.type == ContentType.URL) {
-			this.contentElements.push(createLinkElement(cast(content, UrlContent), x, y));
-		} else {
-			var circle = paper.circle(x, y, radius);
-			circle.attr({
-			    fill: "#ff0000",
-			    stroke: "#0000ff"
-			});
-			var text = paper.text(x, time_line_y, content.created).attr({fontSize: "8px"});
-
-			this.contentElements.push(paper.group(paper, [circle, text]));
+			addContentElement(content, createLinkElement(cast(content, UrlContent), x, y));
+		} else if (content.type == ContentType.AUDIO) {
+			addContentElement(content, createAudioElement(cast(content, AudioContent), x, y));
 		}
+	}
+/*
+	private function hover_in(evt:Event):Void {
+		m3.util.JqueryUtil.alert("hover hover");
+	}
+	private function hover_out(evt:Event):Void {
+		m3.util.JqueryUtil.alert("hover out");
+	}
+*/
+	private function addContentElement(content:Content, ele:SnapElement) {
+		ele = ele.click(function(evt:Event):Void {
+			m3.util.JqueryUtil.alert(content.creator);
+		});
+//		ele = ele.hover(hover_in, hover_out);
+		this.contentElements.push(ele);		
 	}
 
 	private function createTextElement(content:MessageContent, x:Float, y:Float):SnapElement {
@@ -106,20 +114,25 @@ class ContentTimeLine {
 	}
 
 	private function createImageElement(content:ImageContent, x:Float, y:Float):SnapElement {
-		var ele_width:Float = 60;
-		var ele_height:Float = 40;
+		var ele_width:Float = 40;
+		var ele_height:Float = 30;
 		var img = paper.image(content.imgSrc, x, y - ele_height/2, ele_width, ele_height);
 		return paper.group(paper, [img]);
 	}
 
 	private function createLinkElement(content:UrlContent, x:Float, y:Float):SnapElement {
-		var hex = Shapes.createHexagon(paper, x, y, 30);
+		var hex = Shapes.createHexagon(paper, x, y, 20);
 		hex.attr({stroke:"#00FF00", strokeWidth:"1px", fill: "cyan"});
 		return paper.group(paper, [hex]);
 	}
-/*	
-	private function createAudioElement(content:Content, x:Float, y:Float):SnapElement {
 
+	private function createAudioElement(content:AudioContent, x:Float, y:Float):SnapElement {
+		var ellipse = paper.ellipse(x, y, 40, 20);
+		ellipse.attr({stroke:"wheat", strokeWidth:"1px", fill: "tomato"});
+
+		// Create a triangle play button
+		var triangle = paper.polygon([x+10, y, x-10, y-10, x-10, y+10]);
+		triangle.attr({stroke:"green", strokeWidth:"1px", fill:"red", strokeOpacity: 0.6, fillOpacity:0.6});
+		return paper.group(paper, [ellipse, triangle]);
 	}
-	*/
 }
