@@ -1,6 +1,18 @@
 
+Configuring Proxy Server
+------------------------
+
+Edit the proxy/proxy-server.conf (there is a sample to copy from in proxy-server) file to reflect the full path to the protocol end point on gloseval.  If it doesn't exist there is a sample at proxy/proxy-server.conf.sample  For example 
+
+http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api
+
+The proxy server does NOT need to be restarted to pick up changes to this file.
+
+
 Run Instructions
 ----------------
+
+You must have done the configure step before running the proxy server.
 
 Using a proper bash shell run the run-proxy.sh shell script.  It will download a prebuild of the latest proxy jar (if it isn't there already), setup the symlink between the client project and the proxy project (if it isn't there already) and then run it all.  You need to be in the project root of the git clone in order for it to work, no relative paths allowed.
 
@@ -11,16 +23,6 @@ http://localhost:8080/client/www/agentui.html
 Caveat 1: this doesn't work under windows (even with cygwin).  You need to create a symlink so that proxy/src/main/webapp/client --> client   you can do this manually on windows with mklink.  For example on Raph's ahem windwos system the following command did the trick (where https://github.com/iruffner/agentui is cloned to c:\code\agentui)
 
 mklink /D c:\code\agentui\proxy\src\main\webapp\client c:\code\agentui\client 
-
-
-Configuring Proxy Server
-------------------------
-
-Edit the proxy/proxy-server.conf file to reflect the full path to the protocol end point on gloseval.  If it doesn't exist there is a sample at proxy/proxy-server.conf.sample  For example
-
-http://ec2-54-214-229-124.us-west-2.compute.amazonaws.com:9876/api
-
-The proxy server does NOT need to be restarted to pick up changes to this file.
 
 
 
