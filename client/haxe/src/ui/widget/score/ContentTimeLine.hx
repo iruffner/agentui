@@ -107,7 +107,7 @@ class ContentTimeLine {
 			});
 			clone.animate({
 			    transform: "t10,10 s5",    
-			   }, 200);		
+			   }, 200, "", function(){clone.animate({transform: "s4"},300);});		
 			});
 // 		ele = ele.hover(hover_in, hover_out);
 		this.contentElements.push(ele);		

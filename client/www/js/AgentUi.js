@@ -7415,7 +7415,9 @@ ui.widget.score.ContentTimeLine.prototype = {
 			clone.click(function(evt1) {
 				clone.remove();
 			});
-			clone.animate({ transform : "t10,10 s5"},200);
+			clone.animate({ transform : "t10,10 s5"},200,"",function() {
+				clone.animate({ transform : "s4"},300);
+			});
 		});
 		this.contentElements.push(ele);
 	}
