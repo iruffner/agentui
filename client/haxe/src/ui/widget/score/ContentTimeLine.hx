@@ -3,6 +3,7 @@ package ui.widget.score;
 import snap.Snap;
 import ui.model.ModelObj;
 import js.html.*;
+import m3.util.M;
 
 
 class ContentTimeLine {
@@ -64,7 +65,7 @@ class ContentTimeLine {
 			                   stroke: "#cccccc", 
 			                   strokeWidth: 1
         			});
-		var img = paper.image(connection.profile.imgSrc, time_line_x, time_line_y, width, height);
+		var img = paper.image(M.getX(connection.profile.imgSrc,"media/default_avatar.jpg"), time_line_x, time_line_y, width, height);
 		var rect = paper.rect(time_line_x, time_line_y, width, height, 10, 10).attr({fill:"none", stroke: "#bada55", strokeWidth: 1});
 		connectionElement = paper.group(paper, [line, img, rect]);
 	}
