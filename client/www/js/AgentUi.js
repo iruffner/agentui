@@ -2681,6 +2681,12 @@ m3.helper.DateHelper.inTheFuture = function(d) {
 m3.helper.DateHelper.isValid = function(d) {
 	return d != null && !Math.isNaN(d.getTime());
 }
+m3.helper.DateHelper.isBefore = function(d1,d2) {
+	return d1.getTime() < d2.getTime();
+}
+m3.helper.DateHelper.isAfter = function(d1,d2) {
+	return !m3.helper.DateHelper.isBefore(d1,d2);
+}
 m3.helper.OSetHelper = function() { }
 $hxClasses["m3.helper.OSetHelper"] = m3.helper.OSetHelper;
 m3.helper.OSetHelper.__name__ = ["m3","helper","OSetHelper"];
@@ -2950,7 +2956,10 @@ m3.log.Logga.prototype = {
 			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
 				this.preservedConsoleError.apply(this.console,[statement]);
 				this.console.trace();
-			} else this.preservedConsoleLog.apply(this.console,[statement]);
+			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
+				this.console.error(statement);
+				this.console.trace();
+			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
 		} catch( err ) {
 			if(this.console != null && Reflect.hasField(this.console,"error")) this.console.error(err);
 		}
@@ -7336,11 +7345,11 @@ ui.widget.score.ContentTimeLine.resetPositions = function() {
 	ui.widget.score.ContentTimeLine.next_x_pos = 10;
 }
 ui.widget.score.ContentTimeLine.prototype = {
-	createAudioElement: function(content,x,y) {
-		var ellipse = this.paper.ellipse(x,y,40,20);
-		ellipse.attr({ stroke : "wheat", strokeWidth : "1px", fill : "tomato"});
+	createAudioElement: function(content,x,y,rx,ry) {
+		var ellipse = this.paper.ellipse(x,y,rx,ry);
+		ellipse.attr({ 'class' : "audioEllipse"});
 		var triangle = this.paper.polygon([x + 10,y,x - 10,y - 10,x - 10,y + 10]);
-		triangle.attr({ stroke : "green", strokeWidth : "1px", fill : "red", strokeOpacity : 0.6, fillOpacity : 0.6});
+		triangle.attr({ 'class' : "audioTriangle"});
 		return (function($this) {
 			var $r;
 			var e123 = [ellipse,triangle];
@@ -7349,9 +7358,9 @@ ui.widget.score.ContentTimeLine.prototype = {
 			return $r;
 		}(this));
 	}
-	,createLinkElement: function(content,x,y) {
-		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,20);
-		hex.attr({ stroke : "#00FF00", strokeWidth : "1px", fill : "cyan"});
+	,createLinkElement: function(content,x,y,radius) {
+		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,radius);
+		hex.attr({ 'class' : "urlContent"});
 		return (function($this) {
 			var $r;
 			var e123 = [hex];
@@ -7360,26 +7369,19 @@ ui.widget.score.ContentTimeLine.prototype = {
 			return $r;
 		}(this));
 	}
-	,createImageElement: function(content,x,y) {
-		var ele_width = 40;
-		var ele_height = 30;
+	,createImageElement: function(content,x,y,ele_width,ele_height) {
 		var img = this.paper.image(content.imgSrc,x,y - ele_height / 2,ele_width,ele_height);
-		var g = (function($this) {
+		return (function($this) {
 			var $r;
 			var e123 = [img];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
-		g.data("type","ImageContent");
-		g.data("id",content.creator + "-" + content.get_uid());
-		return g;
 	}
-	,createTextElement: function(content,x,y) {
-		var ele_width = 80;
-		var ele_height = 40;
+	,createTextElement: function(content,x,y,ele_width,ele_height) {
 		var eles = [];
-		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ stroke : "#00FF00", strokeWidth : "1px", fill : "orange"});
+		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "messageContent"});
 		eles.push(rect);
 		var max_chars = 22;
 		var words = content.text.split(" ");
@@ -7414,22 +7416,40 @@ ui.widget.score.ContentTimeLine.prototype = {
 	}
 	,addContentElement: function(content,ele) {
 		var _g = this;
+		ele.data("contentType",Std.string(content.type));
+		ele.data("id",content.creator + "-" + content.get_uid());
+		var after_anim = function() {
+		};
 		ele = ele.click(function(evt) {
 			var clone = _g.cloneElement(ele);
+			var _g1 = clone.data("contentType");
+			switch(_g1) {
+			case "TEXT":
+				var texts = clone.selectAll("text");
+				texts.forEach(function(e) {
+					e.remove();
+				},_g);
+				after_anim = function() {
+					var bbox = clone.getBBox();
+					var new_text = _g.paper.text(bbox.x,bbox.y,"JKLJLKJLKJLKJLKJL");
+					clone.append(new_text);
+				};
+				break;
+			}
 			clone.click(function(evt1) {
 				clone.animate({ transform : "t-10,-10 s1"},200,"",function() {
 					clone.remove();
 				});
 			});
 			clone.animate({ transform : "t10,10 s5"},200,"",function() {
-				clone.animate({ transform : "t10,10 s4"},100);
+				clone.animate({ transform : "t10,10 s4"},100,"",after_anim);
 			});
 		});
 		this.contentElements.push(ele);
 	}
 	,cloneElement: function(ele) {
 		var clone = ele.clone();
-		clone.data("type",ele.data("type"));
+		clone.data("contentType",ele.data("contentType"));
 		clone.data("id",Std.string(ele.data("id")) + "-clone");
 		return clone;
 	}
@@ -7438,16 +7458,25 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var gap = 10;
 		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * 700 + this.time_line_x + ui.widget.score.ContentTimeLine.width;
 		var y = this.time_line_y + ui.widget.score.ContentTimeLine.height / 2;
-		if(content.type == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y)); else if(content.type == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y)); else if(content.type == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y)); else if(content.type == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y));
+		var ele;
+		if(content.type == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y,80,40)); else if(content.type == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y,40,30)); else if(content.type == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y,20)); else if(content.type == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y,40,20));
 	}
 	,addContent: function(content) {
 		this.contents.push(content);
 		this.createContentElement(content);
 	}
 	,createConnectionElement: function() {
-		var line = this.paper.line(this.time_line_x,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,1000,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2).attr({ strokeOpacity : 0.6, stroke : "#cccccc", strokeWidth : 1});
-		var img = this.paper.image(this.connection.profile.imgSrc,this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height);
-		var rect = this.paper.rect(this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height,10,10).attr({ fill : "none", stroke : "#bada55", strokeWidth : 1});
+		var line = this.paper.line(this.time_line_x,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,1000,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2).attr({ 'class' : "contentLine"});
+		var img = this.paper.image((function($this) {
+			var $r;
+			try {
+				$r = $this.connection.profile.imgSrc;
+			} catch( __e ) {
+				$r = "media/default_avatar.jpg";
+			}
+			return $r;
+		}(this)),this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height);
+		var rect = this.paper.rect(this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height,10,10).attr({ 'class' : "contentRect"});
 		this.connectionElement = (function($this) {
 			var $r;
 			var e123 = [line,img,rect];

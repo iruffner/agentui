@@ -256,9 +256,9 @@ extern class SnapElement {
 	public function pattern(x:Float, y:Float, width:Float, height:Float):SnapElement;
 	public function prepend(el:SnapElement):SnapElement;
 	public function remove():SnapElement;
-	public function removeDate(?key:String):SnapElement;
+	public function removeData(?key:String):SnapElement;
 	public function select(query:String):Dynamic;
-	public function selectAll(query:String):Dynamic;
+	public function selectAll(query:String):SnapSet;
 	public function stop():SnapElement;
 	public function toDefs():SnapElement;
 	public function toString():StringBuf;

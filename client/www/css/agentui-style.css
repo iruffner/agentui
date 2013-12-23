@@ -1104,3 +1104,41 @@ body {
 .zztop {
 	z-index: 1000;
 }
+
+.urlContent {
+	stroke: #00FF00; 
+	stroke-width: 1px;
+	fill: cyan;
+}
+
+.audioEllipse {
+	stroke: wheat;
+	stroke-width: 1px;
+	fill: tomato;
+}
+
+.audioTriangle {
+	stroke: green;
+	stroke-width: 1px;
+	fill: red;
+	stroke-opacity: 0.6;
+	fill-opacity: 0.6;
+}
+
+.messageContent {
+	stroke: #00FF00;
+	stroke-width: 1px;
+	fill: orange;
+}
+
+.contentLine {
+	stroke-opacity: 0.6;
+	stroke: #cccccc;
+	stroke-width: 1;
+}
+
+.contentRect {
+	fill: none; 
+	stroke: #bada55; 
+	stroke-width: 1;
+}

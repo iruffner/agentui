@@ -61,12 +61,9 @@ class ContentTimeLine {
 
 	private function createConnectionElement(): Void {
 		var line = paper.line(time_line_x, time_line_y + height/2, 1000, time_line_y + height/2)
-		                .attr({strokeOpacity: 0.6,
-			                   stroke: "#cccccc", 
-			                   strokeWidth: 1
-        			});
+		                .attr({"class":"contentLine"});
 		var img = paper.image(M.getX(connection.profile.imgSrc,"media/default_avatar.jpg"), time_line_x, time_line_y, width, height);
-		var rect = paper.rect(time_line_x, time_line_y, width, height, 10, 10).attr({fill:"none", stroke: "#bada55", strokeWidth: 1});
+		var rect = paper.rect(time_line_x, time_line_y, width, height, 10, 10).attr({"class": "contentRect"});
 		connectionElement = paper.group(paper, [line, img, rect]);
 	}
 
@@ -82,55 +79,65 @@ class ContentTimeLine {
 		var x:Float = (this.endTime - content.created.getTime())/(this.endTime - this.startTime) * 700 + time_line_x + ContentTimeLine.width;
 		var y:Float = time_line_y  + height/2;
 
+		var ele:SnapElement;
 		if (content.type == ContentType.TEXT) {
-			addContentElement(content, createTextElement(cast(content, MessageContent), x, y));
+			addContentElement(content, createTextElement(cast(content, MessageContent), x, y, 80, 40));
 		} else if (content.type == ContentType.IMAGE) {
-			addContentElement(content, createImageElement(cast(content, ImageContent), x, y));
+			addContentElement(content, createImageElement(cast(content, ImageContent), x, y, 40, 30));
 		} else if (content.type == ContentType.URL) {
-			addContentElement(content, createLinkElement(cast(content, UrlContent), x, y));
+			addContentElement(content, createLinkElement(cast(content, UrlContent), x, y, 20));
 		} else if (content.type == ContentType.AUDIO) {
-			addContentElement(content, createAudioElement(cast(content, AudioContent), x, y));
+			addContentElement(content, createAudioElement(cast(content, AudioContent), x, y, 40, 20));
 		}
 	}
-/*
-	private function hover_in(evt:Event):Void {
-		m3.util.JqueryUtil.alert("hover hover");
-	}
-	private function hover_out(evt:Event):Void {
-		m3.util.JqueryUtil.alert("hover out");
-	}
-*/
+
 	private function cloneElement(ele:SnapElement):SnapElement {
 		var clone = ele.clone();
-		clone.data("type", ele.data("type"));
+		clone.data("contentType", ele.data("contentType"));
 		clone.data("id", ele.data("id") + "-clone");
 		return clone;		
 	}
 
 	private function addContentElement(content:Content, ele:SnapElement) {
+		ele.data("contentType", Std.string(content.type));
+		ele.data("id", content.creator + "-" + content.uid);
+
+		var after_anim:Void->Void = function(){};
+
 		ele = ele.click(function(evt:Event):Void {
 			var clone = cloneElement(ele);
+			switch (clone.data("contentType")) {
+				case "TEXT":
+					var texts = clone.selectAll("text");
+					texts.forEach( function(e:SnapElement):Void {
+						e.remove();
+					} , this);
 
+					after_anim = function() {
+						var bbox = clone.getBBox();
+						var new_text = paper.text(bbox.x, bbox.y, "JKLJLKJLKJLKJLKJL");
+						clone.append(new_text);
+					}
+			}
 			clone.click(function(evt:Event){
 				clone.animate({
 				    transform: "t-10,-10 s1",    
 				   }, 200, "", function(){clone.remove();}
 				);
 			});
-			clone.animate({
-			    transform: "t10,10 s5",    
-			   }, 200, "", function(){clone.animate({transform: "t10,10 s4"},100);});		
-			});
-// 		ele = ele.hover(hover_in, hover_out);
+			clone.animate(
+				{transform: "t10,10 s5"},
+			    200, "", function(){clone.animate({transform: "t10,10 s4"},100, "", after_anim);}
+			);		
+		});
+
 		this.contentElements.push(ele);		
 	}
 
-	private function createTextElement(content:MessageContent, x:Float, y:Float):SnapElement {
-		var ele_width:Float = 80;
-		var ele_height:Float = 40;
-
+	private function createTextElement(content:MessageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
 		var eles = [];
-		var rect = paper.rect(x - ele_width/2, y - ele_height/2, ele_width, ele_height, 3, 3).attr({stroke:"#00FF00", strokeWidth:"1px", fill: "orange"});
+		var rect = paper.rect(x - ele_width/2, y - ele_height/2, ele_width, ele_height, 3, 3)
+		                .attr({"class":"messageContent"});
 		eles.push(rect);
 
 		// Break the text up into words and then re-assemble them
@@ -152,36 +159,32 @@ class ContentTimeLine {
 
 		var y_pos = y - ele_height/2 + 10;
 		for (i in 0...line_no+1) {
-			var text = paper.text(x - ele_width/2 + 4, y_pos, lines[i]).attr({color:"#ff00ff", fontSize:"6px"});
+			var text = paper.text(x - ele_width/2 + 4, y_pos, lines[i])
+			                .attr({color:"#ff00ff", fontSize:"6px"});
 			eles.push(text);
 			y_pos += 10;
 		}
 		return paper.group(paper, eles);
 	}
 
-	private function createImageElement(content:ImageContent, x:Float, y:Float):SnapElement {
-		var ele_width:Float = 40;
-		var ele_height:Float = 30;
+	private function createImageElement(content:ImageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
 		var img = paper.image(content.imgSrc, x, y - ele_height/2, ele_width, ele_height);
-		var g = paper.group(paper, [img]);
-		g.data("type", "ImageContent");
-		g.data("id", content.creator + "-" + content.uid);
-		return g;
+		return paper.group(paper, [img]);
 	}
 
-	private function createLinkElement(content:UrlContent, x:Float, y:Float):SnapElement {
-		var hex = Shapes.createHexagon(paper, x, y, 20);
-		hex.attr({stroke:"#00FF00", strokeWidth:"1px", fill: "cyan"});
+	private function createLinkElement(content:UrlContent, x:Float, y:Float, radius:Float):SnapElement {
+		var hex = Shapes.createHexagon(paper, x, y, radius);
+		hex.attr({"class":"urlContent"});
 		return paper.group(paper, [hex]);
 	}
 
-	private function createAudioElement(content:AudioContent, x:Float, y:Float):SnapElement {
-		var ellipse = paper.ellipse(x, y, 40, 20);
-		ellipse.attr({stroke:"wheat", strokeWidth:"1px", fill: "tomato"});
+	private function createAudioElement(content:AudioContent, x:Float, y:Float, rx:Float, ry:Float):SnapElement {
+		var ellipse = paper.ellipse(x, y, rx, ry);
+		ellipse.attr({"class":"audioEllipse"});
 
 		// Create a triangle play button
 		var triangle = paper.polygon([x+10, y, x-10, y-10, x-10, y+10]);
-		triangle.attr({stroke:"green", strokeWidth:"1px", fill:"red", strokeOpacity: 0.6, fillOpacity:0.6});
+		triangle.attr({"class":"audioTriangle"});
 		return paper.group(paper, [ellipse, triangle]);
 	}
 }
