@@ -7364,13 +7364,16 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var ele_width = 40;
 		var ele_height = 30;
 		var img = this.paper.image(content.imgSrc,x,y - ele_height / 2,ele_width,ele_height);
-		return (function($this) {
+		var g = (function($this) {
 			var $r;
 			var e123 = [img];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
+		g.data("type","ImageContent");
+		g.data("id",content.creator + "-" + content.get_uid());
+		return g;
 	}
 	,createTextElement: function(content,x,y) {
 		var ele_width = 80;
@@ -7410,16 +7413,25 @@ ui.widget.score.ContentTimeLine.prototype = {
 		}(this));
 	}
 	,addContentElement: function(content,ele) {
+		var _g = this;
 		ele = ele.click(function(evt) {
-			var clone = ele.clone();
+			var clone = _g.cloneElement(ele);
 			clone.click(function(evt1) {
-				clone.remove();
+				clone.animate({ transform : "t-10,-10 s1"},200,"",function() {
+					clone.remove();
+				});
 			});
 			clone.animate({ transform : "t10,10 s5"},200,"",function() {
-				clone.animate({ transform : "s4"},300);
+				clone.animate({ transform : "t10,10 s4"},100);
 			});
 		});
 		this.contentElements.push(ele);
+	}
+	,cloneElement: function(ele) {
+		var clone = ele.clone();
+		clone.data("type",ele.data("type"));
+		clone.data("id",Std.string(ele.data("id")) + "-clone");
+		return clone;
 	}
 	,createContentElement: function(content) {
 		var radius = 10;

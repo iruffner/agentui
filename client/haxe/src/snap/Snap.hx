@@ -143,16 +143,8 @@ extern class Snap {
 	public function rect(x:Float, y:Float, width:Float, height:Float, ?rx:Float, ?ry:Float):SnapElement;
 	public function text(x:Float, y:Float, text:Dynamic):SnapElement;
 
-	public function append(el:SnapElement):SnapElement;
 	public function toString():String;
 
-
-	// Font
-	public function getFont(family:String, ?weight:String, ?style:String, ?stretch:String):Dynamic;
-	public function print(x:Float, y:Float, text:String, font:Dynamic, font_size:Float):SnapSet;
-	
-	
-	// Color
 	static public function getRGB(color:String):SnapRGB;
 	static public function getColor(?val:Float):String;
 	inline static public function getColorReset():Void {
@@ -232,6 +224,7 @@ extern class SnapFragment {
 
 extern class SnapElement {
 	public function new();
+	public function add(el:SnapElement):SnapElement;
 	public function after(el:SnapElement):SnapElement;
 	public function animate(newAttrs:Dynamic, duration:Float, ?easing:String, ?callbackFunction:Dynamic):SnapElement;
 	public function append(el:SnapElement):SnapElement;

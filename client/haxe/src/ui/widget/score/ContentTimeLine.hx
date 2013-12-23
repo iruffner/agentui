@@ -99,15 +99,26 @@ class ContentTimeLine {
 		m3.util.JqueryUtil.alert("hover out");
 	}
 */
+	private function cloneElement(ele:SnapElement):SnapElement {
+		var clone = ele.clone();
+		clone.data("type", ele.data("type"));
+		clone.data("id", ele.data("id") + "-clone");
+		return clone;		
+	}
+
 	private function addContentElement(content:Content, ele:SnapElement) {
 		ele = ele.click(function(evt:Event):Void {
-			var clone = ele.clone();
+			var clone = cloneElement(ele);
+
 			clone.click(function(evt:Event){
-				clone.remove();
+				clone.animate({
+				    transform: "t-10,-10 s1",    
+				   }, 200, "", function(){clone.remove();}
+				);
 			});
 			clone.animate({
 			    transform: "t10,10 s5",    
-			   }, 200, "", function(){clone.animate({transform: "s4"},300);});		
+			   }, 200, "", function(){clone.animate({transform: "t10,10 s4"},100);});		
 			});
 // 		ele = ele.hover(hover_in, hover_out);
 		this.contentElements.push(ele);		
@@ -151,7 +162,10 @@ class ContentTimeLine {
 		var ele_width:Float = 40;
 		var ele_height:Float = 30;
 		var img = paper.image(content.imgSrc, x, y - ele_height/2, ele_width, ele_height);
-		return paper.group(paper, [img]);
+		var g = paper.group(paper, [img]);
+		g.data("type", "ImageContent");
+		g.data("id", content.creator + "-" + content.uid);
+		return g;
 	}
 
 	private function createLinkElement(content:UrlContent, x:Float, y:Float):SnapElement {
