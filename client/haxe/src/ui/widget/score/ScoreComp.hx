@@ -94,9 +94,6 @@ extern class ScoreComp extends JQ {
 		        	var max_y = 500;
 		        	var viewBox = "0 0 " + max_x + " " + max_y;
 
-		        	var svg = new JQ('<svg id="score-comp-svg" viewBox="' + viewBox + '" xmlns="http://www.w3.org/2000/svg"></svg>');
-		        	selfElement.append(svg);
-
 					self.paper = new Snap("#score-comp-svg");
 					var line_attrs:Dynamic = {stroke: "#bada55", strokeWidth: 1};
 

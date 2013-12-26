@@ -4,6 +4,7 @@ import snap.Snap;
 import ui.model.ModelObj;
 import js.html.*;
 import m3.util.M;
+import m3.jq.JQ;
 
 
 class ContentTimeLine {
@@ -93,20 +94,21 @@ class ContentTimeLine {
 
 	private function cloneElement(ele:SnapElement):SnapElement {
 		var clone = ele.clone();
-		clone.data("contentType", ele.data("contentType"));
-		clone.data("id", ele.data("id") + "-clone");
+		clone.attr({"contentType": ele.attr("contentType")});
+		clone.attr({"id": ele.attr("id") + "-clone"});
 		return clone;		
 	}
 
 	private function addContentElement(content:Content, ele:SnapElement) {
-		ele.data("contentType", Std.string(content.type));
-		ele.data("id", content.creator + "-" + content.uid);
+		ele.attr({"contentType": Std.string(content.type)});
+		ele.attr({"id" : content.creator + "-" + content.uid});
 
 		var after_anim:Void->Void = function(){};
 
 		ele = ele.click(function(evt:Event):Void {
 			var clone = cloneElement(ele);
-			switch (clone.data("contentType")) {
+
+			switch (clone.attr("contentType")) {
 				case "TEXT":
 					var texts = clone.selectAll("text");
 					texts.forEach( function(e:SnapElement):Void {
@@ -115,10 +117,20 @@ class ContentTimeLine {
 
 					after_anim = function() {
 						var bbox = clone.getBBox();
-						var new_text = paper.text(bbox.x, bbox.y, "JKLJLKJLKJLKJLKJL");
-						clone.append(new_text);
-					}
+
+						var lines = splitText(cast(content, MessageContent).text, 50);
+
+						var y = bbox.y;// - bbox.height/2 + 10;
+						var x = bbox.x;// - bbox.width/2 + 4;
+						for (i in 0...lines.length) {
+							var text = paper.text(x, y, lines[i])
+							                .attr({"class":"messageContent-large-text"});
+							clone.append(text);
+							y += 10;
+						}
+					};
 			}
+
 			clone.click(function(evt:Event){
 				clone.animate({
 				    transform: "t-10,-10 s1",    
@@ -134,33 +146,39 @@ class ContentTimeLine {
 		this.contentElements.push(ele);		
 	}
 
+	private function splitText(text:String, max_chars:Float, ?max_lines:Float=0):Array<String> {
+		var words = text.split(" ");
+		var lines = new Array<String>();
+		var line_no = 0;
+		lines[line_no] = "";
+		for (i in 0...words.length) {
+			if (lines[line_no].length + words[i].length > max_chars) {
+				line_no += 1;
+				if (line_no == max_lines) {
+					break;
+				}
+				lines[line_no] = "";
+			} else {
+				lines[line_no] += " ";
+			}
+			lines[line_no] += words[i];
+		}
+		return lines;
+	}
+
 	private function createTextElement(content:MessageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
 		var eles = [];
 		var rect = paper.rect(x - ele_width/2, y - ele_height/2, ele_width, ele_height, 3, 3)
 		                .attr({"class":"messageContent"});
 		eles.push(rect);
 
-		// Break the text up into words and then re-assemble them
-		var max_chars = 22;
-		var words = content.text.split(" ");
-		var lines = [];
-		var line_no = 0;
-		lines[line_no] = "";
-		for (i in 0...words.length) {
-			if (lines[line_no].length + words[i].length > max_chars) {
-				line_no += 1;
-				if (line_no == 3) {
-					break;
-				}
-				lines[line_no] = "";
-			}
-			lines[line_no] += words[i] + " ";
-		}
+		// Break the text up into words and then re-assemble them into lines
+		var lines = splitText(content.text, 22, 3);
 
 		var y_pos = y - ele_height/2 + 10;
-		for (i in 0...line_no+1) {
+		for (i in 0...lines.length) {
 			var text = paper.text(x - ele_width/2 + 4, y_pos, lines[i])
-			                .attr({color:"#ff00ff", fontSize:"6px"});
+			                .attr({"class":"messageContent-small-text"});
 			eles.push(text);
 			y_pos += 10;
 		}
@@ -168,7 +186,8 @@ class ContentTimeLine {
 	}
 
 	private function createImageElement(content:ImageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
-		var img = paper.image(content.imgSrc, x, y - ele_height/2, ele_width, ele_height);
+		var img = paper.image(content.imgSrc, x, y - ele_height/2, ele_width, ele_height)
+		               .attr({"preserveAspectRatio":"true"});
 		return paper.group(paper, [img]);
 	}
 

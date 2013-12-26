@@ -7370,7 +7370,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 		}(this));
 	}
 	,createImageElement: function(content,x,y,ele_width,ele_height) {
-		var img = this.paper.image(content.imgSrc,x,y - ele_height / 2,ele_width,ele_height);
+		var img = this.paper.image(content.imgSrc,x,y - ele_height / 2,ele_width,ele_height).attr({ preserveAspectRatio : "true"});
 		return (function($this) {
 			var $r;
 			var e123 = [img];
@@ -7383,26 +7383,12 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var eles = [];
 		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "messageContent"});
 		eles.push(rect);
-		var max_chars = 22;
-		var words = content.text.split(" ");
-		var lines = [];
-		var line_no = 0;
-		lines[line_no] = "";
-		var _g1 = 0, _g = words.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			if(lines[line_no].length + words[i].length > max_chars) {
-				line_no += 1;
-				if(line_no == 3) break;
-				lines[line_no] = "";
-			}
-			lines[line_no] += words[i] + " ";
-		}
+		var lines = this.splitText(content.text,22,3);
 		var y_pos = y - ele_height / 2 + 10;
-		var _g1 = 0, _g = line_no + 1;
+		var _g1 = 0, _g = lines.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			var text = this.paper.text(x - ele_width / 2 + 4,y_pos,lines[i]).attr({ color : "#ff00ff", fontSize : "6px"});
+			var text = this.paper.text(x - ele_width / 2 + 4,y_pos,lines[i]).attr({ 'class' : "messageContent-small-text"});
 			eles.push(text);
 			y_pos += 10;
 		}
@@ -7414,15 +7400,33 @@ ui.widget.score.ContentTimeLine.prototype = {
 			return $r;
 		}(this));
 	}
+	,splitText: function(text,max_chars,max_lines) {
+		if(max_lines == null) max_lines = 0;
+		var words = text.split(" ");
+		var lines = new Array();
+		var line_no = 0;
+		lines[line_no] = "";
+		var _g1 = 0, _g = words.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(lines[line_no].length + words[i].length > max_chars) {
+				line_no += 1;
+				if(line_no == max_lines) break;
+				lines[line_no] = "";
+			} else lines[line_no] += " ";
+			lines[line_no] += words[i];
+		}
+		return lines;
+	}
 	,addContentElement: function(content,ele) {
 		var _g = this;
-		ele.data("contentType",Std.string(content.type));
-		ele.data("id",content.creator + "-" + content.get_uid());
+		ele.attr({ contentType : Std.string(content.type)});
+		ele.attr({ id : content.creator + "-" + content.get_uid()});
 		var after_anim = function() {
 		};
 		ele = ele.click(function(evt) {
 			var clone = _g.cloneElement(ele);
-			var _g1 = clone.data("contentType");
+			var _g1 = clone.attr("contentType");
 			switch(_g1) {
 			case "TEXT":
 				var texts = clone.selectAll("text");
@@ -7431,8 +7435,16 @@ ui.widget.score.ContentTimeLine.prototype = {
 				},_g);
 				after_anim = function() {
 					var bbox = clone.getBBox();
-					var new_text = _g.paper.text(bbox.x,bbox.y,"JKLJLKJLKJLKJLKJL");
-					clone.append(new_text);
+					var lines = _g.splitText((js.Boot.__cast(content , ui.model.MessageContent)).text,50);
+					var y = bbox.y;
+					var x = bbox.x;
+					var _g3 = 0, _g2 = lines.length;
+					while(_g3 < _g2) {
+						var i = _g3++;
+						var text = _g.paper.text(x,y,lines[i]).attr({ 'class' : "messageContent-large-text"});
+						clone.append(text);
+						y += 10;
+					}
 				};
 				break;
 			}
@@ -7449,8 +7461,8 @@ ui.widget.score.ContentTimeLine.prototype = {
 	}
 	,cloneElement: function(ele) {
 		var clone = ele.clone();
-		clone.data("contentType",ele.data("contentType"));
-		clone.data("id",Std.string(ele.data("id")) + "-clone");
+		clone.attr({ contentType : ele.attr("contentType")});
+		clone.attr({ id : Std.string(ele.attr("id")) + "-clone"});
 		return clone;
 	}
 	,createContentElement: function(content) {
@@ -9796,8 +9808,6 @@ var defineWidget = function() {
 		var max_x = 700;
 		var max_y = 500;
 		var viewBox = "0 0 " + max_x + " " + max_y;
-		var svg = new $("<svg id=\"score-comp-svg\" viewBox=\"" + viewBox + "\" xmlns=\"http://www.w3.org/2000/svg\"></svg>");
-		selfElement.append(svg);
 		self1.paper = new Snap("#score-comp-svg");
 		var line_attrs = { stroke : "#bada55", strokeWidth : 1};
 		self1.paper.line(0,0,0,max_y).attr(line_attrs);

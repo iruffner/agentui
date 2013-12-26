@@ -1131,6 +1131,16 @@ body {
 	fill: orange;
 }
 
+.messageContent-small-text {
+	color:#ff00ff;
+	font-size:6px;
+}
+
+.messageContent-large-text {
+	color:#ff00ff;
+	font-size:12px;
+}
+
 .contentLine {
 	stroke-opacity: 0.6;
 	stroke: #cccccc;
