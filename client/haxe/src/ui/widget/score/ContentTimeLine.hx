@@ -117,26 +117,35 @@ class ContentTimeLine {
 
 					after_anim = function() {
 						var bbox = clone.getBBox();
+						clone.remove();
+
+						var rect = paper.rect(bbox.x, bbox.y, bbox.width, bbox.height, 3, 3)
+		                .attr({"class":"messageContent"});
 
 						var lines = splitText(cast(content, MessageContent).text, 50);
-
-						var y = bbox.y;// - bbox.height/2 + 10;
-						var x = bbox.x;// - bbox.width/2 + 4;
+						var eles:Array<SnapElement> = [];
+						eles.push(rect);
+						var y = bbox.y + 15;// - bbox.height/2 + 10;
+						var x = bbox.x + 5;// - bbox.width/2 + 4;
+						var max_width:Float = 0;
 						for (i in 0...lines.length) {
 							var text = paper.text(x, y, lines[i])
 							                .attr({"class":"messageContent-large-text"});
-							clone.append(text);
-							y += 10;
+							eles.push(text);
+							max_width = Math.max(max_width, Std.int(text.getBBox().width));
+							y += 15;
 						}
+						max_width += 50;
+						if (max_width > bbox.width) {
+							rect.attr({"width" : Std.string(max_width)});
+						}
+						var g = paper.group(paper, eles);
+						g.click(function(evt:Event){
+							g.remove();
+						});
 					};
 			}
 
-			clone.click(function(evt:Event){
-				clone.animate({
-				    transform: "t-10,-10 s1",    
-				   }, 200, "", function(){clone.remove();}
-				);
-			});
 			clone.animate(
 				{transform: "t10,10 s5"},
 			    200, "", function(){clone.animate({transform: "t10,10 s4"},100, "", after_anim);}

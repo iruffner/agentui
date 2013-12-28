@@ -362,6 +362,9 @@ Std.__name__ = ["Std"];
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
 }
+Std["int"] = function(x) {
+	return x | 0;
+}
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
@@ -7435,24 +7438,37 @@ ui.widget.score.ContentTimeLine.prototype = {
 				},_g);
 				after_anim = function() {
 					var bbox = clone.getBBox();
+					clone.remove();
+					var rect = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,3,3).attr({ 'class' : "messageContent"});
 					var lines = _g.splitText((js.Boot.__cast(content , ui.model.MessageContent)).text,50);
-					var y = bbox.y;
-					var x = bbox.x;
+					var eles = [];
+					eles.push(rect);
+					var y = bbox.y + 15;
+					var x = bbox.x + 5;
+					var max_width = 0;
 					var _g3 = 0, _g2 = lines.length;
 					while(_g3 < _g2) {
 						var i = _g3++;
 						var text = _g.paper.text(x,y,lines[i]).attr({ 'class' : "messageContent-large-text"});
-						clone.append(text);
-						y += 10;
+						eles.push(text);
+						max_width = Math.max(max_width,Std["int"](text.getBBox().width));
+						y += 15;
 					}
+					max_width += 50;
+					if(max_width > bbox.width) rect.attr({ width : Std.string(max_width)});
+					var g = (function($this) {
+						var $r;
+						var e123 = eles;
+						var me123 = _g.paper;
+						$r = me123.group.apply(me123, e123);
+						return $r;
+					}(this));
+					g.click(function(evt1) {
+						g.remove();
+					});
 				};
 				break;
 			}
-			clone.click(function(evt1) {
-				clone.animate({ transform : "t-10,-10 s1"},200,"",function() {
-					clone.remove();
-				});
-			});
 			clone.animate({ transform : "t10,10 s5"},200,"",function() {
 				clone.animate({ transform : "t10,10 s4"},100,"",after_anim);
 			});
