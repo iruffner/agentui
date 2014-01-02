@@ -2488,6 +2488,19 @@ m3.helper.ArrayHelper.indexOf = function(array,t) {
 	}
 	return index;
 }
+m3.helper.ArrayHelper.lastIndexOf = function(array,t) {
+	if(array == null) return -1;
+	var index = -1;
+	var i_ = array.length;
+	while(i_ > 0) {
+		i_ -= 1;
+		if(array[i_] == t) {
+			index = i_;
+			break;
+		}
+	}
+	return index;
+}
 m3.helper.ArrayHelper.indexOfComplex = function(array,value,propOrFcn,startingIndex) {
 	if(startingIndex == null) startingIndex = 0;
 	if(array == null) return -1;
@@ -7328,14 +7341,15 @@ ui.widget.IntroductionNotificationCompHelper = function() { }
 $hxClasses["ui.widget.IntroductionNotificationCompHelper"] = ui.widget.IntroductionNotificationCompHelper;
 ui.widget.IntroductionNotificationCompHelper.__name__ = ["ui","widget","IntroductionNotificationCompHelper"];
 ui.widget.score = {}
-ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime) {
+ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime,initialWidth) {
 	this.paper = paper;
 	this.connection = connection;
 	this.startTime = startTime;
 	this.endTime = endTime;
+	this.initialWidth = initialWidth;
 	this.contents = new Array();
 	this.contentElements = new Array();
-	if(ui.widget.score.ContentTimeLine.next_y_pos > 0) ui.widget.score.ContentTimeLine.next_y_pos += ui.widget.score.ContentTimeLine.height + 20;
+	if(ui.widget.score.ContentTimeLine.next_y_pos > ui.widget.score.ContentTimeLine.initial_y_pos) ui.widget.score.ContentTimeLine.next_y_pos += ui.widget.score.ContentTimeLine.height + 20;
 	ui.widget.score.ContentTimeLine.next_y_pos += 10;
 	this.time_line_x = ui.widget.score.ContentTimeLine.next_x_pos;
 	this.time_line_y = ui.widget.score.ContentTimeLine.next_y_pos;
@@ -7344,7 +7358,7 @@ ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime) {
 $hxClasses["ui.widget.score.ContentTimeLine"] = ui.widget.score.ContentTimeLine;
 ui.widget.score.ContentTimeLine.__name__ = ["ui","widget","score","ContentTimeLine"];
 ui.widget.score.ContentTimeLine.resetPositions = function() {
-	ui.widget.score.ContentTimeLine.next_y_pos = 60;
+	ui.widget.score.ContentTimeLine.next_y_pos = ui.widget.score.ContentTimeLine.initial_y_pos;
 	ui.widget.score.ContentTimeLine.next_x_pos = 10;
 }
 ui.widget.score.ContentTimeLine.prototype = {
@@ -7484,7 +7498,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 	,createContentElement: function(content) {
 		var radius = 10;
 		var gap = 10;
-		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * 700 + this.time_line_x + ui.widget.score.ContentTimeLine.width;
+		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * this.initialWidth + this.time_line_x + ui.widget.score.ContentTimeLine.width;
 		var y = this.time_line_y + ui.widget.score.ContentTimeLine.height / 2;
 		var ele;
 		if(content.type == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y,80,40)); else if(content.type == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y,40,30)); else if(content.type == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y,20)); else if(content.type == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y,40,20));
@@ -7494,7 +7508,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 		this.createContentElement(content);
 	}
 	,createConnectionElement: function() {
-		var line = this.paper.line(this.time_line_x,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,1000,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2).attr({ 'class' : "contentLine"});
+		var line = this.paper.line(this.time_line_x,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,this.initialWidth,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2).attr({ 'class' : "contentLine"});
 		var img = this.paper.image((function($this) {
 			var $r;
 			try {
@@ -9010,7 +9024,7 @@ var defineWidget = function() {
 		self.input_pw = new $("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 		if(ui.AppContext.DEMO) {
-			self.input_un.val("George.Costanza");
+			self.input_un.val("Jerry.Seinfeld");
 			self.input_pw.val("Bosco");
 		}
 		inputs.children("input").keypress(function(evt) {
@@ -9799,7 +9813,7 @@ var defineWidget = function() {
 		var self = this;
 		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.USER.get_currentAlias().get_connectionSet(),content.creator);
 		if(self.contentTimeLines.get(content.creator) == null) {
-			var timeLine = new ui.widget.score.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime());
+			var timeLine = new ui.widget.score.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime(),self.initialWidth);
 			self.contentTimeLines.set(content.creator,timeLine);
 		}
 		self.contentTimeLines.get(content.creator).addContent(content);
@@ -9821,18 +9835,11 @@ var defineWidget = function() {
 		self1.options.content.listen(function(content,evt) {
 			if(evt.isAdd()) self1._addContent(content); else if(evt.isUpdate()) self1._updateContent(content); else if(evt.isDelete()) self1._deleteContent(content);
 		});
-		var max_x = 700;
-		var max_y = 500;
-		var viewBox = "0 0 " + max_x + " " + max_y;
+		self1.initialWidth = 1000;
 		self1.paper = new Snap("#score-comp-svg");
-		var line_attrs = { stroke : "#bada55", strokeWidth : 1};
-		self1.paper.line(0,0,0,max_y).attr(line_attrs);
-		self1.paper.line(0,max_y,max_x,max_y).attr(line_attrs);
-		self1.paper.line(max_x,max_y,max_x,0).attr(line_attrs);
-		self1.paper.line(max_x,0,0,0).attr(line_attrs);
 		self1.startTime = new Date(2012,1,1,0,0,0);
 		self1.endTime = new Date(2013,12,31,0,0,0);
-		self1.timeMarker = new ui.widget.score.TimeMarker(self1.paper,max_x);
+		self1.timeMarker = new ui.widget.score.TimeMarker(self1.paper,self1.initialWidth);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -9961,7 +9968,8 @@ ui.model.LoginById.__rtti = "<class path=\"ui.model.LoginById\" params=\"\" modu
 ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"395\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Introduction.__rtti = "<class path=\"ui.model.Introduction\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<aConn public=\"1\"><c path=\"ui.model.Connection\"/></aConn>\n\t<bConn public=\"1\"><c path=\"ui.model.Connection\"/></bConn>\n\t<aMsg public=\"1\"><c path=\"String\"/></aMsg>\n\t<bMsg public=\"1\"><c path=\"String\"/></bMsg>\n\t<new public=\"1\" set=\"method\" line=\"400\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.IntroductionConfirmation.__rtti = "<class path=\"ui.model.IntroductionConfirmation\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<introSessionId public=\"1\"><c path=\"String\"/></introSessionId>\n\t<correlationId public=\"1\"><c path=\"String\"/></correlationId>\n\t<new public=\"1\" set=\"method\" line=\"413\"><f a=\"accepted:introSessionId:correlationId\">\n\t<x path=\"Bool\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.widget.score.ContentTimeLine.next_y_pos = 60;
+ui.widget.score.ContentTimeLine.initial_y_pos = 60;
+ui.widget.score.ContentTimeLine.next_y_pos = ui.widget.score.ContentTimeLine.initial_y_pos;
 ui.widget.score.ContentTimeLine.next_x_pos = 10;
 ui.widget.score.ContentTimeLine.width = 40;
 ui.widget.score.ContentTimeLine.height = 50;

@@ -6,9 +6,10 @@ import js.html.*;
 import m3.util.M;
 import m3.jq.JQ;
 
-
 class ContentTimeLine {
-	private static var next_y_pos:Int = 60;
+	private static var initial_y_pos = 60;
+
+	private static var next_y_pos:Int = initial_y_pos;
 	private static var next_x_pos:Int = 10;
 	private static var width:Int = 40;
  	private static var height:Int = 50;
@@ -26,21 +27,24 @@ class ContentTimeLine {
  	private var time_line_x:Float;
  	private var time_line_y:Float;
 
+ 	private var initialWidth:Float;
+
  	public static function resetPositions(): Void {
-		ContentTimeLine.next_y_pos = 60;
+		ContentTimeLine.next_y_pos = initial_y_pos;
 		ContentTimeLine.next_x_pos = 10;
  	}
 
-	public function new(paper:Snap, connection: Connection, startTime:Float, endTime:Float) {
+	public function new(paper:Snap, connection: Connection, startTime:Float, endTime:Float, initialWidth:Float) {
 		this.paper      = paper;
 		this.connection = connection;
 		this.startTime  = startTime;
 		this.endTime    = endTime;
+		this.initialWidth = initialWidth;
 
 		this.contents = new Array<Content>();
 		this.contentElements = new Array<SnapElement>();
 
-		if (ContentTimeLine.next_y_pos > 0) {
+		if (ContentTimeLine.next_y_pos > initial_y_pos) {
 			ContentTimeLine.next_y_pos += ContentTimeLine.height + 20;
 		}
 		ContentTimeLine.next_y_pos += 10;
@@ -61,7 +65,7 @@ class ContentTimeLine {
 	}
 
 	private function createConnectionElement(): Void {
-		var line = paper.line(time_line_x, time_line_y + height/2, 1000, time_line_y + height/2)
+		var line = paper.line(time_line_x, time_line_y + height/2, initialWidth, time_line_y + height/2)
 		                .attr({"class":"contentLine"});
 		var img = paper.image(M.getX(connection.profile.imgSrc,"media/default_avatar.jpg"), time_line_x, time_line_y, width, height);
 		var rect = paper.rect(time_line_x, time_line_y, width, height, 10, 10).attr({"class": "contentRect"});
@@ -77,7 +81,7 @@ class ContentTimeLine {
 		var radius = 10;
 		var gap    = 10;
 
-		var x:Float = (this.endTime - content.created.getTime())/(this.endTime - this.startTime) * 700 + time_line_x + ContentTimeLine.width;
+		var x:Float = (this.endTime - content.created.getTime())/(this.endTime - this.startTime) * initialWidth + time_line_x + ContentTimeLine.width;
 		var y:Float = time_line_y  + height/2;
 
 		var ele:SnapElement;

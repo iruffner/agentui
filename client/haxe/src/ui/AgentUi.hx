@@ -83,9 +83,6 @@ class AgentUi {
             }
         });
 
-
-        
-
         new JQ("body").keyup(function(evt: JQEvent) {
             if(HOT_KEY_ACTIONS.hasValues()) {
                 HOT_KEY_ACTIONS.iter(

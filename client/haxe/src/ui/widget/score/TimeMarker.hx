@@ -5,10 +5,10 @@ import snap.Snap;
 class TimeMarker
 {
 	private var paper: Snap;
-	private var width: Int;
+	private var width: Float;
 	private var line:SnapElement;
 
-	public function new(paper:Snap, width:Int) {
+	public function new(paper:Snap, width:Float) {
 		this.paper = paper;
 		this.width = width;
 

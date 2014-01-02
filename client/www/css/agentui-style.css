@@ -1101,6 +1101,10 @@ body {
 
 
 /* Snap-svg */
+
+#score-comp-svg {
+	border: 1px solid black;
+}
 .zztop {
 	z-index: 1000;
 }

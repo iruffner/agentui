@@ -23,6 +23,7 @@ typedef ScoreCompWidgetDef = {
 	@:optional var timeMarker:TimeMarker;
 	@:optional var startTime:Date;
 	@:optional var endTime:Date;
+	@:optional var initialWidth:Float;
 
 	var _addContent:Content->Void;
 	var _deleteContent:Content->Void;
@@ -48,7 +49,10 @@ extern class ScoreComp extends JQ {
 	            	var connection: Connection = AppContext.USER.currentAlias.connectionSet.getElementComplex(content.creator);
 
  	            	if (self.contentTimeLines.get(content.creator) == null) {
- 	            		var timeLine = new ContentTimeLine(self.paper, connection, self.startTime.getTime(), self.endTime.getTime());
+ 	            		var timeLine = new ContentTimeLine(self.paper, connection, 
+ 	            			                               self.startTime.getTime(), 
+ 	            			                               self.endTime.getTime(),
+ 	            			                               self.initialWidth);
  	            		self.contentTimeLines.set(content.creator, timeLine);
 		            }
 
@@ -90,22 +94,14 @@ extern class ScoreComp extends JQ {
 	            		}
 	            	});
 
-		        	var max_x = 700;
-		        	var max_y = 500;
-		        	var viewBox = "0 0 " + max_x + " " + max_y;
+		        	self.initialWidth = 1000;
 
 					self.paper = new Snap("#score-comp-svg");
-					var line_attrs:Dynamic = {stroke: "#bada55", strokeWidth: 1};
-
-					self.paper.line(0, 0, 0, max_y).attr(line_attrs);
-					self.paper.line(0, max_y, max_x, max_y).attr(line_attrs);
-					self.paper.line(max_x, max_y, max_x, 0).attr(line_attrs);
-					self.paper.line(max_x, 0, 0, 0).attr(line_attrs);
 
 					self.startTime = new Date(2012, 1, 1, 0, 0, 0);
-					self.endTime = new Date(2013, 12, 31, 0, 0, 0);
+					self.endTime   = new Date(2013, 12, 31, 0, 0, 0);
 
-					self.timeMarker = new TimeMarker(self.paper, max_x);
+					self.timeMarker = new TimeMarker(self.paper, self.initialWidth);
 		        },
 
 		        destroy: function() {
