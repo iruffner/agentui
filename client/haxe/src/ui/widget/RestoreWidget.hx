@@ -82,12 +82,13 @@ extern class RestoreWidget extends JQ {
 		        							if(!backups.hasValues()) {
 		        								table.append("No backups available");
 		        							} else {
-		        								for(i_ in 0...10) {
+		        								for(i_ in 0...backups.length) {
+		        									var name: String = backups[i_];
 		        									table.append(
-		        											new JQ("<span style='cursor: pointer;'>" + "BACKUP_NAME" + "</span>").click(function(evt: JQEvent): Void {
-		        													if(m3.CrossMojo.confirm()("Restore " + "BACKUP_NAME" + "?")) {
+		        											new JQ("<span style='cursor: pointer;'>" + name + "</span>").click(function(evt: JQEvent): Void {
+		        													if(m3.CrossMojo.confirm()("Restore " + name + "?")) {
 		        														cast(selfElement, M3Dialog).m3dialog("close");
-		        														EM.change(EMEvent.RESTORE, "BACKUP_NAME");
+		        														EM.change(EMEvent.RESTORE, name);
 		        													}
 		        												})
 		        										);
