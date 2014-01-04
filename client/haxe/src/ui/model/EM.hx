@@ -125,4 +125,9 @@ enum EMEvent {
 	ConnectionUpdate;
 
 	TARGET_CHANGE;
+
+	BACKUP;
+	RESTORE;
+	RESTORES_REQUEST;
+	AVAILABLE_BACKUPS;
 }

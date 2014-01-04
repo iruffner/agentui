@@ -50,6 +50,7 @@ class AgentUi {
         } 
 
         var z: ZWidget = new ZWidget("<div></div>");
+        var r: RestoreWidget = new RestoreWidget("<div></div>");
         
 
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
@@ -75,11 +76,15 @@ class AgentUi {
                 notification.contentImpl.correlationId = "abc123";
                 EM.change(EMEvent.DELETE_NOTIFICATION, notification);
             }
-            else if(evt.altKey && evt.shiftKey && evt.keyCode == 79 /* ALT+SHIFT+T */) {
-                AppContext.LOGGER.debug("ALT + SHIFT + T");
+            else if(evt.altKey && evt.shiftKey && evt.keyCode == 90 /* ALT+SHIFT+Z */) {
+                AppContext.LOGGER.debug("ALT + SHIFT + Z");
                 if(ui.AppContext.DEMO) {
                     z.zWidget("open");
                 }
+            }
+            else if(evt.altKey && evt.shiftKey && evt.keyCode == 82 /* ALT+SHIFT+R */) {
+                AppContext.LOGGER.debug("ALT + SHIFT + R");
+                r.restoreWidget("open");
             }
         });
 
@@ -134,6 +139,9 @@ class AgentUi {
             z.appendTo(new JQ(js.Browser.document.body));
             z.zWidget();
         }
+
+        r.appendTo(new JQ(js.Browser.document.body));
+        r.restoreWidget();
 
         if(urlVars.agentURI.isNotBlank()) {
             agentURI = urlVars.agentURI;

@@ -551,6 +551,42 @@ class ConnectNotification extends ProtocolMessage<ConnectNotificationData> {
 		}
 	}
 
+/** 
+	Backup/Restore 
+**/
+class BackupRequest extends ProtocolMessage<BackupData> {
+	public function new() {
+		super(MsgType.backupRequest, BackupData);
+	}
+}
+	class BackupData extends PayloadWithSessionURI {
+		public var nameOfBackup: String;
+	}
+
+class RestoreRequest extends ProtocolMessage<BackupData> {
+	public function new() {
+		super(MsgType.restoreRequest, BackupData);
+	}
+}
+
+class RestoresRequest extends ProtocolMessage<PayloadWithSessionURI> {
+	public function new() {
+		super(MsgType.restoresRequest, PayloadWithSessionURI);
+	}
+}
+
+class RestoresResponse extends ProtocolMessage<RestoresData> {
+	public function new() {
+		super(MsgType.restoresResponse, RestoresData);
+	}
+}
+
+	class RestoresData extends Payload {
+		public var backups: Array<String>;
+	}
+	
+
+
 enum MsgType {
 	initializeSessionRequest;
 	initializeSessionResponse;
@@ -604,6 +640,14 @@ enum MsgType {
 	introductionConfirmationRequest;
 	introductionConfirmationResponse;
 	connectNotification;
+
+	backupRequest;
+	backupResponse;
+
+	restoresRequest;
+	restoresResponse;
+	restoreRequest;
+	restoreResponse;
 }
 
 enum Reason {

@@ -139,6 +139,18 @@ class ProtocolHandler {
         	
         }));
 
+        EM.addListener(EMEvent.BACKUP, new EMListener(function(nameOfBackup: String): Void{
+        	backup(nameOfBackup);
+        }));
+
+        EM.addListener(EMEvent.RESTORE, new EMListener(function(nameOfBackup: String): Void{
+        	restore(nameOfBackup);
+        }));
+
+        EM.addListener(EMEvent.RESTORES_REQUEST, new EMListener(function(n: Nothing): Void{
+        	restores();
+        }));
+
         processHash = new Map<MsgType,Dynamic->Void>();
         processHash.set(MsgType.evalSubscribeResponse, function(data: Dynamic){
         		AppContext.LOGGER.debug("evalResponse was received from the server");
@@ -233,6 +245,12 @@ class ProtocolHandler {
         		var c: Connection = connectionProfileResponse.contentImpl.connection;
         		c.profile = connectionProfileResponse.contentImpl.profile;
         		EM.change(EMEvent.ConnectionUpdate, c);
+        	});
+
+        processHash.set(MsgType.restoresResponse, function(data: Dynamic){
+        		AppContext.LOGGER.debug("restoresResponse was received from the server");
+        		var restoresResponse = AppContext.SERIALIZER.fromJsonX(data, RestoresResponse);
+        		EM.change(EMEvent.AVAILABLE_BACKUPS, restoresResponse.contentImpl.backups);
         	});
 	}
 
@@ -671,6 +689,47 @@ class ProtocolHandler {
 		} catch (err: Dynamic) {
 			var ex: Exception = Logga.getExceptionInst(err);
 			AppContext.LOGGER.error("Error executing beginIntroductionRequest", ex);
+		}
+	}
+
+	public function backup(backupName: String): Void {
+		var request: BackupRequest = new BackupRequest();
+		request.contentImpl.nameOfBackup = backupName;
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AppContext.LOGGER.debug("backupRequest successfully submitted");
+				}).start({dataType: "text"});
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AppContext.LOGGER.error("Error executing backupRequest", ex);
+		}
+	}
+
+	public function restore(backupName: String): Void {
+		var request: RestoreRequest = new RestoreRequest();
+		request.contentImpl.nameOfBackup = backupName;
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AppContext.LOGGER.debug("restoreRequest successfully submitted");
+				}).start({dataType: "text"});
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AppContext.LOGGER.error("Error executing restoreRequest", ex);
+		}
+	}
+
+	public function restores(): Void {
+		var request: RestoresRequest = new RestoresRequest();
+		try {
+			//we don't expect anything back here
+			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
+					AppContext.LOGGER.debug("restoresRequest successfully submitted");
+				}).start({dataType: "text"});
+		} catch (err: Dynamic) {
+			var ex: Exception = Logga.getExceptionInst(err);
+			AppContext.LOGGER.error("Error executing restoresRequest", ex);
 		}
 	}
 }

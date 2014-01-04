@@ -2380,6 +2380,11 @@ js.Cookie.all = function() {
 js.Cookie.get = function(name) {
 	return js.Cookie.all().get(name);
 }
+js.d3 = {}
+js.d3._D3 = {}
+js.d3._D3.InitPriority = function() { }
+$hxClasses["js.d3._D3.InitPriority"] = js.d3._D3.InitPriority;
+js.d3._D3.InitPriority.__name__ = ["js","d3","_D3","InitPriority"];
 var m3 = {}
 m3.CrossMojo = function() { }
 $hxClasses["m3.CrossMojo"] = m3.CrossMojo;
@@ -7354,6 +7359,7 @@ ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime,in
 	this.time_line_x = ui.widget.score.ContentTimeLine.next_x_pos;
 	this.time_line_y = ui.widget.score.ContentTimeLine.next_y_pos;
 	this.createConnectionElement();
+	this.createMessageContent();
 };
 $hxClasses["ui.widget.score.ContentTimeLine"] = ui.widget.score.ContentTimeLine;
 ui.widget.score.ContentTimeLine.__name__ = ["ui","widget","score","ContentTimeLine"];
@@ -7395,6 +7401,10 @@ ui.widget.score.ContentTimeLine.prototype = {
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
+	}
+	,createMessageContent: function() {
+		var score_comp = d3.select("#score-comp-svg");
+		score_comp.append("foreignObject").attr("width","480").attr("height","500").append("xhtml:body").style("font","14px 'Helvetica Neue'").html("<b>what???</b>");
 	}
 	,createTextElement: function(content,x,y,ele_width,ele_height) {
 		var eles = [];
@@ -7482,6 +7492,12 @@ ui.widget.score.ContentTimeLine.prototype = {
 					});
 				};
 				break;
+			default:
+				after_anim = function() {
+					clone.click(function(evt1) {
+						clone.remove();
+					});
+				};
 			}
 			clone.animate({ transform : "t10,10 s5"},200,"",function() {
 				clone.animate({ transform : "t10,10 s4"},100,"",after_anim);
@@ -9859,6 +9875,7 @@ haxe.xml.Parser.escapes = (function($this) {
 }(this));
 js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
+js.d3._D3.InitPriority.important = "important";
 m3.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 m3.util.UidGenerator.nums = "0123456789";
 m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet.T\"/>\n</x></f></delegate>\n\t<getVisualId public=\"1\" set=\"method\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";

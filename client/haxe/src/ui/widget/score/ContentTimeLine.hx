@@ -5,6 +5,7 @@ import ui.model.ModelObj;
 import js.html.*;
 import m3.util.M;
 import m3.jq.JQ;
+import js.d3.*;
 
 class ContentTimeLine {
 	private static var initial_y_pos = 60;
@@ -53,6 +54,8 @@ class ContentTimeLine {
 	 	time_line_y = ContentTimeLine.next_y_pos;
 
    		createConnectionElement();
+
+   		createMessageContent();
 	}
 
 	public function removeElements() {
@@ -148,6 +151,12 @@ class ContentTimeLine {
 							g.remove();
 						});
 					};
+				default:
+					after_anim = function() { 
+						clone.click(function(evt:Event):Void {
+							clone.remove();
+						});
+					}
 			}
 
 			clone.animate(
@@ -196,6 +205,16 @@ class ContentTimeLine {
 			y_pos += 10;
 		}
 		return paper.group(paper, eles);
+	}
+
+	private function createMessageContent():Void {
+		var score_comp = js.d3.D3.select("#score-comp-svg");
+		score_comp.append("foreignObject")
+		    .attr("width", "480")
+		    .attr("height", "500")
+		    .append("xhtml:body")
+		    .style("font", "14px 'Helvetica Neue'")
+		    .html("<b>what???</b>");
 	}
 
 	private function createImageElement(content:ImageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
