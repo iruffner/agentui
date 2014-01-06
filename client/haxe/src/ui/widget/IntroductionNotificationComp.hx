@@ -57,7 +57,7 @@ extern class IntroductionNotificationComp extends JQ {
 		        	var data = self.options.notification.contentImpl;
 
 		        	var conn: Connection = data.connection;
-		        	var connFromAlias: Connection = AppContext.USER.currentAlias.connectionSet.getElement(conn.uid);
+		        	var connFromAlias: Connection = AppContext.USER.currentAlias.connectionSet.getElement(Connection.identifier(conn));
 		        	if(connFromAlias != null) conn.profile = connFromAlias.profile;
 
 		        	self.listenerUid = EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, new EMListener(function(e:Dynamic) {
