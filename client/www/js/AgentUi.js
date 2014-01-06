@@ -2496,6 +2496,19 @@ m3.helper.ArrayHelper.indexOf = function(array,t) {
 	}
 	return index;
 }
+m3.helper.ArrayHelper.lastIndexOf = function(array,t) {
+	if(array == null) return -1;
+	var index = -1;
+	var i_ = array.length;
+	while(i_ > 0) {
+		i_ -= 1;
+		if(array[i_] == t) {
+			index = i_;
+			break;
+		}
+	}
+	return index;
+}
 m3.helper.ArrayHelper.indexOfComplex = function(array,value,propOrFcn,startingIndex) {
 	if(startingIndex == null) startingIndex = 0;
 	if(array == null) return -1;
@@ -3556,102 +3569,17 @@ m3.serialization.Serializer = function() {
 $hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
 m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
 m3.serialization.Serializer.prototype = {
-	createHandler: function(type) {
-		return (function($this) {
-			var $r;
-			var $e = (type);
-			switch( $e[1] ) {
-			case 1:
-				var parms = $e[3], path = $e[2];
-				$r = path == "Bool"?new m3.serialization.BoolHandler():new m3.serialization.EnumHandler(path,parms);
-				break;
-			case 2:
-				var parms = $e[3], path = $e[2];
-				$r = (function($this) {
-					var $r;
-					switch(path) {
-					case "Bool":
-						$r = new m3.serialization.BoolHandler();
-						break;
-					case "Float":
-						$r = new m3.serialization.FloatHandler();
-						break;
-					case "String":
-						$r = new m3.serialization.StringHandler();
-						break;
-					case "Int":
-						$r = new m3.serialization.IntHandler();
-						break;
-					case "Array":
-						$r = new m3.serialization.ArrayHandler(parms,$this);
-						break;
-					case "Date":
-						$r = new m3.serialization.DateHandler();
-						break;
-					default:
-						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
-					}
-					return $r;
-				}($this));
-				break;
-			case 7:
-				var parms = $e[3], path = $e[2];
-				$r = (function($this) {
-					var $r;
-					switch(path) {
-					case "Bool":
-						$r = new m3.serialization.BoolHandler();
-						break;
-					case "Float":
-						$r = new m3.serialization.FloatHandler();
-						break;
-					case "String":
-						$r = new m3.serialization.StringHandler();
-						break;
-					case "Int":
-						$r = new m3.serialization.IntHandler();
-						break;
-					case "Array":
-						$r = new m3.serialization.ArrayHandler(parms,$this);
-						break;
-					case "Date":
-						$r = new m3.serialization.DateHandler();
-						break;
-					default:
-						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
-					}
-					return $r;
-				}($this));
-				break;
-			case 6:
-				$r = new m3.serialization.DynamicHandler();
-				break;
-			case 4:
-				var ret = $e[3], args = $e[2];
-				$r = new m3.serialization.FunctionHandler();
-				break;
-			default:
-				$r = (function($this) {
-					var $r;
-					throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
-					return $r;
-				}($this));
-			}
-			return $r;
-		}(this));
-	}
-	,getHandler: function(type) {
+	getHandler: function(type) {
 		var typename = m3.serialization.CTypeTools.typename(type);
 		var handler = this._handlersMap.get(typename);
 		if(handler == null) {
-			handler = this.createHandler(type);
+			handler = m3.serialization.ClassHandlerHelper.createHandler(type,this);
 			this._handlersMap.set(typename,handler);
 		}
 		return handler;
 	}
 	,getHandlerViaClass: function(clazz) {
-		var typename = m3.serialization.TypeTools.classname(clazz);
-		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
+		return new m3.serialization.ClassHandler(clazz,m3.serialization.TypeTools.classname(clazz),this);
 	}
 	,createWriter: function() {
 		return new m3.serialization.JsonWriter(this);
@@ -3749,6 +3677,40 @@ m3.serialization.ArrayHandler.prototype = {
 		return instance;
 	}
 	,__class__: m3.serialization.ArrayHandler
+}
+m3.serialization.ObservableSetHandler = function(parms,serializer) {
+	this._parms = parms;
+	this._serializer = serializer;
+	this._elementHandler = this._serializer.getHandler(this._parms.first());
+};
+$hxClasses["m3.serialization.ObservableSetHandler"] = m3.serialization.ObservableSetHandler;
+m3.serialization.ObservableSetHandler.__name__ = ["m3","serialization","ObservableSetHandler"];
+m3.serialization.ObservableSetHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.ObservableSetHandler.prototype = {
+	write: function(value,writer) {
+		return null;
+	}
+	,read: function(fromJson,reader,instance) {
+		return null;
+	}
+	,__class__: m3.serialization.ObservableSetHandler
+}
+m3.serialization.SizedMapHandler = function(parms,serializer) {
+	this._parms = parms;
+	this._serializer = serializer;
+	this._elementHandler = this._serializer.getHandler(this._parms.first());
+};
+$hxClasses["m3.serialization.SizedMapHandler"] = m3.serialization.SizedMapHandler;
+m3.serialization.SizedMapHandler.__name__ = ["m3","serialization","SizedMapHandler"];
+m3.serialization.SizedMapHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.SizedMapHandler.prototype = {
+	write: function(value,writer) {
+		return null;
+	}
+	,read: function(fromJson,reader,instance) {
+		return null;
+	}
+	,__class__: m3.serialization.SizedMapHandler
 }
 m3.serialization.EnumHandler = function(enumName,parms) {
 	this._enumName = enumName;
@@ -3946,11 +3908,119 @@ m3.serialization.Field.__name__ = ["m3","serialization","Field"];
 m3.serialization.Field.prototype = {
 	__class__: m3.serialization.Field
 }
+m3.serialization.ClassHandlerHelper = function() { }
+$hxClasses["m3.serialization.ClassHandlerHelper"] = m3.serialization.ClassHandlerHelper;
+m3.serialization.ClassHandlerHelper.__name__ = ["m3","serialization","ClassHandlerHelper"];
+m3.serialization.ClassHandlerHelper.createHandler = function(type,serializer) {
+	return (function($this) {
+		var $r;
+		var $e = (type);
+		switch( $e[1] ) {
+		case 1:
+			var parms = $e[3], path = $e[2];
+			$r = path == "Bool"?new m3.serialization.BoolHandler():new m3.serialization.EnumHandler(path,parms);
+			break;
+		case 2:
+			var parms = $e[3], path = $e[2];
+			$r = (function($this) {
+				var $r;
+				switch(path) {
+				case "Bool":
+					$r = new m3.serialization.BoolHandler();
+					break;
+				case "Float":
+					$r = new m3.serialization.FloatHandler();
+					break;
+				case "String":
+					$r = new m3.serialization.StringHandler();
+					break;
+				case "Int":
+					$r = new m3.serialization.IntHandler();
+					break;
+				case "Array":
+					$r = new m3.serialization.ArrayHandler(parms,serializer);
+					break;
+				case "Date":
+					$r = new m3.serialization.DateHandler();
+					break;
+				case "ui.observable.ObservableSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "ui.observable.OSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "m3.util.SizedMap":
+					$r = new m3.serialization.SizedMapHandler(parms,serializer);
+					break;
+				default:
+					$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),serializer);
+				}
+				return $r;
+			}($this));
+			break;
+		case 7:
+			var parms = $e[3], path = $e[2];
+			$r = (function($this) {
+				var $r;
+				switch(path) {
+				case "Bool":
+					$r = new m3.serialization.BoolHandler();
+					break;
+				case "Float":
+					$r = new m3.serialization.FloatHandler();
+					break;
+				case "String":
+					$r = new m3.serialization.StringHandler();
+					break;
+				case "Int":
+					$r = new m3.serialization.IntHandler();
+					break;
+				case "Array":
+					$r = new m3.serialization.ArrayHandler(parms,serializer);
+					break;
+				case "Date":
+					$r = new m3.serialization.DateHandler();
+					break;
+				case "ui.observable.ObservableSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "ui.observable.OSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "m3.util.SizedMap":
+					$r = new m3.serialization.SizedMapHandler(parms,serializer);
+					break;
+				default:
+					$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),serializer);
+				}
+				return $r;
+			}($this));
+			break;
+		case 6:
+			$r = new m3.serialization.DynamicHandler();
+			break;
+		case 4:
+			var ret = $e[3], args = $e[2];
+			$r = new m3.serialization.FunctionHandler();
+			break;
+		default:
+			$r = (function($this) {
+				var $r;
+				throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
+				return $r;
+			}($this));
+		}
+		return $r;
+	}(this));
+}
 m3.serialization.ClassHandler = function(clazz,typename,serializer) {
 	this._clazz = clazz;
 	this._typename = typename;
 	this._serializer = serializer;
-	if(this._clazz == null) throw new m3.serialization.JsonException("clazz is null");
+	if(this._clazz == null) {
+		console.log("clazz is null for typename: " + typename);
+		throw new m3.serialization.JsonException("clazz is null for typename: " + typename);
+	}
 	var rtti = this._clazz.__rtti;
 	if(rtti == null) {
 		var msg = "no rtti found for " + this._typename;
