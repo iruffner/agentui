@@ -566,7 +566,7 @@ class ProtocolHandler {
 	}
 
 	public function updateLabels(): Void {
-		var request: AddAliasLabelsRequest = new AddAliasLabelsRequest();  // if we are not sending the same msg for add/update/delete.. this will need to be changed
+		var request: UpdateAliasLabelsRequest = new UpdateAliasLabelsRequest();  // if we are not sending the same msg for add/update/delete.. this will need to be changed
 		var labelsArray: Array<String> = PrologHelper.tagTreeAsStrings(AppContext.USER.currentAlias.labelSet);
 		request.contentImpl.labels = labelsArray;
 		request.contentImpl.alias = AppContext.USER.currentAlias.label;
