@@ -54,8 +54,6 @@ class ContentTimeLine {
 	 	time_line_y = ContentTimeLine.next_y_pos;
 
    		createConnectionElement();
-
-   		createMessageContent();
 	}
 
 	public function removeElements() {
@@ -124,32 +122,33 @@ class ContentTimeLine {
 
 					after_anim = function() {
 						var bbox = clone.getBBox();
+						var g_id = clone.attr("id");
+						var g_type = clone.attr("contentType");
 						clone.remove();
 
 						var rect = paper.rect(bbox.x, bbox.y, bbox.width, bbox.height, 3, 3)
 		                .attr({"class":"messageContent"});
 
-						var lines = splitText(cast(content, MessageContent).text, 50);
-						var eles:Array<SnapElement> = [];
-						eles.push(rect);
-						var y = bbox.y + 15;// - bbox.height/2 + 10;
-						var x = bbox.x + 5;// - bbox.width/2 + 4;
-						var max_width:Float = 0;
-						for (i in 0...lines.length) {
-							var text = paper.text(x, y, lines[i])
-							                .attr({"class":"messageContent-large-text"});
-							eles.push(text);
-							max_width = Math.max(max_width, Std.int(text.getBBox().width));
-							y += 15;
-						}
-						max_width += 50;
-						if (max_width > bbox.width) {
-							rect.attr({"width" : Std.string(max_width)});
-						}
-						var g = paper.group(paper, eles);
+						var g = paper.group(paper,[rect]);
+						g.attr({"contentType": g_type});
+						g.attr({"id": g_id});
 						g.click(function(evt:Event){
 							g.remove();
 						});
+
+						var klone = js.d3.D3.select("#" + g_id);
+						var fo = klone.append("foreignObject")
+						    .attr("width", Std.string(bbox.width - 14))
+						    .attr("height", rect.attr("height"))
+						    .attr("x", Std.string(bbox.x))
+						    .attr("y", Std.string(bbox.y))
+						    .append("xhtml:body");
+						fo.append("div")
+						    .attr("class", "messageContent-large-text")
+						    .style("width", Std.string(bbox.width - 49) + "px")
+						    .style("height", Std.string(bbox.height - 49) + "px")
+						    .html(cast(content, MessageContent).text);
+
 					};
 				default:
 					after_anim = function() { 
@@ -205,16 +204,6 @@ class ContentTimeLine {
 			y_pos += 10;
 		}
 		return paper.group(paper, eles);
-	}
-
-	private function createMessageContent():Void {
-		var score_comp = js.d3.D3.select("#score-comp-svg");
-		score_comp.append("foreignObject")
-		    .attr("width", "480")
-		    .attr("height", "500")
-		    .append("xhtml:body")
-		    .style("font", "14px 'Helvetica Neue'")
-		    .html("<b>what???</b>");
 	}
 
 	private function createImageElement(content:ImageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {

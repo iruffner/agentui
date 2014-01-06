@@ -362,9 +362,6 @@ Std.__name__ = ["Std"];
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
 }
-Std["int"] = function(x) {
-	return x | 0;
-}
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
@@ -2379,6 +2376,12 @@ js.Cookie.all = function() {
 }
 js.Cookie.get = function(name) {
 	return js.Cookie.all().get(name);
+}
+js.Lib = function() { }
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
 }
 js.d3 = {}
 js.d3._D3 = {}
@@ -4608,6 +4611,7 @@ ui.AgentUi.start = function() {
 	var urlVars = m3.util.HtmlUtil.getUrlVars();
 	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "yes" || urlVars.demo == "true")) ui.AppContext.DEMO = true;
 	var z = new $("<div></div>");
+	var r = new $("<div></div>");
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 78) {
 			ui.AppContext.LOGGER.debug("ALT + SHIFT + N");
@@ -4627,9 +4631,12 @@ ui.AgentUi.start = function() {
 			notification.contentImpl.connection = connection;
 			notification.contentImpl.correlationId = "abc123";
 			ui.model.EM.change(ui.model.EMEvent.DELETE_NOTIFICATION,notification);
-		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 79) {
-			ui.AppContext.LOGGER.debug("ALT + SHIFT + T");
+		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 90) {
+			ui.AppContext.LOGGER.debug("ALT + SHIFT + Z");
 			if(ui.AppContext.DEMO) z.zWidget("open");
+		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 82) {
+			ui.AppContext.LOGGER.debug("ALT + SHIFT + R");
+			r.restoreWidget("open");
 		}
 	});
 	new $("body").keyup(function(evt1) {
@@ -4662,6 +4669,8 @@ ui.AgentUi.start = function() {
 		z.appendTo(new $(js.Browser.document.body));
 		z.zWidget();
 	}
+	r.appendTo(new $(js.Browser.document.body));
+	r.restoreWidget();
 	if(m3.helper.StringHelper.isNotBlank(urlVars.agentURI)) ui.AgentUi.agentURI = urlVars.agentURI;
 	ui.widget.DialogManager.showLogin();
 }
@@ -4783,6 +4792,15 @@ ui.api.ProtocolHandler = function() {
 	}));
 	ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
 	}));
+	ui.model.EM.addListener(ui.model.EMEvent.BACKUP,new ui.model.EMListener(function(nameOfBackup) {
+		_g.backup(nameOfBackup);
+	}));
+	ui.model.EM.addListener(ui.model.EMEvent.RESTORE,new ui.model.EMListener(function(nameOfBackup) {
+		_g.restore(nameOfBackup);
+	}));
+	ui.model.EM.addListener(ui.model.EMEvent.RESTORES_REQUEST,new ui.model.EMListener(function(n) {
+		_g.restores();
+	}));
 	this.processHash = new haxe.ds.EnumValueMap();
 	this.processHash.set(ui.api.MsgType.evalSubscribeResponse,function(data) {
 		ui.AppContext.LOGGER.debug("evalResponse was received from the server");
@@ -4870,11 +4888,51 @@ ui.api.ProtocolHandler = function() {
 		c.profile = connectionProfileResponse.contentImpl.profile;
 		ui.model.EM.change(ui.model.EMEvent.ConnectionUpdate,c);
 	});
+	this.processHash.set(ui.api.MsgType.restoresResponse,function(data) {
+		ui.AppContext.LOGGER.debug("restoresResponse was received from the server");
+		var restoresResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.RestoresResponse);
+		ui.model.EM.change(ui.model.EMEvent.AVAILABLE_BACKUPS,restoresResponse.contentImpl.backups);
+	});
 };
 $hxClasses["ui.api.ProtocolHandler"] = ui.api.ProtocolHandler;
 ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
 ui.api.ProtocolHandler.prototype = {
-	confirmIntroduction: function(confirmation) {
+	restores: function() {
+		var request = new ui.api.RestoresRequest();
+		try {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
+				ui.AppContext.LOGGER.debug("restoresRequest successfully submitted");
+			}).start({ dataType : "text"});
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AppContext.LOGGER.error("Error executing restoresRequest",ex);
+		}
+	}
+	,restore: function(backupName) {
+		var request = new ui.api.RestoreRequest();
+		request.contentImpl.nameOfBackup = backupName;
+		try {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
+				ui.AppContext.LOGGER.debug("restoreRequest successfully submitted");
+			}).start({ dataType : "text"});
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AppContext.LOGGER.error("Error executing restoreRequest",ex);
+		}
+	}
+	,backup: function(backupName) {
+		var request = new ui.api.BackupRequest();
+		request.contentImpl.nameOfBackup = backupName;
+		try {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
+				ui.AppContext.LOGGER.debug("backupRequest successfully submitted");
+			}).start({ dataType : "text"});
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AppContext.LOGGER.error("Error executing backupRequest",ex);
+		}
+	}
+	,confirmIntroduction: function(confirmation) {
 		var request = new ui.api.IntroductionConfirmationRequest();
 		request.contentImpl.accepted = confirmation.accepted;
 		request.contentImpl.alias = ui.AppContext.USER.get_currentAlias().label;
@@ -5952,7 +6010,61 @@ ui.api.ConnectNotificationData.prototype = $extend(ui.api.Payload.prototype,{
 	}
 	,__class__: ui.api.ConnectNotificationData
 });
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","connectionProfileResponse","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalSubscribeResponse","evalComplete","evalError","evalSubscribeCancelRequest","evalSubscribeCancelResponse","createUserRequest","createUserError","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","insertContent","feedExpr","addAgentAliasesRequest","addAgentAliasesError","addAgentAliasesResponse","removeAgentAliasesRequest","removeAgentAliasesError","removeAgentAliasesResponse","setDefaultAliasRequest","setDefaultAliasError","setDefaultAliasResponse","getAliasConnectionsRequest","getAliasConnectionsResponse","getAliasConnectionsError","getAliasLabelsRequest","getAliasLabelsResponse","getAliasLabelsError","addAliasLabelsRequest","addAliasLabelsResponse","updateAliasLabelsRequest","updateAliasLabelsResponse","beginIntroductionRequest","beginIntroductionResponse","introductionNotification","introductionConfirmationRequest","introductionConfirmationResponse","connectNotification"] }
+ui.api.BackupRequest = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.backupRequest,ui.api.BackupData);
+};
+$hxClasses["ui.api.BackupRequest"] = ui.api.BackupRequest;
+ui.api.BackupRequest.__name__ = ["ui","api","BackupRequest"];
+ui.api.BackupRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.BackupRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.BackupRequest
+});
+ui.api.BackupData = function() {
+	ui.api.PayloadWithSessionURI.call(this);
+};
+$hxClasses["ui.api.BackupData"] = ui.api.BackupData;
+ui.api.BackupData.__name__ = ["ui","api","BackupData"];
+ui.api.BackupData.__super__ = ui.api.PayloadWithSessionURI;
+ui.api.BackupData.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
+	__class__: ui.api.BackupData
+});
+ui.api.RestoreRequest = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoreRequest,ui.api.BackupData);
+};
+$hxClasses["ui.api.RestoreRequest"] = ui.api.RestoreRequest;
+ui.api.RestoreRequest.__name__ = ["ui","api","RestoreRequest"];
+ui.api.RestoreRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.RestoreRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.RestoreRequest
+});
+ui.api.RestoresRequest = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoresRequest,ui.api.PayloadWithSessionURI);
+};
+$hxClasses["ui.api.RestoresRequest"] = ui.api.RestoresRequest;
+ui.api.RestoresRequest.__name__ = ["ui","api","RestoresRequest"];
+ui.api.RestoresRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.RestoresRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.RestoresRequest
+});
+ui.api.RestoresResponse = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoresResponse,ui.api.RestoresData);
+};
+$hxClasses["ui.api.RestoresResponse"] = ui.api.RestoresResponse;
+ui.api.RestoresResponse.__name__ = ["ui","api","RestoresResponse"];
+ui.api.RestoresResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.RestoresResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.RestoresResponse
+});
+ui.api.RestoresData = function() {
+	ui.api.Payload.call(this);
+};
+$hxClasses["ui.api.RestoresData"] = ui.api.RestoresData;
+ui.api.RestoresData.__name__ = ["ui","api","RestoresData"];
+ui.api.RestoresData.__super__ = ui.api.Payload;
+ui.api.RestoresData.prototype = $extend(ui.api.Payload.prototype,{
+	__class__: ui.api.RestoresData
+});
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","connectionProfileResponse","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalSubscribeResponse","evalComplete","evalError","evalSubscribeCancelRequest","evalSubscribeCancelResponse","createUserRequest","createUserError","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","insertContent","feedExpr","addAgentAliasesRequest","addAgentAliasesError","addAgentAliasesResponse","removeAgentAliasesRequest","removeAgentAliasesError","removeAgentAliasesResponse","setDefaultAliasRequest","setDefaultAliasError","setDefaultAliasResponse","getAliasConnectionsRequest","getAliasConnectionsResponse","getAliasConnectionsError","getAliasLabelsRequest","getAliasLabelsResponse","getAliasLabelsError","addAliasLabelsRequest","addAliasLabelsResponse","updateAliasLabelsRequest","updateAliasLabelsResponse","beginIntroductionRequest","beginIntroductionResponse","introductionNotification","introductionConfirmationRequest","introductionConfirmationResponse","connectNotification","backupRequest","backupResponse","restoresRequest","restoresResponse","restoreRequest","restoreResponse"] }
 ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
 ui.api.MsgType.initializeSessionRequest.toString = $estr;
 ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
@@ -6097,6 +6209,24 @@ ui.api.MsgType.introductionConfirmationResponse.__enum__ = ui.api.MsgType;
 ui.api.MsgType.connectNotification = ["connectNotification",47];
 ui.api.MsgType.connectNotification.toString = $estr;
 ui.api.MsgType.connectNotification.__enum__ = ui.api.MsgType;
+ui.api.MsgType.backupRequest = ["backupRequest",48];
+ui.api.MsgType.backupRequest.toString = $estr;
+ui.api.MsgType.backupRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.backupResponse = ["backupResponse",49];
+ui.api.MsgType.backupResponse.toString = $estr;
+ui.api.MsgType.backupResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.restoresRequest = ["restoresRequest",50];
+ui.api.MsgType.restoresRequest.toString = $estr;
+ui.api.MsgType.restoresRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.restoresResponse = ["restoresResponse",51];
+ui.api.MsgType.restoresResponse.toString = $estr;
+ui.api.MsgType.restoresResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.restoreRequest = ["restoreRequest",52];
+ui.api.MsgType.restoreRequest.toString = $estr;
+ui.api.MsgType.restoreRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.restoreResponse = ["restoreResponse",53];
+ui.api.MsgType.restoreResponse.toString = $estr;
+ui.api.MsgType.restoreResponse.__enum__ = ui.api.MsgType;
 ui.api.Reason = $hxClasses["ui.api.Reason"] = { __ename__ : ["ui","api","Reason"], __constructs__ : [] }
 ui.api.Requester = function() { }
 $hxClasses["ui.api.Requester"] = ui.api.Requester;
@@ -6292,7 +6422,7 @@ ui.api.TestDao.generateContent = function(node) {
 		if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,urlContent,2);
 		content.push(urlContent);
 	}
-	var phrases = ["It's the best, Jerry! The best!","You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.","I find tinsel distracting.","The Moops invaded Spain in the 8th century."," You put the balm on? Who told you to put the balm on? I didn't tell you to put the balm on. Why'd you put the balm on? You haven't even been to see the doctor. If your gonna put a balm on, let a doctor put a balm on.   Oh oh oh, so a Maestro tells you to put a balm on and you do it?  Do you know what a balm is? Have you ever seen a balm? Didn't you read the instructions?","They don't have a decent piece of fruit at the supermarket. The apples are mealy, the oranges are dry... I don't know what's going on with the papayas!"];
+	var phrases = ["It's the best, Jerry! The best!","You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.","I find tinsel distracting.","The Moops invaded Spain in the 8th century.","You put the balm on? Who told you to put the balm on? I didn't tell you to put the balm on. Why'd you put the balm on? You haven't even been to see the doctor. If your gonna put a balm on, let a doctor put a balm on.   Oh oh oh, so a Maestro tells you to put a balm on and you do it?  Do you know what a balm is? Have you ever seen a balm? Didn't you read the instructions?" + ">>>     You put the balm on? Who told you to put the balm on? I didn't tell you to put the balm on. Why'd you put the balm on? You haven't even been to see the doctor. If your gonna put a balm on, let a doctor put a balm on.   Oh oh oh, so a Maestro tells you to put a balm on and you do it?  Do you know what a balm is? Have you ever seen a balm? Didn't you read the instructions?","They don't have a decent piece of fruit at the supermarket. The apples are mealy, the oranges are dry... I don't know what's going on with the papayas!"];
 	var _g1 = 0, _g = phrases.length;
 	while(_g1 < _g) {
 		var i = _g1++;
@@ -6654,7 +6784,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","EditContentClosed","LOAD_ALIAS","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","ALIAS_CREATE","NewAlias","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","PAGE_CLOSE","CreateLabel","DeleteLabels","UPDATE_LABELS","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","INTRODUCTION_CONFIRMATION","INTRODUCTION_CONFIRMATION_RESPONSE","INTRODUCTION_NOTIFICATION","DELETE_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","EditContentClosed","LOAD_ALIAS","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","ALIAS_CREATE","NewAlias","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","PAGE_CLOSE","CreateLabel","DeleteLabels","UPDATE_LABELS","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","INTRODUCTION_CONFIRMATION","INTRODUCTION_CONFIRMATION_RESPONSE","INTRODUCTION_NOTIFICATION","DELETE_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.TEST = ["TEST",0];
 ui.model.EMEvent.TEST.toString = $estr;
 ui.model.EMEvent.TEST.__enum__ = ui.model.EMEvent;
@@ -6760,6 +6890,18 @@ ui.model.EMEvent.ConnectionUpdate.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",34];
 ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
 ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.BACKUP = ["BACKUP",35];
+ui.model.EMEvent.BACKUP.toString = $estr;
+ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.RESTORE = ["RESTORE",36];
+ui.model.EMEvent.RESTORE.toString = $estr;
+ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",37];
+ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
+ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",38];
+ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
+ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
 	this.rootNode = node;
 	this.connectionNodes = new Array();
@@ -7359,7 +7501,6 @@ ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime,in
 	this.time_line_x = ui.widget.score.ContentTimeLine.next_x_pos;
 	this.time_line_y = ui.widget.score.ContentTimeLine.next_y_pos;
 	this.createConnectionElement();
-	this.createMessageContent();
 };
 $hxClasses["ui.widget.score.ContentTimeLine"] = ui.widget.score.ContentTimeLine;
 ui.widget.score.ContentTimeLine.__name__ = ["ui","widget","score","ContentTimeLine"];
@@ -7401,10 +7542,6 @@ ui.widget.score.ContentTimeLine.prototype = {
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
-	}
-	,createMessageContent: function() {
-		var score_comp = d3.select("#score-comp-svg");
-		score_comp.append("foreignObject").attr("width","480").attr("height","500").append("xhtml:body").style("font","14px 'Helvetica Neue'").html("<b>what???</b>");
 	}
 	,createTextElement: function(content,x,y,ele_width,ele_height) {
 		var eles = [];
@@ -7462,34 +7599,25 @@ ui.widget.score.ContentTimeLine.prototype = {
 				},_g);
 				after_anim = function() {
 					var bbox = clone.getBBox();
+					var g_id = clone.attr("id");
+					var g_type = clone.attr("contentType");
 					clone.remove();
 					var rect = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,3,3).attr({ 'class' : "messageContent"});
-					var lines = _g.splitText((js.Boot.__cast(content , ui.model.MessageContent)).text,50);
-					var eles = [];
-					eles.push(rect);
-					var y = bbox.y + 15;
-					var x = bbox.x + 5;
-					var max_width = 0;
-					var _g3 = 0, _g2 = lines.length;
-					while(_g3 < _g2) {
-						var i = _g3++;
-						var text = _g.paper.text(x,y,lines[i]).attr({ 'class' : "messageContent-large-text"});
-						eles.push(text);
-						max_width = Math.max(max_width,Std["int"](text.getBBox().width));
-						y += 15;
-					}
-					max_width += 50;
-					if(max_width > bbox.width) rect.attr({ width : Std.string(max_width)});
 					var g = (function($this) {
 						var $r;
-						var e123 = eles;
+						var e123 = [rect];
 						var me123 = _g.paper;
 						$r = me123.group.apply(me123, e123);
 						return $r;
 					}(this));
+					g.attr({ contentType : g_type});
+					g.attr({ id : g_id});
 					g.click(function(evt1) {
 						g.remove();
 					});
+					var klone = d3.select("#" + g_id);
+					var fo = klone.append("foreignObject").attr("width",Std.string(bbox.width - 14)).attr("height",rect.attr("height")).attr("x",Std.string(bbox.x)).attr("y",Std.string(bbox.y)).append("xhtml:body");
+					fo.append("div").attr("class","messageContent-large-text").style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height - 49) + "px").html((js.Boot.__cast(content , ui.model.MessageContent)).text);
 				};
 				break;
 			default:
@@ -9565,6 +9693,64 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RestoreWidget must be a div element");
+		selfElement.addClass("RestoreWidget");
+		self.container = new $("<div class=''></div>");
+		selfElement.append(self.container);
+		self.inputContainer = new $("<div class='' style='margin-top: 15px;'></div>");
+		selfElement.append(self.inputContainer);
+		new $("<button>Backup</button>").button().click(function(evt) {
+			self.inputContainer.empty();
+			self.inputContainer.append("<h3>Backup Options</h3>").append("<label>Name of Backup</label>");
+			var name = new $("<input style='width: 80%;' class='ui-corner-all ui-widget-content'/>").appendTo(self.inputContainer);
+			var submit = new $("<button>Submit Backup</button>").appendTo(self.inputContainer).click(function(evt1) {
+				if(m3.helper.StringHelper.isBlank(name.val())) {
+					js.Lib.alert("Please specify a name for this backup");
+					return;
+				}
+				(js.Boot.__cast(selfElement , $)).m3dialog("close");
+				ui.model.EM.change(ui.model.EMEvent.BACKUP,name.val());
+			});
+		}).appendTo(self.container);
+		new $("<button>Restore</button>").button().click(function(evt) {
+			self.inputContainer.empty();
+			self.inputContainer.append("<h3>Restore Options</h3>").append("<label style='text-decoration: underline; font-weight: bold;'>Available Backups</label><br/>");
+			var table = new $("<div style='width: 90%; margin: auto;'></div>").appendTo(self.inputContainer);
+			table.append("Requesting available backups...");
+			ui.model.EM.listenOnce(ui.model.EMEvent.AVAILABLE_BACKUPS,new ui.model.EMListener(function(backups) {
+				table.empty();
+				if(!m3.helper.ArrayHelper.hasValues(backups)) table.append("No backups available"); else {
+					var _g1 = 0, _g = backups.length;
+					while(_g1 < _g) {
+						var i_ = _g1++;
+						var name1 = [backups[i_]];
+						table.append(new $("<span style='cursor: pointer;'>" + name1[0] + "</span>").click((function(name1) {
+							return function(evt1) {
+								if(confirm("Restore " + name1[0] + "?")) {
+									(js.Boot.__cast(selfElement , $)).m3dialog("close");
+									ui.model.EM.change(ui.model.EMEvent.RESTORE,name1[0]);
+								}
+							};
+						})(name1)));
+						table.append("</br>");
+					}
+				}
+			},"RestoreWidget-AvailableBackups"));
+			ui.model.EM.change(ui.model.EMEvent.RESTORES_REQUEST);
+		}).appendTo(self.container);
+		(js.Boot.__cast(selfElement , $)).m3dialog({ autoOpen : false, title : "Data Backup & Restore"});
+	}, open : function() {
+		var selfElement = this.element;
+		selfElement.m3dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.restoreWidget",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of SignupConfirmationDialog must be a div element");
 		self._cancelled = false;
 		selfElement.addClass("signupConfirmationDialog").hide();
@@ -9964,6 +10150,12 @@ ui.api.IntroductionConfirmationRequestData.__rtti = "<class path=\"ui.api.Introd
 ui.api.IntroductionConfirmationResponse.__rtti = "<class path=\"ui.api.IntroductionConfirmationResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"529\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.ConnectNotification.__rtti = "<class path=\"ui.api.ConnectNotification\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ConnectNotificationData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"535\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.ConnectNotificationData.__rtti = "<class path=\"ui.api.ConnectNotificationData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<connection public=\"1\"><c path=\"ui.model.Connection\"/></connection>\n\t<introProfile><c path=\"String\"/></introProfile>\n\t<profile public=\"1\">\n\t\t<c path=\"ui.model.UserData\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<readResolve set=\"method\" line=\"544\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<new public=\"1\" set=\"method\" line=\"539\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.BackupRequest.__rtti = "<class path=\"ui.api.BackupRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.BackupData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"558\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.BackupData.__rtti = "<class path=\"ui.api.BackupData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<nameOfBackup public=\"1\"><c path=\"String\"/></nameOfBackup>\n\t<new public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RestoreRequest.__rtti = "<class path=\"ui.api.RestoreRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.BackupData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"567\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RestoresRequest.__rtti = "<class path=\"ui.api.RestoresRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"573\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RestoresResponse.__rtti = "<class path=\"ui.api.RestoresResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.RestoresData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"579\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RestoresData.__rtti = "<class path=\"ui.api.RestoresData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<backups public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></backups>\n\t<new public=\"1\" set=\"method\" line=\"584\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.LongPollingRequest.reqId = 1;
 ui.api.TestDao.initialized = false;
 ui.api.TestDao._lastRandom = 0;

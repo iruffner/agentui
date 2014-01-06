@@ -1141,8 +1141,10 @@ body {
 }
 
 .messageContent-large-text {
-	color:#ff00ff;
-	font-size:12px;
+	color: #000000;
+	font-size: 12px;
+	text-align: left;
+	padding: 7px;
 }
 
 .contentLine {
