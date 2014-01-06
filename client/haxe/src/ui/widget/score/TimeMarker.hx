@@ -9,12 +9,12 @@ class TimeMarker
 	private var line:SnapElement;
 	private var group:SnapElement;
 
-	public function new(paper:Snap, width:Float) {
+	public function new(uberGroup:SnapElement, paper:Snap, width:Float) {
 		this.paper = paper;
 		this.width = width;
 		this.group = paper.group(paper, [])
 		                  .attr("id", "time-marker");
-
+		uberGroup.append(this.group);
 
 		drawTimeLine();
 	}

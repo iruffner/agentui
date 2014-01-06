@@ -21,6 +21,7 @@ typedef ScoreCompWidgetDef = {
 	@:optional var contentTimeLines: StringMap<ContentTimeLine>;
 	@:optional var paper:Snap;
 	@:optional var timeMarker:TimeMarker;
+	@:optional var uberGroup:SnapElement;
 	@:optional var startTime:Date;
 	@:optional var endTime:Date;
 	@:optional var initialWidth:Float;
@@ -57,6 +58,7 @@ extern class ScoreComp extends JQ {
 		            }
 
 	            	self.contentTimeLines.get(content.creator).addContent(content);
+	            	self.uberGroup.append(self.contentTimeLines.get(content.creator).timeLineElement);
 				},
 
 				_deleteContent: function (content:Content) {
@@ -97,11 +99,14 @@ extern class ScoreComp extends JQ {
 		        	self.initialWidth = 1000;
 
 					self.paper = new Snap("#score-comp-svg");
+					self.uberGroup = self.paper.group(self.paper, [])
+					                           .attr("id", "uber-group")
+					                           .attr("transform", "matrix(1 0 0 1 0 0)");
 
 					self.startTime = new Date(2012, 1, 1, 0, 0, 0);
 					self.endTime   = new Date(2013, 12, 31, 0, 0, 0);
 
-					self.timeMarker = new TimeMarker(self.paper, self.initialWidth);
+					self.timeMarker = new TimeMarker(self.uberGroup, self.paper, self.initialWidth);
 		        },
 
 		        destroy: function() {

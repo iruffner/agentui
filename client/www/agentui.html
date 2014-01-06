@@ -45,6 +45,36 @@
 			        spacer.css({"height": newHeight, "max-height": newHeight, "min-height": newHeight});
 			    }
 		    }
+
+			var transMatrix = [1,0,0,1,0,0];
+	        
+	        function init(evt) {
+	            if (window.svgDocument == null) {
+	                svgDoc = evt.target.ownerDocument;
+	            }
+	            mapMatrix = svgDoc.getElementById("uber-group");
+	            width  = evt.target.getAttributeNS(null, "width");
+	            height = evt.target.getAttributeNS(null, "height");
+	        }
+	        
+	        function pan(dx, dy) {
+				transMatrix[4] += dx;
+				transMatrix[5] += dy;
+	            
+				newMatrix = "matrix(" +  transMatrix.join(' ') + ")";
+				mapMatrix.setAttributeNS(null, "transform", newMatrix);
+	        }
+	        
+			function zoom(scale) {
+				for (var i=0; i<transMatrix.length; i++) {
+					transMatrix[i] *= scale;
+				}
+				transMatrix[4] += (1-scale)*width/2;
+				transMatrix[5] += (1-scale)*height/2;
+			        
+				newMatrix = "matrix(" +  transMatrix.join(' ') + ")";
+				mapMatrix.setAttributeNS(null, "transform", newMatrix);
+	        }
         </script>
     </head>
     <body>
@@ -74,11 +104,23 @@
 							</div><!-- #tabs-feed-->
 							<div id="tabs-score">
 								<div id="score-div">
-								<svg xmlns="http://www.w3.org/2000/svg" 
- 									 xmlns:xlink="http://www.w3.org/1999/xlink"
- 									 xmlns:svg="http://www.w3.org/2000/svg"
- 									 xmlns:zhtml="http://www.w3.org/1999/xhtml"
- 									 id="score-comp-svg" width="1000" height="500">
+								<svg id="pan-zoom" width="100" height="100">
+									<circle cx="50" cy="50" r="42" fill="white" opacity="0.75"/>
+									<path class="button" onclick="pan(0,50)" d="M50 10 l12 20 a40,70 0 0,0 -24,0z" />
+									<path class="button" onclick="pan(50,0)" d="M10 50 l20 -12 a70,40 0 0,0 0,24z" />
+									<path class="button" onclick="pan(0,-50)" d="M50 90 l12 -20 a40,70 0 0,1 -24,0z" />
+									<path class="button" onclick="pan(-50,0)" d="M90 50 l-20 -12 a70,40 0 0,1 0,24z" />
+									  
+									<circle class="compass" cx="50" cy="50" r="20"/>
+									<circle class="button"  cx="50" cy="41" r="8" onclick="zoom(0.8)"/>
+									<circle class="button"  cx="50" cy="59" r="8" onclick="zoom(1.25)"/>
+
+									<rect class="plus-minus" x="46" y="39.5" width="8" height="3"/>
+									<rect class="plus-minus" x="46" y="57.5" width="8" height="3"/>
+									<rect class="plus-minus" x="48.5" y="55" width="3" height="8"/>
+
+ 								</svg>
+								<svg id="score-comp-svg" width="1000" height="500" onload="init(evt)">
  								</svg>
 								</div>
 							</div><!-- #tabs-score-->

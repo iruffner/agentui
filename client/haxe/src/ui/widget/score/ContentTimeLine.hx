@@ -18,6 +18,7 @@ class ContentTimeLine {
 	private var paper: Snap;
 	private var connection: Connection;
 	private var connectionElement:SnapElement;
+	public var timeLineElement:SnapElement;
 
 	private var contents: Array<Content>;
 	private var contentElements: Array<SnapElement>;
@@ -53,7 +54,9 @@ class ContentTimeLine {
 	 	time_line_x = ContentTimeLine.next_x_pos;
 	 	time_line_y = ContentTimeLine.next_y_pos;
 
-   		createConnectionElement();
+   		connectionElement = createConnectionElement();
+
+   		this.timeLineElement = paper.group(paper, [connectionElement]);
 	}
 
 	public function removeElements() {
@@ -65,12 +68,12 @@ class ContentTimeLine {
 		}
 	}
 
-	private function createConnectionElement(): Void {
+	private function createConnectionElement(): SnapElement {
 		var line = paper.line(time_line_x, time_line_y + height/2, initialWidth, time_line_y + height/2)
 		                .attr({"class":"contentLine"});
 		var img = paper.image(M.getX(connection.profile.imgSrc,"media/default_avatar.jpg"), time_line_x, time_line_y, width, height);
 		var rect = paper.rect(time_line_x, time_line_y, width, height, 10, 10).attr({"class": "contentRect"});
-		connectionElement = paper.group(paper, [line, img, rect]);
+		return paper.group(paper, [line, img, rect]);
 	}
 
 	public function addContent(content:Content):Void {
@@ -160,7 +163,8 @@ class ContentTimeLine {
 			);		
 		});
 
-		this.contentElements.push(ele);		
+		this.contentElements.push(ele);
+		this.timeLineElement.append(ele);	
 	}
 
 	private function splitText(text:String, max_chars:Float, ?max_lines:Float=0):Array<String> {
