@@ -101,7 +101,7 @@ class PrologHelper {
 				var traveler: Label = label;
 				while(traveler != null) {
 					path.push(traveler.text);
-					traveler = AppContext.USER.currentAlias.labelSet.getElement(traveler.parentUid);
+					traveler = AppContext.USER.currentAlias.labelSet.getElementComplex(traveler.parentUid, function(l: Label): String { return l.uid; });
 				}
 				sarray.push("[" + path.join(",") + "]");
 			});
