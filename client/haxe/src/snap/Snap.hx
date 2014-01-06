@@ -237,7 +237,7 @@ extern class SnapElement {
 	public function drag(?onmove:Event->Void, ?onstart:Event->Void, ?onend:Event->Void,
 		                 ?mcontext:Dynamic, ?scontext:Dynamic, ?econtext:Dynamic):Void;
 	public function dblclick(handler:Event->Void):SnapElement;
-	public function getBBox(): Dynamic;
+	public function getBBox(?isWithoutTransform:Bool): Dynamic;
 	public function getPointAtLength(length:Float): {x:Float, y:Float, alpha:Float};
 	public function getSubpath(from:Float, to:Float):String;
 	public function getTotalLength():Float;

@@ -7510,8 +7510,7 @@ ui.widget.score.ContentTimeLine.resetPositions = function() {
 }
 ui.widget.score.ContentTimeLine.prototype = {
 	createAudioElement: function(content,x,y,rx,ry) {
-		var ellipse = this.paper.ellipse(x,y,rx,ry);
-		ellipse.attr({ 'class' : "audioEllipse"});
+		var ellipse = this.paper.ellipse(x,y,rx,ry).attr({ 'class' : "audioEllipse"});
 		var triangle = this.paper.polygon([x + 10,y,x - 10,y - 10,x - 10,y + 10]);
 		triangle.attr({ 'class' : "audioTriangle"});
 		return (function($this) {
@@ -7523,8 +7522,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 		}(this));
 	}
 	,createLinkElement: function(content,x,y,radius) {
-		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,radius);
-		hex.attr({ 'class' : "urlContent"});
+		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,radius).attr({ 'class' : "urlContent"});
 		return (function($this) {
 			var $r;
 			var e123 = [hex];
@@ -7586,47 +7584,54 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var _g = this;
 		ele.attr({ contentType : Std.string(content.type)});
 		ele.attr({ id : content.creator + "-" + content.get_uid()});
-		var after_anim = function() {
-		};
 		ele = ele.click(function(evt) {
 			var clone = _g.cloneElement(ele);
-			var _g1 = clone.attr("contentType");
-			switch(_g1) {
-			case "TEXT":
-				var texts = clone.selectAll("text");
-				texts.forEach(function(e) {
-					e.remove();
-				},_g);
-				after_anim = function() {
-					var bbox = clone.getBBox();
-					var g_id = clone.attr("id");
-					var g_type = clone.attr("contentType");
-					clone.remove();
-					var rect = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,3,3).attr({ 'class' : "messageContent"});
-					var g = (function($this) {
-						var $r;
-						var e123 = [rect];
-						var me123 = _g.paper;
-						$r = me123.group.apply(me123, e123);
-						return $r;
-					}(this));
-					g.attr({ contentType : g_type});
-					g.attr({ id : g_id});
-					g.click(function(evt1) {
-						g.remove();
-					});
-					var klone = d3.select("#" + g_id);
-					var fo = klone.append("foreignObject").attr("width",Std.string(bbox.width - 14)).attr("height",rect.attr("height")).attr("x",Std.string(bbox.x)).attr("y",Std.string(bbox.y)).append("xhtml:body");
-					fo.append("div").attr("class","messageContent-large-text").style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height - 49) + "px").html((js.Boot.__cast(content , ui.model.MessageContent)).text);
-				};
-				break;
-			default:
-				after_anim = function() {
-					clone.click(function(evt1) {
-						clone.remove();
-					});
-				};
-			}
+			var after_anim = function() {
+				var bbox = clone.getBBox();
+				var cx = bbox.x + bbox.width / 2;
+				var cy = bbox.y + bbox.height / 2;
+				var g_id = clone.attr("id");
+				var g_type = clone.attr("contentType");
+				clone.remove();
+				var ele1 = null;
+				switch(g_type) {
+				case "AUDIO":
+					ele1 = _g.paper.ellipse(cx,cy,bbox.width / 2,bbox.height / 2).attr({ 'class' : "audioEllipse"});
+					break;
+				case "IMAGE":
+					ele1 = _g.paper.image((js.Boot.__cast(content , ui.model.ImageContent)).imgSrc,bbox.x,bbox.y,bbox.width,bbox.height).attr({ preserveAspectRatio : "true"});
+					break;
+				case "URL":
+					ele1 = ui.widget.score.Shapes.createHexagon(_g.paper,cx,cy,bbox.width / 2).attr({ 'class' : "urlContent"});
+					break;
+				case "TEXT":
+					ele1 = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,5,5).attr({ 'class' : "messageContentLarge"});
+					break;
+				}
+				var g = (function($this) {
+					var $r;
+					var e123 = [ele1];
+					var me123 = _g.paper;
+					$r = me123.group.apply(me123, e123);
+					return $r;
+				}(this));
+				g.attr({ contentType : g_type});
+				g.attr({ id : g_id});
+				g.click(function(evt1) {
+					g.remove();
+				});
+				switch(g_type) {
+				case "AUDIO":
+					ui.widget.score.ForeignObject.appendAudioContent(g_id,bbox,js.Boot.__cast(content , ui.model.AudioContent));
+					break;
+				case "URL":
+					ui.widget.score.ForeignObject.appendUrlContent(g_id,bbox,js.Boot.__cast(content , ui.model.UrlContent));
+					break;
+				case "TEXT":
+					ui.widget.score.ForeignObject.appendMessageContent(g_id,bbox,js.Boot.__cast(content , ui.model.MessageContent));
+					break;
+				}
+			};
 			clone.animate({ transform : "t10,10 s5"},200,"",function() {
 				clone.animate({ transform : "t10,10 s4"},100,"",after_anim);
 			});
@@ -7677,6 +7682,45 @@ ui.widget.score.ContentTimeLine.prototype = {
 		while(iter.hasNext()) iter.next().remove();
 	}
 	,__class__: ui.widget.score.ContentTimeLine
+}
+ui.widget.score.ForeignObject = function() { }
+$hxClasses["ui.widget.score.ForeignObject"] = ui.widget.score.ForeignObject;
+ui.widget.score.ForeignObject.__name__ = ["ui","widget","score","ForeignObject"];
+ui.widget.score.ForeignObject.createForeignObject = function(ele_id,bbox) {
+	var klone = d3.select("#" + ele_id);
+	var fo = klone.append("foreignObject").attr("width",Std.string(bbox.width - 21)).attr("height",bbox.height).attr("x",Std.string(bbox.x)).attr("y",Std.string(bbox.y)).append("xhtml:body");
+	return fo;
+}
+ui.widget.score.ForeignObject.appendMessageContent = function(ele_id,bbox,content) {
+	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	fo.append("div").attr("class","messageContent-large-text").style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height) + "px").html(content.text);
+}
+ui.widget.score.ForeignObject.appendUrlContent = function(ele_id,bbox,content) {
+	bbox.y = bbox.y + bbox.height / 2 - 12;
+	bbox.x += 12;
+	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var div = fo.append("div").style("width",Std.string(bbox.width - 49) + "px").style("font-size","12px");
+	div.append("a").attr("href",content.url).attr("target","_blank").html(content.text).on("click",function() {
+		d3.event.stopPropagation();
+	});
+}
+ui.widget.score.ForeignObject.appendImageContent = function(ele_id,bbox,content) {
+	bbox.y = bbox.y + bbox.height / 2;
+	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var div = fo.append("div");
+	div.append("div").attr("class","imageCaption").html(content.caption);
+	div.append("img").attr("src",content.imgSrc).style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height) + "px");
+}
+ui.widget.score.ForeignObject.appendAudioContent = function(ele_id,bbox,content) {
+	bbox.y = bbox.y + bbox.height / 2 - 12;
+	bbox.x = bbox.x + bbox.width / 3;
+	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var div = fo.append("div");
+	div.append("div").attr("class","audioTitle").style("width",Std.string(bbox.width - 49) + "px").style("font-size","12px").html(content.title);
+	var audioDiv = div.append("div").style("width",Std.string(bbox.width - 49) + "px");
+	audioDiv.append("audio").attr("src",content.audioSrc).attr("controls","controls").style("width","230px").style("height","50px").on("click",function() {
+		d3.event.stopPropagation();
+	});
 }
 ui.widget.score.TimeMarker = function(paper,width) {
 	this.paper = paper;
@@ -7729,9 +7773,13 @@ ui.widget.score.TimeMarker.prototype = {
 ui.widget.score.Shapes = function() { }
 $hxClasses["ui.widget.score.Shapes"] = ui.widget.score.Shapes;
 ui.widget.score.Shapes.__name__ = ["ui","widget","score","Shapes"];
-ui.widget.score.Shapes.createHexagon = function(paper,x,y,r) {
+ui.widget.score.Shapes.createHexagon = function(paper,cx,cy,r) {
 	var theta = 0.523598775;
-	return paper.polygon([x - r * Math.sin(theta),y - r * Math.cos(theta),x - r,y,x - r * Math.sin(theta),y + r * Math.cos(theta),x + r * Math.sin(theta),y + r * Math.cos(theta),x + r,y,x + r * Math.sin(theta),y - r * Math.cos(theta)]);
+	var hexagon = paper.polygon([cx - r * Math.sin(theta),cy - r * Math.cos(theta),cx - r,cy,cx - r * Math.sin(theta),cy + r * Math.cos(theta),cx + r * Math.sin(theta),cy + r * Math.cos(theta),cx + r,cy,cx + r * Math.sin(theta),cy - r * Math.cos(theta)]);
+	hexagon.attr("cx",cx);
+	hexagon.attr("cy",cy);
+	hexagon.attr("r",r);
+	return hexagon;
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;
