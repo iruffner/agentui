@@ -228,7 +228,7 @@ extern class SnapElement {
 	public function after(el:SnapElement):SnapElement;
 	public function animate(newAttrs:Dynamic, duration:Float, ?easing:String, ?callbackFunction:Dynamic):SnapElement;
 	public function append(el:SnapElement):SnapElement;
-	public function asPx(attr:String, ?value:String):String;
+	public function asPX(attr:String, ?value:String):String;
 	public function attr(?p0:Dynamic, ?p1:Dynamic):Dynamic;
 	public function before(el:SnapElement):SnapElement;
 	public function click(handler:Event->Void):SnapElement;
@@ -237,7 +237,7 @@ extern class SnapElement {
 	public function drag(?onmove:Event->Void, ?onstart:Event->Void, ?onend:Event->Void,
 		                 ?mcontext:Dynamic, ?scontext:Dynamic, ?econtext:Dynamic):Void;
 	public function dblclick(handler:Event->Void):SnapElement;
-	public function getBBox(): Dynamic;
+	public function getBBox(?isWithoutTransform:Bool): Dynamic;
 	public function getPointAtLength(length:Float): {x:Float, y:Float, alpha:Float};
 	public function getSubpath(from:Float, to:Float):String;
 	public function getTotalLength():Float;

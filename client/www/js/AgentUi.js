@@ -362,9 +362,6 @@ Std.__name__ = ["Std"];
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
 }
-Std["int"] = function(x) {
-	return x | 0;
-}
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
@@ -2493,6 +2490,19 @@ m3.helper.ArrayHelper.indexOf = function(array,t) {
 	}
 	return index;
 }
+m3.helper.ArrayHelper.lastIndexOf = function(array,t) {
+	if(array == null) return -1;
+	var index = -1;
+	var i_ = array.length;
+	while(i_ > 0) {
+		i_ -= 1;
+		if(array[i_] == t) {
+			index = i_;
+			break;
+		}
+	}
+	return index;
+}
 m3.helper.ArrayHelper.indexOfComplex = function(array,value,propOrFcn,startingIndex) {
 	if(startingIndex == null) startingIndex = 0;
 	if(array == null) return -1;
@@ -3553,102 +3563,17 @@ m3.serialization.Serializer = function() {
 $hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
 m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
 m3.serialization.Serializer.prototype = {
-	createHandler: function(type) {
-		return (function($this) {
-			var $r;
-			var $e = (type);
-			switch( $e[1] ) {
-			case 1:
-				var parms = $e[3], path = $e[2];
-				$r = path == "Bool"?new m3.serialization.BoolHandler():new m3.serialization.EnumHandler(path,parms);
-				break;
-			case 2:
-				var parms = $e[3], path = $e[2];
-				$r = (function($this) {
-					var $r;
-					switch(path) {
-					case "Bool":
-						$r = new m3.serialization.BoolHandler();
-						break;
-					case "Float":
-						$r = new m3.serialization.FloatHandler();
-						break;
-					case "String":
-						$r = new m3.serialization.StringHandler();
-						break;
-					case "Int":
-						$r = new m3.serialization.IntHandler();
-						break;
-					case "Array":
-						$r = new m3.serialization.ArrayHandler(parms,$this);
-						break;
-					case "Date":
-						$r = new m3.serialization.DateHandler();
-						break;
-					default:
-						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
-					}
-					return $r;
-				}($this));
-				break;
-			case 7:
-				var parms = $e[3], path = $e[2];
-				$r = (function($this) {
-					var $r;
-					switch(path) {
-					case "Bool":
-						$r = new m3.serialization.BoolHandler();
-						break;
-					case "Float":
-						$r = new m3.serialization.FloatHandler();
-						break;
-					case "String":
-						$r = new m3.serialization.StringHandler();
-						break;
-					case "Int":
-						$r = new m3.serialization.IntHandler();
-						break;
-					case "Array":
-						$r = new m3.serialization.ArrayHandler(parms,$this);
-						break;
-					case "Date":
-						$r = new m3.serialization.DateHandler();
-						break;
-					default:
-						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
-					}
-					return $r;
-				}($this));
-				break;
-			case 6:
-				$r = new m3.serialization.DynamicHandler();
-				break;
-			case 4:
-				var ret = $e[3], args = $e[2];
-				$r = new m3.serialization.FunctionHandler();
-				break;
-			default:
-				$r = (function($this) {
-					var $r;
-					throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
-					return $r;
-				}($this));
-			}
-			return $r;
-		}(this));
-	}
-	,getHandler: function(type) {
+	getHandler: function(type) {
 		var typename = m3.serialization.CTypeTools.typename(type);
 		var handler = this._handlersMap.get(typename);
 		if(handler == null) {
-			handler = this.createHandler(type);
+			handler = m3.serialization.ClassHandlerHelper.createHandler(type,this);
 			this._handlersMap.set(typename,handler);
 		}
 		return handler;
 	}
 	,getHandlerViaClass: function(clazz) {
-		var typename = m3.serialization.TypeTools.classname(clazz);
-		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
+		return new m3.serialization.ClassHandler(clazz,m3.serialization.TypeTools.classname(clazz),this);
 	}
 	,createWriter: function() {
 		return new m3.serialization.JsonWriter(this);
@@ -3746,6 +3671,40 @@ m3.serialization.ArrayHandler.prototype = {
 		return instance;
 	}
 	,__class__: m3.serialization.ArrayHandler
+}
+m3.serialization.ObservableSetHandler = function(parms,serializer) {
+	this._parms = parms;
+	this._serializer = serializer;
+	this._elementHandler = this._serializer.getHandler(this._parms.first());
+};
+$hxClasses["m3.serialization.ObservableSetHandler"] = m3.serialization.ObservableSetHandler;
+m3.serialization.ObservableSetHandler.__name__ = ["m3","serialization","ObservableSetHandler"];
+m3.serialization.ObservableSetHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.ObservableSetHandler.prototype = {
+	write: function(value,writer) {
+		return null;
+	}
+	,read: function(fromJson,reader,instance) {
+		return null;
+	}
+	,__class__: m3.serialization.ObservableSetHandler
+}
+m3.serialization.SizedMapHandler = function(parms,serializer) {
+	this._parms = parms;
+	this._serializer = serializer;
+	this._elementHandler = this._serializer.getHandler(this._parms.first());
+};
+$hxClasses["m3.serialization.SizedMapHandler"] = m3.serialization.SizedMapHandler;
+m3.serialization.SizedMapHandler.__name__ = ["m3","serialization","SizedMapHandler"];
+m3.serialization.SizedMapHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.SizedMapHandler.prototype = {
+	write: function(value,writer) {
+		return null;
+	}
+	,read: function(fromJson,reader,instance) {
+		return null;
+	}
+	,__class__: m3.serialization.SizedMapHandler
 }
 m3.serialization.EnumHandler = function(enumName,parms) {
 	this._enumName = enumName;
@@ -3943,11 +3902,119 @@ m3.serialization.Field.__name__ = ["m3","serialization","Field"];
 m3.serialization.Field.prototype = {
 	__class__: m3.serialization.Field
 }
+m3.serialization.ClassHandlerHelper = function() { }
+$hxClasses["m3.serialization.ClassHandlerHelper"] = m3.serialization.ClassHandlerHelper;
+m3.serialization.ClassHandlerHelper.__name__ = ["m3","serialization","ClassHandlerHelper"];
+m3.serialization.ClassHandlerHelper.createHandler = function(type,serializer) {
+	return (function($this) {
+		var $r;
+		var $e = (type);
+		switch( $e[1] ) {
+		case 1:
+			var parms = $e[3], path = $e[2];
+			$r = path == "Bool"?new m3.serialization.BoolHandler():new m3.serialization.EnumHandler(path,parms);
+			break;
+		case 2:
+			var parms = $e[3], path = $e[2];
+			$r = (function($this) {
+				var $r;
+				switch(path) {
+				case "Bool":
+					$r = new m3.serialization.BoolHandler();
+					break;
+				case "Float":
+					$r = new m3.serialization.FloatHandler();
+					break;
+				case "String":
+					$r = new m3.serialization.StringHandler();
+					break;
+				case "Int":
+					$r = new m3.serialization.IntHandler();
+					break;
+				case "Array":
+					$r = new m3.serialization.ArrayHandler(parms,serializer);
+					break;
+				case "Date":
+					$r = new m3.serialization.DateHandler();
+					break;
+				case "ui.observable.ObservableSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "ui.observable.OSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "m3.util.SizedMap":
+					$r = new m3.serialization.SizedMapHandler(parms,serializer);
+					break;
+				default:
+					$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),serializer);
+				}
+				return $r;
+			}($this));
+			break;
+		case 7:
+			var parms = $e[3], path = $e[2];
+			$r = (function($this) {
+				var $r;
+				switch(path) {
+				case "Bool":
+					$r = new m3.serialization.BoolHandler();
+					break;
+				case "Float":
+					$r = new m3.serialization.FloatHandler();
+					break;
+				case "String":
+					$r = new m3.serialization.StringHandler();
+					break;
+				case "Int":
+					$r = new m3.serialization.IntHandler();
+					break;
+				case "Array":
+					$r = new m3.serialization.ArrayHandler(parms,serializer);
+					break;
+				case "Date":
+					$r = new m3.serialization.DateHandler();
+					break;
+				case "ui.observable.ObservableSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "ui.observable.OSet":
+					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
+					break;
+				case "m3.util.SizedMap":
+					$r = new m3.serialization.SizedMapHandler(parms,serializer);
+					break;
+				default:
+					$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),serializer);
+				}
+				return $r;
+			}($this));
+			break;
+		case 6:
+			$r = new m3.serialization.DynamicHandler();
+			break;
+		case 4:
+			var ret = $e[3], args = $e[2];
+			$r = new m3.serialization.FunctionHandler();
+			break;
+		default:
+			$r = (function($this) {
+				var $r;
+				throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
+				return $r;
+			}($this));
+		}
+		return $r;
+	}(this));
+}
 m3.serialization.ClassHandler = function(clazz,typename,serializer) {
 	this._clazz = clazz;
 	this._typename = typename;
 	this._serializer = serializer;
-	if(this._clazz == null) throw new m3.serialization.JsonException("clazz is null");
+	if(this._clazz == null) {
+		console.log("clazz is null for typename: " + typename);
+		throw new m3.serialization.JsonException("clazz is null for typename: " + typename);
+	}
 	var rtti = this._clazz.__rtti;
 	if(rtti == null) {
 		var msg = "no rtti found for " + this._typename;
@@ -6344,7 +6411,7 @@ ui.api.TestDao.generateContent = function(node) {
 		if(m3.helper.ArrayHelper.hasValues(availableLabels)) ui.api.TestDao.addLabels(availableLabels,urlContent,2);
 		content.push(urlContent);
 	}
-	var phrases = ["It's the best, Jerry! The best!","You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.","I find tinsel distracting.","The Moops invaded Spain in the 8th century."," You put the balm on? Who told you to put the balm on? I didn't tell you to put the balm on. Why'd you put the balm on? You haven't even been to see the doctor. If your gonna put a balm on, let a doctor put a balm on.   Oh oh oh, so a Maestro tells you to put a balm on and you do it?  Do you know what a balm is? Have you ever seen a balm? Didn't you read the instructions?","They don't have a decent piece of fruit at the supermarket. The apples are mealy, the oranges are dry... I don't know what's going on with the papayas!"];
+	var phrases = ["It's the best, Jerry! The best!","You should've seen her face. It was the exact same look my father gave me when I told him I wanted to be a ventriloquist.","I find tinsel distracting.","The Moops invaded Spain in the 8th century.","You put the balm on? Who told you to put the balm on? I didn't tell you to put the balm on. Why'd you put the balm on? You haven't even been to see the doctor. If your gonna put a balm on, let a doctor put a balm on.   Oh oh oh, so a Maestro tells you to put a balm on and you do it?  Do you know what a balm is? Have you ever seen a balm? Didn't you read the instructions?" + ">>>     You put the balm on? Who told you to put the balm on? I didn't tell you to put the balm on. Why'd you put the balm on? You haven't even been to see the doctor. If your gonna put a balm on, let a doctor put a balm on.   Oh oh oh, so a Maestro tells you to put a balm on and you do it?  Do you know what a balm is? Have you ever seen a balm? Didn't you read the instructions?","They don't have a decent piece of fruit at the supermarket. The apples are mealy, the oranges are dry... I don't know what's going on with the papayas!"];
 	var _g1 = 0, _g = phrases.length;
 	while(_g1 < _g) {
 		var i = _g1++;
@@ -7423,7 +7490,6 @@ ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime,in
 	this.time_line_x = ui.widget.score.ContentTimeLine.next_x_pos;
 	this.time_line_y = ui.widget.score.ContentTimeLine.next_y_pos;
 	this.createConnectionElement();
-	this.createMessageContent();
 };
 $hxClasses["ui.widget.score.ContentTimeLine"] = ui.widget.score.ContentTimeLine;
 ui.widget.score.ContentTimeLine.__name__ = ["ui","widget","score","ContentTimeLine"];
@@ -7433,8 +7499,7 @@ ui.widget.score.ContentTimeLine.resetPositions = function() {
 }
 ui.widget.score.ContentTimeLine.prototype = {
 	createAudioElement: function(content,x,y,rx,ry) {
-		var ellipse = this.paper.ellipse(x,y,rx,ry);
-		ellipse.attr({ 'class' : "audioEllipse"});
+		var ellipse = this.paper.ellipse(x,y,rx,ry).attr({ 'class' : "audioEllipse"});
 		var triangle = this.paper.polygon([x + 10,y,x - 10,y - 10,x - 10,y + 10]);
 		triangle.attr({ 'class' : "audioTriangle"});
 		return (function($this) {
@@ -7446,8 +7511,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 		}(this));
 	}
 	,createLinkElement: function(content,x,y,radius) {
-		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,radius);
-		hex.attr({ 'class' : "urlContent"});
+		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,radius).attr({ 'class' : "urlContent"});
 		return (function($this) {
 			var $r;
 			var e123 = [hex];
@@ -7465,10 +7529,6 @@ ui.widget.score.ContentTimeLine.prototype = {
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
-	}
-	,createMessageContent: function() {
-		var score_comp = d3.select("#score-comp-svg");
-		score_comp.append("foreignObject").attr("width","480").attr("height","500").append("xhtml:body").style("font","14px 'Helvetica Neue'").html("<b>what???</b>");
 	}
 	,createTextElement: function(content,x,y,ele_width,ele_height) {
 		var eles = [];
@@ -7513,56 +7573,54 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var _g = this;
 		ele.attr({ contentType : Std.string(content.type)});
 		ele.attr({ id : content.creator + "-" + content.get_uid()});
-		var after_anim = function() {
-		};
 		ele = ele.click(function(evt) {
 			var clone = _g.cloneElement(ele);
-			var _g1 = clone.attr("contentType");
-			switch(_g1) {
-			case "TEXT":
-				var texts = clone.selectAll("text");
-				texts.forEach(function(e) {
-					e.remove();
-				},_g);
-				after_anim = function() {
-					var bbox = clone.getBBox();
-					clone.remove();
-					var rect = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,3,3).attr({ 'class' : "messageContent"});
-					var lines = _g.splitText((js.Boot.__cast(content , ui.model.MessageContent)).text,50);
-					var eles = [];
-					eles.push(rect);
-					var y = bbox.y + 15;
-					var x = bbox.x + 5;
-					var max_width = 0;
-					var _g3 = 0, _g2 = lines.length;
-					while(_g3 < _g2) {
-						var i = _g3++;
-						var text = _g.paper.text(x,y,lines[i]).attr({ 'class' : "messageContent-large-text"});
-						eles.push(text);
-						max_width = Math.max(max_width,Std["int"](text.getBBox().width));
-						y += 15;
-					}
-					max_width += 50;
-					if(max_width > bbox.width) rect.attr({ width : Std.string(max_width)});
-					var g = (function($this) {
-						var $r;
-						var e123 = eles;
-						var me123 = _g.paper;
-						$r = me123.group.apply(me123, e123);
-						return $r;
-					}(this));
-					g.click(function(evt1) {
-						g.remove();
-					});
-				};
-				break;
-			default:
-				after_anim = function() {
-					clone.click(function(evt1) {
-						clone.remove();
-					});
-				};
-			}
+			var after_anim = function() {
+				var bbox = clone.getBBox();
+				var cx = bbox.x + bbox.width / 2;
+				var cy = bbox.y + bbox.height / 2;
+				var g_id = clone.attr("id");
+				var g_type = clone.attr("contentType");
+				clone.remove();
+				var ele1 = null;
+				switch(g_type) {
+				case "AUDIO":
+					ele1 = _g.paper.ellipse(cx,cy,bbox.width / 2,bbox.height / 2).attr({ 'class' : "audioEllipse"});
+					break;
+				case "IMAGE":
+					ele1 = _g.paper.image((js.Boot.__cast(content , ui.model.ImageContent)).imgSrc,bbox.x,bbox.y,bbox.width,bbox.height).attr({ preserveAspectRatio : "true"});
+					break;
+				case "URL":
+					ele1 = ui.widget.score.Shapes.createHexagon(_g.paper,cx,cy,bbox.width / 2).attr({ 'class' : "urlContent"});
+					break;
+				case "TEXT":
+					ele1 = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,5,5).attr({ 'class' : "messageContentLarge"});
+					break;
+				}
+				var g = (function($this) {
+					var $r;
+					var e123 = [ele1];
+					var me123 = _g.paper;
+					$r = me123.group.apply(me123, e123);
+					return $r;
+				}(this));
+				g.attr({ contentType : g_type});
+				g.attr({ id : g_id});
+				g.click(function(evt1) {
+					g.remove();
+				});
+				switch(g_type) {
+				case "AUDIO":
+					ui.widget.score.ForeignObject.appendAudioContent(g_id,bbox,js.Boot.__cast(content , ui.model.AudioContent));
+					break;
+				case "URL":
+					ui.widget.score.ForeignObject.appendUrlContent(g_id,bbox,js.Boot.__cast(content , ui.model.UrlContent));
+					break;
+				case "TEXT":
+					ui.widget.score.ForeignObject.appendMessageContent(g_id,bbox,js.Boot.__cast(content , ui.model.MessageContent));
+					break;
+				}
+			};
 			clone.animate({ transform : "t10,10 s5"},200,"",function() {
 				clone.animate({ transform : "t10,10 s4"},100,"",after_anim);
 			});
@@ -7613,6 +7671,45 @@ ui.widget.score.ContentTimeLine.prototype = {
 		while(iter.hasNext()) iter.next().remove();
 	}
 	,__class__: ui.widget.score.ContentTimeLine
+}
+ui.widget.score.ForeignObject = function() { }
+$hxClasses["ui.widget.score.ForeignObject"] = ui.widget.score.ForeignObject;
+ui.widget.score.ForeignObject.__name__ = ["ui","widget","score","ForeignObject"];
+ui.widget.score.ForeignObject.createForeignObject = function(ele_id,bbox) {
+	var klone = d3.select("#" + ele_id);
+	var fo = klone.append("foreignObject").attr("width",Std.string(bbox.width - 21)).attr("height",bbox.height).attr("x",Std.string(bbox.x)).attr("y",Std.string(bbox.y)).append("xhtml:body");
+	return fo;
+}
+ui.widget.score.ForeignObject.appendMessageContent = function(ele_id,bbox,content) {
+	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	fo.append("div").attr("class","messageContent-large-text").style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height) + "px").html(content.text);
+}
+ui.widget.score.ForeignObject.appendUrlContent = function(ele_id,bbox,content) {
+	bbox.y = bbox.y + bbox.height / 2 - 12;
+	bbox.x += 12;
+	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var div = fo.append("div").style("width",Std.string(bbox.width - 49) + "px").style("font-size","12px");
+	div.append("a").attr("href",content.url).attr("target","_blank").html(content.text).on("click",function() {
+		d3.event.stopPropagation();
+	});
+}
+ui.widget.score.ForeignObject.appendImageContent = function(ele_id,bbox,content) {
+	bbox.y = bbox.y + bbox.height / 2;
+	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var div = fo.append("div");
+	div.append("div").attr("class","imageCaption").html(content.caption);
+	div.append("img").attr("src",content.imgSrc).style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height) + "px");
+}
+ui.widget.score.ForeignObject.appendAudioContent = function(ele_id,bbox,content) {
+	bbox.y = bbox.y + bbox.height / 2 - 12;
+	bbox.x = bbox.x + bbox.width / 3;
+	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var div = fo.append("div");
+	div.append("div").attr("class","audioTitle").style("width",Std.string(bbox.width - 49) + "px").style("font-size","12px").html(content.title);
+	var audioDiv = div.append("div").style("width",Std.string(bbox.width - 49) + "px");
+	audioDiv.append("audio").attr("src",content.audioSrc).attr("controls","controls").style("width","230px").style("height","50px").on("click",function() {
+		d3.event.stopPropagation();
+	});
 }
 ui.widget.score.TimeMarker = function(paper,width) {
 	this.paper = paper;
@@ -7665,9 +7762,13 @@ ui.widget.score.TimeMarker.prototype = {
 ui.widget.score.Shapes = function() { }
 $hxClasses["ui.widget.score.Shapes"] = ui.widget.score.Shapes;
 ui.widget.score.Shapes.__name__ = ["ui","widget","score","Shapes"];
-ui.widget.score.Shapes.createHexagon = function(paper,x,y,r) {
+ui.widget.score.Shapes.createHexagon = function(paper,cx,cy,r) {
 	var theta = 0.523598775;
-	return paper.polygon([x - r * Math.sin(theta),y - r * Math.cos(theta),x - r,y,x - r * Math.sin(theta),y + r * Math.cos(theta),x + r * Math.sin(theta),y + r * Math.cos(theta),x + r,y,x + r * Math.sin(theta),y - r * Math.cos(theta)]);
+	var hexagon = paper.polygon([cx - r * Math.sin(theta),cy - r * Math.cos(theta),cx - r,cy,cx - r * Math.sin(theta),cy + r * Math.cos(theta),cx + r * Math.sin(theta),cy + r * Math.cos(theta),cx + r,cy,cx + r * Math.sin(theta),cy - r * Math.cos(theta)]);
+	hexagon.attr("cx",cx);
+	hexagon.attr("cy",cy);
+	hexagon.attr("r",r);
+	return hexagon;
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;

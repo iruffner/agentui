@@ -54,8 +54,6 @@ class ContentTimeLine {
 	 	time_line_y = ContentTimeLine.next_y_pos;
 
    		createConnectionElement();
-
-   		createMessageContent();
 	}
 
 	public function removeElements() {
@@ -110,54 +108,51 @@ class ContentTimeLine {
 		ele.attr({"contentType": Std.string(content.type)});
 		ele.attr({"id" : content.creator + "-" + content.uid});
 
-		var after_anim:Void->Void = function(){};
-
 		ele = ele.click(function(evt:Event):Void {
 			var clone = cloneElement(ele);
 
-			switch (clone.attr("contentType")) {
-				case "TEXT":
-					var texts = clone.selectAll("text");
-					texts.forEach( function(e:SnapElement):Void {
-						e.remove();
-					} , this);
+			var after_anim = function() {
+				var bbox = clone.getBBox();
+				var cx = bbox.x + bbox.width/2;
+				var cy = bbox.y + bbox.height/2;
+				var g_id = clone.attr("id");
+				var g_type = clone.attr("contentType");
+				clone.remove();
+				var ele:SnapElement = null;
 
-					after_anim = function() {
-						var bbox = clone.getBBox();
-						clone.remove();
+				switch (g_type) {
+					case "AUDIO":
+						ele = paper.ellipse(cx, cy, bbox.width/2, bbox.height/2)
+								   .attr({"class":"audioEllipse"});
+					case "IMAGE":
+						ele = paper.image(cast(content, ImageContent).imgSrc, bbox.x, bbox.y, bbox.width, bbox.height)
+               				       .attr({"preserveAspectRatio":"true"});
+					case "URL":
+						ele = Shapes.createHexagon(paper, cx, cy, bbox.width/2)
+                                    .attr({"class":"urlContent"});
+					case "TEXT":
+						ele = paper.rect(bbox.x, bbox.y, bbox.width, bbox.height, 5, 5)
+		                			.attr({"class":"messageContentLarge"});
+				}
 
-						var rect = paper.rect(bbox.x, bbox.y, bbox.width, bbox.height, 3, 3)
-		                .attr({"class":"messageContent"});
+				var g = paper.group(paper,[ele]);
+				g.attr({"contentType": g_type});
+				g.attr({"id": g_id});
+				g.click(function(evt:Event){
+					g.remove();
+				});
 
-						var lines = splitText(cast(content, MessageContent).text, 50);
-						var eles:Array<SnapElement> = [];
-						eles.push(rect);
-						var y = bbox.y + 15;// - bbox.height/2 + 10;
-						var x = bbox.x + 5;// - bbox.width/2 + 4;
-						var max_width:Float = 0;
-						for (i in 0...lines.length) {
-							var text = paper.text(x, y, lines[i])
-							                .attr({"class":"messageContent-large-text"});
-							eles.push(text);
-							max_width = Math.max(max_width, Std.int(text.getBBox().width));
-							y += 15;
-						}
-						max_width += 50;
-						if (max_width > bbox.width) {
-							rect.attr({"width" : Std.string(max_width)});
-						}
-						var g = paper.group(paper, eles);
-						g.click(function(evt:Event){
-							g.remove();
-						});
-					};
-				default:
-					after_anim = function() { 
-						clone.click(function(evt:Event):Void {
-							clone.remove();
-						});
-					}
-			}
+				switch (g_type) {
+					case "AUDIO":
+						ForeignObject.appendAudioContent(g_id, bbox, cast(content, AudioContent));
+//							case "IMAGE":
+//								ForeignObject.appendImageContent(g_id, bbox, cast(content, ImageContent));
+					case "URL":
+						ForeignObject.appendUrlContent(g_id, bbox, cast(content, UrlContent));
+					case "TEXT":
+						ForeignObject.appendMessageContent(g_id, bbox, cast(content, MessageContent));
+				}
+			};
 
 			clone.animate(
 				{transform: "t10,10 s5"},
@@ -207,16 +202,6 @@ class ContentTimeLine {
 		return paper.group(paper, eles);
 	}
 
-	private function createMessageContent():Void {
-		var score_comp = js.d3.D3.select("#score-comp-svg");
-		score_comp.append("foreignObject")
-		    .attr("width", "480")
-		    .attr("height", "500")
-		    .append("xhtml:body")
-		    .style("font", "14px 'Helvetica Neue'")
-		    .html("<b>what???</b>");
-	}
-
 	private function createImageElement(content:ImageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
 		var img = paper.image(content.imgSrc, x, y - ele_height/2, ele_width, ele_height)
 		               .attr({"preserveAspectRatio":"true"});
@@ -224,14 +209,14 @@ class ContentTimeLine {
 	}
 
 	private function createLinkElement(content:UrlContent, x:Float, y:Float, radius:Float):SnapElement {
-		var hex = Shapes.createHexagon(paper, x, y, radius);
-		hex.attr({"class":"urlContent"});
+		var hex = Shapes.createHexagon(paper, x, y, radius)
+		                .attr({"class":"urlContent"});
 		return paper.group(paper, [hex]);
 	}
 
 	private function createAudioElement(content:AudioContent, x:Float, y:Float, rx:Float, ry:Float):SnapElement {
-		var ellipse = paper.ellipse(x, y, rx, ry);
-		ellipse.attr({"class":"audioEllipse"});
+		var ellipse = paper.ellipse(x, y, rx, ry)
+			               .attr({"class":"audioEllipse"});
 
 		// Create a triangle play button
 		var triangle = paper.polygon([x+10, y, x-10, y-10, x-10, y+10]);
