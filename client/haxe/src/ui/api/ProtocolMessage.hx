@@ -560,7 +560,7 @@ class BackupRequest extends ProtocolMessage<BackupData> {
 	}
 }
 	class BackupData extends PayloadWithSessionURI {
-		public var nameOfBackup: String;
+		// public var nameOfBackup: String;
 	}
 
 class RestoreRequest extends ProtocolMessage<BackupData> {

@@ -58,12 +58,16 @@ extern class RestoreWidget extends JQ {
         							var submit: JQ = new JQ("<button>Submit Backup</button>")
         												.appendTo(self.inputContainer)
         												.click(function(evt: JQEvent): Void {
-        														if(name.val().isBlank()) {
-        															js.Lib.alert("Please specify a name for this backup");
-        															return;
-        														}
+        													if(m3.CrossMojo.confirm()("Perform Backup?")) {
         														cast(selfElement, M3Dialog).m3dialog("close");
-	       														EM.change(EMEvent.BACKUP, name.val());
+        														EM.change(EMEvent.BACKUP);
+        													}
+        												// 		if(name.val().isBlank()) {
+        												// 			js.Lib.alert("Please specify a name for this backup");
+        												// 			return;
+        												// 		}
+        												// 		cast(selfElement, M3Dialog).m3dialog("close");
+	       												// 		EM.change(EMEvent.BACKUP, name.val());
         													});
         						})
         					.appendTo(self.container);
@@ -71,33 +75,37 @@ extern class RestoreWidget extends JQ {
         			new JQ("<button>Restore</button>")
         					.button()
         					.click(function(evt: JQEvent): Void {
-        							self.inputContainer.empty();
-        							self.inputContainer.append("<h3>Restore Options</h3>")
-        									.append("<label style='text-decoration: underline; font-weight: bold;'>Available Backups</label><br/>");
-        							var table: JQ = new JQ("<div style='width: 90%; margin: auto;'></div>").appendTo(self.inputContainer);
-        							table.append("Requesting available backups...");
-        							EM.listenOnce(EMEvent.AVAILABLE_BACKUPS, new EMListener(
-        								function(backups: Array<String>): Void {
-        									table.empty();
-		        							if(!backups.hasValues()) {
-		        								table.append("No backups available");
-		        							} else {
-		        								for(i_ in 0...backups.length) {
-		        									var name: String = backups[i_];
-		        									table.append(
-		        											new JQ("<span style='cursor: pointer;'>" + name + "</span>").click(function(evt: JQEvent): Void {
-		        													if(m3.CrossMojo.confirm()("Restore " + name + "?")) {
-		        														cast(selfElement, M3Dialog).m3dialog("close");
-		        														EM.change(EMEvent.RESTORE, name);
-		        													}
-		        												})
-		        										);
-		        									table.append("</br>");
-		        								}
-		        							}
-        								}, "RestoreWidget-AvailableBackups")
-        							);
-        							EM.change(EMEvent.RESTORES_REQUEST);
+        							if(m3.CrossMojo.confirm()("Restore from backup?")) {
+										cast(selfElement, M3Dialog).m3dialog("close");
+										EM.change(EMEvent.RESTORE);
+									}
+        							// self.inputContainer.empty();
+        							// self.inputContainer.append("<h3>Restore Options</h3>")
+        							// 		.append("<label style='text-decoration: underline; font-weight: bold;'>Available Backups</label><br/>");
+        							// var table: JQ = new JQ("<div style='width: 90%; margin: auto;'></div>").appendTo(self.inputContainer);
+        							// table.append("Requesting available backups...");
+        							// EM.listenOnce(EMEvent.AVAILABLE_BACKUPS, new EMListener(
+        							// 	function(backups: Array<String>): Void {
+        							// 		table.empty();
+		        					// 		if(!backups.hasValues()) {
+		        					// 			table.append("No backups available");
+		        					// 		} else {
+		        					// 			for(i_ in 0...backups.length) {
+		        					// 				var name: String = backups[i_];
+		        					// 				table.append(
+		        					// 						new JQ("<span style='cursor: pointer;'>" + name + "</span>").click(function(evt: JQEvent): Void {
+		        					// 								if(m3.CrossMojo.confirm()("Restore " + name + "?")) {
+		        					// 									cast(selfElement, M3Dialog).m3dialog("close");
+		        					// 									EM.change(EMEvent.RESTORE, name);
+		        					// 								}
+		        					// 							})
+		        					// 					);
+		        					// 				table.append("</br>");
+		        					// 			}
+		        					// 		}
+        							// 	}, "RestoreWidget-AvailableBackups")
+        							// );
+        							// EM.change(EMEvent.RESTORES_REQUEST);
         						})
         					.appendTo(self.container);
 

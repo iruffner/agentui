@@ -139,16 +139,24 @@ class ProtocolHandler {
         	
         }));
 
-        EM.addListener(EMEvent.BACKUP, new EMListener(function(nameOfBackup: String): Void{
-        	backup(nameOfBackup);
+        // EM.addListener(EMEvent.BACKUP, new EMListener(function(nameOfBackup: String): Void{
+        // 	backup(nameOfBackup);
+        // }));
+
+        // EM.addListener(EMEvent.RESTORE, new EMListener(function(nameOfBackup: String): Void{
+        // 	restore(nameOfBackup);
+        // }));
+
+        // EM.addListener(EMEvent.RESTORES_REQUEST, new EMListener(function(n: Nothing): Void{
+        // 	restores();
+        // }));
+
+		EM.addListener(EMEvent.BACKUP, new EMListener(function(n: Nothing): Void{
+        	backup();
         }));
 
-        EM.addListener(EMEvent.RESTORE, new EMListener(function(nameOfBackup: String): Void{
-        	restore(nameOfBackup);
-        }));
-
-        EM.addListener(EMEvent.RESTORES_REQUEST, new EMListener(function(n: Nothing): Void{
-        	restores();
+        EM.addListener(EMEvent.RESTORE, new EMListener(function(n: Nothing): Void{
+        	restore();
         }));
 
         processHash = new Map<MsgType,Dynamic->Void>();
@@ -692,9 +700,9 @@ class ProtocolHandler {
 		}
 	}
 
-	public function backup(backupName: String): Void {
+	public function backup(/*backupName: String*/): Void {
 		var request: BackupRequest = new BackupRequest();
-		request.contentImpl.nameOfBackup = backupName;
+		// request.contentImpl.nameOfBackup = backupName;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
@@ -706,9 +714,9 @@ class ProtocolHandler {
 		}
 	}
 
-	public function restore(backupName: String): Void {
+	public function restore(/*backupName: String*/): Void {
 		var request: RestoreRequest = new RestoreRequest();
-		request.contentImpl.nameOfBackup = backupName;
+		// request.contentImpl.nameOfBackup = backupName;
 		try {
 			//we don't expect anything back here
 			new StandardRequest(request, function(data: Dynamic, textStatus: String, jqXHR: JQXHR){
