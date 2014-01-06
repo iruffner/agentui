@@ -2380,6 +2380,12 @@ js.Cookie.all = function() {
 js.Cookie.get = function(name) {
 	return js.Cookie.all().get(name);
 }
+js.Lib = function() { }
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
+}
 js.d3 = {}
 js.d3._D3 = {}
 js.d3._D3.InitPriority = function() { }
@@ -2486,19 +2492,6 @@ m3.helper.ArrayHelper.indexOf = function(array,t) {
 	var _g1 = 0, _g = array.length;
 	while(_g1 < _g) {
 		var i_ = _g1++;
-		if(array[i_] == t) {
-			index = i_;
-			break;
-		}
-	}
-	return index;
-}
-m3.helper.ArrayHelper.lastIndexOf = function(array,t) {
-	if(array == null) return -1;
-	var index = -1;
-	var i_ = array.length;
-	while(i_ > 0) {
-		i_ -= 1;
 		if(array[i_] == t) {
 			index = i_;
 			break;
@@ -3566,17 +3559,102 @@ m3.serialization.Serializer = function() {
 $hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
 m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
 m3.serialization.Serializer.prototype = {
-	getHandler: function(type) {
+	createHandler: function(type) {
+		return (function($this) {
+			var $r;
+			var $e = (type);
+			switch( $e[1] ) {
+			case 1:
+				var parms = $e[3], path = $e[2];
+				$r = path == "Bool"?new m3.serialization.BoolHandler():new m3.serialization.EnumHandler(path,parms);
+				break;
+			case 2:
+				var parms = $e[3], path = $e[2];
+				$r = (function($this) {
+					var $r;
+					switch(path) {
+					case "Bool":
+						$r = new m3.serialization.BoolHandler();
+						break;
+					case "Float":
+						$r = new m3.serialization.FloatHandler();
+						break;
+					case "String":
+						$r = new m3.serialization.StringHandler();
+						break;
+					case "Int":
+						$r = new m3.serialization.IntHandler();
+						break;
+					case "Array":
+						$r = new m3.serialization.ArrayHandler(parms,$this);
+						break;
+					case "Date":
+						$r = new m3.serialization.DateHandler();
+						break;
+					default:
+						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
+					}
+					return $r;
+				}($this));
+				break;
+			case 7:
+				var parms = $e[3], path = $e[2];
+				$r = (function($this) {
+					var $r;
+					switch(path) {
+					case "Bool":
+						$r = new m3.serialization.BoolHandler();
+						break;
+					case "Float":
+						$r = new m3.serialization.FloatHandler();
+						break;
+					case "String":
+						$r = new m3.serialization.StringHandler();
+						break;
+					case "Int":
+						$r = new m3.serialization.IntHandler();
+						break;
+					case "Array":
+						$r = new m3.serialization.ArrayHandler(parms,$this);
+						break;
+					case "Date":
+						$r = new m3.serialization.DateHandler();
+						break;
+					default:
+						$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),$this);
+					}
+					return $r;
+				}($this));
+				break;
+			case 6:
+				$r = new m3.serialization.DynamicHandler();
+				break;
+			case 4:
+				var ret = $e[3], args = $e[2];
+				$r = new m3.serialization.FunctionHandler();
+				break;
+			default:
+				$r = (function($this) {
+					var $r;
+					throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
+					return $r;
+				}($this));
+			}
+			return $r;
+		}(this));
+	}
+	,getHandler: function(type) {
 		var typename = m3.serialization.CTypeTools.typename(type);
 		var handler = this._handlersMap.get(typename);
 		if(handler == null) {
-			handler = m3.serialization.ClassHandlerHelper.createHandler(type,this);
+			handler = this.createHandler(type);
 			this._handlersMap.set(typename,handler);
 		}
 		return handler;
 	}
 	,getHandlerViaClass: function(clazz) {
-		return new m3.serialization.ClassHandler(clazz,m3.serialization.TypeTools.classname(clazz),this);
+		var typename = m3.serialization.TypeTools.classname(clazz);
+		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
 	}
 	,createWriter: function() {
 		return new m3.serialization.JsonWriter(this);
@@ -3674,40 +3752,6 @@ m3.serialization.ArrayHandler.prototype = {
 		return instance;
 	}
 	,__class__: m3.serialization.ArrayHandler
-}
-m3.serialization.ObservableSetHandler = function(parms,serializer) {
-	this._parms = parms;
-	this._serializer = serializer;
-	this._elementHandler = this._serializer.getHandler(this._parms.first());
-};
-$hxClasses["m3.serialization.ObservableSetHandler"] = m3.serialization.ObservableSetHandler;
-m3.serialization.ObservableSetHandler.__name__ = ["m3","serialization","ObservableSetHandler"];
-m3.serialization.ObservableSetHandler.__interfaces__ = [m3.serialization.TypeHandler];
-m3.serialization.ObservableSetHandler.prototype = {
-	write: function(value,writer) {
-		return null;
-	}
-	,read: function(fromJson,reader,instance) {
-		return null;
-	}
-	,__class__: m3.serialization.ObservableSetHandler
-}
-m3.serialization.SizedMapHandler = function(parms,serializer) {
-	this._parms = parms;
-	this._serializer = serializer;
-	this._elementHandler = this._serializer.getHandler(this._parms.first());
-};
-$hxClasses["m3.serialization.SizedMapHandler"] = m3.serialization.SizedMapHandler;
-m3.serialization.SizedMapHandler.__name__ = ["m3","serialization","SizedMapHandler"];
-m3.serialization.SizedMapHandler.__interfaces__ = [m3.serialization.TypeHandler];
-m3.serialization.SizedMapHandler.prototype = {
-	write: function(value,writer) {
-		return null;
-	}
-	,read: function(fromJson,reader,instance) {
-		return null;
-	}
-	,__class__: m3.serialization.SizedMapHandler
 }
 m3.serialization.EnumHandler = function(enumName,parms) {
 	this._enumName = enumName;
@@ -3905,119 +3949,11 @@ m3.serialization.Field.__name__ = ["m3","serialization","Field"];
 m3.serialization.Field.prototype = {
 	__class__: m3.serialization.Field
 }
-m3.serialization.ClassHandlerHelper = function() { }
-$hxClasses["m3.serialization.ClassHandlerHelper"] = m3.serialization.ClassHandlerHelper;
-m3.serialization.ClassHandlerHelper.__name__ = ["m3","serialization","ClassHandlerHelper"];
-m3.serialization.ClassHandlerHelper.createHandler = function(type,serializer) {
-	return (function($this) {
-		var $r;
-		var $e = (type);
-		switch( $e[1] ) {
-		case 1:
-			var parms = $e[3], path = $e[2];
-			$r = path == "Bool"?new m3.serialization.BoolHandler():new m3.serialization.EnumHandler(path,parms);
-			break;
-		case 2:
-			var parms = $e[3], path = $e[2];
-			$r = (function($this) {
-				var $r;
-				switch(path) {
-				case "Bool":
-					$r = new m3.serialization.BoolHandler();
-					break;
-				case "Float":
-					$r = new m3.serialization.FloatHandler();
-					break;
-				case "String":
-					$r = new m3.serialization.StringHandler();
-					break;
-				case "Int":
-					$r = new m3.serialization.IntHandler();
-					break;
-				case "Array":
-					$r = new m3.serialization.ArrayHandler(parms,serializer);
-					break;
-				case "Date":
-					$r = new m3.serialization.DateHandler();
-					break;
-				case "ui.observable.ObservableSet":
-					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
-					break;
-				case "ui.observable.OSet":
-					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
-					break;
-				case "m3.util.SizedMap":
-					$r = new m3.serialization.SizedMapHandler(parms,serializer);
-					break;
-				default:
-					$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),serializer);
-				}
-				return $r;
-			}($this));
-			break;
-		case 7:
-			var parms = $e[3], path = $e[2];
-			$r = (function($this) {
-				var $r;
-				switch(path) {
-				case "Bool":
-					$r = new m3.serialization.BoolHandler();
-					break;
-				case "Float":
-					$r = new m3.serialization.FloatHandler();
-					break;
-				case "String":
-					$r = new m3.serialization.StringHandler();
-					break;
-				case "Int":
-					$r = new m3.serialization.IntHandler();
-					break;
-				case "Array":
-					$r = new m3.serialization.ArrayHandler(parms,serializer);
-					break;
-				case "Date":
-					$r = new m3.serialization.DateHandler();
-					break;
-				case "ui.observable.ObservableSet":
-					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
-					break;
-				case "ui.observable.OSet":
-					$r = new m3.serialization.ObservableSetHandler(parms,serializer);
-					break;
-				case "m3.util.SizedMap":
-					$r = new m3.serialization.SizedMapHandler(parms,serializer);
-					break;
-				default:
-					$r = new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),serializer);
-				}
-				return $r;
-			}($this));
-			break;
-		case 6:
-			$r = new m3.serialization.DynamicHandler();
-			break;
-		case 4:
-			var ret = $e[3], args = $e[2];
-			$r = new m3.serialization.FunctionHandler();
-			break;
-		default:
-			$r = (function($this) {
-				var $r;
-				throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
-				return $r;
-			}($this));
-		}
-		return $r;
-	}(this));
-}
 m3.serialization.ClassHandler = function(clazz,typename,serializer) {
 	this._clazz = clazz;
 	this._typename = typename;
 	this._serializer = serializer;
-	if(this._clazz == null) {
-		console.log("clazz is null for typename: " + typename);
-		throw new m3.serialization.JsonException("clazz is null for typename: " + typename);
-	}
+	if(this._clazz == null) throw new m3.serialization.JsonException("clazz is null");
 	var rtti = this._clazz.__rtti;
 	if(rtti == null) {
 		var msg = "no rtti found for " + this._typename;
@@ -4608,6 +4544,7 @@ ui.AgentUi.start = function() {
 	var urlVars = m3.util.HtmlUtil.getUrlVars();
 	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "yes" || urlVars.demo == "true")) ui.AppContext.DEMO = true;
 	var z = new $("<div></div>");
+	var r = new $("<div></div>");
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 78) {
 			ui.AppContext.LOGGER.debug("ALT + SHIFT + N");
@@ -4627,9 +4564,12 @@ ui.AgentUi.start = function() {
 			notification.contentImpl.connection = connection;
 			notification.contentImpl.correlationId = "abc123";
 			ui.model.EM.change(ui.model.EMEvent.DELETE_NOTIFICATION,notification);
-		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 79) {
-			ui.AppContext.LOGGER.debug("ALT + SHIFT + T");
+		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 90) {
+			ui.AppContext.LOGGER.debug("ALT + SHIFT + Z");
 			if(ui.AppContext.DEMO) z.zWidget("open");
+		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 82) {
+			ui.AppContext.LOGGER.debug("ALT + SHIFT + R");
+			r.restoreWidget("open");
 		}
 	});
 	new $("body").keyup(function(evt1) {
@@ -4662,6 +4602,8 @@ ui.AgentUi.start = function() {
 		z.appendTo(new $(js.Browser.document.body));
 		z.zWidget();
 	}
+	r.appendTo(new $(js.Browser.document.body));
+	r.restoreWidget();
 	if(m3.helper.StringHelper.isNotBlank(urlVars.agentURI)) ui.AgentUi.agentURI = urlVars.agentURI;
 	ui.widget.DialogManager.showLogin();
 }
@@ -4783,6 +4725,15 @@ ui.api.ProtocolHandler = function() {
 	}));
 	ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
 	}));
+	ui.model.EM.addListener(ui.model.EMEvent.BACKUP,new ui.model.EMListener(function(nameOfBackup) {
+		_g.backup(nameOfBackup);
+	}));
+	ui.model.EM.addListener(ui.model.EMEvent.RESTORE,new ui.model.EMListener(function(nameOfBackup) {
+		_g.restore(nameOfBackup);
+	}));
+	ui.model.EM.addListener(ui.model.EMEvent.RESTORES_REQUEST,new ui.model.EMListener(function(n) {
+		_g.restores();
+	}));
 	this.processHash = new haxe.ds.EnumValueMap();
 	this.processHash.set(ui.api.MsgType.evalSubscribeResponse,function(data) {
 		ui.AppContext.LOGGER.debug("evalResponse was received from the server");
@@ -4870,11 +4821,51 @@ ui.api.ProtocolHandler = function() {
 		c.profile = connectionProfileResponse.contentImpl.profile;
 		ui.model.EM.change(ui.model.EMEvent.ConnectionUpdate,c);
 	});
+	this.processHash.set(ui.api.MsgType.restoresResponse,function(data) {
+		ui.AppContext.LOGGER.debug("restoresResponse was received from the server");
+		var restoresResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.RestoresResponse);
+		ui.model.EM.change(ui.model.EMEvent.AVAILABLE_BACKUPS,restoresResponse.contentImpl.backups);
+	});
 };
 $hxClasses["ui.api.ProtocolHandler"] = ui.api.ProtocolHandler;
 ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
 ui.api.ProtocolHandler.prototype = {
-	confirmIntroduction: function(confirmation) {
+	restores: function() {
+		var request = new ui.api.RestoresRequest();
+		try {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
+				ui.AppContext.LOGGER.debug("restoresRequest successfully submitted");
+			}).start({ dataType : "text"});
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AppContext.LOGGER.error("Error executing restoresRequest",ex);
+		}
+	}
+	,restore: function(backupName) {
+		var request = new ui.api.RestoreRequest();
+		request.contentImpl.nameOfBackup = backupName;
+		try {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
+				ui.AppContext.LOGGER.debug("restoreRequest successfully submitted");
+			}).start({ dataType : "text"});
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AppContext.LOGGER.error("Error executing restoreRequest",ex);
+		}
+	}
+	,backup: function(backupName) {
+		var request = new ui.api.BackupRequest();
+		request.contentImpl.nameOfBackup = backupName;
+		try {
+			new ui.api.StandardRequest(request,function(data,textStatus,jqXHR) {
+				ui.AppContext.LOGGER.debug("backupRequest successfully submitted");
+			}).start({ dataType : "text"});
+		} catch( err ) {
+			var ex = m3.log.Logga.getExceptionInst(err);
+			ui.AppContext.LOGGER.error("Error executing backupRequest",ex);
+		}
+	}
+	,confirmIntroduction: function(confirmation) {
 		var request = new ui.api.IntroductionConfirmationRequest();
 		request.contentImpl.accepted = confirmation.accepted;
 		request.contentImpl.alias = ui.AppContext.USER.get_currentAlias().label;
@@ -4966,7 +4957,7 @@ ui.api.ProtocolHandler.prototype = {
 		}
 	}
 	,updateLabels: function() {
-		var request = new ui.api.AddAliasLabelsRequest();
+		var request = new ui.api.UpdateAliasLabelsRequest();
 		var labelsArray = ui.helper.PrologHelper.tagTreeAsStrings(ui.AppContext.USER.get_currentAlias().get_labelSet());
 		request.contentImpl.labels = labelsArray;
 		request.contentImpl.alias = ui.AppContext.USER.get_currentAlias().label;
@@ -5952,7 +5943,61 @@ ui.api.ConnectNotificationData.prototype = $extend(ui.api.Payload.prototype,{
 	}
 	,__class__: ui.api.ConnectNotificationData
 });
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","connectionProfileResponse","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalSubscribeResponse","evalComplete","evalError","evalSubscribeCancelRequest","evalSubscribeCancelResponse","createUserRequest","createUserError","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","insertContent","feedExpr","addAgentAliasesRequest","addAgentAliasesError","addAgentAliasesResponse","removeAgentAliasesRequest","removeAgentAliasesError","removeAgentAliasesResponse","setDefaultAliasRequest","setDefaultAliasError","setDefaultAliasResponse","getAliasConnectionsRequest","getAliasConnectionsResponse","getAliasConnectionsError","getAliasLabelsRequest","getAliasLabelsResponse","getAliasLabelsError","addAliasLabelsRequest","addAliasLabelsResponse","updateAliasLabelsRequest","updateAliasLabelsResponse","beginIntroductionRequest","beginIntroductionResponse","introductionNotification","introductionConfirmationRequest","introductionConfirmationResponse","connectNotification"] }
+ui.api.BackupRequest = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.backupRequest,ui.api.BackupData);
+};
+$hxClasses["ui.api.BackupRequest"] = ui.api.BackupRequest;
+ui.api.BackupRequest.__name__ = ["ui","api","BackupRequest"];
+ui.api.BackupRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.BackupRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.BackupRequest
+});
+ui.api.BackupData = function() {
+	ui.api.PayloadWithSessionURI.call(this);
+};
+$hxClasses["ui.api.BackupData"] = ui.api.BackupData;
+ui.api.BackupData.__name__ = ["ui","api","BackupData"];
+ui.api.BackupData.__super__ = ui.api.PayloadWithSessionURI;
+ui.api.BackupData.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
+	__class__: ui.api.BackupData
+});
+ui.api.RestoreRequest = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoreRequest,ui.api.BackupData);
+};
+$hxClasses["ui.api.RestoreRequest"] = ui.api.RestoreRequest;
+ui.api.RestoreRequest.__name__ = ["ui","api","RestoreRequest"];
+ui.api.RestoreRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.RestoreRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.RestoreRequest
+});
+ui.api.RestoresRequest = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoresRequest,ui.api.PayloadWithSessionURI);
+};
+$hxClasses["ui.api.RestoresRequest"] = ui.api.RestoresRequest;
+ui.api.RestoresRequest.__name__ = ["ui","api","RestoresRequest"];
+ui.api.RestoresRequest.__super__ = ui.api.ProtocolMessage;
+ui.api.RestoresRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.RestoresRequest
+});
+ui.api.RestoresResponse = function() {
+	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoresResponse,ui.api.RestoresData);
+};
+$hxClasses["ui.api.RestoresResponse"] = ui.api.RestoresResponse;
+ui.api.RestoresResponse.__name__ = ["ui","api","RestoresResponse"];
+ui.api.RestoresResponse.__super__ = ui.api.ProtocolMessage;
+ui.api.RestoresResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
+	__class__: ui.api.RestoresResponse
+});
+ui.api.RestoresData = function() {
+	ui.api.Payload.call(this);
+};
+$hxClasses["ui.api.RestoresData"] = ui.api.RestoresData;
+ui.api.RestoresData.__name__ = ["ui","api","RestoresData"];
+ui.api.RestoresData.__super__ = ui.api.Payload;
+ui.api.RestoresData.prototype = $extend(ui.api.Payload.prototype,{
+	__class__: ui.api.RestoresData
+});
+ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","connectionProfileResponse","sessionPing","sessionPong","closeSessionRequest","closeSessionResponse","evalSubscribeRequest","evalSubscribeResponse","evalComplete","evalError","evalSubscribeCancelRequest","evalSubscribeCancelResponse","createUserRequest","createUserError","createUserWaiting","confirmEmailToken","createUserResponse","updateUserRequest","updateUserResponse","insertContent","feedExpr","addAgentAliasesRequest","addAgentAliasesError","addAgentAliasesResponse","removeAgentAliasesRequest","removeAgentAliasesError","removeAgentAliasesResponse","setDefaultAliasRequest","setDefaultAliasError","setDefaultAliasResponse","getAliasConnectionsRequest","getAliasConnectionsResponse","getAliasConnectionsError","getAliasLabelsRequest","getAliasLabelsResponse","getAliasLabelsError","addAliasLabelsRequest","addAliasLabelsResponse","updateAliasLabelsRequest","updateAliasLabelsResponse","beginIntroductionRequest","beginIntroductionResponse","introductionNotification","introductionConfirmationRequest","introductionConfirmationResponse","connectNotification","backupRequest","backupResponse","restoresRequest","restoresResponse","restoreRequest","restoreResponse"] }
 ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
 ui.api.MsgType.initializeSessionRequest.toString = $estr;
 ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
@@ -6097,6 +6142,24 @@ ui.api.MsgType.introductionConfirmationResponse.__enum__ = ui.api.MsgType;
 ui.api.MsgType.connectNotification = ["connectNotification",47];
 ui.api.MsgType.connectNotification.toString = $estr;
 ui.api.MsgType.connectNotification.__enum__ = ui.api.MsgType;
+ui.api.MsgType.backupRequest = ["backupRequest",48];
+ui.api.MsgType.backupRequest.toString = $estr;
+ui.api.MsgType.backupRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.backupResponse = ["backupResponse",49];
+ui.api.MsgType.backupResponse.toString = $estr;
+ui.api.MsgType.backupResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.restoresRequest = ["restoresRequest",50];
+ui.api.MsgType.restoresRequest.toString = $estr;
+ui.api.MsgType.restoresRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.restoresResponse = ["restoresResponse",51];
+ui.api.MsgType.restoresResponse.toString = $estr;
+ui.api.MsgType.restoresResponse.__enum__ = ui.api.MsgType;
+ui.api.MsgType.restoreRequest = ["restoreRequest",52];
+ui.api.MsgType.restoreRequest.toString = $estr;
+ui.api.MsgType.restoreRequest.__enum__ = ui.api.MsgType;
+ui.api.MsgType.restoreResponse = ["restoreResponse",53];
+ui.api.MsgType.restoreResponse.toString = $estr;
+ui.api.MsgType.restoreResponse.__enum__ = ui.api.MsgType;
 ui.api.Reason = $hxClasses["ui.api.Reason"] = { __ename__ : ["ui","api","Reason"], __constructs__ : [] }
 ui.api.Requester = function() { }
 $hxClasses["ui.api.Requester"] = ui.api.Requester;
@@ -6654,7 +6717,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","EditContentClosed","LOAD_ALIAS","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","ALIAS_CREATE","NewAlias","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","PAGE_CLOSE","CreateLabel","DeleteLabels","UPDATE_LABELS","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","INTRODUCTION_CONFIRMATION","INTRODUCTION_CONFIRMATION_RESPONSE","INTRODUCTION_NOTIFICATION","DELETE_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","EditContentClosed","LOAD_ALIAS","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","ALIAS_CREATE","NewAlias","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","PAGE_CLOSE","CreateLabel","DeleteLabels","UPDATE_LABELS","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","INTRODUCTION_CONFIRMATION","INTRODUCTION_CONFIRMATION_RESPONSE","INTRODUCTION_NOTIFICATION","DELETE_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.TEST = ["TEST",0];
 ui.model.EMEvent.TEST.toString = $estr;
 ui.model.EMEvent.TEST.__enum__ = ui.model.EMEvent;
@@ -6760,6 +6823,18 @@ ui.model.EMEvent.ConnectionUpdate.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",34];
 ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
 ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.BACKUP = ["BACKUP",35];
+ui.model.EMEvent.BACKUP.toString = $estr;
+ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.RESTORE = ["RESTORE",36];
+ui.model.EMEvent.RESTORE.toString = $estr;
+ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",37];
+ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
+ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",38];
+ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
+ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
 	this.rootNode = node;
 	this.connectionNodes = new Array();
@@ -9565,6 +9640,64 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RestoreWidget must be a div element");
+		selfElement.addClass("RestoreWidget");
+		self.container = new $("<div class=''></div>");
+		selfElement.append(self.container);
+		self.inputContainer = new $("<div class='' style='margin-top: 15px;'></div>");
+		selfElement.append(self.inputContainer);
+		new $("<button>Backup</button>").button().click(function(evt) {
+			self.inputContainer.empty();
+			self.inputContainer.append("<h3>Backup Options</h3>").append("<label>Name of Backup</label>");
+			var name = new $("<input style='width: 80%;' class='ui-corner-all ui-widget-content'/>").appendTo(self.inputContainer);
+			var submit = new $("<button>Submit Backup</button>").appendTo(self.inputContainer).click(function(evt1) {
+				if(m3.helper.StringHelper.isBlank(name.val())) {
+					js.Lib.alert("Please specify a name for this backup");
+					return;
+				}
+				(js.Boot.__cast(selfElement , $)).m3dialog("close");
+				ui.model.EM.change(ui.model.EMEvent.BACKUP,name.val());
+			});
+		}).appendTo(self.container);
+		new $("<button>Restore</button>").button().click(function(evt) {
+			self.inputContainer.empty();
+			self.inputContainer.append("<h3>Restore Options</h3>").append("<label style='text-decoration: underline; font-weight: bold;'>Available Backups</label><br/>");
+			var table = new $("<div style='width: 90%; margin: auto;'></div>").appendTo(self.inputContainer);
+			table.append("Requesting available backups...");
+			ui.model.EM.listenOnce(ui.model.EMEvent.AVAILABLE_BACKUPS,new ui.model.EMListener(function(backups) {
+				table.empty();
+				if(!m3.helper.ArrayHelper.hasValues(backups)) table.append("No backups available"); else {
+					var _g1 = 0, _g = backups.length;
+					while(_g1 < _g) {
+						var i_ = _g1++;
+						var name1 = [backups[i_]];
+						table.append(new $("<span style='cursor: pointer;'>" + name1[0] + "</span>").click((function(name1) {
+							return function(evt1) {
+								if(confirm("Restore " + name1[0] + "?")) {
+									(js.Boot.__cast(selfElement , $)).m3dialog("close");
+									ui.model.EM.change(ui.model.EMEvent.RESTORE,name1[0]);
+								}
+							};
+						})(name1)));
+						table.append("</br>");
+					}
+				}
+			},"RestoreWidget-AvailableBackups"));
+			ui.model.EM.change(ui.model.EMEvent.RESTORES_REQUEST);
+		}).appendTo(self.container);
+		(js.Boot.__cast(selfElement , $)).m3dialog({ autoOpen : false, title : "Data Backup & Restore"});
+	}, open : function() {
+		var selfElement = this.element;
+		selfElement.m3dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.restoreWidget",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of SignupConfirmationDialog must be a div element");
 		self._cancelled = false;
 		selfElement.addClass("signupConfirmationDialog").hide();
@@ -9964,6 +10097,12 @@ ui.api.IntroductionConfirmationRequestData.__rtti = "<class path=\"ui.api.Introd
 ui.api.IntroductionConfirmationResponse.__rtti = "<class path=\"ui.api.IntroductionConfirmationResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"529\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.ConnectNotification.__rtti = "<class path=\"ui.api.ConnectNotification\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ConnectNotificationData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"535\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.ConnectNotificationData.__rtti = "<class path=\"ui.api.ConnectNotificationData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<connection public=\"1\"><c path=\"ui.model.Connection\"/></connection>\n\t<introProfile><c path=\"String\"/></introProfile>\n\t<profile public=\"1\">\n\t\t<c path=\"ui.model.UserData\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<readResolve set=\"method\" line=\"544\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<new public=\"1\" set=\"method\" line=\"539\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.BackupRequest.__rtti = "<class path=\"ui.api.BackupRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.BackupData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"558\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.BackupData.__rtti = "<class path=\"ui.api.BackupData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<nameOfBackup public=\"1\"><c path=\"String\"/></nameOfBackup>\n\t<new public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RestoreRequest.__rtti = "<class path=\"ui.api.RestoreRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.BackupData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"567\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RestoresRequest.__rtti = "<class path=\"ui.api.RestoresRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"573\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RestoresResponse.__rtti = "<class path=\"ui.api.RestoresResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.RestoresData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"579\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.RestoresData.__rtti = "<class path=\"ui.api.RestoresData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<backups public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></backups>\n\t<new public=\"1\" set=\"method\" line=\"584\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.LongPollingRequest.reqId = 1;
 ui.api.TestDao.initialized = false;
 ui.api.TestDao._lastRandom = 0;
