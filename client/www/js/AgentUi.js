@@ -7530,10 +7530,12 @@ ui.widget.score.ContentTimeLine.prototype = {
 		}(this));
 	}
 	,createImageElement: function(content,x,y,ele_width,ele_height) {
-		var img = this.paper.image(content.imgSrc,x,y - ele_height / 2,ele_width,ele_height).attr({ preserveAspectRatio : "true"});
+		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "imageContent"});
+		var bbox = { cx : x, cy : y, width : ele_height, height : ele_height};
+		var icon = ui.widget.score.Icons.imageIcon(bbox);
 		return (function($this) {
 			var $r;
-			var e123 = [img];
+			var e123 = [rect,icon];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
@@ -7640,7 +7642,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * this.initialWidth + this.time_line_x + ui.widget.score.ContentTimeLine.width;
 		var y = this.time_line_y + ui.widget.score.ContentTimeLine.height / 2;
 		var ele;
-		if(content.type == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y,40,40)); else if(content.type == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y,40,30)); else if(content.type == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y,20)); else if(content.type == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y,20,20));
+		if(content.type == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y,40,40)); else if(content.type == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y,40,40)); else if(content.type == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y,20)); else if(content.type == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y,20,20));
 	}
 	,addContent: function(content) {
 		this.contents.push(content);
@@ -7648,7 +7650,9 @@ ui.widget.score.ContentTimeLine.prototype = {
 	}
 	,createConnectionElement: function() {
 		var line = this.paper.line(this.time_line_x,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,this.initialWidth,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2).attr({ 'class' : "contentLine"});
-		var img = this.paper.image((function($this) {
+		var ellipse = this.paper.ellipse(this.time_line_x + ui.widget.score.ContentTimeLine.width / 2,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,ui.widget.score.ContentTimeLine.width / 2,ui.widget.score.ContentTimeLine.height / 2);
+		ellipse.attr({ fill : "#fff", stroke : "#000", strokeWidth : "1px"});
+		var imgSrc = (function($this) {
 			var $r;
 			try {
 				$r = $this.connection.profile.imgSrc;
@@ -7656,11 +7660,14 @@ ui.widget.score.ContentTimeLine.prototype = {
 				$r = "media/default_avatar.jpg";
 			}
 			return $r;
-		}(this)),this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height);
-		var rect = this.paper.rect(this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height,10,10).attr({ 'class' : "contentRect"});
+		}(this));
+		var img = this.paper.image(imgSrc,this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height).attr({ preserveAspectRatio : "true"});
+		img.attr({ mask : ellipse});
+		var border_ellipse = this.paper.ellipse(this.time_line_x + ui.widget.score.ContentTimeLine.width / 2,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,ui.widget.score.ContentTimeLine.width / 2,ui.widget.score.ContentTimeLine.height / 2);
+		border_ellipse.attr({ fill : "none", stroke : "#cccccc", strokeWidth : "1px"});
 		return (function($this) {
 			var $r;
-			var e123 = [line,img,rect];
+			var e123 = [line,img,border_ellipse];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
@@ -10242,8 +10249,8 @@ ui.model.IntroductionConfirmation.__rtti = "<class path=\"ui.model.IntroductionC
 ui.widget.score.ContentTimeLine.initial_y_pos = 60;
 ui.widget.score.ContentTimeLine.next_y_pos = ui.widget.score.ContentTimeLine.initial_y_pos;
 ui.widget.score.ContentTimeLine.next_x_pos = 10;
-ui.widget.score.ContentTimeLine.width = 40;
-ui.widget.score.ContentTimeLine.height = 50;
+ui.widget.score.ContentTimeLine.width = 60;
+ui.widget.score.ContentTimeLine.height = 70;
 ui.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;

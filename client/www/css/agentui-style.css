@@ -1116,8 +1116,10 @@ body {
 }
 
 .audioEllipse {
+	/*
 	stroke: wheat;
 	stroke-width: 1px;
+*/
 	fill: tomato;
 }
 
@@ -1127,16 +1129,16 @@ body {
 }
 
 .messageContent, .messageContentLarge {
-	stroke: #00FF00;
+	/*stroke: #00FF00;*/
 	fill: orange;
 }
 
 .messageContent {
-	stroke-width: 1px;
+	/*stroke-width: 1px;*/
 }
 
 .messageContentLarge {
-	stroke-width: 5px;
+	/*stroke-width: 5px;*/
 }
 
 .messageContent-small-text {
@@ -1149,6 +1151,10 @@ body {
 	font-size: 12px;
 	text-align: left;
 	padding: 7px;
+}
+
+.imageContent {
+	fill: dodgerblue;
 }
 
 .contentLine {

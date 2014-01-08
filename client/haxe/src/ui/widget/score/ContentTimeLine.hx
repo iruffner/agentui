@@ -12,8 +12,8 @@ class ContentTimeLine {
 
 	private static var next_y_pos:Int = initial_y_pos;
 	private static var next_x_pos:Int = 10;
-	private static var width:Int = 40;
- 	private static var height:Int = 50;
+	private static var width:Int = 60;
+ 	private static var height:Int = 70;
 
 	private var paper: Snap;
 	private var connection: Connection;
@@ -67,13 +67,28 @@ class ContentTimeLine {
 			iter.next().remove();
 		}
 	}
-
+/*
+<ellipse filter="url(#B)" cx="90" cy="70" rx="80" ry="60"/>
+<filter id="B">
+	<feImage xlink:href='../thesoul2.jpg' y="-20" height="200"/>
+	<feComposite operator="in" in2="SourceGraphic" />
+</filter>
+*/
 	private function createConnectionElement(): SnapElement {
 		var line = paper.line(time_line_x, time_line_y + height/2, initialWidth, time_line_y + height/2)
 		                .attr({"class":"contentLine"});
-		var img = paper.image(M.getX(connection.profile.imgSrc,"media/default_avatar.jpg"), time_line_x, time_line_y, width, height);
-		var rect = paper.rect(time_line_x, time_line_y, width, height, 10, 10).attr({"class": "contentRect"});
-		return paper.group(paper, [line, img, rect]);
+		var ellipse = paper.ellipse(time_line_x + width/2, time_line_y + height/2, width/2, height/2);
+		ellipse.attr({fill:"#fff", stroke:"#000", strokeWidth:"1px"});
+
+		var imgSrc = M.getX(connection.profile.imgSrc,"media/default_avatar.jpg");
+		var img = paper.image(imgSrc, time_line_x, time_line_y, width, height)
+               				       .attr({"preserveAspectRatio":"true"});
+        img.attr({mask: ellipse});
+
+		var border_ellipse = paper.ellipse(time_line_x + width/2, time_line_y + height/2, width/2, height/2);
+		border_ellipse.attr({fill:"none", stroke:"#cccccc", strokeWidth:"1px"});
+		
+		return paper.group(paper, [line, img, border_ellipse]);
 	}
 
 	public function addContent(content:Content):Void {
@@ -92,7 +107,7 @@ class ContentTimeLine {
 		if (content.type == ContentType.TEXT) {
 			addContentElement(content, createTextElement(cast(content, MessageContent), x, y, 40, 40));
 		} else if (content.type == ContentType.IMAGE) {
-			addContentElement(content, createImageElement(cast(content, ImageContent), x, y, 40, 30));
+			addContentElement(content, createImageElement(cast(content, ImageContent), x, y, 40, 40));
 		} else if (content.type == ContentType.URL) {
 			addContentElement(content, createLinkElement(cast(content, UrlContent), x, y, 20));
 		} else if (content.type == ContentType.AUDIO) {
@@ -201,9 +216,16 @@ class ContentTimeLine {
 	}
 
 	private function createImageElement(content:ImageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
-		var img = paper.image(content.imgSrc, x, y - ele_height/2, ele_width, ele_height)
-		               .attr({"preserveAspectRatio":"true"});
-		return paper.group(paper, [img]);
+		var rect = paper.rect(x - ele_width/2, y - ele_height/2, ele_width, ele_height, 3, 3)
+		                .attr({"class":"imageContent"});
+		var bbox:Dynamic = {
+			cx: x,
+			cy: y,
+			width: ele_height,
+			height: ele_height
+		};
+		var icon = Icons.imageIcon(bbox);
+		return paper.group(paper, [rect,icon]);
 	}
 
 	private function createLinkElement(content:UrlContent, x:Float, y:Float, radius:Float):SnapElement {
