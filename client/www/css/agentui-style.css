@@ -1121,12 +1121,9 @@ body {
 	fill: tomato;
 }
 
-.audioTriangle {
-	stroke: green;
-	stroke-width: 1px;
-	fill: red;
-	stroke-opacity: 0.6;
-	fill-opacity: 0.6;
+.audioIcon, .imageIcon, .linkIcon, .messageIcon {
+	fill: #000000;
+	stroke: "none";
 }
 
 .messageContent, .messageContentLarge {

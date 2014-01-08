@@ -7509,11 +7509,10 @@ ui.widget.score.ContentTimeLine.resetPositions = function() {
 ui.widget.score.ContentTimeLine.prototype = {
 	createAudioElement: function(content,x,y,rx,ry) {
 		var ellipse = this.paper.ellipse(x,y,rx,ry).attr({ 'class' : "audioEllipse"});
-		var triangle = this.paper.polygon([x + 10,y,x - 10,y - 10,x - 10,y + 10]);
-		triangle.attr({ 'class' : "audioTriangle"});
+		var icon = ui.widget.score.Icons.audioIcon(ellipse.getBBox());
 		return (function($this) {
 			var $r;
-			var e123 = [ellipse,triangle];
+			var e123 = [ellipse,icon];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
@@ -7521,9 +7520,10 @@ ui.widget.score.ContentTimeLine.prototype = {
 	}
 	,createLinkElement: function(content,x,y,radius) {
 		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,radius).attr({ 'class' : "urlContent"});
+		var icon = ui.widget.score.Icons.linkIcon(hex.getBBox());
 		return (function($this) {
 			var $r;
-			var e123 = [hex];
+			var e123 = [hex,icon];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
@@ -7540,21 +7540,12 @@ ui.widget.score.ContentTimeLine.prototype = {
 		}(this));
 	}
 	,createTextElement: function(content,x,y,ele_width,ele_height) {
-		var eles = [];
 		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "messageContent"});
-		eles.push(rect);
-		var lines = this.splitText(content.text,22,3);
-		var y_pos = y - ele_height / 2 + 10;
-		var _g1 = 0, _g = lines.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var text = this.paper.text(x - ele_width / 2 + 4,y_pos,lines[i]).attr({ 'class' : "messageContent-small-text"});
-			eles.push(text);
-			y_pos += 10;
-		}
+		var bbox = { cx : x, cy : y, width : ele_height, height : ele_height};
+		var icon = ui.widget.score.Icons.messageIcon(bbox);
 		return (function($this) {
 			var $r;
-			var e123 = eles;
+			var e123 = [rect,icon];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
@@ -7649,7 +7640,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * this.initialWidth + this.time_line_x + ui.widget.score.ContentTimeLine.width;
 		var y = this.time_line_y + ui.widget.score.ContentTimeLine.height / 2;
 		var ele;
-		if(content.type == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y,80,40)); else if(content.type == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y,40,30)); else if(content.type == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y,20)); else if(content.type == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y,40,20));
+		if(content.type == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y,40,40)); else if(content.type == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y,40,30)); else if(content.type == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y,20)); else if(content.type == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y,20,20));
 	}
 	,addContent: function(content) {
 		this.contents.push(content);
@@ -7720,6 +7711,35 @@ ui.widget.score.ForeignObject.appendAudioContent = function(ele_id,bbox,content)
 	audioDiv.append("audio").attr("src",content.audioSrc).attr("controls","controls").style("width","230px").style("height","50px").on("click",function() {
 		d3.event.stopPropagation();
 	});
+}
+ui.widget.score.Icons = function() { }
+$hxClasses["ui.widget.score.Icons"] = ui.widget.score.Icons;
+ui.widget.score.Icons.__name__ = ["ui","widget","score","Icons"];
+ui.widget.score.Icons.createIcon = function(iconPath,className,bbox) {
+	var paper = new Snap("#score-comp-svg");
+	var ret = paper.path(iconPath);
+	ret.attr("class",className);
+	if(bbox != null) {
+		var bbox_p = ret.getBBox();
+		ret.transform("t" + Std.string(bbox.cx - bbox_p.width / 2 - bbox_p.x) + " " + Std.string(bbox.cy - bbox_p.height / 2 - bbox_p.y));
+	}
+	return ret;
+}
+ui.widget.score.Icons.audioIcon = function(bbox) {
+	var audioPath = "M4.998,12.127v7.896h4.495l6.729,5.526l0.004-18.948l-6.73,5.526H4.998z M18.806,11.219c-0.393-0.389-1.024-0.389-1.415,0.002c-0.39,0.391-0.39,1.024,0.002,1.416v-0.002c0.863,0.864,1.395,2.049,1.395,3.366c0,1.316-0.531,2.497-1.393,3.361c-0.394,0.389-0.394,1.022-0.002,1.415c0.195,0.195,0.451,0.293,0.707,0.293c0.257,0,0.513-0.098,0.708-0.293c1.222-1.22,1.98-2.915,1.979-4.776C20.788,14.136,20.027,12.439,18.806,11.219z M21.101,8.925c-0.393-0.391-1.024-0.391-1.413,0c-0.392,0.391-0.392,1.025,0,1.414c1.45,1.451,2.344,3.447,2.344,5.661c0,2.212-0.894,4.207-2.342,5.659c-0.392,0.39-0.392,1.023,0,1.414c0.195,0.195,0.451,0.293,0.708,0.293c0.256,0,0.512-0.098,0.707-0.293c1.808-1.809,2.929-4.315,2.927-7.073C24.033,13.24,22.912,10.732,21.101,8.925z M23.28,6.746c-0.393-0.391-1.025-0.389-1.414,0.002c-0.391,0.389-0.391,1.023,0.002,1.413h-0.002c2.009,2.009,3.248,4.773,3.248,7.839c0,3.063-1.239,5.828-3.246,7.838c-0.391,0.39-0.391,1.023,0.002,1.415c0.194,0.194,0.45,0.291,0.706,0.291s0.513-0.098,0.708-0.293c2.363-2.366,3.831-5.643,3.829-9.251C27.115,12.389,25.647,9.111,23.28,6.746z";
+	return ui.widget.score.Icons.createIcon(audioPath,"audioIcon",bbox);
+}
+ui.widget.score.Icons.messageIcon = function(bbox) {
+	var messagePath = "M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z";
+	return ui.widget.score.Icons.createIcon(messagePath,"messageIcon",bbox);
+}
+ui.widget.score.Icons.linkIcon = function(bbox) {
+	var linkPath = "M16.45,18.085l-2.47,2.471c0.054,1.023-0.297,2.062-1.078,2.846c-1.465,1.459-3.837,1.459-5.302-0.002c-1.461-1.465-1.46-3.836-0.001-5.301c0.783-0.781,1.824-1.131,2.847-1.078l2.469-2.469c-2.463-1.057-5.425-0.586-7.438,1.426c-2.634,2.637-2.636,6.907,0,9.545c2.638,2.637,6.909,2.635,9.545,0l0.001,0.002C17.033,23.511,17.506,20.548,16.45,18.085zM14.552,12.915l2.467-2.469c-0.053-1.023,0.297-2.062,1.078-2.848C19.564,6.139,21.934,6.137,23.4,7.6c1.462,1.465,1.462,3.837,0,5.301c-0.783,0.783-1.822,1.132-2.846,1.079l-2.469,2.468c2.463,1.057,5.424,0.584,7.438-1.424c2.634-2.639,2.633-6.91,0-9.546c-2.639-2.636-6.91-2.637-9.545-0.001C13.967,7.489,13.495,10.451,14.552,12.915zM18.152,10.727l-7.424,7.426c-0.585,0.584-0.587,1.535,0,2.121c0.585,0.584,1.536,0.584,2.121-0.002l7.425-7.424c0.584-0.586,0.584-1.535,0-2.121C19.687,10.141,18.736,10.142,18.152,10.727z";
+	return ui.widget.score.Icons.createIcon(linkPath,"linkIcon",bbox);
+}
+ui.widget.score.Icons.imageIcon = function(bbox) {
+	var imagePath = "M2.5,4.833v22.334h27V4.833H2.5zM25.25,25.25H6.75V6.75h18.5V25.25zM11.25,14c1.426,0,2.583-1.157,2.583-2.583c0-1.427-1.157-2.583-2.583-2.583c-1.427,0-2.583,1.157-2.583,2.583C8.667,12.843,9.823,14,11.25,14zM24.251,16.25l-4.917-4.917l-6.917,6.917L10.5,16.333l-2.752,2.752v5.165h16.503V16.25z";
+	return ui.widget.score.Icons.createIcon(imagePath,"imageIcon",bbox);
 }
 ui.widget.score.TimeMarker = function(uberGroup,paper,width) {
 	this.paper = paper;

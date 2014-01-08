@@ -90,13 +90,13 @@ class ContentTimeLine {
 
 		var ele:SnapElement;
 		if (content.type == ContentType.TEXT) {
-			addContentElement(content, createTextElement(cast(content, MessageContent), x, y, 80, 40));
+			addContentElement(content, createTextElement(cast(content, MessageContent), x, y, 40, 40));
 		} else if (content.type == ContentType.IMAGE) {
 			addContentElement(content, createImageElement(cast(content, ImageContent), x, y, 40, 30));
 		} else if (content.type == ContentType.URL) {
 			addContentElement(content, createLinkElement(cast(content, UrlContent), x, y, 20));
 		} else if (content.type == ContentType.AUDIO) {
-			addContentElement(content, createAudioElement(cast(content, AudioContent), x, y, 40, 20));
+			addContentElement(content, createAudioElement(cast(content, AudioContent), x, y, 20, 20));
 		}
 	}
 
@@ -188,22 +188,16 @@ class ContentTimeLine {
 	}
 
 	private function createTextElement(content:MessageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
-		var eles = [];
 		var rect = paper.rect(x - ele_width/2, y - ele_height/2, ele_width, ele_height, 3, 3)
 		                .attr({"class":"messageContent"});
-		eles.push(rect);
-
-		// Break the text up into words and then re-assemble them into lines
-		var lines = splitText(content.text, 22, 3);
-
-		var y_pos = y - ele_height/2 + 10;
-		for (i in 0...lines.length) {
-			var text = paper.text(x - ele_width/2 + 4, y_pos, lines[i])
-			                .attr({"class":"messageContent-small-text"});
-			eles.push(text);
-			y_pos += 10;
-		}
-		return paper.group(paper, eles);
+		var bbox:Dynamic = {
+			cx: x,
+			cy: y,
+			width: ele_height,
+			height: ele_height
+		};
+		var icon = Icons.messageIcon(bbox);
+		return paper.group(paper, [rect,icon]);
 	}
 
 	private function createImageElement(content:ImageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
@@ -215,16 +209,15 @@ class ContentTimeLine {
 	private function createLinkElement(content:UrlContent, x:Float, y:Float, radius:Float):SnapElement {
 		var hex = Shapes.createHexagon(paper, x, y, radius)
 		                .attr({"class":"urlContent"});
-		return paper.group(paper, [hex]);
+		var icon = Icons.linkIcon(hex.getBBox());
+		return paper.group(paper, [hex, icon]);
 	}
 
 	private function createAudioElement(content:AudioContent, x:Float, y:Float, rx:Float, ry:Float):SnapElement {
 		var ellipse = paper.ellipse(x, y, rx, ry)
 			               .attr({"class":"audioEllipse"});
+		var icon = Icons.audioIcon(ellipse.getBBox());
 
-		// Create a triangle play button
-		var triangle = paper.polygon([x+10, y, x-10, y-10, x-10, y+10]);
-		triangle.attr({"class":"audioTriangle"});
-		return paper.group(paper, [ellipse, triangle]);
+		return paper.group(paper, [ellipse, icon]);
 	}
 }
