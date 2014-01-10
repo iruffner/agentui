@@ -75,12 +75,27 @@
 				newMatrix = "matrix(" +  transMatrix.join(' ') + ")";
 				mapMatrix.setAttributeNS(null, "transform", newMatrix);
 	        }
+
+			Snap.plugin(function (Snap, Element, Paper, glob) {
+			    var elproto = Element.prototype;
+			    elproto.toFront = function () {
+			        this.prependTo(this.paper);
+			    };
+			    elproto.toBack = function () {
+			        this.appendTo(this.paper);
+			    };
+			});
         </script>
     </head>
     <body>
     	<div id="wrap">
     		<header id="header" class="ui-widget-header ui-corner-top">
-    			<div style="margin-top: 10px;"><strong style='font-size: xx-large;'>The Agency</strong></div>
+    			<div style="margin-top: 10px;">
+    				<div style="float:right;">
+    					<img src="svg/notification-network-ethernet-connected.svg" id="disconnected-indicator"/>
+    				</div>
+    				<strong style='font-size: xx-large;'>The Agency</strong>
+    			</div>
     		</header>
     		<section id="middleSection">
 

@@ -20,9 +20,10 @@ class AppContext {
     public static var TARGET: Connection;
     public static var CONTENT: ObservableSet<Content>;
     public static var SERIALIZER: Serializer;
-    private static var _i: ObservableSet<IntroductionNotification>;
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
-	
+
+    private static var _i: ObservableSet<IntroductionNotification>;
+
     public static function init() {
     	LOGGER = new Logga(LogLevel.DEBUG);
         

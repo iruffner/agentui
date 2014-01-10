@@ -68,7 +68,7 @@ extern class LoginDialog extends JQ {
 
 		        	if(ui.AgentUi.agentURI.isBlank()) {
 			        	self.input_un = new JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-			        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
+			        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
 			        	inputs.append("<br/>");
 			        }
 		        	self.input_pw = new JQ("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);

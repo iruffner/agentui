@@ -172,7 +172,7 @@ class ProtocolHandler {
         		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.content); 
         	});
         processHash.set(MsgType.sessionPong, function(data: Dynamic){
-        		//nothing to do with this message
+        		SystemStatus.instance().onMessage();
         	});
         processHash.set(MsgType.evalSubscribeCancelResponse, function(data: Dynamic){
         		AppContext.LOGGER.debug("evalSubscribeCancelResponse was received from the server");

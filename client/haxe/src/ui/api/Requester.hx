@@ -33,8 +33,10 @@ class StandardRequest implements Requester {
 	        type: "POST",
 			success: successFcn,
    			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
-   				JqueryUtil.alert("There was an error making your request.\n" + jqXHR.message);
-   				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+   				if (request.msgType != MsgType.sessionPing) {
+	   				JqueryUtil.alert("There was an error making your request.\n" + jqXHR.message);
+	   				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+	   			}
 			}
         };
         if(opts != null) {

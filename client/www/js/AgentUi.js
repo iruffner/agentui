@@ -4655,6 +4655,29 @@ ui.AppContext.registerGlobalListeners = function() {
 		ui.AppContext._i.add(notification);
 	},"AgentUi-IntroNotification"));
 }
+ui.SystemStatus = function() {
+	this.lastPong = new Date();
+	this.timer = new haxe.Timer(7000);
+	this.timer.run = $bind(this,this.onTimer);
+};
+$hxClasses["ui.SystemStatus"] = ui.SystemStatus;
+ui.SystemStatus.__name__ = ["ui","SystemStatus"];
+ui.SystemStatus.instance = function() {
+	if(ui.SystemStatus._instance == null) ui.SystemStatus._instance = new ui.SystemStatus();
+	return ui.SystemStatus._instance;
+}
+ui.SystemStatus.prototype = {
+	onMessage: function() {
+		this.lastPong = new Date();
+		new $("#disconnected-indicator").attr("src","svg/notification-network-ethernet-connected.svg");
+	}
+	,onTimer: function() {
+		var src = "svg/notification-network-ethernet-connected.svg";
+		if(new Date().getTime() - this.lastPong.getTime() > 7000) src = "svg/notification-network-ethernet-disconnected.svg";
+		new $("#disconnected-indicator").attr("src",src);
+	}
+	,__class__: ui.SystemStatus
+}
 ui.api = {}
 ui.api.ProtocolHandler = function() {
 	this.runningFilter = null;
@@ -4745,6 +4768,7 @@ ui.api.ProtocolHandler = function() {
 		ui.model.EM.change(ui.model.EMEvent.EndOfContent,evalComplete.contentImpl.content);
 	});
 	this.processHash.set(ui.api.MsgType.sessionPong,function(data) {
+		ui.SystemStatus.instance().onMessage();
 	});
 	this.processHash.set(ui.api.MsgType.evalSubscribeCancelResponse,function(data) {
 		ui.AppContext.LOGGER.debug("evalSubscribeCancelResponse was received from the server");
@@ -9185,7 +9209,7 @@ var defineWidget = function() {
 		labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
 		if(m3.helper.StringHelper.isBlank(ui.AgentUi.agentURI)) {
 			self.input_un = new $("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-			self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
+			self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
 			inputs.append("<br/>");
 		}
 		self.input_pw = new $("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
@@ -10087,6 +10111,8 @@ m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params
 m3.util.ColorProvider._INDEX = 0;
 ui.AgentUi.URL = "";
 ui.AppContext.DEMO = false;
+ui.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
+ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
 ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<content>\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl public=\"1\">\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"31\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"35\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"25\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"42\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.PayloadWithSessionURI.__rtti = "<class path=\"ui.api.PayloadWithSessionURI\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
