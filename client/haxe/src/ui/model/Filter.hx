@@ -3,6 +3,7 @@ package ui.model;
 import m3.exception.Exception;
 
 using m3.helper.ArrayHelper;
+using m3.helper.StringHelper;
 
 class Filter {
 	public var labelNodes: Array<Node>;
@@ -33,7 +34,9 @@ class Filter {
 	}
 
 	public function labelsProlog(): String {
-		return rootNode.getProlog() + "(" + _prologify(labelNodes) + ")";
+		var s: String = _prologify(labelNodes)
+		if(s.isBlank()) s = "()";
+		return rootNode.getProlog() /*+ "("*/ + s /*+ ")"*/;
 	}
 
 	private function _prologify(nodes: Array<Node>): String {
@@ -44,7 +47,8 @@ class Filter {
 			// } else {
 
 			// }
-			if(nodes.length > 1)
+
+			// if(nodes.length > 1)
 				str += "(";
 			var iteration: Int = 0;
 			for(ln_ in 0...nodes.length) {
@@ -54,7 +58,7 @@ class Filter {
 					str += _prologify(nodes[ln_].nodes);
 				}
 			}
-			if(nodes.length > 1)
+			// if(nodes.length > 1)
 				str += ")";
 		}
 		return str;
