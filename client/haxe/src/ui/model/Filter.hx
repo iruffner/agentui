@@ -34,8 +34,10 @@ class Filter {
 	}
 
 	public function labelsProlog(): String {
-		var s: String = _prologify(labelNodes)
-		if(s.isBlank()) s = "()";
+		var s: String = _prologify(labelNodes);
+		if(s.isBlank()) {
+			s = "()";
+		}
 		return rootNode.getProlog() /*+ "("*/ + s /*+ ")"*/;
 	}
 
