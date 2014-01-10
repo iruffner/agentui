@@ -196,6 +196,7 @@ extern class LoginDialog extends JQ {
 		        		title: "Login",
 		        		height: 280,
 		        		width: 400,
+		        		modal: true,
 		        		buttons: {
 		        			"Login": function() {
 		        				self._login();

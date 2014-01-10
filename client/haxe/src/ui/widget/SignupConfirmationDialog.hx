@@ -104,6 +104,7 @@ extern class SignupConfirmationDialog extends JQ {
 		        		title: "Email Validation",
 		        		height: 420,
 		        		width: 420,
+		        		modal: true,
 		        		buttons: {
 		        			"Validate": function() {
 		        				self._validateUser();

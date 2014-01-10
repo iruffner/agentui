@@ -190,6 +190,7 @@ extern class NewUserDialog extends JQ {
 		        		title: "Create New Agent",
 		        		height: 320,
 		        		width: 400,
+		        		modal: true,
 		        		buttons: {
 		        			"Create my Agent": function() {
 		        				self._registered = true;
