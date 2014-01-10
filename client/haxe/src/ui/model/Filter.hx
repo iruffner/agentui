@@ -33,7 +33,7 @@ class Filter {
 	}
 
 	public function labelsProlog(): String {
-		return rootNode.getProlog() + "(" + _prologify(labelNodes) + ")";
+		return rootNode.getProlog() /*+ "("*/ + _prologify(labelNodes) /*+ ")"*/;
 	}
 
 	private function _prologify(nodes: Array<Node>): String {
@@ -44,7 +44,8 @@ class Filter {
 			// } else {
 
 			// }
-			if(nodes.length > 1)
+
+			// if(nodes.length > 1)
 				str += "(";
 			var iteration: Int = 0;
 			for(ln_ in 0...nodes.length) {
@@ -54,7 +55,7 @@ class Filter {
 					str += _prologify(nodes[ln_].nodes);
 				}
 			}
-			if(nodes.length > 1)
+			// if(nodes.length > 1)
 				str += ")";
 		}
 		return str;

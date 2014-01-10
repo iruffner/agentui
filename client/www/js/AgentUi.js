@@ -2964,7 +2964,7 @@ m3.log.Logga.prototype = {
 		if(m3.helper.StringHelper.isBlank(statement)) {
 			this.console.error("empty log statement");
 			this.console.trace();
-		}
+		} else if(m3.helper.StringHelper.contains(statement,"Endpoint saved")) this.console.trace();
 		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
 		if(this.logsAtLevel(level) && this.console != null) try {
 			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
@@ -6851,7 +6851,7 @@ ui.model.Filter.prototype = {
 	_prologify: function(nodes) {
 		var str = "";
 		if(m3.helper.ArrayHelper.hasValues(nodes)) {
-			if(nodes.length > 1) str += "(";
+			str += "(";
 			var iteration = 0;
 			var _g1 = 0, _g = nodes.length;
 			while(_g1 < _g) {
@@ -6860,12 +6860,12 @@ ui.model.Filter.prototype = {
 				str += nodes[ln_].getProlog();
 				if(nodes[ln_].hasChildren()) str += this._prologify(nodes[ln_].nodes);
 			}
-			if(nodes.length > 1) str += ")";
+			str += ")";
 		}
 		return str;
 	}
 	,labelsProlog: function() {
-		return this.rootNode.getProlog() + "(" + this._prologify(this.labelNodes) + ")";
+		return this.rootNode.getProlog() + this._prologify(this.labelNodes);
 	}
 	,toProlog: function() {
 		var queries = [this._prologify(this.labelNodes),this._prologify(this.connectionNodes)];
