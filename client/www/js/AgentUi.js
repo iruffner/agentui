@@ -4768,7 +4768,6 @@ ui.api.ProtocolHandler = function() {
 		ui.model.EM.change(ui.model.EMEvent.EndOfContent,evalComplete.contentImpl.content);
 	});
 	this.processHash.set(ui.api.MsgType.sessionPong,function(data) {
-		ui.SystemStatus.instance().onMessage();
 	});
 	this.processHash.set(ui.api.MsgType.evalSubscribeCancelResponse,function(data) {
 		ui.AppContext.LOGGER.debug("evalSubscribeCancelResponse was received from the server");
@@ -5090,29 +5089,32 @@ ui.api.ProtocolHandler.prototype = {
 		var ping = new ui.api.SessionPingRequest();
 		ping.contentImpl.sessionURI = sessionURI;
 		this.listeningChannel = new ui.api.LongPollingRequest(ping,function(dataArr,textStatus,jqXHR) {
-			if(dataArr != null) Lambda.iter(dataArr,function(data) {
-				try {
-					var msgType = (function($this) {
-						var $r;
-						try {
-							$r = Type.createEnum(ui.api.MsgType,data.msgType);
-						} catch( err ) {
-							$r = null;
+			if(dataArr != null) {
+				ui.SystemStatus.instance().onMessage();
+				Lambda.iter(dataArr,function(data) {
+					try {
+						var msgType = (function($this) {
+							var $r;
+							try {
+								$r = Type.createEnum(ui.api.MsgType,data.msgType);
+							} catch( err ) {
+								$r = null;
+							}
+							return $r;
+						}(this));
+						var processor = _g.processHash.get(msgType);
+						if(processor == null) {
+							if(data != null) ui.AppContext.LOGGER.info("no processor for " + data.msgType); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
+							return;
+						} else {
+							ui.AppContext.LOGGER.debug("received " + data.msgType);
+							processor(data);
 						}
-						return $r;
-					}(this));
-					var processor = _g.processHash.get(msgType);
-					if(processor == null) {
-						if(data != null) ui.AppContext.LOGGER.info("no processor for " + data.msgType); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
-						return;
-					} else {
-						ui.AppContext.LOGGER.debug("received " + data.msgType);
-						processor(data);
+					} catch( err ) {
+						ui.AppContext.LOGGER.error("Error processing msg\n" + Std.string(data) + "\n" + Std.string(err));
 					}
-				} catch( err ) {
-					ui.AppContext.LOGGER.error("Error processing msg\n" + Std.string(data) + "\n" + Std.string(err));
-				}
-			});
+				});
+			}
 		});
 		this.listeningChannel.start();
 	}
@@ -6200,10 +6202,15 @@ ui.api.StandardRequest.prototype = {
 	,start: function(opts) {
 		var _g = this;
 		ui.AppContext.LOGGER.debug("send " + Std.string(this.request.msgType));
-		var ajaxOpts = { async : true, url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : ui.AppContext.SERIALIZER.toJsonString(this.request), type : "POST", success : this.successFcn, error : function(jqXHR,textStatus,errorThrown) {
+		var ajaxOpts = { async : true, url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : ui.AppContext.SERIALIZER.toJsonString(this.request), type : "POST", success : function(data,textStatus,jqXHR) {
+			ui.SystemStatus.instance().onMessage();
+			_g.successFcn(data,textStatus,jqXHR);
+		}, error : function(jqXHR,textStatus,errorThrown) {
 			if(_g.request.msgType != ui.api.MsgType.sessionPing) {
-				m3.util.JqueryUtil.alert("There was an error making your request.\n" + jqXHR.message);
-				throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+				var error_message = errorThrown;
+				if(jqXHR.message != null) error_message = jqXHR.message;
+				m3.util.JqueryUtil.alert("There was an error making your request.\n" + error_message);
+				throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + error_message);
 			}
 		}};
 		if(opts != null) $.extend(ajaxOpts,opts);

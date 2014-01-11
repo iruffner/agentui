@@ -31,11 +31,18 @@ class StandardRequest implements Requester {
 	        contentType: "application/json",
 	        data: AppContext.SERIALIZER.toJsonString(request),
 	        type: "POST",
-			success: successFcn,
+			success: function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR) {
+				SystemStatus.instance().onMessage();
+				successFcn(data, textStatus, jqXHR);
+			},
    			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
    				if (request.msgType != MsgType.sessionPing) {
-	   				JqueryUtil.alert("There was an error making your request.\n" + jqXHR.message);
-	   				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+   					var error_message:String = errorThrown;
+   					if (jqXHR.message != null) {
+   						error_message = jqXHR.message;
+   					}
+	   				JqueryUtil.alert("There was an error making your request.\n" + error_message);
+	   				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + error_message);
 	   			}
 			}
         };

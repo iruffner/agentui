@@ -172,7 +172,7 @@ class ProtocolHandler {
         		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.content); 
         	});
         processHash.set(MsgType.sessionPong, function(data: Dynamic){
-        		SystemStatus.instance().onMessage();
+        		// AppContext.LOGGER.debug("sessionPong was received from the server");
         	});
         processHash.set(MsgType.evalSubscribeCancelResponse, function(data: Dynamic){
         		AppContext.LOGGER.debug("evalSubscribeCancelResponse was received from the server");
@@ -420,35 +420,36 @@ class ProtocolHandler {
 		ping.contentImpl.sessionURI = sessionURI;
 
 		listeningChannel = new LongPollingRequest(ping, function(dataArr: Array<{msgType: String, content: Dynamic}>, textStatus: String, jqXHR: JQXHR): Void {
-				if(dataArr != null) {
-					dataArr.iter(function(data: {msgType: String, content: Dynamic}): Void {
-							try {
-								var msgType: MsgType = {
-									try {
-										Type.createEnum(MsgType, data.msgType);
-									} catch (err: Dynamic) {
-										null;
-									}
+			if (dataArr != null) {
+				SystemStatus.instance().onMessage();
+				dataArr.iter(function(data: {msgType: String, content: Dynamic}): Void {
+						try {
+							var msgType: MsgType = {
+								try {
+									Type.createEnum(MsgType, data.msgType);
+								} catch (err: Dynamic) {
+									null;
 								}
-								var processor: Dynamic->Void = processHash.get(msgType);
-								if(processor == null) {
-									if(data != null)
-										AppContext.LOGGER.info("no processor for " + data.msgType);
-									else 
-										AppContext.LOGGER.info("no data returned on polling channel response");
-									// JqueryUtil.alert("Don't know how to handle " + data.msgType);
-									return;
-								} else {
-									AppContext.LOGGER.debug("received " + data.msgType);
-									processor(data);
-								}
-							} catch (err: Dynamic) {
-								AppContext.LOGGER.error("Error processing msg\n" + data + "\n" + err);
 							}
-						});
-				}
-				
-			});
+							var processor: Dynamic->Void = processHash.get(msgType);
+							if(processor == null) {
+								if(data != null)
+									AppContext.LOGGER.info("no processor for " + data.msgType);
+								else 
+									AppContext.LOGGER.info("no data returned on polling channel response");
+								// JqueryUtil.alert("Don't know how to handle " + data.msgType);
+								return;
+							} else {
+								AppContext.LOGGER.debug("received " + data.msgType);
+								processor(data);
+							}
+						} catch (err: Dynamic) {
+							AppContext.LOGGER.error("Error processing msg\n" + data + "\n" + err);
+						}
+					});
+			}
+			
+		});
 		listeningChannel.start();
 	}
 
