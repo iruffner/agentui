@@ -67,13 +67,6 @@ class ContentTimeLine {
 			iter.next().remove();
 		}
 	}
-/*
-<ellipse filter="url(#B)" cx="90" cy="70" rx="80" ry="60"/>
-<filter id="B">
-	<feImage xlink:href='../thesoul2.jpg' y="-20" height="200"/>
-	<feComposite operator="in" in2="SourceGraphic" />
-</filter>
-*/
 	private function createConnectionElement(): SnapElement {
 		var line = paper.line(time_line_x, time_line_y + height/2, initialWidth, time_line_y + height/2)
 		                .attr({"class":"contentLine"});
@@ -86,7 +79,8 @@ class ContentTimeLine {
         img.attr({mask: ellipse});
 
 		var border_ellipse = paper.ellipse(time_line_x + width/2, time_line_y + height/2, width/2, height/2);
-		border_ellipse.attr({fill:"none", stroke:"#cccccc", strokeWidth:"1px"});
+		var filter = paper.filter(Snap.filter_shadow(4, 4, 4, "#000000"));
+		border_ellipse.attr({fill:"none", stroke:"#5c9ccc", strokeWidth:"1px", filter:filter});
 		
 		return paper.group(paper, [line, img, border_ellipse]);
 	}
