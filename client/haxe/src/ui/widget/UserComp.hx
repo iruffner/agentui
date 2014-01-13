@@ -232,7 +232,7 @@ extern class UserComp extends JQ {
 	        		self.container.append(changeDiv);
 
 	        		if(user != null) {
-			        	self.changeAliasLink = new JQ("<a class='aliasToggle'>Change Alias</a>");
+			        	self.changeAliasLink = new JQ("<a class='aliasToggle'>Switch Alias</a>");
 		        		changeDiv.append(self.changeAliasLink);
 
 		        		var aliasMenu = self._createAliasMenu(self);
