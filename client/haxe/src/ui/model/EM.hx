@@ -1,6 +1,7 @@
 package ui.model;
 
 import m3.util.UidGenerator;
+import m3.log.Logga;
 
 using m3.helper.ArrayHelper;
 
@@ -47,9 +48,13 @@ class EM {
 		while(iter.hasNext()) {
 			var listener: EMListener = iter.next();
 			AppContext.LOGGER.debug("Notifying " + listener.name + " of " + id + " event");
-			listener.change(t);
-			if(oneTimers.remove(listener.uid)) {
-				map.remove(listener.uid);
+			try {
+				listener.change(t);
+				if(oneTimers.remove(listener.uid)) {
+					map.remove(listener.uid);
+				}
+			} catch(err: Dynamic) {
+				AppContext.LOGGER.error("Error executing " + listener.name + " of " + id + " event", Logga.getExceptionInst(err));
 			}
 		}
 	}
