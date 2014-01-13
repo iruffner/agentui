@@ -156,9 +156,13 @@ extern class UserComp extends JQ {
     							label: alias.label,
     							icon: "ui-icon-person",
     							action: function(evt: JQEvent, m: M3Menu): Void {
-    								user.currentAlias = alias;
-    								EM.change(EMEvent.LOAD_ALIAS, alias);
-    								EM.change(EMEvent.AliasLoaded, alias);
+    								if (Alias.identifier(user.currentAlias) == Alias.identifier(alias)) {
+    									menu.hide();
+    								} else {
+	    								user.currentAlias = alias;
+	    								EM.change(EMEvent.LOAD_ALIAS, alias);
+	    								EM.change(EMEvent.AliasLoaded, alias);
+	    							}
     							}
     						};
     						menuOptions.push(menuOption);
