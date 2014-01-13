@@ -40,8 +40,10 @@ class StandardRequest implements Requester {
    					var error_message:String = errorThrown;
    					if (jqXHR.message != null) {
    						error_message = jqXHR.message;
+   					} else if (jqXHR.responseText != null) {
+   						error_message = jqXHR.responseText;
    					}
-	   				JqueryUtil.alert("There was an error making your request.\n" + error_message);
+	   				JqueryUtil.alert("There was an error making your request:  " + error_message);
 	   				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + error_message);
 	   			}
 			}
