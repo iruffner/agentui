@@ -11,6 +11,7 @@ import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.EM;
 import ui.api.ProtocolHandler;
+import ui.api.LegacyHandler;
 import ui.api.ProtocolMessage;
 
 import m3.observable.OSet;
@@ -39,7 +40,7 @@ class AgentUi {
 	public static function main() {
         AppContext.init();
 
-        PROTOCOL = new ProtocolHandler();
+        PROTOCOL = new LegacyHandler();
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
     }
 

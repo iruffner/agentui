@@ -648,6 +648,8 @@ enum MsgType {
 	restoresResponse;
 	restoreRequest;
 	restoreResponse;
+
+	crudMessage;
 }
 
 enum Reason {
