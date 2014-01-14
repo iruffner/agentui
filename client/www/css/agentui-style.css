@@ -146,17 +146,6 @@ body {
 	border-radius: 70px;
 }
 
-/* Score */
-#score-div {
-	height: 100%;
-	 width: 100%;
-}
-
-#score-comp-svg {
-	height: 100%;
-	 width: 100%;
-}
-
 	/* Filter
 	-----------------------------------------------------------------------------*/
 	#filter {
@@ -1100,13 +1089,16 @@ body {
 .ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}
 
 
-/* Snap-svg */
+/* Score */
+#score-div {
+	height: 100%;
+	 width: 100%;
+}
 
 #score-comp-svg {
-	border: 1px solid black;
-}
-.zztop {
-	z-index: 1000;
+	height: 100%;
+	 width: 100%;
+	border: 1px solid #cccccc;
 }
 
 .urlContent {

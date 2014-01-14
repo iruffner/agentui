@@ -161,10 +161,7 @@ extern class Snap {
 	static public function rgb2hsb(red:Float, green:Float, blue:Float):SnapHSB;
 	static public function rgb2hsl(red:Float, green:Float, blue:Float):SnapHSL;
 	
-	/*
-	 * Events
-	 */
-	
+	// Events
 	public function click(handler:Event->Void):Snap;
 	public function dblclick(handler:Event->Void):Snap;
 	public function mousedown(handler:Event->Void):Snap;
@@ -279,6 +276,9 @@ extern class SnapElement {
 	public function untouchmove(handler:Event->Void):SnapElement;
 	public function untouchend(handler:Event->Void):SnapElement;
 	public function untouchcancel(handler:Event->Void):SnapElement;
+
+	// Undocumented:
+	public var node:Dynamic;
 }
 
 extern class SnapSet {

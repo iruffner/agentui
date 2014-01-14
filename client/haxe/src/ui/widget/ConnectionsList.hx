@@ -25,6 +25,7 @@ typedef ConnectionsListWidgetDef = {
 	var _setConnections: ObservableSet<Connection>->Void;
 	var destroy: Void->Void;
 	var filterConnections: String->Void;
+	var _mapListener: Connection->ConnectionComp->EventType->Void;
 }
 
 class ConnectionListHelper {
@@ -96,27 +97,32 @@ extern class ConnectionsList extends JQ {
 			        	}, "ConnectionsList-DeleteNotification"));
 		        },
 
+		        _mapListener: function(conn: Connection, connComp: ConnectionComp, evt: EventType): Void {
+            		if(evt.isAdd()) {
+			        	var spacer: JQ = new JQ("#sideRightSpacer");
+            			spacer.before(connComp);
+            		} else if (evt.isUpdate()) {
+            			connComp.update(conn);
+            		} else if (evt.isDelete()) {
+            			connComp.remove();
+            		}
+					EM.change(EMEvent.FitWindow);
+            	},
+
 		        _setConnections: function(connections: ObservableSet<Connection>): Void {
 		        	var self: ConnectionsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	selfElement.children(".connection").remove();
 		        	
-		        	var spacer: JQ = selfElement.children("#sideRightSpacer");
+		        	if (self.connectionsMap != null) {
+		        		self.connectionsMap.removeListeners(self._mapListener);
+		        	}
 		        	self.connectionsMap = new MappedSet<Connection, ConnectionComp>(connections, function(conn: Connection): ConnectionComp {
 		        		return new ConnectionComp("<div></div>").connectionComp({connection: conn});
 		        	});
 		        	
-		        	self.connectionsMap.mapListen(function(conn: Connection, connComp: ConnectionComp, evt: EventType): Void {
-	            		if(evt.isAdd()) {
-	            			spacer.before(connComp);
-	            		} else if (evt.isUpdate()) {
-	            			connComp.update(conn);
-	            		} else if (evt.isDelete()) {
-	            			connComp.remove();
-	            		}
-						EM.change(EMEvent.FitWindow);
-	            	});
+		        	self.connectionsMap.mapListen(self._mapListener);
 		        },
 		        
 		        destroy: function() {
