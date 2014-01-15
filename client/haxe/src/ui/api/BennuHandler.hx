@@ -1,10 +1,17 @@
 package ui.api;
 
+import ui.api.EventDelegate;
 import ui.model.ModelObj;
 import ui.model.Filter;
 
 class BennuHandler implements ProtocolHandler {
-	public function getUser(login: Login): Vois
+	private var eventDelegate:EventDelegate;
+
+	public function new() {
+		this.eventDelegate = new EventDelegate(this);
+	}
+
+	public function getUser(login: Login): Void {}
 	public function filter(filter: Filter): Void { }
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void { }
 	public function nextPage(nextPageURI: String): Void { }

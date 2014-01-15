@@ -1,9 +1,9 @@
 package ui.api;
 
 enum CrudVerb {
-	create,
-	update,
-	delete
+	create;
+	update;
+	delete;
 }
 
 class CrudMessage extends ProtocolMessage<CrudPayload>{
@@ -12,13 +12,13 @@ class CrudMessage extends ProtocolMessage<CrudPayload>{
 	}
 
 	public function new(verb:CrudVerb, obj:Dynamic) {
-		super(MsgType.crudMessage, CrudPayload);
+		super(MsgType.crudMessage, CrudMessagePayload);
 		this.contentImpl.verb   = verb;
 		this.contentImpl.record = obj;
 	}
 }
 
-class CrudPayload extends PayloadWithSessionURI {
+class CrudMessagePayload extends PayloadWithSessionURI {
 	public var verb:CrudVerb;
 	public var record: Dynamic;
 }

@@ -4700,174 +4700,236 @@ ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
 ui.api.ProtocolHandler.prototype = {
 	__class__: ui.api.ProtocolHandler
 }
+ui.api.BennuHandler = function() {
+	this.eventDelegate = new ui.api.EventDelegate(this);
+};
+$hxClasses["ui.api.BennuHandler"] = ui.api.BennuHandler;
+ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
+ui.api.BennuHandler.__interfaces__ = [ui.api.ProtocolHandler];
+ui.api.BennuHandler.prototype = {
+	restores: function() {
+	}
+	,restore: function() {
+	}
+	,backup: function() {
+	}
+	,confirmIntroduction: function(confirmation) {
+	}
+	,beginIntroduction: function(intro) {
+	}
+	,getAliasLabels: function(alias) {
+	}
+	,getAliasConnections: function(alias) {
+	}
+	,setDefaultAlias: function(alias) {
+	}
+	,removeAlias: function(alias) {
+	}
+	,addAlias: function(alias) {
+	}
+	,updateLabels: function() {
+	}
+	,post: function(content) {
+	}
+	,updateUser: function(user) {
+	}
+	,validateUser: function(token) {
+	}
+	,createUser: function(newUser) {
+	}
+	,getAliasInfo: function(alias) {
+	}
+	,nextPage: function(nextPageURI) {
+	}
+	,stopCurrentFilter: function(onSuccessOrError,async) {
+		if(async == null) async = true;
+	}
+	,filter: function(filter) {
+	}
+	,getUser: function(login) {
+	}
+	,__class__: ui.api.BennuHandler
+}
+ui.api.EventDelegate = function(protocolHandler) {
+	this.filterIsRunning = false;
+	this.protocolHandler = protocolHandler;
+	this.processHash = new haxe.ds.EnumValueMap();
+	this._setUpMessageHandlers();
+};
+$hxClasses["ui.api.EventDelegate"] = ui.api.EventDelegate;
+ui.api.EventDelegate.__name__ = ["ui","api","EventDelegate"];
+ui.api.EventDelegate.prototype = {
+	_setUpMessageHandlers: function() {
+		var _g = this;
+		ui.model.EM.addListener(ui.model.EMEvent.TEST,new ui.model.EMListener(function(data) {
+			var msgType = (function($this) {
+				var $r;
+				try {
+					$r = Type.createEnum(ui.api.MsgType,data.msgType);
+				} catch( err ) {
+					$r = null;
+				}
+				return $r;
+			}(this));
+			var processor = _g.processHash.get(msgType);
+			if(processor == null) {
+				if(data != null) ui.AppContext.LOGGER.info("no processor for " + Std.string(data.msgType)); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
+				return;
+			} else {
+				ui.AppContext.LOGGER.debug("received " + Std.string(data.msgType));
+				processor(data);
+			}
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filter) {
+			if(_g.filterIsRunning) _g.protocolHandler.stopCurrentFilter(function() {
+				_g.protocolHandler.filter(filter);
+			}); else _g.protocolHandler.filter(filter);
+			_g.filterIsRunning = true;
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.PAGE_CLOSE,new ui.model.EMListener(function(n) {
+			if(_g.filterIsRunning) _g.protocolHandler.stopCurrentFilter($.noop,false);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.EndOfContent,new ui.model.EMListener(function(nextPageURI) {
+			_g.filterIsRunning = false;
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.NextContent,new ui.model.EMListener(function(nextPageURI) {
+			_g.protocolHandler.nextPage(nextPageURI);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.LOAD_ALIAS,new ui.model.EMListener(function(alias) {
+			_g.protocolHandler.getAliasInfo(alias);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.ALIAS_CREATE,new ui.model.EMListener(function(alias) {
+			_g.protocolHandler.addAlias(alias);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,new ui.model.EMListener(function(login) {
+			_g.protocolHandler.getUser(login);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.USER_CREATE,new ui.model.EMListener(function(user) {
+			_g.protocolHandler.createUser(user);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.USER_UPDATE,new ui.model.EMListener(function(user) {
+			_g.protocolHandler.updateUser(user);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATE,new ui.model.EMListener(function(token) {
+			_g.protocolHandler.validateUser(token);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.NewContentCreated,new ui.model.EMListener(function(content) {
+			_g.protocolHandler.post(content);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.UPDATE_LABELS,new ui.model.EMListener(function(n) {
+			_g.protocolHandler.updateLabels();
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_REQUEST,new ui.model.EMListener(function(intro) {
+			_g.protocolHandler.beginIntroduction(intro);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION,new ui.model.EMListener(function(confirmation) {
+			_g.protocolHandler.confirmIntroduction(confirmation);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.BACKUP,new ui.model.EMListener(function(n) {
+			_g.protocolHandler.backup();
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.RESTORE,new ui.model.EMListener(function(n) {
+			_g.protocolHandler.restore();
+		}));
+		this.processHash.set(ui.api.MsgType.evalSubscribeResponse,function(data) {
+			ui.AppContext.LOGGER.debug("evalResponse was received from the server");
+			ui.AppContext.LOGGER.debug(data);
+			var evalResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.EvalResponse);
+			ui.model.EM.change(ui.model.EMEvent.MoreContent,evalResponse.contentImpl.content);
+		});
+		this.processHash.set(ui.api.MsgType.evalComplete,function(data) {
+			ui.AppContext.LOGGER.debug("evalComplete was received from the server");
+			var evalComplete = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.EvalComplete);
+			ui.model.EM.change(ui.model.EMEvent.EndOfContent,evalComplete.contentImpl.content);
+		});
+		this.processHash.set(ui.api.MsgType.sessionPong,function(data) {
+		});
+		this.processHash.set(ui.api.MsgType.evalSubscribeCancelResponse,function(data) {
+			ui.AppContext.LOGGER.debug("evalSubscribeCancelResponse was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.updateUserResponse,function(data) {
+			ui.AppContext.LOGGER.debug("updateUserResponse was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.addAliasLabelsResponse,function(data) {
+			ui.AppContext.LOGGER.debug("addAliasLabelsResponse was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.addAgentAliasesResponse,function(data) {
+			ui.AppContext.LOGGER.debug("addAgentAliasesResponse was received from the server");
+			ui.model.EM.change(ui.model.EMEvent.NewAlias);
+		});
+		this.processHash.set(ui.api.MsgType.addAgentAliasesError,function(data) {
+			ui.AppContext.LOGGER.error("addAgentAliasesError was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.removeAgentAliasesResponse,function(data) {
+			ui.AppContext.LOGGER.debug("removeAgentAliasesResponse was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.removeAgentAliasesError,function(data) {
+			ui.AppContext.LOGGER.error("removeAgentAliasesError was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.setDefaultAliasRequest,function(data) {
+			ui.AppContext.LOGGER.debug("setDefaultAliasRequest was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.setDefaultAliasError,function(data) {
+			ui.AppContext.LOGGER.error("setDefaultAliasError was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.getAliasConnectionsResponse,function(data) {
+			ui.AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
+			var resp = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.GetAliasConnectionsResponse);
+			ui.AppContext.USER.get_currentAlias().get_connectionSet().clear();
+			ui.AppContext.USER.get_currentAlias().get_connectionSet().addAll(resp.contentImpl.connections);
+		});
+		this.processHash.set(ui.api.MsgType.getAliasConnectionsError,function(data) {
+			ui.AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.getAliasLabelsResponse,function(data) {
+			ui.AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
+			var resp = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.GetAliasLabelsResponse);
+			ui.AppContext.USER.get_currentAlias().get_labelSet().clear();
+			ui.AppContext.USER.get_currentAlias().get_labelSet().addAll(resp.contentImpl.get_aliasLabels());
+		});
+		this.processHash.set(ui.api.MsgType.getAliasLabelsError,function(data) {
+			ui.AppContext.LOGGER.error("getAliasLabelsError was received from the server");
+		});
+		this.processHash.set(ui.api.MsgType.introductionNotification,function(data) {
+			ui.AppContext.LOGGER.debug("introductionNotification was received from the server");
+			var notification = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.IntroductionNotification);
+			ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,notification);
+		});
+		this.processHash.set(ui.api.MsgType.beginIntroductionResponse,function(data) {
+			ui.AppContext.LOGGER.debug("beginIntroductionResponse was received from the server");
+			ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_RESPONSE);
+		});
+		this.processHash.set(ui.api.MsgType.introductionConfirmationResponse,function(data) {
+			ui.AppContext.LOGGER.debug("introductionConfirmationResponse was received from the server");
+			ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE);
+		});
+		this.processHash.set(ui.api.MsgType.connectNotification,function(data) {
+			ui.AppContext.LOGGER.debug("connectNotification was received from the server");
+			var notification = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.ConnectNotification);
+			var conn = notification.contentImpl.connection;
+			conn.profile = notification.contentImpl.profile;
+			ui.model.EM.change(ui.model.EMEvent.NewConnection,conn);
+		});
+		this.processHash.set(ui.api.MsgType.connectionProfileResponse,function(data) {
+			ui.AppContext.LOGGER.debug("connectionProfileResponse was received from the server");
+			var connectionProfileResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.ConnectionProfileResponse);
+			var c = connectionProfileResponse.contentImpl.connection;
+			c.profile = connectionProfileResponse.contentImpl.profile;
+			ui.model.EM.change(ui.model.EMEvent.ConnectionUpdate,c);
+		});
+		this.processHash.set(ui.api.MsgType.restoresResponse,function(data) {
+			ui.AppContext.LOGGER.debug("restoresResponse was received from the server");
+			var restoresResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.RestoresResponse);
+			ui.model.EM.change(ui.model.EMEvent.AVAILABLE_BACKUPS,restoresResponse.contentImpl.backups);
+		});
+	}
+	,__class__: ui.api.EventDelegate
+}
 ui.api.LegacyHandler = function() {
 	this.runningFilter = null;
-	this.filterIsRunning = false;
-	var _g = this;
-	ui.model.EM.addListener(ui.model.EMEvent.TEST,new ui.model.EMListener(function(data) {
-		var msgType = (function($this) {
-			var $r;
-			try {
-				$r = Type.createEnum(ui.api.MsgType,data.msgType);
-			} catch( err ) {
-				$r = null;
-			}
-			return $r;
-		}(this));
-		var processor = _g.processHash.get(msgType);
-		if(processor == null) {
-			if(data != null) ui.AppContext.LOGGER.info("no processor for " + Std.string(data.msgType)); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
-			return;
-		} else {
-			ui.AppContext.LOGGER.debug("received " + Std.string(data.msgType));
-			processor(data);
-		}
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filter) {
-		if(_g.filterIsRunning) _g.stopCurrentFilter(function() {
-			_g.filter(filter);
-		}); else _g.filter(filter);
-		_g.filterIsRunning = true;
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.PAGE_CLOSE,new ui.model.EMListener(function(n) {
-		if(_g.filterIsRunning) _g.stopCurrentFilter($.noop,false);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.EndOfContent,new ui.model.EMListener(function(nextPageURI) {
-		_g.filterIsRunning = false;
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.NextContent,new ui.model.EMListener(function(nextPageURI) {
-		_g.nextPage(nextPageURI);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.LOAD_ALIAS,new ui.model.EMListener(function(alias) {
-		_g.getAliasInfo(alias);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.ALIAS_CREATE,new ui.model.EMListener(function(alias) {
-		_g.addAlias(alias);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,new ui.model.EMListener(function(login) {
-		_g.getUser(login);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.USER_CREATE,new ui.model.EMListener(function(user) {
-		_g.createUser(user);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.USER_UPDATE,new ui.model.EMListener(function(user) {
-		_g.updateUser(user);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATE,new ui.model.EMListener(function(token) {
-		_g.validateUser(token);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.NewContentCreated,new ui.model.EMListener(function(content) {
-		_g.post(content);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.UPDATE_LABELS,new ui.model.EMListener(function(n) {
-		_g.updateLabels();
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_REQUEST,new ui.model.EMListener(function(intro) {
-		_g.beginIntroduction(intro);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION,new ui.model.EMListener(function(confirmation) {
-		_g.confirmIntroduction(confirmation);
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.BACKUP,new ui.model.EMListener(function(n) {
-		_g.backup();
-	}));
-	ui.model.EM.addListener(ui.model.EMEvent.RESTORE,new ui.model.EMListener(function(n) {
-		_g.restore();
-	}));
-	this.processHash = new haxe.ds.EnumValueMap();
-	this.processHash.set(ui.api.MsgType.evalSubscribeResponse,function(data) {
-		ui.AppContext.LOGGER.debug("evalResponse was received from the server");
-		ui.AppContext.LOGGER.debug(data);
-		var evalResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.EvalResponse);
-		ui.model.EM.change(ui.model.EMEvent.MoreContent,evalResponse.contentImpl.content);
-	});
-	this.processHash.set(ui.api.MsgType.evalComplete,function(data) {
-		ui.AppContext.LOGGER.debug("evalComplete was received from the server");
-		var evalComplete = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.EvalComplete);
-		ui.model.EM.change(ui.model.EMEvent.EndOfContent,evalComplete.contentImpl.content);
-	});
-	this.processHash.set(ui.api.MsgType.sessionPong,function(data) {
-	});
-	this.processHash.set(ui.api.MsgType.evalSubscribeCancelResponse,function(data) {
-		ui.AppContext.LOGGER.debug("evalSubscribeCancelResponse was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.updateUserResponse,function(data) {
-		ui.AppContext.LOGGER.debug("updateUserResponse was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.addAliasLabelsResponse,function(data) {
-		ui.AppContext.LOGGER.debug("addAliasLabelsResponse was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.addAgentAliasesResponse,function(data) {
-		ui.AppContext.LOGGER.debug("addAgentAliasesResponse was received from the server");
-		ui.model.EM.change(ui.model.EMEvent.NewAlias);
-	});
-	this.processHash.set(ui.api.MsgType.addAgentAliasesError,function(data) {
-		ui.AppContext.LOGGER.error("addAgentAliasesError was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.removeAgentAliasesResponse,function(data) {
-		ui.AppContext.LOGGER.debug("removeAgentAliasesResponse was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.removeAgentAliasesError,function(data) {
-		ui.AppContext.LOGGER.error("removeAgentAliasesError was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.setDefaultAliasRequest,function(data) {
-		ui.AppContext.LOGGER.debug("setDefaultAliasRequest was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.setDefaultAliasError,function(data) {
-		ui.AppContext.LOGGER.error("setDefaultAliasError was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.getAliasConnectionsResponse,function(data) {
-		ui.AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
-		var resp = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.GetAliasConnectionsResponse);
-		ui.AppContext.USER.get_currentAlias().get_connectionSet().clear();
-		ui.AppContext.USER.get_currentAlias().get_connectionSet().addAll(resp.contentImpl.connections);
-	});
-	this.processHash.set(ui.api.MsgType.getAliasConnectionsError,function(data) {
-		ui.AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.getAliasLabelsResponse,function(data) {
-		ui.AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
-		var resp = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.GetAliasLabelsResponse);
-		ui.AppContext.USER.get_currentAlias().get_labelSet().clear();
-		ui.AppContext.USER.get_currentAlias().get_labelSet().addAll(resp.contentImpl.get_aliasLabels());
-	});
-	this.processHash.set(ui.api.MsgType.getAliasLabelsError,function(data) {
-		ui.AppContext.LOGGER.error("getAliasLabelsError was received from the server");
-	});
-	this.processHash.set(ui.api.MsgType.introductionNotification,function(data) {
-		ui.AppContext.LOGGER.debug("introductionNotification was received from the server");
-		var notification = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.IntroductionNotification);
-		ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,notification);
-	});
-	this.processHash.set(ui.api.MsgType.beginIntroductionResponse,function(data) {
-		ui.AppContext.LOGGER.debug("beginIntroductionResponse was received from the server");
-		ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_RESPONSE);
-	});
-	this.processHash.set(ui.api.MsgType.introductionConfirmationResponse,function(data) {
-		ui.AppContext.LOGGER.debug("introductionConfirmationResponse was received from the server");
-		ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE);
-	});
-	this.processHash.set(ui.api.MsgType.connectNotification,function(data) {
-		ui.AppContext.LOGGER.debug("connectNotification was received from the server");
-		var notification = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.ConnectNotification);
-		var conn = notification.contentImpl.connection;
-		conn.profile = notification.contentImpl.profile;
-		ui.model.EM.change(ui.model.EMEvent.NewConnection,conn);
-	});
-	this.processHash.set(ui.api.MsgType.connectionProfileResponse,function(data) {
-		ui.AppContext.LOGGER.debug("connectionProfileResponse was received from the server");
-		var connectionProfileResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.ConnectionProfileResponse);
-		var c = connectionProfileResponse.contentImpl.connection;
-		c.profile = connectionProfileResponse.contentImpl.profile;
-		ui.model.EM.change(ui.model.EMEvent.ConnectionUpdate,c);
-	});
-	this.processHash.set(ui.api.MsgType.restoresResponse,function(data) {
-		ui.AppContext.LOGGER.debug("restoresResponse was received from the server");
-		var restoresResponse = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.RestoresResponse);
-		ui.model.EM.change(ui.model.EMEvent.AVAILABLE_BACKUPS,restoresResponse.contentImpl.backups);
-	});
+	this.eventDelegate = new ui.api.EventDelegate(this);
 };
 $hxClasses["ui.api.LegacyHandler"] = ui.api.LegacyHandler;
 ui.api.LegacyHandler.__name__ = ["ui","api","LegacyHandler"];
@@ -5124,7 +5186,7 @@ ui.api.LegacyHandler.prototype = {
 							}
 							return $r;
 						}(this));
-						var processor = _g.processHash.get(msgType);
+						var processor = _g.eventDelegate.processHash.get(msgType);
 						if(processor == null) {
 							if(data != null) ui.AppContext.LOGGER.info("no processor for " + data.msgType); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
 							return;
