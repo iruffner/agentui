@@ -21,7 +21,7 @@ class EventDelegate {
 		this._setUpEventListeners();
 	}
 
-	private function _setUpMessageHandlers() {
+	private function _setUpEventListeners() {
 
 		EM.addListener(EMEvent.TEST, new EMListener(function(data: Dynamic): Void {
 			var msgType: MsgType = {

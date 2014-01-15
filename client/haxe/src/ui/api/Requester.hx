@@ -13,36 +13,41 @@ interface Requester {
 	function abort(): Void;
 }
 
-class StandardRequest implements Requester {
-	private var request: ProtocolMessage<Dynamic>;
-	private var successFcn: Dynamic->String->JQXHR->Void;
+/**
+ * Base class for making http requests.
+ */
+class BaseRequest {
+	private var requestData:String;
+	private var onSuccess: Dynamic->String->JQXHR->Void;
+	private var onError: JQXHR->String->String->Void;
 
-	public function new(request: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
-		this.request = request;
-		this.successFcn = successFcn;
+	public function new(requestData: String, successFcn: Dynamic->String->JQXHR->Void, ?errorFcn: JQXHR->String->String->Void) {
+		this.requestData = requestData;
+		this.onSuccess   = successFcn;
+		this.onError     = errorFcn;
 	}
 
-	public function start(?opts: AjaxOptions): Void {
-		AppContext.LOGGER.debug("send " + request.msgType);
-		var ajaxOpts: AjaxOptions = { 
-			async: true,
-			url: AgentUi.URL + "/api", 
+	public function send(?opts: AjaxOptions): Void {
+		// NB:  url must be passed in through opts
+		var ajaxOpts: AjaxOptions = {
 	        dataType: "json", 
 	        contentType: "application/json",
-	        data: AppContext.SERIALIZER.toJsonString(request),
+	        data: requestData,
 	        type: "POST",
 			success: function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR) {
 				SystemStatus.instance().onMessage();
-				successFcn(data, textStatus, jqXHR);
+				onSuccess(data, textStatus, jqXHR);
 			},
    			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
-   				if (request.msgType != MsgType.sessionPing) {
-   					var error_message:String = errorThrown;
-   					if (jqXHR.message != null) {
-   						error_message = jqXHR.message;
-   					} else if (jqXHR.responseText != null) {
-   						error_message = jqXHR.responseText;
-   					}
+				var error_message:String = errorThrown;
+				if (jqXHR.message != null) {
+					error_message = jqXHR.message;
+				} else if (jqXHR.responseText != null) {
+					error_message = jqXHR.responseText;
+				}
+   				if (onError != null) {
+   					onError(jqXHR, textStatus, errorThrown);
+   				} else {
 	   				JqueryUtil.alert("There was an error making your request:  " + error_message);
 	   				throw new Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + error_message);
 	   			}
@@ -52,6 +57,31 @@ class StandardRequest implements Requester {
         	JQ.extend(ajaxOpts, opts);
         }
 		JQ.ajax(ajaxOpts);
+	}
+}
+
+class StandardRequest extends BaseRequest implements Requester {
+
+	private var request: ProtocolMessage<Dynamic>;
+
+	public function new(request: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
+		this.request = request;
+		super(AppContext.SERIALIZER.toJsonString(request), successFcn);
+	}
+
+	public function start(?opts: AjaxOptions): Void {
+		AppContext.LOGGER.debug("send " + request.msgType);
+
+		var ajaxOpts:AjaxOptions = {
+			async: true,
+			url: AgentUi.URL + "/api" 
+		};
+
+		if (opts != null) {
+        	JQ.extend(ajaxOpts, opts);
+        }
+
+		super.send(ajaxOpts);
 	}
 
 	public function abort(): Void {

@@ -4707,7 +4707,11 @@ $hxClasses["ui.api.BennuHandler"] = ui.api.BennuHandler;
 ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
 ui.api.BennuHandler.__interfaces__ = [ui.api.ProtocolHandler];
 ui.api.BennuHandler.prototype = {
-	restores: function() {
+	_startPolling: function(channelId) {
+	}
+	,_createChannel: function() {
+	}
+	,restores: function() {
 	}
 	,restore: function() {
 	}
@@ -4747,6 +4751,9 @@ ui.api.BennuHandler.prototype = {
 	,filter: function(filter) {
 	}
 	,getUser: function(login) {
+		var user = new ui.model.User();
+		user.userData = new ui.model.UserData("Sylvester ElGato");
+		ui.model.EM.change(ui.model.EMEvent.USER,new ui.model.User());
 	}
 	,__class__: ui.api.BennuHandler
 }
@@ -4754,12 +4761,12 @@ ui.api.EventDelegate = function(protocolHandler) {
 	this.filterIsRunning = false;
 	this.protocolHandler = protocolHandler;
 	this.processHash = new haxe.ds.EnumValueMap();
-	this._setUpMessageHandlers();
+	this._setUpEventListeners();
 };
 $hxClasses["ui.api.EventDelegate"] = ui.api.EventDelegate;
 ui.api.EventDelegate.__name__ = ["ui","api","EventDelegate"];
 ui.api.EventDelegate.prototype = {
-	_setUpMessageHandlers: function() {
+	_setUpEventListeners: function() {
 		var _g = this;
 		ui.model.EM.addListener(ui.model.EMEvent.TEST,new ui.model.EMListener(function(data) {
 			var msgType = (function($this) {
@@ -4774,7 +4781,6 @@ ui.api.EventDelegate.prototype = {
 			var processor = _g.processHash.get(msgType);
 			if(processor == null) {
 				if(data != null) ui.AppContext.LOGGER.info("no processor for " + Std.string(data.msgType)); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
-				return;
 			} else {
 				ui.AppContext.LOGGER.debug("received " + Std.string(data.msgType));
 				processor(data);
@@ -5189,7 +5195,6 @@ ui.api.LegacyHandler.prototype = {
 						var processor = _g.eventDelegate.processHash.get(msgType);
 						if(processor == null) {
 							if(data != null) ui.AppContext.LOGGER.info("no processor for " + data.msgType); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
-							return;
 						} else {
 							ui.AppContext.LOGGER.debug("received " + data.msgType);
 							processor(data);
@@ -6276,26 +6281,23 @@ ui.api.Requester.__name__ = ["ui","api","Requester"];
 ui.api.Requester.prototype = {
 	__class__: ui.api.Requester
 }
-ui.api.StandardRequest = function(request,successFcn) {
-	this.request = request;
-	this.successFcn = successFcn;
+ui.api.BaseRequest = function(requestData,successFcn,errorFcn) {
+	this.requestData = requestData;
+	this.onSuccess = successFcn;
+	this.onError = errorFcn;
 };
-$hxClasses["ui.api.StandardRequest"] = ui.api.StandardRequest;
-ui.api.StandardRequest.__name__ = ["ui","api","StandardRequest"];
-ui.api.StandardRequest.__interfaces__ = [ui.api.Requester];
-ui.api.StandardRequest.prototype = {
-	abort: function() {
-	}
-	,start: function(opts) {
+$hxClasses["ui.api.BaseRequest"] = ui.api.BaseRequest;
+ui.api.BaseRequest.__name__ = ["ui","api","BaseRequest"];
+ui.api.BaseRequest.prototype = {
+	send: function(opts) {
 		var _g = this;
-		ui.AppContext.LOGGER.debug("send " + Std.string(this.request.msgType));
-		var ajaxOpts = { async : true, url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : ui.AppContext.SERIALIZER.toJsonString(this.request), type : "POST", success : function(data,textStatus,jqXHR) {
+		var ajaxOpts = { dataType : "json", contentType : "application/json", data : this.requestData, type : "POST", success : function(data,textStatus,jqXHR) {
 			ui.SystemStatus.instance().onMessage();
-			_g.successFcn(data,textStatus,jqXHR);
+			_g.onSuccess(data,textStatus,jqXHR);
 		}, error : function(jqXHR,textStatus,errorThrown) {
-			if(_g.request.msgType != ui.api.MsgType.sessionPing) {
-				var error_message = errorThrown;
-				if(jqXHR.message != null) error_message = jqXHR.message; else if(jqXHR.responseText != null) error_message = jqXHR.responseText;
+			var error_message = errorThrown;
+			if(jqXHR.message != null) error_message = jqXHR.message; else if(jqXHR.responseText != null) error_message = jqXHR.responseText;
+			if(_g.onError != null) _g.onError(jqXHR,textStatus,errorThrown); else {
 				m3.util.JqueryUtil.alert("There was an error making your request:  " + error_message);
 				throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR.status + " | " + error_message);
 			}
@@ -6303,8 +6305,27 @@ ui.api.StandardRequest.prototype = {
 		if(opts != null) $.extend(ajaxOpts,opts);
 		$.ajax(ajaxOpts);
 	}
-	,__class__: ui.api.StandardRequest
+	,__class__: ui.api.BaseRequest
 }
+ui.api.StandardRequest = function(request,successFcn) {
+	this.request = request;
+	ui.api.BaseRequest.call(this,ui.AppContext.SERIALIZER.toJsonString(request),successFcn);
+};
+$hxClasses["ui.api.StandardRequest"] = ui.api.StandardRequest;
+ui.api.StandardRequest.__name__ = ["ui","api","StandardRequest"];
+ui.api.StandardRequest.__interfaces__ = [ui.api.Requester];
+ui.api.StandardRequest.__super__ = ui.api.BaseRequest;
+ui.api.StandardRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
+	abort: function() {
+	}
+	,start: function(opts) {
+		ui.AppContext.LOGGER.debug("send " + Std.string(this.request.msgType));
+		var ajaxOpts = { async : true, url : ui.AgentUi.URL + "/api"};
+		if(opts != null) $.extend(ajaxOpts,opts);
+		ui.api.BaseRequest.prototype.send.call(this,ajaxOpts);
+	}
+	,__class__: ui.api.StandardRequest
+});
 ui.api.LongPollingRequest = function(requestToRepeat,successFcn) {
 	this.stop = false;
 	var _g = this;
