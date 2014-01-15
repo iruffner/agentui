@@ -197,30 +197,29 @@ class LegacyHandler implements ProtocolHandler {
 			if (dataArr != null) {
 				SystemStatus.instance().onMessage();
 				dataArr.iter(function(data: {msgType: String, content: Dynamic}): Void {
-						try {
-							var msgType: MsgType = {
-								try {
-									Type.createEnum(MsgType, data.msgType);
-								} catch (err: Dynamic) {
-									null;
-								}
+					try {
+						var msgType: MsgType = {
+							try {
+								Type.createEnum(MsgType, data.msgType);
+							} catch (err: Dynamic) {
+								null;
 							}
-							var processor: Dynamic->Void = eventDelegate.processHash.get(msgType);
-							if(processor == null) {
-								if(data != null)
-									AppContext.LOGGER.info("no processor for " + data.msgType);
-								else 
-									AppContext.LOGGER.info("no data returned on polling channel response");
-								// JqueryUtil.alert("Don't know how to handle " + data.msgType);
-								return;
-							} else {
-								AppContext.LOGGER.debug("received " + data.msgType);
-								processor(data);
-							}
-						} catch (err: Dynamic) {
-							AppContext.LOGGER.error("Error processing msg\n" + data + "\n" + err);
 						}
-					});
+						var processor: Dynamic->Void = eventDelegate.processHash.get(msgType);
+						if(processor == null) {
+							if(data != null) {
+								AppContext.LOGGER.info("no processor for " + data.msgType);
+							} else {
+								AppContext.LOGGER.info("no data returned on polling channel response");
+							}
+						} else {
+							AppContext.LOGGER.debug("received " + data.msgType);
+							processor(data);
+						}
+					} catch (err: Dynamic) {
+						AppContext.LOGGER.error("Error processing msg\n" + data + "\n" + err);
+					}
+				});
 			}
 			
 		});

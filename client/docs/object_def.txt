@@ -1,0 +1,65 @@
+UserProfile: {
+	name: "string"
+	imgSrc: "string"
+}
+
+Label : {
+	uid: "string",
+	text: "string",
+	parentUid: "string",
+	color: "string"
+}
+
+Connection: {
+	uid: "string"
+	source: "string"
+	target: "string"
+	label: "string"
+
+	profile {
+		name: "string"
+		imgSrc: "string"
+	}
+
+	connectionSet: ObservableSet<Connection>;
+	connectionLabelSet: ObservableSet<Label>;
+	userSharedLabelSet: ObservableSet<Label>;
+}
+
+Alias : {
+	profile {
+		name: "string"
+		imgSrc: "string"
+	}
+
+	label: "string"
+
+	labelSet: [
+		{
+			uid: "string",
+			text: "string",
+			parentUid: "string",
+			color: "string"
+		},
+		...
+	]
+
+	connectionSet: [
+		{
+			uid: "string"
+			source: "string"
+			target: "string"
+			label: "string"
+
+			profile {
+				name: "string"
+				imgSrc: "string"
+			}
+
+	@:transient public var connectionSet: ObservableSet<Connection>;
+	@:transient public var connectionLabelSet: ObservableSet<Label>;
+	@:transient public var userSharedLabelSet: ObservableSet<Label>;
+
+		}
+	]
+}
