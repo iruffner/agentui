@@ -111,7 +111,7 @@ class StandardRequest extends BaseRequest implements Requester {
 	}
 }
 
-class LongPollingRequest extends implements Requester {
+class LongPollingRequest implements Requester {
 	public static var reqId: Int = 1;
 
 	private var jqXHR: Dynamic;
