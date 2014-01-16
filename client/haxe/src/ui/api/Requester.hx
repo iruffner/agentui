@@ -27,7 +27,7 @@ class BaseRequest {
 		this.onError     = errorFcn;
 	}
 
-	public function send(?opts: AjaxOptions): Void {
+	public function send(?opts: AjaxOptions): Dynamic {
 		// NB:  url must be passed in through opts
 		var ajaxOpts: AjaxOptions = {
 	        dataType: "json", 
@@ -56,7 +56,7 @@ class BaseRequest {
         if(opts != null) {
         	JQ.extend(ajaxOpts, opts);
         }
-		JQ.ajax(ajaxOpts);
+		return JQ.ajax(ajaxOpts);
 	}
 
 	public function abort(): Void {
@@ -111,20 +111,14 @@ class StandardRequest extends BaseRequest implements Requester {
 	}
 }
 
-class LongPollingRequest implements Requester {
+class LongPollingRequest extends BaseRequest implements Requester {
 	public static var reqId: Int = 1;
 
 	private var jqXHR: Dynamic;
-	private var request: ProtocolMessage<Dynamic>;
-	private var requestJson: String;
 	private var stop: Bool = false;
-	private var successFcn: Dynamic->String->JQXHR->Void;
-
 
 	public function new(requestToRepeat: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
-		this.request = requestToRepeat;
-		this.requestJson = AppContext.SERIALIZER.toJsonString(this.request);
-		this.successFcn = successFcn;
+		super(AppContext.SERIALIZER.toJsonString(requestToRepeat), successFcn);
 		AgentUi.HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 80 /* ALT+SHIFT+P */) {
                 stop = !stop;
@@ -140,7 +134,7 @@ class LongPollingRequest implements Requester {
 		poll();
 	}
 
-	public function abort(): Void {
+	override public function abort(): Void {
 		stop = true;
 		if(jqXHR != null) {
 			try {
@@ -156,16 +150,12 @@ class LongPollingRequest implements Requester {
 	private function poll(): Void {
 		if(!stop) {
 			var ajaxOpts: AjaxOptions = { 
-				url: AgentUi.URL + "/api", 
-		        dataType: "json", 
-	        	contentType: "application/json",
-		        data: this.requestJson,
-		        type: "POST",
+				url: AgentUi.URL + "/api",
 				success: function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {
 			        if(!stop) {
 			        	//broadcast results
 			        	try {
-			        		this.successFcn(data,textStatus,jqXHR);
+			        		this.onSuccess(data,textStatus,jqXHR);
 		        		} catch (err: Dynamic) {
 		        			AppContext.LOGGER.error("long polling error", err);
 		        		}
@@ -179,7 +169,8 @@ class LongPollingRequest implements Requester {
 	        	}, 
 		        timeout: 30000 
 	        };
-			jqXHR = JQ.ajax( ajaxOpts );
+
+			jqXHR = super.send(ajaxOpts);
 		}
 	}
 }

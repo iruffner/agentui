@@ -4757,7 +4757,7 @@ ui.api.BennuHandler.prototype = {
 		var user = new ui.model.User();
 		user.userData = new ui.model.UserData("Sylvester ElGato");
 		ui.model.EM.change(ui.model.EMEvent.USER,new ui.model.User());
-		var request = new ui.api.BennuRequest("/api/channel/create",$bind(this,this.onCreateChannel));
+		var request = new ui.api.BennuRequest("/api/channel/create","",$bind(this,this.onCreateChannel));
 		request.start();
 	}
 	,__class__: ui.api.BennuHandler
@@ -6310,13 +6310,13 @@ ui.api.BaseRequest.prototype = {
 			}
 		}};
 		if(opts != null) $.extend(ajaxOpts,opts);
-		$.ajax(ajaxOpts);
+		return $.ajax(ajaxOpts);
 	}
 	,__class__: ui.api.BaseRequest
 }
-ui.api.BennuRequest = function(path,successFcn) {
+ui.api.BennuRequest = function(path,data,successFcn) {
 	this.path = path;
-	ui.api.BaseRequest.call(this,"",successFcn);
+	ui.api.BaseRequest.call(this,data,successFcn);
 };
 $hxClasses["ui.api.BennuRequest"] = ui.api.BennuRequest;
 ui.api.BennuRequest.__name__ = ["ui","api","BennuRequest"];
@@ -6350,9 +6350,7 @@ ui.api.StandardRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 ui.api.LongPollingRequest = function(requestToRepeat,successFcn) {
 	this.stop = false;
 	var _g = this;
-	this.request = requestToRepeat;
-	this.requestJson = ui.AppContext.SERIALIZER.toJsonString(this.request);
-	this.successFcn = successFcn;
+	ui.api.BaseRequest.call(this,ui.AppContext.SERIALIZER.toJsonString(requestToRepeat),successFcn);
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 80) {
 			_g.stop = !_g.stop;
@@ -6364,13 +6362,14 @@ ui.api.LongPollingRequest = function(requestToRepeat,successFcn) {
 $hxClasses["ui.api.LongPollingRequest"] = ui.api.LongPollingRequest;
 ui.api.LongPollingRequest.__name__ = ["ui","api","LongPollingRequest"];
 ui.api.LongPollingRequest.__interfaces__ = [ui.api.Requester];
-ui.api.LongPollingRequest.prototype = {
+ui.api.LongPollingRequest.__super__ = ui.api.BaseRequest;
+ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	poll: function() {
 		var _g = this;
 		if(!this.stop) {
-			var ajaxOpts = { url : ui.AgentUi.URL + "/api", dataType : "json", contentType : "application/json", data : this.requestJson, type : "POST", success : function(data,textStatus,jqXHR) {
+			var ajaxOpts = { url : ui.AgentUi.URL + "/api", success : function(data,textStatus,jqXHR) {
 				if(!_g.stop) try {
-					_g.successFcn(data,textStatus,jqXHR);
+					_g.onSuccess(data,textStatus,jqXHR);
 				} catch( err ) {
 					ui.AppContext.LOGGER.error("long polling error",err);
 				}
@@ -6379,7 +6378,7 @@ ui.api.LongPollingRequest.prototype = {
 			}, complete : function(jqXHR,textStatus) {
 				_g.poll();
 			}, timeout : 30000};
-			this.jqXHR = $.ajax(ajaxOpts);
+			this.jqXHR = ui.api.BaseRequest.prototype.send.call(this,ajaxOpts);
 		}
 	}
 	,abort: function() {
@@ -6395,7 +6394,7 @@ ui.api.LongPollingRequest.prototype = {
 		this.poll();
 	}
 	,__class__: ui.api.LongPollingRequest
-}
+});
 ui.api.TestDao = function() { }
 $hxClasses["ui.api.TestDao"] = ui.api.TestDao;
 ui.api.TestDao.__name__ = ["ui","api","TestDao"];
