@@ -65,6 +65,7 @@ class BaseRequest {
 
 class BennuRequest extends BaseRequest implements Requester {
 	public static var channelId:String;
+
 	private var path:String;
 
 	public function new(path:String, data:String, successFcn: Dynamic->String->JQXHR->Void) {
@@ -112,20 +113,36 @@ class StandardRequest extends BaseRequest implements Requester {
 }
 
 class LongPollingRequest extends BaseRequest implements Requester {
-	public static var reqId: Int = 1;
 
 	private var jqXHR: Dynamic;
-	private var stop: Bool = false;
+	private var running: Bool = true;
+	private var url: String;
 
-	public function new(requestToRepeat: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
-		super(AppContext.SERIALIZER.toJsonString(requestToRepeat), successFcn);
+	public var timeout:Int = 30000;
+
+	public function new(requestToRepeat: String, successFcn: Dynamic->String->JQXHR->Void, ?path:String) {
+		this.url = AgentUi.URL + "/api";
+		if (path != null) {
+			AgentUi.URL + path;
+		}
+
+		var wrappedSuccessFcn = function(data: Dynamic, textStatus: String, jqXHR: JQXHR) {
+			SystemStatus.instance().onMessage();
+			if (running) {
+				successFcn(data, textStatus, jqXHR);
+			}
+		};
+		var errorFcn = function(jqXHR:JQXHR, textStatus:String, errorThrown:String): Void {
+	   		AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+		};
+
+		super(requestToRepeat, wrappedSuccessFcn, errorFcn);
+		
 		AgentUi.HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 80 /* ALT+SHIFT+P */) {
-                stop = !stop;
-                AppContext.LOGGER.debug("Long Polling is paused? " + stop);
-                if(!stop) {
-                	poll();
-                }
+                running = !running;
+                AppContext.LOGGER.debug("Long Polling is running? " + running);
+                poll();
             }
         });
 	}
@@ -135,7 +152,7 @@ class LongPollingRequest extends BaseRequest implements Requester {
 	}
 
 	override public function abort(): Void {
-		stop = true;
+		running = false;
 		if(jqXHR != null) {
 			try {
 				jqXHR.abort();
@@ -148,26 +165,13 @@ class LongPollingRequest extends BaseRequest implements Requester {
 	}
 
 	private function poll(): Void {
-		if(!stop) {
+		if (running) {
 			var ajaxOpts: AjaxOptions = { 
-				url: AgentUi.URL + "/api",
-				success: function(data: Dynamic, textStatus: String, jqXHR: JQXHR): Void {
-			        if(!stop) {
-			        	//broadcast results
-			        	try {
-			        		this.onSuccess(data,textStatus,jqXHR);
-		        		} catch (err: Dynamic) {
-		        			AppContext.LOGGER.error("long polling error", err);
-		        		}
-			        }
-			    },
-			    error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String): Void {
-	   				AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
-				},
+				url: this.url,
 		        complete: function(jqXHR:JQXHR, textStatus:String): Void {
-		        	poll(); //to keep this going
+		        	this.poll();
 	        	}, 
-		        timeout: 30000 
+		        timeout: this.timeout 
 	        };
 
 			jqXHR = super.send(ajaxOpts);

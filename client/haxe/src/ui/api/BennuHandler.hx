@@ -8,6 +8,8 @@ import ui.model.ModelObj;
 import ui.model.Filter;
 import ui.model.EM;
 
+using Lambda;
+
 class BennuHandler implements ProtocolHandler {
 	private var eventDelegate:EventDelegate;
 	private var listeningChannel: Requester;
@@ -54,6 +56,17 @@ class BennuHandler implements ProtocolHandler {
 
 	private function _startPolling(): Void {
 		// TODO:  add the ability to set the timeout value
-		var url:String = "/api/channel/poll/" + BennuRequest.channelId + "/10000";
+		var timeout = 10000;
+		var path:String = "/api/channel/poll/" + BennuRequest.channelId + "/" + Std.string(timeout);
+		var lp = new LongPollingRequest("", _onPoll, path);
+		lp.timeout = timeout;
+		lp.start();
+	}
+
+	private function _onPoll(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
+		if (dataArr == null) { return; }
+
+		dataArr.iter(function(data:Dynamic): Void {
+		});
 	}
 }

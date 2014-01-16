@@ -4707,8 +4707,17 @@ $hxClasses["ui.api.BennuHandler"] = ui.api.BennuHandler;
 ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
 ui.api.BennuHandler.__interfaces__ = [ui.api.ProtocolHandler];
 ui.api.BennuHandler.prototype = {
-	_startPolling: function() {
-		var url = "/api/channel/poll/" + ui.api.BennuRequest.channelId + "/10000";
+	_onPoll: function(dataArr,textStatus,jqXHR) {
+		if(dataArr == null) return;
+		Lambda.iter(dataArr,function(data) {
+		});
+	}
+	,_startPolling: function() {
+		var timeout = 10000;
+		var path = "/api/channel/poll/" + ui.api.BennuRequest.channelId + "/" + Std.string(timeout);
+		var lp = new ui.api.LongPollingRequest("",$bind(this,this._onPoll),path);
+		lp.timeout = timeout;
+		lp.start();
 	}
 	,onCreateChannel: function(data,textStatus,jqXHR) {
 		ui.api.BennuRequest.channelId = data.id;
@@ -5183,32 +5192,29 @@ ui.api.LegacyHandler.prototype = {
 		var _g = this;
 		var ping = new ui.api.SessionPingRequest();
 		ping.contentImpl.sessionURI = sessionURI;
-		this.listeningChannel = new ui.api.LongPollingRequest(ping,function(dataArr,textStatus,jqXHR) {
-			if(dataArr != null) {
-				ui.SystemStatus.instance().onMessage();
-				Lambda.iter(dataArr,function(data) {
-					try {
-						var msgType = (function($this) {
-							var $r;
-							try {
-								$r = Type.createEnum(ui.api.MsgType,data.msgType);
-							} catch( err ) {
-								$r = null;
-							}
-							return $r;
-						}(this));
-						var processor = _g.eventDelegate.processHash.get(msgType);
-						if(processor == null) {
-							if(data != null) ui.AppContext.LOGGER.info("no processor for " + data.msgType); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
-						} else {
-							ui.AppContext.LOGGER.debug("received " + data.msgType);
-							processor(data);
+		this.listeningChannel = new ui.api.LongPollingRequest(ui.AppContext.SERIALIZER.toJsonString(ping),function(dataArr,textStatus,jqXHR) {
+			if(dataArr != null) Lambda.iter(dataArr,function(data) {
+				try {
+					var msgType = (function($this) {
+						var $r;
+						try {
+							$r = Type.createEnum(ui.api.MsgType,data.msgType);
+						} catch( err ) {
+							$r = null;
 						}
-					} catch( err ) {
-						ui.AppContext.LOGGER.error("Error processing msg\n" + Std.string(data) + "\n" + Std.string(err));
+						return $r;
+					}(this));
+					var processor = _g.eventDelegate.processHash.get(msgType);
+					if(processor == null) {
+						if(data != null) ui.AppContext.LOGGER.info("no processor for " + data.msgType); else ui.AppContext.LOGGER.info("no data returned on polling channel response");
+					} else {
+						ui.AppContext.LOGGER.debug("received " + data.msgType);
+						processor(data);
 					}
-				});
-			}
+				} catch( err ) {
+					ui.AppContext.LOGGER.error("Error processing msg\n" + Std.string(data) + "\n" + Std.string(err));
+				}
+			});
 		});
 		this.listeningChannel.start();
 	}
@@ -6347,15 +6353,25 @@ ui.api.StandardRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	}
 	,__class__: ui.api.StandardRequest
 });
-ui.api.LongPollingRequest = function(requestToRepeat,successFcn) {
-	this.stop = false;
+ui.api.LongPollingRequest = function(requestToRepeat,successFcn,path) {
+	this.timeout = 30000;
+	this.running = true;
 	var _g = this;
-	ui.api.BaseRequest.call(this,ui.AppContext.SERIALIZER.toJsonString(requestToRepeat),successFcn);
+	this.url = ui.AgentUi.URL + "/api";
+	if(path != null) ui.AgentUi.URL + path;
+	var wrappedSuccessFcn = function(data,textStatus,jqXHR) {
+		ui.SystemStatus.instance().onMessage();
+		if(_g.running) successFcn(data,textStatus,jqXHR);
+	};
+	var errorFcn = function(jqXHR,textStatus,errorThrown) {
+		ui.AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+	};
+	ui.api.BaseRequest.call(this,requestToRepeat,wrappedSuccessFcn,errorFcn);
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 80) {
-			_g.stop = !_g.stop;
-			ui.AppContext.LOGGER.debug("Long Polling is paused? " + Std.string(_g.stop));
-			if(!_g.stop) _g.poll();
+			_g.running = !_g.running;
+			ui.AppContext.LOGGER.debug("Long Polling is running? " + Std.string(_g.running));
+			_g.poll();
 		}
 	});
 };
@@ -6366,23 +6382,15 @@ ui.api.LongPollingRequest.__super__ = ui.api.BaseRequest;
 ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	poll: function() {
 		var _g = this;
-		if(!this.stop) {
-			var ajaxOpts = { url : ui.AgentUi.URL + "/api", success : function(data,textStatus,jqXHR) {
-				if(!_g.stop) try {
-					_g.onSuccess(data,textStatus,jqXHR);
-				} catch( err ) {
-					ui.AppContext.LOGGER.error("long polling error",err);
-				}
-			}, error : function(jqXHR,textStatus,errorThrown) {
-				ui.AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
-			}, complete : function(jqXHR,textStatus) {
+		if(this.running) {
+			var ajaxOpts = { url : this.url, complete : function(jqXHR,textStatus) {
 				_g.poll();
-			}, timeout : 30000};
+			}, timeout : this.timeout};
 			this.jqXHR = ui.api.BaseRequest.prototype.send.call(this,ajaxOpts);
 		}
 	}
 	,abort: function() {
-		this.stop = true;
+		this.running = false;
 		if(this.jqXHR != null) try {
 			this.jqXHR.abort();
 			this.jqXHR = null;
@@ -10349,7 +10357,6 @@ ui.api.RestoreRequest.__rtti = "<class path=\"ui.api.RestoreRequest\" params=\"\
 ui.api.RestoresRequest.__rtti = "<class path=\"ui.api.RestoresRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"573\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.RestoresResponse.__rtti = "<class path=\"ui.api.RestoresResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.RestoresData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"579\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.RestoresData.__rtti = "<class path=\"ui.api.RestoresData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<backups public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></backups>\n\t<new public=\"1\" set=\"method\" line=\"584\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.LongPollingRequest.reqId = 1;
 ui.api.TestDao.initialized = false;
 ui.api.TestDao._lastRandom = 0;
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"\">\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";

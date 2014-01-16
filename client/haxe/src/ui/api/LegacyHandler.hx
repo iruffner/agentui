@@ -193,9 +193,8 @@ class LegacyHandler implements ProtocolHandler {
 		var ping: SessionPingRequest = new SessionPingRequest();
 		ping.contentImpl.sessionURI = sessionURI;
 
-		listeningChannel = new LongPollingRequest(ping, function(dataArr: Array<{msgType: String, content: Dynamic}>, textStatus: String, jqXHR: JQXHR): Void {
+		listeningChannel = new LongPollingRequest(AppContext.SERIALIZER.toJsonString(ping), function(dataArr: Array<{msgType: String, content: Dynamic}>, textStatus: String, jqXHR: JQXHR): Void {
 			if (dataArr != null) {
-				SystemStatus.instance().onMessage();
 				dataArr.iter(function(data: {msgType: String, content: Dynamic}): Void {
 					try {
 						var msgType: MsgType = {
