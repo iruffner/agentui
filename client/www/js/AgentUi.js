@@ -4553,7 +4553,7 @@ $hxExpose(ui.AgentUi, "ui.AgentUi");
 ui.AgentUi.__name__ = ["ui","AgentUi"];
 ui.AgentUi.main = function() {
 	ui.AppContext.init();
-	ui.AgentUi.PROTOCOL = new ui.api.LegacyHandler();
+	ui.AgentUi.PROTOCOL = new ui.api.BennuHandler();
 	ui.AgentUi.HOT_KEY_ACTIONS = new Array();
 }
 ui.AgentUi.start = function() {
@@ -4714,8 +4714,9 @@ ui.api.BennuHandler.prototype = {
 	}
 	,_startPolling: function() {
 		var timeout = 10000;
-		var path = "/api/channel/poll/" + ui.api.BennuRequest.channelId + "/" + Std.string(timeout);
-		var lp = new ui.api.LongPollingRequest("",$bind(this,this._onPoll),path);
+		var path = "/api/channel/poll";
+		var data = { channel : ui.api.BennuRequest.channelId, timeoutMillis : timeout};
+		var lp = new ui.api.LongPollingRequest(haxe.Json.stringify(data),$bind(this,this._onPoll),path);
 		lp.timeout = timeout;
 		lp.start();
 	}
@@ -6353,12 +6354,13 @@ ui.api.StandardRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	}
 	,__class__: ui.api.StandardRequest
 });
-ui.api.LongPollingRequest = function(requestToRepeat,successFcn,path) {
+ui.api.LongPollingRequest = function(requestToRepeat,successFcn,path,ajaxOpts) {
 	this.timeout = 30000;
 	this.running = true;
 	var _g = this;
 	this.url = ui.AgentUi.URL + "/api";
-	if(path != null) ui.AgentUi.URL + path;
+	if(path != null) this.url = ui.AgentUi.URL + path;
+	this.additionalOpts = ajaxOpts;
 	var wrappedSuccessFcn = function(data,textStatus,jqXHR) {
 		ui.SystemStatus.instance().onMessage();
 		if(_g.running) successFcn(data,textStatus,jqXHR);
@@ -6386,6 +6388,7 @@ ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 			var ajaxOpts = { url : this.url, complete : function(jqXHR,textStatus) {
 				_g.poll();
 			}, timeout : this.timeout};
+			if(this.additionalOpts != null) $.extend(ajaxOpts,this.additionalOpts);
 			this.jqXHR = ui.api.BaseRequest.prototype.send.call(this,ajaxOpts);
 		}
 	}

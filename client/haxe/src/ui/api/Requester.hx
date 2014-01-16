@@ -53,7 +53,7 @@ class BaseRequest {
 	   			}
 			}
         };
-        if(opts != null) {
+        if (opts != null) {
         	JQ.extend(ajaxOpts, opts);
         }
 		return JQ.ajax(ajaxOpts);
@@ -117,14 +117,17 @@ class LongPollingRequest extends BaseRequest implements Requester {
 	private var jqXHR: Dynamic;
 	private var running: Bool = true;
 	private var url: String;
+	private var additionalOpts:AjaxOptions;
 
 	public var timeout:Int = 30000;
 
-	public function new(requestToRepeat: String, successFcn: Dynamic->String->JQXHR->Void, ?path:String) {
+	public function new(requestToRepeat: String, successFcn: Dynamic->String->JQXHR->Void, ?path:String, ?ajaxOpts:AjaxOptions) {
 		this.url = AgentUi.URL + "/api";
 		if (path != null) {
-			AgentUi.URL + path;
+			this.url = AgentUi.URL + path;
 		}
+
+		this.additionalOpts = ajaxOpts;
 
 		var wrappedSuccessFcn = function(data: Dynamic, textStatus: String, jqXHR: JQXHR) {
 			SystemStatus.instance().onMessage();
@@ -173,6 +176,10 @@ class LongPollingRequest extends BaseRequest implements Requester {
 	        	}, 
 		        timeout: this.timeout 
 	        };
+
+	        if (this.additionalOpts != null) {
+        		JQ.extend(ajaxOpts, this.additionalOpts);
+        	}
 
 			jqXHR = super.send(ajaxOpts);
 		}

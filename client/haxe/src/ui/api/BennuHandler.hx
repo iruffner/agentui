@@ -1,5 +1,6 @@
 package ui.api;
 
+import haxe.Json;
 import m3.jq.JQ;
 
 import ui.api.Requester;
@@ -57,8 +58,9 @@ class BennuHandler implements ProtocolHandler {
 	private function _startPolling(): Void {
 		// TODO:  add the ability to set the timeout value
 		var timeout = 10000;
-		var path:String = "/api/channel/poll/" + BennuRequest.channelId + "/" + Std.string(timeout);
-		var lp = new LongPollingRequest("", _onPoll, path);
+		var path:String = "/api/channel/poll";
+		var data:Dynamic = {channel: BennuRequest.channelId, timeoutMillis: timeout};
+		var lp = new LongPollingRequest(Json.stringify(data), _onPoll, path);
 		lp.timeout = timeout;
 		lp.start();
 	}

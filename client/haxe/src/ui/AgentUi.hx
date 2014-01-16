@@ -42,7 +42,7 @@ class AgentUi {
 	public static function main() {
         AppContext.init();
 
-        PROTOCOL = new LegacyHandler();
+        PROTOCOL = new BennuHandler();
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
     }
 
