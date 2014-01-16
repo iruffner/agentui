@@ -4714,11 +4714,11 @@ ui.api.BennuHandler.prototype = {
 	}
 	,_startPolling: function() {
 		var timeout = 10000;
-		var path = "/api/channel/poll";
-		var data = { channel : ui.api.BennuRequest.channelId, timeoutMillis : timeout};
-		var lp = new ui.api.LongPollingRequest(haxe.Json.stringify(data),$bind(this,this._onPoll),path);
-		lp.timeout = timeout;
-		lp.start();
+		var path = "/api/channel/poll?channel=" + ui.api.BennuRequest.channelId + "&timeoutMillis=" + Std.string(timeout);
+		var ajaxOptions = { contentType : "", type : "GET"};
+		this.listeningChannel = new ui.api.LongPollingRequest("",$bind(this,this._onPoll),path,ajaxOptions);
+		this.listeningChannel.timeout = timeout + 2000;
+		this.listeningChannel.start();
 	}
 	,onCreateChannel: function(data,textStatus,jqXHR) {
 		ui.api.BennuRequest.channelId = data.id;

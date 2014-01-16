@@ -13,7 +13,8 @@ using Lambda;
 
 class BennuHandler implements ProtocolHandler {
 	private var eventDelegate:EventDelegate;
-	private var listeningChannel: Requester;
+	private var listeningChannel: LongPollingRequest;
+
 
 	public function new() {
 		this.eventDelegate = new EventDelegate(this);
@@ -58,17 +59,22 @@ class BennuHandler implements ProtocolHandler {
 	private function _startPolling(): Void {
 		// TODO:  add the ability to set the timeout value
 		var timeout = 10000;
-		var path:String = "/api/channel/poll";
-		var data:Dynamic = {channel: BennuRequest.channelId, timeoutMillis: timeout};
-		var lp = new LongPollingRequest(Json.stringify(data), _onPoll, path);
-		lp.timeout = timeout;
-		lp.start();
+		var path:String = "/api/channel/poll?channel=" + BennuRequest.channelId + "&timeoutMillis=" + Std.string(timeout);
+		var ajaxOptions:AjaxOptions = {
+	        contentType: "",
+	        type: "GET"
+		};
+
+		listeningChannel = new LongPollingRequest("", _onPoll, path, ajaxOptions);
+		listeningChannel.timeout = timeout + 2000;
+		listeningChannel.start();
 	}
 
 	private function _onPoll(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
 		if (dataArr == null) { return; }
 
 		dataArr.iter(function(data:Dynamic): Void {
+
 		});
 	}
 }
