@@ -58,6 +58,32 @@ class BaseRequest {
         }
 		JQ.ajax(ajaxOpts);
 	}
+
+	public function abort(): Void {
+	}
+}
+
+class BennuRequest extends BaseRequest implements Requester {
+	public static var channelId:String;
+	private var path:String;
+
+	public function new(path:String, data:String, successFcn: Dynamic->String->JQXHR->Void) {
+		this.path = path;
+		super(data, successFcn);
+	}
+
+	public function start(?opts: AjaxOptions) {
+		var ajaxOpts:AjaxOptions = {
+			async: true,
+			url: AgentUi.URL + path 
+		};
+
+		if (opts != null) {
+        	JQ.extend(ajaxOpts, opts);
+        }
+
+		super.send(ajaxOpts);
+	}
 }
 
 class StandardRequest extends BaseRequest implements Requester {
@@ -83,12 +109,9 @@ class StandardRequest extends BaseRequest implements Requester {
 
 		super.send(ajaxOpts);
 	}
-
-	public function abort(): Void {
-	}
 }
 
-class LongPollingRequest implements Requester {
+class LongPollingRequest extends implements Requester {
 	public static var reqId: Int = 1;
 
 	private var jqXHR: Dynamic;

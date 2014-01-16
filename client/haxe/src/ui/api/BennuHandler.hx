@@ -1,5 +1,7 @@
 package ui.api;
 
+import m3.jq.JQ;
+
 import ui.api.Requester;
 import ui.api.EventDelegate;
 import ui.model.ModelObj;
@@ -20,7 +22,9 @@ class BennuHandler implements ProtocolHandler {
 		user.userData = new UserData("Sylvester ElGato");
 		EM.change(EMEvent.USER, new User());
 
-		// Establish a connection and get the channel_id
+		// Establish a connection with the server and get the channel_id
+		var request = new BennuRequest("/api/channel/create", "", onCreateChannel);
+		request.start();
 	}
 
 	public function filter(filter: Filter): Void { }
@@ -43,10 +47,13 @@ class BennuHandler implements ProtocolHandler {
 	public function restore(/*backupName: String*/): Void { }
 	public function restores(): Void { }
 
-	private function _createChannel():Void {
-		//var request = new StandardRequest
+	private function onCreateChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
+		BennuRequest.channelId = data.id;
+		_startPolling();
 	}
 
-	private function _startPolling(channelId: String): Void {
+	private function _startPolling(): Void {
+		// TODO:  add the ability to set the timeout value
+		var url:String = "/api/channel/poll/" + BennuRequest.channelId + "/10000";
 	}
 }

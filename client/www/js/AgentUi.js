@@ -4707,9 +4707,12 @@ $hxClasses["ui.api.BennuHandler"] = ui.api.BennuHandler;
 ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
 ui.api.BennuHandler.__interfaces__ = [ui.api.ProtocolHandler];
 ui.api.BennuHandler.prototype = {
-	_startPolling: function(channelId) {
+	_startPolling: function() {
+		var url = "/api/channel/poll/" + ui.api.BennuRequest.channelId + "/10000";
 	}
-	,_createChannel: function() {
+	,onCreateChannel: function(data,textStatus,jqXHR) {
+		ui.api.BennuRequest.channelId = data.id;
+		this._startPolling();
 	}
 	,restores: function() {
 	}
@@ -4754,6 +4757,8 @@ ui.api.BennuHandler.prototype = {
 		var user = new ui.model.User();
 		user.userData = new ui.model.UserData("Sylvester ElGato");
 		ui.model.EM.change(ui.model.EMEvent.USER,new ui.model.User());
+		var request = new ui.api.BennuRequest("/api/channel/create",$bind(this,this.onCreateChannel));
+		request.start();
 	}
 	,__class__: ui.api.BennuHandler
 }
@@ -6289,7 +6294,9 @@ ui.api.BaseRequest = function(requestData,successFcn,errorFcn) {
 $hxClasses["ui.api.BaseRequest"] = ui.api.BaseRequest;
 ui.api.BaseRequest.__name__ = ["ui","api","BaseRequest"];
 ui.api.BaseRequest.prototype = {
-	send: function(opts) {
+	abort: function() {
+	}
+	,send: function(opts) {
 		var _g = this;
 		var ajaxOpts = { dataType : "json", contentType : "application/json", data : this.requestData, type : "POST", success : function(data,textStatus,jqXHR) {
 			ui.SystemStatus.instance().onMessage();
@@ -6307,6 +6314,22 @@ ui.api.BaseRequest.prototype = {
 	}
 	,__class__: ui.api.BaseRequest
 }
+ui.api.BennuRequest = function(path,successFcn) {
+	this.path = path;
+	ui.api.BaseRequest.call(this,"",successFcn);
+};
+$hxClasses["ui.api.BennuRequest"] = ui.api.BennuRequest;
+ui.api.BennuRequest.__name__ = ["ui","api","BennuRequest"];
+ui.api.BennuRequest.__interfaces__ = [ui.api.Requester];
+ui.api.BennuRequest.__super__ = ui.api.BaseRequest;
+ui.api.BennuRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
+	start: function(opts) {
+		var ajaxOpts = { async : true, url : ui.AgentUi.URL + this.path};
+		if(opts != null) $.extend(ajaxOpts,opts);
+		ui.api.BaseRequest.prototype.send.call(this,ajaxOpts);
+	}
+	,__class__: ui.api.BennuRequest
+});
 ui.api.StandardRequest = function(request,successFcn) {
 	this.request = request;
 	ui.api.BaseRequest.call(this,ui.AppContext.SERIALIZER.toJsonString(request),successFcn);
@@ -6316,9 +6339,7 @@ ui.api.StandardRequest.__name__ = ["ui","api","StandardRequest"];
 ui.api.StandardRequest.__interfaces__ = [ui.api.Requester];
 ui.api.StandardRequest.__super__ = ui.api.BaseRequest;
 ui.api.StandardRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
-	abort: function() {
-	}
-	,start: function(opts) {
+	start: function(opts) {
 		ui.AppContext.LOGGER.debug("send " + Std.string(this.request.msgType));
 		var ajaxOpts = { async : true, url : ui.AgentUi.URL + "/api"};
 		if(opts != null) $.extend(ajaxOpts,opts);
