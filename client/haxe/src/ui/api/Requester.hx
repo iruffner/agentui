@@ -1,9 +1,14 @@
 package ui.api;
 
+import haxe.Json;
+
 import m3.jq.JQ;
 import m3.util.JqueryUtil;
+import m3.util.UidGenerator;
+
 import ui.model.Filter;
 import ui.model.EM;
+import ui.model.ModelObj;
 import ui.api.ProtocolMessage;
 import m3.exception.Exception;
 import ui.exception.InitializeSessionException;
@@ -38,13 +43,21 @@ class BaseRequest {
 				SystemStatus.instance().onMessage();
 				onSuccess(data, textStatus, jqXHR);
 			},
-   			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:String) {
-				var error_message:String = errorThrown;
-				if (jqXHR.message != null) {
-					error_message = jqXHR.message;
-				} else if (jqXHR.responseText != null) {
-					error_message = jqXHR.responseText;
-				}
+   			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:Dynamic) {
+				var error_message:String = "";
+
+				if (errorThrown == null || Std.is(errorThrown, String)) {
+					error_message = errorThrown;
+
+					if (jqXHR.message != null) {
+						error_message = jqXHR.message;
+					} else if (jqXHR.responseText != null && jqXHR.responseText.charAt(0) != "<") {
+						error_message = jqXHR.responseText;
+					}
+		   		} else {
+		   			error_message = textStatus + ":  " + errorThrown.message;
+		   		}
+
    				if (onError != null) {
    					onError(jqXHR, textStatus, errorThrown);
    				} else {
@@ -87,18 +100,55 @@ class BennuRequest extends BaseRequest implements Requester {
 	}
 }
 
+class CrudRequest extends BaseRequest implements Requester {
+	private var crudMessage:CrudMessage;
+	private var url:String;
+
+	public function new(object:ModelObj, verb:String, successFcn: Dynamic->String->JQXHR->Void):Void {
+		var instance = AppContext.SERIALIZER.toJson(object);
+		if (instance.iid == null) {
+			instance.iid = UidGenerator.create(32);
+		}
+
+		this.crudMessage = new CrudMessage(object.objectType(), instance);
+		this.url = AgentUi.URL + "/api/" + verb;
+		super(AppContext.SERIALIZER.toJsonString(crudMessage), successFcn);
+	}
+
+	public function start(?opts: AjaxOptions): Void {
+		var ajaxOpts:AjaxOptions = {
+			async: false,
+			url: this.url
+		};
+
+		if (opts != null) {
+        	JQ.extend(ajaxOpts, opts);
+        }
+
+		super.send(ajaxOpts);
+	}
+}
+
+class UpsertRequest extends CrudRequest {
+	public function new(object:ModelObj, successFcn: Dynamic->String->JQXHR->Void):Void {
+		super(object, "upsert", successFcn);
+	}	
+}
+
+class DeleteRequest extends CrudRequest {
+	public function new(object:ModelObj, successFcn: Dynamic->String->JQXHR->Void):Void {
+		super(object, "delete", successFcn);
+	}	
+}
+
 class StandardRequest extends BaseRequest implements Requester {
 
-	private var request: ProtocolMessage<Dynamic>;
-
 	public function new(request: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
-		this.request = request;
+		AppContext.LOGGER.debug("sending " + request.msgType);
 		super(AppContext.SERIALIZER.toJsonString(request), successFcn);
 	}
 
 	public function start(?opts: AjaxOptions): Void {
-		AppContext.LOGGER.debug("send " + request.msgType);
-
 		var ajaxOpts:AjaxOptions = {
 			async: true,
 			url: AgentUi.URL + "/api" 
@@ -140,14 +190,18 @@ class LongPollingRequest extends BaseRequest implements Requester {
 		};
 
 		super(requestToRepeat, wrappedSuccessFcn, errorFcn);
-		
+
+		setupHotKey();
+	}
+
+	private function setupHotKey():Void {
 		AgentUi.HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 80 /* ALT+SHIFT+P */) {
                 running = !running;
                 AppContext.LOGGER.debug("Long Polling is running? " + running);
                 poll();
             }
-        });
+        });		
 	}
 
 	public function start(?opts: AjaxOptions): Void {

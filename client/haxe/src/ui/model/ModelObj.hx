@@ -9,6 +9,7 @@ import m3.exception.Exception;
 import ui.helper.LabelStringParser;
 import ui.model.EM;
 
+using m3.serialization.TypeTools;
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -19,6 +20,11 @@ using Lambda;
 @:rtti
 class ModelObj {
 	public function new() {
+	}
+	public function objectType(){
+		var className = this.clazz().classname().toLowerCase();
+		var parts = className.split(".");
+		return parts[parts.length-1];
 	}
 }
 
@@ -132,7 +138,7 @@ class UserData extends ModelObj {
 	public var name: String;
 	@:optional public var imgSrc: String;
 
-	public function new(?name: String, ?imgSrc: String) {
+	public function new(?name:String="", ?imgSrc:String="") {
 		super();
 		this.name = name;
 		this.imgSrc = imgSrc;
@@ -143,27 +149,25 @@ class Alias extends ModelObj {
 	public var profile: UserData;
 	public var label: String;
 	
-	@:isVar public var labelSet(get, null): ObservableSet<Label>;
-	@:isVar public var connectionSet(get, null): ObservableSet<Connection>;
-	// private var labels: Array<Label>;
-	// private var connections: Array<Connection>;
-
-	// @:transient var loadedFromDb: Bool = false;
-
+	@:transient @:isVar public var labelSet(get, null): ObservableSet<Label>;
+	@:transient @:isVar public var connectionSet(get, null): ObservableSet<Connection>;
+	private var labels: Array<Label>;
+	private var connections: Array<Connection>;
 
 	public function new () {
 		super();
+		this.profile = new UserData();
 	}
 
-	// private function readResolve(): Void {
-	// 	labelSet = new ObservableSet<Label>(Label.identifier, labels);
-	// 	connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
-	// }
+	private function readResolve(): Void {
+		labelSet = new ObservableSet<Label>(Label.identifier, labels);
+		connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
+	}
 
-	// private function writeResolve(): Void {
-	// 	labels = labelSet.asArray();
-	// 	connections = connectionSet.asArray();
-	// }
+	private function writeResolve(): Void {
+	 	labels = labelSet.asArray();
+	 	connections = connectionSet.asArray();
+	}
 
 	public static function identifier(alias: Alias): String {
 		return alias.label;

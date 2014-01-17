@@ -1,24 +1,15 @@
 package ui.api;
 
-enum CrudVerb {
-	create;
-	update;
-	delete;
-}
+import ui.model.ModelObj;
+using m3.serialization.TypeTools;
 
-class CrudMessage extends ProtocolMessage<CrudPayload>{
-	public static function create(verb:CrudVerb, obj:Dynamic):CrudMessage {
-		return new CrudMessage(verb, obj);
+@:rtti
+class CrudMessage {
+	public var type:String;
+	public var instance: Dynamic;
+
+	public function new(type:String, instance: Dynamic) {
+		this.type = type;
+		this.instance = instance;		
 	}
-
-	public function new(verb:CrudVerb, obj:Dynamic) {
-		super(MsgType.crudMessage, CrudMessagePayload);
-		this.contentImpl.verb   = verb;
-		this.contentImpl.record = obj;
-	}
-}
-
-class CrudMessagePayload extends PayloadWithSessionURI {
-	public var verb:CrudVerb;
-	public var record: Dynamic;
 }
