@@ -4765,7 +4765,7 @@ ui.api.BennuHandler.prototype = {
 	}
 	,getUser: function(login) {
 		var user = new ui.model.User();
-		user.userData = new ui.model.UserData("Nicola Tesla","media/test/tesla.jpg");
+		user.userData = new ui.model.UserData("Qoid","media/test/koi.jpg");
 		ui.model.EM.change(ui.model.EMEvent.USER,user);
 		ui.model.EM.change(ui.model.EMEvent.FitWindow);
 		var request = new ui.api.BennuRequest("/api/channel/create","",$bind(this,this.onCreateChannel));
@@ -7510,7 +7510,7 @@ ui.widget.DialogManager.showDialog = function(dialogFcnName,options) {
 	var selector = "." + dialogFcnName;
 	var dialog = new $(selector);
 	if(!dialog.exists()) {
-		dialog = new $("<div id='dialogFcnName'></div>");
+		dialog = new $("<div></div>");
 		dialog.appendTo(js.Browser.document.body);
 		var dlg = (Reflect.field($.ui,dialogFcnName))(options);
 		dlg.open();

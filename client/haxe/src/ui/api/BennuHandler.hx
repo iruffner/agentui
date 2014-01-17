@@ -23,7 +23,7 @@ class BennuHandler implements ProtocolHandler {
 	public function getUser(login: Login): Void {
 		// Create a dummy user
 		var user = new User();
-		user.userData = new UserData("Nicola Tesla", "media/test/tesla.jpg");
+		user.userData = new UserData("Qoid", "media/test/koi.jpg");
 		EM.change(EMEvent.USER, user);
 		EM.change(EMEvent.FitWindow);
 
