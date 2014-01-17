@@ -23,8 +23,9 @@ class BennuHandler implements ProtocolHandler {
 	public function getUser(login: Login): Void {
 		// Create a dummy user
 		var user = new User();
-		user.userData = new UserData("Sylvester ElGato");
-		EM.change(EMEvent.USER, new User());
+		user.userData = new UserData("Nicola Tesla", "media/test/tesla.jpg");
+		EM.change(EMEvent.USER, user);
+		EM.change(EMEvent.FitWindow);
 
 		// Establish a connection with the server and get the channel_id
 		var request = new BennuRequest("/api/channel/create", "", onCreateChannel);
@@ -71,7 +72,7 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	private function _onPoll(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
-		if (dataArr == null) { return; }
+		if (dataArr == null || dataArr.length == 0) { return; }
 
 		dataArr.iter(function(data:Dynamic): Void {
 

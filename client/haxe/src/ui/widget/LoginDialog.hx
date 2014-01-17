@@ -179,10 +179,6 @@ extern class LoginDialog extends JQ {
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
 
     				EM.change(EMEvent.USER_LOGIN, login);
-    				
-    				// EM.addListener(EMEvent.USER, new EMListener(function(n: Nothing): Void {
-    				// 		selfElement.dialog("close");
-    				// 	}));
 	        	},
 
 		        _buildDialog: function(): Void {
@@ -199,6 +195,7 @@ extern class LoginDialog extends JQ {
 		        		modal: true,
 		        		buttons: {
 		        			"Login": function() {
+//		        				$(".loginDialog + div button").button("option", "disabled", true);
 		        				self._login();
 		        			},
 		        			"I\\\'m New": function() {

@@ -4708,7 +4708,7 @@ ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
 ui.api.BennuHandler.__interfaces__ = [ui.api.ProtocolHandler];
 ui.api.BennuHandler.prototype = {
 	_onPoll: function(dataArr,textStatus,jqXHR) {
-		if(dataArr == null) return;
+		if(dataArr == null || dataArr.length == 0) return;
 		Lambda.iter(dataArr,function(data) {
 		});
 	}
@@ -4765,8 +4765,9 @@ ui.api.BennuHandler.prototype = {
 	}
 	,getUser: function(login) {
 		var user = new ui.model.User();
-		user.userData = new ui.model.UserData("Sylvester ElGato");
-		ui.model.EM.change(ui.model.EMEvent.USER,new ui.model.User());
+		user.userData = new ui.model.UserData("Nicola Tesla","media/test/tesla.jpg");
+		ui.model.EM.change(ui.model.EMEvent.USER,user);
+		ui.model.EM.change(ui.model.EMEvent.FitWindow);
 		var request = new ui.api.BennuRequest("/api/channel/create","",$bind(this,this.onCreateChannel));
 		request.start();
 	}
@@ -7509,7 +7510,7 @@ ui.widget.DialogManager.showDialog = function(dialogFcnName,options) {
 	var selector = "." + dialogFcnName;
 	var dialog = new $(selector);
 	if(!dialog.exists()) {
-		dialog = new $("<div></div>");
+		dialog = new $("<div id='dialogFcnName'></div>");
 		dialog.appendTo(js.Browser.document.body);
 		var dlg = (Reflect.field($.ui,dialogFcnName))(options);
 		dlg.open();
