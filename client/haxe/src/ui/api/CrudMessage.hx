@@ -13,3 +13,14 @@ class CrudMessage {
 		this.instance = instance;		
 	}
 }
+
+@:rtti
+class QueryMessage {
+	public var type:String;
+	public var q:String;
+
+	public function new(type:String, q: String) {
+		this.type = type;
+		this.q = q;		
+	}
+}

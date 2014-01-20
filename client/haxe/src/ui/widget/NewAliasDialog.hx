@@ -14,13 +14,12 @@ typedef NewAliasDialogOptions = {
 
 typedef NewAliasDialogWidgetDef = {
 	@:optional var options: NewAliasDialogOptions;
-	@:optional var user: User;
 
-	@:optional var input_n: JQ;
+	@:optional var aliasName: JQ;
+	@:optional var username: JQ;
 	
 	var initialized: Bool;
 
-	var _setUser: User->Void;
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
 	var _createNewAlias: Void->Void;
@@ -52,20 +51,17 @@ extern class NewAliasDialog extends JQ {
 		        	var inputs: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 
 		        	labels.append("<div class='labelDiv' style='margin-top: 3px; margin-right: 6px;'><label id='n_label' for='newu_n'>Alias Name:</label></div>");
+		        	labels.append("<div class='labelDiv' style='margin-top: 3px; margin-right: 6px;'><label id='n_label' for='newu_n'>User Name:</label></div>");
 
-		        	self.input_n = new JQ("<input id='newu_n' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		        	self.aliasName = new JQ("<input id='newu_n' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		        	inputs.append("<br/>");
+		        	self.username = new JQ("<input id='username' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
-		        			if(evt.keyCode == 13) {
-		        				self._createNewAlias();
-		        			}
-		        		});
-
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
-	        				self._setUser(user);
-		        		},"NewAliasDialog-User")
-		        	);
+	        			if(evt.keyCode == 13) {
+	        				self._createNewAlias();
+	        			}
+	        		});
 		        },
 
 		        initialized: false,
@@ -74,13 +70,13 @@ extern class NewAliasDialog extends JQ {
 		        	var self: NewAliasDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-		        	var valid = true;
     				var alias: Alias = new Alias();
-    				alias.label = self.input_n.val();
-    				if(alias.label.isBlank()) {
-    					valid = false;
-    				}
-    				if(!valid) return;
+    				alias.name = self.aliasName.val();
+    				alias.data.name = self.username.val();
+					if (alias.data.name.isBlank() || alias.name.isBlank()) {
+						return;
+					}
+
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EM.change(EMEvent.ALIAS_CREATE, alias);
 
@@ -119,12 +115,6 @@ extern class NewAliasDialog extends JQ {
 		        	selfElement.dialog(dlgOptions);
 		        },
 
-		        _setUser: function(user: User): Void {
-		        	var self: NewAliasDialogWidgetDef = Widgets.getSelf();
-
-		        	self.user = user;
-	        	},
-
 	        	open: function(): Void {
 		        	var self: NewAliasDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
@@ -133,7 +123,7 @@ extern class NewAliasDialog extends JQ {
 		        		self._buildDialog();
 		        	}
 		        	// selfElement.children("#n_label").focus();
-		        	// self.input_n.blur();
+		        	// self.aliasName.blur();
 	        		selfElement.open();
         		},
 		        

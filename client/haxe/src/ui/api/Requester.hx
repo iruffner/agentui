@@ -9,12 +9,13 @@ import m3.util.UidGenerator;
 import ui.model.Filter;
 import ui.model.EM;
 import ui.model.ModelObj;
-import ui.api.ProtocolMessage;
+import ui.api.CrudMessage;
+
 import m3.exception.Exception;
 import ui.exception.InitializeSessionException;
 
 interface Requester {
-	function start(?opts: AjaxOptions): Void;
+	function start(?opts: AjaxOptions): Dynamic;
 	function abort(): Void;
 }
 
@@ -25,6 +26,7 @@ class BaseRequest {
 	private var requestData:String;
 	private var onSuccess: Dynamic->String->JQXHR->Void;
 	private var onError: JQXHR->String->String->Void;
+	private var baseOpts:AjaxOptions;
 
 	public function new(requestData: String, successFcn: Dynamic->String->JQXHR->Void, ?errorFcn: JQXHR->String->String->Void) {
 		this.requestData = requestData;
@@ -32,7 +34,7 @@ class BaseRequest {
 		this.onError     = errorFcn;
 	}
 
-	public function send(?opts: AjaxOptions): Dynamic {
+	public function start(?opts: AjaxOptions): Dynamic {
 		// NB:  url must be passed in through opts
 		var ajaxOpts: AjaxOptions = {
 	        dataType: "json", 
@@ -66,6 +68,8 @@ class BaseRequest {
 	   			}
 			}
         };
+
+        JQ.extend(ajaxOpts, baseOpts);
         if (opts != null) {
         	JQ.extend(ajaxOpts, opts);
         }
@@ -79,53 +83,27 @@ class BaseRequest {
 class BennuRequest extends BaseRequest implements Requester {
 	public static var channelId:String;
 
-	private var path:String;
-
 	public function new(path:String, data:String, successFcn: Dynamic->String->JQXHR->Void) {
-		this.path = path;
-		super(data, successFcn);
-	}
-
-	public function start(?opts: AjaxOptions) {
-		var ajaxOpts:AjaxOptions = {
+		baseOpts = {
 			async: true,
 			url: AgentUi.URL + path 
 		};
 
-		if (opts != null) {
-        	JQ.extend(ajaxOpts, opts);
-        }
-
-		super.send(ajaxOpts);
+		super(data, successFcn);
 	}
 }
 
 class CrudRequest extends BaseRequest implements Requester {
-	private var crudMessage:CrudMessage;
-	private var url:String;
 
 	public function new(object:ModelObj, verb:String, successFcn: Dynamic->String->JQXHR->Void):Void {
 		var instance = AppContext.SERIALIZER.toJson(object);
-		if (instance.iid == null) {
-			instance.iid = UidGenerator.create(32);
-		}
+		var crudMessage = new CrudMessage(object.objectType(), instance);
 
-		this.crudMessage = new CrudMessage(object.objectType(), instance);
-		this.url = AgentUi.URL + "/api/" + verb;
-		super(AppContext.SERIALIZER.toJsonString(crudMessage), successFcn);
-	}
-
-	public function start(?opts: AjaxOptions): Void {
-		var ajaxOpts:AjaxOptions = {
-			async: false,
-			url: this.url
+		baseOpts = {
+			async: true,
+			url: AgentUi.URL + "/api/" + verb
 		};
-
-		if (opts != null) {
-        	JQ.extend(ajaxOpts, opts);
-        }
-
-		super.send(ajaxOpts);
+		super(AppContext.SERIALIZER.toJsonString(crudMessage), successFcn);
 	}
 }
 
@@ -141,24 +119,16 @@ class DeleteRequest extends CrudRequest {
 	}	
 }
 
-class StandardRequest extends BaseRequest implements Requester {
+class QueryRequest extends BaseRequest implements Requester {
+	private var queryMessage:QueryMessage;
 
-	public function new(request: ProtocolMessage<Dynamic>, successFcn: Dynamic->String->JQXHR->Void) {
-		AppContext.LOGGER.debug("sending " + request.msgType);
-		super(AppContext.SERIALIZER.toJsonString(request), successFcn);
-	}
-
-	public function start(?opts: AjaxOptions): Void {
-		var ajaxOpts:AjaxOptions = {
-			async: true,
-			url: AgentUi.URL + "/api" 
+	public function new(type:String, where:String, successFcn: Dynamic->String->JQXHR->Void):Void {
+		var queryMessage = new QueryMessage(type, where);
+		baseOpts = {
+			async: false,
+			url: AgentUi.URL + "/api/query"
 		};
-
-		if (opts != null) {
-        	JQ.extend(ajaxOpts, opts);
-        }
-
-		super.send(ajaxOpts);
+		super(AppContext.SERIALIZER.toJsonString(queryMessage), successFcn);
 	}
 }
 
@@ -166,18 +136,26 @@ class LongPollingRequest extends BaseRequest implements Requester {
 
 	private var jqXHR: Dynamic;
 	private var running: Bool = true;
-	private var url: String;
-	private var additionalOpts:AjaxOptions;
 
 	public var timeout:Int = 30000;
 
 	public function new(requestToRepeat: String, successFcn: Dynamic->String->JQXHR->Void, ?path:String, ?ajaxOpts:AjaxOptions) {
-		this.url = AgentUi.URL + "/api";
+		var url = AgentUi.URL + "/api";
 		if (path != null) {
-			this.url = AgentUi.URL + path;
+			url = AgentUi.URL + path;
 		}
 
-		this.additionalOpts = ajaxOpts;
+		baseOpts = { 
+			url: url,
+	        complete: function(jqXHR:JQXHR, textStatus:String): Void {
+	        	this.poll();
+        	}, 
+	        timeout: this.timeout 
+        };
+
+        if (ajaxOpts != null) {
+    		JQ.extend(baseOpts, ajaxOpts);
+    	}
 
 		var wrappedSuccessFcn = function(data: Dynamic, textStatus: String, jqXHR: JQXHR) {
 			SystemStatus.instance().onMessage();
@@ -204,8 +182,9 @@ class LongPollingRequest extends BaseRequest implements Requester {
         });		
 	}
 
-	public function start(?opts: AjaxOptions): Void {
+	override public function start(?opts: AjaxOptions): Dynamic {
 		poll();
+		return jqXHR;
 	}
 
 	override public function abort(): Void {
@@ -223,19 +202,7 @@ class LongPollingRequest extends BaseRequest implements Requester {
 
 	private function poll(): Void {
 		if (running) {
-			var ajaxOpts: AjaxOptions = { 
-				url: this.url,
-		        complete: function(jqXHR:JQXHR, textStatus:String): Void {
-		        	this.poll();
-	        	}, 
-		        timeout: this.timeout 
-	        };
-
-	        if (this.additionalOpts != null) {
-        		JQ.extend(ajaxOpts, this.additionalOpts);
-        	}
-
-			jqXHR = super.send(ajaxOpts);
+			jqXHR = super.start();
 		}
 	}
 }

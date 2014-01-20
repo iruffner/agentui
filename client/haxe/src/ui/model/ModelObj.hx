@@ -53,6 +53,31 @@ class ModelObjWithUid<T> extends ModelObj{
 	}
 }
 
+class ModelObjWithIid<T> extends ModelObj{
+	@:isVar public var iid(get,set): String;
+
+	public function new() {
+		super();
+		this.iid = UidGenerator.create(32);
+	}
+
+	public static function identifier<T>(t: ModelObjWithIid<T>): String {
+		return t.iid;
+	}
+
+	private function get_iid(): String {
+		if(this.iid.isBlank()) {
+			this.iid = UidGenerator.create(32);
+		}
+		return this.iid;
+	}
+
+	private function set_iid(id: String): String {
+		this.iid = id;
+		return this.iid;
+	}
+}
+
 class User extends ModelObj {
 	public var sessionURI: String;
 	public var userData: UserData; 
@@ -67,6 +92,7 @@ class User extends ModelObj {
 	public function new () {
 		super();
 		registerModelListeners();
+		this.aliasSet = new ObservableSet<Alias>(Alias.identifier);
 	}
 
 	private function registerModelListeners(): Void {
@@ -97,7 +123,7 @@ class User extends ModelObj {
 	}
 
 	private function get_currentAlias(): Alias {
-		if(currentAlias == null && aliasSet != null) {
+		if(currentAlias == null && !aliasSet.isEmpty()) {
 			currentAlias = aliasSet.iterator().next();
 		} else if (currentAlias == null) {
 			currentAlias = new Alias();
@@ -129,7 +155,7 @@ class User extends ModelObj {
 		var conn: Connection = new Connection();
 		conn.source = sessionURI;
 		conn.target = sessionURI;
-		conn.label = currentAlias.label;
+		conn.label = currentAlias.name;
 		return conn;
 	}
 }
@@ -145,20 +171,23 @@ class UserData extends ModelObj {
 	}
 }
 
-class Alias extends ModelObj {
-	public var profile: UserData;
-	public var label: String;
+class Alias extends ModelObjWithIid<Alias> {
+	public var rootLabelIid:String;
+	public var name: String;
+	public var data: UserData;
 	
 	@:transient @:isVar public var labelSet(get, null): ObservableSet<Label>;
 	@:transient @:isVar public var connectionSet(get, null): ObservableSet<Connection>;
+	/*
 	private var labels: Array<Label>;
 	private var connections: Array<Connection>;
-
+	*/
 	public function new () {
 		super();
-		this.profile = new UserData();
+		this.data = new UserData();
+		this.rootLabelIid = "qoid";
 	}
-
+/*
 	private function readResolve(): Void {
 		labelSet = new ObservableSet<Label>(Label.identifier, labels);
 		connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
@@ -168,9 +197,9 @@ class Alias extends ModelObj {
 	 	labels = labelSet.asArray();
 	 	connections = connectionSet.asArray();
 	}
-
+*/
 	public static function identifier(alias: Alias): String {
-		return alias.label;
+		return alias.name;
 	}
 
 	private function get_labelSet(): ObservableSet<Label> {

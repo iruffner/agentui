@@ -153,7 +153,7 @@ extern class UserComp extends JQ {
 						while(iter.hasNext()) {
 							var alias: Alias = iter.next();
 							menuOption = {
-    							label: alias.label,
+    							label: alias.name,
     							icon: "ui-icon-person",
     							action: function(evt: JQEvent, m: M3Menu): Void {
     								if (Alias.identifier(user.currentAlias) == Alias.identifier(alias)) {
@@ -192,8 +192,8 @@ extern class UserComp extends JQ {
 					self.container.empty();
 					var imgSrc: String = "media/default_avatar.jpg";
 					if(user != null) {
-						if ( M.getX(user.currentAlias.profile.imgSrc, "").isNotBlank()) {
-							imgSrc = user.currentAlias.profile.imgSrc;
+						if ( M.getX(user.currentAlias.data.imgSrc, "").isNotBlank()) {
+							imgSrc = user.currentAlias.data.imgSrc;
 						} else if (user.userData.imgSrc.isNotBlank()){
 							imgSrc = user.userData.imgSrc;
 						}
@@ -222,7 +222,7 @@ extern class UserComp extends JQ {
 		        	self.userIdTxt = new JQ("<div class='userIdTxt'></div>");
 		        	self.container.append(self.userIdTxt);
 		        	var name: String = M.getX(user.userData.name, "");
-		        	var aliasLabel: String = M.getX(user.currentAlias.label, "");
+		        	var aliasLabel: String = M.getX(user.currentAlias.name, "");
 		        	if(aliasLabel.isBlank()) aliasLabel = "";
 		        	self.userIdTxt
 		        		.append("<strong>" + name + "</strong>")
