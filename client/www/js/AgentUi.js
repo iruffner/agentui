@@ -4747,6 +4747,16 @@ ui.api.BennuHandler.prototype = {
 	,setDefaultAlias: function(alias) {
 	}
 	,removeAlias: function(alias) {
+		var deleteRequest = new ui.api.DeleteRequest(alias,function(data,textStatus,jqXHR) {
+			js.Lib.alert(data);
+		});
+		deleteRequest.start();
+	}
+	,updateAlias: function(alias) {
+		var upsertRequest = new ui.api.UpsertRequest(alias,function(data,textStatus,jqXHR) {
+			js.Lib.alert(data);
+		});
+		upsertRequest.start();
 	}
 	,addAlias: function(alias) {
 		var upsertRequest = new ui.api.UpsertRequest(alias,function(data,textStatus,jqXHR) {
@@ -5075,6 +5085,9 @@ ui.api.LegacyHandler.prototype = {
 			var ex = m3.log.Logga.getExceptionInst(err);
 			ui.AppContext.LOGGER.error("Error executing setDefaultAlias",ex);
 		}
+	}
+	,updateAlias: function(alias) {
+		js.Lib.alert("NOT IMPLEMENTED:  updateAlias");
 	}
 	,removeAlias: function(alias) {
 		var request = new ui.api.BaseAgentAliasesRequest(ui.api.MsgType.removeAgentAliasesRequest);

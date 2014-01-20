@@ -16,6 +16,7 @@ interface ProtocolHandler {
 	public function updateLabels():Void;
 	public function addAlias(alias: Alias): Void;
 	public function removeAlias(alias: Alias): Void;
+	public function updateAlias(alias: Alias): Void;
 	public function setDefaultAlias(alias: Alias): Void;
 	public function getAliasConnections(alias: Alias): Void;
 	public function getAliasLabels(alias: Alias): Void;

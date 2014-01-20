@@ -12,7 +12,6 @@ import ui.model.Node;
 import ui.model.EM;
 import ui.api.BennuHandler;
 import ui.api.ProtocolHandler;
-import ui.api.LegacyHandler;
 import ui.api.ProtocolMessage;
 
 

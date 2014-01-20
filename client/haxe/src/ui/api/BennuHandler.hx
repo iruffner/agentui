@@ -49,7 +49,20 @@ class BennuHandler implements ProtocolHandler {
 		upsertRequest.start();
 	}
 	
-	public function removeAlias(alias: Alias): Void { }
+	public function updateAlias(alias: Alias): Void { 
+		var upsertRequest = new UpsertRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
+			js.Lib.alert(data);
+		});
+		upsertRequest.start();
+	}
+
+	public function removeAlias(alias: Alias): Void {
+		var deleteRequest = new DeleteRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
+			js.Lib.alert(data);
+		});
+		deleteRequest.start();
+	}
+
 	public function setDefaultAlias(alias: Alias): Void { }
 	public function getAliasConnections(alias: Alias): Void { }
 	public function getAliasLabels(alias: Alias): Void { }
