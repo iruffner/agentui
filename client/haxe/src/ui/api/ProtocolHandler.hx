@@ -11,7 +11,7 @@ interface ProtocolHandler {
 	public function getAliasInfo(alias: Alias): Void;
 	public function createUser(newUser: NewUser): Void;
 	public function validateUser(token: String): Void;
-	public function updateUser(user: User): Void;
+	public function updateUser(user: Agent): Void;
 	public function post(content: Content): Void;
 	public function updateLabels():Void;
 	public function createAlias(alias: Alias): Void;

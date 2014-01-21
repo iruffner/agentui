@@ -14,7 +14,7 @@ typedef NewUserDialogOptions = {
 
 typedef NewUserDialogWidgetDef = {
 	@:optional var options: NewUserDialogOptions;
-	@:optional var user: User;
+	@:optional var user: Agent;
 	@:optional var _cancelled: Bool;
 	@:optional var _registered: Bool;
 
@@ -29,7 +29,7 @@ typedef NewUserDialogWidgetDef = {
 	
 	var initialized: Bool;
 
-	var _setUser: User->Void;
+	var _setUser: Agent->Void;
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
 	var _createNewUser: Void->Void;
@@ -136,7 +136,7 @@ extern class NewUserDialog extends JQ {
 		        			}
 		        		});
 
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER, new EMListener(function(user: Agent): Void {
 	        				self._setUser(user);
 		        		},"NewUserDialog-User")
 		        	);
@@ -211,7 +211,7 @@ extern class NewUserDialog extends JQ {
 		        	selfElement.dialog(dlgOptions);
 		        },
 
-		        _setUser: function(user: User): Void {
+		        _setUser: function(user: Agent): Void {
 		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
 
 		        	self.user = user;

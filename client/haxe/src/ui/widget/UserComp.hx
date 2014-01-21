@@ -23,7 +23,7 @@ typedef UserCompOptions = {
 
 typedef UserCompWidgetDef = {
 	@:optional var options: UserCompOptions;
-	@:optional var user: User;
+	@:optional var user: Agent;
 	var _create: Void->Void;
 	var _setUser: Void->Void;
 	var _setTarget: Connection->Void;
@@ -34,7 +34,7 @@ typedef UserCompWidgetDef = {
 	@:optional var container: JQ;
 	@:optional var userImg: JQ;
 	@:optional var userIdTxt: JQ;
-	@:optional var changeAliasLink: JQ;
+	@:optional var switchAliasLink: JQ;
 }
 
 @:native("$")
@@ -59,7 +59,7 @@ extern class UserComp extends JQ {
 		        	selfElement.append(self.container);
 		        	self._setUser();//init the components
 
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER, new EMListener(function(user: Agent): Void {
 		        			self.user = user;
 		        			self._setUser();
 		        		}, "UserComp-User")
@@ -232,12 +232,12 @@ extern class UserComp extends JQ {
 	        		self.container.append(changeDiv);
 
 	        		if(user != null) {
-			        	self.changeAliasLink = new JQ("<a class='aliasToggle'>Switch Alias</a>");
-		        		changeDiv.append(self.changeAliasLink);
+			        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Switch Alias</a>");
+		        		changeDiv.append(self.switchAliasLink);
 
 		        		var aliasMenu = self._createAliasMenu(self);
 
-			        	self.changeAliasLink.click(function(evt: JQEvent): Dynamic {
+			        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
 		        			aliasMenu.show();
 		        			aliasMenu.position({
 			        			my: "left top",
@@ -254,7 +254,7 @@ extern class UserComp extends JQ {
 
 	        	_setTarget: function(conn: Connection): Void {
 		        	var self: UserCompWidgetDef = Widgets.getSelf();
-		        	self.changeAliasLink.hide();
+		        	self.switchAliasLink.hide();
 	        		self.userIdTxt
 	        			.empty()
 		        		.append("<strong>" + conn.name() + "</strong>");

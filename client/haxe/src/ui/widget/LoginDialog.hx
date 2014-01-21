@@ -15,7 +15,7 @@ typedef LoginDialogOptions = {
 
 typedef LoginDialogWidgetDef = {
 	@:optional var options: LoginDialogOptions;
-	@:optional var user: User;
+	@:optional var user: Agent;
 	@:optional var _newUser: Bool;
 
 	@:optional var input_un: JQ;
@@ -27,7 +27,7 @@ typedef LoginDialogWidgetDef = {
 	
 	var initialized: Bool;
 
-	var _setUser: User->Void;
+	var _setUser: Agent->Void;
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
 	var _login: Void->Void;
@@ -127,7 +127,7 @@ extern class LoginDialog extends JQ {
 		        	// 		}
 		        	// 	});
 
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER, new EMListener(function(user: Agent): Void {
 	        				self._setUser(user);
 		        			if(user == null) {
 		        				self.open();
@@ -137,7 +137,7 @@ extern class LoginDialog extends JQ {
 		        		}, "Login-User")
 		        	);
 
-		        	EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(user: Agent): Void {
 	        				selfElement.dialog("close");
 		        		}, "Login-UserSignup")
 		        	);
@@ -220,7 +220,7 @@ extern class LoginDialog extends JQ {
 		        	selfElement.dialog(dlgOptions);
 		        },
 
-		        _setUser: function(user: User): Void {
+		        _setUser: function(user: Agent): Void {
 		        	var self: LoginDialogWidgetDef = Widgets.getSelf();
 
 		        	self.user = user;

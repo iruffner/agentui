@@ -78,7 +78,7 @@ class ModelObjWithIid<T> extends ModelObj{
 	}
 }
 
-class User extends ModelObj {
+class Agent extends ModelObj {
 	public var sessionURI: String;
 	public var userData: UserData; 
 	
@@ -93,6 +93,7 @@ class User extends ModelObj {
 		super();
 		registerModelListeners();
 		this.aliasSet = new ObservableSet<Alias>(Alias.identifier);
+		this.aliasSet.visualId = "User Aliases";
 	}
 
 	private function registerModelListeners(): Void {
@@ -182,10 +183,16 @@ class Alias extends ModelObjWithIid<Alias> {
 	private var labels: Array<Label>;
 	private var connections: Array<Connection>;
 	*/
-	public function new () {
+	public function new (?alias_:Dynamic) {
 		super();
 		this.data = new UserData();
 		this.rootLabelIid = "qoid";
+		if (alias_ != null) {
+			this.rootLabelIid = alias_.rootLabelIid;
+			this.name = alias_.name;
+			this.data.name = alias_.data.name;
+			this.data.imgSrc = alias_.data.imgSrc;
+		}
 	}
 /*
 	private function readResolve(): Void {

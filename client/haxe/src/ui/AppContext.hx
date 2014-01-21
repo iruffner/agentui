@@ -16,7 +16,7 @@ class AppContext {
 	public static var DEMO: Bool = false;
 
     public static var LOGGER: Logga;
-    public static var USER: User;
+    public static var USER: Agent;
     public static var TARGET: Connection;
     public static var CONTENT: ObservableSet<Content>;
     public static var SERIALIZER: Serializer;
@@ -80,10 +80,10 @@ class AppContext {
         EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
         EM.addListener(EMEvent.USER_CREATE, fireFitWindow);
 
-        EM.addListener(EMEvent.USER, new EMListener(function(user: User) {
-                USER = user;
-                EM.change(EMEvent.AliasLoaded, user.currentAlias);
-            }, "AgentUi-User")
+        EM.addListener(EMEvent.USER, new EMListener(function(agent: Agent) {
+                USER = agent;
+                EM.change(EMEvent.AliasLoaded, agent.currentAlias);
+            }, "AgentUi-USER")
         );
 
         EM.addListener(EMEvent.FitWindow, fitWindowListener);

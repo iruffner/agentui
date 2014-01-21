@@ -21,15 +21,35 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function getUser(login: Login): Void {
-		// Create a dummy user
-		var user = new User();
-		user.userData = new UserData("Qoid", "media/test/koi.jpg");
-		EM.change(EMEvent.USER, user);
+		// Create a dummy agent
+		var agent = new Agent();
+		agent.userData = new UserData("Qoid", "media/test/koi.jpg");
+		EM.change(EMEvent.USER, agent);
 		EM.change(EMEvent.FitWindow);
 
 		// Establish a connection with the server and get the channel_id
 		var request = new BennuRequest("/api/channel/create", "", onCreateChannel);
 		request.start();
+
+		// Get all aliases
+		var qr = new QueryRequest("alias", "", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
+        	
+        	for (alias_ in data) {
+        		agent.aliasSet.add(new Alias(alias_));
+        	}
+
+        	if (agent.aliasSet.isEmpty()) {
+        		AppContext.LOGGER.error("Agent has no Aliases!!");
+        		agent.currentAlias = new Alias();
+        		agent.currentAlias.name = "default";
+        		agent.aliasSet.add(agent.currentAlias);
+        	} else {
+        		agent.currentAlias = agent.aliasSet.iterator().next();
+        	}
+			EM.change(EMEvent.USER, agent);
+			EM.change(EMEvent.FitWindow);
+		});
+		qr.start();
 	}
 
 	public function filter(filter: Filter): Void { }
@@ -38,7 +58,7 @@ class BennuHandler implements ProtocolHandler {
 	public function getAliasInfo(alias: Alias): Void { }
 	public function createUser(newUser: NewUser): Void { }
 	public function validateUser(token: String): Void { }
-	public function updateUser(user: User): Void { }
+	public function updateUser(agent: Agent): Void { }
 	public function post(content: Content): Void { }
 	public function updateLabels():Void { }
 

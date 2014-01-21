@@ -14,7 +14,7 @@ typedef SignupConfirmationDialogOptions = {
 
 typedef SignupConfirmationDialogWidgetDef = {
 	@:optional var options: SignupConfirmationDialogOptions;
-	@:optional var user: User;
+	@:optional var user: Agent;
 	@:optional var _cancelled: Bool;
 
 	@:optional var input: JQ;
@@ -22,7 +22,7 @@ typedef SignupConfirmationDialogWidgetDef = {
 	
 	var initialized: Bool;
 
-	var _setUser: User->Void;
+	var _setUser: Agent->Void;
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
 	var _validateUser: Void->Void;
@@ -65,7 +65,7 @@ extern class SignupConfirmationDialog extends JQ {
 		        			}
 		        		});
 
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: User): Void {
+		        	EM.addListener(EMEvent.USER, new EMListener(function(user: Agent): Void {
 	        				self._setUser(user);
 		        		}, "SignupConfirmationDialog-User")
 		        	);
@@ -124,7 +124,7 @@ extern class SignupConfirmationDialog extends JQ {
 		        	selfElement.dialog(dlgOptions);
 		        },
 
-		        _setUser: function(user: User): Void {
+		        _setUser: function(user: Agent): Void {
 		        	var self: SignupConfirmationDialogWidgetDef = Widgets.getSelf();
 
 		        	self.user = user;

@@ -125,7 +125,7 @@ class QueryRequest extends BaseRequest implements Requester {
 	public function new(type:String, where:String, successFcn: Dynamic->String->JQXHR->Void):Void {
 		var queryMessage = new QueryMessage(type, where);
 		baseOpts = {
-			async: false,
+			async: true,
 			url: AgentUi.URL + "/api/query"
 		};
 		super(AppContext.SERIALIZER.toJsonString(queryMessage), successFcn);

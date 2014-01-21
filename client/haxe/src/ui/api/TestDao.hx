@@ -355,12 +355,12 @@ class TestDao {
 		buildAliases();
 	}
 
-	public static function getConnections(user: User): Array<Connection> {
+	public static function getConnections(agent: Agent): Array<Connection> {
 		if(!initialized) initialize();
 		return connections;
 	}
 
-	public static function getLabels(user: User): Array<Label> {
+	public static function getLabels(agent: Agent): Array<Label> {
 		if(!initialized) initialize();
 		return labels;
 	}
@@ -371,9 +371,9 @@ class TestDao {
 		return getRandomNumber(arr , Std.random(arr.length));
 	}
 
-	public static function getUser(uid: String): User {
+	public static function getUser(uid: String): Agent {
 		if(!initialized) initialize();
-		var user: User = new User();
+		var user: User = new Agent();
         user.sessionURI = "agent-session://ArtVandelay@session1";
         user.userData = new UserData();
         user.userData.name = "Jerry Seinfeld";
