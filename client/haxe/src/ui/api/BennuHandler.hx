@@ -55,7 +55,10 @@ class BennuHandler implements ProtocolHandler {
 	public function filter(filter: Filter): Void { }
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void { }
 	public function nextPage(nextPageURI: String): Void { }
-	public function getAliasInfo(alias: Alias): Void { }
+	public function getAliasInfo(alias: Alias): Void {
+	//	getAliasConnections(alias);
+		getAliasLabels(alias);
+	}
 	public function createUser(newUser: NewUser): Void { }
 	public function validateUser(token: String): Void { }
 	public function updateUser(agent: Agent): Void { }
@@ -88,7 +91,14 @@ class BennuHandler implements ProtocolHandler {
 
 	public function setDefaultAlias(alias: Alias): Void { }
 	public function getAliasConnections(alias: Alias): Void { }
-	public function getAliasLabels(alias: Alias): Void { }
+
+	public function getAliasLabels(alias:Alias) {
+	var qr = new QueryRequest("labelChild", "parentIid='" + alias.rootLabelIid + "'", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
+		js.Lib.alert(data);
+	});
+	qr.start();
+}
+
 	public function beginIntroduction(intro: Introduction): Void { } 
 	public function confirmIntroduction(confirmation: IntroductionConfirmation): Void { }
 	public function backup(/*backupName: String*/): Void { }

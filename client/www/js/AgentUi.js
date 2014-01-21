@@ -4761,6 +4761,10 @@ ui.api.BennuHandler.prototype = {
 	,beginIntroduction: function(intro) {
 	}
 	,getAliasLabels: function(alias) {
+		var qr = new ui.api.QueryRequest("labelChild","parentIid='" + alias.rootLabelIid + "'",function(data,textStatus,jqXHR) {
+			js.Lib.alert(data);
+		});
+		qr.start();
 	}
 	,getAliasConnections: function(alias) {
 	}
@@ -4798,6 +4802,7 @@ ui.api.BennuHandler.prototype = {
 	,createUser: function(newUser) {
 	}
 	,getAliasInfo: function(alias) {
+		this.getAliasLabels(alias);
 	}
 	,nextPage: function(nextPageURI) {
 	}
