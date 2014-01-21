@@ -174,7 +174,7 @@ extern class PostComp extends JQ {
 					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 					      		// Check to see if the element being dropped is already in the container
 						      	if (isDuplicate(".connectionAvatar", _ui.draggable, tags, function(ele:JQ){return new ConnectionAvatar(ele).getConnection().uid;} )
-					      		 || isDuplicate(".labelComp"       , _ui.draggable, tags, function(ele:JQ){return new LabelComp(ele).getLabel().uid;})) {
+					      		 || isDuplicate(".labelComp"       , _ui.draggable, tags, function(ele:JQ){return new LabelComp(ele).getLabel().iid;})) {
 					      			if (_ui.draggable.parent().attr("id") != "post_comps_tags") {
 						      			_ui.draggable.draggable("option", "revert", true);
 						      		}
@@ -227,8 +227,8 @@ extern class PostComp extends JQ {
 								// 	labelMap[labelArray[i].uid] = labelArray[i];
 								// }
 								// var labelTree: String = "l" + labelMap[uid].text + "(_)";
-								// if (untyped __js__("!!labelMap.get(uid).parentUid")) {
-								// 	labelTree = "n" + labelMap[labelMap[uid].parentUid].text + "(" + labelTree + ")";
+								// if (untyped __js__("!!labelMap.get(uid).parentIid")) {
+								// 	labelTree = "n" + labelMap[labelMap[uid].parentIid].text + "(" + labelTree + ")";
 								// }
 								content.labelSet.add(labelComp.getLabel());
 							});
@@ -253,8 +253,8 @@ extern class PostComp extends JQ {
 // 									labelMap[labelArray[i].uid] = labelArray[i];
 // 								}
 // 								var labelTree: String = "l" + labelMap[uid].text + "(_)";
-// 								if (labelMap[uid].parentUid) {
-// 									labelTree = "n" + labelMap[labelMap[uid].parentUid].text + "(" + labelTree + ")";
+// 								if (labelMap[uid].parentIid) {
+// 									labelTree = "n" + labelMap[labelMap[uid].parentIid].text + "(" + labelTree + ")";
 // 								}
 // 								content.labelSet.add(labelTree);
 // 							});

@@ -63,7 +63,6 @@ class BennuHandler implements ProtocolHandler {
 	public function validateUser(token: String): Void { }
 	public function updateUser(agent: Agent): Void { }
 	public function post(content: Content): Void { }
-	public function updateLabels():Void { }
 
 	public function createAlias(alias: Alias): Void { 
        	AppContext.LOGGER.debug("BennuHandler: createAlias called");
@@ -93,11 +92,34 @@ class BennuHandler implements ProtocolHandler {
 	public function getAliasConnections(alias: Alias): Void { }
 
 	public function getAliasLabels(alias:Alias) {
-	var qr = new QueryRequest("labelChild", "parentIid='" + alias.rootLabelIid + "'", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
-		js.Lib.alert(data);
-	});
-	qr.start();
-}
+		var qr = new QueryRequest("labelChild", "parentIid='" + alias.rootLabelIid + "'", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
+			js.Lib.alert(data);
+		});
+		qr.start();
+	}
+
+	public function updateLabels():Void {
+		js.Lib.alert("NOOP:  updateLabels");
+	}
+
+	public function createLabel(label:Label, parent:Label): Void { 
+		// TODO: create a label and a labelChild
+	}
+
+	public function updateLabel(label:Label):Void {
+		// TODO: Upsert Request 
+	}
+
+	public function moveLabel(label:Label, parent:Label):Void {
+		// TODO:  Delete labelChild, add labelChild
+	}
+ 
+	public function deleteLabel(label:Label):Void {
+		var deleteRequest = new DeleteRequest(label, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
+			js.Lib.alert(data);
+		});
+		deleteRequest.start();		
+	}
 
 	public function beginIntroduction(intro: Introduction): Void { } 
 	public function confirmIntroduction(confirmation: IntroductionConfirmation): Void { }
@@ -106,14 +128,14 @@ class BennuHandler implements ProtocolHandler {
 	public function restores(): Void { }
 
 	private function onCreateChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
-		BennuRequest.channelId = data.id;
+		AppContext.CHANNEL = data.id;
 		_startPolling();
 	}
 
 	private function _startPolling(): Void {
 		// TODO:  add the ability to set the timeout value
 		var timeout = 10000;
-		var path:String = "/api/channel/poll?channel=" + BennuRequest.channelId + "&timeoutMillis=" + Std.string(timeout);
+		var path:String = "/api/channel/poll?channel=" + AppContext.CHANNEL + "&timeoutMillis=" + Std.string(timeout);
 		var ajaxOptions:AjaxOptions = {
 	        contentType: "",
 	        type: "GET"

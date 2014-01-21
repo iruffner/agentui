@@ -6,7 +6,7 @@ UserProfile: {
 Label : {
 	uid: "string",
 	text: "string",
-	parentUid: "string",
+	parentIid: "string",
 	color: "string"
 }
 
@@ -38,7 +38,7 @@ Alias : {
 		{
 			uid: "string",
 			text: "string",
-			parentUid: "string",
+			parentIid: "string",
 			color: "string"
 		},
 		...

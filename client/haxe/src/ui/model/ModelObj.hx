@@ -224,22 +224,27 @@ interface Filterable {
 
 }
 
-class Label extends ModelObj implements Filterable {
-	@:transient public var uid: String;
-	public var text: String;
-	@:transient public var parentUid: String;
+class LabelData extends ModelObj {
+	public var color:String;
+	public function new() {
+		super();
+		this.color = ColorProvider.getNextColor();
+	}
+}
 
-	@:transient public var color: String;
+class Label extends ModelObjWithIid<Label> implements Filterable {
+	public var text: String;
+	public var data: LabelData;
+	@:transient public var parentIid: String;
 
 	public function new(?text: String) {
 		super();
-		uid = UidGenerator.create(32);
 		this.text = text;
-		color = ColorProvider.getNextColor();
+		this.data = new LabelData();
 	}
 
 	public static function identifier(l: Label): String {
-		return l.parentUid + "_" + l.text;
+		return l.parentIid + "_" + l.text;
 	}
 }
 

@@ -65,22 +65,22 @@ class TestDao {
         labels.push(locations);
 
         var home: Label = new Label("Home");
-        home.parentUid = locations.uid;
+        home.parentIid = locations.iid;
         labels.push(home);
 
         var city: Label = new Label("City");
-        city.parentUid = locations.uid;
+        city.parentIid = locations.iid;
         labels.push(city);
 
         var media: Label = new Label("Media");
         labels.push(media);
 
         var personal: Label = new Label("Personal");
-        personal.parentUid = media.uid;
+        personal.parentIid = media.iid;
         labels.push(personal);
 
         var work: Label = new Label("Work");
-        work.parentUid = media.uid;
+        work.parentIid = media.iid;
         labels.push(work);
 
         var interests = new Label("Interests");

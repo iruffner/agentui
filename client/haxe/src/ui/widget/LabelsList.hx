@@ -57,8 +57,8 @@ extern class LabelsList extends JQ {
         						var iter: Iterator<Label> = AppContext.USER.currentAlias.labelSet.iterator();
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
-        							var option = "<option value='" + label.uid + "'";
-        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().uid == label.uid) {
+        							var option = "<option value='" + label.iid + "'";
+        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().iid == label.iid) {
         								option += " SELECTED";
         							}
         							option += ">" + label.text + "</option>";
@@ -90,7 +90,7 @@ extern class LabelsList extends JQ {
 										JqueryUtil.alert("Only alphanumeric labels allowed.");
 									} else {
 										var label: Label = new Label();
-										label.parentUid = parent.val();
+										label.parentIid = parent.val();
 										label.text = input.val();
       									AppContext.LOGGER.debug("add to " + self.labels.visualId);
 	  									EM.change(EMEvent.CreateLabel, label);
@@ -130,7 +130,7 @@ extern class LabelsList extends JQ {
 						label_list.insert(0, label);
 
 						var children: Array<Label> = new FilteredSet(self.labels, function(child: Label): Bool { 
-		            		return child.parentUid == label.uid;
+		            		return child.parentIid == label.iid;
 		            	}).asArray();
 
 						for (i in 0...children.length) {
@@ -223,7 +223,7 @@ extern class LabelsList extends JQ {
 					selfElement.children(".labelTree").remove();
 
 					var filteredSet: FilteredSet<Label> = new FilteredSet(labels, function(label: Label): Bool { 
-		            	return label.parentUid.isBlank();
+		            	return label.parentIid.isBlank();
 		            });
 
 					filteredSet.visualId = labels.visualId + "_filter";

@@ -81,8 +81,6 @@ class BaseRequest {
 }
 
 class BennuRequest extends BaseRequest implements Requester {
-	public static var channelId:String;
-
 	public function new(path:String, data:String, successFcn: Dynamic->String->JQXHR->Void) {
 		baseOpts = {
 			async: true,

@@ -14,7 +14,7 @@ using m3.helper.ArrayHelper;
 
 class AppContext {
 	public static var DEMO: Bool = false;
-
+    public static var CHANNEL:String;
     public static var LOGGER: Logga;
     public static var USER: Agent;
     public static var TARGET: Connection;

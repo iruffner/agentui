@@ -16,11 +16,11 @@ using StringTools;
 class PrologHelper {
 	public static function tagTreeAsStrings(labels: OSet<Label>): Array<String> {
 		var sarray: Array<String> = new Array<String>();
-		var topLevelLabels: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentUid.isBlank(); });
+		var topLevelLabels: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentIid.isBlank(); });
 
 		topLevelLabels.iter(function(l: Label): Void {
 				var s: String = "";
-				var children: FilteredSet<Label> = new FilteredSet(labels, function(f: Label): Bool { return f.parentUid == l.uid; });
+				var children: FilteredSet<Label> = new FilteredSet(labels, function(f: Label): Bool { return f.parentIid == l.iid; });
 				if(children.hasValues()) {
 					s += "n" + l.text + "(" + _processTagChildren(labels, children) + ")";
 				} else {
@@ -37,7 +37,7 @@ class PrologHelper {
 				if(s.isNotBlank()) {
 					s += ",";
 				}
-				var children: FilteredSet<Label> = new FilteredSet(original, function(f: Label): Bool { return f.parentUid == l.uid; });
+				var children: FilteredSet<Label> = new FilteredSet(original, function(f: Label): Bool { return f.parentIid == l.iid; });
 				if(children.hasValues()) {
 					s += "n" + l.text + "(";
 					s += _processTagChildren(original, children);
@@ -74,14 +74,14 @@ class PrologHelper {
 			if(term.startsWith("n")) { // this node has children
 				term = term.substring(1);
 				var l: Label = new Label(term);
-				if(parentLabel != null) l.parentUid = parentLabel.uid;
+				if(parentLabel != null) l.parentIid = parentLabel.iid;
 				larray.push(l);
 				var children: Array<Label> = _processDataLogChildren(l, parser);
 				larray = larray.concat(children);
 			} else if(term.isNotBlank() && term.startsWith("l") /*!term.contains(",")*/) { // this is a leaf
 				term = term.substring(1);
 				var l: Label = new Label(term);
-				if(parentLabel != null) l.parentUid = parentLabel.uid;
+				if(parentLabel != null) l.parentIid = parentLabel.iid;
 				larray.push(l);
 				parser.nextTerm();// "("
 				parser.nextTerm();// "_"
@@ -101,7 +101,7 @@ class PrologHelper {
 				var traveler: Label = label;
 				while(traveler != null) {
 					path.push(traveler.text);
-					traveler = AppContext.USER.currentAlias.labelSet.getElementComplex(traveler.parentUid, function(l: Label): String { return l.uid; });
+					traveler = AppContext.USER.currentAlias.labelSet.getElementComplex(traveler.parentIid, function(l: Label): String { return l.iid; });
 				}
 				sarray.push("[" + path.join(",") + "]");
 			});
