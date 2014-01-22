@@ -102,6 +102,7 @@ class BennuHandler implements ProtocolHandler {
 	        		var label = AppContext.SERIALIZER.fromJsonX(label_, Label);
 	        		AppContext.USER.currentAlias.labelSet.add(label);
 	        	}
+				EM.change(EMEvent.FitWindow);
 			}
 		);
 		qr.start();
@@ -180,20 +181,3 @@ class BennuHandler implements ProtocolHandler {
 		});
 	}
 }
-
-
-/*
-success : true, 
-		context : req1.context, 
-		result : {
-			type : label, 
-			instance : {
-				deleted : false, 
-				iid : u3meWZSQ14u3WUNovNqqWFSbJDK2dr67, 
-				name : ssssssssfdfsafdafsa, 
-				data : {
-					color : <...>
-				}
-			}
-		}
-*/

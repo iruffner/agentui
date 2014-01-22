@@ -4800,6 +4800,7 @@ ui.api.BennuHandler.prototype = {
 				var label = ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.Label);
 				ui.AppContext.USER.get_currentAlias().get_labelSet().add(label);
 			}
+			ui.model.EM.change(ui.model.EMEvent.FitWindow);
 		});
 		qr.start();
 	}
