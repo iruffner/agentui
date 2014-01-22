@@ -52,7 +52,7 @@ extern class LabelsList extends JQ {
         						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
         						container.click(stopFcn).keypress(enterFcn);
         						container.append("<label for='labelParent'>Parent: </label> ");
-        						var parent: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value=''>No Parent</option></select>").appendTo(container);
+        						var parent: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + AppContext.USER.currentAlias.rootLabelIid+ "'>No Parent</option></select>").appendTo(container);
         						parent.click(stopFcn);
         						var iter: Iterator<Label> = AppContext.USER.currentAlias.labelSet.iterator();
         						while(iter.hasNext()) {
@@ -61,7 +61,7 @@ extern class LabelsList extends JQ {
         							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().iid == label.iid) {
         								option += " SELECTED";
         							}
-        							option += ">" + label.text + "</option>";
+        							option += ">" + label.name + "</option>";
         							parent.append(option);
         						}
         						container.append("<br/><label for='labelName'>Name: </label> ");
@@ -91,7 +91,7 @@ extern class LabelsList extends JQ {
 									} else {
 										var label: Label = new Label();
 										label.parentIid = parent.val();
-										label.text = input.val();
+										label.name = input.val();
       									AppContext.LOGGER.debug("add to " + self.labels.visualId);
 	  									EM.change(EMEvent.CreateLabel, label);
 										new JQ("body").click();

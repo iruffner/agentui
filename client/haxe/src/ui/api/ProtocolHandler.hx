@@ -13,7 +13,8 @@ interface ProtocolHandler {
 	public function validateUser(token: String): Void;
 	public function updateUser(user: Agent): Void;
 	public function post(content: Content): Void;
-	public function updateLabels():Void;
+	public function createLabel(label:Label): Void;
+	public function deleteLabels(labels:Array<Label>):Void;
 	public function createAlias(alias: Alias): Void;
 	public function removeAlias(alias: Alias): Void;
 	public function updateAlias(alias: Alias): Void;

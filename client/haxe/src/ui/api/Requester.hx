@@ -91,15 +91,34 @@ class BennuRequest extends BaseRequest implements Requester {
 	}
 }
 
+class SubmitRequest extends BaseRequest implements Requester {
+	public function new(msgs:Array<ChannelRequestMessage>, ?successFcn: Dynamic->String->JQXHR->Void) {
+		this.baseOpts = {
+			dataType: "text",
+			async: true,
+			url: AgentUi.URL + "/api/channel/submit" 
+		};
+
+		if (successFcn == null) {
+			successFcn = function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR) {
+			};
+		}
+
+		var bundle = new ChannelRequestMessageBundle(msgs);
+		var data = AppContext.SERIALIZER.toJsonString(bundle);
+
+		super(data, successFcn);
+	}
+}
+
 class CrudRequest extends BaseRequest implements Requester {
 
-	public function new(object:ModelObj, verb:String, successFcn: Dynamic->String->JQXHR->Void):Void {
-		var instance = AppContext.SERIALIZER.toJson(object);
-		var crudMessage = new CrudMessage(object.objectType(), instance);
+	public function new(object:ModelObj, path:String, successFcn: Dynamic->String->JQXHR->Void):Void {
+		var crudMessage = CrudMessage.create(object);
 
 		baseOpts = {
 			async: true,
-			url: AgentUi.URL + "/api/" + verb
+			url: AgentUi.URL + path
 		};
 		super(AppContext.SERIALIZER.toJsonString(crudMessage), successFcn);
 	}
@@ -107,13 +126,13 @@ class CrudRequest extends BaseRequest implements Requester {
 
 class UpsertRequest extends CrudRequest {
 	public function new(object:ModelObj, successFcn: Dynamic->String->JQXHR->Void):Void {
-		super(object, "upsert", successFcn);
+		super(object, "/api/upsert", successFcn);
 	}	
 }
 
 class DeleteRequest extends CrudRequest {
 	public function new(object:ModelObj, successFcn: Dynamic->String->JQXHR->Void):Void {
-		super(object, "delete", successFcn);
+		super(object, "/api/delete", successFcn);
 	}	
 }
 
@@ -137,18 +156,11 @@ class LongPollingRequest extends BaseRequest implements Requester {
 
 	public var timeout:Int = 30000;
 
-	public function new(requestToRepeat: String, successFcn: Dynamic->String->JQXHR->Void, ?path:String, ?ajaxOpts:AjaxOptions) {
-		var url = AgentUi.URL + "/api";
-		if (path != null) {
-			url = AgentUi.URL + path;
-		}
-
-		baseOpts = { 
-			url: url,
+	public function new(requestToRepeat: String, successFcn: Dynamic->String->JQXHR->Void, ?ajaxOpts:AjaxOptions) {
+		baseOpts = {
 	        complete: function(jqXHR:JQXHR, textStatus:String): Void {
 	        	this.poll();
-        	}, 
-	        timeout: this.timeout 
+        	}
         };
 
         if (ajaxOpts != null) {
@@ -200,6 +212,11 @@ class LongPollingRequest extends BaseRequest implements Requester {
 
 	private function poll(): Void {
 		if (running) {
+			// Set the url here in case the polling frequency has changed
+			baseOpts.url = AgentUi.URL + "/api/channel/poll?channel=" + 
+			               AppContext.CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
+			baseOpts.timeout = this.timeout + 1000;
+
 			jqXHR = super.start();
 		}
 	}

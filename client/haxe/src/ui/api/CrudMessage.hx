@@ -12,6 +12,11 @@ class CrudMessage {
 		this.type = type;
 		this.instance = instance;		
 	}
+
+	public static function create(object:ModelObj):CrudMessage {
+		var instance = AppContext.SERIALIZER.toJson(object);
+		return new CrudMessage(object.objectType(), instance);
+	}
 }
 
 @:rtti
@@ -26,7 +31,7 @@ class QueryMessage {
 }
 
 @:rtti
-class ChannelRequest {
+class ChannelRequestMessage {
 	public var path:String;
 	public var context:String;
 	public var parms:CrudMessage;
@@ -39,22 +44,26 @@ class ChannelRequest {
 }
 
 @:rtti
-class ChannelRequestMessage {
+class ChannelRequestMessageBundle {
 
 	private var channel:String;
-	private var requests:Array<ChannelRequest>;
+	private var requests:Array<ChannelRequestMessage>;
 
-	public function new() {
+	public function new(?requests_:Array<ChannelRequestMessage>) {
 		this.channel = AppContext.CHANNEL;
-		this.requests = new Array<ChannelRequest>();		
+		if (requests_ == null) {
+			this.requests = new Array<ChannelRequestMessage>();
+		} else {
+			this.requests = requests_;
+		}
 	}
 
-	public function addChannelRequest(request:ChannelRequest):Void {
+	public function addChannelRequest(request:ChannelRequestMessage):Void {
 		this.requests.push(request);
 	}
 
 	public function addRequest(path:String, context:String, parms:CrudMessage):Void {
-		var request = new ChannelRequest(path, context, parms);
+		var request = new ChannelRequestMessage(path, context, parms);
 		this.addChannelRequest(request);
 	}
 }

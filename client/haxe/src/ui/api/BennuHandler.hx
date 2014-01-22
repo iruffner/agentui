@@ -3,6 +3,7 @@ package ui.api;
 import haxe.Json;
 import m3.jq.JQ;
 
+import ui.api.CrudMessage;
 import ui.api.Requester;
 import ui.api.EventDelegate;
 import ui.model.ModelObj;
@@ -31,11 +32,12 @@ class BennuHandler implements ProtocolHandler {
 		var request = new BennuRequest("/api/channel/create", "", onCreateChannel);
 		request.start();
 
-		// Get all aliases
+		// Get all aliases for the agent
 		var qr = new QueryRequest("alias", "", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
         	
         	for (alias_ in data) {
-        		agent.aliasSet.add(new Alias(alias_));
+        		var alias = AppContext.SERIALIZER.fromJsonX(alias_, Alias);
+        		agent.aliasSet.add(alias);
         	}
 
         	if (agent.aliasSet.isEmpty()) {
@@ -92,9 +94,16 @@ class BennuHandler implements ProtocolHandler {
 	public function getAliasConnections(alias: Alias): Void { }
 
 	public function getAliasLabels(alias:Alias) {
-		var qr = new QueryRequest("labelChild", "parentIid='" + alias.rootLabelIid + "'", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
-			js.Lib.alert(data);
-		});
+		var qr = new QueryRequest("label", "", 
+			function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
+
+        		AppContext.USER.currentAlias.labelSet.clear();
+	        	for (label_ in data) {
+	        		var label = AppContext.SERIALIZER.fromJsonX(label_, Label);
+	        		AppContext.USER.currentAlias.labelSet.add(label);
+	        	}
+			}
+		);
 		qr.start();
 	}
 
@@ -102,8 +111,14 @@ class BennuHandler implements ProtocolHandler {
 		js.Lib.alert("NOOP:  updateLabels");
 	}
 
-	public function createLabel(label:Label, parent:Label): Void { 
-		// TODO: create a label and a labelChild
+	public function createLabel(label:Label): Void {
+		// Create a label child, which will connect the parent and the child
+		var lc = new LabelChild(label.parentIid, label.iid);
+
+		var req = new SubmitRequest([
+			new ChannelRequestMessage("/api/upsert", "req1.context", CrudMessage.create(label)),
+			new ChannelRequestMessage("/api/upsert", "req2.context", CrudMessage.create(lc))]);
+		req.start();
 	}
 
 	public function updateLabel(label:Label):Void {
@@ -114,11 +129,22 @@ class BennuHandler implements ProtocolHandler {
 		// TODO:  Delete labelChild, add labelChild
 	}
  
-	public function deleteLabel(label:Label):Void {
-		var deleteRequest = new DeleteRequest(label, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
-			js.Lib.alert(data);
-		});
-		deleteRequest.start();		
+	public function deleteLabels(labels:Array<Label>):Void {
+		var requests = new Array<ChannelRequestMessage>();
+		var path = "/api/delete";
+
+		for (label in labels) {
+			requests.push(new ChannelRequestMessage(path, "delete-" + label.iid, CrudMessage.create(label)));
+		}
+
+		// Find all of the labelChilds that need to be deleted
+		var labelChildren = new Array<LabelChild>();
+		for (labelChild in labelChildren) {
+			requests.push(new ChannelRequestMessage(path, "delete-" + labelChild.iid, CrudMessage.create(labelChild)));
+		}
+
+		var req = new SubmitRequest(requests);
+		req.start();
 	}
 
 	public function beginIntroduction(intro: Introduction): Void { } 
@@ -135,14 +161,13 @@ class BennuHandler implements ProtocolHandler {
 	private function _startPolling(): Void {
 		// TODO:  add the ability to set the timeout value
 		var timeout = 10000;
-		var path:String = "/api/channel/poll?channel=" + AppContext.CHANNEL + "&timeoutMillis=" + Std.string(timeout);
 		var ajaxOptions:AjaxOptions = {
 	        contentType: "",
 	        type: "GET"
 		};
 
-		listeningChannel = new LongPollingRequest("", _onPoll, path, ajaxOptions);
-		listeningChannel.timeout = timeout + 2000;
+		listeningChannel = new LongPollingRequest("", _onPoll, ajaxOptions);
+		listeningChannel.timeout = timeout;
 		listeningChannel.start();
 	}
 
@@ -151,6 +176,24 @@ class BennuHandler implements ProtocolHandler {
 
 		dataArr.iter(function(data:Dynamic): Void {
 
+			// TODO:  Process the different requests...
 		});
 	}
 }
+
+
+/*
+success : true, 
+		context : req1.context, 
+		result : {
+			type : label, 
+			instance : {
+				deleted : false, 
+				iid : u3meWZSQ14u3WUNovNqqWFSbJDK2dr67, 
+				name : ssssssssfdfsafdafsa, 
+				data : {
+					color : <...>
+				}
+			}
+		}
+*/

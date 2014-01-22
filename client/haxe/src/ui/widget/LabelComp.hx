@@ -81,7 +81,7 @@ extern class LabelComp extends FilterableComponent {
 		        		throw new Exception("Root of LabelComp must be a div element");
 		        	}
 
-		        	selfElement.addClass("label labelComp ").attr("id", self.options.label.text.htmlEscape() + "_" + UidGenerator.create(8));
+		        	selfElement.addClass("label labelComp ").attr("id", self.options.label.name.htmlEscape() + "_" + UidGenerator.create(8));
 		        	
 		            var labelTail: JQ = new JQ("<div class='labelTail'></div>");
 		            labelTail.css("border-right-color", self.options.label.data.color);
@@ -89,7 +89,7 @@ extern class LabelComp extends FilterableComponent {
 		            var labelBox: JQ = new JQ("<div class='labelBox shadowRight'></div>");
 		            labelBox.css("background", self.options.label.data.color);
 		            var labelBody: JQ = new JQ("<div class='labelBody'></div>");
-		            var labelText: JQ = new JQ("<div>" + self.options.label.text + "</div>");
+		            var labelText: JQ = new JQ("<div>" + self.options.label.name + "</div>");
 		            labelBody.append(labelText);
 		            labelBox.append(labelBody);
 		            selfElement.append(labelBox).append("<div class='clear'></div>");
@@ -116,7 +116,7 @@ extern class LabelComp extends FilterableComponent {
 			            }
 
 		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-		            				AppContext.LOGGER.debug("dragstop on label | " + self.options.label.text);
+		            				AppContext.LOGGER.debug("dragstop on label | " + self.options.label.name);
 			                		if(self.options.dragstop != null) {
 			                			self.options.dragstop(dragstopEvt, dragstopUi);
 			                		}
@@ -168,7 +168,7 @@ extern class LabelComp extends FilterableComponent {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	selfElement.find(".labelBody").text(self.options.label.text);
+		        	selfElement.find(".labelBody").text(self.options.label.name);
 	        	},
 		        
 		        destroy: function() {

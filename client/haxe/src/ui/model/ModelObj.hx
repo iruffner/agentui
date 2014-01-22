@@ -54,11 +54,15 @@ class ModelObjWithUid<T> extends ModelObj{
 }
 
 class ModelObjWithIid<T> extends ModelObj{
+	// Added here for all models
+	public var deleted:Bool;
+
 	@:isVar public var iid(get,set): String;
 
 	public function new() {
 		super();
 		this.iid = UidGenerator.create(32);
+		this.deleted = false;
 	}
 
 	public static function identifier<T>(t: ModelObjWithIid<T>): String {
@@ -179,32 +183,13 @@ class Alias extends ModelObjWithIid<Alias> {
 	
 	@:transient @:isVar public var labelSet(get, null): ObservableSet<Label>;
 	@:transient @:isVar public var connectionSet(get, null): ObservableSet<Connection>;
-	/*
-	private var labels: Array<Label>;
-	private var connections: Array<Connection>;
-	*/
-	public function new (?alias_:Dynamic) {
+
+	public function new() {
 		super();
 		this.data = new UserData();
-		this.rootLabelIid = "qoid";
-		if (alias_ != null) {
-			this.rootLabelIid = alias_.rootLabelIid;
-			this.name = alias_.name;
-			this.data.name = alias_.data.name;
-			this.data.imgSrc = alias_.data.imgSrc;
-		}
+		this.rootLabelIid = UidGenerator.create(32);
 	}
-/*
-	private function readResolve(): Void {
-		labelSet = new ObservableSet<Label>(Label.identifier, labels);
-		connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
-	}
-
-	private function writeResolve(): Void {
-	 	labels = labelSet.asArray();
-	 	connections = connectionSet.asArray();
-	}
-*/
+	
 	public static function identifier(alias: Alias): String {
 		return alias.name;
 	}
@@ -233,18 +218,30 @@ class LabelData extends ModelObj {
 }
 
 class Label extends ModelObjWithIid<Label> implements Filterable {
-	public var text: String;
+	public var name: String;
 	public var data: LabelData;
 	@:transient public var parentIid: String;
 
-	public function new(?text: String) {
+	public function new(?name: String) {
 		super();
-		this.text = text;
+		this.name = name;
 		this.data = new LabelData();
 	}
 
 	public static function identifier(l: Label): String {
-		return l.parentIid + "_" + l.text;
+		return l.parentIid + "_" + l.name;
+	}
+}
+
+class LabelChild extends ModelObjWithIid<Label> {
+	public var parentIid: String;
+	public var childIid: String;
+	public var data: Dynamic;
+
+	public function new(parentIid: String, childIid: String) {
+		super();
+		this.parentIid = parentIid;
+		this.childIid  = childIid;
 	}
 }
 

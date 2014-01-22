@@ -22,9 +22,9 @@ class PrologHelper {
 				var s: String = "";
 				var children: FilteredSet<Label> = new FilteredSet(labels, function(f: Label): Bool { return f.parentIid == l.iid; });
 				if(children.hasValues()) {
-					s += "n" + l.text + "(" + _processTagChildren(labels, children) + ")";
+					s += "n" + l.name + "(" + _processTagChildren(labels, children) + ")";
 				} else {
-					s += "l" + l.text + "(_)";
+					s += "l" + l.name + "(_)";
 				}
 
 				sarray.push(s);
@@ -39,11 +39,11 @@ class PrologHelper {
 				}
 				var children: FilteredSet<Label> = new FilteredSet(original, function(f: Label): Bool { return f.parentIid == l.iid; });
 				if(children.hasValues()) {
-					s += "n" + l.text + "(";
+					s += "n" + l.name + "(";
 					s += _processTagChildren(original, children);
 					s += ")";
 				} else {
-					s += "l" + l.text + "(_)";
+					s += "l" + l.name + "(_)";
 				}
 
 				return s;
@@ -100,7 +100,7 @@ class PrologHelper {
 				var path: Array<String> = [];
 				var traveler: Label = label;
 				while(traveler != null) {
-					path.push(traveler.text);
+					path.push(traveler.name);
 					traveler = AppContext.USER.currentAlias.labelSet.getElementComplex(traveler.parentIid, function(l: Label): String { return l.iid; });
 				}
 				sarray.push("[" + path.join(",") + "]");

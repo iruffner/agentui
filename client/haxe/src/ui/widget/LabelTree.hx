@@ -46,7 +46,7 @@ extern class LabelTree extends JQ {
 		        			var children: FilteredSet<Label> = new FilteredSet<Label>(AppContext.USER.currentAlias.labelSet, function(child: Label): Bool{
 		        						return child.parentIid == label.iid;
 		        					});
-		        			children.visualId = "filteredLabelTree--" + label.text;
+		        			children.visualId = "filteredLabelTree--" + label.name;
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				label: label,
 	        					children: children

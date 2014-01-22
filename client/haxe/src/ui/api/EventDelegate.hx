@@ -99,9 +99,13 @@ class EventDelegate {
         	protocolHandler.post(content);
     	}));
 
-        EM.addListener(EMEvent.UPDATE_LABELS, new EMListener(function(n: Nothing): Void {
-        	protocolHandler.updateLabels();
+        EM.addListener(EMEvent.CreateLabel, new EMListener(function(l:Label): Void {
+        	protocolHandler.createLabel(l);
     	}));
+
+        EM.addListener(EMEvent.DeleteLabels, new EMListener(function(ls:Array<Label>): Void {
+            protocolHandler.deleteLabels(ls);
+        }));
 
         EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(intro: Introduction):Void{
         	protocolHandler.beginIntroduction(intro);

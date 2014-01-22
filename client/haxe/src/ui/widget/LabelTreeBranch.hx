@@ -93,7 +93,7 @@ extern class LabelTreeBranch extends JQ {
 		        	var self: LabelTreeBranchWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	selfElement.find(".labelBody").text(self.options.label.text);
+		        	selfElement.find(".labelBody").text(self.options.label.name);
 	        	},
 		        
 		        destroy: function() {
