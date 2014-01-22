@@ -4875,8 +4875,16 @@ ui.api.BennuHandler.prototype = {
 	}
 	,__class__: ui.api.BennuHandler
 }
-ui.api.CrudMessage = function(type,instance) {
+ui.api.BennuMessage = function(type) {
 	this.type = type;
+};
+$hxClasses["ui.api.BennuMessage"] = ui.api.BennuMessage;
+ui.api.BennuMessage.__name__ = ["ui","api","BennuMessage"];
+ui.api.BennuMessage.prototype = {
+	__class__: ui.api.BennuMessage
+}
+ui.api.CrudMessage = function(type,instance) {
+	ui.api.BennuMessage.call(this,type);
 	this.instance = instance;
 };
 $hxClasses["ui.api.CrudMessage"] = ui.api.CrudMessage;
@@ -4885,18 +4893,20 @@ ui.api.CrudMessage.create = function(object) {
 	var instance = ui.AppContext.SERIALIZER.toJson(object);
 	return new ui.api.CrudMessage(object.objectType(),instance);
 }
-ui.api.CrudMessage.prototype = {
+ui.api.CrudMessage.__super__ = ui.api.BennuMessage;
+ui.api.CrudMessage.prototype = $extend(ui.api.BennuMessage.prototype,{
 	__class__: ui.api.CrudMessage
-}
+});
 ui.api.QueryMessage = function(type,q) {
-	this.type = type;
+	ui.api.BennuMessage.call(this,type);
 	this.q = q;
 };
 $hxClasses["ui.api.QueryMessage"] = ui.api.QueryMessage;
 ui.api.QueryMessage.__name__ = ["ui","api","QueryMessage"];
-ui.api.QueryMessage.prototype = {
+ui.api.QueryMessage.__super__ = ui.api.BennuMessage;
+ui.api.QueryMessage.prototype = $extend(ui.api.BennuMessage.prototype,{
 	__class__: ui.api.QueryMessage
-}
+});
 ui.api.ChannelRequestMessage = function(path,context,parms) {
 	this.path = path;
 	this.context = context;
@@ -9856,10 +9866,11 @@ ui.AgentUi.URL = "";
 ui.AppContext.DEMO = false;
 ui.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
 ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
-ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<create public=\"1\" set=\"method\" line=\"16\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObj\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<instance public=\"1\"><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<new public=\"1\" set=\"method\" line=\"27\"><f a=\"type:q\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path public=\"1\"><c path=\"String\"/></path>\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<parms public=\"1\"><c path=\"ui.api.CrudMessage\"/></parms>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"61\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"65\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"52\"><f a=\"?requests_\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.BennuMessage.__rtti = "<class path=\"ui.api.BennuMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"10\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"24\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObj\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<instance public=\"1\"><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"19\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<new public=\"1\" set=\"method\" line=\"34\"><f a=\"type:q\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path public=\"1\"><c path=\"String\"/></path>\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<parms public=\"1\"><c path=\"ui.api.BennuMessage\"/></parms>\n\t<new public=\"1\" set=\"method\" line=\"46\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"68\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"72\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"?requests_\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<content>\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl public=\"1\">\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"31\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"35\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"25\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"42\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.PayloadWithSessionURI.__rtti = "<class path=\"ui.api.PayloadWithSessionURI\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

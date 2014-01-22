@@ -4,12 +4,20 @@ import ui.model.ModelObj;
 using m3.serialization.TypeTools;
 
 @:rtti
-class CrudMessage {
+class BennuMessage {
 	public var type:String;
+
+	public function new(type:String) {
+		this.type = type;
+	}
+}
+
+@:rtti
+class CrudMessage extends BennuMessage {
 	public var instance: Dynamic;
 
 	public function new(type:String, instance: Dynamic) {
-		this.type = type;
+		super(type);
 		this.instance = instance;		
 	}
 
@@ -20,12 +28,11 @@ class CrudMessage {
 }
 
 @:rtti
-class QueryMessage {
-	public var type:String;
+class QueryMessage extends BennuMessage {
 	public var q:String;
 
 	public function new(type:String, q: String) {
-		this.type = type;
+		super(type);
 		this.q = q;		
 	}
 }
@@ -34,9 +41,9 @@ class QueryMessage {
 class ChannelRequestMessage {
 	public var path:String;
 	public var context:String;
-	public var parms:CrudMessage;
+	public var parms:BennuMessage;
 
-	public function new(path:String, context:String, parms:CrudMessage):Void {
+	public function new(path:String, context:String, parms:BennuMessage):Void {
 		this.path    = path;
 		this.context = context;
 		this.parms   = parms;
@@ -62,7 +69,7 @@ class ChannelRequestMessageBundle {
 		this.requests.push(request);
 	}
 
-	public function addRequest(path:String, context:String, parms:CrudMessage):Void {
+	public function addRequest(path:String, context:String, parms:BennuMessage):Void {
 		var request = new ChannelRequestMessage(path, context, parms);
 		this.addChannelRequest(request);
 	}
