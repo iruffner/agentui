@@ -25,33 +25,11 @@ class BennuHandler implements ProtocolHandler {
 		// Create a dummy agent
 		var agent = new Agent();
 		agent.userData = new UserData("Qoid", "media/test/koi.jpg");
-		EM.change(EMEvent.USER, agent);
+		EM.change(EMEvent.AGENT, agent);
 		EM.change(EMEvent.FitWindow);
 
-		// Establish a connection with the server and get the channel_id
-		var request = new BennuRequest("/api/channel/create", "", onCreateChannel);
-		request.start();
-
-		// Get all aliases for the agent
-		var qr = new QueryRequest("alias", "", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
-        	
-        	for (alias_ in data) {
-        		var alias = AppContext.SERIALIZER.fromJsonX(alias_, Alias);
-        		agent.aliasSet.add(alias);
-        	}
-
-        	if (agent.aliasSet.isEmpty()) {
-        		AppContext.LOGGER.error("Agent has no Aliases!!");
-        		agent.currentAlias = new Alias();
-        		agent.currentAlias.name = "default";
-        		agent.aliasSet.add(agent.currentAlias);
-        	} else {
-        		agent.currentAlias = agent.aliasSet.iterator().next();
-        	}
-			EM.change(EMEvent.USER, agent);
-			EM.change(EMEvent.FitWindow);
-		});
-		qr.start();
+		// Establish a connection with the server to get the channel_id
+		new BennuRequest("/api/channel/create", "", onCreateChannel).start();
 	}
 
 	public function filter(filter: Filter): Void { }
@@ -157,6 +135,39 @@ class BennuHandler implements ProtocolHandler {
 	private function onCreateChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
 		AppContext.CHANNEL = data.id;
 		_startPolling();
+
+		// Get all aliases for the agent
+		var qr = new QueryRequest("alias", "", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
+        	
+        	var agent = ui.AppContext.AGENT;
+
+        	for (alias_ in data) {
+        		var alias = AppContext.SERIALIZER.fromJsonX(alias_, Alias);
+        		agent.aliasSet.add(alias);
+        	}
+
+        	if (agent.aliasSet.isEmpty()) {
+        		AppContext.LOGGER.error("Agent has no Aliases!!");
+        		agent.currentAlias = new Alias();
+        		agent.currentAlias.name = "default";
+        		agent.aliasSet.add(agent.currentAlias);
+        	} else {
+        		agent.currentAlias = agent.aliasSet.iterator().next();
+        	}
+			EM.change(EMEvent.AGENT, agent);
+			EM.change(EMEvent.FitWindow);
+		});
+		qr.start();
+
+		initialDataload();
+	}
+
+	private function initialDataload():Void {
+		var req = new SubmitRequest([
+			new ChannelRequestMessage("/api/query", "label-initialDataload"     , new QueryMessage("label")),
+			new ChannelRequestMessage("/api/query", "labelChild-initialDataload", new QueryMessage("labelChild"))]);
+		req.start();
+
 	}
 
 	private function _startPolling(): Void {

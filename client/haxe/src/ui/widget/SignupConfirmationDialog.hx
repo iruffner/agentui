@@ -65,9 +65,9 @@ extern class SignupConfirmationDialog extends JQ {
 		        			}
 		        		});
 
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: Agent): Void {
-	        				self._setUser(user);
-		        		}, "SignupConfirmationDialog-User")
+		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
+	        				self._setUser(agent);
+		        		}, "SignupConfirmationDialog-Agent")
 		        	);
 		        },
 

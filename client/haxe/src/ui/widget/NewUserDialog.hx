@@ -136,9 +136,9 @@ extern class NewUserDialog extends JQ {
 		        			}
 		        		});
 
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: Agent): Void {
-	        				self._setUser(user);
-		        		},"NewUserDialog-User")
+		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
+	        				self._setUser(agent);
+		        		},"NewUserDialog-Agent")
 		        	);
 		        },
 

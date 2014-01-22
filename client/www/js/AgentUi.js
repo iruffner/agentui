@@ -4687,7 +4687,7 @@ ui.AppContext.registerGlobalListeners = function() {
 	}));
 	ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,fireFitWindow);
 	ui.model.EM.addListener(ui.model.EMEvent.USER_CREATE,fireFitWindow);
-	ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(agent) {
+	ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
 		ui.AppContext.AGENT = agent;
 		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,agent.get_currentAlias());
 	},"AgentUi-AGENT"));
@@ -4745,9 +4745,33 @@ ui.api.BennuHandler.prototype = {
 		this.listeningChannel.timeout = timeout;
 		this.listeningChannel.start();
 	}
+	,initialDataload: function() {
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage("/api/query","label-initialDataload",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage("/api/query","labelChild-initialDataload",new ui.api.QueryMessage("labelChild"))]);
+		req.start();
+	}
 	,onCreateChannel: function(data,textStatus,jqXHR) {
 		ui.AppContext.CHANNEL = data.id;
 		this._startPolling();
+		var qr = new ui.api.QueryRequest("alias","",function(data1,textStatus1,jqXHR1) {
+			var agent = ui.AppContext.AGENT;
+			var _g = 0;
+			while(_g < data1.length) {
+				var alias_ = data1[_g];
+				++_g;
+				var alias = ui.AppContext.SERIALIZER.fromJsonX(alias_,ui.model.Alias);
+				agent.aliasSet.add(alias);
+			}
+			if(agent.aliasSet.isEmpty()) {
+				ui.AppContext.LOGGER.error("Agent has no Aliases!!");
+				agent.set_currentAlias(new ui.model.Alias());
+				agent.get_currentAlias().name = "default";
+				agent.aliasSet.add(agent.get_currentAlias());
+			} else agent.set_currentAlias(agent.aliasSet.iterator().next());
+			ui.model.EM.change(ui.model.EMEvent.AGENT,agent);
+			ui.model.EM.change(ui.model.EMEvent.FitWindow);
+		});
+		qr.start();
+		this.initialDataload();
 	}
 	,restores: function() {
 	}
@@ -4850,28 +4874,9 @@ ui.api.BennuHandler.prototype = {
 	,getUser: function(login) {
 		var agent = new ui.model.Agent();
 		agent.userData = new ui.model.UserData("Qoid","media/test/koi.jpg");
-		ui.model.EM.change(ui.model.EMEvent.USER,agent);
+		ui.model.EM.change(ui.model.EMEvent.AGENT,agent);
 		ui.model.EM.change(ui.model.EMEvent.FitWindow);
-		var request = new ui.api.BennuRequest("/api/channel/create","",$bind(this,this.onCreateChannel));
-		request.start();
-		var qr = new ui.api.QueryRequest("alias","",function(data,textStatus,jqXHR) {
-			var _g = 0;
-			while(_g < data.length) {
-				var alias_ = data[_g];
-				++_g;
-				var alias = ui.AppContext.SERIALIZER.fromJsonX(alias_,ui.model.Alias);
-				agent.aliasSet.add(alias);
-			}
-			if(agent.aliasSet.isEmpty()) {
-				ui.AppContext.LOGGER.error("Agent has no Aliases!!");
-				agent.set_currentAlias(new ui.model.Alias());
-				agent.get_currentAlias().name = "default";
-				agent.aliasSet.add(agent.get_currentAlias());
-			} else agent.set_currentAlias(agent.aliasSet.iterator().next());
-			ui.model.EM.change(ui.model.EMEvent.USER,agent);
-			ui.model.EM.change(ui.model.EMEvent.FitWindow);
-		});
-		qr.start();
+		new ui.api.BennuRequest("/api/channel/create","",$bind(this,this.onCreateChannel)).start();
 	}
 	,__class__: ui.api.BennuHandler
 }
@@ -4898,6 +4903,7 @@ ui.api.CrudMessage.prototype = $extend(ui.api.BennuMessage.prototype,{
 	__class__: ui.api.CrudMessage
 });
 ui.api.QueryMessage = function(type,q) {
+	if(q == null) q = "1=1";
 	ui.api.BennuMessage.call(this,type);
 	this.q = q;
 };
@@ -4907,10 +4913,10 @@ ui.api.QueryMessage.__super__ = ui.api.BennuMessage;
 ui.api.QueryMessage.prototype = $extend(ui.api.BennuMessage.prototype,{
 	__class__: ui.api.QueryMessage
 });
-ui.api.ChannelRequestMessage = function(path,context,parms) {
+ui.api.ChannelRequestMessage = function(path,context,msg) {
 	this.path = path;
 	this.context = context;
-	this.parms = parms;
+	this.parms = ui.AppContext.SERIALIZER.toJson(msg);
 };
 $hxClasses["ui.api.ChannelRequestMessage"] = ui.api.ChannelRequestMessage;
 ui.api.ChannelRequestMessage.__name__ = ["ui","api","ChannelRequestMessage"];
@@ -6428,7 +6434,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","EditContentClosed","LOAD_ALIAS","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","ALIAS_CREATE","NewAlias","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","USER","FitWindow","PAGE_CLOSE","CreateLabel","DeleteLabels","UPDATE_LABELS","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","INTRODUCTION_CONFIRMATION","INTRODUCTION_CONFIRMATION_RESPONSE","INTRODUCTION_NOTIFICATION","DELETE_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","NewContentCreated","EditContentClosed","LOAD_ALIAS","AliasLoaded","AliasConnectionsLoaded","AliasLabelsLoaded","ALIAS_CREATE","NewAlias","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","AGENT","FitWindow","PAGE_CLOSE","CreateLabel","DeleteLabels","UPDATE_LABELS","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","INTRODUCTION_CONFIRMATION","INTRODUCTION_CONFIRMATION_RESPONSE","INTRODUCTION_NOTIFICATION","DELETE_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.TEST = ["TEST",0];
 ui.model.EMEvent.TEST.toString = $estr;
 ui.model.EMEvent.TEST.__enum__ = ui.model.EMEvent;
@@ -6489,9 +6495,9 @@ ui.model.EMEvent.USER_VALIDATE.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.USER_VALIDATED = ["USER_VALIDATED",19];
 ui.model.EMEvent.USER_VALIDATED.toString = $estr;
 ui.model.EMEvent.USER_VALIDATED.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER = ["USER",20];
-ui.model.EMEvent.USER.toString = $estr;
-ui.model.EMEvent.USER.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.AGENT = ["AGENT",20];
+ui.model.EMEvent.AGENT.toString = $estr;
+ui.model.EMEvent.AGENT.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.FitWindow = ["FitWindow",21];
 ui.model.EMEvent.FitWindow.toString = $estr;
 ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
@@ -8999,9 +9005,9 @@ var defineWidget = function() {
 				self.input_pw.hide();
 			}
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
-			self._setUser(user);
-			if(user == null) self.open(); else selfElement.dialog("close");
+		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
+			self._setUser(agent);
+			if(agent == null) self.open(); else selfElement.dialog("close");
 		},"Login-User"));
 		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(user) {
 			selfElement.dialog("close");
@@ -9214,9 +9220,9 @@ var defineWidget = function() {
 				self.input_em.hide();
 			}
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
-			self._setUser(user);
-		},"NewUserDialog-User"));
+		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
+			self._setUser(agent);
+		},"NewUserDialog-Agent"));
 	}, initialized : false, _createNewUser : function() {
 		var self = this;
 		var selfElement1 = this.element;
@@ -9536,9 +9542,9 @@ var defineWidget = function() {
 		self.input.keypress(function(evt) {
 			if(evt.keyCode == 13) self._validateUser();
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
-			self._setUser(user);
-		},"SignupConfirmationDialog-User"));
+		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
+			self._setUser(agent);
+		},"SignupConfirmationDialog-Agent"));
 	}, initialized : false, _validateUser : function() {
 		var self = this;
 		var selfElement1 = this.element;
@@ -9592,8 +9598,8 @@ var defineWidget = function() {
 		self.container = new $("<div class='container'></div>");
 		selfElement.append(self.container);
 		self._setUser();
-		ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(user) {
-			self.user = user;
+		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
+			self.user = agent;
 			self._setUser();
 		},"UserComp-User"));
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
@@ -9639,11 +9645,11 @@ var defineWidget = function() {
 		var menu1 = new $("<ul id='userAliasMenu'></ul>");
 		menu1.appendTo(self.container);
 		var menuOptions = [];
-		var user1 = self.user;
+		var user = self.user;
 		var iter = (function($this) {
 			var $r;
 			try {
-				$r = user1.aliasSet.iterator();
+				$r = user.aliasSet.iterator();
 			} catch( __e ) {
 				$r = null;
 			}
@@ -9654,8 +9660,8 @@ var defineWidget = function() {
 			var alias1 = [iter.next()];
 			menuOption = { label : alias1[0].name, icon : "ui-icon-person", action : (function(alias1) {
 				return function(evt,m) {
-					if(ui.model.Alias.identifier(user1.get_currentAlias()) == ui.model.Alias.identifier(alias1[0])) menu1.hide(); else {
-						user1.set_currentAlias(alias1[0]);
+					if(ui.model.Alias.identifier(user.get_currentAlias()) == ui.model.Alias.identifier(alias1[0])) menu1.hide(); else {
+						user.set_currentAlias(alias1[0]);
 						ui.model.EM.change(ui.model.EMEvent.LOAD_ALIAS,alias1[0]);
 						ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias1[0]);
 					}
@@ -9867,10 +9873,10 @@ ui.AppContext.DEMO = false;
 ui.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
 ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
 ui.api.BennuMessage.__rtti = "<class path=\"ui.api.BennuMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"10\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"24\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObj\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<instance public=\"1\"><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"19\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<new public=\"1\" set=\"method\" line=\"34\"><f a=\"type:q\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path public=\"1\"><c path=\"String\"/></path>\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<parms public=\"1\"><c path=\"ui.api.BennuMessage\"/></parms>\n\t<new public=\"1\" set=\"method\" line=\"46\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"68\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"72\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"?requests_\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"23\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObj\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"18\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<q><c path=\"String\"/></q>\n\t<new public=\"1\" set=\"method\" line=\"32\"><f a=\"type:?q\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"44\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"66\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"70\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"57\"><f a=\"?requests_\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<content>\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl public=\"1\">\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"31\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"35\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"25\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"42\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.PayloadWithSessionURI.__rtti = "<class path=\"ui.api.PayloadWithSessionURI\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

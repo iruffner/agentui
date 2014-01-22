@@ -109,7 +109,7 @@ enum EMEvent {
 	USER_SIGNUP;
 	USER_VALIDATE; //occurs when the SignupConfirmationDialog attempts to validate a user
 	USER_VALIDATED; //occurs when a user has successfully validated
-	USER;
+	AGENT;
 
 	FitWindow;
 	PAGE_CLOSE;

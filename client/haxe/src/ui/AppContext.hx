@@ -80,7 +80,7 @@ class AppContext {
         EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
         EM.addListener(EMEvent.USER_CREATE, fireFitWindow);
 
-        EM.addListener(EMEvent.USER, new EMListener(function(agent: Agent) {
+        EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {
                 AGENT = agent;
                 EM.change(EMEvent.AliasLoaded, agent.currentAlias);
             }, "AgentUi-AGENT")

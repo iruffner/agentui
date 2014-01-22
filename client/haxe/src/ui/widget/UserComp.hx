@@ -1,3 +1,4 @@
+
 package ui.widget;
 
 import m3.jq.JQ;
@@ -59,8 +60,8 @@ extern class UserComp extends JQ {
 		        	selfElement.append(self.container);
 		        	self._setUser();//init the components
 
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: Agent): Void {
-		        			self.user = user;
+		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
+		        			self.user = agent;
 		        			self._setUser();
 		        		}, "UserComp-User")
 		        	);

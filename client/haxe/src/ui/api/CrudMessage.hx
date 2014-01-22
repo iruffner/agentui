@@ -12,9 +12,8 @@ class BennuMessage {
 	}
 }
 
-@:rtti
 class CrudMessage extends BennuMessage {
-	public var instance: Dynamic;
+	private var instance: Dynamic;
 
 	public function new(type:String, instance: Dynamic) {
 		super(type);
@@ -27,11 +26,10 @@ class CrudMessage extends BennuMessage {
 	}
 }
 
-@:rtti
 class QueryMessage extends BennuMessage {
-	public var q:String;
+	private var q:String;
 
-	public function new(type:String, q: String) {
+	public function new(type:String, q:String="1=1") {
 		super(type);
 		this.q = q;		
 	}
@@ -39,14 +37,14 @@ class QueryMessage extends BennuMessage {
 
 @:rtti
 class ChannelRequestMessage {
-	public var path:String;
-	public var context:String;
-	public var parms:BennuMessage;
+	private var path:String;
+	private var context:String;
+	private var parms:Dynamic;
 
-	public function new(path:String, context:String, parms:BennuMessage):Void {
+	public function new(path:String, context:String, msg:BennuMessage):Void {
 		this.path    = path;
 		this.context = context;
-		this.parms   = parms;
+		this.parms   = AppContext.SERIALIZER.toJson(msg);
 	}
 }
 

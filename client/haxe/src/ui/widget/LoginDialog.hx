@@ -127,9 +127,9 @@ extern class LoginDialog extends JQ {
 		        	// 		}
 		        	// 	});
 
-		        	EM.addListener(EMEvent.USER, new EMListener(function(user: Agent): Void {
-	        				self._setUser(user);
-		        			if(user == null) {
+		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
+	        				self._setUser(agent);
+		        			if(agent == null) {
 		        				self.open();
 		        			} else {
     							selfElement.dialog("close");
