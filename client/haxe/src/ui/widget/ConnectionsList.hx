@@ -66,7 +66,7 @@ extern class ConnectionsList extends JQ {
 			        		if(conn != null) {
 			                	self._setConnections(conn.connectionSet);
 			        		} else { 
-		                		self._setConnections(AppContext.USER.currentAlias.connectionSet);
+		                		self._setConnections(AppContext.AGENT.currentAlias.connectionSet);
 		                	}
 			            }, "ConnectionsList-TargetChange")
 			        );

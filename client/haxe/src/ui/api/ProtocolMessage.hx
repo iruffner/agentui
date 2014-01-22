@@ -47,8 +47,8 @@ class PayloadWithSessionURI extends Payload {
 
 	public function new() {
 		super();
-		if (AppContext.USER != null) {
-			this.sessionURI = AppContext.USER.sessionURI;
+		if (AppContext.AGENT != null) {
+			this.sessionURI = AppContext.AGENT.sessionURI;
 		}
 	}
 }

@@ -4590,7 +4590,7 @@ ui.AgentUi.start = function() {
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 78) {
 			ui.AppContext.LOGGER.debug("ALT + SHIFT + N");
-			var connection = ui.AppContext.USER.get_currentAlias().get_connectionSet().asArray()[2];
+			var connection = ui.AppContext.AGENT.get_currentAlias().get_connectionSet().asArray()[2];
 			var notification = new ui.api.IntroductionNotification();
 			notification.contentImpl = new ui.api.IntroductionNotificationData();
 			notification.contentImpl.connection = connection;
@@ -4601,7 +4601,7 @@ ui.AgentUi.start = function() {
 			ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,notification);
 		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 77) {
 			ui.AppContext.LOGGER.debug("ALT + SHIFT + M");
-			var connection = ui.AppContext.USER.get_currentAlias().get_connectionSet().asArray()[2];
+			var connection = ui.AppContext.AGENT.get_currentAlias().get_connectionSet().asArray()[2];
 			var notification = new ui.api.IntroductionNotification();
 			notification.contentImpl.connection = connection;
 			notification.contentImpl.correlationId = "abc123";
@@ -4688,9 +4688,9 @@ ui.AppContext.registerGlobalListeners = function() {
 	ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,fireFitWindow);
 	ui.model.EM.addListener(ui.model.EMEvent.USER_CREATE,fireFitWindow);
 	ui.model.EM.addListener(ui.model.EMEvent.USER,new ui.model.EMListener(function(agent) {
-		ui.AppContext.USER = agent;
+		ui.AppContext.AGENT = agent;
 		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,agent.get_currentAlias());
-	},"AgentUi-USER"));
+	},"AgentUi-AGENT"));
 	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,fitWindowListener);
 	ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,new ui.model.EMListener(function(notification) {
 		ui.AppContext._i.add(notification);
@@ -4792,13 +4792,13 @@ ui.api.BennuHandler.prototype = {
 	}
 	,getAliasLabels: function(alias) {
 		var qr = new ui.api.QueryRequest("label","",function(data,textStatus,jqXHR) {
-			ui.AppContext.USER.get_currentAlias().get_labelSet().clear();
+			ui.AppContext.AGENT.get_currentAlias().get_labelSet().clear();
 			var _g = 0;
 			while(_g < data.length) {
 				var label_ = data[_g];
 				++_g;
 				var label = ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.Label);
-				ui.AppContext.USER.get_currentAlias().get_labelSet().add(label);
+				ui.AppContext.AGENT.get_currentAlias().get_labelSet().add(label);
 			}
 			ui.model.EM.change(ui.model.EMEvent.FitWindow);
 		});
@@ -4808,7 +4808,7 @@ ui.api.BennuHandler.prototype = {
 	}
 	,setDefaultAlias: function(alias) {
 	}
-	,removeAlias: function(alias) {
+	,deleteAlias: function(alias) {
 		var deleteRequest = new ui.api.DeleteRequest(alias,function(data,textStatus,jqXHR) {
 			js.Lib.alert(data);
 		});
@@ -5052,8 +5052,8 @@ ui.api.EventDelegate.prototype = {
 		this.processHash.set(ui.api.MsgType.getAliasConnectionsResponse,function(data) {
 			ui.AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
 			var resp = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.GetAliasConnectionsResponse);
-			ui.AppContext.USER.get_currentAlias().get_connectionSet().clear();
-			ui.AppContext.USER.get_currentAlias().get_connectionSet().addAll(resp.contentImpl.connections);
+			ui.AppContext.AGENT.get_currentAlias().get_connectionSet().clear();
+			ui.AppContext.AGENT.get_currentAlias().get_connectionSet().addAll(resp.contentImpl.connections);
 		});
 		this.processHash.set(ui.api.MsgType.getAliasConnectionsError,function(data) {
 			ui.AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
@@ -5061,8 +5061,8 @@ ui.api.EventDelegate.prototype = {
 		this.processHash.set(ui.api.MsgType.getAliasLabelsResponse,function(data) {
 			ui.AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
 			var resp = ui.AppContext.SERIALIZER.fromJsonX(data,ui.api.GetAliasLabelsResponse);
-			ui.AppContext.USER.get_currentAlias().get_labelSet().clear();
-			ui.AppContext.USER.get_currentAlias().get_labelSet().addAll(resp.contentImpl.get_aliasLabels());
+			ui.AppContext.AGENT.get_currentAlias().get_labelSet().clear();
+			ui.AppContext.AGENT.get_currentAlias().get_labelSet().addAll(resp.contentImpl.get_aliasLabels());
 		});
 		this.processHash.set(ui.api.MsgType.getAliasLabelsError,function(data) {
 			ui.AppContext.LOGGER.error("getAliasLabelsError was received from the server");
@@ -5133,7 +5133,7 @@ ui.api.Payload.prototype = {
 }
 ui.api.PayloadWithSessionURI = function() {
 	ui.api.Payload.call(this);
-	if(ui.AppContext.USER != null) this.sessionURI = ui.AppContext.USER.sessionURI;
+	if(ui.AppContext.AGENT != null) this.sessionURI = ui.AppContext.AGENT.sessionURI;
 };
 $hxClasses["ui.api.PayloadWithSessionURI"] = ui.api.PayloadWithSessionURI;
 ui.api.PayloadWithSessionURI.__name__ = ["ui","api","PayloadWithSessionURI"];
@@ -6338,7 +6338,7 @@ ui.helper.PrologHelper.labelsToProlog = function(contentTags) {
 		var traveler = label;
 		while(traveler != null) {
 			path.push(traveler.name);
-			traveler = m3.helper.OSetHelper.getElementComplex(ui.AppContext.USER.get_currentAlias().get_labelSet(),traveler.parentIid,function(l) {
+			traveler = m3.helper.OSetHelper.getElementComplex(ui.AppContext.AGENT.get_currentAlias().get_labelSet(),traveler.parentIid,function(l) {
 				return l.get_iid();
 			});
 		}
@@ -8063,7 +8063,7 @@ var defineWidget = function() {
 			self._setConnections(alias.get_connectionSet());
 		},"ConnectionsList-Alias"));
 		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
-			if(conn != null) self._setConnections(conn.connectionSet); else self._setConnections(ui.AppContext.USER.get_currentAlias().get_connectionSet());
+			if(conn != null) self._setConnections(conn.connectionSet); else self._setConnections(ui.AppContext.AGENT.get_currentAlias().get_connectionSet());
 		},"ConnectionsList-TargetChange"));
 		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,new ui.model.EMListener(function(notification) {
 			var conn1 = notification.contentImpl.connection;
@@ -8493,8 +8493,8 @@ var defineWidget = function() {
 			var editPostComp = new $(comp).editPostComp({ content : self.options.content});
 		});
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
-		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.USER.get_currentAlias().get_connectionSet(),content.creator);
-		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AppContext.USER.get_currentAlias());
+		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.AGENT.get_currentAlias().get_connectionSet(),content.creator);
+		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AppContext.AGENT.get_currentAlias());
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection}).appendTo(postCreator);
 		var postLabels = new $("<aside class='postLabels'></div>");
 		postWr.append(postLabels);
@@ -8507,7 +8507,7 @@ var defineWidget = function() {
 		var connIter = content.connectionSet.iterator();
 		while(connIter.hasNext()) {
 			var connection1 = connIter.next();
-			var connWithProfile = m3.helper.OSetHelper.getElement(ui.AppContext.USER.get_currentAlias().get_connectionSet(),ui.model.Connection.identifier(connection1));
+			var connWithProfile = m3.helper.OSetHelper.getElement(ui.AppContext.AGENT.get_currentAlias().get_connectionSet(),ui.model.Connection.identifier(connection1));
 			if(connWithProfile != null) connection1 = connWithProfile;
 			new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection1}).appendTo(postConnections);
 		}
@@ -8618,7 +8618,7 @@ var defineWidget = function() {
 		selfElement.addClass("introductionNotificationComp container boxsizingBorder");
 		var data = self.options.notification.contentImpl;
 		var conn = data.connection;
-		var connFromAlias = m3.helper.OSetHelper.getElement(ui.AppContext.USER.get_currentAlias().get_connectionSet(),ui.model.Connection.identifier(conn));
+		var connFromAlias = m3.helper.OSetHelper.getElement(ui.AppContext.AGENT.get_currentAlias().get_connectionSet(),ui.model.Connection.identifier(conn));
 		if(connFromAlias != null) conn.profile = connFromAlias.profile;
 		self.listenerUid = ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE,new ui.model.EMListener(function(e) {
 			m3.util.JqueryUtil.alert("Your response has been received.","Introduction",function() {
@@ -8778,7 +8778,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTree must be a div element");
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
 		self.mappedLabels = new m3.observable.MappedSet(self.options.labels,function(label) {
-			var children = new m3.observable.FilteredSet(ui.AppContext.USER.get_currentAlias().get_labelSet(),function(child) {
+			var children = new m3.observable.FilteredSet(ui.AppContext.AGENT.get_currentAlias().get_labelSet(),function(child) {
 				return child.parentIid == label.get_iid();
 			});
 			children.visualId = "filteredLabelTree--" + label.name;
@@ -8829,9 +8829,9 @@ var defineWidget = function() {
 			var container = new $("<div class='icontainer'></div>").appendTo(el);
 			container.click(stopFcn).keypress(enterFcn);
 			container.append("<label for='labelParent'>Parent: </label> ");
-			var parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + ui.AppContext.USER.get_currentAlias().rootLabelIid + "'>No Parent</option></select>").appendTo(container);
+			var parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + ui.AppContext.AGENT.get_currentAlias().rootLabelIid + "'>No Parent</option></select>").appendTo(container);
 			parent.click(stopFcn);
-			var iter = ui.AppContext.USER.get_currentAlias().get_labelSet().iterator();
+			var iter = ui.AppContext.AGENT.get_currentAlias().get_labelSet().iterator();
 			while(iter.hasNext()) {
 				var label = iter.next();
 				var option = "<option value='" + label.get_iid() + "'";
@@ -9124,8 +9124,8 @@ var defineWidget = function() {
 		ui.model.EM.change(ui.model.EMEvent.ALIAS_CREATE,alias);
 		ui.model.EM.listenOnce(ui.model.EMEvent.NewAlias,new ui.model.EMListener(function(n) {
 			m3.jq.JQDialogHelper.close(selfElement1);
-			ui.AppContext.USER.aliasSet.add(alias);
-			ui.AppContext.USER.set_currentAlias(alias);
+			ui.AppContext.AGENT.aliasSet.add(alias);
+			ui.AppContext.AGENT.set_currentAlias(alias);
 			ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias);
 		},"NewAliasDialog-NewAlias"));
 	}, _buildDialog : function() {
@@ -9431,7 +9431,7 @@ var defineWidget = function() {
 			}
 		};
 		var divTa1 = new $("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
-		var from_text = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AppContext.USER.userData.name);
+		var from_text = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AppContext.AGENT.userData.name);
 		var divTa2 = new $("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
 		var to_text = new $("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","to_text").val(from_text.val());
 	}, _appendConnectionAvatar : function(connection,parent) {
@@ -9440,7 +9440,7 @@ var defineWidget = function() {
 	}, initialized : false, _sendRequest : function() {
 		var self = this;
 		var selfElement1 = this.element;
-		var alias = ui.AppContext.USER.get_currentAlias().name;
+		var alias = ui.AppContext.AGENT.get_currentAlias().name;
 		var intro = new ui.model.Introduction();
 		intro.aConn = self.options.to;
 		intro.bConn = self.options.from;
@@ -9619,8 +9619,8 @@ var defineWidget = function() {
 			dlg.m3dialog({ width : 800, height : 305, title : "Profile Image Uploader", buttons : { Cancel : function() {
 				$(this).m3dialog("close");
 			}, 'Set Profile Image' : function() {
-				ui.AppContext.USER.userData.imgSrc = ui.widget.UploadCompHelper.value(uploadComp);
-				ui.model.EM.change(ui.model.EMEvent.USER_UPDATE,ui.AppContext.USER);
+				ui.AppContext.AGENT.userData.imgSrc = ui.widget.UploadCompHelper.value(uploadComp);
+				ui.model.EM.change(ui.model.EMEvent.USER_UPDATE,ui.AppContext.AGENT);
 				$(this).m3dialog("close");
 			}}});
 		}}], width : 225}).hide();
@@ -9745,7 +9745,7 @@ var defineWidget = function() {
 		self.container = new $("<div class=''></div>");
 		selfElement.append(self.container);
 		new $("<button>Introduction Notification</button>").button().click(function(evt) {
-			var connection = ui.AppContext.USER.get_currentAlias().get_connectionSet().asArray()[2];
+			var connection = ui.AppContext.AGENT.get_currentAlias().get_connectionSet().asArray()[2];
 			var notification = new ui.api.IntroductionNotification();
 			notification.contentImpl = new ui.api.IntroductionNotificationData();
 			notification.contentImpl.connection = connection;
@@ -9781,7 +9781,7 @@ $.widget("ui.zWidget",defineWidget());
 var defineWidget = function() {
 	return { _addContent : function(content) {
 		var self = this;
-		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.USER.get_currentAlias().get_connectionSet(),content.creator);
+		var connection = m3.helper.OSetHelper.getElementComplex(ui.AppContext.AGENT.get_currentAlias().get_connectionSet(),content.creator);
 		if(self.contentTimeLines.get(content.creator) == null) {
 			var timeLine = new ui.widget.score.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime(),self.initialWidth);
 			self.contentTimeLines.set(content.creator,timeLine);

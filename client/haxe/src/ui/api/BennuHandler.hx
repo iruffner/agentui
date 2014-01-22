@@ -83,7 +83,7 @@ class BennuHandler implements ProtocolHandler {
 		upsertRequest.start();
 	}
 
-	public function removeAlias(alias: Alias): Void {
+	public function deleteAlias(alias: Alias): Void {
 		var deleteRequest = new DeleteRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
 			js.Lib.alert(data);
 		});
@@ -97,10 +97,10 @@ class BennuHandler implements ProtocolHandler {
 		var qr = new QueryRequest("label", "", 
 			function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
 
-        		AppContext.USER.currentAlias.labelSet.clear();
+        		AppContext.AGENT.currentAlias.labelSet.clear();
 	        	for (label_ in data) {
 	        		var label = AppContext.SERIALIZER.fromJsonX(label_, Label);
-	        		AppContext.USER.currentAlias.labelSet.add(label);
+	        		AppContext.AGENT.currentAlias.labelSet.add(label);
 	        	}
 				EM.change(EMEvent.FitWindow);
 			}

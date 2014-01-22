@@ -103,9 +103,9 @@ extern class ContentComp extends JQ {
 						});
 		        	
 		        	var postCreator: JQ = new JQ("<aside class='postCreator'></aside>").appendTo(postWr);
-		        	var connection: Connection = AppContext.USER.currentAlias.connectionSet.getElementComplex(content.creator);
+		        	var connection: Connection = AppContext.AGENT.currentAlias.connectionSet.getElementComplex(content.creator);
 		        	if(connection == null) {
-		        		connection = AppContext.USER.currentAlias.asConnection();
+		        		connection = AppContext.AGENT.currentAlias.asConnection();
 		        	}
 	        		new ConnectionAvatar("<div></div>").connectionAvatar({
 	        				dndEnabled: false,
@@ -128,7 +128,7 @@ extern class ContentComp extends JQ {
 		        	var connIter: Iterator<Connection> = content.connectionSet.iterator();
 		        	while(connIter.hasNext()) {
 		        		var connection: Connection = connIter.next();
-		        		var connWithProfile: Connection = AppContext.USER.currentAlias.connectionSet.getElement(Connection.identifier(connection));
+		        		var connWithProfile: Connection = AppContext.AGENT.currentAlias.connectionSet.getElement(Connection.identifier(connection));
 		        		if(connWithProfile != null) connection = connWithProfile;
 		        		new ConnectionAvatar("<div></div>").connectionAvatar({
 		        				dndEnabled: false,

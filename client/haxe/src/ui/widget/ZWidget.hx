@@ -55,7 +55,7 @@ extern class ZWidget extends JQ {
         			new JQ("<button>Introduction Notification</button>")
         					.button()
         					.click(function(evt: JQEvent): Void {
-        							var connection: Connection = AppContext.USER.currentAlias.connectionSet.asArray()[2];
+        							var connection: Connection = AppContext.AGENT.currentAlias.connectionSet.asArray()[2];
 
 					                var notification: IntroductionNotification = new IntroductionNotification();
 					                notification.contentImpl = new IntroductionNotificationData();

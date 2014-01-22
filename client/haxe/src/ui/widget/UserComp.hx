@@ -124,8 +124,8 @@ extern class UserComp extends JQ {
 														M3Dialog.cur.m3dialog("close");
 													},
 													"Set Profile Image": function() {
-														AppContext.USER.userData.imgSrc = uploadComp.value();
-														EM.change(EMEvent.USER_UPDATE, AppContext.USER);
+														AppContext.AGENT.userData.imgSrc = uploadComp.value();
+														EM.change(EMEvent.USER_UPDATE, AppContext.AGENT);
 														M3Dialog.cur.m3dialog("close");
 													}
         										}

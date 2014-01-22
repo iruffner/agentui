@@ -82,8 +82,8 @@ extern class NewAliasDialog extends JQ {
 
     				EM.listenOnce(EMEvent.NewAlias, new EMListener(function(n:Nothing): Void {
     						selfElement.close();
-    						AppContext.USER.aliasSet.add(alias);
-    						AppContext.USER.currentAlias = alias;
+    						AppContext.AGENT.aliasSet.add(alias);
+    						AppContext.AGENT.currentAlias = alias;
     						EM.change(EMEvent.AliasLoaded, alias);
     					}, "NewAliasDialog-NewAlias")
     				);
