@@ -87,6 +87,8 @@ class Agent extends ModelObj {
 	public var userData: UserData; 
 	
 	@:transient public var aliasSet: ObservableSet<Alias>;
+	@:transient public var labelSet: ObservableSet<Label>;
+
 	private var aliases: Array<Alias>;
 	public var defaultAlias: Alias;
 	
@@ -98,6 +100,8 @@ class Agent extends ModelObj {
 		registerModelListeners();
 		this.aliasSet = new ObservableSet<Alias>(Alias.identifier);
 		this.aliasSet.visualId = "User Aliases";
+
+		this.labelSet = new ObservableSet<Label>(Label.identifier);
 	}
 
 	private function registerModelListeners(): Void {
@@ -184,10 +188,10 @@ class Alias extends ModelObjWithIid<Alias> {
 	@:transient @:isVar public var labelSet(get, null): ObservableSet<Label>;
 	@:transient @:isVar public var connectionSet(get, null): ObservableSet<Connection>;
 
-	public function new() {
+	public function new(?name:String) {
 		super();
+		this.name = name;
 		this.data = new UserData();
-		this.rootLabelIid = UidGenerator.create(32);
 	}
 	
 	public static function identifier(alias: Alias): String {
@@ -221,6 +225,7 @@ class Label extends ModelObjWithIid<Label> implements Filterable {
 	public var name: String;
 	public var data: LabelData;
 	@:transient public var parentIid: String;
+	@:transient public var children:ObservableSet<Label>;
 
 	public function new(?name: String) {
 		super();
@@ -237,6 +242,10 @@ class LabelChild extends ModelObjWithIid<Label> {
 	public var parentIid: String;
 	public var childIid: String;
 	public var data: Dynamic;
+
+	public static function identifier(l: LabelChild): String {
+		return l.iid;
+	}
 
 	public function new(parentIid: String, childIid: String) {
 		super();

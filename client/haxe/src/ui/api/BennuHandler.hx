@@ -44,16 +44,21 @@ class BennuHandler implements ProtocolHandler {
 	public function updateUser(agent: Agent): Void { }
 	public function post(content: Content): Void { }
 
-	public function createAlias(alias: Alias): Void { 
-       	AppContext.LOGGER.debug("BennuHandler: createAlias called");
-		var upsertRequest = new UpsertRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
-       		AppContext.LOGGER.debug("BennuHandler: createAlias succeeded");
-       		EM.change(EMEvent.NewAlias);
-		});
-		upsertRequest.start();
+	public function createAlias(alias: Alias): Void {
+		// Create a label child, which will connect the parent and the child
+		var label = new Label(alias.name);
+		var lc = new LabelChild("qoid", label.iid);
+		alias.rootLabelIid = label.iid;
+
+		var req = new SubmitRequest([
+			new ChannelRequestMessage("/api/upsert", "create-alias", CrudMessage.create(alias)),
+			new ChannelRequestMessage("/api/upsert", "create-label", CrudMessage.create(label)),
+			new ChannelRequestMessage("/api/upsert", "create-labelChild", CrudMessage.create(lc))]);
+		req.start();
 	}
 	
-	public function updateAlias(alias: Alias): Void { 
+	public function updateAlias(alias: Alias): Void {
+		// TODO:  Update the name of the rootLabel
 		var upsertRequest = new UpsertRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
        		AppContext.LOGGER.debug("upateAlias succeeded");
        		EM.change(EMEvent.NewAlias);
@@ -62,6 +67,8 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function deleteAlias(alias: Alias): Void {
+		// TODO:  Delete the label and label childs associated with this alias
+		// NB:  Only delete labels that are orphans...
 		var deleteRequest = new DeleteRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
 			js.Lib.alert(data);
 		});
@@ -86,17 +93,13 @@ class BennuHandler implements ProtocolHandler {
 		qr.start();
 	}
 
-	public function updateLabels():Void {
-		js.Lib.alert("NOOP:  updateLabels");
-	}
-
 	public function createLabel(label:Label): Void {
 		// Create a label child, which will connect the parent and the child
 		var lc = new LabelChild(label.parentIid, label.iid);
 
 		var req = new SubmitRequest([
-			new ChannelRequestMessage("/api/upsert", "req1.context", CrudMessage.create(label)),
-			new ChannelRequestMessage("/api/upsert", "req2.context", CrudMessage.create(lc))]);
+			new ChannelRequestMessage("/api/upsert", "create-label", CrudMessage.create(label)),
+			new ChannelRequestMessage("/api/upsert", "create-labelChild", CrudMessage.create(lc))]);
 		req.start();
 	}
 
@@ -113,17 +116,16 @@ class BennuHandler implements ProtocolHandler {
 		var path = "/api/delete";
 
 		for (label in labels) {
-			requests.push(new ChannelRequestMessage(path, "delete-" + label.iid, CrudMessage.create(label)));
+			requests.push(new ChannelRequestMessage(path, "delete-label", CrudMessage.create(label)));
 		}
 
 		// Find all of the labelChilds that need to be deleted
 		var labelChildren = new Array<LabelChild>();
 		for (labelChild in labelChildren) {
-			requests.push(new ChannelRequestMessage(path, "delete-" + labelChild.iid, CrudMessage.create(labelChild)));
+			requests.push(new ChannelRequestMessage(path, "delete-labelChild", CrudMessage.create(labelChild)));
 		}
 
-		var req = new SubmitRequest(requests);
-		req.start();
+		new SubmitRequest(requests).start();
 	}
 
 	public function beginIntroduction(intro: Introduction): Void { } 
@@ -136,38 +138,11 @@ class BennuHandler implements ProtocolHandler {
 		AppContext.CHANNEL = data.id;
 		_startPolling();
 
-		// Get all aliases for the agent
-		var qr = new QueryRequest("alias", "", function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
-        	
-        	var agent = ui.AppContext.AGENT;
-
-        	for (alias_ in data) {
-        		var alias = AppContext.SERIALIZER.fromJsonX(alias_, Alias);
-        		agent.aliasSet.add(alias);
-        	}
-
-        	if (agent.aliasSet.isEmpty()) {
-        		AppContext.LOGGER.error("Agent has no Aliases!!");
-        		agent.currentAlias = new Alias();
-        		agent.currentAlias.name = "default";
-        		agent.aliasSet.add(agent.currentAlias);
-        	} else {
-        		agent.currentAlias = agent.aliasSet.iterator().next();
-        	}
-			EM.change(EMEvent.AGENT, agent);
-			EM.change(EMEvent.FitWindow);
-		});
-		qr.start();
-
-		initialDataload();
-	}
-
-	private function initialDataload():Void {
 		var req = new SubmitRequest([
-			new ChannelRequestMessage("/api/query", "label-initialDataload"     , new QueryMessage("label")),
-			new ChannelRequestMessage("/api/query", "labelChild-initialDataload", new QueryMessage("labelChild"))]);
+			new ChannelRequestMessage("/api/query", "initialDataload-alias"     , new QueryMessage("alias")),
+			new ChannelRequestMessage("/api/query", "initialDataload-label"     , new QueryMessage("label")),
+			new ChannelRequestMessage("/api/query", "initialDataload-labelChild", new QueryMessage("labelChild"))]);
 		req.start();
-
 	}
 
 	private function _startPolling(): Void {
@@ -188,7 +163,16 @@ class BennuHandler implements ProtocolHandler {
 
 		dataArr.iter(function(data:Dynamic): Void {
 
-			// TODO:  Process the different requests...
+			var context = data.context.split("-");
+
+			switch context[1] {
+				case "alias":
+					ResponseProcessor.processAliasResponse(context[0], data);
+				case "label":
+					ResponseProcessor.processLabelResponse(context[0], data);
+				case "labelchild":
+					ResponseProcessor.processLabelChildResponse(context[0], data);
+			}
 		});
 	}
 }
