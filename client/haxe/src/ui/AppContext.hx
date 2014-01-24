@@ -24,7 +24,7 @@ class AppContext {
     public static var SERIALIZER: Serializer;
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
     public static var LABELS:ObservableSet<Label>;
-    public static var LABELCHILDS:ObservableSet<LabelChild>;
+    public static var LABELCHILDREN:ObservableSet<LabelChild>;
     public static var LABELMAP:StringMap<Label>;
 
 
@@ -50,7 +50,7 @@ class AppContext {
 
         LABELS      = new ObservableSet<Label>(Label.identifier);
         LABELS.listen(updateLabelMap);
-        LABELCHILDS = new ObservableSet<LabelChild>(LabelChild.identifier);
+        LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
         LABELMAP    = new StringMap<Label>();
         
 		SERIALIZER = new Serializer();
@@ -112,7 +112,7 @@ class AppContext {
 	}
 
     public static function getLabelChildren(iid:String):ObservableSet<Label> {
-        var fs = new FilteredSet(LABELCHILDS, function(lc:LabelChild):Bool {
+        var fs = new FilteredSet(LABELCHILDREN, function(lc:LabelChild):Bool {
             return lc.parentIid == iid;
         });
 

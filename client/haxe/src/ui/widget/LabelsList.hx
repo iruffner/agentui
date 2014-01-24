@@ -125,7 +125,7 @@ extern class LabelsList extends JQ {
 						var getDescendentIids:String->Array<String>->Void;
 						getDescendentIids = function(iid:String, iidList:Array<String>):Void {
 							iidList.insert(0, iid);
-							var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDS, function(lc:LabelChild):Bool {
+							var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
 								return lc.parentIid == iid;
 							}).asArray();
 

@@ -1030,6 +1030,13 @@ body {
 	height: 100%;
 }
 
+/* Alias Manager
+-----------------------------------------------------------------------------*/
+._aliasManagerDialog img {
+	max-width: 200px;
+	max-height: 200px;
+}
+
 /* Other
 -----------------------------------------------------------------------------*/
 .clear {
@@ -1070,6 +1077,10 @@ body {
 	outline: none;
 }
 
+.clickable {
+	cursor: pointer;
+}
+
 
 /* jquery ui overrides
 -----------------------------------------------------------------------------*/
@@ -1090,7 +1101,9 @@ body {
 .ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}
 
 
-/* Score */
+/* Score 
+-----------------------------------------------------------------------------*/
+
 #score-div {
 	height: 100%;
 	 width: 100%;

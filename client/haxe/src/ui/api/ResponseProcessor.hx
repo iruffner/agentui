@@ -2,99 +2,83 @@ package ui.api;
 
 import haxe.ds.StringMap;
 
+import m3.jq.JQ;
 import m3.observable.OSet;
+import ui.api.Synchronizer;
 import ui.model.EM;
 import ui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
+using Lambda;
 
 class ResponseProcessor {
 
-	private static var aliasIntialized:Bool = false;
-	private static var labelIntialized:Bool = false;
-	private static var labelChildIntialized:Bool = false;
+	public static function processResponse(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
+		if (dataArr == null || dataArr.length == 0) { return; }
 
-	public static function processAliasResponse(context:String, data:Dynamic) {
-		switch (context) {
-			case "initialDataload":
-				initialDataloadAlias(data.result);
-			case "create":
-				var alias = AppContext.SERIALIZER.fromJsonX(data.result.instance, Alias);
-    			AppContext.AGENT.aliasSet.add(alias);
-	       		EM.change(EMEvent.NewAlias);
-		}
+		dataArr.iter(function(data:Dynamic): Void {
+			var context:Array<String> = data.context.split("-");
+			var synchronizer = Synchronizer.synchronizers.get(context[0]);
+			if (synchronizer != null) {
+				synchronizer.dataReceived(data.result, context[1]);
+			}
+		});
 	}
 
-	public static function processLabelResponse(context:String, data:Dynamic) {
-		switch (context) {
-			case "initialDataload":
-				initialDataloadLabel(data.result);
-		}
+	public static function aliasCreated(data:Dynamic) {
+		AppContext.AGENT.aliasSet.add(data.aliases[0]);
+		AppContext.LABELS.add(data.labels[0]);
+		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
+   		EM.change(EMEvent.NewAlias);		
 	}
 
-	public static function processLabelChildResponse(context:String, data:Dynamic) {
-		switch (context) {
-			case "initialDataload":
-				initialDataloadLabelChild(data.result);
-		}
+	public static function aliasUpdated(data:Dynamic) {
+       	EM.change(EMEvent.NewAlias);
 	}
 
-	private static function initialDataloadAlias(data:Array<Dynamic>) {
-    	var agent = ui.AppContext.AGENT;
-
-    	if(data.hasValues()) {
-	    	for (alias_ in data) {
-	    		var alias = AppContext.SERIALIZER.fromJsonX(alias_, Alias);
-	    		agent.aliasSet.add(alias);
-	    	}
-	    }
-
-    	if (agent.aliasSet.isEmpty()) {
-    		var defaultAlias: Alias = new Alias("Default Alias");
-    		EM.change(EMEvent.ALIAS_CREATE, defaultAlias);
-    		agent.aliasSet.add(defaultAlias);
-    	}
-
-    	agent.currentAlias = agent.aliasSet.iterator().next();
-
-		EM.change(EMEvent.AGENT, agent);
-		EM.change(EMEvent.FitWindow);
-
-		aliasIntialized = true;
-		doInitialDataLoad();
+	public static function aliasDeleted(data:Dynamic) {
+		
 	}
 
-	private static function initialDataloadLabel(data:Array<Dynamic>) {
-    	if(data.hasValues()) {
-	    	for (label_ in data) {
-	    		var label = AppContext.SERIALIZER.fromJsonX(label_, Label);
-	    		AppContext.LABELS.add(label);
-	    	}
-	    }
-
-		labelIntialized = true;
-		doInitialDataLoad();
+	public static function labelCreated(data:Dynamic) {
+		AppContext.LABELS.add(data.labels[0]);
+		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
 	}
 
-	private static function initialDataloadLabelChild(data:Array<Dynamic>) {
-    	if(data.hasValues()) {
-	    	for (labelChild_ in data) {
-	    		var labelChild = AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild);
-	    		AppContext.LABELCHILDS.add(labelChild);
-	    	}
-	    }
-		labelChildIntialized = true;
-		doInitialDataLoad();
+	public static function labelUpdated(data:Dynamic) {
 	}
 
-	private static function doInitialDataLoad() {
-		if (!aliasIntialized || !labelIntialized || !labelChildIntialized) { return; }
+	public static function labelMoved(data:Dynamic) {
+		
+	}
 
+	public static function labelDeleted(data:Dynamic) {
+	}
+
+	public static function initialDataLoad(data:Dynamic) {
+		// Load the data into the app context
+		AppContext.AGENT.aliasSet.addAll(data.aliases);
+		AppContext.LABELS.addAll(data.labels);
+		AppContext.LABELCHILDREN.addAll(data.labelChildren);
+/*
 		// Create a grouped set to build out the structure of the labels
-		var gs = new GroupedSet<LabelChild>(AppContext.LABELCHILDS, function(lc: LabelChild): String { return lc.parentIid;});
+		// TODO:  Put this grouping in AppContext.  
+		var gs = new GroupedSet<LabelChild>(AppContext.LABELCHILDREN, function(lc: LabelChild): String { return lc.parentIid;});
 
 		for (label in AppContext.LABELS) {
 			label.labelChildren = gs.delegate().get(label.iid);
 		}
+*/
+	    // Set the current alias
+    	if (AppContext.AGENT.aliasSet.isEmpty()) {
+    		var defaultAlias: Alias = new Alias("Default Alias");
+    		EM.change(EMEvent.ALIAS_CREATE, defaultAlias);
+    		AppContext.AGENT.aliasSet.add(defaultAlias);
+    	}
+    	AppContext.AGENT.currentAlias = AppContext.AGENT.aliasSet.iterator().next();
+
+    	// Fire the events that will cause the UI to load the data
+		EM.change(EMEvent.AGENT, AppContext.AGENT);
+		EM.change(EMEvent.FitWindow);
 	}
 }
