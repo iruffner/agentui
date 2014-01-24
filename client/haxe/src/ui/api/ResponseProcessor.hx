@@ -28,7 +28,7 @@ class ResponseProcessor {
 	public static function aliasCreated(data:Dynamic) {
 		AppContext.AGENT.aliasSet.add(data.aliases[0]);
 		AppContext.LABELS.add(data.labels[0]);
-		AppContext.LABELCHILDS.add(data.labelChildren[0]);
+		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
    		EM.change(EMEvent.NewAlias);		
 	}
 
@@ -42,7 +42,7 @@ class ResponseProcessor {
 
 	public static function labelCreated(data:Dynamic) {
 		AppContext.LABELS.add(data.labels[0]);
-		AppContext.LABELCHILDS.add(data.labelChildren[0]);
+		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
 	}
 
 	public static function labelUpdated(data:Dynamic) {
@@ -59,11 +59,11 @@ class ResponseProcessor {
 		// Load the data into the app context
 		AppContext.AGENT.aliasSet.addAll(data.aliases);
 		AppContext.LABELS.addAll(data.labels);
-		AppContext.LABELCHILDS.addAll(data.labelChildren);
+		AppContext.LABELCHILDREN.addAll(data.labelChildren);
 /*
 		// Create a grouped set to build out the structure of the labels
 		// TODO:  Put this grouping in AppContext.  
-		var gs = new GroupedSet<LabelChild>(AppContext.LABELCHILDS, function(lc: LabelChild): String { return lc.parentIid;});
+		var gs = new GroupedSet<LabelChild>(AppContext.LABELCHILDREN, function(lc: LabelChild): String { return lc.parentIid;});
 
 		for (label in AppContext.LABELS) {
 			label.labelChildren = gs.delegate().get(label.iid);

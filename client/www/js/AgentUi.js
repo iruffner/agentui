@@ -4652,7 +4652,7 @@ ui.AppContext.init = function() {
 	});
 	ui.AppContext.LABELS = new m3.observable.ObservableSet(ui.model.Label.identifier);
 	ui.AppContext.LABELS.listen(ui.AppContext.updateLabelMap);
-	ui.AppContext.LABELCHILDS = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
+	ui.AppContext.LABELCHILDREN = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
 	ui.AppContext.LABELMAP = new haxe.ds.StringMap();
 	ui.AppContext.SERIALIZER = new m3.serialization.Serializer();
 	ui.AppContext.SERIALIZER.addHandler(ui.model.Content,new ui.model.ContentHandler());
@@ -4693,7 +4693,7 @@ ui.AppContext.registerGlobalListeners = function() {
 	},"AgentUi-IntroNotification"));
 }
 ui.AppContext.getLabelChildren = function(iid) {
-	var fs = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDS,function(lc) {
+	var fs = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
 		return lc.parentIid == iid;
 	});
 	var labelChildren = new m3.observable.ObservableSet(ui.model.Label.identifier);
@@ -4809,11 +4809,9 @@ ui.api.BennuHandler.prototype = {
 		deleteRequest.start();
 	}
 	,updateAlias: function(alias) {
-		var upsertRequest = new ui.api.UpsertRequest(alias,function(data,textStatus,jqXHR) {
-			ui.AppContext.LOGGER.debug("upateAlias succeeded");
-			ui.model.EM.change(ui.model.EMEvent.NewAlias);
-		});
-		upsertRequest.start();
+		var iid = ui.api.Synchronizer.add(1,ui.api.ResponseProcessor.aliasUpdated);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-alias",ui.api.CrudMessage.create(alias))]);
+		req.start();
 	}
 	,createAlias: function(alias) {
 		var label = new ui.model.Label(alias.name);
@@ -6202,16 +6200,17 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 ui.api.ResponseProcessor.aliasCreated = function(data) {
 	ui.AppContext.AGENT.aliasSet.add(data.aliases[0]);
 	ui.AppContext.LABELS.add(data.labels[0]);
-	ui.AppContext.LABELCHILDS.add(data.labelChildren[0]);
+	ui.AppContext.LABELCHILDREN.add(data.labelChildren[0]);
 	ui.model.EM.change(ui.model.EMEvent.NewAlias);
 }
 ui.api.ResponseProcessor.aliasUpdated = function(data) {
+	ui.model.EM.change(ui.model.EMEvent.NewAlias);
 }
 ui.api.ResponseProcessor.aliasDeleted = function(data) {
 }
 ui.api.ResponseProcessor.labelCreated = function(data) {
 	ui.AppContext.LABELS.add(data.labels[0]);
-	ui.AppContext.LABELCHILDS.add(data.labelChildren[0]);
+	ui.AppContext.LABELCHILDREN.add(data.labelChildren[0]);
 }
 ui.api.ResponseProcessor.labelUpdated = function(data) {
 }
@@ -6222,7 +6221,7 @@ ui.api.ResponseProcessor.labelDeleted = function(data) {
 ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.AppContext.AGENT.aliasSet.addAll(data.aliases);
 	ui.AppContext.LABELS.addAll(data.labels);
-	ui.AppContext.LABELCHILDS.addAll(data.labelChildren);
+	ui.AppContext.LABELCHILDREN.addAll(data.labelChildren);
 	if(ui.AppContext.AGENT.aliasSet.isEmpty()) ui.AppContext.AGENT.aliasSet.add(new ui.model.Alias("Default Alias"));
 	ui.AppContext.AGENT.set_currentAlias(ui.AppContext.AGENT.aliasSet.iterator().next());
 	ui.model.EM.change(ui.model.EMEvent.AGENT,ui.AppContext.AGENT);
@@ -8919,7 +8918,7 @@ var defineWidget = function() {
 			var getDescendentIids;
 			getDescendentIids = function(iid,iidList) {
 				iidList.splice(0,0,iid);
-				var children = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDS,function(lc) {
+				var children = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
 					return lc.parentIid == iid;
 				}).asArray();
 				var _g1 = 0, _g = children.length;
