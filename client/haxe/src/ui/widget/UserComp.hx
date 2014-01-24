@@ -233,22 +233,23 @@ extern class UserComp extends JQ {
 	        		self.container.append(changeDiv);
 
 	        		if(user != null) {
-			        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Switch Alias</a>");
+			        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Aliases</a>");
 		        		changeDiv.append(self.switchAliasLink);
 
-		        		var aliasMenu = self._createAliasMenu(self);
+		        		// var aliasMenu = self._createAliasMenu(self);
 
-			        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
-		        			aliasMenu.show();
-		        			aliasMenu.position({
-			        			my: "left top",
-			        			at: "right-6px center",
-			        			of: selfElement
-			        		});
+			        	self.switchAliasLink.click(function(evt: JQEvent): Void {
+			        		ui.widget.DialogManager.showAliasManager();
+		     //    			aliasMenu.show();
+		     //    			aliasMenu.position({
+			    //     			my: "left top",
+			    //     			at: "right-6px center",
+			    //     			of: selfElement
+			    //     		});
 
-							evt.preventDefault();
-		        			evt.stopPropagation();
-		        			return false;
+							// evt.preventDefault();
+		     //    			evt.stopPropagation();
+		     //    			return false;
 			        	});
 			        }
 	        	},

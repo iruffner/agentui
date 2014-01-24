@@ -50,7 +50,9 @@ class ResponseProcessor {
 	    }
 
     	if (agent.aliasSet.isEmpty()) {
-    		agent.aliasSet.add(new Alias("Default Alias"));
+    		var defaultAlias: Alias = new Alias("Default Alias");
+    		EM.change(EMEvent.ALIAS_CREATE, defaultAlias);
+    		agent.aliasSet.add(defaultAlias);
     	}
 
     	agent.currentAlias = agent.aliasSet.iterator().next();

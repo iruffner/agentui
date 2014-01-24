@@ -2,6 +2,7 @@ package ui.widget;
 
 import ui.model.ModelObj;
 import m3.jq.JQ;
+import ui.widget.AliasManagerDialog;
 import ui.widget.LoginDialog;
 import ui.widget.NewAliasDialog;
 import ui.widget.NewUserDialog;
@@ -54,6 +55,10 @@ class DialogManager {
         options.from = from;
         options.to   = to;
         showDialog("requestIntroductionDialog", options);
+    }   
+
+    public static function showAliasManager(): Void {
+        showDialog("aliasManagerDialog");
     }   
 
 }

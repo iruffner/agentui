@@ -10,6 +10,7 @@ using m3.helper.ArrayHelper;
 
 typedef UploadCompOptions = {
 	 @:optional var contentType: ContentType;
+	 @:optional var onload: String->Void;
 }
 
 typedef UploadCompWidgetDef = {
@@ -151,6 +152,7 @@ extern class UploadComp extends JQ {
 					var reader = untyped __js__("new FileReader()");
 					reader.onload = function (evt) {
 						self.setPreviewImage(evt.target.result);
+						self.options.onload(evt.target.result);
 					};
 					reader.readAsDataURL(file);
 				},

@@ -19,7 +19,12 @@ using Lambda;
 
 @:rtti
 class ModelObj {
+
+	var agentId: String;
+
 	public function new() {
+		//TODO put the right thing here
+		agentId = "";
 	}
 	public function objectType(){
 		var className = this.clazz().classname().toLowerCase();
