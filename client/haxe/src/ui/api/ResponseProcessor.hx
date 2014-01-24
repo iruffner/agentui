@@ -6,6 +6,8 @@ import m3.observable.OSet;
 import ui.model.EM;
 import ui.model.ModelObj;
 
+using m3.helper.ArrayHelper;
+
 class ResponseProcessor {
 
 	private static var aliasIntialized:Bool = false;
@@ -40,13 +42,15 @@ class ResponseProcessor {
 	private static function initialDataloadAlias(data:Array<Dynamic>) {
     	var agent = ui.AppContext.AGENT;
 
-    	for (alias_ in data) {
-    		var alias = AppContext.SERIALIZER.fromJsonX(alias_, Alias);
-    		agent.aliasSet.add(alias);
-    	}
+    	if(data.hasValues()) {
+	    	for (alias_ in data) {
+	    		var alias = AppContext.SERIALIZER.fromJsonX(alias_, Alias);
+	    		agent.aliasSet.add(alias);
+	    	}
+	    }
 
     	if (agent.aliasSet.isEmpty()) {
-    		agent.aliasSet.add(new Alias("placeholder"));
+    		agent.aliasSet.add(new Alias("Default Alias"));
     	}
 
     	agent.currentAlias = agent.aliasSet.iterator().next();
@@ -59,20 +63,24 @@ class ResponseProcessor {
 	}
 
 	private static function initialDataloadLabel(data:Array<Dynamic>) {
-    	for (label_ in data) {
-    		var label = AppContext.SERIALIZER.fromJsonX(label_, Label);
-    		AppContext.LABELS.add(label);
-    	}
+    	if(data.hasValues()) {
+	    	for (label_ in data) {
+	    		var label = AppContext.SERIALIZER.fromJsonX(label_, Label);
+	    		AppContext.LABELS.add(label);
+	    	}
+	    }
 
 		labelIntialized = true;
 		doInitialDataLoad();
 	}
 
 	private static function initialDataloadLabelChild(data:Array<Dynamic>) {
-    	for (labelChild_ in data) {
-    		var labelChild = AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild);
-    		AppContext.LABELCHILDS.add(labelChild);
-    	}
+    	if(data.hasValues()) {
+	    	for (labelChild_ in data) {
+	    		var labelChild = AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild);
+	    		AppContext.LABELCHILDS.add(labelChild);
+	    	}
+	    }
 		labelChildIntialized = true;
 		doInitialDataLoad();
 	}
