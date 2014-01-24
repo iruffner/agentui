@@ -4741,35 +4741,18 @@ $hxClasses["ui.api.BennuHandler"] = ui.api.BennuHandler;
 ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
 ui.api.BennuHandler.__interfaces__ = [ui.api.ProtocolHandler];
 ui.api.BennuHandler.prototype = {
-	_onPoll: function(dataArr,textStatus,jqXHR) {
-		if(dataArr == null || dataArr.length == 0) return;
-		Lambda.iter(dataArr,function(data) {
-			var context = data.context.split("-");
-			var objectType = context[1].toLowerCase();
-			switch(objectType) {
-			case "alias":
-				ui.api.ResponseProcessor.processAliasResponse(context[0],data);
-				break;
-			case "label":
-				ui.api.ResponseProcessor.processLabelResponse(context[0],data);
-				break;
-			case "labelchild":
-				ui.api.ResponseProcessor.processLabelChildResponse(context[0],data);
-				break;
-			}
-		});
-	}
-	,_startPolling: function() {
+	_startPolling: function() {
 		var timeout = 10000;
 		var ajaxOptions = { contentType : "", type : "GET"};
-		this.listeningChannel = new ui.api.LongPollingRequest("",$bind(this,this._onPoll),ajaxOptions);
+		this.listeningChannel = new ui.api.LongPollingRequest("",ui.api.ResponseProcessor.processResponse,ajaxOptions);
 		this.listeningChannel.timeout = timeout;
 		this.listeningChannel.start();
 	}
 	,onCreateChannel: function(data,textStatus,jqXHR) {
 		ui.AppContext.CHANNEL = data.id;
 		this._startPolling();
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,"initialDataload-alias",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,"initialDataload-label",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,"initialDataload-labelChild",new ui.api.QueryMessage("labelChild"))]);
+		var iid = ui.api.Synchronizer.add(3,ui.api.ResponseProcessor.initialDataLoad);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,iid + "-aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,iid + "-labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,iid + "-labelChildren",new ui.api.QueryMessage("labelChild"))]);
 		req.start();
 	}
 	,restores: function() {
@@ -4783,21 +4766,22 @@ ui.api.BennuHandler.prototype = {
 	,beginIntroduction: function(intro) {
 	}
 	,deleteLabels: function(labels) {
+		var iid = ui.api.Synchronizer.genIid();
 		var requests = new Array();
-		var path = ui.api.BennuHandler.DELETE;
 		var _g = 0;
 		while(_g < labels.length) {
 			var label = labels[_g];
 			++_g;
-			requests.push(new ui.api.ChannelRequestMessage(path,"delete-label",ui.api.CrudMessage.create(label)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,iid + "-label",ui.api.CrudMessage.create(label)));
 		}
 		var labelChildren = new Array();
 		var _g = 0;
 		while(_g < labelChildren.length) {
 			var labelChild = labelChildren[_g];
 			++_g;
-			requests.push(new ui.api.ChannelRequestMessage(path,"delete-labelChild",ui.api.CrudMessage.create(labelChild)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,iid + "-labelChild",ui.api.CrudMessage.create(labelChild)));
 		}
+		ui.api.Synchronizer.add(requests.length,ui.api.ResponseProcessor.labelDeleted,iid);
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,moveLabel: function(label,parent) {
@@ -4806,7 +4790,8 @@ ui.api.BennuHandler.prototype = {
 	}
 	,createLabel: function(label,parentIid) {
 		var lc = new ui.model.LabelChild(parentIid,label.get_iid());
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,"create-label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,"create-labelChild",ui.api.CrudMessage.create(lc))]);
+		var iid = ui.api.Synchronizer.add(2,ui.api.ResponseProcessor.labelCreated);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-labelChild",ui.api.CrudMessage.create(lc))]);
 		req.start();
 	}
 	,getAliasLabels: function(alias) {
@@ -4834,7 +4819,8 @@ ui.api.BennuHandler.prototype = {
 		var label = new ui.model.Label(alias.name);
 		var lc = new ui.model.LabelChild("",label.get_iid());
 		alias.rootLabelIid = label.get_iid();
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,"create-alias",ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,"create-label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,"create-labelChild",ui.api.CrudMessage.create(lc))]);
+		var iid = ui.api.Synchronizer.add(3,ui.api.ResponseProcessor.aliasCreated);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-alias",ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-labelChild",ui.api.CrudMessage.create(lc))]);
 		req.start();
 	}
 	,post: function(content) {
@@ -6205,80 +6191,107 @@ ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 ui.api.ResponseProcessor = function() { }
 $hxClasses["ui.api.ResponseProcessor"] = ui.api.ResponseProcessor;
 ui.api.ResponseProcessor.__name__ = ["ui","api","ResponseProcessor"];
-ui.api.ResponseProcessor.processAliasResponse = function(context,data) {
-	switch(context) {
-	case "initialDataload":
-		ui.api.ResponseProcessor.initialDataloadAlias(data.result);
-		break;
-	case "create":
-		var alias = ui.AppContext.SERIALIZER.fromJsonX(data.result.instance,ui.model.Alias);
-		ui.AppContext.AGENT.aliasSet.add(alias);
-		ui.model.EM.change(ui.model.EMEvent.NewAlias);
-		break;
-	}
-}
-ui.api.ResponseProcessor.processLabelResponse = function(context,data) {
-	switch(context) {
-	case "initialDataload":
-		ui.api.ResponseProcessor.initialDataloadLabel(data.result);
-		break;
-	}
-}
-ui.api.ResponseProcessor.processLabelChildResponse = function(context,data) {
-	switch(context) {
-	case "initialDataload":
-		ui.api.ResponseProcessor.initialDataloadLabelChild(data.result);
-		break;
-	}
-}
-ui.api.ResponseProcessor.initialDataloadAlias = function(data) {
-	var agent = ui.AppContext.AGENT;
-	var _g = 0;
-	while(_g < data.length) {
-		var alias_ = data[_g];
-		++_g;
-		var alias = ui.AppContext.SERIALIZER.fromJsonX(alias_,ui.model.Alias);
-		agent.aliasSet.add(alias);
-	}
-	if(agent.aliasSet.isEmpty()) agent.aliasSet.add(new ui.model.Alias("placeholder"));
-	agent.set_currentAlias(agent.aliasSet.iterator().next());
-	ui.model.EM.change(ui.model.EMEvent.AGENT,agent);
-	ui.model.EM.change(ui.model.EMEvent.FitWindow);
-	ui.api.ResponseProcessor.aliasIntialized = true;
-	ui.api.ResponseProcessor.doInitialDataLoad();
-}
-ui.api.ResponseProcessor.initialDataloadLabel = function(data) {
-	var _g = 0;
-	while(_g < data.length) {
-		var label_ = data[_g];
-		++_g;
-		var label = ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.Label);
-		ui.AppContext.LABELS.add(label);
-	}
-	ui.api.ResponseProcessor.labelIntialized = true;
-	ui.api.ResponseProcessor.doInitialDataLoad();
-}
-ui.api.ResponseProcessor.initialDataloadLabelChild = function(data) {
-	var _g = 0;
-	while(_g < data.length) {
-		var labelChild_ = data[_g];
-		++_g;
-		var labelChild = ui.AppContext.SERIALIZER.fromJsonX(labelChild_,ui.model.LabelChild);
-		ui.AppContext.LABELCHILDS.add(labelChild);
-	}
-	ui.api.ResponseProcessor.labelChildIntialized = true;
-	ui.api.ResponseProcessor.doInitialDataLoad();
-}
-ui.api.ResponseProcessor.doInitialDataLoad = function() {
-	if(!ui.api.ResponseProcessor.aliasIntialized || !ui.api.ResponseProcessor.labelIntialized || !ui.api.ResponseProcessor.labelChildIntialized) return;
-	var gs = new m3.observable.GroupedSet(ui.AppContext.LABELCHILDS,function(lc) {
-		return lc.parentIid;
+ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
+	if(dataArr == null || dataArr.length == 0) return;
+	Lambda.iter(dataArr,function(data) {
+		var context = data.context.split("-");
+		var synchronizer = ui.api.Synchronizer.synchronizers.get(context[0]);
+		if(synchronizer != null) synchronizer.dataReceived(data.result,context[1]);
 	});
-	var $it0 = ui.AppContext.LABELS.iterator();
-	while( $it0.hasNext() ) {
-		var label = $it0.next();
-		label.labelChildren = gs.delegate().get(label.get_iid());
+}
+ui.api.ResponseProcessor.aliasCreated = function(data) {
+	ui.AppContext.AGENT.aliasSet.add(data.aliases[0]);
+	ui.AppContext.LABELS.add(data.labels[0]);
+	ui.AppContext.LABELCHILDS.add(data.labelChildren[0]);
+	ui.model.EM.change(ui.model.EMEvent.NewAlias);
+}
+ui.api.ResponseProcessor.aliasUpdated = function(data) {
+}
+ui.api.ResponseProcessor.aliasDeleted = function(data) {
+}
+ui.api.ResponseProcessor.labelCreated = function(data) {
+	ui.AppContext.LABELS.add(data.labels[0]);
+	ui.AppContext.LABELCHILDS.add(data.labelChildren[0]);
+}
+ui.api.ResponseProcessor.labelUpdated = function(data) {
+}
+ui.api.ResponseProcessor.labelMoved = function(data) {
+}
+ui.api.ResponseProcessor.labelDeleted = function(data) {
+}
+ui.api.ResponseProcessor.initialDataLoad = function(data) {
+	ui.AppContext.AGENT.aliasSet.addAll(data.aliases);
+	ui.AppContext.LABELS.addAll(data.labels);
+	ui.AppContext.LABELCHILDS.addAll(data.labelChildren);
+	if(ui.AppContext.AGENT.aliasSet.isEmpty()) ui.AppContext.AGENT.aliasSet.add(new ui.model.Alias("Default Alias"));
+	ui.AppContext.AGENT.set_currentAlias(ui.AppContext.AGENT.aliasSet.iterator().next());
+	ui.model.EM.change(ui.model.EMEvent.AGENT,ui.AppContext.AGENT);
+	ui.model.EM.change(ui.model.EMEvent.FitWindow);
+}
+ui.api.Synchronizer = function(numResponsesExpected,oncomplete) {
+	this.iid = ui.api.Synchronizer.genIid();
+	this.numResponsesExpected = numResponsesExpected;
+	this.oncomplete = oncomplete;
+	this.parms = { aliases : new Array(), labels : new Array(), labelChildren : new Array()};
+};
+$hxClasses["ui.api.Synchronizer"] = ui.api.Synchronizer;
+ui.api.Synchronizer.__name__ = ["ui","api","Synchronizer"];
+ui.api.Synchronizer.genIid = function() {
+	return m3.util.UidGenerator.create(32);
+}
+ui.api.Synchronizer.add = function(numResponsesExpected,oncomplete,iid) {
+	var synchronizer = new ui.api.Synchronizer(numResponsesExpected,oncomplete);
+	if(iid != null) synchronizer.iid = iid;
+	ui.api.Synchronizer.synchronizers.set(synchronizer.iid,synchronizer);
+	return synchronizer.iid;
+}
+ui.api.Synchronizer.remove = function(iid) {
+	ui.api.Synchronizer.synchronizers.remove(iid);
+}
+ui.api.Synchronizer.prototype = {
+	dataReceived: function(data,responseType) {
+		switch(responseType) {
+		case "alias":
+			this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Alias));
+			break;
+		case "aliases":
+			var _g = 0, _g1 = js.Boot.__cast(data , Array);
+			while(_g < _g1.length) {
+				var alias_ = _g1[_g];
+				++_g;
+				this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(alias_,ui.model.Alias));
+			}
+			break;
+		case "label":
+			this.parms.labels.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Label));
+			break;
+		case "labels":
+			var _g = 0, _g1 = js.Boot.__cast(data , Array);
+			while(_g < _g1.length) {
+				var label_ = _g1[_g];
+				++_g;
+				this.parms.labels.push(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.Label));
+			}
+			break;
+		case "labelChild":
+			this.parms.labelChildren.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.LabelChild));
+			break;
+		case "labelChildren":
+			var _g = 0, _g1 = js.Boot.__cast(data , Array);
+			while(_g < _g1.length) {
+				var labelChild_ = _g1[_g];
+				++_g;
+				this.parms.labelChildren.push(ui.AppContext.SERIALIZER.fromJsonX(labelChild_,ui.model.LabelChild));
+			}
+			break;
+		}
+		this.numResponsesExpected -= 1;
+		if(this.numResponsesExpected == 0) {
+			this.oncomplete(this.parms);
+			ui.api.Synchronizer.remove(this.iid);
+		}
 	}
+	,__class__: ui.api.Synchronizer
 }
 ui.exception = {}
 ui.exception.InitializeSessionException = function(error,message,cause) {
@@ -8993,6 +9006,9 @@ var defineWidget = function() {
 		if(ui.AppContext.DEMO) {
 			self.input_un.val("Jerry.Seinfeld");
 			self.input_pw.val("Bosco");
+		} else {
+			self.input_un.val("quid@quid.com");
+			self.input_pw.val("ohyea");
 		}
 		inputs.children("input").keypress(function(evt) {
 			if(evt.keyCode == 13) self._login();
@@ -9969,9 +9985,7 @@ ui.api.RestoreRequest.__rtti = "<class path=\"ui.api.RestoreRequest\" params=\"\
 ui.api.RestoresRequest.__rtti = "<class path=\"ui.api.RestoresRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"573\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.RestoresResponse.__rtti = "<class path=\"ui.api.RestoresResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.RestoresData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"579\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.api.RestoresData.__rtti = "<class path=\"ui.api.RestoresData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<backups public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></backups>\n\t<new public=\"1\" set=\"method\" line=\"584\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ResponseProcessor.aliasIntialized = false;
-ui.api.ResponseProcessor.labelIntialized = false;
-ui.api.ResponseProcessor.labelChildIntialized = false;
+ui.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.model.ModelObjWithUid.__rtti = "<class path=\"ui.model.ModelObjWithUid\" params=\"T\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"39\" static=\"1\"><f a=\"t\">\n\t<c path=\"ui.model.ModelObjWithUid\"><c path=\"identifier.T\"/></c>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<uid public=\"1\" get=\"accessor\" set=\"accessor\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</uid>\n\t<get_uid set=\"method\" line=\"43\"><f a=\"\"><c path=\"String\"/></f></get_uid>\n\t<set_uid set=\"method\" line=\"50\"><f a=\"id\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</f></set_uid>\n\t<new public=\"1\" set=\"method\" line=\"34\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.ModelObjWithIid.__rtti = "<class path=\"ui.model.ModelObjWithIid\" params=\"T\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<identifier public=\"1\" params=\"T\" set=\"method\" line=\"68\" static=\"1\"><f a=\"t\">\n\t<c path=\"ui.model.ModelObjWithIid\"><c path=\"identifier.T\"/></c>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<iid public=\"1\" get=\"accessor\" set=\"accessor\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</iid>\n\t<get_iid set=\"method\" line=\"72\"><f a=\"\"><c path=\"String\"/></f></get_iid>\n\t<set_iid set=\"method\" line=\"79\"><f a=\"id\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</f></set_iid>\n\t<new public=\"1\" set=\"method\" line=\"62\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

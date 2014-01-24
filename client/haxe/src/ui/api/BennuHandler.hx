@@ -56,20 +56,19 @@ class BennuHandler implements ProtocolHandler {
 		var lc = new LabelChild("", label.iid);
 		alias.rootLabelIid = label.iid;
 
+		var iid = Synchronizer.add(3, ResponseProcessor.aliasCreated);
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, "create-alias", CrudMessage.create(alias)),
-			new ChannelRequestMessage(UPSERT, "create-label", CrudMessage.create(label)),
-			new ChannelRequestMessage(UPSERT, "create-labelChild", CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, iid + "-alias", CrudMessage.create(alias)),
+			new ChannelRequestMessage(UPSERT, iid + "-label", CrudMessage.create(label)),
+			new ChannelRequestMessage(UPSERT, iid + "-labelChild", CrudMessage.create(lc))]);
 		req.start();
 	}
 	
 	public function updateAlias(alias: Alias): Void {
-		// TODO:  Update the name of the rootLabel
-		var upsertRequest = new UpsertRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
-       		AppContext.LOGGER.debug("upateAlias succeeded");
-       		EM.change(EMEvent.NewAlias);
-		});
-		upsertRequest.start();
+		var iid = Synchronizer.add(1, ResponseProcessor.aliasUpdated);
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(UPSERT, iid + "-alias", CrudMessage.create(alias))]);
+		req.start();
 	}
 
 	public function deleteAlias(alias: Alias): Void {
@@ -92,10 +91,10 @@ class BennuHandler implements ProtocolHandler {
 	public function createLabel(label:Label, parentIid:String): Void {
 		// Create a label child, which will connect the parent and the child
 		var lc = new LabelChild(parentIid, label.iid);
-
+		var iid = Synchronizer.add(2, ResponseProcessor.labelCreated);
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, "create-label", CrudMessage.create(label)),
-			new ChannelRequestMessage(UPSERT, "create-labelChild", CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, iid + "-label", CrudMessage.create(label)),
+			new ChannelRequestMessage(UPSERT, iid + "-labelChild", CrudMessage.create(lc))]);
 		req.start();
 	}
 
@@ -108,19 +107,21 @@ class BennuHandler implements ProtocolHandler {
 	}
  
 	public function deleteLabels(labels:Array<Label>):Void {
+		var iid = Synchronizer.genIid();
+
 		var requests = new Array<ChannelRequestMessage>();
-		var path = DELETE;
 
 		for (label in labels) {
-			requests.push(new ChannelRequestMessage(path, "delete-label", CrudMessage.create(label)));
+			requests.push(new ChannelRequestMessage(DELETE, iid + "-label", CrudMessage.create(label)));
 		}
 
 		// Find all of the labelChilds that need to be deleted
 		var labelChildren = new Array<LabelChild>();
 		for (labelChild in labelChildren) {
-			requests.push(new ChannelRequestMessage(path, "delete-labelChild", CrudMessage.create(labelChild)));
+			requests.push(new ChannelRequestMessage(DELETE, iid + "-labelChild", CrudMessage.create(labelChild)));
 		}
 
+		Synchronizer.add(requests.length, ResponseProcessor.labelDeleted, iid);
 		new SubmitRequest(requests).start();
 	}
 
@@ -134,10 +135,11 @@ class BennuHandler implements ProtocolHandler {
 		AppContext.CHANNEL = data.id;
 		_startPolling();
 
+		var iid = Synchronizer.add(3, ResponseProcessor.initialDataLoad);
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(QUERY, "initialDataload-alias"     , new QueryMessage("alias")),
-			new ChannelRequestMessage(QUERY, "initialDataload-label"     , new QueryMessage("label")),
-			new ChannelRequestMessage(QUERY, "initialDataload-labelChild", new QueryMessage("labelChild"))]);
+			new ChannelRequestMessage(QUERY, iid + "-aliases"     , new QueryMessage("alias")),
+			new ChannelRequestMessage(QUERY, iid + "-labels"     , new QueryMessage("label")),
+			new ChannelRequestMessage(QUERY, iid + "-labelChildren", new QueryMessage("labelChild"))]);
 		req.start();
 	}
 
@@ -149,27 +151,8 @@ class BennuHandler implements ProtocolHandler {
 	        type: "GET"
 		};
 
-		listeningChannel = new LongPollingRequest("", _onPoll, ajaxOptions);
+		listeningChannel = new LongPollingRequest("", ResponseProcessor.processResponse, ajaxOptions);
 		listeningChannel.timeout = timeout;
 		listeningChannel.start();
-	}
-
-	private function _onPoll(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
-		if (dataArr == null || dataArr.length == 0) { return; }
-
-		dataArr.iter(function(data:Dynamic): Void {
-
-			var context:Array<String> = data.context.split("-");
-			var objectType = context[1].toLowerCase();
-
-			switch (objectType) {
-				case "alias":
-					ResponseProcessor.processAliasResponse(context[0], data);
-				case "label":
-					ResponseProcessor.processLabelResponse(context[0], data);
-				case "labelchild":
-					ResponseProcessor.processLabelChildResponse(context[0], data);
-			}
-		});
 	}
 }
