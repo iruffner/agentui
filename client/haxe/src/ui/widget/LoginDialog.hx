@@ -80,7 +80,9 @@ extern class LoginDialog extends JQ {
 		        	if(AppContext.DEMO) {
 		        		self.input_un.val("Jerry.Seinfeld");
 		        		self.input_pw.val("Bosco");
-		        		// self.input_ag.val("TheAgency");
+		        	} else if(true) {
+		        		self.input_un.val("quid@quid.com");
+		        		self.input_pw.val("ohyea");
 		        	}
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
