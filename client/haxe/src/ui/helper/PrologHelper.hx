@@ -16,6 +16,7 @@ using StringTools;
 class PrologHelper {
 	public static function tagTreeAsStrings(labels: OSet<Label>): Array<String> {
 		var sarray: Array<String> = new Array<String>();
+		/*
 		var topLevelLabels: FilteredSet<Label> = new FilteredSet(labels, function(l: Label): Bool { return l.parentIid.isBlank(); });
 
 		topLevelLabels.iter(function(l: Label): Void {
@@ -29,11 +30,12 @@ class PrologHelper {
 
 				sarray.push(s);
 			});
+		*/
 		return sarray;
 	}
 
 	private static function _processTagChildren(original: OSet<Label>, set: FilteredSet<Label>): String {
-		var str: String = set.fold(function(l: Label, s: String): String {
+		var str: String = ""; /*set.fold(function(l: Label, s: String): String {
 				if(s.isNotBlank()) {
 					s += ",";
 				}
@@ -49,6 +51,7 @@ class PrologHelper {
 				return s;
 			},
 			"");
+		*/
 		return str;
 	}
 
@@ -65,6 +68,7 @@ class PrologHelper {
 
 	private static function _processDataLogChildren(parentLabel: Label, parser: LabelStringParser): Array<Label> {
 		var larray: Array<Label> = new Array<Label>();
+		/*
 		var term: String = parser.nextTerm();
 		if(term == "(") { // this was the leading paren
 			term = parser.nextTerm();
@@ -78,7 +82,7 @@ class PrologHelper {
 				larray.push(l);
 				var children: Array<Label> = _processDataLogChildren(l, parser);
 				larray = larray.concat(children);
-			} else if(term.isNotBlank() && term.startsWith("l") /*!term.contains(",")*/) { // this is a leaf
+			} else if(term.isNotBlank() && term.startsWith("l") ) { // this is a leaf
 				term = term.substring(1);
 				var l: Label = new Label(term);
 				if(parentLabel != null) l.parentIid = parentLabel.iid;
@@ -89,13 +93,13 @@ class PrologHelper {
 			}
 			term = parser.nextTerm();
 		}
-
+*/
 		return larray;
 	}
 
 	public static function labelsToProlog(contentTags: OSet<Label>): String {
 		var sarray: Array<String> = [];
-
+/*
 		contentTags.iter(function(label: Label): Void {
 				var path: Array<String> = [];
 				var traveler: Label = label;
@@ -105,7 +109,7 @@ class PrologHelper {
 				}
 				sarray.push("[" + path.join(",") + "]");
 			});
-
+*/
 		return (sarray.length > 1 ? "each(":"") + sarray.join(",") + (sarray.length > 1? ")":"");
 	}
 

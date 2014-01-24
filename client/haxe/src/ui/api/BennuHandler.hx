@@ -13,6 +13,12 @@ import ui.model.EM;
 using Lambda;
 
 class BennuHandler implements ProtocolHandler {
+
+	// Message Paths
+	private static var UPSERT = "/api/upsert";
+	private static var DELETE = "/api/delete";
+	private static var QUERY  = "/api/query";
+
 	private var eventDelegate:EventDelegate;
 	private var listeningChannel: LongPollingRequest;
 
@@ -47,13 +53,13 @@ class BennuHandler implements ProtocolHandler {
 	public function createAlias(alias: Alias): Void {
 		// Create a label child, which will connect the parent and the child
 		var label = new Label(alias.name);
-		var lc = new LabelChild("qoid", label.iid);
+		var lc = new LabelChild("", label.iid);
 		alias.rootLabelIid = label.iid;
 
 		var req = new SubmitRequest([
-			new ChannelRequestMessage("/api/upsert", "create-alias", CrudMessage.create(alias)),
-			new ChannelRequestMessage("/api/upsert", "create-label", CrudMessage.create(label)),
-			new ChannelRequestMessage("/api/upsert", "create-labelChild", CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, "create-alias", CrudMessage.create(alias)),
+			new ChannelRequestMessage(UPSERT, "create-label", CrudMessage.create(label)),
+			new ChannelRequestMessage(UPSERT, "create-labelChild", CrudMessage.create(lc))]);
 		req.start();
 	}
 	
@@ -79,27 +85,17 @@ class BennuHandler implements ProtocolHandler {
 	public function getAliasConnections(alias: Alias): Void { }
 
 	public function getAliasLabels(alias:Alias) {
-		var qr = new QueryRequest("label", "", 
-			function (data: Array<Dynamic>, textStatus: String, jqXHR: JQXHR):Void {
-
-        		AppContext.AGENT.currentAlias.labelSet.clear();
-	        	for (label_ in data) {
-	        		var label = AppContext.SERIALIZER.fromJsonX(label_, Label);
-	        		AppContext.AGENT.currentAlias.labelSet.add(label);
-	        	}
-				EM.change(EMEvent.FitWindow);
-			}
-		);
-		qr.start();
+   		AppContext.AGENT.currentAlias.labelSet.clear();
+   		AppContext.AGENT.currentAlias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
 	}
 
-	public function createLabel(label:Label): Void {
+	public function createLabel(label:Label, parentIid:String): Void {
 		// Create a label child, which will connect the parent and the child
-		var lc = new LabelChild(label.parentIid, label.iid);
+		var lc = new LabelChild(parentIid, label.iid);
 
 		var req = new SubmitRequest([
-			new ChannelRequestMessage("/api/upsert", "create-label", CrudMessage.create(label)),
-			new ChannelRequestMessage("/api/upsert", "create-labelChild", CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, "create-label", CrudMessage.create(label)),
+			new ChannelRequestMessage(UPSERT, "create-labelChild", CrudMessage.create(lc))]);
 		req.start();
 	}
 
@@ -113,7 +109,7 @@ class BennuHandler implements ProtocolHandler {
  
 	public function deleteLabels(labels:Array<Label>):Void {
 		var requests = new Array<ChannelRequestMessage>();
-		var path = "/api/delete";
+		var path = DELETE;
 
 		for (label in labels) {
 			requests.push(new ChannelRequestMessage(path, "delete-label", CrudMessage.create(label)));
@@ -139,9 +135,9 @@ class BennuHandler implements ProtocolHandler {
 		_startPolling();
 
 		var req = new SubmitRequest([
-			new ChannelRequestMessage("/api/query", "initialDataload-alias"     , new QueryMessage("alias")),
-			new ChannelRequestMessage("/api/query", "initialDataload-label"     , new QueryMessage("label")),
-			new ChannelRequestMessage("/api/query", "initialDataload-labelChild", new QueryMessage("labelChild"))]);
+			new ChannelRequestMessage(QUERY, "initialDataload-alias"     , new QueryMessage("alias")),
+			new ChannelRequestMessage(QUERY, "initialDataload-label"     , new QueryMessage("label")),
+			new ChannelRequestMessage(QUERY, "initialDataload-labelChild", new QueryMessage("labelChild"))]);
 		req.start();
 	}
 
@@ -163,9 +159,10 @@ class BennuHandler implements ProtocolHandler {
 
 		dataArr.iter(function(data:Dynamic): Void {
 
-			var context = data.context.split("-");
+			var context:Array<String> = data.context.split("-");
+			var objectType = context[1].toLowerCase();
 
-			switch context[1] {
+			switch (objectType) {
 				case "alias":
 					ResponseProcessor.processAliasResponse(context[0], data);
 				case "label":

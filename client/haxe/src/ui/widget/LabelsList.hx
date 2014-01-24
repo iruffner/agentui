@@ -81,19 +81,14 @@ extern class LabelsList extends JQ {
         								});
 
         						createLabel = function(): Void {
-									AppContext.LOGGER.info("Create new label | " + input.val());
 
-									var text = input.val();
-									var alnum: EReg = ~/(^[a-zA-Z0-9]*$)/;
-
-									if (text.length == 0 || !alnum.match(text)) {
-										JqueryUtil.alert("Only alphanumeric labels allowed.");
-									} else {
+									if (input.val().length > 0) {
+										AppContext.LOGGER.info("Create new label | " + input.val());
 										var label: Label = new Label();
-										label.parentIid = parent.val();
 										label.name = input.val();
       									AppContext.LOGGER.debug("add to " + self.labels.visualId);
-	  									EM.change(EMEvent.CreateLabel, label);
+      									var eventData = {label:label, parentIid:parent.val()};
+	  									EM.change(EMEvent.CreateLabel, eventData);
 										new JQ("body").click();
 									}
         						};
@@ -125,16 +120,24 @@ extern class LabelsList extends JQ {
 		        			self._showNewLabelPopup(newLabelButton);
 		        		});
 
-					var getLabelDescendents: Label->Array<Label>->Void;
-					getLabelDescendents = function(label:Label, label_list:Array<Label>):Void {
-						label_list.insert(0, label);
+					var getLabelDescendents = function(label:Label, label_list:Array<Label>):Void {
 
-						var children: Array<Label> = new FilteredSet(self.labels, function(child: Label): Bool { 
-		            		return child.parentIid == label.iid;
-		            	}).asArray();
+						var getDescendentIids:String->Array<String>->Void;
+						getDescendentIids = function(iid:String, iidList:Array<String>):Void {
+							iidList.insert(0, iid);
+							var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDS, function(lc:LabelChild):Bool {
+								return lc.parentIid == iid;
+							}).asArray();
 
-						for (i in 0...children.length) {
-							getLabelDescendents(children[i], label_list);
+							for (i in 0...children.length) {
+								getDescendentIids(children[i].childIid, iidList);
+							}
+						};
+
+						var iid_list = new Array<String>();
+						getDescendentIids(label.iid, iid_list);
+						for (iid_ in iid_list) {
+							label_list.push(AppContext.LABELMAP.get(iid_));
 						}
 					};
 
@@ -222,20 +225,13 @@ extern class LabelsList extends JQ {
 
 					selfElement.children(".labelTree").remove();
 
-					var filteredSet: FilteredSet<Label> = new FilteredSet(labels, function(label: Label): Bool { 
-		            	return label.parentIid.isBlank();
-		            });
-
-					filteredSet.visualId = labels.visualId + "_filter";
 					var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
-		                labels: filteredSet 
+		                labels: labels 
 		            });
 
 		        	selfElement.prepend(labelTree);
 
-		        	var jqevent: JQEvent = null;
-
-		        	
+		        	var jqevent:JQEvent = null;
 	        	},
 		        
 		        destroy: function() {

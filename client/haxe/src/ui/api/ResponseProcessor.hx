@@ -11,10 +11,6 @@ class ResponseProcessor {
 	private static var aliasIntialized:Bool = false;
 	private static var labelIntialized:Bool = false;
 	private static var labelChildIntialized:Bool = false;
-	private static var uberLabelSet:ObservableSet<Label> = new ObservableSet<Label>(Label.identifier);
- 	private static var uberLabelChildSet:ObservableSet<LabelChild> = new ObservableSet<LabelChild>(LabelChild.identifier);
- 	private static var labelSet = new ObservableSet<Label>(Label.identifier);
-
 
 	public static function processAliasResponse(context:String, data:Dynamic) {
 		switch (context) {
@@ -65,7 +61,7 @@ class ResponseProcessor {
 	private static function initialDataloadLabel(data:Array<Dynamic>) {
     	for (label_ in data) {
     		var label = AppContext.SERIALIZER.fromJsonX(label_, Label);
-    		uberLabelSet.add(label);
+    		AppContext.LABELS.add(label);
     	}
 
 		labelIntialized = true;
@@ -75,7 +71,7 @@ class ResponseProcessor {
 	private static function initialDataloadLabelChild(data:Array<Dynamic>) {
     	for (labelChild_ in data) {
     		var labelChild = AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild);
-    		uberLabelChildSet.add(labelChild);
+    		AppContext.LABELCHILDS.add(labelChild);
     	}
 		labelChildIntialized = true;
 		doInitialDataLoad();
@@ -85,12 +81,10 @@ class ResponseProcessor {
 		if (!aliasIntialized || !labelIntialized || !labelChildIntialized) { return; }
 
 		// Create a grouped set to build out the structure of the labels
-		var gs = new GroupedSet<LabelChild>(uberLabelChildSet, function(lc: LabelChild): String { return lc.parentIid;});
+		var gs = new GroupedSet<LabelChild>(AppContext.LABELCHILDS, function(lc: LabelChild): String { return lc.parentIid;});
 
-		for (label in uberLabelSet) {
-			//label.children = gs.delegate().get(label.iid);
+		for (label in AppContext.LABELS) {
+			label.labelChildren = gs.delegate().get(label.iid);
 		}
-		// Now the label tree can be built, starting with the root id of "qoid"
 	}
-
 }

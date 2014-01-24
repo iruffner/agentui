@@ -99,8 +99,8 @@ class EventDelegate {
         	protocolHandler.post(content);
     	}));
 
-        EM.addListener(EMEvent.CreateLabel, new EMListener(function(l:Label): Void {
-        	protocolHandler.createLabel(l);
+        EM.addListener(EMEvent.CreateLabel, new EMListener(function(data:Dynamic): Void {
+        	protocolHandler.createLabel(data.label, data.parentIid);
     	}));
 
         EM.addListener(EMEvent.DeleteLabels, new EMListener(function(ls:Array<Label>): Void {

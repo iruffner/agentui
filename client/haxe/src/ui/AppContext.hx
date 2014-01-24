@@ -1,5 +1,7 @@
 package ui;
 
+import haxe.ds.StringMap;
+
 import m3.jq.JQ;
 import m3.log.Logga;
 import m3.log.LogLevel;
@@ -21,6 +23,10 @@ class AppContext {
     public static var CONTENT: ObservableSet<Content>;
     public static var SERIALIZER: Serializer;
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
+    public static var LABELS:ObservableSet<Label>;
+    public static var LABELCHILDS:ObservableSet<LabelChild>;
+    public static var LABELMAP:StringMap<Label>;
+
 
     private static var _i: ObservableSet<IntroductionNotification>;
 
@@ -41,6 +47,11 @@ class AppContext {
         		return Connection.identifier(n.contentImpl.connection);
         	}
     	);
+
+        LABELS      = new ObservableSet<Label>(Label.identifier);
+        LABELS.listen(updateLabelMap);
+        LABELCHILDS = new ObservableSet<LabelChild>(LabelChild.identifier);
+        LABELMAP    = new StringMap<Label>();
         
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());
@@ -48,7 +59,13 @@ class AppContext {
     	registerGlobalListeners();
     }
 
-
+    static function updateLabelMap(label: Label, evt: EventType): Void {
+        if (evt.isAddOrUpdate()) {
+            LABELMAP.set(label.iid, label);
+        } else if (evt.isDelete()) {
+            LABELMAP.remove(label.iid);
+        }
+    }
 
 	static function registerGlobalListeners() {
         new JQ(js.Browser.window).on("unload", function(evt: JQEvent){
@@ -93,4 +110,16 @@ class AppContext {
             }, "AgentUi-IntroNotification")
         );
 	}
+
+    public static function getLabelChildren(iid:String):ObservableSet<Label> {
+        var fs = new FilteredSet(LABELCHILDS, function(lc:LabelChild):Bool {
+            return lc.parentIid == iid;
+        });
+
+        var labelChildren = new ObservableSet<Label>(Label.identifier);
+        for (lc in fs) {
+            labelChildren.add(LABELMAP.get(lc.childIid));
+        }
+        return labelChildren;
+    }
 }

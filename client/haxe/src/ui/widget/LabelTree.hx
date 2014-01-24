@@ -43,9 +43,7 @@ extern class LabelTree extends JQ {
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
 		        	self.mappedLabels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
-		        			var children: FilteredSet<Label> = new FilteredSet<Label>(AppContext.AGENT.currentAlias.labelSet, function(child: Label): Bool{
-		        						return child.parentIid == label.iid;
-		        					});
+		        			var children = AppContext.getLabelChildren(label.iid);
 		        			children.visualId = "filteredLabelTree--" + label.name;
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				label: label,

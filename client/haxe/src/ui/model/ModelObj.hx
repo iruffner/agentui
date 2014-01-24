@@ -105,8 +105,8 @@ class Agent extends ModelObj {
 	}
 
 	private function registerModelListeners(): Void {
-		EM.addListener(EMEvent.CreateLabel, new EMListener(function(label: Label): Void {
-        		this.currentAlias.labelSet.add(label);
+		EM.addListener(EMEvent.CreateLabel, new EMListener(function(data: Dynamic): Void {
+        		this.currentAlias.labelSet.add(data.label);
         		EM.change(EMEvent.UPDATE_LABELS);
 				EM.change(EMEvent.FitWindow);
     		}, "User-CreateLabel")
@@ -224,8 +224,7 @@ class LabelData extends ModelObj {
 class Label extends ModelObjWithIid<Label> implements Filterable {
 	public var name: String;
 	public var data: LabelData;
-	@:transient public var parentIid: String;
-	@:transient public var children:ObservableSet<Label>;
+	@:transient public var labelChildren:OSet<LabelChild>;
 
 	public function new(?name: String) {
 		super();
@@ -234,14 +233,14 @@ class Label extends ModelObjWithIid<Label> implements Filterable {
 	}
 
 	public static function identifier(l: Label): String {
-		return l.parentIid + "_" + l.name;
+		return l.iid;
 	}
 }
 
 class LabelChild extends ModelObjWithIid<Label> {
 	public var parentIid: String;
 	public var childIid: String;
-	public var data: Dynamic;
+	@:optional public var data: Dynamic;
 
 	public static function identifier(l: LabelChild): String {
 		return l.iid;
