@@ -58,7 +58,7 @@ class AgentUi {
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + N");
-                var connection: Connection = AppContext.AGENT.currentAlias.connectionSet.asArray()[2];
+                var connection: Connection = AppContext.alias.connectionSet.asArray()[2];
 
                 var notification: IntroductionNotification = new IntroductionNotification();
                 notification.contentImpl = new IntroductionNotificationData();
@@ -72,7 +72,7 @@ class AgentUi {
             }
             else if(evt.altKey && evt.shiftKey && evt.keyCode == 77 /* ALT+SHIFT+M */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + M");
-                var connection: Connection = AppContext.AGENT.currentAlias.connectionSet.asArray()[2];
+                var connection: Connection = AppContext.alias.connectionSet.asArray()[2];
                 var notification: IntroductionNotification = new IntroductionNotification();
                 notification.contentImpl.connection = connection;
                 notification.contentImpl.correlationId = "abc123";

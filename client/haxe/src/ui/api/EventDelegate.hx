@@ -200,8 +200,8 @@ class EventDelegate {
         processHash.set(MsgType.getAliasConnectionsResponse, function(data: Dynamic){
     		AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
     		var resp: GetAliasConnectionsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasConnectionsResponse);
-    		AppContext.AGENT.currentAlias.connectionSet.clear();
-    		AppContext.AGENT.currentAlias.connectionSet.addAll(resp.contentImpl.connections);
+    		AppContext.alias.connectionSet.clear();
+    		AppContext.alias.connectionSet.addAll(resp.contentImpl.connections);
     	});
 
         processHash.set(MsgType.getAliasConnectionsError, function(data: Dynamic){
@@ -211,8 +211,8 @@ class EventDelegate {
         processHash.set(MsgType.getAliasLabelsResponse, function(data: Dynamic){
     		AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
     		var resp: GetAliasLabelsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasLabelsResponse);
-    		AppContext.AGENT.currentAlias.labelSet.clear();
-    		AppContext.AGENT.currentAlias.labelSet.addAll(resp.contentImpl.aliasLabels);
+    		AppContext.alias.labelSet.clear();
+    		AppContext.alias.labelSet.addAll(resp.contentImpl.aliasLabels);
     	});
 
         processHash.set(MsgType.getAliasLabelsError, function(data: Dynamic){

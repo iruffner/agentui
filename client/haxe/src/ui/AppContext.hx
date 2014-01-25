@@ -26,10 +26,14 @@ class AppContext {
     public static var LABELS:ObservableSet<Label>;
     public static var LABELCHILDREN:ObservableSet<LabelChild>;
     public static var LABELMAP:StringMap<Label>;
-    @:isVar public static var alias(get,null): Alias;
+    @:isVar public static var alias(get, set): Alias;
 
     private static function get_alias(): Alias {
         return AGENT.currentAlias;
+    }
+    private static function set_alias(alias:Alias): Alias {
+        AGENT.currentAlias = alias;
+        return alias;
     }
 
     private static var _i: ObservableSet<IntroductionNotification>;

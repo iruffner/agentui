@@ -44,19 +44,23 @@ class ResponseProcessor {
 	public static function labelCreated(data:Dynamic) {
 		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
 		AppContext.LABELS.add(data.labels[0]);
+		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
        	EM.change(EMEvent.LabelCreated, AppContext.alias);
 	}
 
 	public static function labelUpdated(data:Dynamic) {
-       	EM.change(EMEvent.LabelUpdated, AppContext.alias);
+		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
+       	EM.change(EMEvent.LabelCreated, AppContext.alias);
 	}
 
 	public static function labelMoved(data:Dynamic) {
-		
+		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
+       	EM.change(EMEvent.LabelCreated, AppContext.alias);		
 	}
 
 	public static function labelDeleted(data:Dynamic) {
-       	EM.change(EMEvent.LabelDeleted, AppContext.alias);
+		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
+       	EM.change(EMEvent.LabelCreated, AppContext.alias);
 	}
 
 	public static function initialDataLoad(data:Dynamic) {
@@ -71,11 +75,11 @@ class ResponseProcessor {
     		EM.change(EMEvent.ALIAS_CREATE, defaultAlias);
     		AppContext.AGENT.aliasSet.add(defaultAlias);
     	}
-    	AppContext.AGENT.currentAlias = AppContext.AGENT.aliasSet.iterator().next();
+    	AppContext.alias = AppContext.AGENT.aliasSet.iterator().next();
 
     	// Fire the events that will cause the UI to load the data
 		EM.change(EMEvent.AGENT, AppContext.AGENT);
-		EM.change(EMEvent.LOAD_ALIAS, AppContext.AGENT.currentAlias);
+		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
 		EM.change(EMEvent.FitWindow);
 	}
 }

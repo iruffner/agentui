@@ -20,12 +20,9 @@ using Lambda;
 @:rtti
 class ModelObj {
 
-	var agentId: String;
-
 	public function new() {
-		//TODO put the right thing here
-		agentId = "";
 	}
+
 	public function objectType(){
 		var className = this.clazz().classname().toLowerCase();
 		var parts = className.split(".");
@@ -61,6 +58,7 @@ class ModelObjWithUid<T> extends ModelObj{
 class ModelObjWithIid<T> extends ModelObj{
 	// Added here for all models
 	public var deleted:Bool;
+	var agentId: String;
 
 	@:isVar public var iid(get,set): String;
 
@@ -68,6 +66,7 @@ class ModelObjWithIid<T> extends ModelObj{
 		super();
 		this.iid = UidGenerator.create(32);
 		this.deleted = false;
+		agentId = "";
 	}
 
 	public static function identifier<T>(t: ModelObjWithIid<T>): String {

@@ -85,8 +85,8 @@ class BennuHandler implements ProtocolHandler {
 	public function getAliasConnections(alias: Alias): Void { }
 
 	public function getAliasLabels(alias:Alias) {
-   		AppContext.AGENT.currentAlias.labelSet.clear();
-   		AppContext.AGENT.currentAlias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
+   		AppContext.alias.labelSet.clear();
+   		AppContext.alias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
 	}
 
 	public function createLabel(label:Label, parentIid:String): Void {
