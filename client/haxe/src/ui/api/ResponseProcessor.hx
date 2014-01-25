@@ -42,11 +42,13 @@ class ResponseProcessor {
 	}
 
 	public static function labelCreated(data:Dynamic) {
-		AppContext.LABELS.add(data.labels[0]);
 		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
+		AppContext.LABELS.add(data.labels[0]);
+       	EM.change(EMEvent.LabelCreated, AppContext.alias);
 	}
 
 	public static function labelUpdated(data:Dynamic) {
+       	EM.change(EMEvent.LabelUpdated, AppContext.alias);
 	}
 
 	public static function labelMoved(data:Dynamic) {
@@ -54,6 +56,7 @@ class ResponseProcessor {
 	}
 
 	public static function labelDeleted(data:Dynamic) {
+       	EM.change(EMEvent.LabelDeleted, AppContext.alias);
 	}
 
 	public static function initialDataLoad(data:Dynamic) {
@@ -61,15 +64,7 @@ class ResponseProcessor {
 		AppContext.AGENT.aliasSet.addAll(data.aliases);
 		AppContext.LABELS.addAll(data.labels);
 		AppContext.LABELCHILDREN.addAll(data.labelChildren);
-/*
-		// Create a grouped set to build out the structure of the labels
-		// TODO:  Put this grouping in AppContext.  
-		var gs = new GroupedSet<LabelChild>(AppContext.LABELCHILDREN, function(lc: LabelChild): String { return lc.parentIid;});
 
-		for (label in AppContext.LABELS) {
-			label.labelChildren = gs.delegate().get(label.iid);
-		}
-*/
 	    // Set the current alias
     	if (AppContext.AGENT.aliasSet.isEmpty()) {
     		var defaultAlias: Alias = new Alias("Default Alias");
@@ -80,6 +75,7 @@ class ResponseProcessor {
 
     	// Fire the events that will cause the UI to load the data
 		EM.change(EMEvent.AGENT, AppContext.AGENT);
+		EM.change(EMEvent.LOAD_ALIAS, AppContext.AGENT.currentAlias);
 		EM.change(EMEvent.FitWindow);
 	}
 }

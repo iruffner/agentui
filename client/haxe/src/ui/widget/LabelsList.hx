@@ -54,15 +54,18 @@ extern class LabelsList extends JQ {
         						container.append("<label for='labelParent'>Parent: </label> ");
         						var parent: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + AppContext.AGENT.currentAlias.rootLabelIid+ "'>No Parent</option></select>").appendTo(container);
         						parent.click(stopFcn);
-        						var iter: Iterator<Label> = AppContext.AGENT.currentAlias.labelSet.iterator();
+        						var aliasLabels = AppContext.getLabelDescendents(AppContext.AGENT.currentAlias.rootLabelIid);
+        						var iter: Iterator<Label> = aliasLabels.iterator();
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
-        							var option = "<option value='" + label.iid + "'";
-        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().iid == label.iid) {
-        								option += " SELECTED";
-        							}
-        							option += ">" + label.name + "</option>";
-        							parent.append(option);
+        							if (label.iid != AppContext.AGENT.currentAlias.rootLabelIid) {
+	        							var option = "<option value='" + label.iid + "'";
+	        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().iid == label.iid) {
+	        								option += " SELECTED";
+	        							}
+	        							option += ">" + label.name + "</option>";
+	        							parent.append(option);
+	        						}
         						}
         						container.append("<br/><label for='labelName'>Name: </label> ");
         						var input: JQ = new JQ("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
@@ -108,6 +111,19 @@ extern class LabelsList extends JQ {
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
+		        			self._setLabels(alias.labelSet);
+	        			}, "LabelsList-Alias")
+		        	);
+
+		        	EM.addListener(EMEvent.LabelCreated, new EMListener(function(alias: Alias) {
+		        			self._setLabels(alias.labelSet);
+	        			}, "LabelsList-Alias")
+		        	);
+		        	EM.addListener(EMEvent.LabelUpdated, new EMListener(function(alias: Alias) {
+		        			self._setLabels(alias.labelSet);
+	        			}, "LabelsList-Alias")
+		        	);
+		        	EM.addListener(EMEvent.LabelDeleted, new EMListener(function(alias: Alias) {
 		        			self._setLabels(alias.labelSet);
 	        			}, "LabelsList-Alias")
 		        	);
@@ -170,7 +186,7 @@ extern class LabelsList extends JQ {
    		        								var labelsToDelete:Array<Label> = [];
    		        								getLabelDescendents(self.selectedLabelComp.getLabel(), labelsToDelete);
 
-   		        								EM.change(EMEvent.DeleteLabels, labelsToDelete);
+   		        								EM.change(EMEvent.DeleteLabel, labelsToDelete);
 
    		        								for (i in 0...labelsToDelete.length) {
 	   		        								self.labels.delete(labelsToDelete[i]);

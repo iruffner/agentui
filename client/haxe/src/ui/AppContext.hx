@@ -26,7 +26,11 @@ class AppContext {
     public static var LABELS:ObservableSet<Label>;
     public static var LABELCHILDREN:ObservableSet<LabelChild>;
     public static var LABELMAP:StringMap<Label>;
+    @:isVar public static var alias(get,null): Alias;
 
+    private static function get_alias(): Alias {
+        return AGENT.currentAlias;
+    }
 
     private static var _i: ObservableSet<IntroductionNotification>;
 
@@ -122,4 +126,28 @@ class AppContext {
         }
         return labelChildren;
     }
+
+    public static function getLabelDescendents(iid:String):ObservableSet<Label> {
+        var labelDescendents = new ObservableSet<Label>(Label.identifier);
+
+        var getDescendentIids:String->Array<String>->Void;
+        getDescendentIids = function(iid:String, iidList:Array<String>):Void {
+            iidList.insert(0, iid);
+            var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+                return lc.parentIid == iid;
+            }).asArray();
+
+            for (i in 0...children.length) {
+                getDescendentIids(children[i].childIid, iidList);
+            }
+        };
+
+        var iid_list = new Array<String>();
+        getDescendentIids(iid, iid_list);
+        for (iid_ in iid_list) {
+            labelDescendents.add(AppContext.LABELMAP.get(iid_));
+        }
+        return labelDescendents;
+    }
+
 }

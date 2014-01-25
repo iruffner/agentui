@@ -110,17 +110,10 @@ class Agent extends ModelObj {
 	}
 
 	private function registerModelListeners(): Void {
-		EM.addListener(EMEvent.CreateLabel, new EMListener(function(data: Dynamic): Void {
-        		this.currentAlias.labelSet.add(data.label);
-        		EM.change(EMEvent.UPDATE_LABELS);
-				EM.change(EMEvent.FitWindow);
-    		}, "User-CreateLabel")
-        );
-        EM.addListener(EMEvent.DeleteLabels, new EMListener(function(labels: Array<Label>): Void {
+        EM.addListener(EMEvent.DeleteLabel, new EMListener(function(labels: Array<Label>): Void {
         		for (i in 1...labels.length) {
 					this.currentAlias.labelSet.delete(labels[i]);
 				}
-        		EM.change(EMEvent.UPDATE_LABELS);
 				EM.change(EMEvent.FitWindow);
     		}, "User-DeleteLabel")
         );

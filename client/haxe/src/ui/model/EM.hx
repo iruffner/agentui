@@ -116,8 +116,13 @@ enum EMEvent {
 	PAGE_CLOSE;
 
 	CreateLabel;
-	DeleteLabels;
-	UPDATE_LABELS; //occurs after a CreateLabel or DeleteLabels event, and should be called once the model has been updated
+	LabelCreated;
+
+	UpdateLabel;
+	LabelUpdated;
+
+	DeleteLabel;
+	LabelDeleted;
 
 	INTRODUCTION_REQUEST;
 	INTRODUCTION_RESPONSE;

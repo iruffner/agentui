@@ -42,7 +42,7 @@ class BennuHandler implements ProtocolHandler {
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void { }
 	public function nextPage(nextPageURI: String): Void { }
 	public function getAliasInfo(alias: Alias): Void {
-	//	getAliasConnections(alias);
+		getAliasConnections(alias);
 		getAliasLabels(alias);
 	}
 	public function createUser(newUser: NewUser): Void { }
@@ -81,6 +81,7 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function setDefaultAlias(alias: Alias): Void { }
+	
 	public function getAliasConnections(alias: Alias): Void { }
 
 	public function getAliasLabels(alias:Alias) {
