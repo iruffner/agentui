@@ -61,12 +61,12 @@ class ResponseProcessor {
 	public static function labelDeleted(data:Dynamic) {
 		var labels = cast(data.labels, Array<Dynamic>);
 		for (label in labels) {
-			AppContext.LABELS.delegate().remove(label.iid);
+			AppContext.LABELS.delete(label);
 		}
 		
 		var lcs = cast(data.labelChildren, Array<Dynamic>);
 		for (lc in lcs) {
-			AppContext.LABELCHILDREN.delegate().remove(lc.iid);
+			AppContext.LABELCHILDREN.delete(lc);
 		}		
 		
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);

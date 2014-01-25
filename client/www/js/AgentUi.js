@@ -6295,16 +6295,14 @@ ui.api.ResponseProcessor.labelDeleted = function(data) {
 	while(_g < labels.length) {
 		var label = labels[_g];
 		++_g;
-		var key = label.iid;
-		ui.AppContext.LABELS.delegate().remove(key);
+		ui.AppContext.LABELS["delete"](label);
 	}
 	var lcs = js.Boot.__cast(data.labelChildren , Array);
 	var _g = 0;
 	while(_g < lcs.length) {
 		var lc = lcs[_g];
 		++_g;
-		var key = lc.iid;
-		ui.AppContext.LABELCHILDREN.delegate().remove(key);
+		ui.AppContext.LABELCHILDREN["delete"](lc);
 	}
 	ui.model.EM.change(ui.model.EMEvent.LOAD_ALIAS,ui.AppContext.get_alias());
 	ui.model.EM.change(ui.model.EMEvent.LabelDeleted,ui.AppContext.get_alias());
