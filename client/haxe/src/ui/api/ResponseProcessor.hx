@@ -19,9 +19,10 @@ class ResponseProcessor {
 		dataArr.iter(function(data:Dynamic): Void {
 			var context:Array<String> = data.context.split("-");
 			var synchronizer = Synchronizer.synchronizers.get(context[0]);
-			if (synchronizer != null) {
-				synchronizer.dataReceived(data.result, context[1]);
+			if (synchronizer == null) {
+				synchronizer = Synchronizer.add(data.context);
 			}
+			synchronizer.dataReceived(data.result, context[3]);
 		});
 	}
 

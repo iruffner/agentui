@@ -4763,8 +4763,8 @@ ui.api.BennuHandler.prototype = {
 	,onCreateChannel: function(data,textStatus,jqXHR) {
 		ui.AppContext.CHANNEL = data.id;
 		this._startPolling();
-		var iid = ui.api.Synchronizer.add(3,ui.api.ResponseProcessor.initialDataLoad);
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,iid + "-aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,iid + "-labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,iid + "-labelChildren",new ui.api.QueryMessage("labelChild"))]);
+		var context = ui.api.Synchronizer.createContext(3,"initialDataLoad");
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))]);
 		req.start();
 	}
 	,restores: function() {
@@ -4778,22 +4778,22 @@ ui.api.BennuHandler.prototype = {
 	,beginIntroduction: function(intro) {
 	}
 	,deleteLabels: function(labels) {
-		var iid = ui.api.Synchronizer.genIid();
+		var labelChildren = new Array();
+		var count = labels.length + labelChildren.length;
+		var context = ui.api.Synchronizer.createContext(count,"labelDeleted");
 		var requests = new Array();
 		var _g = 0;
 		while(_g < labels.length) {
 			var label = labels[_g];
 			++_g;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,iid + "-label",ui.api.CrudMessage.create(label)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "label",ui.api.CrudMessage.create(label)));
 		}
-		var labelChildren = new Array();
 		var _g = 0;
 		while(_g < labelChildren.length) {
 			var labelChild = labelChildren[_g];
 			++_g;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,iid + "-labelChild",ui.api.CrudMessage.create(labelChild)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labelChild",ui.api.CrudMessage.create(labelChild)));
 		}
-		ui.api.Synchronizer.add(requests.length,ui.api.ResponseProcessor.labelDeleted,iid);
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,moveLabel: function(label,parent) {
@@ -4802,8 +4802,8 @@ ui.api.BennuHandler.prototype = {
 	}
 	,createLabel: function(label,parentIid) {
 		var lc = new ui.model.LabelChild(parentIid,label.get_iid());
-		var iid = ui.api.Synchronizer.add(2,ui.api.ResponseProcessor.labelCreated);
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-labelChild",ui.api.CrudMessage.create(lc))]);
+		var context = ui.api.Synchronizer.createContext(2,"labelCreated");
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lc))]);
 		req.start();
 	}
 	,getAliasLabels: function(alias) {
@@ -4821,16 +4821,16 @@ ui.api.BennuHandler.prototype = {
 		deleteRequest.start();
 	}
 	,updateAlias: function(alias) {
-		var iid = ui.api.Synchronizer.add(1,ui.api.ResponseProcessor.aliasUpdated);
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-alias",ui.api.CrudMessage.create(alias))]);
+		var context = ui.api.Synchronizer.createContext(1,"aliasUpdated");
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "alias",ui.api.CrudMessage.create(alias))]);
 		req.start();
 	}
 	,createAlias: function(alias) {
 		var label = new ui.model.Label(alias.name);
 		var lc = new ui.model.LabelChild("",label.get_iid());
 		alias.rootLabelIid = label.get_iid();
-		var iid = ui.api.Synchronizer.add(3,ui.api.ResponseProcessor.aliasCreated);
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-alias",ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,iid + "-labelChild",ui.api.CrudMessage.create(lc))]);
+		var context = ui.api.Synchronizer.createContext(3,"aliasCreated");
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "alias",ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lc))]);
 		req.start();
 	}
 	,post: function(content) {
@@ -6209,7 +6209,8 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 	Lambda.iter(dataArr,function(data) {
 		var context = data.context.split("-");
 		var synchronizer = ui.api.Synchronizer.synchronizers.get(context[0]);
-		if(synchronizer != null) synchronizer.dataReceived(data.result,context[1]);
+		if(synchronizer == null) synchronizer = ui.api.Synchronizer.add(data.context);
+		synchronizer.dataReceived(data.result,context[3]);
 	});
 }
 ui.api.ResponseProcessor.aliasCreated = function(data) {
@@ -6246,22 +6247,22 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.AGENT,ui.AppContext.AGENT);
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
 }
-ui.api.Synchronizer = function(numResponsesExpected,oncomplete) {
-	this.iid = ui.api.Synchronizer.genIid();
+ui.api.Synchronizer = function(iid,numResponsesExpected,oncomplete) {
+	this.iid = iid;
 	this.numResponsesExpected = numResponsesExpected;
 	this.oncomplete = oncomplete;
 	this.parms = { aliases : new Array(), labels : new Array(), labelChildren : new Array()};
 };
 $hxClasses["ui.api.Synchronizer"] = ui.api.Synchronizer;
 ui.api.Synchronizer.__name__ = ["ui","api","Synchronizer"];
-ui.api.Synchronizer.genIid = function() {
-	return m3.util.UidGenerator.create(32);
+ui.api.Synchronizer.createContext = function(numResponsesExpected,oncomplete) {
+	return m3.util.UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete + "-";
 }
-ui.api.Synchronizer.add = function(numResponsesExpected,oncomplete,iid) {
-	var synchronizer = new ui.api.Synchronizer(numResponsesExpected,oncomplete);
-	if(iid != null) synchronizer.iid = iid;
+ui.api.Synchronizer.add = function(context) {
+	var parts = context.split("-");
+	var synchronizer = new ui.api.Synchronizer(parts[0],Std.parseInt(parts[1]),parts[2]);
 	ui.api.Synchronizer.synchronizers.set(synchronizer.iid,synchronizer);
-	return synchronizer.iid;
+	return synchronizer;
 }
 ui.api.Synchronizer.remove = function(iid) {
 	ui.api.Synchronizer.synchronizers.remove(iid);
@@ -6305,7 +6306,8 @@ ui.api.Synchronizer.prototype = {
 		}
 		this.numResponsesExpected -= 1;
 		if(this.numResponsesExpected == 0) {
-			this.oncomplete(this.parms);
+			var func = Reflect.field(ui.api.ResponseProcessor,this.oncomplete);
+			func.apply(ui.api.ResponseProcessor,[this.parms]);
 			ui.api.Synchronizer.remove(this.iid);
 		}
 	}

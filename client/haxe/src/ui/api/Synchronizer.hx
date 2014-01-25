@@ -7,17 +7,15 @@ class Synchronizer {
 	// The global list of synchronizers
 	public static var synchronizers = new StringMap<Synchronizer>();
 
-	public static function genIid():String {
-		return UidGenerator.create(32);
+	public static function createContext(numResponsesExpected: Int, oncomplete:String):String {
+		return UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete + "-";
 	}
 
-	public static function add(numResponsesExpected: Int, oncomplete: Dynamic->Void, ?iid:String):String {
-		var synchronizer = new Synchronizer(numResponsesExpected, oncomplete);
-		if (iid != null) {
-			synchronizer.iid = iid;
-		}
+	public static function add(context:String):Synchronizer {
+		var parts:Array<String> = context.split("-");
+		var synchronizer = new Synchronizer(parts[0], Std.parseInt(parts[1]), parts[2]);
 		synchronizers.set(synchronizer.iid, synchronizer);
-		return synchronizer.iid;
+		return synchronizer;
 	}
 
 	public static function remove(iid:String) {
@@ -26,11 +24,11 @@ class Synchronizer {
 
 	public var iid: String;
     public var numResponsesExpected: Int;
-    private var oncomplete: Dynamic->Void;
+    private var oncomplete: String;
     private var parms: Dynamic;
 
-    public function new(numResponsesExpected: Int, oncomplete: Dynamic->Void) {
-    	this.iid = genIid();
+    public function new(iid:String, numResponsesExpected:Int, oncomplete:String) {
+    	this.iid = iid;
     	this.numResponsesExpected = numResponsesExpected;
     	this.oncomplete = oncomplete;
     	this.parms = {
@@ -65,7 +63,8 @@ class Synchronizer {
 
     	numResponsesExpected -= 1;
     	if (numResponsesExpected == 0) {
-    		oncomplete(parms);
+    		var func = Reflect.field(ResponseProcessor, oncomplete);
+    		Reflect.callMethod(ResponseProcessor, func, [parms]);
    			Synchronizer.remove(this.iid);
     	}
     }

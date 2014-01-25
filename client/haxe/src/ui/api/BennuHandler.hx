@@ -56,18 +56,18 @@ class BennuHandler implements ProtocolHandler {
 		var lc = new LabelChild("", label.iid);
 		alias.rootLabelIid = label.iid;
 
-		var iid = Synchronizer.add(3, ResponseProcessor.aliasCreated);
+		var context = Synchronizer.createContext(3, "aliasCreated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, iid + "-alias", CrudMessage.create(alias)),
-			new ChannelRequestMessage(UPSERT, iid + "-label", CrudMessage.create(label)),
-			new ChannelRequestMessage(UPSERT, iid + "-labelChild", CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, context + "alias", CrudMessage.create(alias)),
+			new ChannelRequestMessage(UPSERT, context + "label", CrudMessage.create(label)),
+			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lc))]);
 		req.start();
 	}
 	
 	public function updateAlias(alias: Alias): Void {
-		var iid = Synchronizer.add(1, ResponseProcessor.aliasUpdated);
+		var context = Synchronizer.createContext(1, "aliasUpdated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, iid + "-alias", CrudMessage.create(alias))]);
+			new ChannelRequestMessage(UPSERT, context + "alias", CrudMessage.create(alias))]);
 		req.start();
 	}
 
@@ -91,10 +91,10 @@ class BennuHandler implements ProtocolHandler {
 	public function createLabel(label:Label, parentIid:String): Void {
 		// Create a label child, which will connect the parent and the child
 		var lc = new LabelChild(parentIid, label.iid);
-		var iid = Synchronizer.add(2, ResponseProcessor.labelCreated);
+		var context = Synchronizer.createContext(2, "labelCreated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, iid + "-label", CrudMessage.create(label)),
-			new ChannelRequestMessage(UPSERT, iid + "-labelChild", CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, context + "label", CrudMessage.create(label)),
+			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lc))]);
 		req.start();
 	}
 
@@ -107,21 +107,23 @@ class BennuHandler implements ProtocolHandler {
 	}
  
 	public function deleteLabels(labels:Array<Label>):Void {
-		var iid = Synchronizer.genIid();
+
+		// TODO:  Find all of the labelChilds that need to be deleted
+		var labelChildren = new Array<LabelChild>();
+		var count = labels.length + labelChildren.length;
+		var context = Synchronizer.createContext(count, "labelDeleted");
 
 		var requests = new Array<ChannelRequestMessage>();
 
+		// Create messages for each of these datatypes
 		for (label in labels) {
-			requests.push(new ChannelRequestMessage(DELETE, iid + "-label", CrudMessage.create(label)));
+			requests.push(new ChannelRequestMessage(DELETE, context + "label", CrudMessage.create(label)));
 		}
 
-		// Find all of the labelChilds that need to be deleted
-		var labelChildren = new Array<LabelChild>();
 		for (labelChild in labelChildren) {
-			requests.push(new ChannelRequestMessage(DELETE, iid + "-labelChild", CrudMessage.create(labelChild)));
+			requests.push(new ChannelRequestMessage(DELETE, context + "labelChild", CrudMessage.create(labelChild)));
 		}
 
-		Synchronizer.add(requests.length, ResponseProcessor.labelDeleted, iid);
 		new SubmitRequest(requests).start();
 	}
 
@@ -135,11 +137,11 @@ class BennuHandler implements ProtocolHandler {
 		AppContext.CHANNEL = data.id;
 		_startPolling();
 
-		var iid = Synchronizer.add(3, ResponseProcessor.initialDataLoad);
+		var context = Synchronizer.createContext(3, "initialDataLoad");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(QUERY, iid + "-aliases"     , new QueryMessage("alias")),
-			new ChannelRequestMessage(QUERY, iid + "-labels"     , new QueryMessage("label")),
-			new ChannelRequestMessage(QUERY, iid + "-labelChildren", new QueryMessage("labelChild"))]);
+			new ChannelRequestMessage(QUERY, context + "aliases"     , new QueryMessage("alias")),
+			new ChannelRequestMessage(QUERY, context + "labels"     , new QueryMessage("label")),
+			new ChannelRequestMessage(QUERY, context + "labelChildren", new QueryMessage("labelChild"))]);
 		req.start();
 	}
 
