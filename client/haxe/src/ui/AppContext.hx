@@ -41,7 +41,7 @@ class AppContext {
     public static function init() {
     	LOGGER = new Logga(LogLevel.DEBUG);
         
-        CONTENT = new ObservableSet<Content>(ModelObjWithUid.identifier);
+        CONTENT = new ObservableSet<Content>(ModelObjWithIid.identifier);
 
         _i = new ObservableSet<IntroductionNotification>(
                     function(n: IntroductionNotification): String {
@@ -126,7 +126,12 @@ class AppContext {
 
         var labelChildren = new ObservableSet<Label>(Label.identifier);
         for (lc in fs) {
-            labelChildren.add(LABELMAP.get(lc.childIid));
+            var label = LABELMAP.get(lc.childIid);
+            if (label == null) {
+                AppContext.LOGGER.error("LabelChild references missing label: " + lc.childIid);
+            } else {
+                labelChildren.add(label);
+            }
         }
         return labelChildren;
     }
@@ -169,7 +174,12 @@ class AppContext {
         var iid_list = new Array<String>();
         getDescendentIids(iid, iid_list);
         for (iid_ in iid_list) {
-            labelDescendents.add(AppContext.LABELMAP.get(iid_));
+            var label = LABELMAP.get(iid_);
+            if (label == null) {
+                AppContext.LOGGER.error("LabelChild references missing label: " + iid_);
+            } else {
+                labelDescendents.add(label);
+            }
         }
         return labelDescendents;
     }

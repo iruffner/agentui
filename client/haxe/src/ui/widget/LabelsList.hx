@@ -117,15 +117,15 @@ extern class LabelsList extends JQ {
 
 		        	EM.addListener(EMEvent.LabelCreated, new EMListener(function(alias: Alias) {
 		        			self._setLabels(alias.labelSet);
-	        			}, "LabelsList-Alias")
+	        			}, "LabelsList-LC")
 		        	);
 		        	EM.addListener(EMEvent.LabelUpdated, new EMListener(function(alias: Alias) {
 		        			self._setLabels(alias.labelSet);
-	        			}, "LabelsList-Alias")
+	        			}, "LabelsList-LU")
 		        	);
 		        	EM.addListener(EMEvent.LabelDeleted, new EMListener(function(alias: Alias) {
 		        			self._setLabels(alias.labelSet);
-	        			}, "LabelsList-Alias")
+	        			}, "LabelsList-LD")
 		        	);
 
 		        	var newLabelButton: JQ = new JQ("<button class='newLabelButton'>New Label</button>");

@@ -50,17 +50,27 @@ class ResponseProcessor {
 
 	public static function labelUpdated(data:Dynamic) {
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelCreated, AppContext.alias);
+       	EM.change(EMEvent.LabelUpdated, AppContext.alias);
 	}
 
 	public static function labelMoved(data:Dynamic) {
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelCreated, AppContext.alias);		
+       	EM.change(EMEvent.LabelUpdated, AppContext.alias);		
 	}
 
 	public static function labelDeleted(data:Dynamic) {
+		var labels = cast(data.labels, Array<Dynamic>);
+		for (label in labels) {
+			AppContext.LABELS.delegate().remove(label.iid);
+		}
+		
+		var lcs = cast(data.labelChildren, Array<Dynamic>);
+		for (lc in lcs) {
+			AppContext.LABELCHILDREN.delegate().remove(lc.iid);
+		}		
+		
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelCreated, AppContext.alias);
+       	EM.change(EMEvent.LabelDeleted, AppContext.alias);
 	}
 
 	public static function initialDataLoad(data:Dynamic) {

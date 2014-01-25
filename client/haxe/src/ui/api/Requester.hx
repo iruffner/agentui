@@ -113,7 +113,7 @@ class SubmitRequest extends BaseRequest implements Requester {
 
 class CrudRequest extends BaseRequest implements Requester {
 
-	public function new(object:ModelObj, path:String, successFcn: Dynamic->String->JQXHR->Void):Void {
+	public function new(object:ModelObjWithIid, path:String, successFcn: Dynamic->String->JQXHR->Void):Void {
 		var crudMessage = CrudMessage.create(object);
 
 		baseOpts = {
@@ -125,13 +125,13 @@ class CrudRequest extends BaseRequest implements Requester {
 }
 
 class UpsertRequest extends CrudRequest {
-	public function new(object:ModelObj, successFcn: Dynamic->String->JQXHR->Void):Void {
+	public function new(object:ModelObjWithIid, successFcn: Dynamic->String->JQXHR->Void):Void {
 		super(object, "/api/upsert", successFcn);
 	}	
 }
 
 class DeleteRequest extends CrudRequest {
-	public function new(object:ModelObj, successFcn: Dynamic->String->JQXHR->Void):Void {
+	public function new(object:ModelObjWithIid, successFcn: Dynamic->String->JQXHR->Void):Void {
 		super(object, "/api/delete", successFcn);
 	}	
 }

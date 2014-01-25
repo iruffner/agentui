@@ -40,27 +40,48 @@ class Synchronizer {
 
     public function dataReceived(data:Dynamic, responseType:String) {
 
-    	switch (responseType) {
-    		case "alias":
-    			parms.aliases.push(AppContext.SERIALIZER.fromJsonX(data.instance, Alias));
-    		case "aliases":
-    			for (alias_ in cast(data, Array<Dynamic>)) {
-    				parms.aliases.push(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
-    			}
-    		case "label":
-    			parms.labels.push(AppContext.SERIALIZER.fromJsonX(data.instance, Label));
-    		case "labels":
-    			for (label_ in cast(data, Array<Dynamic>)) {
-    				parms.labels.push(AppContext.SERIALIZER.fromJsonX(label_, Label));
-    			}
-    		case "labelChild":
-    			parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(data.instance, LabelChild));
-    		case "labelChildren":
-    			for (labelChild_ in cast(data, Array<Dynamic>)) {
-    				parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
-    			}
-    	}
-
+        if (data.primaryKey != null) {
+            switch (responseType) {
+                case "alias":
+                    for (alias in ui.AppContext.AGENT.aliasSet) {
+                        if (alias.iid == data.primaryKey) {
+                            parms.aliases.push(alias);
+                        }
+                    }
+                case "label":
+                    var label = ui.AppContext.LABELMAP.get(data.primaryKey);
+                    if (label != null) {
+                        parms.labels.push(label);
+                    }
+                case "labelChild":
+                    for (lc in ui.AppContext.LABELCHILDREN) {
+                        if (lc.iid == data.primaryKey) {
+                            parms.labelChildren.push(lc);
+                        }
+                    }
+            }
+        } else {
+        	switch (responseType) {
+        		case "alias":
+        			parms.aliases.push(AppContext.SERIALIZER.fromJsonX(data.instance, Alias));
+        		case "aliases":
+        			for (alias_ in cast(data, Array<Dynamic>)) {
+        				parms.aliases.push(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
+        			}
+        		case "label":
+        			parms.labels.push(AppContext.SERIALIZER.fromJsonX(data.instance, Label));
+        		case "labels":
+        			for (label_ in cast(data, Array<Dynamic>)) {
+        				parms.labels.push(AppContext.SERIALIZER.fromJsonX(label_, Label));
+        			}
+        		case "labelChild":
+        			parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(data.instance, LabelChild));
+        		case "labelChildren":
+        			for (labelChild_ in cast(data, Array<Dynamic>)) {
+        				parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
+        			}
+        	}
+        }
     	numResponsesExpected -= 1;
     	if (numResponsesExpected == 0) {
     		var func = Reflect.field(ResponseProcessor, oncomplete);

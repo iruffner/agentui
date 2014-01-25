@@ -12,6 +12,19 @@ class BennuMessage {
 	}
 }
 
+class DeleteMessage extends BennuMessage {
+	private var primaryKey: String;
+
+	public function new(type:String, primaryKey: String) {
+		super(type);
+		this.primaryKey = primaryKey;		
+	}
+
+	public static function create(object:ModelObjWithIid):DeleteMessage {
+		return new DeleteMessage(object.objectType(), object.iid);
+	}
+}
+
 class CrudMessage extends BennuMessage {
 	private var instance: Dynamic;
 
@@ -20,7 +33,7 @@ class CrudMessage extends BennuMessage {
 		this.instance = instance;		
 	}
 
-	public static function create(object:ModelObj):CrudMessage {
+	public static function create(object:ModelObjWithIid):CrudMessage {
 		var instance = AppContext.SERIALIZER.toJson(object);
 		return new CrudMessage(object.objectType(), instance);
 	}

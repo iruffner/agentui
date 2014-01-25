@@ -156,7 +156,7 @@ extern class ContentComp extends JQ {
 		        	self._createWidgets(selfElement, self);
 
 		        	EM.addListener(EMEvent.EditContentClosed, new EMListener(function(content: Content): Void {
-		        		if (content.uid == self.options.content.uid) {
+		        		if (content.iid == self.options.content.iid) {
 		        			selfElement.show();
 		        		}
 		        	}));

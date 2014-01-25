@@ -118,7 +118,7 @@ class ContentTimeLine {
 
 	private function addContentElement(content:Content, ele:SnapElement) {
 		ele.attr({"contentType": Std.string(content.type)});
-		ele.attr({"id" : content.creator + "-" + content.uid});
+		ele.attr({"id" : content.creator + "-" + content.iid});
 
 		ele = ele.click(function(evt:Event):Void {
 			var clone = cloneElement(ele);

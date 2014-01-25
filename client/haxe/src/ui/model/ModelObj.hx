@@ -30,32 +30,7 @@ class ModelObj {
 	}
 }
 
-class ModelObjWithUid<T> extends ModelObj{
-	@:isVar public var uid(get,set): String;
-
-	public function new() {
-		super();
-		this.uid = UidGenerator.create(32);
-	}
-
-	public static function identifier<T>(t: ModelObjWithUid<T>): String {
-		return t.uid;
-	}
-
-	private function get_uid(): String {
-		if(this.uid.isBlank()) {
-			this.uid = UidGenerator.create(32);
-		}
-		return this.uid;
-	}
-
-	private function set_uid(id: String): String {
-		this.uid = id;
-		return this.uid;
-	}
-}
-
-class ModelObjWithIid<T> extends ModelObj{
+class ModelObjWithIid extends ModelObj {
 	// Added here for all models
 	public var deleted:Bool;
 	var agentId: String;
@@ -69,7 +44,7 @@ class ModelObjWithIid<T> extends ModelObj{
 		agentId = "";
 	}
 
-	public static function identifier<T>(t: ModelObjWithIid<T>): String {
+	public static function identifier(t: ModelObjWithIid): String {
 		return t.iid;
 	}
 
@@ -177,7 +152,7 @@ class UserData extends ModelObj {
 	}
 }
 
-class Alias extends ModelObjWithIid<Alias> {
+class Alias extends ModelObjWithIid {
 	public var rootLabelIid:String;
 	public var name: String;
 	public var data: UserData;
@@ -218,7 +193,7 @@ class LabelData extends ModelObj {
 	}
 }
 
-class Label extends ModelObjWithIid<Label> implements Filterable {
+class Label extends ModelObjWithIid implements Filterable {
 	public var name: String;
 	public var data: LabelData;
 	@:transient public var labelChildren:OSet<LabelChild>;
@@ -234,7 +209,7 @@ class Label extends ModelObjWithIid<Label> implements Filterable {
 	}
 }
 
-class LabelChild extends ModelObjWithIid<Label> {
+class LabelChild extends ModelObjWithIid {
 	public var parentIid: String;
 	public var childIid: String;
 	@:optional public var data: Dynamic;
@@ -250,7 +225,7 @@ class LabelChild extends ModelObjWithIid<Label> {
 	}
 }
 
-class Connection extends ModelObj implements Filterable {
+class Connection extends ModelObjWithIid implements Filterable {
 	// @:transient public var fname: String;
 	// @:transient public var lname: String;
 	// @:transient public var imgSrc: String;
@@ -320,7 +295,7 @@ class ContentHandler implements TypeHandler {
     }
 }
 
-class Content extends ModelObjWithUid<Content> {
+class Content extends ModelObjWithIid {
 	public var type: ContentType;
 	public var created: Date;
 	public var modified: Date;

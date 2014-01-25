@@ -119,11 +119,11 @@ class BennuHandler implements ProtocolHandler {
 
 		// Create messages for each of these datatypes
 		for (label in labels) {
-			requests.push(new ChannelRequestMessage(DELETE, context + "label", CrudMessage.create(label)));
+			requests.push(new ChannelRequestMessage(DELETE, context + "label", DeleteMessage.create(label)));
 		}
 
 		for (labelChild in labelChildren) {
-			requests.push(new ChannelRequestMessage(DELETE, context + "labelChild", CrudMessage.create(labelChild)));
+			requests.push(new ChannelRequestMessage(DELETE, context + "labelChild", DeleteMessage.create(labelChild)));
 		}
 
 		new SubmitRequest(requests).start();
