@@ -107,11 +107,12 @@ class BennuHandler implements ProtocolHandler {
 		// TODO:  Delete labelChild, add labelChild
 	}
  
-	public function deleteLabels(labels:Array<Label>):Void {
+	public function deleteLabel(label:Label):Void {
 
 		// TODO:  Find all of the labelChilds that need to be deleted
 		var labelChildren = new Array<LabelChild>();
-		var count = labels.length + labelChildren.length;
+		var labels = AppContext.getLabelDescendents(label.iid);
+		var count = labels.size() + labelChildren.length;
 		var context = Synchronizer.createContext(count, "labelDeleted");
 
 		var requests = new Array<ChannelRequestMessage>();

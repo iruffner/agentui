@@ -131,6 +131,26 @@ class AppContext {
         return labelChildren;
     }
 
+    public static function getDescendentLabelChildren(iid:String):Array<LabelChild> {
+        var lcs = new Array<LabelChild>();
+/*
+        var getDescendents:LabelChild->Array<LabelChild>->Void;
+        getDescendents = function(iid:String, lcList:Array<LabelChild>):Void {
+            lcList.insert(0, lc);
+            var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+                return lc.parentIid == iid;
+            }).asArray();
+
+            for (i in 0...children.length) {
+                getDescendents(children[i].childIid, lcList);
+            }
+        };
+
+        getDescendents(iid, lcs);
+*/
+        return lcs;
+    }
+
     public static function getLabelDescendents(iid:String):ObservableSet<Label> {
         var labelDescendents = new ObservableSet<Label>(Label.identifier);
 

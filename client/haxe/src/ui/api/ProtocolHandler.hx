@@ -14,7 +14,7 @@ interface ProtocolHandler {
 	public function updateUser(user: Agent): Void;
 	public function post(content: Content): Void;
 	public function createLabel(label:Label, parentIid:String): Void;
-	public function deleteLabels(labels:Array<Label>):Void;
+	public function deleteLabel(label:Label):Void;
 	public function createAlias(alias: Alias): Void;
 	public function deleteAlias(alias: Alias): Void;
 	public function updateAlias(alias: Alias): Void;

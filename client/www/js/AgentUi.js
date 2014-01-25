@@ -4723,6 +4723,10 @@ ui.AppContext.getLabelChildren = function(iid) {
 	}
 	return labelChildren;
 }
+ui.AppContext.getDescendentLabelChildren = function(iid) {
+	var lcs = new Array();
+	return lcs;
+}
 ui.AppContext.getLabelDescendents = function(iid) {
 	var labelDescendents = new m3.observable.ObservableSet(ui.model.Label.identifier);
 	var getDescendentIids;
@@ -4808,16 +4812,16 @@ ui.api.BennuHandler.prototype = {
 	}
 	,beginIntroduction: function(intro) {
 	}
-	,deleteLabels: function(labels) {
+	,deleteLabel: function(label) {
 		var labelChildren = new Array();
-		var count = labels.length + labelChildren.length;
+		var labels = ui.AppContext.getLabelDescendents(label.get_iid());
+		var count = labels.size() + labelChildren.length;
 		var context = ui.api.Synchronizer.createContext(count,"labelDeleted");
 		var requests = new Array();
-		var _g = 0;
-		while(_g < labels.length) {
-			var label = labels[_g];
-			++_g;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "label",ui.api.CrudMessage.create(label)));
+		var $it0 = labels.iterator();
+		while( $it0.hasNext() ) {
+			var label1 = $it0.next();
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "label",ui.api.CrudMessage.create(label1)));
 		}
 		var _g = 0;
 		while(_g < labelChildren.length) {
@@ -5022,8 +5026,8 @@ ui.api.EventDelegate.prototype = {
 		ui.model.EM.addListener(ui.model.EMEvent.CreateLabel,new ui.model.EMListener(function(data) {
 			_g.protocolHandler.createLabel(data.label,data.parentIid);
 		}));
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteLabel,new ui.model.EMListener(function(ls) {
-			_g.protocolHandler.deleteLabels(ls);
+		ui.model.EM.addListener(ui.model.EMEvent.DeleteLabel,new ui.model.EMListener(function(l) {
+			_g.protocolHandler.deleteLabel(l);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_REQUEST,new ui.model.EMListener(function(intro) {
 			_g.protocolHandler.beginIntroduction(intro);
@@ -9196,28 +9200,6 @@ var defineWidget = function() {
 			self1.selectedLabelComp = null;
 			self1._showNewLabelPopup(newLabelButton);
 		});
-		var getLabelDescendents = function(label,label_list) {
-			var getDescendentIids;
-			getDescendentIids = function(iid,iidList) {
-				iidList.splice(0,0,iid);
-				var children = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
-					return lc.parentIid == iid;
-				}).asArray();
-				var _g1 = 0, _g = children.length;
-				while(_g1 < _g) {
-					var i = _g1++;
-					getDescendentIids(children[i].childIid,iidList);
-				}
-			};
-			var iid_list = new Array();
-			getDescendentIids(label.get_iid(),iid_list);
-			var _g = 0;
-			while(_g < iid_list.length) {
-				var iid_ = iid_list[_g];
-				++_g;
-				label_list.push(ui.AppContext.LABELMAP.get(iid_));
-			}
-		};
 		var menu = new $("<ul id='label-action-menu'></ul>");
 		menu.appendTo(selfElement);
 		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "New Child Label", icon : "ui-icon-circle-plus", action : function(evt,m) {
@@ -9229,14 +9211,7 @@ var defineWidget = function() {
 			return false;
 		}},{ label : "Delete Label", icon : "ui-icon-circle-minus", action : function(evt,m) {
 			if(self1.selectedLabelComp != null) m3.util.JqueryUtil.confirm("Delete Label","Are you sure you want to delete this label?",function() {
-				var labelsToDelete = [];
-				getLabelDescendents(ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp),labelsToDelete);
-				ui.model.EM.change(ui.model.EMEvent.DeleteLabel,labelsToDelete);
-				var _g1 = 0, _g = labelsToDelete.length;
-				while(_g1 < _g) {
-					var i = _g1++;
-					self1.labels["delete"](labelsToDelete[i]);
-				}
+				ui.model.EM.change(ui.model.EMEvent.DeleteLabel,ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp));
 			}); else {
 			}
 		}}], width : 225}).hide();

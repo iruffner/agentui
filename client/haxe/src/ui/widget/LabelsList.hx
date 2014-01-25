@@ -136,27 +136,6 @@ extern class LabelsList extends JQ {
 		        			self._showNewLabelPopup(newLabelButton);
 		        		});
 
-					var getLabelDescendents = function(label:Label, label_list:Array<Label>):Void {
-
-						var getDescendentIids:String->Array<String>->Void;
-						getDescendentIids = function(iid:String, iidList:Array<String>):Void {
-							iidList.insert(0, iid);
-							var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
-								return lc.parentIid == iid;
-							}).asArray();
-
-							for (i in 0...children.length) {
-								getDescendentIids(children[i].childIid, iidList);
-							}
-						};
-
-						var iid_list = new Array<String>();
-						getDescendentIids(label.iid, iid_list);
-						for (iid_ in iid_list) {
-							label_list.push(AppContext.LABELMAP.get(iid_));
-						}
-					};
-
 		        	var menu: M3Menu = new M3Menu("<ul id='label-action-menu'></ul>");
 		        	menu.appendTo(selfElement);
         			menu.m3menu({
@@ -183,14 +162,7 @@ extern class LabelsList extends JQ {
     								if (self.selectedLabelComp != null) {
     									JqueryUtil.confirm("Delete Label", "Are you sure you want to delete this label?", 
    		        							function(){
-   		        								var labelsToDelete:Array<Label> = [];
-   		        								getLabelDescendents(self.selectedLabelComp.getLabel(), labelsToDelete);
-
-   		        								EM.change(EMEvent.DeleteLabel, labelsToDelete);
-
-   		        								for (i in 0...labelsToDelete.length) {
-	   		        								self.labels.delete(labelsToDelete[i]);
-	   		        							}
+   		        								EM.change(EMEvent.DeleteLabel, self.selectedLabelComp.getLabel());
    		        							}
    		        						);
     								} else {
