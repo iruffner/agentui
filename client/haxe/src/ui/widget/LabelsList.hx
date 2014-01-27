@@ -112,14 +112,19 @@ extern class LabelsList extends JQ {
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-		        			var mappedSet = new MappedSet<LabelChild, Label>(
-		        				AppContext.LCG.delegate().get(alias.rootLabelIid), 
-		        				function(lc: LabelChild): Label{
-		        						return AppContext.LABELS.getElement(lc.childIid);
-		        					}
+
+		        			var oset: OSet<Label>;
+		        			if (AppContext.LCG.delegate().get(alias.rootLabelIid) == null) {
+		        				oset = new ObservableSet<Label>(Label.identifier);
+		        			} else {
+		        				oset = new MappedSet<LabelChild, Label>(
+			        				AppContext.LCG.delegate().get(alias.rootLabelIid), 
+			        				function(lc: LabelChild): Label{
+			        						return AppContext.LABELS.getElement(lc.childIid);
+			        					}
 	        					);
-		        			self._setLabels(mappedSet);
-		        			// self._setLabels(alias.labelSet);
+		        			}
+		        			self._setLabels(oset);
 	        			}, "LabelsList-Alias")
 		        	);
 
