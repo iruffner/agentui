@@ -60,7 +60,7 @@ extern class PostComp extends JQ {
 						evt.preventDefault();
 						
 						var msg: MessageContent = new MessageContent();
-						msg.type = contentType;
+						msg.contentType = contentType;
 						msg.text = value;
 
 						addConnectionsAndLabels(msg);

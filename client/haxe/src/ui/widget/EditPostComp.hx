@@ -200,7 +200,7 @@ extern class EditPostComp extends JQ {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-					switch (self.options.content.type) {
+					switch (self.options.content.contentType) {
 						case ContentType.TEXT:
 							cast(self.options.content, MessageContent).text = self.valueElement.val();
 						case ContentType.URL:
@@ -239,7 +239,7 @@ extern class EditPostComp extends JQ {
 
 		        	var tab_class:String = "";
 
-		        	if (self.options.content.type == ContentType.TEXT) {
+		        	if (self.options.content.contentType == ContentType.TEXT) {
 			        	var textInput: JQ = new JQ("<div class='postContainer boxsizingBorder'></div>");
 			        	textInput.appendTo(section);
 			        	self.valueElement = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
@@ -249,7 +249,7 @@ extern class EditPostComp extends JQ {
 			        	tab_class = "ui-icon-document";
 			        }
 
-		        	else if (self.options.content.type == ContentType.URL) {
+		        	else if (self.options.content.contentType == ContentType.URL) {
 			        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		        		self.valueElement = urlComp.urlInput();
 			        	urlComp.appendTo(section);
@@ -257,7 +257,7 @@ extern class EditPostComp extends JQ {
 			        	tab_class = "ui-icon-link";
 					}
 
-		        	else if (self.options.content.type == ContentType.IMAGE) {
+		        	else if (self.options.content.contentType == ContentType.IMAGE) {
 				        var options:UploadCompOptions = {contentType: ContentType.IMAGE};
 				        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		        		self.uploadComp = imageInput;
@@ -266,7 +266,7 @@ extern class EditPostComp extends JQ {
 			        	tab_class = "ui-icon-image";
 		        	}
 
-		        	else if (self.options.content.type == ContentType.AUDIO) {
+		        	else if (self.options.content.contentType == ContentType.AUDIO) {
 				        var options:UploadCompOptions = {contentType: ContentType.AUDIO};
 			        	var audioInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		        		self.uploadComp = audioInput;

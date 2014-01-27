@@ -98,13 +98,13 @@ class ContentTimeLine {
 		var y:Float = time_line_y  + height/2;
 
 		var ele:SnapElement;
-		if (content.type == ContentType.TEXT) {
+		if (content.contentType == ContentType.TEXT) {
 			addContentElement(content, createTextElement(cast(content, MessageContent), x, y, 40, 40));
-		} else if (content.type == ContentType.IMAGE) {
+		} else if (content.contentType == ContentType.IMAGE) {
 			addContentElement(content, createImageElement(cast(content, ImageContent), x, y, 40, 40));
-		} else if (content.type == ContentType.URL) {
+		} else if (content.contentType == ContentType.URL) {
 			addContentElement(content, createLinkElement(cast(content, UrlContent), x, y, 20));
-		} else if (content.type == ContentType.AUDIO) {
+		} else if (content.contentType == ContentType.AUDIO) {
 			addContentElement(content, createAudioElement(cast(content, AudioContent), x, y, 20, 20));
 		}
 	}
@@ -117,7 +117,7 @@ class ContentTimeLine {
 	}
 
 	private function addContentElement(content:Content, ele:SnapElement) {
-		ele.attr({"contentType": Std.string(content.type)});
+		ele.attr({"contentType": Std.string(content.contentType)});
 		ele.attr({"id" : content.creator + "-" + content.iid});
 
 		ele = ele.click(function(evt:Event):Void {

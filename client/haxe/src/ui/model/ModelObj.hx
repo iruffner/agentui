@@ -156,6 +156,9 @@ class Alias extends ModelObjWithIid {
 	public var rootLabelIid:String;
 	public var name: String;
 	public var data: UserData;
+
+	// TODO:  Make the alias's labelSet a filtered set...Label
+	// How to combine label and labelChild...
 	
 	@:transient @:isVar public var labelSet(get, null): ObservableSet<Label>;
 	@:transient @:isVar public var connectionSet(get, null): ObservableSet<Connection>;
@@ -268,10 +271,10 @@ class ContentHandler implements TypeHandler {
     public function new() {
     }
 
-    public function read(fromJson: {type: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
+    public function read(fromJson: {contentType: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
         var obj: Content = null;
 
-        switch ( ContentType.createByName(fromJson.type) ) {
+        switch ( ContentType.createByName(fromJson.contentType) ) {
         	case ContentType.AUDIO:
         		obj = AppContext.SERIALIZER.fromJsonX(fromJson, AudioContent);
         	case ContentType.IMAGE:
@@ -290,8 +293,25 @@ class ContentHandler implements TypeHandler {
     }
 }
 
+class LabeledContent extends ModelObjWithIid {
+  	public var contentIid: String;
+  	public var labelIid: String;
+	@:optional public var data: Dynamic;
+
+	public static function identifier(l: LabeledContent): String {
+		return l.iid;
+	}
+
+	public function new(contentIid: String, labelIid: String) {
+		super();
+		this.contentIid = contentIid;
+		this.labelIid  = labelIid;
+	}
+}
+
 class Content extends ModelObjWithIid {
-	public var type: ContentType;
+	public var contentType: ContentType;
+	public var blob:Sring;
 	public var created: Date;
 	public var modified: Date;
 	
@@ -308,7 +328,7 @@ class Content extends ModelObjWithIid {
 
 	public function new (contentType:ContentType) {
 		super();
-		this.type     = contentType;
+		this.contentType = contentType;
 		this.created  = Date.now();
 		this.modified = Date.now();
 

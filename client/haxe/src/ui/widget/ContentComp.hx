@@ -62,7 +62,7 @@ extern class ContentComp extends JQ {
 		        	var postContent: JQ = new JQ("<div class='postContent'></div>");
 		        	postContentWr.append(postContent);
 		        	postContent.append("<div class='content-timestamp'>" +  content.created + "</div>");
-		        	switch(content.type) {
+		        	switch(content.contentType) {
 		        		case ContentType.AUDIO:
 			        		var audio: AudioContent = cast(content, AudioContent);
 			        		postContent.append(audio.title + "<br/>");
