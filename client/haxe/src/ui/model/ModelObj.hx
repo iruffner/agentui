@@ -311,7 +311,7 @@ class LabeledContent extends ModelObjWithIid {
 
 class Content extends ModelObjWithIid {
 	public var contentType: ContentType;
-	public var blob:Sring;
+	public var blob:String;
 	public var created: Date;
 	public var modified: Date;
 	
