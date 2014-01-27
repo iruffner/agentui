@@ -171,10 +171,11 @@ extern class UserComp extends JQ {
 					}
 
 					menuOption = {
-						label: "Create New Alias...",
+						label: "Manage Aliases...",
 						icon: "ui-icon-circle-plus",
 						action: function(evt: JQEvent, m: M3Menu): Void {
-							DialogManager.showNewAlias();
+			        		ui.widget.DialogManager.showAliasManager();
+							// DialogManager.showNewAlias();
 						}
 					};
 					menuOptions.push(menuOption);
@@ -236,20 +237,20 @@ extern class UserComp extends JQ {
 			        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Aliases</a>");
 		        		changeDiv.append(self.switchAliasLink);
 
-		        		// var aliasMenu = self._createAliasMenu(self);
+		        		var aliasMenu = self._createAliasMenu(self);
 
-			        	self.switchAliasLink.click(function(evt: JQEvent): Void {
-			        		ui.widget.DialogManager.showAliasManager();
-		     //    			aliasMenu.show();
-		     //    			aliasMenu.position({
-			    //     			my: "left top",
-			    //     			at: "right-6px center",
-			    //     			of: selfElement
-			    //     		});
+			        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
+			        		// ui.widget.DialogManager.showAliasManager();
+		        			aliasMenu.show();
+		        			aliasMenu.position({
+			        			my: "left top",
+			        			at: "right-6px center",
+			        			of: selfElement
+			        		});
 
-							// evt.preventDefault();
-		     //    			evt.stopPropagation();
-		     //    			return false;
+							evt.preventDefault();
+		        			evt.stopPropagation();
+		        			return false;
 			        	});
 			        }
 	        	},

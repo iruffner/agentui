@@ -6248,7 +6248,10 @@ ui.api.ResponseProcessor.labelCreated = function(data) {
 		var $it0 = siblings.iterator();
 		while( $it0.hasNext() ) {
 			var lc = $it0.next();
-			if(lc.childIid == null) lcToDelete = lc;
+			if(lc.childIid == null) {
+				lcToDelete = lc;
+				break;
+			}
 		}
 		if(lcToDelete != null) ui.AppContext.LABELCHILDREN["delete"](lcToDelete);
 	}
@@ -9973,15 +9976,15 @@ var defineWidget = function() {
 			})(alias1)};
 			menuOptions.push(menuOption);
 		}
-		menuOption = { label : "Create New Alias...", icon : "ui-icon-circle-plus", action : function(evt,m) {
-			ui.widget.DialogManager.showNewAlias();
+		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt,m) {
+			ui.widget.DialogManager.showAliasManager();
 		}};
 		menuOptions.push(menuOption);
 		menu1.m3menu({ menuOptions : menuOptions}).hide();
 		return menu1;
 	}, _setUser : function() {
 		var self = this;
-		var selfElement = this.element;
+		var selfElement1 = this.element;
 		var user = self.user;
 		self.container.empty();
 		var imgSrc = "media/default_avatar.jpg";
@@ -10036,8 +10039,13 @@ var defineWidget = function() {
 		if(user != null) {
 			self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
 			changeDiv.append(self.switchAliasLink);
+			var aliasMenu = self._createAliasMenu(self);
 			self.switchAliasLink.click(function(evt) {
-				ui.widget.DialogManager.showAliasManager();
+				aliasMenu.show();
+				aliasMenu.position({ my : "left top", at : "right-6px center", of : selfElement1});
+				evt.preventDefault();
+				evt.stopPropagation();
+				return false;
 			});
 		}
 	}, _setTarget : function(conn) {
