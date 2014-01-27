@@ -4670,18 +4670,13 @@ ui.AppContext.init = function() {
 		return ui.model.Connection.identifier(n.contentImpl.connection);
 	});
 	ui.AppContext.LABELS = new m3.observable.ObservableSet(ui.model.Label.identifier);
-	ui.AppContext.LABELS.listen(ui.AppContext.updateLabelMap);
 	ui.AppContext.LABELCHILDREN = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
-	ui.AppContext.LABELMAP = new haxe.ds.StringMap();
 	ui.AppContext.LCG = new m3.observable.GroupedSet(ui.AppContext.LABELCHILDREN,function(lc) {
 		return lc.parentIid;
 	});
 	ui.AppContext.SERIALIZER = new m3.serialization.Serializer();
 	ui.AppContext.SERIALIZER.addHandler(ui.model.Content,new ui.model.ContentHandler());
 	ui.AppContext.registerGlobalListeners();
-}
-ui.AppContext.updateLabelMap = function(label,evt) {
-	if(evt.isAddOrUpdate()) ui.AppContext.LABELMAP.set(label.get_iid(),label); else if(evt.isDelete()) ui.AppContext.LABELMAP.remove(label.get_iid());
 }
 ui.AppContext.registerGlobalListeners = function() {
 	new $(js.Browser.window).on("unload",function(evt) {
@@ -4714,19 +4709,6 @@ ui.AppContext.registerGlobalListeners = function() {
 		ui.AppContext._i.add(notification);
 	},"AgentUi-IntroNotification"));
 }
-ui.AppContext.getLabelChildren = function(iid) {
-	var fs = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
-		return lc.parentIid == iid;
-	});
-	var labelChildren = new m3.observable.ObservableSet(ui.model.Label.identifier);
-	var $it0 = fs.iterator();
-	while( $it0.hasNext() ) {
-		var lc = $it0.next();
-		var label = ui.AppContext.LABELMAP.get(lc.childIid);
-		if(label == null) ui.AppContext.LOGGER.error("LabelChild references missing label: " + lc.childIid); else labelChildren.add(label);
-	}
-	return labelChildren;
-}
 ui.AppContext.getDescendentLabelChildren = function(iid) {
 	var lcs = new Array();
 	return lcs;
@@ -4751,7 +4733,7 @@ ui.AppContext.getLabelDescendents = function(iid) {
 	while(_g < iid_list.length) {
 		var iid_ = iid_list[_g];
 		++_g;
-		var label = ui.AppContext.LABELMAP.get(iid_);
+		var label = m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,iid_);
 		if(label == null) ui.AppContext.LOGGER.error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
 	}
 	return labelDescendents;
@@ -6245,52 +6227,74 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 	});
 }
 ui.api.ResponseProcessor.aliasCreated = function(data) {
-	ui.AppContext.AGENT.aliasSet.add(data.aliases[0]);
+	ui.AppContext.AGENT.aliasSet.addOrUpdate(data.aliases[0]);
 	ui.AppContext.LABELS.add(data.labels[0]);
 	ui.AppContext.LABELCHILDREN.add(data.labelChildren[0]);
 	ui.model.EM.change(ui.model.EMEvent.NewAlias);
 }
 ui.api.ResponseProcessor.aliasUpdated = function(data) {
+	ui.AppContext.AGENT.aliasSet.addOrUpdate(data.aliases[0]);
 	ui.model.EM.change(ui.model.EMEvent.NewAlias);
 }
 ui.api.ResponseProcessor.aliasDeleted = function(data) {
+	ui.AppContext.AGENT.aliasSet["delete"](data.aliases[0]);
 }
 ui.api.ResponseProcessor.labelCreated = function(data) {
-	ui.AppContext.LABELCHILDREN.add(data.labelChildren[0]);
 	ui.AppContext.LABELS.add(data.labels[0]);
-	ui.model.EM.change(ui.model.EMEvent.LOAD_ALIAS,ui.AppContext.get_alias());
-	ui.model.EM.change(ui.model.EMEvent.LabelCreated,new ui.model.CreateLabelData(data.labels[0],data.labelChildren[0].parentIid));
+	ui.AppContext.LABELCHILDREN.add(data.labelChildren[0]);
+	var siblings = ui.AppContext.LCG.delegate().get(data.labelChildren[0].parentIid);
+	if(siblings != null) {
+		var lcToDelete = null;
+		var $it0 = siblings.iterator();
+		while( $it0.hasNext() ) {
+			var lc = $it0.next();
+			if(lc.childIid == null) lcToDelete = lc;
+		}
+		if(lcToDelete != null) ui.AppContext.LABELCHILDREN["delete"](lcToDelete);
+	}
 }
 ui.api.ResponseProcessor.labelUpdated = function(data) {
-	ui.model.EM.change(ui.model.EMEvent.LOAD_ALIAS,ui.AppContext.get_alias());
-	ui.model.EM.change(ui.model.EMEvent.LabelUpdated,data.labels[0]);
+	ui.AppContext.LABELS.update(data.labels[0]);
 }
 ui.api.ResponseProcessor.labelMoved = function(data) {
-	ui.model.EM.change(ui.model.EMEvent.LOAD_ALIAS,ui.AppContext.get_alias());
-	ui.model.EM.change(ui.model.EMEvent.LabelUpdated,ui.AppContext.get_alias());
+	var _g = 0, _g1 = data.labelChildren;
+	while(_g < _g1.length) {
+		var lc = _g1[_g];
+		++_g;
+		if(lc.deleted) ui.AppContext.LABELCHILDREN["delete"](lc); else ui.AppContext.LABELCHILDREN.addOrUpdate(lc);
+	}
 }
 ui.api.ResponseProcessor.labelDeleted = function(data) {
-	var labels = js.Boot.__cast(data.labels , Array);
-	var _g = 0;
-	while(_g < labels.length) {
-		var label = labels[_g];
+	var _g = 0, _g1 = data.labels;
+	while(_g < _g1.length) {
+		var label = _g1[_g];
 		++_g;
 		ui.AppContext.LABELS["delete"](label);
 	}
-	var lcs = js.Boot.__cast(data.labelChildren , Array);
-	var _g = 0;
-	while(_g < lcs.length) {
-		var lc = lcs[_g];
+	var _g = 0, _g1 = data.labelChildren;
+	while(_g < _g1.length) {
+		var lc = _g1[_g];
 		++_g;
 		ui.AppContext.LABELCHILDREN["delete"](lc);
 	}
-	ui.model.EM.change(ui.model.EMEvent.LOAD_ALIAS,ui.AppContext.get_alias());
-	ui.model.EM.change(ui.model.EMEvent.LabelDeleted,data.labels[0]);
 }
 ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.AppContext.AGENT.aliasSet.addAll(data.aliases);
 	ui.AppContext.LABELS.addAll(data.labels);
 	ui.AppContext.LABELCHILDREN.addAll(data.labelChildren);
+	var lcsToRemove = new Array();
+	var $it0 = ui.AppContext.LABELCHILDREN.iterator();
+	while( $it0.hasNext() ) {
+		var lc = $it0.next();
+		if(m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,lc.childIid) == null) lcsToRemove.push(lc);
+	}
+	var _g = 0;
+	while(_g < lcsToRemove.length) {
+		var lc = lcsToRemove[_g];
+		++_g;
+		ui.AppContext.LOGGER.error("LabelChild point to non-existent label.  DELETE IT.");
+		ui.AppContext.LABELCHILDREN["delete"](lc);
+	}
 	if(ui.AppContext.AGENT.aliasSet.isEmpty()) {
 		var defaultAlias = new ui.model.Alias("Default Alias");
 		ui.model.EM.change(ui.model.EMEvent.ALIAS_CREATE,defaultAlias);
@@ -6301,11 +6305,21 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.LOAD_ALIAS,ui.AppContext.get_alias());
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
 }
+ui.api.SynchronizationParms = function() {
+	this.aliases = new Array();
+	this.labels = new Array();
+	this.labelChildren = new Array();
+};
+$hxClasses["ui.api.SynchronizationParms"] = ui.api.SynchronizationParms;
+ui.api.SynchronizationParms.__name__ = ["ui","api","SynchronizationParms"];
+ui.api.SynchronizationParms.prototype = {
+	__class__: ui.api.SynchronizationParms
+}
 ui.api.Synchronizer = function(iid,numResponsesExpected,oncomplete) {
 	this.iid = iid;
 	this.numResponsesExpected = numResponsesExpected;
 	this.oncomplete = oncomplete;
-	this.parms = { aliases : new Array(), labels : new Array(), labelChildren : new Array()};
+	this.parms = new ui.api.SynchronizationParms();
 };
 $hxClasses["ui.api.Synchronizer"] = ui.api.Synchronizer;
 ui.api.Synchronizer.__name__ = ["ui","api","Synchronizer"];
@@ -6332,7 +6346,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "label":
-			var label = ui.AppContext.LABELMAP.get(data.primaryKey);
+			var label = m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,data.primaryKey);
 			if(label != null) this.parms.labels.push(label);
 			break;
 		case "labelChild":
@@ -9068,7 +9082,7 @@ var defineWidget = function() {
 		var label = new $("<div></div>").labelComp({ label : self.options.label, isDragByHelper : true, containment : false, dragstop : null});
 		selfElement.append(label);
 		selfElement.hover(function() {
-			if(m3.helper.OSetHelper.hasValues(self.options.children)) expander.css("visibility","visible");
+			if(m3.helper.OSetHelper.hasValues(self.options.children) && self.options.children.iterator().next() != null) expander.css("visibility","visible");
 		},function() {
 			expander.css("visibility","hidden");
 		});
@@ -9101,13 +9115,17 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTree must be a div element");
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
 		self.mappedLabels = new m3.observable.MappedSet(self.options.labels,function(label) {
-			var children = ui.AppContext.getLabelChildren(label.get_iid());
+			if(label == null) return null;
+			if(ui.AppContext.LCG.delegate().get(label.get_iid()) == null) ui.AppContext.LABELCHILDREN.add(new ui.model.LabelChild(label.get_iid(),null));
+			var children = new m3.observable.MappedSet(ui.AppContext.LCG.delegate().get(label.get_iid()),function(lc) {
+				return m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,lc.childIid);
+			});
 			children.visualId = "filteredLabelTree--" + label.name;
 			return new $("<div></div>").labelTreeBranch({ label : label, children : children});
 		});
 		self.mappedLabels.visualId = self.options.labels.getVisualId() + "_map";
-		ui.AppContext.LOGGER.debug("Listen to " + self.mappedLabels.visualId);
 		self.mappedLabels.listen(function(labelTreeBranch,evt) {
+			if(labelTreeBranch == null) return;
 			ui.AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) labelTreeBranch.labelTreeBranch("update"); else if(evt.isDelete()) labelTreeBranch.remove();
 		});
@@ -9191,11 +9209,10 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
 		selfElement.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			var oset;
-			if(ui.AppContext.LCG.delegate().get(alias.rootLabelIid) == null) oset = new m3.observable.ObservableSet(ui.model.Label.identifier); else oset = new m3.observable.MappedSet(ui.AppContext.LCG.delegate().get(alias.rootLabelIid),function(lc) {
+			var ms = new m3.observable.MappedSet(ui.AppContext.LCG.delegate().get(alias.rootLabelIid),function(lc) {
 				return m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,lc.childIid);
 			});
-			self1._setLabels(oset);
+			self1._setLabels(ms);
 		},"LabelsList-Alias"));
 		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
 		selfElement.append(newLabelButton).append("<div class='clear'></div>");

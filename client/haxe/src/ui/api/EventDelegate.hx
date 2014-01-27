@@ -71,10 +71,6 @@ class EventDelegate {
             protocolHandler.nextPage(nextPageURI);
         }));
 
-        // EM.addListener(EMEvent.LOAD_ALIAS, new EMListener(function(alias: Alias): Void {
-        //     protocolHandler.getAliasInfo(alias);
-        // }));
-
         EM.addListener(EMEvent.ALIAS_CREATE, new EMListener(function(alias: Alias): Void {
             protocolHandler.createAlias(alias);
         }));

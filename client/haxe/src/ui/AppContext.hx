@@ -13,6 +13,7 @@ import ui.model.EM;
 import ui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
+using m3.helper.OSetHelper;
 
 class AppContext {
 	public static var DEMO: Bool = false;
@@ -25,7 +26,6 @@ class AppContext {
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
     public static var LABELS:ObservableSet<Label>;
     public static var LABELCHILDREN:ObservableSet<LabelChild>;
-    public static var LABELMAP:StringMap<Label>;
     public static var LCG: GroupedSet<LabelChild>;
     @:isVar public static var alias(get, set): Alias;
 
@@ -58,10 +58,7 @@ class AppContext {
     	);
 
         LABELS      = new ObservableSet<Label>(Label.identifier);
-        LABELS.listen(updateLabelMap);
         LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
-        LABELMAP    = new StringMap<Label>();
-
         LCG = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
             return lc.parentIid;
         });
@@ -74,14 +71,6 @@ class AppContext {
         SERIALIZER.addHandler(Content, new ContentHandler());
 
     	registerGlobalListeners();
-    }
-
-    static function updateLabelMap(label: Label, evt: EventType): Void {
-        if (evt.isAddOrUpdate()) {
-            LABELMAP.set(label.iid, label);
-        } else if (evt.isDelete()) {
-            LABELMAP.remove(label.iid);
-        }
     }
 
 	static function registerGlobalListeners() {
@@ -128,23 +117,6 @@ class AppContext {
         );
 	}
 
-    public static function getLabelChildren(iid:String):ObservableSet<Label> {
-        var fs = new FilteredSet(LABELCHILDREN, function(lc:LabelChild):Bool {
-            return lc.parentIid == iid;
-        });
-
-        var labelChildren = new ObservableSet<Label>(Label.identifier);
-        for (lc in fs) {
-            var label = LABELMAP.get(lc.childIid);
-            if (label == null) {
-                AppContext.LOGGER.error("LabelChild references missing label: " + lc.childIid);
-            } else {
-                labelChildren.add(label);
-            }
-        }
-        return labelChildren;
-    }
-
     public static function getDescendentLabelChildren(iid:String):Array<LabelChild> {
         var lcs = new Array<LabelChild>();
 /*
@@ -183,7 +155,7 @@ class AppContext {
         var iid_list = new Array<String>();
         getDescendentIids(iid, iid_list);
         for (iid_ in iid_list) {
-            var label = LABELMAP.get(iid_);
+            var label = LABELS.getElement(iid_);
             if (label == null) {
                 AppContext.LOGGER.error("LabelChild references missing label: " + iid_);
             } else {

@@ -9,6 +9,7 @@ import ui.model.EM;
 import ui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
+using m3.helper.OSetHelper;
 using Lambda;
 
 class ResponseProcessor {
@@ -26,58 +27,85 @@ class ResponseProcessor {
 		});
 	}
 
-	public static function aliasCreated(data:Dynamic) {
-		AppContext.AGENT.aliasSet.add(data.aliases[0]);
+	public static function aliasCreated(data:SynchronizationParms) {
+		AppContext.AGENT.aliasSet.addOrUpdate(data.aliases[0]);
 		AppContext.LABELS.add(data.labels[0]);
 		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
    		EM.change(EMEvent.NewAlias);		
 	}
 
-	public static function aliasUpdated(data:Dynamic) {
+	public static function aliasUpdated(data:SynchronizationParms) {
+		AppContext.AGENT.aliasSet.addOrUpdate(data.aliases[0]);
        	EM.change(EMEvent.NewAlias);
 	}
 
-	public static function aliasDeleted(data:Dynamic) {
-		
+	public static function aliasDeleted(data:SynchronizationParms) {
+		AppContext.AGENT.aliasSet.delete(data.aliases[0]);
 	}
 
-	public static function labelCreated(data:Dynamic) {
-		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
+	public static function labelCreated(data:SynchronizationParms) {
 		AppContext.LABELS.add(data.labels[0]);
-		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelCreated, new CreateLabelData(data.labels[0], data.labelChildren[0].parentIid));
+		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
+
+		// Delete the placeholder
+		var siblings = AppContext.LCG.delegate().get(data.labelChildren[0].parentIid);
+		if (siblings != null) {
+			var lcToDelete:LabelChild = null;
+			for (lc in siblings) {
+				if (lc.childIid == null) {
+					lcToDelete = lc;
+					break;
+				}
+			}
+			if (lcToDelete != null) {
+				AppContext.LABELCHILDREN.delete(lcToDelete);
+			}
+		}
 	}
 
-	public static function labelUpdated(data:Dynamic) {
-		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelUpdated, data.labels[0]);
+	public static function labelUpdated(data:SynchronizationParms) {
+		AppContext.LABELS.update(data.labels[0]);
 	}
 
-	public static function labelMoved(data:Dynamic) {
-		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelUpdated, AppContext.alias);		
+	// TODO:  Add a method to delete or add/update model objects based on their
+	// deleted flag
+	public static function labelMoved(data:SynchronizationParms) {
+		for (lc in data.labelChildren) {
+			if (lc.deleted) {
+				AppContext.LABELCHILDREN.delete(lc);
+			} else {
+				AppContext.LABELCHILDREN.addOrUpdate(lc);
+			}
+		}
 	}
 
-	public static function labelDeleted(data:Dynamic) {
-		var labels = cast(data.labels, Array<Dynamic>);
-		for (label in labels) {
+	public static function labelDeleted(data:SynchronizationParms) {
+		for (label in data.labels) {
 			AppContext.LABELS.delete(label);
 		}
 		
-		var lcs = cast(data.labelChildren, Array<Dynamic>);
-		for (lc in lcs) {
+		for (lc in data.labelChildren) {
 			AppContext.LABELCHILDREN.delete(lc);
-		}		
-		
-		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelDeleted, data.labels[0]);
+		}
 	}
 
-	public static function initialDataLoad(data:Dynamic) {
+	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
 		AppContext.AGENT.aliasSet.addAll(data.aliases);
 		AppContext.LABELS.addAll(data.labels);
 		AppContext.LABELCHILDREN.addAll(data.labelChildren);
+
+		// Cull any labelChildren that point to non-existent lables
+		var lcsToRemove = new Array<LabelChild>();
+		for (lc in AppContext.LABELCHILDREN) {
+			if (AppContext.LABELS.getElement(lc.childIid) == null) {
+				lcsToRemove.push(lc);
+			}
+		}
+		for (lc in lcsToRemove) {
+			ui.AppContext.LOGGER.error("LabelChild point to non-existent label.  DELETE IT.");
+			AppContext.LABELCHILDREN.delete(lc);
+		}
 
 	    // Set the current alias
     	if (AppContext.AGENT.aliasSet.isEmpty()) {

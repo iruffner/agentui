@@ -7,6 +7,8 @@ import m3.observable.OSet;
 import ui.widget.LabelComp;
 import m3.exception.Exception;
 
+using m3.helper.OSetHelper;
+
 typedef LabelTreeOptions = {
 	var labels: OSet<Label>;
 	@:optional var itemsClass: String;
@@ -43,16 +45,28 @@ extern class LabelTree extends JQ {
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
 		        	self.mappedLabels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
-		        			var children = AppContext.getLabelChildren(label.iid);
+		        			if (label == null) { return null; }
+		        			// If there iare no children for this label, add a placeholder
+		        			if (AppContext.LCG.delegate().get(label.iid) == null) {
+		        				ui.AppContext.LABELCHILDREN.add(new LabelChild(label.iid, null));
+		        			}
+
+		        			var children = new MappedSet<LabelChild, Label>(
+		        				AppContext.LCG.delegate().get(label.iid), 
+		        				function(lc: LabelChild): Label{
+		        						return AppContext.LABELS.getElement(lc.childIid);
+		        					}
+        					);
 		        			children.visualId = "filteredLabelTree--" + label.name;
+			        		
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				label: label,
 	        					children: children
 		        			});
 		        		});
 		        	self.mappedLabels.visualId = self.options.labels.getVisualId() + "_map";
-		        	AppContext.LOGGER.debug("Listen to " + self.mappedLabels.visualId);
 		        	self.mappedLabels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
+		        			if (labelTreeBranch == null) {return;}
 		        			AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
 		            		if(evt.isAdd()) {
 		            			selfElement.append(labelTreeBranch);

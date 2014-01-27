@@ -61,7 +61,7 @@ extern class LabelTreeBranch extends JQ {
 		            selfElement.append(label);
 
 		            selfElement.hover(function(): Void {
-		            		if(self.options.children.hasValues()) {
+		            		if(self.options.children.hasValues() && self.options.children.iterator().next() != null) {
 		            			expander.css("visibility", "visible");
 		            		}
 		            	}, function(): Void {

@@ -3,6 +3,20 @@ import haxe.ds.StringMap;
 import m3.util.UidGenerator;
 import ui.model.ModelObj;
 
+using m3.helper.OSetHelper;
+
+class SynchronizationParms {
+    public var aliases:Array<Alias>;
+    public var labels:Array<Label>;
+    public var labelChildren:Array<LabelChild>;
+
+    public function new() {
+        aliases = new Array<Alias>();
+        labels  = new Array<Label>();
+        labelChildren = new Array<LabelChild>();
+    }
+}
+
 class Synchronizer {
 	// The global list of synchronizers
 	public static var synchronizers = new StringMap<Synchronizer>();
@@ -25,17 +39,13 @@ class Synchronizer {
 	public var iid: String;
     public var numResponsesExpected: Int;
     private var oncomplete: String;
-    private var parms: Dynamic;
+    private var parms: SynchronizationParms;
 
     public function new(iid:String, numResponsesExpected:Int, oncomplete:String) {
     	this.iid = iid;
     	this.numResponsesExpected = numResponsesExpected;
     	this.oncomplete = oncomplete;
-    	this.parms = {
-    		aliases: new Array<Alias>(),
-    		labels: new Array<Label>(),
-    		labelChildren: new Array<LabelChild>()
-    	};
+    	this.parms = new SynchronizationParms();
     }
 
     public function dataReceived(data:Dynamic, responseType:String) {
@@ -49,7 +59,7 @@ class Synchronizer {
                         }
                     }
                 case "label":
-                    var label = ui.AppContext.LABELMAP.get(data.primaryKey);
+                    var label = ui.AppContext.LABELS.getElement(data.primaryKey);
                     if (label != null) {
                         parms.labels.push(label);
                     }
