@@ -9212,6 +9212,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
 		selfElement.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			if(ui.AppContext.LCG.delegate().get(alias.rootLabelIid) == null) ui.AppContext.LABELCHILDREN.add(new ui.model.LabelChild(alias.rootLabelIid,null));
 			var ms = new m3.observable.MappedSet(ui.AppContext.LCG.delegate().get(alias.rootLabelIid),function(lc) {
 				return m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,lc.childIid);
 			});
