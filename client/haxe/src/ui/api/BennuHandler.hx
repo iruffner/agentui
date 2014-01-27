@@ -42,8 +42,8 @@ class BennuHandler implements ProtocolHandler {
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void { }
 	public function nextPage(nextPageURI: String): Void { }
 	public function getAliasInfo(alias: Alias): Void {
-		getAliasConnections(alias);
-		getAliasLabels(alias);
+		// getAliasConnections(alias);
+		// getAliasLabels(alias);
 	}
 	public function createUser(newUser: NewUser): Void { }
 	public function validateUser(token: String): Void { }
@@ -82,12 +82,12 @@ class BennuHandler implements ProtocolHandler {
 
 	public function setDefaultAlias(alias: Alias): Void { }
 	
-	public function getAliasConnections(alias: Alias): Void { }
+	// public function getAliasConnections(alias: Alias): Void { }
 
-	public function getAliasLabels(alias:Alias) {
-   		AppContext.alias.labelSet.clear();
-   		AppContext.alias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
-	}
+	// public function getAliasLabels(alias:Alias) {
+ //   		AppContext.alias.labelSet.clear();
+ //   		AppContext.alias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
+	// }
 
 	public function createLabel(label:Label, parentIid:String): Void {
 		// Create a label child, which will connect the parent and the child

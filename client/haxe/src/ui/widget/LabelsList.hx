@@ -14,12 +14,13 @@ import ui.widget.LabelComp;
 
 using m3.helper.StringHelper;
 using ui.widget.LabelComp;
+using m3.helper.OSetHelper;
 
 typedef LabelsListWidgetDef = {
-	@:optional var labels: ObservableSet<Label>;
+	@:optional var labels: OSet<Label>;
 	@:optional var selectedLabelComp:LabelComp;
 	var _create: Void->Void;
-	var _setLabels: ObservableSet<Label>->Void;
+	var _setLabels: OSet<Label>->Void;
 	var _showNewLabelPopup:JQ->Void;
 	var destroy: Void->Void;
 }
@@ -89,7 +90,7 @@ extern class LabelsList extends JQ {
 										AppContext.LOGGER.info("Create new label | " + input.val());
 										var label: Label = new Label();
 										label.name = input.val();
-      									AppContext.LOGGER.debug("add to " + self.labels.visualId);
+      									AppContext.LOGGER.debug("add to " + self.labels.getVisualId());
       									var eventData = new CreateLabelData(label, parent.val());
 	  									EM.change(EMEvent.CreateLabel, eventData);
 										new JQ("body").click();
@@ -111,22 +112,29 @@ extern class LabelsList extends JQ {
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-		        			self._setLabels(alias.labelSet);
+		        			var mappedSet = new MappedSet<LabelChild, Label>(
+		        				AppContext.LCG.delegate().get(alias.rootLabelIid), 
+		        				function(lc: LabelChild): Label{
+		        						return AppContext.LABELS.getElement(lc.childIid);
+		        					}
+	        					);
+		        			self._setLabels(mappedSet);
+		        			// self._setLabels(alias.labelSet);
 	        			}, "LabelsList-Alias")
 		        	);
 
-		        	EM.addListener(EMEvent.LabelCreated, new EMListener(function(data: CreateLabelData) {
-		        			self._setLabels(AppContext.alias.labelSet);
-	        			}, "LabelsList-LC")
-		        	);
-		        	EM.addListener(EMEvent.LabelUpdated, new EMListener(function(label: Label) {
-		        			self._setLabels(AppContext.alias.labelSet);
-	        			}, "LabelsList-LU")
-		        	);
-		        	EM.addListener(EMEvent.LabelDeleted, new EMListener(function(label: Label) {
-		        			self._setLabels(AppContext.alias.labelSet);
-	        			}, "LabelsList-LD")
-		        	);
+		        	// EM.addListener(EMEvent.LabelCreated, new EMListener(function(data: CreateLabelData) {
+		        	// 		self._setLabels(AppContext.alias.labelSet);
+	        		// 	}, "LabelsList-LC")
+		        	// );
+		        	// EM.addListener(EMEvent.LabelUpdated, new EMListener(function(label: Label) {
+		        	// 		self._setLabels(AppContext.alias.labelSet);
+	        		// 	}, "LabelsList-LU")
+		        	// );
+		        	// EM.addListener(EMEvent.LabelDeleted, new EMListener(function(label: Label) {
+		        	// 		self._setLabels(AppContext.alias.labelSet);
+	        		// 	}, "LabelsList-LD")
+		        	// );
 
 		        	var newLabelButton: JQ = new JQ("<button class='newLabelButton'>New Label</button>");
 		        	selfElement.append(newLabelButton).append("<div class='clear'></div>");
@@ -205,7 +213,7 @@ extern class LabelsList extends JQ {
 
 		        },
 
-		        _setLabels: function(labels: ObservableSet<Label>): Void {
+		        _setLabels: function(labels: OSet<Label>): Void {
 		        	var self: LabelsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 

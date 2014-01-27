@@ -71,9 +71,9 @@ class EventDelegate {
             protocolHandler.nextPage(nextPageURI);
         }));
 
-        EM.addListener(EMEvent.LOAD_ALIAS, new EMListener(function(alias: Alias): Void {
-            protocolHandler.getAliasInfo(alias);
-        }));
+        // EM.addListener(EMEvent.LOAD_ALIAS, new EMListener(function(alias: Alias): Void {
+        //     protocolHandler.getAliasInfo(alias);
+        // }));
 
         EM.addListener(EMEvent.ALIAS_CREATE, new EMListener(function(alias: Alias): Void {
             protocolHandler.createAlias(alias);
@@ -197,23 +197,23 @@ class EventDelegate {
     		AppContext.LOGGER.error("setDefaultAliasError was received from the server");
     	});
 
-        processHash.set(MsgType.getAliasConnectionsResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
-    		var resp: GetAliasConnectionsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasConnectionsResponse);
-    		AppContext.alias.connectionSet.clear();
-    		AppContext.alias.connectionSet.addAll(resp.contentImpl.connections);
-    	});
+     //    processHash.set(MsgType.getAliasConnectionsResponse, function(data: Dynamic){
+    	// 	AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
+    	// 	var resp: GetAliasConnectionsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasConnectionsResponse);
+    	// 	AppContext.alias.connectionSet.clear();
+    	// 	AppContext.alias.connectionSet.addAll(resp.contentImpl.connections);
+    	// });
 
         processHash.set(MsgType.getAliasConnectionsError, function(data: Dynamic){
     		AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
     	});
 
-        processHash.set(MsgType.getAliasLabelsResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
-    		var resp: GetAliasLabelsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasLabelsResponse);
-    		AppContext.alias.labelSet.clear();
-    		AppContext.alias.labelSet.addAll(resp.contentImpl.aliasLabels);
-    	});
+     //    processHash.set(MsgType.getAliasLabelsResponse, function(data: Dynamic){
+    	// 	AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
+    	// 	var resp: GetAliasLabelsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasLabelsResponse);
+    	// 	AppContext.alias.labelSet.clear();
+    	// 	AppContext.alias.labelSet.addAll(resp.contentImpl.aliasLabels);
+    	// });
 
         processHash.set(MsgType.getAliasLabelsError, function(data: Dynamic){
     		AppContext.LOGGER.error("getAliasLabelsError was received from the server");

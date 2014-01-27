@@ -8,7 +8,7 @@ interface ProtocolHandler {
 	public function filter(filter: Filter): Void;
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void;
 	public function nextPage(nextPageURI: String): Void;
-	public function getAliasInfo(alias: Alias): Void;
+	// public function getAliasInfo(alias: Alias): Void;
 	public function createUser(newUser: NewUser): Void;
 	public function validateUser(token: String): Void;
 	public function updateUser(user: Agent): Void;
@@ -19,8 +19,8 @@ interface ProtocolHandler {
 	public function deleteAlias(alias: Alias): Void;
 	public function updateAlias(alias: Alias): Void;
 	public function setDefaultAlias(alias: Alias): Void;
-	public function getAliasConnections(alias: Alias): Void;
-	public function getAliasLabels(alias: Alias): Void;
+	// public function getAliasConnections(alias: Alias): Void;
+	// public function getAliasLabels(alias: Alias): Void;
 	public function beginIntroduction(intro: Introduction): Void; 
 	public function confirmIntroduction(confirmation: IntroductionConfirmation): Void;
 	public function backup(/*backupName: String*/): Void;

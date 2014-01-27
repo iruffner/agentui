@@ -55,17 +55,17 @@ extern class ZWidget extends JQ {
         			new JQ("<button>Introduction Notification</button>")
         					.button()
         					.click(function(evt: JQEvent): Void {
-        							var connection: Connection = AppContext.alias.connectionSet.asArray()[2];
+        							// var connection: Connection = AppContext.alias.connectionSet.asArray()[2];
 
-					                var notification: IntroductionNotification = new IntroductionNotification();
-					                notification.contentImpl = new IntroductionNotificationData();
-					                notification.contentImpl.connection = connection;
-					                notification.contentImpl.correlationId = "abc123";
-					                notification.contentImpl.message = "Hey guys!  Are you ready to get to know each other???";
-					                notification.contentImpl.profile.name = "Uncle Leo";
-					                notification.contentImpl.profile.imgSrc = "media/test/uncle_leo.jpg";
+					          //       var notification: IntroductionNotification = new IntroductionNotification();
+					          //       notification.contentImpl = new IntroductionNotificationData();
+					          //       notification.contentImpl.connection = connection;
+					          //       notification.contentImpl.correlationId = "abc123";
+					          //       notification.contentImpl.message = "Hey guys!  Are you ready to get to know each other???";
+					          //       notification.contentImpl.profile.name = "Uncle Leo";
+					          //       notification.contentImpl.profile.imgSrc = "media/test/uncle_leo.jpg";
 
-					                EM.change(EMEvent.TEST, AppContext.SERIALIZER.toJson(notification));
+					          //       EM.change(EMEvent.TEST, AppContext.SERIALIZER.toJson(notification));
         						})
         					.appendTo(self.container);
 

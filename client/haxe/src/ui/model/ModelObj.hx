@@ -84,23 +84,23 @@ class Agent extends ModelObj {
 	}
 
 	private function registerModelListeners(): Void {
-        EM.addListener(EMEvent.DeleteLabel, new EMListener(function(labels: Array<Label>): Void {
-        		for (i in 1...labels.length) {
-					this.currentAlias.labelSet.delete(labels[i]);
-				}
-				EM.change(EMEvent.FitWindow);
-    		}, "User-DeleteLabel")
-        );
-        EM.addListener(EMEvent.ConnectionUpdate, new EMListener(function(conn: Connection): Void {
-                this.currentAlias.connectionSet.update(conn);
-				EM.change(EMEvent.FitWindow);
-            }, "User-ConnUpdate")
-        );
-        EM.addListener(EMEvent.NewConnection, new EMListener(function(conn: Connection): Void {
-                this.currentAlias.connectionSet.update(conn);
-				EM.change(EMEvent.FitWindow);
-            }, "User-ConnUpdate")
-        );
+    //     EM.addListener(EMEvent.DeleteLabel, new EMListener(function(labels: Array<Label>): Void {
+    //     		for (i in 1...labels.length) {
+				// 	this.currentAlias.labelSet.delete(labels[i]);
+				// }
+				// EM.change(EMEvent.FitWindow);
+    // 		}, "User-DeleteLabel")
+    //     );
+    //     EM.addListener(EMEvent.ConnectionUpdate, new EMListener(function(conn: Connection): Void {
+    //             this.currentAlias.connectionSet.update(conn);
+				// EM.change(EMEvent.FitWindow);
+    //         }, "User-ConnUpdate")
+    //     );
+    //     EM.addListener(EMEvent.NewConnection, new EMListener(function(conn: Connection): Void {
+    //             this.currentAlias.connectionSet.update(conn);
+				// EM.change(EMEvent.FitWindow);
+    //         }, "User-ConnUpdate")
+    //     );
 	}
 
 	private function get_currentAlias(): Alias {
@@ -157,12 +157,6 @@ class Alias extends ModelObjWithIid {
 	public var name: String;
 	public var data: UserData;
 
-	// TODO:  Make the alias's labelSet a filtered set...Label
-	// How to combine label and labelChild...
-	
-	@:transient @:isVar public var labelSet(get, null): ObservableSet<Label>;
-	@:transient @:isVar public var connectionSet(get, null): ObservableSet<Connection>;
-
 	public function new(?name:String) {
 		super();
 		this.name = name;
@@ -171,16 +165,6 @@ class Alias extends ModelObjWithIid {
 	
 	public static function identifier(alias: Alias): String {
 		return alias.name;
-	}
-
-	private function get_labelSet(): ObservableSet<Label> {
-		if(labelSet == null) labelSet = new ObservableSet<Label>(Label.identifier);
-		return labelSet;
-	}
-
-	private function get_connectionSet(): ObservableSet<Connection> {
-		if(connectionSet == null) connectionSet = new ObservableSet<Connection>(Connection.identifier);
-		return connectionSet;
 	}
 }
 

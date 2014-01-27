@@ -26,6 +26,7 @@ class AppContext {
     public static var LABELS:ObservableSet<Label>;
     public static var LABELCHILDREN:ObservableSet<LabelChild>;
     public static var LABELMAP:StringMap<Label>;
+    public static var LCG: GroupedSet<LabelChild>;
     @:isVar public static var alias(get, set): Alias;
 
     private static function get_alias(): Alias {
@@ -60,6 +61,14 @@ class AppContext {
         LABELS.listen(updateLabelMap);
         LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
         LABELMAP    = new StringMap<Label>();
+
+        LCG = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
+            return lc.parentIid;
+        });
+
+        // var LM = new MappedSet<LabelChild, Label>(LCG, function(lc: LabelChild): Label {
+        //         return null;
+        //     });
         
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());

@@ -103,7 +103,8 @@ extern class ContentComp extends JQ {
 						});
 		        	
 		        	var postCreator: JQ = new JQ("<aside class='postCreator'></aside>").appendTo(postWr);
-		        	var connection: Connection = AppContext.alias.connectionSet.getElementComplex(content.creator);
+		        	AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
+		        	var connection: Connection = null;//AppContext.alias.connectionSet.getElementComplex(content.creator);
 		        	if(connection == null) {
 		        		connection = AppContext.alias.asConnection();
 		        	}
@@ -128,7 +129,8 @@ extern class ContentComp extends JQ {
 		        	var connIter: Iterator<Connection> = content.connectionSet.iterator();
 		        	while(connIter.hasNext()) {
 		        		var connection: Connection = connIter.next();
-		        		var connWithProfile: Connection = AppContext.alias.connectionSet.getElement(Connection.identifier(connection));
+		        		AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(connection));");
+		        		var connWithProfile: Connection = null;//AppContext.alias.connectionSet.getElement(Connection.identifier(connection));
 		        		if(connWithProfile != null) connection = connWithProfile;
 		        		new ConnectionAvatar("<div></div>").connectionAvatar({
 		        				dndEnabled: false,

@@ -58,7 +58,8 @@ extern class ConnectionsList extends JQ {
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-			                self._setConnections(alias.connectionSet);
+			                AppContext.LOGGER.error("fix me");
+			                // self._setConnections(alias.connectionSet);
 			            }, "ConnectionsList-Alias")
 			        );
 
@@ -66,7 +67,8 @@ extern class ConnectionsList extends JQ {
 			        		if(conn != null) {
 			                	self._setConnections(conn.connectionSet);
 			        		} else { 
-		                		self._setConnections(AppContext.alias.connectionSet);
+			        			AppContext.LOGGER.error("fix me");
+		                		// self._setConnections(AppContext.alias.connectionSet);
 		                	}
 			            }, "ConnectionsList-TargetChange")
 			        );
