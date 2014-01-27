@@ -103,7 +103,7 @@ class EventDelegate {
         	protocolHandler.post(content);
     	}));
 
-        EM.addListener(EMEvent.CreateLabel, new EMListener(function(data:Dynamic): Void {
+        EM.addListener(EMEvent.CreateLabel, new EMListener(function(data:CreateLabelData): Void {
         	protocolHandler.createLabel(data.label, data.parentIid);
     	}));
 

@@ -45,12 +45,12 @@ class ResponseProcessor {
 		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
 		AppContext.LABELS.add(data.labels[0]);
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelCreated, AppContext.alias);
+       	EM.change(EMEvent.LabelCreated, new CreateLabelData(data.labels[0], data.labelChildren[0].parentIid));
 	}
 
 	public static function labelUpdated(data:Dynamic) {
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelUpdated, AppContext.alias);
+       	EM.change(EMEvent.LabelUpdated, data.labels[0]);
 	}
 
 	public static function labelMoved(data:Dynamic) {
@@ -70,7 +70,7 @@ class ResponseProcessor {
 		}		
 		
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
-       	EM.change(EMEvent.LabelDeleted, AppContext.alias);
+       	EM.change(EMEvent.LabelDeleted, data.labels[0]);
 	}
 
 	public static function initialDataLoad(data:Dynamic) {

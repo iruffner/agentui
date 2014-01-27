@@ -90,7 +90,7 @@ extern class LabelsList extends JQ {
 										var label: Label = new Label();
 										label.name = input.val();
       									AppContext.LOGGER.debug("add to " + self.labels.visualId);
-      									var eventData = {label:label, parentIid:parent.val()};
+      									var eventData = new CreateLabelData(label, parent.val());
 	  									EM.change(EMEvent.CreateLabel, eventData);
 										new JQ("body").click();
 									}

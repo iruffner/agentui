@@ -182,7 +182,6 @@ class Alias extends ModelObjWithIid {
 }
 
 interface Filterable {
-
 }
 
 class LabelData extends ModelObj {
@@ -226,10 +225,6 @@ class LabelChild extends ModelObjWithIid {
 }
 
 class Connection extends ModelObjWithIid implements Filterable {
-	// @:transient public var fname: String;
-	// @:transient public var lname: String;
-	// @:transient public var imgSrc: String;
-
 	@:transient public var uid(get, null): String;
 
 	public var source: String;
@@ -439,3 +434,14 @@ class IntroductionConfirmation extends ModelObj {
 		this.correlationId  = correlationId;
 	}
 }
+
+class CreateLabelData {
+	public var label:Label;
+	public var parentIid:String;
+
+	public function new(label:Label, parentIid:String) {
+		this.label = label;
+		this.parentIid = parentIid;
+	}
+}
+

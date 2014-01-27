@@ -83,6 +83,11 @@ extern class LabelTreeBranch extends JQ {
 	            				} else {
 	            					labelChildren.hide();
 	            				}
+	            				if (labelChildren.css('display') == 'none') {
+	            					expander.html("+");
+	            				} else {
+	            					expander.html("-");
+	            				}
 		            			EM.change(EMEvent.FitWindow);
 		            		}
 	            		);
