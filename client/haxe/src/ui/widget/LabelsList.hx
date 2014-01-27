@@ -115,16 +115,16 @@ extern class LabelsList extends JQ {
 	        			}, "LabelsList-Alias")
 		        	);
 
-		        	EM.addListener(EMEvent.LabelCreated, new EMListener(function(alias: Alias) {
-		        			self._setLabels(alias.labelSet);
+		        	EM.addListener(EMEvent.LabelCreated, new EMListener(function(data: CreateLabelData) {
+		        			self._setLabels(AppContext.alias.labelSet);
 	        			}, "LabelsList-LC")
 		        	);
-		        	EM.addListener(EMEvent.LabelUpdated, new EMListener(function(alias: Alias) {
-		        			self._setLabels(alias.labelSet);
+		        	EM.addListener(EMEvent.LabelUpdated, new EMListener(function(label: Label) {
+		        			self._setLabels(AppContext.alias.labelSet);
 	        			}, "LabelsList-LU")
 		        	);
-		        	EM.addListener(EMEvent.LabelDeleted, new EMListener(function(alias: Alias) {
-		        			self._setLabels(alias.labelSet);
+		        	EM.addListener(EMEvent.LabelDeleted, new EMListener(function(label: Label) {
+		        			self._setLabels(AppContext.alias.labelSet);
 	        			}, "LabelsList-LD")
 		        	);
 
