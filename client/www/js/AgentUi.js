@@ -9091,7 +9091,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTreeBranch must be a div element");
 		selfElement.addClass("labelTreeBranch ");
-		var expander = new $("<div class='labelTreeExpander' style='visibility:hidden;'>+</div>");
+		var expander = new $("<div class='labelTreeExpander' style='visibility:hidden;'><b>+</b></div>");
 		selfElement.append(expander);
 		var label = new $("<div></div>").labelComp({ label : self.options.label, isDragByHelper : true, containment : false, dragstop : null});
 		selfElement.append(label);
@@ -9109,7 +9109,7 @@ var defineWidget = function() {
 					labelChildren.toggle();
 					labelChildren.toggleClass("labelTreeFullWidth");
 				} else labelChildren.hide();
-				if(labelChildren.css("display") == "none") expander.html("+"); else expander.html("-");
+				if(labelChildren.css("display") == "none") expander.html("<b>+</b>"); else expander.html("<b>-</b>");
 				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 			});
 		}

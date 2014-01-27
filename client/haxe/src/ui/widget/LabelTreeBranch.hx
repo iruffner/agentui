@@ -48,7 +48,7 @@ extern class LabelTreeBranch extends JQ {
 
 		        	selfElement.addClass("labelTreeBranch ");
 
-		        	var expander: JQ = new JQ("<div class='labelTreeExpander' style='visibility:hidden;'>+</div>");
+		        	var expander: JQ = new JQ("<div class='labelTreeExpander' style='visibility:hidden;'><b>+</b></div>");
 		        	selfElement.append(expander);
 		        	
 		        	var label: LabelComp = new LabelComp("<div></div>").labelComp({
@@ -84,9 +84,9 @@ extern class LabelTreeBranch extends JQ {
 	            					labelChildren.hide();
 	            				}
 	            				if (labelChildren.css('display') == 'none') {
-	            					expander.html("+");
+	            					expander.html("<b>+</b>");
 	            				} else {
-	            					expander.html("-");
+	            					expander.html("<b>-</b>");
 	            				}
 		            			EM.change(EMEvent.FitWindow);
 		            		}
