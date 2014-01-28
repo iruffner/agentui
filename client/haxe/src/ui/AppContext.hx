@@ -27,6 +27,7 @@ class AppContext {
     public static var LABELS:ObservableSet<Label>;
     public static var LABELCHILDREN:ObservableSet<LabelChild>;
     public static var LCG: GroupedSet<LabelChild>;
+    public static var placeHolderLabel:Label;
     @:isVar public static var alias(get, set): Alias;
 
     private static function get_alias(): Alias {
@@ -40,6 +41,11 @@ class AppContext {
     private static var _i: ObservableSet<IntroductionNotification>;
 
     public static function init() {
+
+        // Create a dummy agent
+        AGENT = new Agent();
+        AGENT.userData = new UserData("Qoid", "media/test/koi.jpg");
+
     	LOGGER = new Logga(LogLevel.DEBUG);
         
         CONTENT = new ObservableSet<Content>(ModelObjWithIid.identifier);
@@ -57,7 +63,10 @@ class AppContext {
         	}
     	);
 
-        LABELS      = new ObservableSet<Label>(Label.identifier);
+        LABELS = new ObservableSet<Label>(Label.identifier);
+        placeHolderLabel = new Label("I'm a placeholder");
+        LABELS.add(AppContext.placeHolderLabel);
+
         LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
         LCG = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
             return lc.parentIid;

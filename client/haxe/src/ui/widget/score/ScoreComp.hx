@@ -47,7 +47,7 @@ extern class ScoreComp extends JQ {
 
 				_addContent: function(content:Content): Void {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
-		        	AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
+		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
 	            	var connection: Connection = null;//AppContext.alias.connectionSet.getElementComplex(content.creator);
 
  	            	if (self.contentTimeLines.get(content.creator) == null) {

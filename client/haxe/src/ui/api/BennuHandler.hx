@@ -28,12 +28,6 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function getUser(login: Login): Void {
-		// Create a dummy agent
-		var agent = new Agent();
-		agent.userData = new UserData("Qoid", "media/test/koi.jpg");
-		EM.change(EMEvent.AGENT, agent);
-		EM.change(EMEvent.FitWindow);
-
 		// Establish a connection with the server to get the channel_id
 		new BennuRequest("/api/channel/create", "", onCreateChannel).start();
 	}

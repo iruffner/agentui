@@ -4661,6 +4661,8 @@ ui.AppContext.set_alias = function(alias) {
 	return alias;
 }
 ui.AppContext.init = function() {
+	ui.AppContext.AGENT = new ui.model.Agent();
+	ui.AppContext.AGENT.userData = new ui.model.UserData("Qoid","media/test/koi.jpg");
 	ui.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
 	ui.AppContext.CONTENT = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
 	ui.AppContext._i = new m3.observable.ObservableSet(function(n) {
@@ -4670,6 +4672,8 @@ ui.AppContext.init = function() {
 		return ui.model.Connection.identifier(n.contentImpl.connection);
 	});
 	ui.AppContext.LABELS = new m3.observable.ObservableSet(ui.model.Label.identifier);
+	ui.AppContext.placeHolderLabel = new ui.model.Label("I'm a placeholder");
+	ui.AppContext.LABELS.add(ui.AppContext.placeHolderLabel);
 	ui.AppContext.LABELCHILDREN = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
 	ui.AppContext.LCG = new m3.observable.GroupedSet(ui.AppContext.LABELCHILDREN,function(lc) {
 		return lc.parentIid;
@@ -4867,10 +4871,6 @@ ui.api.BennuHandler.prototype = {
 	,filter: function(filter) {
 	}
 	,getUser: function(login) {
-		var agent = new ui.model.Agent();
-		agent.userData = new ui.model.UserData("Qoid","media/test/koi.jpg");
-		ui.model.EM.change(ui.model.EMEvent.AGENT,agent);
-		ui.model.EM.change(ui.model.EMEvent.FitWindow);
 		new ui.api.BennuRequest("/api/channel/create","",$bind(this,this.onCreateChannel)).start();
 	}
 	,__class__: ui.api.BennuHandler
@@ -6242,19 +6242,10 @@ ui.api.ResponseProcessor.aliasDeleted = function(data) {
 ui.api.ResponseProcessor.labelCreated = function(data) {
 	ui.AppContext.LABELS.add(data.labels[0]);
 	ui.AppContext.LABELCHILDREN.add(data.labelChildren[0]);
-	var siblings = ui.AppContext.LCG.delegate().get(data.labelChildren[0].parentIid);
-	if(siblings != null) {
-		var lcToDelete = null;
-		var $it0 = siblings.iterator();
-		while( $it0.hasNext() ) {
-			var lc = $it0.next();
-			if(lc.childIid == null) {
-				lcToDelete = lc;
-				break;
-			}
-		}
-		if(lcToDelete != null) ui.AppContext.LABELCHILDREN["delete"](lcToDelete);
-	}
+	var set = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
+		return lc.parentIid == data.labelChildren[0].parentIid && lc.childIid == ui.AppContext.placeHolderLabel.get_iid();
+	});
+	if(set.iterator().hasNext()) ui.AppContext.LABELCHILDREN.delegate().remove(set.iterator().next().get_iid());
 }
 ui.api.ResponseProcessor.labelUpdated = function(data) {
 	ui.AppContext.LABELS.update(data.labels[0]);
@@ -6295,7 +6286,7 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	while(_g < lcsToRemove.length) {
 		var lc = lcsToRemove[_g];
 		++_g;
-		ui.AppContext.LOGGER.error("LabelChild point to non-existent label.  DELETE IT.");
+		ui.AppContext.LOGGER.warn("LabelChild points to non-existent label.  DELETE IT.");
 		ui.AppContext.LABELCHILDREN["delete"](lc);
 	}
 	if(ui.AppContext.AGENT.aliasSet.isEmpty()) {
@@ -8489,10 +8480,10 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsList must be a div element");
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses());
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			ui.AppContext.LOGGER.error("fix me");
+			ui.AppContext.LOGGER.warn("fix me");
 		},"ConnectionsList-Alias"));
 		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
-			if(conn != null) self._setConnections(conn.connectionSet); else ui.AppContext.LOGGER.error("fix me");
+			if(conn != null) self._setConnections(conn.connectionSet); else ui.AppContext.LOGGER.warn("fix me");
 		},"ConnectionsList-TargetChange"));
 		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_NOTIFICATION,new ui.model.EMListener(function(notification) {
 			var conn1 = notification.contentImpl.connection;
@@ -8829,7 +8820,7 @@ var defineWidget = function() {
 			var editPostComp = new $(comp).editPostComp({ content : self.options.content});
 		});
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
-		ui.AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
+		ui.AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
 		var connection = null;
 		if(connection == null) connection = ui.helper.ModelHelper.asConnection(ui.AppContext.get_alias());
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection}).appendTo(postCreator);
@@ -8956,7 +8947,7 @@ var defineWidget = function() {
 		selfElement.addClass("introductionNotificationComp container boxsizingBorder");
 		var data = self.options.notification.contentImpl;
 		var conn = data.connection;
-		ui.AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(conn));");
+		ui.AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(conn));");
 		var connFromAlias = null;
 		if(connFromAlias != null) conn.profile = connFromAlias.profile;
 		self.listenerUid = ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE,new ui.model.EMListener(function(e) {
@@ -9085,7 +9076,13 @@ var defineWidget = function() {
 		var label = new $("<div></div>").labelComp({ label : self.options.label, isDragByHelper : true, containment : false, dragstop : null});
 		selfElement.append(label);
 		selfElement.hover(function() {
-			if(m3.helper.OSetHelper.hasValues(self.options.children) && self.options.children.iterator().next() != null) expander.css("visibility","visible");
+			var it = self.options.children.iterator();
+			var hasElements = false;
+			while(it.hasNext()) if(it.next() != ui.AppContext.placeHolderLabel) {
+				hasElements = true;
+				break;
+			}
+			if(hasElements) expander.css("visibility","visible");
 		},function() {
 			expander.css("visibility","hidden");
 		});
@@ -9118,8 +9115,8 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTree must be a div element");
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
 		self.mappedLabels = new m3.observable.MappedSet(self.options.labels,function(label) {
-			if(label == null) return null;
-			if(ui.AppContext.LCG.delegate().get(label.get_iid()) == null) ui.AppContext.LABELCHILDREN.add(new ui.model.LabelChild(label.get_iid(),null));
+			if(label == null || label.get_iid() == ui.AppContext.placeHolderLabel.get_iid()) return null;
+			if(ui.AppContext.LCG.delegate().get(label.get_iid()) == null) ui.AppContext.LABELCHILDREN.add(new ui.model.LabelChild(label.get_iid(),ui.AppContext.placeHolderLabel.get_iid()));
 			var children = new m3.observable.MappedSet(ui.AppContext.LCG.delegate().get(label.get_iid()),function(lc) {
 				return m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,lc.childIid);
 			});
@@ -9212,7 +9209,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
 		selfElement.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			if(ui.AppContext.LCG.delegate().get(alias.rootLabelIid) == null) ui.AppContext.LABELCHILDREN.add(new ui.model.LabelChild(alias.rootLabelIid,null));
+			if(ui.AppContext.LCG.delegate().get(alias.rootLabelIid) == null) ui.AppContext.LABELCHILDREN.add(new ui.model.LabelChild(alias.rootLabelIid,ui.AppContext.placeHolderLabel.get_iid()));
 			var ms = new m3.observable.MappedSet(ui.AppContext.LCG.delegate().get(alias.rootLabelIid),function(lc) {
 				return m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,lc.childIid);
 			});
@@ -10096,7 +10093,7 @@ $.widget("ui.zWidget",defineWidget());
 var defineWidget = function() {
 	return { _addContent : function(content) {
 		var self = this;
-		ui.AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
+		ui.AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
 		var connection = null;
 		if(self.contentTimeLines.get(content.creator) == null) {
 			var timeLine = new ui.widget.score.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime(),self.initialWidth);

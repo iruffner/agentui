@@ -46,21 +46,6 @@ class ResponseProcessor {
 	public static function labelCreated(data:SynchronizationParms) {
 		AppContext.LABELS.add(data.labels[0]);
 		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
-
-		// Delete the placeholder
-		var siblings = AppContext.LCG.delegate().get(data.labelChildren[0].parentIid);
-		if (siblings != null) {
-			var lcToDelete:LabelChild = null;
-			for (lc in siblings) {
-				if (lc.childIid == null) {
-					lcToDelete = lc;
-					break;
-				}
-			}
-			if (lcToDelete != null) {
-				AppContext.LABELCHILDREN.delete(lcToDelete);
-			}
-		}
 	}
 
 	public static function labelUpdated(data:SynchronizationParms) {
@@ -95,7 +80,7 @@ class ResponseProcessor {
 		AppContext.LABELS.addAll(data.labels);
 		AppContext.LABELCHILDREN.addAll(data.labelChildren);
 
-		// Cull any labelChildren that point to non-existent lables
+		// Cull any labelChildren that point to non-existent labels
 		var lcsToRemove = new Array<LabelChild>();
 		for (lc in AppContext.LABELCHILDREN) {
 			if (AppContext.LABELS.getElement(lc.childIid) == null) {
@@ -103,7 +88,7 @@ class ResponseProcessor {
 			}
 		}
 		for (lc in lcsToRemove) {
-			ui.AppContext.LOGGER.error("LabelChild point to non-existent label.  DELETE IT.");
+			ui.AppContext.LOGGER.warn("LabelChild points to non-existent label.  DELETE IT.");
 			AppContext.LABELCHILDREN.delete(lc);
 		}
 

@@ -58,7 +58,7 @@ extern class IntroductionNotificationComp extends JQ {
 
 		        	var conn: Connection = data.connection;
 
-		        	AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(conn));");
+		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(conn));");
 		        	var connFromAlias: Connection = null;//AppContext.alias.connectionSet.getElement(Connection.identifier(conn));
 		        	if(connFromAlias != null) conn.profile = connFromAlias.profile;
 

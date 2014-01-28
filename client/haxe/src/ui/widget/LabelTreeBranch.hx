@@ -60,11 +60,21 @@ extern class LabelTreeBranch extends JQ {
 
 		            selfElement.append(label);
 
-		            selfElement.hover(function(): Void {
-		            		if(self.options.children.hasValues() && self.options.children.iterator().next() != null) {
+		            selfElement.hover(
+		            	function(): Void {
+		            		var it = self.options.children.iterator();
+		            		var hasElements = false;
+		            		while (it.hasNext()) {
+		            			if (it.next() != AppContext.placeHolderLabel) {
+		            				hasElements = true;
+		            				break;
+		            			}
+		            		}
+		            		if (hasElements) {
 		            			expander.css("visibility", "visible");
 		            		}
-		            	}, function(): Void {
+		            	}, 
+		            	function(): Void {
 		            		expander.css("visibility", "hidden");
 		            	}
 	            	);
