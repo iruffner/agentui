@@ -95,8 +95,8 @@ class EventDelegate {
             protocolHandler.validateUser(token);
         }));
 
-        EM.addListener(EMEvent.NewContentCreated, new EMListener(function(content: Content): Void {
-        	protocolHandler.post(content);
+        EM.addListener(EMEvent.CreateContent, new EMListener(function(content: Content<Dynamic>): Void {
+        	protocolHandler.createContent(content);
     	}));
 
         EM.addListener(EMEvent.CreateLabel, new EMListener(function(data:CreateLabelData): Void {

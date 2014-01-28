@@ -20,7 +20,7 @@ class ContentTimeLine {
 	private var connectionElement:SnapElement;
 	public var timeLineElement:SnapElement;
 
-	private var contents: Array<Content>;
+	private var contents: Array<Content<Dynamic>>;
 	private var contentElements: Array<SnapElement>;
 
  	private var startTime:Float;
@@ -43,7 +43,7 @@ class ContentTimeLine {
 		this.endTime    = endTime;
 		this.initialWidth = initialWidth;
 
-		this.contents = new Array<Content>();
+		this.contents = new Array<Content<Dynamic>>();
 		this.contentElements = new Array<SnapElement>();
 
 		if (ContentTimeLine.next_y_pos > initial_y_pos) {
@@ -85,12 +85,12 @@ class ContentTimeLine {
 		return paper.group(paper, [line, img, border_ellipse]);
 	}
 
-	public function addContent(content:Content):Void {
-		contents.push(content);
+	public function addContent(content:Content<Dynamic>):Void {
+		contents.push(content);	
 		createContentElement(content);
 	}
 
-	private function createContentElement(content:Content):Void {
+	private function createContentElement(content:Content<Dynamic>):Void {
 		var radius = 10;
 		var gap    = 10;
 
@@ -116,7 +116,7 @@ class ContentTimeLine {
 		return clone;		
 	}
 
-	private function addContentElement(content:Content, ele:SnapElement) {
+	private function addContentElement(content:Content<Dynamic>, ele:SnapElement) {
 		ele.attr({"contentType": Std.string(content.contentType)});
 		ele.attr({"id" : content.creator + "-" + content.iid});
 
@@ -137,7 +137,7 @@ class ContentTimeLine {
 						ele = paper.ellipse(cx, cy, bbox.width/2, bbox.height/2)
 								   .attr({"class":"audioEllipse"});
 					case "IMAGE":
-						ele = paper.image(cast(content, ImageContent).imgSrc, bbox.x, bbox.y, bbox.width, bbox.height)
+						ele = paper.image(cast(content, ImageContent).props.imgSrc, bbox.x, bbox.y, bbox.width, bbox.height)
                				       .attr({"preserveAspectRatio":"true"});
 					case "URL":
 						ele = Shapes.createHexagon(paper, cx, cy, bbox.width/2)
@@ -156,13 +156,13 @@ class ContentTimeLine {
 
 				switch (g_type) {
 					case "AUDIO":
-						ForeignObject.appendAudioContent(g_id, bbox, cast(content, AudioContent));
+						ForeignObject.appendAudioContent(g_id, bbox, cast(content, AudioContent).props);
 //							case "IMAGE":
-//								ForeignObject.appendImageContent(g_id, bbox, cast(content, ImageContent));
+//								ForeignObject.appendImageContent(g_id, bbox, cast(content.data, ImageContentData));
 					case "URL":
-						ForeignObject.appendUrlContent(g_id, bbox, cast(content, UrlContent));
+						ForeignObject.appendUrlContent(g_id, bbox, cast(content, UrlContent).props);
 					case "TEXT":
-						ForeignObject.appendMessageContent(g_id, bbox, cast(content, MessageContent));
+						ForeignObject.appendMessageContent(g_id, bbox, cast(content, MessageContent).props);
 				}
 			};
 

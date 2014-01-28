@@ -82,12 +82,12 @@ class ResponseProcessor {
 	}
 
 	public static function labelDeleted(data:SynchronizationParms) {
-		for (label in data.labels) {
-			AppContext.LABELS.delete(label);
-		}
-		
 		for (lc in data.labelChildren) {
 			AppContext.LABELCHILDREN.delete(lc);
+		}
+
+		for (label in data.labels) {
+			AppContext.LABELS.delete(label);
 		}
 	}
 
@@ -121,5 +121,16 @@ class ResponseProcessor {
 		EM.change(EMEvent.AGENT, AppContext.AGENT);
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
 		EM.change(EMEvent.FitWindow);
+
+		var img = new ImageContent();
+		img.setData({
+			created: Date.now(),
+		    modified: Date.now(),
+		    blah: "BLAH",
+		    caption: "Yucatan",
+		    imgSrc: "YSSDDD"
+		});
+
+		var imgdata = img.props;
 	}
 }

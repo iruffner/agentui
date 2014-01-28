@@ -22,7 +22,7 @@ using ui.widget.LabelComp;
 using ui.widget.ConnectionAvatar;
 
 typedef EditPostCompOptions = {
-	var content: Content;
+	var content: Content<Dynamic>;
 }
 
 typedef EditPostCompWidgetDef = {
@@ -92,6 +92,8 @@ extern class EditPostComp extends JQ {
 				_initConections: function() : JQ {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+					// TODO:  fix me
+/*
 		        	var connIter: Iterator<Connection> = self.options.content.connectionSet.iterator();
 		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
 
@@ -119,10 +121,15 @@ extern class EditPostComp extends JQ {
 
 	                	of = ca;
 		        	}
+
 		        	return of;
+		        	*/
+		        	return null;
 				},
 
 				_initLabels: function(of:JQ) : Void {
+					// TODO: fix me
+					/*
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	var labelIter: Iterator<Label> = self.options.content.labelSet.iterator();
@@ -149,6 +156,7 @@ extern class EditPostComp extends JQ {
 	                	});
 	                	of = lc;
 		        	}
+		        */
 				},
 
 				_createButtonBlock:function(self: EditPostCompWidgetDef, selfElement:JQ): Void {
@@ -202,26 +210,26 @@ extern class EditPostComp extends JQ {
 
 					switch (self.options.content.contentType) {
 						case ContentType.TEXT:
-							cast(self.options.content, MessageContent).text = self.valueElement.val();
+							cast(self.options.content, MessageContent).props.text = self.valueElement.val();
 						case ContentType.URL:
-							cast(self.options.content, UrlContent).url = self.valueElement.val();
+							cast(self.options.content, UrlContent).props.url = self.valueElement.val();
 						case ContentType.IMAGE:
-							cast(self.options.content, ImageContent).imgSrc = self.uploadComp.value();
+							cast(self.options.content, ImageContent).props.imgSrc = self.uploadComp.value();
 						case ContentType.AUDIO:
-							cast(self.options.content, AudioContent).audioSrc = self.uploadComp.value();
+							cast(self.options.content, AudioContent).props.audioSrc = self.uploadComp.value();
 					}
-
+					/* TODO:  fix me 
 					self.options.content.labelSet.clear();
 					self.options.content.connectionSet.clear();
-
+					*/
 					self.tags.children(".label").each(function(i: Int, dom: Element): Void {
 						var labelComp: LabelComp = new LabelComp(dom);
-						self.options.content.labelSet.add(labelComp.getLabel());
+					//	self.options.content.labelSet.add(labelComp.getLabel());
 					});
 					
 					self.tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
 						var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-						self.options.content.connectionSet.add( conn.getConnection() );
+					//	self.options.content.connectionSet.add( conn.getConnection() );
 					});
 				},
 
@@ -245,7 +253,7 @@ extern class EditPostComp extends JQ {
 			        	self.valueElement = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
 			        			.appendTo(textInput)
 			        			.attr("id", "textInput_ta");
-			        	self.valueElement.val(cast(self.options.content, MessageContent).text);
+			        	self.valueElement.val(cast(self.options.content, MessageContent).props.text);
 			        	tab_class = "ui-icon-document";
 			        }
 
@@ -253,7 +261,7 @@ extern class EditPostComp extends JQ {
 			        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		        		self.valueElement = urlComp.urlInput();
 			        	urlComp.appendTo(section);
-			        	urlComp.urlInput().val(cast(self.options.content, UrlContent).url);
+			        	urlComp.urlInput().val(cast(self.options.content, UrlContent).props.url);
 			        	tab_class = "ui-icon-link";
 					}
 
@@ -262,7 +270,7 @@ extern class EditPostComp extends JQ {
 				        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		        		self.uploadComp = imageInput;
 			        	imageInput.appendTo(section);
-			        	imageInput.setPreviewImage(cast(self.options.content, ImageContent).imgSrc);
+			        	imageInput.setPreviewImage(cast(self.options.content, ImageContent).props.imgSrc);
 			        	tab_class = "ui-icon-image";
 		        	}
 
@@ -271,7 +279,7 @@ extern class EditPostComp extends JQ {
 			        	var audioInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		        		self.uploadComp = audioInput;
 			        	audioInput.appendTo(section);
-			        	audioInput.setPreviewImage(cast(self.options.content, AudioContent).audioSrc);
+			        	audioInput.setPreviewImage(cast(self.options.content, AudioContent).props.audioSrc);
 			        	tab_class = "ui-icon-volume-on";
 			        }
 

@@ -93,7 +93,10 @@ enum EMEvent {
 	MoreContent;
 	NextContent;
 	EndOfContent;
-	NewContentCreated;
+	
+	CreateContent;
+	ContentCreated;
+	
 	EditContentClosed;
 
 	LOAD_ALIAS;

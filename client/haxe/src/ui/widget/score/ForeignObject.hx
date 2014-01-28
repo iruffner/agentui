@@ -16,7 +16,7 @@ class ForeignObject {
 		return fo;
 	}
 
-	public static function appendMessageContent(ele_id:String, bbox:Dynamic, content:MessageContent) {
+	public static function appendMessageContent(ele_id:String, bbox:Dynamic, content:MessageContentData) {
 		var fo = createForeignObject(ele_id, bbox);
 		fo.append("div")
 		    .attr("class", "messageContent-large-text")
@@ -25,7 +25,7 @@ class ForeignObject {
 		    .html(content.text);
 	}
 
-	public static function appendUrlContent(ele_id:String, bbox:Dynamic, content:UrlContent) {
+	public static function appendUrlContent(ele_id:String, bbox:Dynamic, content:UrlContentData) {
 		bbox.y = bbox.y + bbox.height/2 - 12;
 		bbox.x += 12;
 		var fo = createForeignObject(ele_id, bbox);
@@ -42,7 +42,7 @@ class ForeignObject {
 			});
 	}
 
-	public static function appendImageContent(ele_id:String, bbox:Dynamic, content:ImageContent) {
+	public static function appendImageContent(ele_id:String, bbox:Dynamic, content:ImageContentData) {
 		bbox.y = bbox.y + bbox.height/2;
 
 		var fo = createForeignObject(ele_id, bbox);
@@ -57,7 +57,7 @@ class ForeignObject {
 		    .style("height", Std.string(bbox.height) + "px");
 	}
 
-	public static function appendAudioContent(ele_id:String, bbox:Dynamic, content:AudioContent) {
+	public static function appendAudioContent(ele_id:String, bbox:Dynamic, content:AudioContentData) {
 		bbox.y = bbox.y + bbox.height/2 - 12;
 		bbox.x = bbox.x + bbox.width/3;
 		var fo = createForeignObject(ele_id, bbox);

@@ -13,7 +13,7 @@ using m3.helper.StringHelper;
 
 
 typedef ScoreCompOptions = {
-  var content: OSet<Content>;
+  var content: OSet<Content<Dynamic>>;
 }
 
 typedef ScoreCompWidgetDef = {
@@ -26,9 +26,9 @@ typedef ScoreCompWidgetDef = {
 	@:optional var endTime:Date;
 	@:optional var initialWidth:Float;
 
-	var _addContent:Content->Void;
-	var _deleteContent:Content->Void;
-	var _updateContent:Content->Void;
+	var _addContent:Content<Dynamic>->Void;
+	var _deleteContent:Content<Dynamic>->Void;
+	var _updateContent:Content<Dynamic>->Void;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -45,7 +45,7 @@ extern class ScoreComp extends JQ {
 		var defineWidget: Void->ScoreCompWidgetDef = function(): ScoreCompWidgetDef {
 			return {
 
-				_addContent: function(content:Content): Void {
+				_addContent: function(content:Content<Dynamic>): Void {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
 		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
 	            	var connection: Connection = null;//AppContext.alias.connectionSet.getElementComplex(content.creator);
@@ -62,7 +62,7 @@ extern class ScoreComp extends JQ {
 	            	self.uberGroup.append(self.contentTimeLines.get(content.creator).timeLineElement);
 				},
 
-				_deleteContent: function (content:Content) {
+				_deleteContent: function (content:Content<Dynamic>) {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
 		        	var ctl = self.contentTimeLines.get(content.creator);
 		        	if (ctl != null) {
@@ -74,7 +74,7 @@ extern class ScoreComp extends JQ {
 					}
 				},
 
-				_updateContent: function(content:Content): Void {
+				_updateContent: function(content:Content<Dynamic>): Void {
 				},
 
 		        _create: function(): Void {
@@ -87,7 +87,7 @@ extern class ScoreComp extends JQ {
 
 		        	self.contentTimeLines = new StringMap<ContentTimeLine>();
 
-	        		self.options.content.listen(function(content: Content, evt: EventType): Void {
+	        		self.options.content.listen(function(content: Content<Dynamic>, evt: EventType): Void {
 	            		if(evt.isAdd()) {
 	            			self._addContent(content);
 	            		} else if (evt.isUpdate()) {

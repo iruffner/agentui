@@ -53,7 +53,7 @@ extern class PostComp extends JQ {
 
 		        	var section: JQ = new JQ("<section id='postSection'></section>").appendTo(selfElement);
 
-		        	var addConnectionsAndLabels: Content->Void = null;
+		        	var addConnectionsAndLabels: Content<Dynamic>->Void = null;
 
 		        	var doTextPost: JQEvent->ContentType->String->Void = function(evt: JQEvent, contentType: ContentType, value:String): Void {
 		        		AppContext.LOGGER.debug("Post new text content");
@@ -61,10 +61,10 @@ extern class PostComp extends JQ {
 						
 						var msg: MessageContent = new MessageContent();
 						msg.contentType = contentType;
-						msg.text = value;
+						msg.props.text = value;
 
 						addConnectionsAndLabels(msg);
-						EM.change(EMEvent.NewContentCreated, msg);
+						EM.change(EMEvent.CreateContent, msg);
 		        	};
 
 		        	var doTextPostForElement: JQEvent->ContentType->JQ->Void = function(evt: JQEvent, contentType: ContentType, ele:JQ): Void {
@@ -211,7 +211,7 @@ extern class PostComp extends JQ {
 					      	}
 						});
 
-					addConnectionsAndLabels = function(content: Content): Void {
+					addConnectionsAndLabels = function(content: Content<Dynamic>): Void {
 						tags.children(".label").each(function(i: Int, dom: Element): Void {
 								var labelComp: LabelComp = new LabelComp(dom);
 								// // Given label.getLabel().uid, iterate through
@@ -230,14 +230,16 @@ extern class PostComp extends JQ {
 								// if (untyped __js__("!!labelMap.get(uid).parentIid")) {
 								// 	labelTree = "n" + labelMap[labelMap[uid].parentIid].text + "(" + labelTree + ")";
 								// }
-								content.labelSet.add(labelComp.getLabel());
+								ui.AppContext.LOGGER.warn("fix me:  content.labelSet.add(labelComp.getLabel()");
+//								content.labelSet.add(labelComp.getLabel());
 							});
 						tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
 								var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-								content.connectionSet.add( conn.getConnection() );
+								ui.AppContext.LOGGER.warn("fix me:  content.connectionSet.add(conn.getConnection())");
+								//content.connectionSet.add( conn.getConnection() );
 							});
 					}
-// 					addConnectionsAndLabels = function(content: Content): Void {
+// 					addConnectionsAndLabels = function(content: Content<Dynamic>): Void {
 // 						tags.children(".label").each(function(i: Int, dom: Element): Void {
 // 								var label: LabelComp = new LabelComp(dom);
 // 								// Given label.getLabel().uid, iterate through

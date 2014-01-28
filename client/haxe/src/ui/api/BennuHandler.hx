@@ -42,7 +42,6 @@ class BennuHandler implements ProtocolHandler {
 	public function createUser(newUser: NewUser): Void { }
 	public function validateUser(token: String): Void { }
 	public function updateUser(agent: Agent): Void { }
-	public function post(content: Content): Void { }
 
 	public function createAlias(alias: Alias): Void {
 		// Create a label child, which will connect the parent and the child
@@ -82,6 +81,9 @@ class BennuHandler implements ProtocolHandler {
  //   		AppContext.alias.labelSet.clear();
  //   		AppContext.alias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
 	// }
+	public function createContent(content:Content<Dynamic>):Void {}
+	public function updateContent(content:Content<Dynamic>):Void {}
+	public function deleteContent(content:Content<Dynamic>):Void {}
 
 	public function createLabel(label:Label, parentIid:String): Void {
 		// Create a label child, which will connect the parent and the child

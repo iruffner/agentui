@@ -15,12 +15,12 @@ import m3.helper.StringHelper;
 using ui.widget.ContentComp;
 
 typedef ContentFeedOptions = {
-	var content: OSet<Content>;
+	var content: OSet<Content<Dynamic>>;
 }
 
 typedef ContentFeedWidgetDef = {
 	@:optional var options: ContentFeedOptions;
-	@:optional var content: MappedSet<Content, ContentComp>;
+	@:optional var content: MappedSet<Content<Dynamic>, ContentComp>;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -45,12 +45,12 @@ extern class ContentFeed extends JQ {
 		        	selfElement.addClass("container " + Widgets.getWidgetClasses()).css("padding", "10px");
 		        	selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
 		        	
-		        	self.content = new MappedSet<Content, ContentComp>(self.options.content, function(content: Content): ContentComp {
+		        	self.content = new MappedSet<Content<Dynamic>, ContentComp>(self.options.content, function(content: Content<Dynamic>): ContentComp {
 		        			return new ContentComp("<div></div>").contentComp({
 		        				content: content
 		        			});
 		        		});
-		        	self.content.mapListen(function(content: Content, contentComp: ContentComp, evt: EventType): Void {
+		        	self.content.mapListen(function(content: Content<Dynamic>, contentComp: ContentComp, evt: EventType): Void {
 		            		if(evt.isAdd()) {
 		            			var contentComps = new JQ(".contentComp");
 		            			if (contentComps.length == 0) {

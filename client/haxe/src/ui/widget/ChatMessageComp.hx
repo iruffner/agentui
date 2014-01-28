@@ -46,7 +46,7 @@ extern class ChatMessageComp extends JQ {
 		        	}
 
 		        	selfElement.addClass("chatMessageComp ui-helper-clearfix " + self.options.orientation + Widgets.getWidgetClasses());
-		        	new JQ("<div>" + self.options.message.text + "</div>").appendTo(selfElement);
+		        	new JQ("<div>" + self.options.message.props.text + "</div>").appendTo(selfElement);
 		        },
 		        
 		        destroy: function() {

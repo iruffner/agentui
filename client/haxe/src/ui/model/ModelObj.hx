@@ -259,7 +259,7 @@ class ContentHandler implements TypeHandler {
     }
 
     public function read(fromJson: {contentType: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
-        var obj: Content = null;
+        var obj: Content<Dynamic> = null;
 
         switch ( ContentType.createByName(fromJson.contentType) ) {
         	case ContentType.AUDIO:
@@ -296,82 +296,117 @@ class LabeledContent extends ModelObjWithIid {
 	}
 }
 
-class Content extends ModelObjWithIid {
-	public var contentType: ContentType;
-	public var blob:String;
+class ContentData {
 	public var created: Date;
 	public var modified: Date;
-	
-	@:transient public var labelSet: ObservableSet<Label>;
-	@:transient public var connectionSet: ObservableSet<Connection>;
 
-	@:optional var labels: Array<Label>;
-	@:optional var connections: Array<Connection>;
-		
-	/**
-		UID of connection that created the content
-	*/
-	@:optional public var creator: String;
-
-	public function new (contentType:ContentType) {
-		super();
-		this.contentType = contentType;
+	public function new() {
 		this.created  = Date.now();
-		this.modified = Date.now();
+		this.modified = Date.now();		
+	}
+}
 
-        this.connectionSet = new ObservableSet<Connection>(Connection.identifier, []);
-        this.labelSet = new ObservableSet<Label>(Label.identifier, []);
+class Content<T:(ContentData)> extends ModelObjWithIid {
+	public var contentType: ContentType;
+	private var data:Dynamic;
+	@:transient public var props: T;
+
+	@:optional public var creator: String;
+	@:transient @:isVar public var created(get, null): Date;
+	@:transient @:isVar public var modified(get, null): Date;
+	@:transient var type: Class<T>;
+
+	public function new (contentType:ContentType, type: Class<T>) {
+		super();
+		this.data = {};
+		this.contentType = contentType;
+		this.type = type;
+	}
+
+	public function get_created():Date {
+		return props.created;
+	}
+
+	public function get_modified():Date {
+		return props.modified;
+	}
+
+	// For testing only	
+	public function setData(data:Dynamic) {
+		this.data = data;
+	}
+
+	private function readResolve(): Void {
+		this.props = AppContext.SERIALIZER.fromJsonX(this.data, this.type);
+	}
+
+	private function writeResolve(): Void {
+		this.data = AppContext.SERIALIZER.toJson(this.props);
 	}
 
 	public function getTimestamp(): String {
 		return DateTools.format(this.created, "%Y-%m-%d %T");
 	}
-
-	private function readResolve(): Void {
-		labelSet = new ObservableSet<Label>(Label.identifier, labels);
-		connectionSet = new ObservableSet<Connection>(Connection.identifier, connections);
-	}
-
-	private function writeResolve(): Void {
-		labels = labelSet.asArray();
-		connections = connectionSet.asArray();
-	}
 }
 
-class ImageContent extends Content {
+class ImageContentData extends ContentData {
 	public var imgSrc: String;
 	public var caption: String;
 
-	public function new () {
-		super(ContentType.IMAGE);
+	public function new() {
+		super();
 	}
 }
 
-class AudioContent extends Content {
+class ImageContent extends Content<ImageContentData> {
+	public function new () {
+		super(ContentType.IMAGE, ImageContentData);
+	}
+}
+
+class AudioContentData extends ContentData {
 	public var audioSrc: String;
 	public var audioType: String;
 	public var title: String;
 
 	public function new () {
-		super(ContentType.AUDIO);
+		super();
 	}
 }
 
-class MessageContent extends Content {
+class AudioContent extends Content<AudioContentData> {
+	public function new () {
+		super(ContentType.AUDIO, AudioContentData);
+	}
+}
+
+class MessageContentData extends ContentData {
 	public var text: String;
 
 	public function new () {
-		super(ContentType.TEXT);
+		super();
 	}
 }
 
-class UrlContent extends Content {
+class MessageContent extends Content<MessageContentData> {
+	public function new () {
+		super(ContentType.TEXT, MessageContentData);
+	}
+}
+
+class UrlContentData extends ContentData {
 	public var url: String;
 	public var text: String;
 
 	public function new () {
-		super(ContentType.URL);
+		super();
 	}	
+}
+
+class UrlContent extends Content<UrlContentData> {
+	public function new () {
+		super(ContentType.URL, UrlContentData);
+	}
 }
 
 enum ContentType {

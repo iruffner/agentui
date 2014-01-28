@@ -262,11 +262,11 @@ class EvalComplete extends ProtocolMessage<EvalResponseData> {
 			@:optional public var connection: Connection;
 			@:optional public var filter: String;
 
-			@:transient public var content: Array<Content>;
+			@:transient public var content: Array<Content<Dynamic>>;
 
 			private function readResolve(): Void {
 				if(pageOfPosts.hasValues()) {
-					content = new Array<Content>();
+					content = new Array<Content<Dynamic>>();
 					for(p_ in 0...pageOfPosts.length) {
 						var post: Dynamic = haxe.Json.parse(pageOfPosts[p_]);
 						content.push(AppContext.SERIALIZER.fromJsonX(post, Content));

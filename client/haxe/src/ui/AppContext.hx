@@ -21,7 +21,7 @@ class AppContext {
     public static var LOGGER: Logga;
     public static var AGENT: Agent;
     public static var TARGET: Connection;
-    public static var CONTENT: ObservableSet<Content>;
+    public static var CONTENT: ObservableSet<Content<Dynamic>>;
     public static var SERIALIZER: Serializer;
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
     public static var LABELS:ObservableSet<Label>;
@@ -48,7 +48,7 @@ class AppContext {
 
     	LOGGER = new Logga(LogLevel.DEBUG);
         
-        CONTENT = new ObservableSet<Content>(ModelObjWithIid.identifier);
+        CONTENT = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
 
         _i = new ObservableSet<IntroductionNotification>(
                     function(n: IntroductionNotification): String {
@@ -95,7 +95,7 @@ class AppContext {
                 EM.change(EMEvent.FitWindow);
             }, "FireFitWindowListener");
 
-        var processContent = new EMListener(function(arrOfContent: Array<Content>): Void {
+        var processContent = new EMListener(function(arrOfContent: Array<Content<Dynamic>>): Void {
                 if(arrOfContent.hasValues()) {
                     AppContext.CONTENT.addAll(arrOfContent);
                 }

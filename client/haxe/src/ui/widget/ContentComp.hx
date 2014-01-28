@@ -14,7 +14,7 @@ using m3.helper.OSetHelper;
 using ui.helper.ModelHelper;
 
 typedef ContentCompOptions = {
-	var content: Content;
+	var content: Content<Dynamic>;
 }
 
 typedef ContentCompWidgetDef = {
@@ -22,17 +22,17 @@ typedef ContentCompWidgetDef = {
 	@:optional var buttonBlock: JQ;
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
-	var update: Content->Void;
+	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
 	var toggleActive:Void->Void;
 }
 
 class ContentCompHelper {
-	public static function content(cc: ContentComp): Content {
+	public static function content(cc: ContentComp): Content<Dynamic> {
 		return cc.contentComp("option", "content");
 	}
 
-	public static function update(cc: ContentComp, c:Content): Void {
+	public static function update(cc: ContentComp, c:Content<Dynamic>): Void {
 		return cc.contentComp("update", c);
 	}
 }
@@ -53,7 +53,7 @@ extern class ContentComp extends JQ {
 
 					selfElement.empty();
 
-					var content:Content = self.options.content;
+					var content:Content<Dynamic> = self.options.content;
 
 		        	var postWr: JQ = new JQ("<section class='postWr'></section>");
 		        	selfElement.append(postWr);
@@ -65,23 +65,23 @@ extern class ContentComp extends JQ {
 		        	switch(content.contentType) {
 		        		case ContentType.AUDIO:
 			        		var audio: AudioContent = cast(content, AudioContent);
-			        		postContent.append(audio.title + "<br/>");
+			        		postContent.append(audio.props.title + "<br/>");
 			        		var audioControls: JQ = new JQ("<audio controls></audio>");
 			        		postContent.append(audioControls);
-			        		audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
+			        		audioControls.append("<source src='" + audio.props.audioSrc + "' type='" + audio.props.audioType + "'>Your browser does not support the audio element.");
 
 		        		case ContentType.IMAGE:
 		        			var img: ImageContent = cast(content, ImageContent);
-		        			postContent.append("<img alt='" + img.caption + "' src='" + img.imgSrc + "'/>");// + img.caption);
+		        			postContent.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");// + img.caption);
 
 						case ContentType.URL:
 							var urlContent: UrlContent = cast(content, UrlContent);
-							postContent.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.url + "'>");
+							postContent.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
 							// postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
 
 	        			case ContentType.TEXT:
 	        				var textContent: MessageContent = cast(content, MessageContent);
-	        				postContent.append("<div class='content-text'>" + textContent.text + "</div>"); 
+	        				postContent.append("<div class='content-text'>" + textContent.props.text + "</div>"); 
 		        	}
 
 					self.buttonBlock = new JQ("<div class='button-block' ></div>").css("text-align", "left").hide().appendTo(postContent);
@@ -116,6 +116,7 @@ extern class ContentComp extends JQ {
 
 		        	var postLabels: JQ = new JQ("<aside class='postLabels'></div>");
 		        	postWr.append(postLabels);
+		        	/* TODO:
 		        	var labelIter: Iterator<Label> = content.labelSet.iterator();
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = labelIter.next();
@@ -137,6 +138,7 @@ extern class ContentComp extends JQ {
 		        				connection: connection
 		        			}).appendTo(postConnections);
 		        	}
+		        	*/
 				},
 		        
 		        _create: function(): Void {
@@ -157,14 +159,14 @@ extern class ContentComp extends JQ {
 
 		        	self._createWidgets(selfElement, self);
 
-		        	EM.addListener(EMEvent.EditContentClosed, new EMListener(function(content: Content): Void {
+		        	EM.addListener(EMEvent.EditContentClosed, new EMListener(function(content: Content<Dynamic>): Void {
 		        		if (content.iid == self.options.content.iid) {
 		        			selfElement.show();
 		        		}
 		        	}));
 		        },
 
-		        update: function(content:Content) : Void {
+		        update: function(content:Content<Dynamic>) : Void {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
