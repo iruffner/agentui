@@ -151,10 +151,10 @@ extern class LoginDialog extends JQ {
 
 		        	var valid = true;
     				var login: Login;
-    				if(ui.AgentUi.agentURI.isNotBlank()) {
-    					login = new LoginById();
-    					cast(login,LoginById).uuid = ui.AgentUi.agentURI;
-    				} else {
+    				// if(AgentUi.agentURI.isNotBlank()) {
+    				// 	login = new LoginById();
+    				// 	cast(login,LoginById).uuid = AgentUi.agentURI;
+    				// } else {
     					login = new LoginByUn();
     					var l: LoginByUn = cast(login,LoginByUn);
     					l.email = self.input_un.val();
@@ -162,7 +162,7 @@ extern class LoginDialog extends JQ {
 	    					self.placeholder_un.addClass("ui-state-error");
 	    					valid = false;
 	    				}
-    				}
+    				// }
     				login.password = self.input_pw.val();
     				if(login.password.isBlank()) {
     					self.placeholder_pw.addClass("ui-state-error");
