@@ -4716,6 +4716,21 @@ ui.AppContext.registerGlobalListeners = function() {
 }
 ui.AppContext.getDescendentLabelChildren = function(iid) {
 	var lcs = new Array();
+	var getDescendents;
+	getDescendents = function(iid1,lcList) {
+		var children = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
+			return lc.parentIid == iid1;
+		}).asArray();
+		var _g1 = 0, _g = children.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(!children[i].deleted) {
+				lcList.push(children[i]);
+				getDescendents(children[i].childIid,lcList);
+			}
+		}
+	};
+	getDescendents(iid,lcs);
 	return lcs;
 }
 ui.AppContext.getLabelDescendents = function(iid) {
@@ -4739,7 +4754,7 @@ ui.AppContext.getLabelDescendents = function(iid) {
 		var iid_ = iid_list[_g];
 		++_g;
 		var label = m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,iid_);
-		if(label == null) ui.AppContext.LOGGER.error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
+		if(label == null) ui.AppContext.LOGGER.error("LabelChild references missing label: " + iid_); else if(!label.deleted) labelDescendents.add(label);
 	}
 	return labelDescendents;
 }
@@ -4805,7 +4820,7 @@ ui.api.BennuHandler.prototype = {
 	,beginIntroduction: function(intro) {
 	}
 	,deleteLabel: function(label) {
-		var labelChildren = new Array();
+		var labelChildren = ui.AppContext.getDescendentLabelChildren(label.get_iid());
 		var labels = ui.AppContext.getLabelDescendents(label.get_iid());
 		var count = labels.size() + labelChildren.length;
 		var context = ui.api.Synchronizer.createContext(count,"labelDeleted");
@@ -6243,19 +6258,6 @@ ui.api.ResponseProcessor.aliasDeleted = function(data) {
 ui.api.ResponseProcessor.labelCreated = function(data) {
 	ui.AppContext.LABELS.add(data.labels[0]);
 	ui.AppContext.LABELCHILDREN.add(data.labelChildren[0]);
-	var siblings = ui.AppContext.LCG.delegate().get(data.labelChildren[0].parentIid);
-	if(siblings != null) {
-		var lcToDelete = null;
-		var $it0 = siblings.iterator();
-		while( $it0.hasNext() ) {
-			var lc = $it0.next();
-			if(lc.childIid == ui.AppContext.placeHolderLabel.get_iid()) {
-				lcToDelete = lc;
-				break;
-			}
-		}
-		if(lcToDelete != null) ui.AppContext.LABELCHILDREN["delete"](lcToDelete);
-	}
 }
 ui.api.ResponseProcessor.labelUpdated = function(data) {
 	ui.AppContext.LABELS.update(data.labels[0]);
