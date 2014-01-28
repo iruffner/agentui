@@ -45,21 +45,31 @@ extern class LabelTree extends JQ {
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
 		        	self.mappedLabels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
-		        			if (label == null || label.iid == AppContext.placeHolderLabel.iid) { return null; }
-		        			// If there iare no children for this label, add a placeholder
-		        			if (AppContext.LCG.delegate().get(label.iid) == null) {
-		        				ui.AppContext.LABELCHILDREN.add(new LabelChild(label.iid, AppContext.placeHolderLabel.iid));
-		        			}
 
-		        			var children = new MappedSet<LabelChild, Label>(
-		        				AppContext.LCG.delegate().get(label.iid), 
-		        				function(lc: LabelChild): Label{
-		        						return AppContext.LABELS.getElement(lc.childIid);
-		        					}
-        					);
-		        			children.visualId = "filteredLabelTree--" + label.name;
+		        			var children:OSet<Label>;
+
+		        			// if this is a placeholder, add an empty set for the children
+		        			if (label.iid == AppContext.placeHolderLabel.iid) {
+		        				children = new ObservableSet<Label>(Label.identifier);
+		        			} else {
+			        			// If there are no children for this label, add the placeholder,
+			        			// so that any updates to the LCG will be picked up.
+		        				if (AppContext.LCG.delegate().get(label.iid) == null) {
+		        					ui.AppContext.LABELCHILDREN.add(new LabelChild(label.iid, AppContext.placeHolderLabel.iid));
+		        				}
+
+			        			var ms = new MappedSet<LabelChild, Label>(
+			        				AppContext.LCG.delegate().get(label.iid), 
+			        				function(lc: LabelChild): Label{
+			        						return AppContext.LABELS.getElement(lc.childIid);
+			        					}
+	        					);
+			        			ms.visualId = "filteredLabelTree--" + label.name;
+			        			children = ms;
+			        		}
 			        		
-		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
+			        		var hidden = label.deleted ? " style='display:none;'" : ""; 
+		        			return new LabelTreeBranch("<div" + hidden + "></div>").labelTreeBranch({
 		        				label: label,
 	        					children: children
 		        			});

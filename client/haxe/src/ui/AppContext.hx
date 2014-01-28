@@ -65,6 +65,7 @@ class AppContext {
 
         LABELS = new ObservableSet<Label>(Label.identifier);
         placeHolderLabel = new Label("I'm a placeholder");
+        placeHolderLabel.deleted = true;
         LABELS.add(AppContext.placeHolderLabel);
 
         LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);

@@ -46,6 +46,23 @@ class ResponseProcessor {
 	public static function labelCreated(data:SynchronizationParms) {
 		AppContext.LABELS.add(data.labels[0]);
 		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
+/* TODO:  Fix me
+		// Delete the placeholder, if necessary
+		var siblings = AppContext.LCG.delegate().get(data.labelChildren[0].parentIid);
+		if (siblings != null) {
+			var lcToDelete:LabelChild = null;
+			for (lc in siblings) {
+				if (lc.childIid == AppContext.placeHolderLabel.iid) {
+					lcToDelete = lc;
+					break;
+				}
+			}
+			// TODO:  For some reason, TBD, this block of code is raising an exception
+			if (lcToDelete != null) {
+				AppContext.LABELCHILDREN.delete(lcToDelete);
+			}
+		}
+*/
 	}
 
 	public static function labelUpdated(data:SynchronizationParms) {

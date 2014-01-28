@@ -204,7 +204,10 @@ class LabelChild extends ModelObjWithIid {
 		return l.iid;
 	}
 
-	public function new(parentIid: String, childIid: String) {
+	public function new(?parentIid: String, ?childIid: String) {
+		if (parentIid != null && childIid != null && parentIid == childIid) {
+			throw new Exception("parentIid and childIid of LabelChild must be different");
+		}
 		super();
 		this.parentIid = parentIid;
 		this.childIid  = childIid;
