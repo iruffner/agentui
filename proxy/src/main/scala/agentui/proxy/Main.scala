@@ -3,7 +3,7 @@ package agentui.proxy
 import net.model3.servlet.runner.JettyRunner
 import net.model3.logging.SimpleLoggingConfigurator
 import net.model3.guice.DependencyInjector
-import m3.GuiceApp
+import m3.guice.GuiceApp
 import net.model3.logging.LoggerHelper
 import net.model3.logging.Level
 
