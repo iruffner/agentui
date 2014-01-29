@@ -6308,7 +6308,8 @@ ui.api.ResponseProcessor.contentCreated = function(data) {
 ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.AppContext.AGENT.aliasSet.addAll(data.aliases);
 	ui.AppContext.LABELS.addAll(data.labels);
-	ui.AppContext.LABELCHILDREN.addAll(data.labelChildren);
+	ui.AppContext.CONTENT.addAll(data.content);
+	ui.AppContext.LABELEDCONTENT.addAll(data.labeledContent);
 	var lcsToRemove = new Array();
 	var $it0 = ui.AppContext.LABELCHILDREN.iterator();
 	while( $it0.hasNext() ) {
