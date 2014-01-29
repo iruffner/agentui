@@ -26,6 +26,7 @@ class AppContext {
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
     public static var LABELS:ObservableSet<Label>;
     public static var LABELCHILDREN:ObservableSet<LabelChild>;
+    public static var LABELEDCONTENT:ObservableSet<LabeledContent>;
     public static var LCG: GroupedSet<LabelChild>;
     public static var placeHolderLabel:Label;
     @:isVar public static var alias(get, set): Alias;
@@ -73,9 +74,7 @@ class AppContext {
             return lc.parentIid;
         });
 
-        // var LM = new MappedSet<LabelChild, Label>(LCG, function(lc: LabelChild): Label {
-        //         return null;
-        //     });
+        LABELEDCONTENT = new ObservableSet<LabeledContent>(LabeledContent.identifier);
         
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());

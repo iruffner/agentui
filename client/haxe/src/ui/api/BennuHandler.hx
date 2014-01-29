@@ -81,7 +81,18 @@ class BennuHandler implements ProtocolHandler {
  //   		AppContext.alias.labelSet.clear();
  //   		AppContext.alias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
 	// }
-	public function createContent(content:Content<Dynamic>):Void {}
+	public function createContent(data:CreateContentData):Void {
+		var context = Synchronizer.createContext(1 + data.labels.length, "contentCreated");
+		var requests = new Array<ChannelRequestMessage>();
+		requests.push(new ChannelRequestMessage(UPSERT, context + "content", CrudMessage.create(data.content)));
+		for (label in data.labels) {
+			var labeledContent = new LabeledContent(data.content.iid, label.iid);
+			requests.push(new ChannelRequestMessage(UPSERT, context + "labeledContent", CrudMessage.create(labeledContent)));
+		}
+		var req = new SubmitRequest(requests);
+		req.start();
+	}
+
 	public function updateContent(content:Content<Dynamic>):Void {}
 	public function deleteContent(content:Content<Dynamic>):Void {}
 
@@ -135,11 +146,14 @@ class BennuHandler implements ProtocolHandler {
 		AppContext.CHANNEL = data.id;
 		_startPolling();
 
-		var context = Synchronizer.createContext(3, "initialDataLoad");
+		var context = Synchronizer.createContext(5, "initialDataLoad");
 		var req = new SubmitRequest([
 			new ChannelRequestMessage(QUERY, context + "aliases"     , new QueryMessage("alias")),
 			new ChannelRequestMessage(QUERY, context + "labels"     , new QueryMessage("label")),
-			new ChannelRequestMessage(QUERY, context + "labelChildren", new QueryMessage("labelChild"))]);
+			new ChannelRequestMessage(QUERY, context + "contents"     , new QueryMessage("content")),
+			new ChannelRequestMessage(QUERY, context + "labeledContents", new QueryMessage("labeledContent")),
+			new ChannelRequestMessage(QUERY, context + "labelChildren", new QueryMessage("labelChild"))
+		]);
 		req.start();
 	}
 

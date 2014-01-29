@@ -53,18 +53,15 @@ extern class PostComp extends JQ {
 
 		        	var section: JQ = new JQ("<section id='postSection'></section>").appendTo(selfElement);
 
-		        	var addConnectionsAndLabels: Content<Dynamic>->Void = null;
+		        	var addConnectionsAndLabels: CreateContentData->Void = null;
 
 		        	var doTextPost: JQEvent->ContentType->String->Void = function(evt: JQEvent, contentType: ContentType, value:String): Void {
 		        		AppContext.LOGGER.debug("Post new text content");
 						evt.preventDefault();
-						
-						var msg: MessageContent = new MessageContent();
-						msg.contentType = contentType;
-						msg.props.text = value;
 
-						addConnectionsAndLabels(msg);
-						EM.change(EMEvent.CreateContent, msg);
+						var ccd = new CreateContentData(ContentFactory.create(contentType, value));						
+						addConnectionsAndLabels(ccd);
+						EM.change(EMEvent.CreateContent, ccd);
 		        	};
 
 		        	var doTextPostForElement: JQEvent->ContentType->JQ->Void = function(evt: JQEvent, contentType: ContentType, ele:JQ): Void {
@@ -211,60 +208,17 @@ extern class PostComp extends JQ {
 					      	}
 						});
 
-					addConnectionsAndLabels = function(content: Content<Dynamic>): Void {
+					addConnectionsAndLabels = function(ccd: CreateContentData): Void {
 						tags.children(".label").each(function(i: Int, dom: Element): Void {
-								var labelComp: LabelComp = new LabelComp(dom);
-								// // Given label.getLabel().uid, iterate through
-								// // ui.AgentUi.USER.get_currentAlias().labelSet.asArray()
-								// // to find the tag.	 Since label trees are at most two
-								// // levels deep and can only have one child at the second
-								// // level, we know how to construct the label tree.
-								// var uid = label.getLabel().uid;
-								// var labelArray = ui.AgentUi.USER.currentAlias.labelSet.asArray();
-								// var labelMap = new Map();
-								// var i: Int;
-								// for (i in 0...labelArray.length) {
-								// 	labelMap[labelArray[i].uid] = labelArray[i];
-								// }
-								// var labelTree: String = "l" + labelMap[uid].text + "(_)";
-								// if (untyped __js__("!!labelMap.get(uid).parentIid")) {
-								// 	labelTree = "n" + labelMap[labelMap[uid].parentIid].text + "(" + labelTree + ")";
-								// }
-								ui.AppContext.LOGGER.warn("fix me:  content.labelSet.add(labelComp.getLabel()");
-//								content.labelSet.add(labelComp.getLabel());
-							});
+							var labelComp: LabelComp = new LabelComp(dom);
+							ccd.labels.push(labelComp.getLabel());
+						});
 						tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
-								var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-								ui.AppContext.LOGGER.warn("fix me:  content.connectionSet.add(conn.getConnection())");
-								//content.connectionSet.add( conn.getConnection() );
-							});
+							var conn: ConnectionAvatar = new ConnectionAvatar(dom);
+							ui.AppContext.LOGGER.warn("fix me:  content.connectionSet.add(conn.getConnection())");
+							//content.connectionSet.add( conn.getConnection() );
+						});
 					}
-// 					addConnectionsAndLabels = function(content: Content<Dynamic>): Void {
-// 						tags.children(".label").each(function(i: Int, dom: Element): Void {
-// 								var label: LabelComp = new LabelComp(dom);
-// 								// Given label.getLabel().uid, iterate through
-// 								// ui.AgentUi.USER.get_currentAlias().labelSet.asArray()
-// 								// to find the tag.	 Since label trees are at most two
-// 								// levels deep and can only have one child at the second
-// 								// level, we know how to construct the label tree.
-// 								var uid = label.getLabel().uid;
-// 								var labelArray = ui.AgentUi.USER.get_currentAlias().labelSet.asArray();
-// 								var labelMap = {};
-// 								var i: Int;
-// 								for (i in 0...labelArray.length) {
-// 									labelMap[labelArray[i].uid] = labelArray[i];
-// 								}
-// 								var labelTree: String = "l" + labelMap[uid].text + "(_)";
-// 								if (labelMap[uid].parentIid) {
-// 									labelTree = "n" + labelMap[labelMap[uid].parentIid].text + "(" + labelTree + ")";
-// 								}
-// 								content.labelSet.add(labelTree);
-// 							});
-// 						tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
-// 								var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-// 								content.connectionSet.add( conn.getConnection().uid );
-// 							});
-// 					}
 
 					var postButton: JQ = new JQ("<button>Post</button>")
 		        							.appendTo(selfElement)

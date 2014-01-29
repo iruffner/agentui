@@ -23,7 +23,7 @@ class ModelObj {
 	public function new() {
 	}
 
-	public function objectType(){
+	public function objectType():String {
 		var className = this.clazz().classname().toLowerCase();
 		var parts = className.split(".");
 		return parts[parts.length-1];
@@ -280,6 +280,32 @@ class ContentHandler implements TypeHandler {
     }
 }
 
+class ContentFactory {
+	public static function create(contentType:ContentType, data:Dynamic):Content<Dynamic> {
+		var ret:Content<Dynamic> = null;
+
+		switch (contentType) {
+        	case ContentType.AUDIO:
+        		var ac = new AudioContent();
+        		ac.props.audioSrc = cast(data, String);
+        		ret = ac;
+        	case ContentType.IMAGE:
+        		var ic = new ImageContent();
+        		ic.props.imgSrc = cast(data, String);
+        		ret = ic;
+        	case ContentType.TEXT:
+        		var mc = new MessageContent();
+        		mc.props.text = cast(data, String);
+        		ret = mc;
+        	case ContentType.URL:
+        		var uc = new UrlContent();
+        		uc.props.url = cast(data, String);
+        		ret = uc;
+        }
+        return ret;
+	}
+}
+
 class LabeledContent extends ModelObjWithIid {
   	public var contentIid: String;
   	public var labelIid: String;
@@ -296,6 +322,7 @@ class LabeledContent extends ModelObjWithIid {
 	}
 }
 
+@:rtti
 class ContentData {
 	public var created: Date;
 	public var modified: Date;
@@ -309,6 +336,7 @@ class ContentData {
 class Content<T:(ContentData)> extends ModelObjWithIid {
 	public var contentType: ContentType;
 	private var data:Dynamic;
+	private var blob:String;
 	@:transient public var props: T;
 
 	@:optional public var creator: String;
@@ -321,6 +349,8 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 		this.data = {};
 		this.contentType = contentType;
 		this.type = type;
+		this.props = Type.createInstance(type, []);
+		this.blob = "";
 	}
 
 	public function get_created():Date {
@@ -347,11 +377,15 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	public function getTimestamp(): String {
 		return DateTools.format(this.created, "%Y-%m-%d %T");
 	}
+
+	override public function objectType():String {
+		return "content";
+	}
 }
 
 class ImageContentData extends ContentData {
 	public var imgSrc: String;
-	public var caption: String;
+	@:optional public var caption: String;
 
 	public function new() {
 		super();
@@ -366,8 +400,8 @@ class ImageContent extends Content<ImageContentData> {
 
 class AudioContentData extends ContentData {
 	public var audioSrc: String;
-	public var audioType: String;
-	public var title: String;
+	@:optional public var audioType: String;
+	@:optional public var title: String;
 
 	public function new () {
 		super();
@@ -396,7 +430,7 @@ class MessageContent extends Content<MessageContentData> {
 
 class UrlContentData extends ContentData {
 	public var url: String;
-	public var text: String;
+	@:optional public var text: String;
 
 	public function new () {
 		super();
@@ -485,5 +519,19 @@ class CreateLabelData {
 		this.label = label;
 		this.parentIid = parentIid;
 	}
+}
+
+class CreateContentData {
+	public var content:Content<Dynamic>;
+	public var labels:Array<Label>;
+
+	public function new(content:Content<Dynamic>, ?labels:Array<Label>) {
+		this.content = content;
+		if (labels == null) {
+			labels = new Array<Label>();
+		}
+		this.labels = labels;
+	}
+
 }
 

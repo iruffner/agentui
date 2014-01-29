@@ -91,6 +91,11 @@ class ResponseProcessor {
 		}
 	}
 
+	public static function contentCreated(data:SynchronizationParms) {
+		AppContext.CONTENT.add(data.content[0]);
+		AppContext.LABELEDCONTENT.add(data.labeledContent[0]);
+	}
+
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
 		AppContext.AGENT.aliasSet.addAll(data.aliases);

@@ -9,11 +9,15 @@ class SynchronizationParms {
     public var aliases:Array<Alias>;
     public var labels:Array<Label>;
     public var labelChildren:Array<LabelChild>;
+    public var content:Array<Content<Dynamic>>;
+    public var labeledContent:Array<LabeledContent>;
 
     public function new() {
         aliases = new Array<Alias>();
         labels  = new Array<Label>();
         labelChildren = new Array<LabelChild>();
+        content = new Array<Content<Dynamic>>();
+        labeledContent = new Array<LabeledContent>();
     }
 }
 
@@ -53,10 +57,14 @@ class Synchronizer {
         if (data.primaryKey != null) {
             switch (responseType) {
                 case "alias":
-                    for (alias in ui.AppContext.AGENT.aliasSet) {
-                        if (alias.iid == data.primaryKey) {
-                            parms.aliases.push(alias);
-                        }
+                    var alias = ui.AppContext.AGENT.aliasSet.getElement(data.primaryKey);
+                    if (alias != null) {
+                        parms.aliases.push(alias);
+                    }
+                case "content":
+                    var content = ui.AppContext.CONTENT.getElement(data.primaryKey);
+                    if (content != null) {
+                        parms.content.push(content);
                     }
                 case "label":
                     var label = ui.AppContext.LABELS.getElement(data.primaryKey);
@@ -64,10 +72,14 @@ class Synchronizer {
                         parms.labels.push(label);
                     }
                 case "labelChild":
-                    for (lc in ui.AppContext.LABELCHILDREN) {
-                        if (lc.iid == data.primaryKey) {
-                            parms.labelChildren.push(lc);
-                        }
+                    var lc = ui.AppContext.LABELCHILDREN.getElement(data.primaryKey);
+                    if (lc != null) {
+                        parms.labelChildren.push(lc);
+                    }
+                case "labeledContent":
+                    var lc = ui.AppContext.LABELEDCONTENT.getElement(data.primaryKey);
+                    if (lc != null) {
+                        parms.labeledContent.push(lc);
                     }
             }
         } else {
@@ -78,6 +90,12 @@ class Synchronizer {
         			for (alias_ in cast(data, Array<Dynamic>)) {
         				parms.aliases.push(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
         			}
+                case "content":
+                    parms.content.push(AppContext.SERIALIZER.fromJsonX(data.instance, Content));
+                case "contents":
+                    for (content_ in cast(data, Array<Dynamic>)) {
+                        parms.content.push(AppContext.SERIALIZER.fromJsonX(content_, Content));
+                    }
         		case "label":
         			parms.labels.push(AppContext.SERIALIZER.fromJsonX(data.instance, Label));
         		case "labels":
@@ -90,6 +108,12 @@ class Synchronizer {
         			for (labelChild_ in cast(data, Array<Dynamic>)) {
         				parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
         			}
+                case "labeledContent":
+                    parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(data.instance, LabeledContent));
+                case "labeledContents":
+                    for (labeledContent_ in cast(data, Array<Dynamic>)) {
+                        parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(labeledContent_, LabeledContent));
+                    }
         	}
         }
     	numResponsesExpected -= 1;

@@ -11,7 +11,7 @@ interface ProtocolHandler {
 	public function createUser(newUser: NewUser): Void;
 	public function validateUser(token: String): Void;
 	public function updateUser(user: Agent): Void;
-	public function createContent(content:Content<Dynamic>):Void;
+	public function createContent(data:CreateContentData):Void;
 	public function updateContent(content:Content<Dynamic>):Void;
 	public function deleteContent(content:Content<Dynamic>):Void;
 	public function createLabel(label:Label, parentIid:String): Void;
