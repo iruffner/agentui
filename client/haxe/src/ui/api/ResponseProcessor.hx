@@ -102,6 +102,7 @@ class ResponseProcessor {
 		AppContext.LABELS.addAll(data.labels);
 		AppContext.CONTENT.addAll(data.content);
 		AppContext.LABELEDCONTENT.addAll(data.labeledContent);
+		AppContext.LABELCHILDREN.addAll(data.labelChildren);
 
 		// Cull any labelChildren that point to non-existent labels
 		var lcsToRemove = new Array<LabelChild>();
