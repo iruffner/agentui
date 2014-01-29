@@ -96,6 +96,12 @@ enum EMEvent {
 	
 	CreateContent;
 	ContentCreated;
+
+	DeleteContent;
+	ContentDeleted;
+
+	UpdateContent;
+	ContentUpdated;
 	
 	EditContentClosed;
 
