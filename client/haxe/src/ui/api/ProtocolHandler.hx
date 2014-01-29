@@ -162,7 +162,7 @@ class ProtocolHandler {
         processHash = new Map<MsgType,Dynamic->Void>();
         processHash.set(MsgType.evalSubscribeResponse, function(data: Dynamic){
         		AppContext.LOGGER.debug("evalResponse was received from the server");
-        		AppContext.LOGGER.debug(data);
+        		// AppContext.LOGGER.debug(data);
         		var evalResponse: EvalResponse = AppContext.SERIALIZER.fromJsonX(data, EvalResponse);
         		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.content); 
         	});
