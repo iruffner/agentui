@@ -178,7 +178,7 @@ extern class EditPostComp extends JQ {
 		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
 		        									function(){
 		        										close();
-		        										AppContext.CONTENT.delete(self.options.content);
+		        										EM.change(EMEvent.DeleteContent, self.options.content);
 		        									});
 		        							});
 
@@ -188,7 +188,7 @@ extern class EditPostComp extends JQ {
 		        							.css("width", "23px")
 		        							.click(function(evt: JQEvent): Void {
 		        								self._updateContent();
-		        								AppContext.CONTENT.update(self.options.content);
+		        								EM.change(EMEvent.UpdateContent, self.options.content);
 		        								close();
 		        							});
 

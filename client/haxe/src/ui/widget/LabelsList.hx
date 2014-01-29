@@ -113,7 +113,7 @@ extern class LabelsList extends JQ {
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
 			        		if (AppContext.LCG.delegate().get(alias.rootLabelIid) == null) {
-			        			ui.AppContext.LABELCHILDREN.add(new LabelChild(alias.rootLabelIid, AppContext.placeHolderLabel.iid));
+			        			ui.AppContext.MASTER_LABELCHILDREN.add(new LabelChild(alias.rootLabelIid, AppContext.placeHolderLabel.iid));
 			        		}
 
 	        				var ms = new MappedSet<LabelChild, Label>(
@@ -125,19 +125,6 @@ extern class LabelsList extends JQ {
 		        			self._setLabels(ms);
 	        			}, "LabelsList-Alias")
 		        	);
-
-		        	// EM.addListener(EMEvent.LabelCreated, new EMListener(function(data: CreateLabelData) {
-		        	// 		self._setLabels(AppContext.alias.labelSet);
-	        		// 	}, "LabelsList-LC")
-		        	// );
-		        	// EM.addListener(EMEvent.LabelUpdated, new EMListener(function(label: Label) {
-		        	// 		self._setLabels(AppContext.alias.labelSet);
-	        		// 	}, "LabelsList-LU")
-		        	// );
-		        	// EM.addListener(EMEvent.LabelDeleted, new EMListener(function(label: Label) {
-		        	// 		self._setLabels(AppContext.alias.labelSet);
-	        		// 	}, "LabelsList-LD")
-		        	// );
 
 		        	var newLabelButton: JQ = new JQ("<button class='newLabelButton'>New Label</button>");
 		        	selfElement.append(newLabelButton).append("<div class='clear'></div>");
@@ -173,6 +160,7 @@ extern class LabelsList extends JQ {
     								if (self.selectedLabelComp != null) {
     									JqueryUtil.confirm("Delete Label", "Are you sure you want to delete this label?", 
    		        							function(){
+   		        								// TODO:  need to add the parentlabel iid
    		        								EM.change(EMEvent.DeleteLabel, self.selectedLabelComp.getLabel());
    		        							}
    		        						);

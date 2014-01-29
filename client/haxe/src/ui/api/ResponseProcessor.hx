@@ -29,8 +29,8 @@ class ResponseProcessor {
 
 	public static function aliasCreated(data:SynchronizationParms) {
 		AppContext.AGENT.aliasSet.addOrUpdate(data.aliases[0]);
-		AppContext.LABELS.add(data.labels[0]);
-		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
+		AppContext.MASTER_LABELS.addOrUpdate(data.labels[0]);
+		AppContext.MASTER_LABELCHILDREN.addOrUpdate(data.labelChildren[0]);
    		EM.change(EMEvent.NewAlias);		
 	}
 
@@ -40,12 +40,13 @@ class ResponseProcessor {
 	}
 
 	public static function aliasDeleted(data:SynchronizationParms) {
-		AppContext.AGENT.aliasSet.delete(data.aliases[0]);
+		data.aliases[0].deleted = true;
+		AppContext.AGENT.aliasSet.addOrUpdate(data.aliases[0]);
 	}
 
 	public static function labelCreated(data:SynchronizationParms) {
-		AppContext.LABELS.add(data.labels[0]);
-		AppContext.LABELCHILDREN.add(data.labelChildren[0]);
+		AppContext.MASTER_LABELS.addOrUpdate(data.labels[0]);
+		AppContext.MASTER_LABELCHILDREN.addOrUpdate(data.labelChildren[0]);
 /* TODO:  Fix me
 		// Delete the placeholder, if necessary
 		var siblings = AppContext.LCG.delegate().get(data.labelChildren[0].parentIid);
@@ -66,54 +67,52 @@ class ResponseProcessor {
 	}
 
 	public static function labelUpdated(data:SynchronizationParms) {
-		AppContext.LABELS.update(data.labels[0]);
+		AppContext.MASTER_LABELS.update(data.labels[0]);
 	}
 
 	// TODO:  Add a method to delete or add/update model objects based on their
 	// deleted flag
 	public static function labelMoved(data:SynchronizationParms) {
 		for (lc in data.labelChildren) {
-			if (lc.deleted) {
-				AppContext.LABELCHILDREN.delete(lc);
-			} else {
-				AppContext.LABELCHILDREN.addOrUpdate(lc);
-			}
+			AppContext.MASTER_LABELCHILDREN.addOrUpdate(lc);
 		}
 	}
 
 	public static function labelDeleted(data:SynchronizationParms) {
 		for (lc in data.labelChildren) {
-			AppContext.LABELCHILDREN.delete(lc);
+			lc.deleted = true;
+			AppContext.MASTER_LABELCHILDREN.addOrUpdate(lc);
 		}
 
 		for (label in data.labels) {
-			AppContext.LABELS.delete(label);
+			label.deleted = true;
+			AppContext.MASTER_LABELS.addOrUpdate(label);
 		}
 	}
 
 	public static function contentCreated(data:SynchronizationParms) {
-		AppContext.CONTENT.add(data.content[0]);
-		AppContext.LABELEDCONTENT.add(data.labeledContent[0]);
+		AppContext.MASTER_CONTENT.addOrUpdate(data.content[0]);
+		AppContext.MASTER_LABELEDCONTENT.addOrUpdate(data.labeledContent[0]);
 	}
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
 		AppContext.AGENT.aliasSet.addAll(data.aliases);
-		AppContext.LABELS.addAll(data.labels);
-		AppContext.CONTENT.addAll(data.content);
-		AppContext.LABELEDCONTENT.addAll(data.labeledContent);
-		AppContext.LABELCHILDREN.addAll(data.labelChildren);
+		AppContext.MASTER_LABELS.addAll(data.labels);
+		AppContext.MASTER_CONTENT.addAll(data.content);
+		AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
+		AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
 
 		// Cull any labelChildren that point to non-existent labels
 		var lcsToRemove = new Array<LabelChild>();
-		for (lc in AppContext.LABELCHILDREN) {
+		for (lc in AppContext.MASTER_LABELCHILDREN) {
 			if (AppContext.LABELS.getElement(lc.childIid) == null) {
 				lcsToRemove.push(lc);
 			}
 		}
 		for (lc in lcsToRemove) {
 			ui.AppContext.LOGGER.warn("LabelChild points to non-existent label.  DELETE IT.");
-			AppContext.LABELCHILDREN.delete(lc);
+			AppContext.MASTER_LABELCHILDREN.delete(lc);
 		}
 
 	    // Set the current alias
