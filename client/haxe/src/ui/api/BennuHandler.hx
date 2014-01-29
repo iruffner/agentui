@@ -2,6 +2,7 @@ package ui.api;
 
 import haxe.Json;
 import m3.jq.JQ;
+import m3.observable.OSet;
 
 import ui.api.CrudMessage;
 import ui.api.Requester;
@@ -114,11 +115,13 @@ class BennuHandler implements ProtocolHandler {
 		// TODO:  Delete labelChild, add labelChild
 	}
  
-	public function deleteLabel(label:Label):Void {
-
-		// TODO:  Find all of the labelChilds that need to be deleted
-		var labelChildren = AppContext.getDescendentLabelChildren(label.iid);
-		var labels = AppContext.getLabelDescendents(label.iid);
+	public function deleteLabel(data:DeleteLabelData):Void {
+		var labelChildren = AppContext.getDescendentLabelChildren(data.label.iid);
+		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
+		});
+		labelChildren = labelChildren.concat(lcs.asArray());
+		var labels = AppContext.getLabelDescendents(data.label.iid);
 		var count = labels.size() + labelChildren.length;
 		var context = Synchronizer.createContext(count, "labelDeleted");
 

@@ -16,6 +16,7 @@ using StringTools;
 typedef LabelCompOptions  = { 
 	>FilterableCompOptions,
 	var label: Label;
+	@:optional var parentIid:String;
 }
 
 typedef LabelCompWidgetDef = {
@@ -29,6 +30,9 @@ typedef LabelCompWidgetDef = {
 class LabelCompHelper {
 	public static function getLabel(l: LabelComp): Label {
 		return l.labelComp("option", "label");
+	}
+	public static function parentIid(l: LabelComp): String {
+		return l.labelComp("option", "parentIid");
 	}
 }
 

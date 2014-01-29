@@ -532,6 +532,14 @@ class CreateContentData {
 		}
 		this.labels = labels;
 	}
-
 }
 
+class DeleteLabelData {
+	public var label:Label;
+	public var parentIid:String;
+
+	public function new(label:Label, parentIid:String) {
+		this.label = label;
+		this.parentIid = parentIid;
+	}
+}

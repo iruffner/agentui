@@ -10,6 +10,7 @@ import m3.exception.Exception;
 using m3.helper.OSetHelper;
 
 typedef LabelTreeBranchOptions = {
+	var parentIid: String;
 	var label: Label;
 	var children: OSet<Label>;
 	@:optional var classes: String;
@@ -34,6 +35,7 @@ extern class LabelTreeBranch extends JQ {
 		var defineWidget: Void->LabelTreeBranchWidgetDef = function(): LabelTreeBranchWidgetDef {
 			return {
 		        options: {
+		        	parentIid: null,
 		            label: null,
 		            children: null,
 		            classes: null
@@ -52,6 +54,7 @@ extern class LabelTreeBranch extends JQ {
 		        	selfElement.append(expander);
 		        	
 		        	var label: LabelComp = new LabelComp("<div></div>").labelComp({
+		        			parentIid: self.options.parentIid,
 		        			label: self.options.label,
 		        			isDragByHelper: true,
 		        			containment: false,
@@ -83,8 +86,9 @@ extern class LabelTreeBranch extends JQ {
 		            if(self.options.children != null) {
 			            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren' style='display: none;'></div>");
 			            labelChildren.labelTree({
-			            		labels: self.options.children
-			            	});
+			            	parentIid: self.options.label.iid,
+		            		labels: self.options.children
+		            	});
 			            selfElement.append(labelChildren);
 		            	label.add(expander).click(function(evt: JQEvent): Void {
 		            			if(self.options.children.hasValues()) {

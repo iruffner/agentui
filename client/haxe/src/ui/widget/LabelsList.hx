@@ -20,7 +20,7 @@ typedef LabelsListWidgetDef = {
 	@:optional var labels: OSet<Label>;
 	@:optional var selectedLabelComp:LabelComp;
 	var _create: Void->Void;
-	var _setLabels: OSet<Label>->Void;
+	var _setLabels: OSet<Label>->String->Void;
 	var _showNewLabelPopup:JQ->Void;
 	var destroy: Void->Void;
 }
@@ -122,7 +122,7 @@ extern class LabelsList extends JQ {
 		        						return AppContext.LABELS.getElement(lc.childIid);
 		        					}
         					);
-		        			self._setLabels(ms);
+		        			self._setLabels(ms, alias.rootLabelIid);
 	        			}, "LabelsList-Alias")
 		        	);
 
@@ -161,10 +161,11 @@ extern class LabelsList extends JQ {
     									JqueryUtil.confirm("Delete Label", "Are you sure you want to delete this label?", 
    		        							function(){
    		        								// TODO:  need to add the parentlabel iid
-   		        								EM.change(EMEvent.DeleteLabel, self.selectedLabelComp.getLabel());
+   		        								EM.change(EMEvent.DeleteLabel, 
+   		        									new DeleteLabelData(self.selectedLabelComp.getLabel(), 
+   		        										                self.selectedLabelComp.parentIid()));
    		        							}
    		        						);
-    								} else {
     								}
     							}
     						}
@@ -204,7 +205,7 @@ extern class LabelsList extends JQ {
 
 		        },
 
-		        _setLabels: function(labels: OSet<Label>): Void {
+		        _setLabels: function(labels: OSet<Label>, parentIid:String): Void {
 		        	var self: LabelsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -213,6 +214,7 @@ extern class LabelsList extends JQ {
 					selfElement.children(".labelTree").remove();
 
 					var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
+		                parentIid:parentIid,
 		                labels: labels 
 		            });
 

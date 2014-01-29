@@ -15,7 +15,7 @@ interface ProtocolHandler {
 	public function updateContent(content:Content<Dynamic>):Void;
 	public function deleteContent(content:Content<Dynamic>):Void;
 	public function createLabel(label:Label, parentIid:String): Void;
-	public function deleteLabel(label:Label):Void;
+	public function deleteLabel(data:DeleteLabelData):Void;
 	public function createAlias(alias: Alias): Void;
 	public function deleteAlias(alias: Alias): Void;
 	public function updateAlias(alias: Alias): Void;
