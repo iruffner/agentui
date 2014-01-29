@@ -152,7 +152,9 @@ extern class UploadComp extends JQ {
 					var reader = untyped __js__("new FileReader()");
 					reader.onload = function (evt) {
 						self.setPreviewImage(evt.target.result);
-						self.options.onload(evt.target.result);
+						if (self.options.onload != null) {
+							self.options.onload(evt.target.result);
+						}
 					};
 					reader.readAsDataURL(file);
 				},
