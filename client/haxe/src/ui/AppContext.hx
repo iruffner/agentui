@@ -38,7 +38,6 @@ class AppContext {
     public static var MASTER_LABELEDCONTENT:ObservableSet<LabeledContent>;
     public static var GROUPED_LABELEDCONTENT: GroupedSet<LabeledContent>;
 
-    public static var placeHolderLabel:Label;
     @:isVar public static var alias(get, set): Alias;
 
     private static function get_alias(): Alias {
@@ -79,8 +78,6 @@ class AppContext {
         });
 
         MASTER_LABELS = new ObservableSet<Label>(Label.identifier);
-        placeHolderLabel = new Label("I'm a placeholder");
-        MASTER_LABELS.add(AppContext.placeHolderLabel);
         LABELS = new FilteredSet<Label>(MASTER_LABELS, function(c:Label):Bool {
             return !c.deleted;
         });
@@ -162,10 +159,8 @@ class AppContext {
             }).asArray();
 
             for (i in 0...children.length) {
-                if (children[i].childIid != AppContext.placeHolderLabel.iid) {
-                    lcList.push(children[i]);
-                    getDescendents(children[i].childIid, lcList);
-                }
+                lcList.push(children[i]);
+                getDescendents(children[i].childIid, lcList);
             }
         };
 
@@ -185,9 +180,7 @@ class AppContext {
             }).asArray();
 
             for (i in 0...children.length) {
-                if (children[i].childIid != AppContext.placeHolderLabel.iid) {
-                    getDescendentIids(children[i].childIid, iidList);
-                }
+                getDescendentIids(children[i].childIid, iidList);
             }
         };
 

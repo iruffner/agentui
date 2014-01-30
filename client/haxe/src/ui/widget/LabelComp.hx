@@ -22,8 +22,9 @@ typedef LabelCompOptions  = {
 typedef LabelCompWidgetDef = {
 	var options: LabelCompOptions;
 	var _create: Void->Void;
+	var _registerListeners: Void->Void;
 	@:optional var _super: Void->Void;
-	var update: Void->Void;
+	var _onupdate: Label->EventType->Void;
 	var destroy: Void->Void;
 }
 
@@ -38,7 +39,6 @@ class LabelCompHelper {
 
 @:native("$")
 extern class LabelComp extends FilterableComponent {
-	public static var COLORS: Array<Array<String>>;
 
 	@:overload(function<T>(cmd : String):T{})
 	@:overload(function<T>(cmd:String, opt:String):T{})
@@ -77,6 +77,14 @@ extern class LabelComp extends FilterableComponent {
 				            	return clone;
 		            		}
 		        },
+
+		        _registerListeners: function():Void {
+		        	var self: LabelCompWidgetDef = Widgets.getSelf();
+		        	var fs = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
+		        		return label.iid == self.options.label.iid;
+		        	});
+					fs.listen(self._onupdate);
+		        },
 		        
 		        _create: function(): Void {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
@@ -100,6 +108,8 @@ extern class LabelComp extends FilterableComponent {
 
 		            selfElement.addClass("filterable");
 		        	
+		        	self._registerListeners();
+
 		            if(self.options.dndEnabled) {
 			            selfElement.data(
 			            	"clone", self.options.cloneFcn
@@ -168,11 +178,19 @@ extern class LabelComp extends FilterableComponent {
 					}
 		        },
 
-		        update: function(): Void {
+		        _onupdate: function(label:Label, t:EventType): Void {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	selfElement.find(".labelBody").text(self.options.label.name);
+					if (t.isUpdate()) {
+						self.options.label = label;
+			        	selfElement.find(".labelBody").text(label.name);
+			       		selfElement.find(".labelTail").css("border-right-color", label.data.color);
+			            selfElement.find(".labelBox").css("background", label.data.color);
+			        } else if (t.isDelete()) {
+			        	self.destroy();
+			        	selfElement.remove();
+			        }
 	        	},
 		        
 		        destroy: function() {

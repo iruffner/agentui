@@ -113,7 +113,7 @@ extern class LabelsList extends JQ {
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
 			        		if (AppContext.GROUPED_LABELCHILDREN.delegate().get(alias.rootLabelIid) == null) {
-			        			ui.AppContext.MASTER_LABELCHILDREN.add(new LabelChild(alias.rootLabelIid, AppContext.placeHolderLabel.iid));
+			        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(alias.rootLabelIid);
 			        		}
 
 	        				var ms = new MappedSet<LabelChild, Label>(

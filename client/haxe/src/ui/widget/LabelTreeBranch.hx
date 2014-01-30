@@ -65,15 +65,7 @@ extern class LabelTreeBranch extends JQ {
 
 		            selfElement.hover(
 		            	function(): Void {
-		            		var it = self.options.children.iterator();
-		            		var hasElements = false;
-		            		while (it.hasNext()) {
-		            			if (it.next() != AppContext.placeHolderLabel) {
-		            				hasElements = true;
-		            				break;
-		            			}
-		            		}
-		            		if (hasElements) {
+		            		if (self.options.children.hasValues()) {
 		            			expander.css("visibility", "visible");
 		            		}
 		            	}, 

@@ -47,30 +47,19 @@ extern class LabelTree extends JQ {
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
 		        	self.mappedLabels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
-	        			var children:OSet<Label>;
-	        			var isPlaceHolder = (label.iid == AppContext.placeHolderLabel.iid);
-	        			// if this is a placeholder, add an empty set for the children
-	        			if (isPlaceHolder) {
-	        				children = new ObservableSet<Label>(Label.identifier);
-	        			} else {
-			        			// If there are no children for this label, add the placeholder,
-			        			// so that any updates to the GROUPED_LABELCHILDREN will be picked up.
-		        				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(label.iid) == null) {
-		        					ui.AppContext.MASTER_LABELCHILDREN.add(new LabelChild(label.iid, AppContext.placeHolderLabel.iid));
-		        				}
+        				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(label.iid) == null) {
+		        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(label.iid);
+        				}
 
-		        			var ms = new MappedSet<LabelChild, Label>(
-		        				AppContext.GROUPED_LABELCHILDREN.delegate().get(label.iid), 
-		        				function(lc: LabelChild): Label {
-	        						return AppContext.LABELS.getElement(lc.childIid);
-	        					}
-        					);
-		        			ms.visualId = "filteredLabelTree--" + label.name;
-		        			children = ms;
-		        		}
-		        		
-		        		var hidden = isPlaceHolder ? " style='display:none;'" : ""; 
-	        			return new LabelTreeBranch("<div" + hidden + "></div>").labelTreeBranch({
+	        			var children = new MappedSet<LabelChild, Label>(
+	        				AppContext.GROUPED_LABELCHILDREN.delegate().get(label.iid), 
+	        				function(lc: LabelChild): Label {
+        						return AppContext.LABELS.getElement(lc.childIid);
+        					}
+    					);
+	        			children.visualId = "filteredLabelTree--" + label.name;
+
+	        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 	        				parentIid:self.options.parentIid,
 	        				label: label,
         					children: children
