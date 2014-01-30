@@ -141,7 +141,17 @@ class BennuHandler implements ProtocolHandler {
 		new SubmitRequest(requests).start();
 	}
 
-	public function deleteContent(data:EditContentData):Void {}
+	public function deleteContent(data:EditContentData):Void {
+		var context = Synchronizer.createContext(1 + data.labels.length, "contentDeleted");		
+		var requests = new Array<ChannelRequestMessage>();
+		requests.push(new ChannelRequestMessage(DELETE, context + "content", CrudMessage.create(data.content)));
+
+		for (lc in AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid)) {
+			requests.push(new ChannelRequestMessage(DELETE, context + "labeledContent", DeleteMessage.create(lc)));
+		}
+
+		new SubmitRequest(requests).start();
+	}
 
 	public function createLabel(data:EditLabelData): Void {
 		// Create a label child, which will connect the parent and the child

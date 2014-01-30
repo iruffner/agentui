@@ -4869,6 +4869,15 @@ ui.api.BennuHandler.prototype = {
 		req.start();
 	}
 	,deleteContent: function(data) {
+		var context = ui.api.Synchronizer.createContext(1 + data.labels.length,"contentDeleted");
+		var requests = new Array();
+		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "content",ui.api.CrudMessage.create(data.content)));
+		var $it0 = ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.get_iid()).iterator();
+		while( $it0.hasNext() ) {
+			var lc = $it0.next();
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labeledContent",ui.api.DeleteMessage.create(lc)));
+		}
+		new ui.api.SubmitRequest(requests).start();
 	}
 	,updateContent: function(data) {
 		var currentLabels = ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.get_iid());
@@ -6391,6 +6400,15 @@ ui.api.ResponseProcessor.contentUpdated = function(data) {
 	}
 	ui.AppContext.MASTER_CONTENT.addOrUpdate(data.content[0]);
 }
+ui.api.ResponseProcessor.contentDeleted = function(data) {
+	var _g = 0, _g1 = data.labeledContent;
+	while(_g < _g1.length) {
+		var lc = _g1[_g];
+		++_g;
+		ui.AppContext.MASTER_LABELEDCONTENT["delete"](lc);
+	}
+	ui.AppContext.MASTER_CONTENT["delete"](data.content[0]);
+}
 ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.AppContext.AGENT.aliasSet.addAll(data.aliases);
 	ui.AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
@@ -6409,6 +6427,19 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 		++_g;
 		ui.AppContext.LOGGER.warn("LabelChild points to non-existent label.  DELETE IT.");
 		ui.AppContext.MASTER_LABELCHILDREN["delete"](lc);
+	}
+	var lacosToRemove = new Array();
+	var $it1 = ui.AppContext.MASTER_LABELEDCONTENT.iterator();
+	while( $it1.hasNext() ) {
+		var lc = $it1.next();
+		if(m3.helper.OSetHelper.getElement(ui.AppContext.CONTENT,lc.contentIid) == null) lacosToRemove.push(lc);
+	}
+	var _g = 0;
+	while(_g < lacosToRemove.length) {
+		var lc = lacosToRemove[_g];
+		++_g;
+		ui.AppContext.LOGGER.warn("LabeledContent points to non-existent label.  DELETE IT.");
+		ui.AppContext.MASTER_LABELEDCONTENT["delete"](lc);
 	}
 	if(ui.AppContext.AGENT.aliasSet.isEmpty()) {
 		var defaultAlias = new ui.model.Alias("Default Alias");
@@ -9058,7 +9089,7 @@ var defineWidget = function() {
 			break;
 		case 3:
 			var textContent = js.Boot.__cast(content , ui.model.MessageContent);
-			postContent.append("<div class='content-text'>" + textContent.props.text + "</div>");
+			postContent.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
 			break;
 		}
 		self.buttonBlock = new $("<div class='button-block' ></div>").css("text-align","left").hide().appendTo(postContent);
@@ -9083,6 +9114,7 @@ var defineWidget = function() {
 		var labelIter = ms.iterator();
 		while(labelIter.hasNext()) {
 			var label = labelIter.next();
+			if(label == null) continue;
 			new $("<div class='small'></div>").labelComp({ dndEnabled : false, label : label}).appendTo(postLabels);
 		}
 	}, _create : function() {

@@ -160,10 +160,9 @@ extern class LabelsList extends JQ {
     								if (self.selectedLabelComp != null) {
     									JqueryUtil.confirm("Delete Label", "Are you sure you want to delete this label?", 
    		        							function(){
-   		        								// TODO:  need to add the parentlabel iid
    		        								EM.change(EMEvent.DeleteLabel, 
    		        									new EditLabelData(self.selectedLabelComp.getLabel(), 
-   		        										                self.selectedLabelComp.parentIid()));
+   		        										              self.selectedLabelComp.parentIid()));
    		        							}
    		        						);
     								}

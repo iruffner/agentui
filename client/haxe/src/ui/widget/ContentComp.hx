@@ -81,7 +81,7 @@ extern class ContentComp extends JQ {
 
 	        			case ContentType.TEXT:
 	        				var textContent: MessageContent = cast(content, MessageContent);
-	        				postContent.append("<div class='content-text'>" + textContent.props.text + "</div>"); 
+	        				postContent.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>"); 
 		        	}
 
 					self.buttonBlock = new JQ("<div class='button-block' ></div>").css("text-align", "left").hide().appendTo(postContent);
@@ -126,6 +126,7 @@ extern class ContentComp extends JQ {
 		        	var labelIter: Iterator<Label> = ms.iterator();
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = labelIter.next();
+		        		if (label == null) {continue;}
 		        		new LabelComp("<div class='small'></div>").labelComp({
 		        				dndEnabled: false,
 		        				label: label

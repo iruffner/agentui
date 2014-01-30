@@ -111,6 +111,13 @@ class ResponseProcessor {
 		AppContext.MASTER_CONTENT.addOrUpdate(data.content[0]);
 	}
 
+	public static function contentDeleted(data:SynchronizationParms) {
+		for (lc in data.labeledContent) {
+			AppContext.MASTER_LABELEDCONTENT.delete(lc);
+		}
+		AppContext.MASTER_CONTENT.delete(data.content[0]);
+	}
+
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
 		AppContext.AGENT.aliasSet.addAll(data.aliases);
@@ -129,6 +136,18 @@ class ResponseProcessor {
 		for (lc in lcsToRemove) {
 			ui.AppContext.LOGGER.warn("LabelChild points to non-existent label.  DELETE IT.");
 			AppContext.MASTER_LABELCHILDREN.delete(lc);
+		}
+
+		// Cull any labeledContent that point to non-existent content
+		var lacosToRemove = new Array<LabeledContent>();
+		for (lc in AppContext.MASTER_LABELEDCONTENT) {
+			if (AppContext.CONTENT.getElement(lc.contentIid) == null) {
+				lacosToRemove.push(lc);
+			}
+		}
+		for (lc in lacosToRemove) {
+			ui.AppContext.LOGGER.warn("LabeledContent points to non-existent label.  DELETE IT.");
+			AppContext.MASTER_LABELEDCONTENT.delete(lc);
 		}
 
 	    // Set the current alias
