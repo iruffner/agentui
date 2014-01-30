@@ -114,10 +114,16 @@ extern class ContentComp extends JQ {
 	        			}).appendTo(postCreator);
 
 
-		        	var postLabels: JQ = new JQ("<aside class='postLabels'></div>");
-		        	postWr.append(postLabels);
-		        	/* TODO:
-		        	var labelIter: Iterator<Label> = content.labelSet.iterator();
+		        	var postLabels = new JQ("<aside class='postLabels'></div>").appendTo(postWr);
+
+		        	var ms = new MappedSet<LabeledContent, Label>(
+		        		AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),
+        				function(lc: LabeledContent): Label {
+    						return AppContext.LABELS.getElement(lc.labelIid);
+    					}
+    				);
+
+		        	var labelIter: Iterator<Label> = ms.iterator();
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = labelIter.next();
 		        		new LabelComp("<div class='small'></div>").labelComp({
@@ -125,7 +131,7 @@ extern class ContentComp extends JQ {
 		        				label: label
 		        			}).appendTo(postLabels);
 		        	}
-		        	
+/*		        	
 		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>").appendTo(postWr);
 		        	var connIter: Iterator<Connection> = content.connectionSet.iterator();
 		        	while(connIter.hasNext()) {

@@ -53,13 +53,13 @@ extern class PostComp extends JQ {
 
 		        	var section: JQ = new JQ("<section id='postSection'></section>").appendTo(selfElement);
 
-		        	var addConnectionsAndLabels: CreateContentData->Void = null;
+		        	var addConnectionsAndLabels: EditContentData->Void = null;
 
 		        	var doTextPost: JQEvent->ContentType->String->Void = function(evt: JQEvent, contentType: ContentType, value:String): Void {
 		        		AppContext.LOGGER.debug("Post new text content");
 						evt.preventDefault();
 
-						var ccd = new CreateContentData(ContentFactory.create(contentType, value));						
+						var ccd = new EditContentData(ContentFactory.create(contentType, value));						
 						addConnectionsAndLabels(ccd);
 						EM.change(EMEvent.CreateContent, ccd);
 		        	};
@@ -208,7 +208,7 @@ extern class PostComp extends JQ {
 					      	}
 						});
 
-					addConnectionsAndLabels = function(ccd: CreateContentData): Void {
+					addConnectionsAndLabels = function(ccd: EditContentData): Void {
 						tags.children(".label").each(function(i: Int, dom: Element): Void {
 							var labelComp: LabelComp = new LabelComp(dom);
 							ccd.labels.push(labelComp.getLabel());

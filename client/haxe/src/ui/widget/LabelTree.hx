@@ -54,13 +54,13 @@ extern class LabelTree extends JQ {
 	        				children = new ObservableSet<Label>(Label.identifier);
 	        			} else {
 			        			// If there are no children for this label, add the placeholder,
-			        			// so that any updates to the LCG will be picked up.
-		        				if (AppContext.LCG.delegate().get(label.iid) == null) {
+			        			// so that any updates to the GROUPED_LABELCHILDREN will be picked up.
+		        				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(label.iid) == null) {
 		        					ui.AppContext.MASTER_LABELCHILDREN.add(new LabelChild(label.iid, AppContext.placeHolderLabel.iid));
 		        				}
 
 		        			var ms = new MappedSet<LabelChild, Label>(
-		        				AppContext.LCG.delegate().get(label.iid), 
+		        				AppContext.GROUPED_LABELCHILDREN.delegate().get(label.iid), 
 		        				function(lc: LabelChild): Label {
 	        						return AppContext.LABELS.getElement(lc.childIid);
 	        					}

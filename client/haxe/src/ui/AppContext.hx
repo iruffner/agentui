@@ -32,11 +32,11 @@ class AppContext {
     
     public static var LABELCHILDREN:OSet<LabelChild>;
     public static var MASTER_LABELCHILDREN:ObservableSet<LabelChild>;
+    public static var GROUPED_LABELCHILDREN: GroupedSet<LabelChild>;
 
     public static var LABELEDCONTENT:OSet<LabeledContent>;
     public static var MASTER_LABELEDCONTENT:ObservableSet<LabeledContent>;
-
-    public static var LCG: GroupedSet<LabelChild>;
+    public static var GROUPED_LABELEDCONTENT: GroupedSet<LabeledContent>;
 
     public static var placeHolderLabel:Label;
     @:isVar public static var alias(get, set): Alias;
@@ -90,13 +90,16 @@ class AppContext {
             return !c.deleted;
         });
 
-        LCG = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
+        GROUPED_LABELCHILDREN = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
             return lc.parentIid;
         });
 
         MASTER_LABELEDCONTENT = new ObservableSet<LabeledContent>(LabeledContent.identifier);
         LABELEDCONTENT = new FilteredSet<LabeledContent>(MASTER_LABELEDCONTENT, function(c:LabeledContent):Bool {
             return !c.deleted;
+        });
+        GROUPED_LABELEDCONTENT = new GroupedSet<LabeledContent>(LABELEDCONTENT, function(lc:LabeledContent):String {
+            return lc.contentIid;
         });
         
 		SERIALIZER = new Serializer();

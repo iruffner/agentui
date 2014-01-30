@@ -11,11 +11,11 @@ interface ProtocolHandler {
 	public function createUser(newUser: NewUser): Void;
 	public function validateUser(token: String): Void;
 	public function updateUser(user: Agent): Void;
-	public function createContent(data:CreateContentData):Void;
-	public function updateContent(content:Content<Dynamic>):Void;
-	public function deleteContent(content:Content<Dynamic>):Void;
-	public function createLabel(label:Label, parentIid:String): Void;
-	public function deleteLabel(data:DeleteLabelData):Void;
+	public function createContent(data:EditContentData):Void;
+	public function updateContent(data:EditContentData):Void;
+	public function deleteContent(data:EditContentData):Void;
+	public function createLabel(data:EditLabelData): Void;
+	public function deleteLabel(data:EditLabelData):Void;
 	public function createAlias(alias: Alias): Void;
 	public function deleteAlias(alias: Alias): Void;
 	public function updateAlias(alias: Alias): Void;

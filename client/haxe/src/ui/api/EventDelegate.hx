@@ -95,15 +95,19 @@ class EventDelegate {
             protocolHandler.validateUser(token);
         }));
 
-        EM.addListener(EMEvent.CreateContent, new EMListener(function(data:CreateContentData): Void {
+        EM.addListener(EMEvent.CreateContent, new EMListener(function(data:EditContentData): Void {
         	protocolHandler.createContent(data);
     	}));
 
-        EM.addListener(EMEvent.CreateLabel, new EMListener(function(data:CreateLabelData): Void {
-        	protocolHandler.createLabel(data.label, data.parentIid);
+        EM.addListener(EMEvent.UpdateContent, new EMListener(function(data:EditContentData): Void {
+            protocolHandler.updateContent(data);
+        }));
+
+        EM.addListener(EMEvent.CreateLabel, new EMListener(function(data:EditLabelData): Void {
+        	protocolHandler.createLabel(data);
     	}));
 
-        EM.addListener(EMEvent.DeleteLabel, new EMListener(function(data:DeleteLabelData): Void {
+        EM.addListener(EMEvent.DeleteLabel, new EMListener(function(data:EditLabelData): Void {
             protocolHandler.deleteLabel(data);
         }));
 

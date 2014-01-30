@@ -91,7 +91,7 @@ extern class LabelsList extends JQ {
 										var label: Label = new Label();
 										label.name = input.val();
       									AppContext.LOGGER.debug("add to " + self.labels.getVisualId());
-      									var eventData = new CreateLabelData(label, parent.val());
+      									var eventData = new EditLabelData(label, parent.val());
 	  									EM.change(EMEvent.CreateLabel, eventData);
 										new JQ("body").click();
 									}
@@ -112,12 +112,12 @@ extern class LabelsList extends JQ {
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-			        		if (AppContext.LCG.delegate().get(alias.rootLabelIid) == null) {
+			        		if (AppContext.GROUPED_LABELCHILDREN.delegate().get(alias.rootLabelIid) == null) {
 			        			ui.AppContext.MASTER_LABELCHILDREN.add(new LabelChild(alias.rootLabelIid, AppContext.placeHolderLabel.iid));
 			        		}
 
 	        				var ms = new MappedSet<LabelChild, Label>(
-		        				AppContext.LCG.delegate().get(alias.rootLabelIid), 
+		        				AppContext.GROUPED_LABELCHILDREN.delegate().get(alias.rootLabelIid), 
 		        				function(lc: LabelChild): Label{
 		        						return AppContext.LABELS.getElement(lc.childIid);
 		        					}
@@ -162,7 +162,7 @@ extern class LabelsList extends JQ {
    		        							function(){
    		        								// TODO:  need to add the parentlabel iid
    		        								EM.change(EMEvent.DeleteLabel, 
-   		        									new DeleteLabelData(self.selectedLabelComp.getLabel(), 
+   		        									new EditLabelData(self.selectedLabelComp.getLabel(), 
    		        										                self.selectedLabelComp.parentIid()));
    		        							}
    		        						);

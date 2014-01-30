@@ -54,7 +54,7 @@ class ResponseProcessor {
 		AppContext.MASTER_LABELCHILDREN.addOrUpdate(data.labelChildren[0]);
 /* TODO:  Fix me
 		// Delete the placeholder, if necessary
-		var siblings = AppContext.LCG.delegate().get(data.labelChildren[0].parentIid);
+		var siblings = AppContext.GROUPED_LABELCHILDREN.delegate().get(data.labelChildren[0].parentIid);
 		if (siblings != null) {
 			var lcToDelete:LabelChild = null;
 			for (lc in siblings) {
@@ -96,17 +96,28 @@ class ResponseProcessor {
 	}
 
 	public static function contentCreated(data:SynchronizationParms) {
-		AppContext.MASTER_CONTENT.addOrUpdate(data.content[0]);
 		AppContext.MASTER_LABELEDCONTENT.addOrUpdate(data.labeledContent[0]);
+		AppContext.MASTER_CONTENT.addOrUpdate(data.content[0]);
+	}
+
+	public static function contentUpdated(data:SynchronizationParms) {
+		for (lc in data.labeledContent) {
+			if (lc.deleted) {
+				AppContext.MASTER_LABELEDCONTENT.delete(lc);
+			} else {
+				AppContext.MASTER_LABELEDCONTENT.addOrUpdate(lc);
+			}
+		}
+		AppContext.MASTER_CONTENT.addOrUpdate(data.content[0]);
 	}
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
 		AppContext.AGENT.aliasSet.addAll(data.aliases);
-		AppContext.MASTER_LABELS.addAll(data.labels);
-		AppContext.MASTER_CONTENT.addAll(data.content);
 		AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
 		AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
+		AppContext.MASTER_LABELS.addAll(data.labels);
+		AppContext.MASTER_CONTENT.addAll(data.content);
 
 		// Cull any labelChildren that point to non-existent labels
 		var lcsToRemove = new Array<LabelChild>();

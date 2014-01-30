@@ -82,7 +82,7 @@ class BennuHandler implements ProtocolHandler {
  //   		AppContext.alias.labelSet.clear();
  //   		AppContext.alias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
 	// }
-	public function createContent(data:CreateContentData):Void {
+	public function createContent(data:EditContentData):Void {
 		var context = Synchronizer.createContext(1 + data.labels.length, "contentCreated");
 		var requests = new Array<ChannelRequestMessage>();
 		requests.push(new ChannelRequestMessage(UPSERT, context + "content", CrudMessage.create(data.content)));
@@ -94,15 +94,61 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
-	public function updateContent(content:Content<Dynamic>):Void {}
-	public function deleteContent(content:Content<Dynamic>):Void {}
+	public function updateContent(data:EditContentData):Void {
+		var currentLabels = AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid);
+		// Find the labels to delete
+		var labelsToDelete = new Array<LabeledContent>();
+		for (labeledContent in currentLabels) {
+			var found = false;
+			for (label in data.labels) {
+				if (label.iid == labeledContent.labelIid) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				labelsToDelete.push(labeledContent);
+			}
+		}
 
-	public function createLabel(label:Label, parentIid:String): Void {
+		// Find the labels to add
+		var labelsToAdd = new Array<LabeledContent>();
+		for (label in data.labels) {
+			var found = false;
+			for (labeledContent in currentLabels) {
+				if (label.iid == labeledContent.labelIid) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				labelsToAdd.push(new LabeledContent(data.content.iid, label.iid));
+			}
+		}
+		var context = Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length, "contentUpdated");		
+	
+		var requests = new Array<ChannelRequestMessage>();
+		requests.push(new ChannelRequestMessage(UPSERT, context + "content", CrudMessage.create(data.content)));
+
+		for (lc in labelsToDelete) {
+			requests.push(new ChannelRequestMessage(DELETE, context + "labeledContent", DeleteMessage.create(lc)));
+		}
+
+		for (lc in labelsToAdd) {
+			requests.push(new ChannelRequestMessage(UPSERT, context + "labeledContent", CrudMessage.create(lc)));
+		}
+
+		new SubmitRequest(requests).start();
+	}
+
+	public function deleteContent(data:EditContentData):Void {}
+
+	public function createLabel(data:EditLabelData): Void {
 		// Create a label child, which will connect the parent and the child
-		var lc = new LabelChild(parentIid, label.iid);
+		var lc = new LabelChild(data.parentIid, data.label.iid);
 		var context = Synchronizer.createContext(2, "labelCreated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context + "label", CrudMessage.create(label)),
+			new ChannelRequestMessage(UPSERT, context + "label", CrudMessage.create(data.label)),
 			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lc))]);
 		req.start();
 	}
@@ -115,7 +161,7 @@ class BennuHandler implements ProtocolHandler {
 		// TODO:  Delete labelChild, add labelChild
 	}
  
-	public function deleteLabel(data:DeleteLabelData):Void {
+	public function deleteLabel(data:EditLabelData):Void {
 		var labelChildren = AppContext.getDescendentLabelChildren(data.label.iid);
 		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);

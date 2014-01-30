@@ -341,7 +341,6 @@ class ContentData {
 class Content<T:(ContentData)> extends ModelObjWithIid {
 	public var contentType: ContentType;
 	private var data:Dynamic;
-	private var blob:String;
 	@:transient public var props: T;
 
 	@:optional public var creator: String;
@@ -355,7 +354,6 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 		this.contentType = contentType;
 		this.type = type;
 		this.props = Type.createInstance(type, []);
-		this.blob = "";
 	}
 
 	public function get_created():Date {
@@ -516,7 +514,10 @@ class IntroductionConfirmation extends ModelObj {
 	}
 }
 
-class CreateLabelData {
+//-------------------------------------------------------------------
+// Classes used to copy data around
+
+class EditLabelData {
 	public var label:Label;
 	public var parentIid:String;
 
@@ -526,7 +527,7 @@ class CreateLabelData {
 	}
 }
 
-class CreateContentData {
+class EditContentData {
 	public var content:Content<Dynamic>;
 	public var labels:Array<Label>;
 
@@ -536,15 +537,5 @@ class CreateContentData {
 			labels = new Array<Label>();
 		}
 		this.labels = labels;
-	}
-}
-
-class DeleteLabelData {
-	public var label:Label;
-	public var parentIid:String;
-
-	public function new(label:Label, parentIid:String) {
-		this.label = label;
-		this.parentIid = parentIid;
 	}
 }

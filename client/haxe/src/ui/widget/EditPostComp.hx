@@ -35,7 +35,7 @@ typedef EditPostCompWidgetDef = {
 	var _initLabels:JQ->Void;
 	var _addToTagsContainer:UIDroppable->Void;
 	var _getDragStop:Void->(JQEvent->UIDraggable->Void);
-	var _updateContent:Void->Void;
+	var _updateContent:Void->EditContentData;
 	var _createButtonBlock:EditPostCompWidgetDef->JQ->Void;
 	var destroy: Void->Void;
 }
@@ -128,12 +128,17 @@ extern class EditPostComp extends JQ {
 				},
 
 				_initLabels: function(of:JQ) : Void {
-					// TODO: fix me
-					/*
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
-		        	var labelIter: Iterator<Label> = self.options.content.labelSet.iterator();
 
+		        	var ms = new MappedSet<LabeledContent, Label>(
+		        		AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),
+        				function(lc: LabeledContent): Label {
+    						return AppContext.LABELS.getElement(lc.labelIid);
+    					}
+    				);
+
+		        	var labelIter: Iterator<Label> = ms.iterator();
 		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = labelIter.next();
@@ -156,7 +161,6 @@ extern class EditPostComp extends JQ {
 	                	});
 	                	of = lc;
 		        	}
-		        */
 				},
 
 				_createButtonBlock:function(self: EditPostCompWidgetDef, selfElement:JQ): Void {
@@ -169,42 +173,46 @@ extern class EditPostComp extends JQ {
 
 					var buttonBlock = new JQ("<div></div>").css("text-align", "right").appendTo(selfElement);
 
-					var removeButton: JQ = new JQ("<button title='Remove Post'></button>")
-		        							.appendTo(buttonBlock)
-		        							.button({text: false,  icons: { primary: "ui-icon-circle-close"}})
-		        							.css("width", "23px")
-		        							.click(function(evt: JQEvent): Void {
-		        								evt.stopPropagation();
-		        								JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
-		        									function(){
-		        										close();
-		        										EM.change(EMEvent.DeleteContent, self.options.content);
-		        									});
-		        							});
+					new JQ("<button title='Remove Post'></button>")
+						.appendTo(buttonBlock)
+						.button({text: false,  icons: { primary: "ui-icon-circle-close"}})
+						.css("width", "23px")
+						.click(function(evt: JQEvent): Void {
+							evt.stopPropagation();
+							JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
+								function(){
+									close();
+									EM.change(EMEvent.DeleteContent, self.options.content);
+								}
+							);
+						}
+					);
 
-					var updateButton: JQ = new JQ("<button title='Update Post'></button>")
-		        							.appendTo(buttonBlock)
-		        							.button({text: false,   icons: { primary: "ui-icon-disk"}})
-		        							.css("width", "23px")
-		        							.click(function(evt: JQEvent): Void {
-		        								self._updateContent();
-		        								EM.change(EMEvent.UpdateContent, self.options.content);
-		        								close();
-		        							});
+					new JQ("<button title='Update Post'></button>")
+						.appendTo(buttonBlock)
+						.button({text: false,   icons: { primary: "ui-icon-disk"}})
+						.css("width", "23px")
+						.click(function(evt: JQEvent): Void {
+							var ecd = self._updateContent();
+							EM.change(EMEvent.UpdateContent, ecd);
+							close();
+						}
+					);
 
 
-					var closeButton: JQ = new JQ("<button title='Close'></button>")
-		        							.appendTo(buttonBlock)
-		        							.button({text: false, icons: { primary: "ui-icon-closethick"}})
-		        							.css("width", "23px")
-		        							.click(function(evt: JQEvent): Void {
-		        								close();
-		        								EM.change(EMEvent.EditContentClosed, self.options.content);
-		        							});
+					new JQ("<button title='Close'></button>")
+						.appendTo(buttonBlock)
+						.button({text: false, icons: { primary: "ui-icon-closethick"}})
+						.css("width", "23px")
+						.click(function(evt: JQEvent): Void {
+							close();
+							EM.change(EMEvent.EditContentClosed, self.options.content);
+						}
+					);
 
 				},
 
-				_updateContent: function(): Void {
+				_updateContent: function(): EditContentData {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -218,19 +226,22 @@ extern class EditPostComp extends JQ {
 						case ContentType.AUDIO:
 							cast(self.options.content, AudioContent).props.audioSrc = self.uploadComp.value();
 					}
-					/* TODO:  fix me 
-					self.options.content.labelSet.clear();
-					self.options.content.connectionSet.clear();
-					*/
+
+					var ecd = new EditContentData(self.options.content);
+
 					self.tags.children(".label").each(function(i: Int, dom: Element): Void {
 						var labelComp: LabelComp = new LabelComp(dom);
-					//	self.options.content.labelSet.add(labelComp.getLabel());
+						ecd.labels.push(labelComp.getLabel());
 					});
 					
+					/*
 					self.tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
 						var conn: ConnectionAvatar = new ConnectionAvatar(dom);
 					//	self.options.content.connectionSet.add( conn.getConnection() );
 					});
+					*/
+
+					return ecd;
 				},
 
 		        _create: function(): Void {
