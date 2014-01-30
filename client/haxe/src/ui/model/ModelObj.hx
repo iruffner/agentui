@@ -41,7 +41,7 @@ class ModelObjWithIid extends ModelObj {
 		super();
 		this.iid = UidGenerator.create(32);
 		this.deleted = false;
-		agentId = "";
+		this.agentId = AppContext.AGENT.iid;
 	}
 
 	public static function identifier(t: ModelObjWithIid): String {
@@ -62,8 +62,13 @@ class ModelObjWithIid extends ModelObj {
 }
 
 class Agent extends ModelObj {
-	public var sessionURI: String;
-	public var userData: UserData; 
+	public var iid: String;
+  	public var name: String;
+  	public var data: Dynamic;
+  	public var deleted: Bool;
+
+	@:transient public var sessionURI: String;
+	@:transient public var userData: UserData; 
 	
 	@:transient public var aliasSet: ObservableSet<Alias>;
 	@:transient public var labelSet: ObservableSet<Label>;
@@ -78,7 +83,7 @@ class Agent extends ModelObj {
 		super();
 		registerModelListeners();
 		this.aliasSet = new ObservableSet<Alias>(Alias.identifier);
-		this.aliasSet.visualId = "User Aliases";
+		this.aliasSet.visualId = "Agent Aliases";
 
 		this.labelSet = new ObservableSet<Label>(Label.identifier);
 	}

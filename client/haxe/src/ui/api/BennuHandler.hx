@@ -30,7 +30,7 @@ class BennuHandler implements ProtocolHandler {
 
 	public function getUser(login: Login): Void {
 		// Establish a connection with the server to get the channel_id
-		new BennuRequest("/api/channel/create", "", onCreateChannel).start();
+		new BennuRequest("/api/channel/create/" + AppContext.AGENT.iid, "", onCreateChannel).start();
 	}
 
 	public function filter(filter: Filter): Void { }

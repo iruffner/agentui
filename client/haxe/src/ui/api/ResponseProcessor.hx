@@ -3,6 +3,7 @@ package ui.api;
 import haxe.ds.StringMap;
 
 import m3.jq.JQ;
+import m3.util.JqueryUtil;
 import m3.observable.OSet;
 import ui.api.Synchronizer;
 import ui.model.EM;
@@ -18,12 +19,16 @@ class ResponseProcessor {
 		if (dataArr == null || dataArr.length == 0) { return; }
 
 		dataArr.iter(function(data:Dynamic): Void {
-			var context:Array<String> = data.context.split("-");
-			var synchronizer = Synchronizer.synchronizers.get(context[0]);
-			if (synchronizer == null) {
-				synchronizer = Synchronizer.add(data.context);
+			if (!data.success) {
+				JqueryUtil.alert("ERROR:  " + data.error.message + "      Context: " + data.context);
+			} else {
+				var context:Array<String> = data.context.split("-");
+				var synchronizer = Synchronizer.synchronizers.get(context[0]);
+				if (synchronizer == null) {
+					synchronizer = Synchronizer.add(data.context);
+				}
+				synchronizer.dataReceived(data.result, context[3]);
 			}
-			synchronizer.dataReceived(data.result, context[3]);
 		});
 	}
 

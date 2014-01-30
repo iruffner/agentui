@@ -64,10 +64,12 @@ class ChannelRequestMessage {
 @:rtti
 class ChannelRequestMessageBundle {
 
+	private var agentId:String;
 	private var channel:String;
 	private var requests:Array<ChannelRequestMessage>;
 
 	public function new(?requests_:Array<ChannelRequestMessage>) {
+		this.agentId = AppContext.AGENT.iid;
 		this.channel = AppContext.CHANNEL;
 		if (requests_ == null) {
 			this.requests = new Array<ChannelRequestMessage>();
