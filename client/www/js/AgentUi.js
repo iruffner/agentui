@@ -9404,8 +9404,8 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTree must be a div element");
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
+		if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
 		self.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid),function(labelChild) {
-			if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(labelChild.childIid) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(labelChild.childIid);
 			return new $("<div></div>").labelTreeBranch({ parentIid : self.options.parentIid, labelIid : labelChild.childIid});
 		});
 		self.mappedLabels.visualId = self.options.parentIid + "_map";
@@ -9480,7 +9480,6 @@ var defineWidget = function() {
 					ui.AppContext.LOGGER.info("Create new label | " + input.val());
 					var label = new ui.model.Label();
 					label.name = input.val();
-					ui.AppContext.LOGGER.debug("add to " + self.labels.getVisualId());
 					var eventData = new ui.model.EditLabelData(label,parent.val());
 					ui.model.EM.change(ui.model.EMEvent.CreateLabel,eventData);
 					new $("body").click();
@@ -9489,25 +9488,23 @@ var defineWidget = function() {
 		}, positionalElement : reference});
 	}, _create : function() {
 		var self1 = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
-		selfElement.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
+		var selfElement1 = this.element;
+		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
+		selfElement1.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(alias.rootLabelIid) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(alias.rootLabelIid);
-			var ms = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(alias.rootLabelIid),function(lc) {
-				return m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,lc.childIid);
-			});
-			self1._setLabels(ms,alias.rootLabelIid);
+			selfElement1.children(".labelTree").remove();
+			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid});
+			selfElement1.prepend(labelTree);
 		},"LabelsList-Alias"));
 		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
-		selfElement.append(newLabelButton).append("<div class='clear'></div>");
+		selfElement1.append(newLabelButton).append("<div class='clear'></div>");
 		newLabelButton.button().click(function(evt) {
 			evt.stopPropagation();
 			self1.selectedLabelComp = null;
 			self1._showNewLabelPopup(newLabelButton);
 		});
 		var menu = new $("<ul id='label-action-menu'></ul>");
-		menu.appendTo(selfElement);
+		menu.appendTo(selfElement1);
 		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "New Child Label", icon : "ui-icon-circle-plus", action : function(evt,m) {
 			evt.stopPropagation();
 			var reference = self1.selectedLabelComp;
@@ -9520,7 +9517,7 @@ var defineWidget = function() {
 				ui.model.EM.change(ui.model.EMEvent.DeleteLabel,new ui.model.EditLabelData(ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp),ui.widget.LabelCompHelper.parentIid(self1.selectedLabelComp)));
 			});
 		}}], width : 225}).hide();
-		selfElement.bind("contextmenu",function(evt) {
+		selfElement1.bind("contextmenu",function(evt) {
 			menu.show();
 			menu.position({ my : "left top", of : evt});
 			var target = new $(evt.target);
@@ -9533,14 +9530,6 @@ var defineWidget = function() {
 			evt.stopPropagation();
 			return false;
 		});
-	}, _setLabels : function(labels,parentIid) {
-		var self = this;
-		var selfElement = this.element;
-		self.labels = labels;
-		selfElement.children(".labelTree").remove();
-		var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : parentIid});
-		selfElement.prepend(labelTree);
-		var jqevent = null;
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};

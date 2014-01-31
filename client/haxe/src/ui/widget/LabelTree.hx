@@ -45,12 +45,12 @@ extern class LabelTree extends JQ {
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
 
+    				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid) == null) {
+	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
+    				}
+    				
 		        	self.mappedLabels = new MappedSet<LabelChild, LabelTreeBranch>(AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid), 
 		        		function(labelChild: LabelChild): LabelTreeBranch {
-	        				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(labelChild.childIid) == null) {
-			        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(labelChild.childIid);
-	        				}
-
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				parentIid: self.options.parentIid,
 		        				labelIid: labelChild.childIid

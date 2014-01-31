@@ -17,10 +17,8 @@ using ui.widget.LabelComp;
 using m3.helper.OSetHelper;
 
 typedef LabelsListWidgetDef = {
-	@:optional var labels: OSet<Label>;
 	@:optional var selectedLabelComp:LabelComp;
 	var _create: Void->Void;
-	var _setLabels: OSet<Label>->String->Void;
 	var _showNewLabelPopup:JQ->Void;
 	var destroy: Void->Void;
 }
@@ -90,7 +88,6 @@ extern class LabelsList extends JQ {
 										AppContext.LOGGER.info("Create new label | " + input.val());
 										var label: Label = new Label();
 										label.name = input.val();
-      									AppContext.LOGGER.debug("add to " + self.labels.getVisualId());
       									var eventData = new EditLabelData(label, parent.val());
 	  									EM.change(EMEvent.CreateLabel, eventData);
 										new JQ("body").click();
@@ -112,17 +109,12 @@ extern class LabelsList extends JQ {
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-			        		if (AppContext.GROUPED_LABELCHILDREN.delegate().get(alias.rootLabelIid) == null) {
-			        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(alias.rootLabelIid);
-			        		}
-
-	        				var ms = new MappedSet<LabelChild, Label>(
-		        				AppContext.GROUPED_LABELCHILDREN.delegate().get(alias.rootLabelIid), 
-		        				function(lc: LabelChild): Label{
-		        						return AppContext.LABELS.getElement(lc.childIid);
-		        					}
-        					);
-		        			self._setLabels(ms, alias.rootLabelIid);
+		        			// Create the top-level label tree
+		        			selfElement.children(".labelTree").remove();
+							var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
+				                parentIid:alias.rootLabelIid
+				            });
+				        	selfElement.prepend(labelTree);
 	        			}, "LabelsList-Alias")
 		        	);
 
@@ -204,23 +196,6 @@ extern class LabelsList extends JQ {
 
 		        },
 
-		        _setLabels: function(labels: OSet<Label>, parentIid:String): Void {
-		        	var self: LabelsListWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-					self.labels = labels;
-
-					selfElement.children(".labelTree").remove();
-
-					var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
-		                parentIid:parentIid
-		            });
-
-		        	selfElement.prepend(labelTree);
-
-		        	var jqevent:JQEvent = null;
-	        	},
-		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
