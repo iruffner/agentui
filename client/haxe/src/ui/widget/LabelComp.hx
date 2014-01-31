@@ -23,10 +23,11 @@ typedef LabelCompOptions  = {
 typedef LabelCompWidgetDef = {
 	var options: LabelCompOptions;
 	@:optional var label:Label;
+	@:optional var filteredSet:FilteredSet<Label>;
 	var _create: Void->Void;
 	var _registerListeners: Void->Void;
 	@:optional var _super: Void->Void;
-	var _onupdate: Label->EventType->Void;
+	@:optional var _onupdate: Label->EventType->Void;
 	var destroy: Void->Void;
 	var getLabel:Void->Label;
 }
@@ -88,10 +89,23 @@ extern class LabelComp extends FilterableComponent {
 
 		        _registerListeners: function():Void {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
-		        	var fs = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
+					var selfElement: JQ = Widgets.getSelfElement();
+
+			        self._onupdate = function(label:Label, t:EventType): Void {
+						if (t.isUpdate()) {
+							self.label = label;
+				        	selfElement.find(".labelBody").text(label.name);
+				       		selfElement.find(".labelTail").css("border-right-color", label.data.color);
+				            selfElement.find(".labelBox").css("background", label.data.color);
+				        } else if (t.isDelete()) {
+				        	// Delete is being performed by the LabelTreeBranch
+				        }
+		        	};
+		        
+		        	self.filteredSet = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
 		        		return label.iid == self.options.labelIid;
 		        	});
-					fs.listen(self._onupdate);
+					self.filteredSet.listen(self._onupdate);
 		        },
 		        
 		        _create: function(): Void {
@@ -193,21 +207,9 @@ extern class LabelComp extends FilterableComponent {
 					}
 		        },
 
-		        _onupdate: function(label:Label, t:EventType): Void {
-		        	var self: LabelCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-					if (t.isUpdate()) {
-						self.label = label;
-			        	selfElement.find(".labelBody").text(label.name);
-			       		selfElement.find(".labelTail").css("border-right-color", label.data.color);
-			            selfElement.find(".labelBox").css("background", label.data.color);
-			        } else if (t.isDelete()) {
-			        	// Delete is being performed by the LabelTreeBranch
-			        }
-	        	},
-		        
 		        destroy: function() {
+		        	var self: LabelCompWidgetDef = Widgets.getSelf();
+		        	self.filteredSet.removeListener(self._onupdate);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

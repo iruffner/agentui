@@ -17,6 +17,7 @@ typedef LabelTreeOptions = {
 typedef LabelTreeWidgetDef = {
 	var options: LabelTreeOptions;
 	@:optional var mappedLabels: MappedSet<LabelChild, LabelTreeBranch>;
+	@:optional var onchangeLabelChildren: LabelTreeBranch->EventType->Void;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -44,12 +45,22 @@ extern class LabelTree extends JQ {
 
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
-
     				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid) == null) {
 	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
     				}
-    				
-		        	self.mappedLabels = new MappedSet<LabelChild, LabelTreeBranch>(AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid), 
+
+			        self.onchangeLabelChildren = function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
+	        			AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
+	            		if(evt.isAdd()) {
+	            			selfElement.append(labelTreeBranch);
+	            		} else if (evt.isUpdate()) {
+	            			throw new Exception("this should never happen");
+	            		} else if (evt.isDelete()) {
+	            			labelTreeBranch.remove();
+	            		}
+	            	};
+
+            		self.mappedLabels = new MappedSet<LabelChild, LabelTreeBranch>(AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid), 
 		        		function(labelChild: LabelChild): LabelTreeBranch {
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				parentIid: self.options.parentIid,
@@ -58,19 +69,12 @@ extern class LabelTree extends JQ {
 	        		});
 		        	self.mappedLabels.visualId = self.options.parentIid + "_map";
 
-		        	self.mappedLabels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
-	        			AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
-	            		if(evt.isAdd()) {
-	            			selfElement.append(labelTreeBranch);
-	            		} else if (evt.isUpdate()) {
-	            			labelTreeBranch.labelTreeBranch("update");
-	            		} else if (evt.isDelete()) {
-	            			labelTreeBranch.remove();
-	            		}
-	            	});
+		        	self.mappedLabels.listen(self.onchangeLabelChildren);
 		        },
 		        
 		        destroy: function() {
+		        	var self: LabelTreeWidgetDef = Widgets.getSelf();
+		        	self.mappedLabels.removeListener(self.onchangeLabelChildren);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };
