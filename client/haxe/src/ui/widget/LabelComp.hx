@@ -93,12 +93,18 @@ extern class LabelComp extends FilterableComponent {
 
 			        self._onupdate = function(label:Label, t:EventType): Void {
 						if (t.isUpdate()) {
-							self.label = label;
-				        	selfElement.find(".labelBody").text(label.name);
-				       		selfElement.find(".labelTail").css("border-right-color", label.data.color);
-				            selfElement.find(".labelBox").css("background", label.data.color);
+							if (label.deleted) {
+					        	self.destroy();
+					        	selfElement.remove();								
+							} else {
+								self.label = label;
+					        	selfElement.find(".labelBody").text(label.name);
+					       		selfElement.find(".labelTail").css("border-right-color", label.data.color);
+					            selfElement.find(".labelBox").css("background", label.data.color);
+					        }
 				        } else if (t.isDelete()) {
-				        	// Delete is being performed by the LabelTreeBranch
+				        	self.destroy();
+				        	selfElement.remove();
 				        }
 		        	};
 		        

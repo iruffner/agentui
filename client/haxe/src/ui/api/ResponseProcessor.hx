@@ -45,7 +45,6 @@ class ResponseProcessor {
 	}
 
 	public static function aliasDeleted(data:SynchronizationParms) {
-		data.aliases[0].deleted = true;
 		AppContext.AGENT.aliasSet.addOrUpdate(data.aliases[0]);
 	}
 
@@ -58,8 +57,6 @@ class ResponseProcessor {
 		AppContext.MASTER_LABELS.update(data.labels[0]);
 	}
 
-	// TODO:  Add a method to delete or add/update model objects based on their
-	// deleted flag
 	public static function labelMoved(data:SynchronizationParms) {
 		for (lc in data.labelChildren) {
 			AppContext.MASTER_LABELCHILDREN.addOrUpdate(lc);
@@ -68,13 +65,15 @@ class ResponseProcessor {
 
 	public static function labelDeleted(data:SynchronizationParms) {
 		for (lc in data.labelChildren) {
-			lc.deleted = true;
 			AppContext.MASTER_LABELCHILDREN.addOrUpdate(lc);
 		}
 
 		for (label in data.labels) {
-			label.deleted = true;
 			AppContext.MASTER_LABELS.addOrUpdate(label);
+		}
+
+		for (lc in data.labeledContent) {
+			AppContext.MASTER_LABELEDCONTENT.addOrUpdate(lc);
 		}
 	}
 
@@ -85,20 +84,16 @@ class ResponseProcessor {
 
 	public static function contentUpdated(data:SynchronizationParms) {
 		for (lc in data.labeledContent) {
-			if (lc.deleted) {
-				AppContext.MASTER_LABELEDCONTENT.delete(lc);
-			} else {
-				AppContext.MASTER_LABELEDCONTENT.addOrUpdate(lc);
-			}
+			AppContext.MASTER_LABELEDCONTENT.addOrUpdate(lc);
 		}
 		AppContext.MASTER_CONTENT.addOrUpdate(data.content[0]);
 	}
 
 	public static function contentDeleted(data:SynchronizationParms) {
 		for (lc in data.labeledContent) {
-			AppContext.MASTER_LABELEDCONTENT.delete(lc);
+			AppContext.MASTER_LABELEDCONTENT.addOrUpdate(lc);
 		}
-		AppContext.MASTER_CONTENT.delete(data.content[0]);
+		AppContext.MASTER_CONTENT.addOrUpdate(data.content[0]);
 	}
 
 	public static function initialDataLoad(data:SynchronizationParms) {
@@ -111,25 +106,26 @@ class ResponseProcessor {
 
 		// Cull any labelChildren that point to non-existent labels
 		var lcsToRemove = new Array<LabelChild>();
-		for (lc in AppContext.MASTER_LABELCHILDREN) {
+		for (lc in AppContext.LABELCHILDREN) {
 			if (AppContext.LABELS.getElement(lc.childIid) == null) {
 				lcsToRemove.push(lc);
 			}
 		}
 		for (lc in lcsToRemove) {
-			ui.AppContext.LOGGER.warn("LabelChild points to non-existent label.  DELETE IT.");
+			ui.AppContext.LOGGER.warn("NON-DELETED LabelChild points to deleted label.  DELETE IT.");
 			AppContext.MASTER_LABELCHILDREN.delete(lc);
 		}
 
 		// Cull any labeledContent that point to non-existent content
 		var lacosToRemove = new Array<LabeledContent>();
-		for (lc in AppContext.MASTER_LABELEDCONTENT) {
-			if (AppContext.CONTENT.getElement(lc.contentIid) == null) {
+		for (lc in AppContext.LABELEDCONTENT) {
+			if (AppContext.CONTENT.getElement(lc.contentIid) == null ||
+				AppContext.LABELS.getElement(lc.labelIid) == null) {
 				lacosToRemove.push(lc);
 			}
 		}
 		for (lc in lacosToRemove) {
-			ui.AppContext.LOGGER.warn("LabeledContent points to non-existent label.  DELETE IT.");
+			ui.AppContext.LOGGER.warn("NON-DELETED LabeledContent points to deleted content or label.  DELETE IT.");
 			AppContext.MASTER_LABELEDCONTENT.delete(lc);
 		}
 

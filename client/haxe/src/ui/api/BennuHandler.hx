@@ -68,6 +68,7 @@ class BennuHandler implements ProtocolHandler {
 	public function deleteAlias(alias: Alias): Void {
 		// TODO:  Delete the label and label childs associated with this alias
 		// NB:  Only delete labels that are orphans...
+		alias.deleted = true;
 		var deleteRequest = new DeleteRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
 			js.Lib.alert(data);
 		});
@@ -131,6 +132,7 @@ class BennuHandler implements ProtocolHandler {
 		requests.push(new ChannelRequestMessage(UPSERT, context + "content", CrudMessage.create(data.content)));
 
 		for (lc in labelsToDelete) {
+			lc.deleted = true;
 			requests.push(new ChannelRequestMessage(DELETE, context + "labeledContent", DeleteMessage.create(lc)));
 		}
 
@@ -144,9 +146,11 @@ class BennuHandler implements ProtocolHandler {
 	public function deleteContent(data:EditContentData):Void {
 		var context = Synchronizer.createContext(1 + data.labels.length, "contentDeleted");		
 		var requests = new Array<ChannelRequestMessage>();
+		data.content.deleted = true;
 		requests.push(new ChannelRequestMessage(DELETE, context + "content", CrudMessage.create(data.content)));
 
 		for (lc in AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid)) {
+			lc.deleted = true;
 			requests.push(new ChannelRequestMessage(DELETE, context + "labeledContent", DeleteMessage.create(lc)));
 		}
 
@@ -172,24 +176,38 @@ class BennuHandler implements ProtocolHandler {
 	}
  
 	public function deleteLabel(data:EditLabelData):Void {
+
 		var labelChildren = AppContext.getDescendentLabelChildren(data.label.iid);
 		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
 		});
 		labelChildren = labelChildren.concat(lcs.asArray());
-		var labels = AppContext.getLabelDescendents(data.label.iid);
-		var count = labels.size() + labelChildren.length;
+		var labelledContent = new FilteredSet<LabeledContent>(AppContext.LABELEDCONTENT, function(lc:LabeledContent):Bool{
+			return lc.labelIid == data.label.iid;
+		}).asArray();
+
+		// TODO:  need to determine if the label(s) should be deleted.  The criteria being that
+		// there are no references to them in either the LabelChildren or the LabelledContent...
+		var labels = AppContext.getLabelDescendents(data.label.iid).asArray();
+		var count = labels.length + labelChildren.length + labelledContent.length;
 		var context = Synchronizer.createContext(count, "labelDeleted");
 
 		var requests = new Array<ChannelRequestMessage>();
 
 		// Create messages for each of these datatypes
 		for (label in labels) {
+			label.deleted = true;
 			requests.push(new ChannelRequestMessage(DELETE, context + "label", DeleteMessage.create(label)));
 		}
 
-		for (labelChild in labelChildren) {
-			requests.push(new ChannelRequestMessage(DELETE, context + "labelChild", DeleteMessage.create(labelChild)));
+		for (lc in labelChildren) {
+			lc.deleted = true;
+			requests.push(new ChannelRequestMessage(DELETE, context + "labelChild", DeleteMessage.create(lc)));
+		}
+
+		for (lc in labelledContent) {
+			lc.deleted = true;
+			requests.push(new ChannelRequestMessage(DELETE, context + "labeledContent", DeleteMessage.create(lc)));
 		}
 
 		new SubmitRequest(requests).start();
@@ -207,11 +225,11 @@ class BennuHandler implements ProtocolHandler {
 
 		var context = Synchronizer.createContext(5, "initialDataLoad");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(QUERY, context + "aliases"     , new QueryMessage("alias")),
-			new ChannelRequestMessage(QUERY, context + "labels"     , new QueryMessage("label")),
-			new ChannelRequestMessage(QUERY, context + "contents"     , new QueryMessage("content")),
+			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
+			new ChannelRequestMessage(QUERY, context + "labels"         , new QueryMessage("label")),
+			new ChannelRequestMessage(QUERY, context + "contents"       , new QueryMessage("content")),
 			new ChannelRequestMessage(QUERY, context + "labeledContents", new QueryMessage("labeledContent")),
-			new ChannelRequestMessage(QUERY, context + "labelChildren", new QueryMessage("labelChild"))
+			new ChannelRequestMessage(QUERY, context + "labelChildren"  , new QueryMessage("labelChild"))
 		]);
 		req.start();
 	}

@@ -131,6 +131,10 @@ extern class EditPostComp extends JQ {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
+		        	if (AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) {
+		        		AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
+		        	}
+		        	
 		        	var ms = new MappedSet<LabeledContent, Label>(
 		        		AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),
         				function(lc: LabeledContent): Label {

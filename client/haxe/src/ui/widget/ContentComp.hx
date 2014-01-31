@@ -116,6 +116,9 @@ extern class ContentComp extends JQ {
 
 		        	var postLabels = new JQ("<aside class='postLabels'></div>").appendTo(postWr);
 
+		        	if (AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) {
+		        		AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
+		        	}
 		        	var ms = new MappedSet<LabeledContent, Label>(
 		        		AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),
         				function(lc: LabeledContent): Label {
