@@ -90,7 +90,7 @@ extern class FilterComp extends JQ {
 				 		        			});
 
 				                		introComp.insertAfter(new JQ("#filter"));
-				                		return;
+				                		// return;
 				                	}
 				                }
 			                }
