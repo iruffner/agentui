@@ -11,26 +11,29 @@ import ui.widget.FilterableComponent;
 import m3.exception.Exception;
 import m3.util.UidGenerator;
 
+using m3.helper.OSetHelper;
 using StringTools;
 
 typedef LabelCompOptions  = { 
 	>FilterableCompOptions,
-	var label: Label;
+	var labelIid: String;
 	@:optional var parentIid:String;
 }
 
 typedef LabelCompWidgetDef = {
 	var options: LabelCompOptions;
+	@:optional var label:Label;
 	var _create: Void->Void;
 	var _registerListeners: Void->Void;
 	@:optional var _super: Void->Void;
 	var _onupdate: Label->EventType->Void;
 	var destroy: Void->Void;
+	var getLabel:Void->Label;
 }
 
 class LabelCompHelper {
 	public static function getLabel(l: LabelComp): Label {
-		return l.labelComp("option", "label");
+		return l.labelComp("getLabel");
 	}
 	public static function parentIid(l: LabelComp): String {
 		return l.labelComp("option", "parentIid");
@@ -49,7 +52,7 @@ extern class LabelComp extends FilterableComponent {
 		var defineWidget: Void->LabelCompWidgetDef = function(): LabelCompWidgetDef {
 			return {
 		        options: {
-		            label: null,
+		            labelIid: null,
 		            isDragByHelper: true,
 		            containment: false,
 		            dndEnabled: true,
@@ -66,7 +69,7 @@ extern class LabelComp extends FilterableComponent {
 				            	if(labelComp.hasClass("clone")) return labelComp;
 				            	var clone: LabelComp = new LabelComp("<div class='clone'></div>");
 				            	clone.labelComp({
-			                        label: labelComp.labelComp("option", "label"),
+			                        labelIid: labelComp.labelComp("option", "labelIid"),
 			                        isDragByHelper: isDragByHelper,
 			                        containment: containment,
 			                        dragstop: dragstop,
@@ -78,10 +81,15 @@ extern class LabelComp extends FilterableComponent {
 		            		}
 		        },
 
+		        getLabel: function():Label {
+		        	var self: LabelCompWidgetDef = Widgets.getSelf();
+		        	return self.label;
+		        },
+
 		        _registerListeners: function():Void {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 		        	var fs = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
-		        		return label.iid == self.options.label.iid;
+		        		return label.iid == self.options.labelIid;
 		        	});
 					fs.listen(self._onupdate);
 		        },
@@ -93,15 +101,22 @@ extern class LabelComp extends FilterableComponent {
 		        		throw new Exception("Root of LabelComp must be a div element");
 		        	}
 
-		        	selfElement.addClass("label labelComp ").attr("id", self.options.label.name.htmlEscape() + "_" + UidGenerator.create(8));
+		        	self.label = AppContext.LABELS.getElement(self.options.labelIid);
+		        	if (self.label == null) {
+		        		self.label = new Label("...");
+		        		self.label.iid = self.options.labelIid;
+		        		AppContext.MASTER_LABELS.add(self.label);
+		        	}
+
+		        	selfElement.addClass("label labelComp ").attr("id", self.label.name.htmlEscape() + "_" + UidGenerator.create(8));
 		        	
 		            var labelTail: JQ = new JQ("<div class='labelTail'></div>");
-		            labelTail.css("border-right-color", self.options.label.data.color);
+		            labelTail.css("border-right-color", self.label.data.color);
 		            selfElement.append(labelTail);
 		            var labelBox: JQ = new JQ("<div class='labelBox shadowRight'></div>");
-		            labelBox.css("background", self.options.label.data.color);
+		            labelBox.css("background", self.label.data.color);
 		            var labelBody: JQ = new JQ("<div class='labelBody'></div>");
-		            var labelText: JQ = new JQ("<div>" + self.options.label.name + "</div>");
+		            var labelText: JQ = new JQ("<div>" + self.label.name + "</div>");
 		            labelBody.append(labelText);
 		            labelBox.append(labelBody);
 		            selfElement.append(labelBox).append("<div class='clear'></div>");
@@ -118,7 +133,7 @@ extern class LabelComp extends FilterableComponent {
 		            	selfElement.data("getNode", function(): Node {
 			            		var node: LabelNode = new LabelNode();
 			            		node.type = "LABEL";
-			            		node.content = self.options.label;
+			            		node.content = self.label;
 			            		return node;
 			            	});
 
@@ -130,7 +145,7 @@ extern class LabelComp extends FilterableComponent {
 			            }
 
 		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-		            				AppContext.LOGGER.debug("dragstop on label | " + self.options.label.name);
+		            				AppContext.LOGGER.debug("dragstop on label | " + self.label.name);
 			                		if(self.options.dragstop != null) {
 			                			self.options.dragstop(dragstopEvt, dragstopUi);
 			                		}
@@ -183,13 +198,12 @@ extern class LabelComp extends FilterableComponent {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					if (t.isUpdate()) {
-						self.options.label = label;
+						self.label = label;
 			        	selfElement.find(".labelBody").text(label.name);
 			       		selfElement.find(".labelTail").css("border-right-color", label.data.color);
 			            selfElement.find(".labelBox").css("background", label.data.color);
 			        } else if (t.isDelete()) {
-			        	self.destroy();
-			        	selfElement.remove();
+			        	// Delete is being performed by the LabelTreeBranch
 			        }
 	        	},
 		        

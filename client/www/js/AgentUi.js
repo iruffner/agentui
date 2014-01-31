@@ -7574,7 +7574,7 @@ ui.widget.LabelCompHelper = function() { }
 $hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
 ui.widget.LabelCompHelper.__name__ = ["ui","widget","LabelCompHelper"];
 ui.widget.LabelCompHelper.getLabel = function(l) {
-	return l.labelComp("option","label");
+	return l.labelComp("getLabel");
 }
 ui.widget.LabelCompHelper.parentIid = function(l) {
 	return l.labelComp("option","parentIid");
@@ -8824,53 +8824,62 @@ var defineWidget = function() {
 };
 $.widget("ui.connectionsList",defineWidget());
 var defineWidget = function() {
-	return { options : { label : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dropTargetClass : "labelDT", dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
+	return { options : { labelIid : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dropTargetClass : "labelDT", dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
 		if(containment == null) containment = false;
 		if(isDragByHelper == null) isDragByHelper = false;
 		var labelComp = js.Boot.__cast(filterableComp , $);
 		if(labelComp.hasClass("clone")) return labelComp;
 		var clone = new $("<div class='clone'></div>");
-		clone.labelComp({ label : labelComp.labelComp("option","label"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : labelComp.labelComp("option","classes"), cloneFcn : labelComp.labelComp("option","cloneFcn"), dropTargetClass : labelComp.labelComp("option","dropTargetClass")});
+		clone.labelComp({ labelIid : labelComp.labelComp("option","labelIid"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : labelComp.labelComp("option","classes"), cloneFcn : labelComp.labelComp("option","cloneFcn"), dropTargetClass : labelComp.labelComp("option","dropTargetClass")});
 		return clone;
-	}}, _registerListeners : function() {
+	}}, getLabel : function() {
 		var self = this;
-		var fs = new m3.observable.FilteredSet(ui.AppContext.LABELS,function(label) {
-			return label.get_iid() == self.options.label.get_iid();
-		});
-		fs.listen(self._onupdate);
-	}, _create : function() {
+		return self.label;
+	}, _registerListeners : function() {
 		var self1 = this;
+		var fs = new m3.observable.FilteredSet(ui.AppContext.LABELS,function(label) {
+			return label.get_iid() == self1.options.labelIid;
+		});
+		fs.listen(self1._onupdate);
+	}, _create : function() {
+		var self2 = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelComp must be a div element");
-		selfElement.addClass("label labelComp ").attr("id",StringTools.htmlEscape(self1.options.label.name) + "_" + m3.util.UidGenerator.create(8));
+		self2.label = m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,self2.options.labelIid);
+		if(self2.label == null) {
+			self2.label = new ui.model.Label("...");
+			self2.label.set_iid(self2.options.labelIid);
+			ui.AppContext.MASTER_LABELS.add(self2.label);
+		}
+		selfElement.addClass("label labelComp ").attr("id",StringTools.htmlEscape(self2.label.name) + "_" + m3.util.UidGenerator.create(8));
 		var labelTail = new $("<div class='labelTail'></div>");
-		labelTail.css("border-right-color",self1.options.label.data.color);
+		labelTail.css("border-right-color",self2.label.data.color);
 		selfElement.append(labelTail);
 		var labelBox = new $("<div class='labelBox shadowRight'></div>");
-		labelBox.css("background",self1.options.label.data.color);
+		labelBox.css("background",self2.label.data.color);
 		var labelBody = new $("<div class='labelBody'></div>");
-		var labelText = new $("<div>" + self1.options.label.name + "</div>");
+		var labelText = new $("<div>" + self2.label.name + "</div>");
 		labelBody.append(labelText);
 		labelBox.append(labelBody);
 		selfElement.append(labelBox).append("<div class='clear'></div>");
 		selfElement.addClass("filterable");
-		self1._registerListeners();
-		if(self1.options.dndEnabled) {
-			selfElement.data("clone",self1.options.cloneFcn);
-			selfElement.data("dropTargetClass",self1.options.dropTargetClass);
+		self2._registerListeners();
+		if(self2.options.dndEnabled) {
+			selfElement.data("clone",self2.options.cloneFcn);
+			selfElement.data("dropTargetClass",self2.options.dropTargetClass);
 			selfElement.data("getNode",function() {
 				var node = new ui.model.LabelNode();
 				node.type = "LABEL";
-				node.content = self1.options.label;
+				node.content = self2.label;
 				return node;
 			});
 			var helper = "clone";
-			if(!self1.options.isDragByHelper) helper = "original"; else if(self1.options.helperFcn != null && Reflect.isFunction(self1.options.helperFcn)) helper = self1.options.helperFcn;
+			if(!self2.options.isDragByHelper) helper = "original"; else if(self2.options.helperFcn != null && Reflect.isFunction(self2.options.helperFcn)) helper = self2.options.helperFcn;
 			selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
-				ui.AppContext.LOGGER.debug("dragstop on label | " + self1.options.label.name);
-				if(self1.options.dragstop != null) self1.options.dragstop(dragstopEvt,dragstopUi);
+				ui.AppContext.LOGGER.debug("dragstop on label | " + self2.label.name);
+				if(self2.options.dragstop != null) self2.options.dragstop(dragstopEvt,dragstopUi);
 			});
-			(js.Boot.__cast(selfElement , $)).draggable({ containment : self1.options.containment, helper : helper, distance : 10, scroll : false, revertDuration : 200, start : function(evt,_ui) {
+			(js.Boot.__cast(selfElement , $)).draggable({ containment : self2.options.containment, helper : helper, distance : 10, scroll : false, revertDuration : 200, start : function(evt,_ui) {
 				(js.Boot.__cast(selfElement , $)).draggable("option","revert",false);
 			}});
 			(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
@@ -8878,7 +8887,7 @@ var defineWidget = function() {
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 				var filterCombiner = new $("<div></div>");
 				filterCombiner.appendTo($(this).parent());
-				filterCombiner.filterCombination({ event : event, type : "LABEL", dragstop : self1.options.dragstop});
+				filterCombiner.filterCombination({ event : event, type : "LABEL", dragstop : self2.options.dragstop});
 				filterCombiner.filterCombination("addFilterable",$(this));
 				var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"window");
 				clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
@@ -8890,13 +8899,11 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(t.isUpdate()) {
-			self.options.label = label;
+			self.label = label;
 			selfElement.find(".labelBody").text(label.name);
 			selfElement.find(".labelTail").css("border-right-color",label.data.color);
 			selfElement.find(".labelBox").css("background",label.data.color);
 		} else if(t.isDelete()) {
-			self.destroy();
-			selfElement.remove();
 		}
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
@@ -8956,7 +8963,7 @@ var defineWidget = function() {
 		var edit_post_comps_tags = new $("#edit_post_comps_tags",selfElement);
 		while(labelIter.hasNext()) {
 			var label = labelIter.next();
-			var lc = new $("<div></div>").labelComp({ label : label, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self._getDragStop()}).appendTo(edit_post_comps_tags).css("position","absolute").addClass("small");
+			var lc = new $("<div></div>").labelComp({ labelIid : label.get_iid(), dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self._getDragStop()}).appendTo(edit_post_comps_tags).css("position","absolute").addClass("small");
 			lc.position({ my : "top", at : "bottom", of : of, collision : "flipfit", within : self.tags});
 			of = lc;
 		}
@@ -9132,7 +9139,7 @@ var defineWidget = function() {
 		while(labelIter.hasNext()) {
 			var label = labelIter.next();
 			if(label == null) continue;
-			new $("<div class='small'></div>").labelComp({ dndEnabled : false, label : label}).appendTo(postLabels);
+			new $("<div class='small'></div>").labelComp({ dndEnabled : false, labelIid : label.get_iid()}).appendTo(postLabels);
 		}
 	}, _create : function() {
 		var self1 = this;
@@ -9360,57 +9367,48 @@ var defineWidget = function() {
 };
 $.widget("ui.inviteComp",defineWidget());
 var defineWidget = function() {
-	return { options : { parentIid : null, label : null, children : null, classes : null}, _create : function() {
+	return { options : { parentIid : null, labelIid : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTreeBranch must be a div element");
 		selfElement.addClass("labelTreeBranch ");
 		var expander = new $("<div class='labelTreeExpander' style='visibility:hidden;'><b>+</b></div>");
 		selfElement.append(expander);
-		var label = new $("<div></div>").labelComp({ parentIid : self.options.parentIid, label : self.options.label, isDragByHelper : true, containment : false, dragstop : null});
+		var label = new $("<div></div>").labelComp({ parentIid : self.options.parentIid, labelIid : self.options.labelIid, isDragByHelper : true, containment : false, dragstop : null});
 		selfElement.append(label);
 		selfElement.hover(function() {
-			if(m3.helper.OSetHelper.hasValues(self.options.children)) expander.css("visibility","visible");
+			if(m3.helper.OSetHelper.hasValues(self.children)) expander.css("visibility","visible");
 		},function() {
 			expander.css("visibility","hidden");
 		});
-		if(self.options.children != null) {
-			var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
-			labelChildren.labelTree({ parentIid : self.options.label.get_iid(), labels : self.options.children});
-			selfElement.append(labelChildren);
-			label.add(expander).click(function(evt) {
-				if(m3.helper.OSetHelper.hasValues(self.options.children)) {
-					labelChildren.toggle();
-					labelChildren.toggleClass("labelTreeFullWidth");
-				} else labelChildren.hide();
-				if(labelChildren.css("display") == "none") expander.html("<b>+</b>"); else expander.html("<b>-</b>");
-				ui.model.EM.change(ui.model.EMEvent.FitWindow);
-			});
-		}
-	}, update : function() {
-		var self = this;
-		var selfElement = this.element;
-		selfElement.find(".labelBody").text(self.options.label.name);
+		self.children = ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid);
+		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
+		labelChildren.labelTree({ parentIid : self.options.labelIid});
+		selfElement.append(labelChildren);
+		label.add(expander).click(function(evt) {
+			if(m3.helper.OSetHelper.hasValues(self.children)) {
+				labelChildren.toggle();
+				labelChildren.toggleClass("labelTreeFullWidth");
+			} else labelChildren.hide();
+			if(labelChildren.css("display") == "none") expander.html("<b>+</b>"); else expander.html("<b>-</b>");
+			ui.model.EM.change(ui.model.EMEvent.FitWindow);
+		});
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
 $.widget("ui.labelTreeBranch",defineWidget());
 var defineWidget = function() {
-	return { options : { parentIid : null, labels : null, itemsClass : null}, _create : function() {
+	return { options : { parentIid : null, itemsClass : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTree must be a div element");
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
-		self.mappedLabels = new m3.observable.MappedSet(self.options.labels,function(label) {
-			if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(label.get_iid()) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(label.get_iid());
-			var children = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(label.get_iid()),function(lc) {
-				return m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,lc.childIid);
-			});
-			children.visualId = "filteredLabelTree--" + label.name;
-			return new $("<div></div>").labelTreeBranch({ parentIid : self.options.parentIid, label : label, children : children});
+		self.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid),function(labelChild) {
+			if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(labelChild.childIid) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(labelChild.childIid);
+			return new $("<div></div>").labelTreeBranch({ parentIid : self.options.parentIid, labelIid : labelChild.childIid});
 		});
-		self.mappedLabels.visualId = self.options.labels.getVisualId() + "_map";
+		self.mappedLabels.visualId = self.options.parentIid + "_map";
 		self.mappedLabels.listen(function(labelTreeBranch,evt) {
 			ui.AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) labelTreeBranch.labelTreeBranch("update"); else if(evt.isDelete()) labelTreeBranch.remove();
@@ -9540,7 +9538,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		self.labels = labels;
 		selfElement.children(".labelTree").remove();
-		var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : parentIid, labels : labels});
+		var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : parentIid});
 		selfElement.prepend(labelTree);
 		var jqevent = null;
 	}, destroy : function() {

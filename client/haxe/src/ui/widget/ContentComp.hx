@@ -129,7 +129,7 @@ extern class ContentComp extends JQ {
 		        		if (label == null) {continue;}
 		        		new LabelComp("<div class='small'></div>").labelComp({
 		        				dndEnabled: false,
-		        				label: label
+		        				labelIid: label.iid
 		        			}).appendTo(postLabels);
 		        	}
 /*		        	

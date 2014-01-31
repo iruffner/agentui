@@ -213,8 +213,7 @@ extern class LabelsList extends JQ {
 					selfElement.children(".labelTree").remove();
 
 					var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
-		                parentIid:parentIid,
-		                labels: labels 
+		                parentIid:parentIid
 		            });
 
 		        	selfElement.prepend(labelTree);

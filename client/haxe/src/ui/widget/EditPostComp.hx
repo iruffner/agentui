@@ -143,7 +143,7 @@ extern class EditPostComp extends JQ {
 		        	while(labelIter.hasNext()) {
 		        		var label: Label = labelIter.next();
 		        		var lc = new LabelComp("<div></div>").labelComp({
-		        				label: label,
+		        				labelIid: label.iid,
 		        				dndEnabled: true,
 				        		isDragByHelper: false,
 				        		containment: false,

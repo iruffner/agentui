@@ -11,15 +11,13 @@ using m3.helper.OSetHelper;
 
 typedef LabelTreeBranchOptions = {
 	var parentIid: String;
-	var label: Label;
-	var children: OSet<Label>;
-	@:optional var classes: String;
+	var labelIid: String;
 }
 
 typedef LabelTreeBranchWidgetDef = {
 	var options: LabelTreeBranchOptions;
+	@:optional var children: OSet<LabelChild>;
 	var _create: Void->Void;
-	var update: Void->Void;
 	var destroy: Void->Void;
 }
 
@@ -36,9 +34,7 @@ extern class LabelTreeBranch extends JQ {
 			return {
 		        options: {
 		        	parentIid: null,
-		            label: null,
-		            children: null,
-		            classes: null
+		        	labelIid: null
 		        },
 		        
 		        _create: function(): Void {
@@ -55,7 +51,7 @@ extern class LabelTreeBranch extends JQ {
 		        	
 		        	var label: LabelComp = new LabelComp("<div></div>").labelComp({
 		        			parentIid: self.options.parentIid,
-		        			label: self.options.label,
+		        			labelIid: self.options.labelIid,
 		        			isDragByHelper: true,
 		        			containment: false,
 		        			dragstop: null
@@ -65,7 +61,7 @@ extern class LabelTreeBranch extends JQ {
 
 		            selfElement.hover(
 		            	function(): Void {
-		            		if (self.options.children.hasValues()) {
+		            		if (self.children.hasValues()) {
 		            			expander.css("visibility", "visible");
 		            		}
 		            	}, 
@@ -74,38 +70,30 @@ extern class LabelTreeBranch extends JQ {
 		            	}
 	            	);
 
+		            // Create the children
+		            self.children = AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid);
 
-		            if(self.options.children != null) {
-			            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren' style='display: none;'></div>");
-			            labelChildren.labelTree({
-			            	parentIid: self.options.label.iid,
-		            		labels: self.options.children
-		            	});
-			            selfElement.append(labelChildren);
-		            	label.add(expander).click(function(evt: JQEvent): Void {
-		            			if(self.options.children.hasValues()) {
-		            				labelChildren.toggle();
-		            				labelChildren.toggleClass("labelTreeFullWidth");
-	            				} else {
-	            					labelChildren.hide();
-	            				}
-	            				if (labelChildren.css('display') == 'none') {
-	            					expander.html("<b>+</b>");
-	            				} else {
-	            					expander.html("<b>-</b>");
-	            				}
-		            			EM.change(EMEvent.FitWindow);
-		            		}
-	            		);
-			        }
+		            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren' style='display: none;'></div>");
+		            labelChildren.labelTree({
+		            	parentIid: self.options.labelIid
+	            	});
+		            selfElement.append(labelChildren);
+	            	label.add(expander).click(function(evt: JQEvent): Void {
+	            			if(self.children.hasValues()) {
+	            				labelChildren.toggle();
+	            				labelChildren.toggleClass("labelTreeFullWidth");
+            				} else {
+            					labelChildren.hide();
+            				}
+            				if (labelChildren.css('display') == 'none') {
+            					expander.html("<b>+</b>");
+            				} else {
+            					expander.html("<b>-</b>");
+            				}
+	            			EM.change(EMEvent.FitWindow);
+	            		}
+            		);
 		        },
-
-		        update: function(): Void {
-		        	var self: LabelTreeBranchWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-		        	selfElement.find(".labelBody").text(self.options.label.name);
-	        	},
 		        
 		        destroy: function() {
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );

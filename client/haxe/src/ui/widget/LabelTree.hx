@@ -11,13 +11,12 @@ using m3.helper.OSetHelper;
 
 typedef LabelTreeOptions = {
 	var parentIid:String;
-	var labels: OSet<Label>;
 	@:optional var itemsClass: String;
 }
 
 typedef LabelTreeWidgetDef = {
 	var options: LabelTreeOptions;
-	@:optional var mappedLabels: MappedSet<Label, LabelTreeBranch>;
+	@:optional var mappedLabels: MappedSet<LabelChild, LabelTreeBranch>;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -33,7 +32,6 @@ extern class LabelTree extends JQ {
 			return {
 		        options: {
 		        	parentIid:null,
-		            labels: null,
 		            itemsClass: null
 		        },
 
@@ -46,26 +44,19 @@ extern class LabelTree extends JQ {
 
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
-		        	self.mappedLabels = new MappedSet<Label, LabelTreeBranch>(self.options.labels, function(label: Label): LabelTreeBranch {
-        				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(label.iid) == null) {
-		        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(label.iid);
-        				}
 
-	        			var children = new MappedSet<LabelChild, Label>(
-	        				AppContext.GROUPED_LABELCHILDREN.delegate().get(label.iid), 
-	        				function(lc: LabelChild): Label {
-        						return AppContext.LABELS.getElement(lc.childIid);
-        					}
-    					);
-	        			children.visualId = "filteredLabelTree--" + label.name;
+		        	self.mappedLabels = new MappedSet<LabelChild, LabelTreeBranch>(AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid), 
+		        		function(labelChild: LabelChild): LabelTreeBranch {
+	        				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(labelChild.childIid) == null) {
+			        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(labelChild.childIid);
+	        				}
 
-	        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
-	        				parentIid:self.options.parentIid,
-	        				label: label,
-        					children: children
-	        			});
+		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
+		        				parentIid: self.options.parentIid,
+		        				labelIid: labelChild.childIid
+		        			});
 	        		});
-		        	self.mappedLabels.visualId = self.options.labels.getVisualId() + "_map";
+		        	self.mappedLabels.visualId = self.options.parentIid + "_map";
 
 		        	self.mappedLabels.listen(function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
 	        			AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
