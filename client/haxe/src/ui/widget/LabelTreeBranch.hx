@@ -71,6 +71,10 @@ extern class LabelTreeBranch extends JQ {
 	            	);
 
 		            // Create the children
+		            if (AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid) == null) {
+	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.labelIid);
+    				}
+
 		            self.children = AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid);
 
 		            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren' style='display: none;'></div>");

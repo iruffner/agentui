@@ -92,7 +92,7 @@ extern class LabelComp extends FilterableComponent {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 			        self._onupdate = function(label:Label, t:EventType): Void {
-						if (t.isUpdate()) {
+						if (t.isAddOrUpdate()) {
 							if (label.deleted) {
 					        	self.destroy();
 					        	selfElement.remove();								
@@ -123,7 +123,7 @@ extern class LabelComp extends FilterableComponent {
 
 		        	self.label = AppContext.LABELS.getElement(self.options.labelIid);
 		        	if (self.label == null) {
-		        		self.label = new Label("...");
+		        		self.label = new Label("-->8<--");
 		        		self.label.iid = self.options.labelIid;
 		        		AppContext.MASTER_LABELS.add(self.label);
 		        	}

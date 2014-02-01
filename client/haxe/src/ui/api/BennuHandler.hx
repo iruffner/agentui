@@ -167,8 +167,11 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
-	public function updateLabel(label:Label):Void {
-		// TODO: Upsert Request 
+	public function updateLabel(data:EditLabelData):Void {
+		var context = Synchronizer.createContext(1, "labelUpdated");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(UPSERT, context + "label", CrudMessage.create(data.label))]);
+		req.start();
 	}
 
 	public function moveLabel(label:Label, parent:Label):Void {

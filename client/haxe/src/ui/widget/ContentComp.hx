@@ -25,6 +25,8 @@ typedef ContentCompWidgetDef = {
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
 	var toggleActive:Void->Void;
+	@:optional var mappedLabels:MappedSet<LabeledContent, LabelComp>;
+	@:optional var onchangeLabelChildren:LabelComp->EventType->Void;
 }
 
 class ContentCompHelper {
@@ -119,22 +121,25 @@ extern class ContentComp extends JQ {
 		        	if (AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) {
 		        		AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
 		        	}
-		        	var ms = new MappedSet<LabeledContent, Label>(
-		        		AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),
-        				function(lc: LabeledContent): Label {
-    						return AppContext.LABELS.getElement(lc.labelIid);
-    					}
-    				);
+		        	self.onchangeLabelChildren = function(labelComp: LabelComp, evt: EventType): Void {
+	            		if(evt.isAdd()) {
+	            			postLabels.append(labelComp);
+	            		} else if (evt.isUpdate()) {
+	            			throw new Exception("this should never happen");
+	            		} else if (evt.isDelete()) {
+	            			labelComp.remove();
+	            		}
+	            	};
 
-		        	var labelIter: Iterator<Label> = ms.iterator();
-		        	while(labelIter.hasNext()) {
-		        		var label: Label = labelIter.next();
-		        		if (label == null) {continue;}
-		        		new LabelComp("<div class='small'></div>").labelComp({
+            		self.mappedLabels = new MappedSet<LabeledContent, LabelComp>(AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid), 
+		        		function(lc: LabeledContent): LabelComp {
+		        			return new LabelComp("<div class='small'></div>").labelComp({
 		        				dndEnabled: false,
-		        				labelIid: label.iid
-		        			}).appendTo(postLabels);
-		        	}
+		        				labelIid: lc.labelIid
+		        			});
+		        		}
+		        	);
+		        	self.mappedLabels.listen(self.onchangeLabelChildren);
 /*		        	
 		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>").appendTo(postWr);
 		        	var connIter: Iterator<Connection> = content.connectionSet.iterator();
@@ -199,6 +204,8 @@ extern class ContentComp extends JQ {
 		        },
 		        
 		        destroy: function() {
+		        	var self: ContentCompWidgetDef = Widgets.getSelf();
+		        	self.mappedLabels.removeListener(self.onchangeLabelChildren);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

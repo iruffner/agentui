@@ -30,6 +30,8 @@ typedef EditPostCompWidgetDef = {
 	@:optional var tags: JQDroppable;
 	@:optional var valueElement: JQ;
 	@:optional var uploadComp:UploadComp;
+	@:optional var mappedLabels:MappedSet<LabeledContent, LabelComp>;
+	@:optional var onchangeLabelChildren:LabelComp->EventType->Void;
 	var _create: Void->Void;
 	var _initConections:Void->JQ;
 	var _initLabels:JQ->Void;
@@ -130,41 +132,45 @@ extern class EditPostComp extends JQ {
 				_initLabels: function(of:JQ) : Void {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
 
 		        	if (AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) {
 		        		AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
 		        	}
-		        	
-		        	var ms = new MappedSet<LabeledContent, Label>(
-		        		AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),
-        				function(lc: LabeledContent): Label {
-    						return AppContext.LABELS.getElement(lc.labelIid);
-    					}
-    				);
 
-		        	var labelIter: Iterator<Label> = ms.iterator();
-		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
-		        	while(labelIter.hasNext()) {
-		        		var label: Label = labelIter.next();
-		        		var lc = new LabelComp("<div></div>").labelComp({
-		        				labelIid: label.iid,
-		        				dndEnabled: true,
-				        		isDragByHelper: false,
-				        		containment: false,
-				        		dragstop: self._getDragStop(),
-		        			}).appendTo(edit_post_comps_tags)
-		        		      .css("position", "absolute")
-		        		      .addClass("small");
+		        	self.onchangeLabelChildren = function(labelComp: LabelComp, evt: EventType): Void {
+	            		if(evt.isAdd()) {
+	            			edit_post_comps_tags.append(labelComp);
+	            		} else if (evt.isUpdate()) {
+	            			throw new Exception("this should never happen");
+	            		} else if (evt.isDelete()) {
+	            			labelComp.remove();
+	            		}
+	            	};
 
-			        	lc.position({
-		                    	my: "top",
-		                    	at: "bottom",
-		                    	of: of,
-		                    	collision: "flipfit",
-		                    	within: self.tags
-	                	});
-	                	of = lc;
-		        	}
+            		self.mappedLabels = new MappedSet<LabeledContent, LabelComp>(AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid), 
+		        		function(lc: LabeledContent): LabelComp {
+			        		var lc = new LabelComp("<div></div>").labelComp({
+			        				labelIid: lc.labelIid,
+			        				dndEnabled: true,
+					        		isDragByHelper: false,
+					        		containment: false,
+					        		dragstop: self._getDragStop(),
+			        			    });
+			        		lc.css("position", "absolute")
+			        		  .addClass("small");
+			        		lc.position({
+				                my: "top",
+			                    	at: "bottom",
+			                    	of: of,
+			                    	collision: "flipfit",
+			                    	within: self.tags
+			                	});
+		                	of = lc;
+		                	return lc;
+		        		}
+		        	);
+		        	self.mappedLabels.listen(self.onchangeLabelChildren);
 				},
 
 				_createButtonBlock:function(self: EditPostCompWidgetDef, selfElement:JQ): Void {
@@ -346,6 +352,8 @@ extern class EditPostComp extends JQ {
 		        },
 
 		        destroy: function() {
+		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
+		        	self.mappedLabels.removeListener(self.onchangeLabelChildren);
 		            untyped JQ.Widget.prototype.destroy.call(JQ.curNoWrap);
 		        }
 		    };

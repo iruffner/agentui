@@ -19,7 +19,7 @@ using m3.helper.OSetHelper;
 typedef LabelsListWidgetDef = {
 	@:optional var selectedLabelComp:LabelComp;
 	var _create: Void->Void;
-	var _showNewLabelPopup:JQ->Void;
+	var _showNewLabelPopup:JQ->Bool->Void;
 	var destroy: Void->Void;
 }
 
@@ -32,7 +32,7 @@ extern class LabelsList extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->LabelsListWidgetDef = function(): LabelsListWidgetDef {
 			return {
-				_showNewLabelPopup: function(reference: JQ): Void {
+				_showNewLabelPopup: function(reference: JQ, isUpdate:Bool): Void {
 					var self: LabelsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -41,31 +41,36 @@ extern class LabelsList extends JQ {
         			popup = popup.popup({
         					createFcn: function(el: JQ): Void {
         						var createLabel: Void->Void = null;
+        						var updateLabel: Void->Void = null;
         						var stopFcn: JQEvent->Void = function (evt: JQEvent): Void { evt.stopPropagation(); };
         						var enterFcn: JQEvent->Void = function (evt: JQEvent): Void { 
         							if(evt.keyCode == 13) {
-        								createLabel();
+        								if (isUpdate) {updateLabel();}
+        								else {createLabel();};
     								}
         						};
 
         						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
         						container.click(stopFcn).keypress(enterFcn);
-        						container.append("<label for='labelParent'>Parent: </label> ");
-        						var parent: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + AppContext.alias.rootLabelIid+ "'>No Parent</option></select>").appendTo(container);
-        						parent.click(stopFcn);
-        						var aliasLabels = AppContext.getLabelDescendents(AppContext.alias.rootLabelIid);
-        						var iter: Iterator<Label> = aliasLabels.iterator();
-        						while(iter.hasNext()) {
-        							var label: Label = iter.next();
-        							if (label.iid != AppContext.alias.rootLabelIid) {
-	        							var option = "<option value='" + label.iid + "'";
-	        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().iid == label.iid) {
-	        								option += " SELECTED";
-	        							}
-	        							option += ">" + label.name + "</option>";
-	        							parent.append(option);
+        						var parent: JQ = null;
+        						if (!isUpdate) {
+	        						container.append("<label for='labelParent'>Parent: </label> ");
+	        						parent = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + AppContext.alias.rootLabelIid+ "'>No Parent</option></select>").appendTo(container);
+	        						parent.click(stopFcn);
+	        						var aliasLabels = AppContext.getLabelDescendents(AppContext.alias.rootLabelIid);
+	        						var iter: Iterator<Label> = aliasLabels.iterator();
+	        						while(iter.hasNext()) {
+	        							var label: Label = iter.next();
+	        							if (label.iid != AppContext.alias.rootLabelIid) {
+		        							var option = "<option value='" + label.iid + "'";
+		        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().iid == label.iid) {
+		        								option += " SELECTED";
+		        							}
+		        							option += ">" + label.name + "</option>";
+		        							parent.append(option);
+		        						}
 	        						}
-        						}
+	        					}
         						container.append("<br/><label for='labelName'>Name: </label> ");
         						var input: JQ = new JQ("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
         						input.keypress(enterFcn).click(function(evt: JQEvent): Void {
@@ -74,24 +79,38 @@ extern class LabelsList extends JQ {
         									JQ.cur.val("");
         								}
     								}).focus();
+        						var buttonText = "Add Label";
+        						if (isUpdate) {
+        							buttonText = "Update Label";
+        							input.val(self.selectedLabelComp.getLabel().name);
+        						}
         						container.append("<br/>");
-        						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Label</button>")
+        						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>")
         							.button()
         							.appendTo(container)
         							.click(function(evt: JQEvent): Void {
-        									createLabel();
-        								});
+        								if (isUpdate) {updateLabel();}
+        								else {createLabel();};
+        							});
 
         						createLabel = function(): Void {
+									if (input.val().length == 0) {return;}
+									AppContext.LOGGER.info("Create new label | " + input.val());
+									var label: Label = new Label();
+									label.name = input.val();
+  									var eventData = new EditLabelData(label, parent.val());
+  									EM.change(EMEvent.CreateLabel, eventData);
+									new JQ("body").click();
+        						};
 
-									if (input.val().length > 0) {
-										AppContext.LOGGER.info("Create new label | " + input.val());
-										var label: Label = new Label();
-										label.name = input.val();
-      									var eventData = new EditLabelData(label, parent.val());
-	  									EM.change(EMEvent.CreateLabel, eventData);
-										new JQ("body").click();
-									}
+        						updateLabel = function(): Void {
+									if (input.val().length == 0) {return;}
+									var label = self.selectedLabelComp.getLabel();
+									AppContext.LOGGER.info("Update label | " + label.iid);
+									label.name = input.val();
+  									var eventData = new EditLabelData(label);
+  									EM.change(EMEvent.UpdateLabel, eventData);
+									new JQ("body").click();
         						};
         					},
         					positionalElement: reference
@@ -123,7 +142,7 @@ extern class LabelsList extends JQ {
 		        	newLabelButton.button().click(function(evt: JQEvent): Void {
 		        			evt.stopPropagation();
 		        			self.selectedLabelComp = null;
-		        			self._showNewLabelPopup(newLabelButton);
+		        			self._showNewLabelPopup(newLabelButton, false);
 		        		});
 
 		        	var menu: M3Menu = new M3Menu("<ul id='label-action-menu'></ul>");
@@ -140,7 +159,21 @@ extern class LabelsList extends JQ {
     								if (reference == null) {
     									reference = new JQ(evt.target);
     								}
-    								self._showNewLabelPopup(reference);
+    								self._showNewLabelPopup(reference, false);
+    								menu.hide();
+    								return false;
+    							}
+    						},
+    						{ 
+    							label: "Edit Label",
+    							icon: "ui-icon-pencil",
+    							action: function(evt: JQEvent, m: M3Menu): Dynamic {
+    								evt.stopPropagation();
+    								var reference:JQ = self.selectedLabelComp;
+    								if (reference == null) {
+    									reference = new JQ(evt.target);
+    								}
+    								self._showNewLabelPopup(reference, true);
     								menu.hide();
     								return false;
     							}
