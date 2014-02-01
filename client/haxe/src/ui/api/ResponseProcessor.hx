@@ -85,42 +85,24 @@ class ResponseProcessor {
 		AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
 		AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
 
-		// Cull any labelChildren that point to non-existent labels
-		var lcsToRemove = new Array<LabelChild>();
-		for (lc in AppContext.LABELCHILDREN) {
-			if (AppContext.LABELS.getElement(lc.childIid) == null) {
-				ui.AppContext.LOGGER.warn("NON-DELETED LabelChild points to deleted label with iid: " +  lc.childIid + ".");
-				lcsToRemove.push(lc);
-			}
-		}
-		for (lc in lcsToRemove) {
-			AppContext.MASTER_LABELCHILDREN.delete(lc);
-		}
-
-		// Cull any labeledContent that point to non-existent content
-		var lacosToRemove = new Array<LabeledContent>();
-		for (lc in AppContext.LABELEDCONTENT) {
-			if (AppContext.CONTENT.getElement(lc.contentIid) == null) {
-				ui.AppContext.LOGGER.warn("NON-DELETED LabeledContent points to deleted content with iid: " + lc.contentIid + ".");
-				lacosToRemove.push(lc);
-			}
-
-			if (AppContext.LABELS.getElement(lc.labelIid) == null) {
-				ui.AppContext.LOGGER.warn("NON-DELETED LabeledContent points to deleted label with iid: " + lc.labelIid + ".");
-				lacosToRemove.push(lc);
-			}
-		}
-		for (lc in lacosToRemove) {
-			AppContext.MASTER_LABELEDCONTENT.delete(lc);
-		}
-
 	    // Set the current alias
     	if (AppContext.AGENT.aliasSet.isEmpty()) {
     		var defaultAlias: Alias = new Alias("Default Alias");
     		EM.change(EMEvent.ALIAS_CREATE, defaultAlias);
     		AppContext.AGENT.aliasSet.add(defaultAlias);
     	}
-    	AppContext.alias = AppContext.AGENT.aliasSet.iterator().next();
+
+    	var initialAlias:Alias = null;
+    	for (alias in AppContext.AGENT.aliasSet) {
+    		if (alias.data.isDefault) {
+    			initialAlias = alias;
+    			break;
+    		}
+    	}
+    	if (initialAlias == null) {
+	     	initialAlias = AppContext.AGENT.aliasSet.iterator().next();
+	    }
+	    AppContext.alias = initialAlias;
 
     	// Fire the events that will cause the UI to load the data
 		EM.change(EMEvent.AGENT, AppContext.AGENT);

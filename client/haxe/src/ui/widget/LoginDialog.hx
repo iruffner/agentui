@@ -81,7 +81,7 @@ extern class LoginDialog extends JQ {
 		        		self.input_un.val("Jerry.Seinfeld");
 		        		self.input_pw.val("Bosco");
 		        	} else if(true) {
-		        		self.input_un.val("quid@quid.com");
+		        		self.input_un.val("qoid@qoid.com");
 		        		self.input_pw.val("ohyea");
 		        	}
 

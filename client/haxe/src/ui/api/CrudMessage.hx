@@ -87,3 +87,25 @@ class ChannelRequestMessageBundle {
 		this.addChannelRequest(request);
 	}
 }
+
+@:rtti
+class RegisterChannelListenerData {
+	public var types: Array<String>;
+	public var handle:String;
+	public var agentId:String;
+	public var channelId:String;
+
+	public function new(types:Array<String>, handle:String, ?agentId:String, ?channelId:String) {
+		this.types = types;
+		this.handle = handle;
+		this.agentId = (agentId == null) ? ui.AppContext.AGENT.iid : agentId;
+		this.channelId = (channelId == null) ? AppContext.CHANNEL : channelId;
+	}
+}
+
+class DeregisterChannelListenerData {
+	public var handle:String;
+	public function new(handle:String) {
+		this.handle = handle;
+	}
+}

@@ -193,21 +193,6 @@ class EventDelegate {
     		AppContext.LOGGER.error("removeAgentAliasesError was received from the server");
     	});
 
-        processHash.set(MsgType.setDefaultAliasRequest, function(data: Dynamic){
-    		AppContext.LOGGER.debug("setDefaultAliasRequest was received from the server");
-    	});
-
-        processHash.set(MsgType.setDefaultAliasError, function(data: Dynamic){
-    		AppContext.LOGGER.error("setDefaultAliasError was received from the server");
-    	});
-
-     //    processHash.set(MsgType.getAliasConnectionsResponse, function(data: Dynamic){
-    	// 	AppContext.LOGGER.debug("getAliasConnectionsResponse was received from the server");
-    	// 	var resp: GetAliasConnectionsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasConnectionsResponse);
-    	// 	AppContext.alias.connectionSet.clear();
-    	// 	AppContext.alias.connectionSet.addAll(resp.contentImpl.connections);
-    	// });
-
         processHash.set(MsgType.getAliasConnectionsError, function(data: Dynamic){
     		AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
     	});

@@ -149,11 +149,13 @@ class Agent extends ModelObj {
 class UserData extends ModelObj {
 	public var name: String;
 	@:optional public var imgSrc: String;
+	@:optional public var isDefault:Bool;
 
 	public function new(?name:String="", ?imgSrc:String="") {
 		super();
 		this.name = name;
 		this.imgSrc = imgSrc;
+		this.isDefault = false;
 	}
 }
 
@@ -169,7 +171,7 @@ class Alias extends ModelObjWithIid {
 	}
 	
 	public static function identifier(alias: Alias): String {
-		return alias.name;
+		return alias.iid;
 	}
 }
 
@@ -237,7 +239,7 @@ class Connection extends ModelObjWithIid implements Filterable {
 	}
 
 	public static function identifier(c: Connection): String {
-		return c.label + "_" + c.target;
+		return c.iid;
 	}
 
 

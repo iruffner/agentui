@@ -91,8 +91,9 @@ extern class AliasManagerDialog extends JQ {
 			        		.appendTo(btnDiv)
 			        		.button()
 			        		.click( function(evt: JQEvent): Void {
-			        				//set default alias
-			        			} );
+			        			alias.data.isDefault = true;
+			        			EM.change(EMEvent.ALIAS_EDIT, alias);
+			        		});
 
 			        	var editBtn: JQ = new JQ("<button>Edit</button>")
 			        		.appendTo(btnDiv)

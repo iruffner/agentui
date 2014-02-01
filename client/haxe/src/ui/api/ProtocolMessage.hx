@@ -377,18 +377,6 @@ class RemoveAgentAliasesError extends ProtocolMessage<ErrorPayload> {
 	}
 }
 
-class SetDefaultAliasResponse extends ProtocolMessage<PayloadWithSessionURI> {
-	public function new() {
-		super(MsgType.setDefaultAliasResponse, PayloadWithSessionURI);
-	}
-}
-
-class SetDefaultAliasError extends ProtocolMessage<ErrorPayload> {
-	public function new() {
-		super(MsgType.setDefaultAliasError, ErrorPayload);
-	}
-}
-
 class GetAliasConnectionsResponse extends ProtocolMessage<AliasConnectionsResponseData> {
 	public function new() {
 		super(MsgType.getAliasConnectionsResponse, AliasConnectionsResponseData);
@@ -618,9 +606,6 @@ enum MsgType {
 	removeAgentAliasesRequest;
 	removeAgentAliasesError;
 	removeAgentAliasesResponse;
-	setDefaultAliasRequest;
-	setDefaultAliasError;
-	setDefaultAliasResponse;
 
 	getAliasConnectionsRequest;
 	getAliasConnectionsResponse;

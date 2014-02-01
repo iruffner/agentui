@@ -1,6 +1,7 @@
 package ui.api;
 
 import haxe.Json;
+import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.observable.OSet;
 
@@ -33,16 +34,39 @@ class BennuHandler implements ProtocolHandler {
 		new BennuRequest("/api/channel/create/" + AppContext.AGENT.iid, "", onCreateChannel).start();
 	}
 
-	public function filter(filter: Filter): Void { }
-	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void { }
-	public function nextPage(nextPageURI: String): Void { }
-	public function getAliasInfo(alias: Alias): Void {
-		// getAliasConnections(alias);
-		// getAliasLabels(alias);
+	public function beginIntroduction(intro: Introduction): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	} 
+	public function confirmIntroduction(confirmation: IntroductionConfirmation): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
-	public function createUser(newUser: NewUser): Void { }
-	public function validateUser(token: String): Void { }
-	public function updateUser(agent: Agent): Void { }
+	public function backup(/*backupName: String*/): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function restore(/*backupName: String*/): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function restores(): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function filter(filter: Filter): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function nextPage(nextPageURI: String): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function createUser(newUser: NewUser): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function validateUser(token: String): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function updateUser(agent: Agent): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
 
 	public function createAlias(alias: Alias): Void {
 		// Create a label child, which will connect the parent and the child
@@ -75,14 +99,6 @@ class BennuHandler implements ProtocolHandler {
 		deleteRequest.start();
 	}
 
-	public function setDefaultAlias(alias: Alias): Void { }
-	
-	// public function getAliasConnections(alias: Alias): Void { }
-
-	// public function getAliasLabels(alias:Alias) {
- //   		AppContext.alias.labelSet.clear();
- //   		AppContext.alias.labelSet.addAll(AppContext.getLabelChildren(alias.rootLabelIid).asArray());
-	// }
 	public function createContent(data:EditContentData):Void {
 		var context = Synchronizer.createContext(1 + data.labels.length, "contentCreated");
 		var requests = new Array<ChannelRequestMessage>();
@@ -215,12 +231,6 @@ class BennuHandler implements ProtocolHandler {
 
 		new SubmitRequest(requests).start();
 	}
-
-	public function beginIntroduction(intro: Introduction): Void { } 
-	public function confirmIntroduction(confirmation: IntroductionConfirmation): Void { }
-	public function backup(/*backupName: String*/): Void { }
-	public function restore(/*backupName: String*/): Void { }
-	public function restores(): Void { }
 
 	private function onCreateChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
 		AppContext.CHANNEL = data.id;
