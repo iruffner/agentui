@@ -3,8 +3,11 @@ package ui.api;
 import ui.model.ModelObj;
 using m3.serialization.TypeTools;
 
+interface ChannelMessage {
+}
+
 @:rtti
-class BennuMessage {
+class BennuMessage implements ChannelMessage {
 	public var type:String;
 
 	public function new(type:String) {
@@ -49,12 +52,23 @@ class QueryMessage extends BennuMessage {
 }
 
 @:rtti
+class RegisterMessage implements ChannelMessage {
+	public var types: Array<String>;
+	public var handle:String;
+	public function new (types:Array<String>, handle:String) {
+		this.types = types;
+		this.handle = handle;		
+	}	
+}
+
+
+@:rtti
 class ChannelRequestMessage {
 	private var path:String;
 	private var context:String;
 	private var parms:Dynamic;
 
-	public function new(path:String, context:String, msg:BennuMessage):Void {
+	public function new(path:String, context:String, msg:ChannelMessage):Void {
 		this.path    = path;
 		this.context = context;
 		this.parms   = AppContext.SERIALIZER.toJson(msg);
@@ -85,21 +99,6 @@ class ChannelRequestMessageBundle {
 	public function addRequest(path:String, context:String, parms:BennuMessage):Void {
 		var request = new ChannelRequestMessage(path, context, parms);
 		this.addChannelRequest(request);
-	}
-}
-
-@:rtti
-class RegisterChannelListenerData {
-	public var types: Array<String>;
-	public var handle:String;
-	public var agentId:String;
-	public var channelId:String;
-
-	public function new(types:Array<String>, handle:String, ?agentId:String, ?channelId:String) {
-		this.types = types;
-		this.handle = handle;
-		this.agentId = (agentId == null) ? ui.AppContext.AGENT.iid : agentId;
-		this.channelId = (channelId == null) ? AppContext.CHANNEL : channelId;
 	}
 }
 

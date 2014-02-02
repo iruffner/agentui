@@ -20,6 +20,8 @@ class BennuHandler implements ProtocolHandler {
 	private static var UPSERT = "/api/upsert";
 	private static var DELETE = "/api/delete";
 	private static var QUERY  = "/api/query";
+	private static var REGISTER = "/api/squery/register" ;
+	private static var DEREGISTER = "/api/squery/deregister" ;
 
 	private var eventDelegate:EventDelegate;
 	private var listeningChannel: LongPollingRequest;
@@ -93,10 +95,16 @@ class BennuHandler implements ProtocolHandler {
 		// TODO:  Delete the label and label childs associated with this alias
 		// NB:  Only delete labels that are orphans...
 		alias.deleted = true;
-		var deleteRequest = new DeleteRequest(alias, function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR){
-			js.Lib.alert(data);
-		});
-		deleteRequest.start();
+		var context = Synchronizer.createContext(1, "aliasDeleted");
+		var requests = new Array<ChannelRequestMessage>();
+		requests.push(new ChannelRequestMessage(DELETE, context + "alias", DeleteMessage.create(alias)));
+		new SubmitRequest(requests).start();
+
+		// TODO: Do we delete all content with this label?
+
+		// TODO: the parentLabelIid might not be blank...
+		var data = new EditLabelData(AppContext.LABELS.delegate().get(alias.rootLabelIid),"");
+		deleteLabel(data);
 	}
 
 	public function createContent(data:EditContentData):Void {
@@ -107,8 +115,7 @@ class BennuHandler implements ProtocolHandler {
 			var labeledContent = new LabeledContent(data.content.iid, label.iid);
 			requests.push(new ChannelRequestMessage(UPSERT, context + "labeledContent", CrudMessage.create(labeledContent)));
 		}
-		var req = new SubmitRequest(requests);
-		req.start();
+		new SubmitRequest(requests).start();
 	}
 
 	public function updateContent(data:EditContentData):Void {
@@ -237,14 +244,17 @@ class BennuHandler implements ProtocolHandler {
 		_startPolling();
 
 		var context = Synchronizer.createContext(5, "initialDataLoad");
-		var req = new SubmitRequest([
+		var requests = [
 			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
 			new ChannelRequestMessage(QUERY, context + "labels"         , new QueryMessage("label")),
 			new ChannelRequestMessage(QUERY, context + "contents"       , new QueryMessage("content")),
 			new ChannelRequestMessage(QUERY, context + "labeledContents", new QueryMessage("labeledContent")),
 			new ChannelRequestMessage(QUERY, context + "labelChildren"  , new QueryMessage("labelChild"))
-		]);
-		req.start();
+		];
+		new SubmitRequest(requests).start();
+		var types = ["alias", "label", "labelchild", "content", "labeledcontent"];
+		requests = [new ChannelRequestMessage(REGISTER, "aliases-changes", new RegisterMessage(types, "listeningToAll"))];
+		new SubmitRequest(requests).start();
 	}
 
 	private function _startPolling(): Void {

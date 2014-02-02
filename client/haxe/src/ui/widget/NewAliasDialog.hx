@@ -78,12 +78,13 @@ extern class NewAliasDialog extends JQ {
 					}
 
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EM.change(EMEvent.ALIAS_CREATE, alias);
-
+    				EM.change(EMEvent.CreateAlias, alias);
+/*
     				EM.listenOnce(EMEvent.NewAlias, new EMListener(function(n:Nothing): Void {
     						selfElement.close();
     					}, "NewAliasDialog-NewAlias")
     				);
+*/
 	        	},
 
 		        _buildDialog: function(): Void {

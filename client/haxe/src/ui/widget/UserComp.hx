@@ -175,7 +175,6 @@ extern class UserComp extends JQ {
 						icon: "ui-icon-circle-plus",
 						action: function(evt: JQEvent, m: M3Menu): Void {
 			        		ui.widget.DialogManager.showAliasManager();
-							// DialogManager.showNewAlias();
 						}
 					};
 					menuOptions.push(menuOption);

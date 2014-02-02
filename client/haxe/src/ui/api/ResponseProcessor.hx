@@ -19,27 +19,51 @@ class ResponseProcessor {
 		if (dataArr == null || dataArr.length == 0) { return; }
 
 		dataArr.iter(function(data:Dynamic): Void {
-			if (!data.success) {
+			if (data.success == false) {
 				JqueryUtil.alert("ERROR:  " + data.error.message + "      Context: " + data.context);
 			} else {
-				var context:Array<String> = data.context.split("-");
-				if (context[2] == "initialDataLoad") {
-					var synchronizer = Synchronizer.synchronizers.get(context[0]);
-					if (synchronizer == null) {
-						synchronizer = Synchronizer.add(data.context);
-					}
-					synchronizer.dataReceived(data.result, context[3]);
-				} else {
-					updateModel(data.result, context[3]);
-				}
+                if (data.type != null) {
+                    updateModelObject(data.instance, data.type);
+                } else if (Std.is(data.result,String)) {
+                    ui.AppContext.LOGGER.info(data);
+                } else {
+    				var context:Array<String> = data.context.split("-");
+    				if (context != null && context[2] == "initialDataLoad") {
+    					var synchronizer = Synchronizer.synchronizers.get(context[0]);
+    					if (synchronizer == null) {
+    						synchronizer = Synchronizer.add(data.context);
+    					}
+    					synchronizer.dataReceived(data.result, context[3]);
+    				} else {
+                        AppContext.LOGGER.error("TODO:  Delete Me when server is fixed...");
+                        updateModel(data.result, context[3]);
+                    }
+                }
 			}
 		});
 	}
 
-	public static function updateModel(data:Dynamic, responseType:String) {
+    private static function updateModelObject(instance:Dynamic, type:String) {
+        type = type.toLowerCase();
+        switch (type) {
+            case "alias":
+                AppContext.AGENT.aliasSet.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Alias));
+            case "content":
+                AppContext.MASTER_CONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Content));
+            case "label":
+                AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Label));
+            case "labelchild":
+                AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, LabelChild));
+            case "labeledcontent":
+                AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, LabeledContent));
+            default:
+                AppContext.LOGGER.error("Unknown type: " + type);
+        }
+    }
+	private static function updateModel(data:Dynamic, type:String) {
 
 	    if (data.primaryKey != null) {
-            switch (responseType) {
+            switch (type) {
                 case "alias":
                     var alias = AppContext.AGENT.aliasSet.getElement(data.primaryKey);
                 	alias.deleted = true;
@@ -60,20 +84,11 @@ class ResponseProcessor {
                     var lc = AppContext.MASTER_LABELEDCONTENT.getElement(data.primaryKey);
                     lc.deleted = true;
                     AppContext.MASTER_LABELEDCONTENT.addOrUpdate(lc);
+            default:
+                ui.AppContext.LOGGER.error("Unknown type: " + type);
             }
         } else {
-        	switch (responseType) {
-        		case "alias":
-        			AppContext.AGENT.aliasSet.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Alias));
-                case "content":
-                    AppContext.MASTER_CONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Content));
-        		case "label":
-        			AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Label));
-        		case "labelChild":
-        			AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabelChild));
-                case "labeledContent":
-                    AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabeledContent));
-        	}
+            updateModelObject(data.instance, type);
         }
 	}
 
@@ -88,7 +103,7 @@ class ResponseProcessor {
 	    // Set the current alias
     	if (AppContext.AGENT.aliasSet.isEmpty()) {
     		var defaultAlias: Alias = new Alias("Default Alias");
-    		EM.change(EMEvent.ALIAS_CREATE, defaultAlias);
+    		EM.change(EMEvent.CreateAlias, defaultAlias);
     		AppContext.AGENT.aliasSet.add(defaultAlias);
     	}
 
@@ -108,16 +123,5 @@ class ResponseProcessor {
 		EM.change(EMEvent.AGENT, AppContext.AGENT);
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
 		EM.change(EMEvent.FitWindow);
-
-		var img = new ImageContent();
-		img.setData({
-			created: Date.now(),
-		    modified: Date.now(),
-		    blah: "BLAH",
-		    caption: "Yucatan",
-		    imgSrc: "YSSDDD"
-		});
-
-		var imgdata = img.props;
 	}
 }

@@ -93,25 +93,9 @@ enum EMEvent {
 	MoreContent;
 	NextContent;
 	EndOfContent;
-	
-	CreateContent;
-	ContentCreated;
-
-	DeleteContent;
-	ContentDeleted;
-
-	UpdateContent;
-	ContentUpdated;
-	
+		
 	EditContentClosed;
 
-	LOAD_ALIAS;
-	AliasLoaded;
-	AliasConnectionsLoaded;
-	AliasLabelsLoaded;
-	ALIAS_CREATE;
-	ALIAS_EDIT;
-	NewAlias; //fired when response is received that a new alias has been created
 
 	USER_LOGIN;
 	USER_CREATE;
@@ -124,14 +108,20 @@ enum EMEvent {
 	FitWindow;
 	PAGE_CLOSE;
 
+	LOAD_ALIAS;
+	AliasLoaded;
+
+	CreateAlias;
+	UpdateAlias;
+	DeleteAlias;
+
+	CreateContent;
+	DeleteContent;
+	UpdateContent;
+
 	CreateLabel;
-	LabelCreated;
-
 	UpdateLabel;
-	LabelUpdated;
-
 	DeleteLabel;
-	LabelDeleted;
 
 	INTRODUCTION_REQUEST;
 	INTRODUCTION_RESPONSE;

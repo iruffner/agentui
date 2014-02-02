@@ -127,6 +127,7 @@ extern class LabelsList extends JQ {
 
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 
+		        	// TODO:  set up a listener to the model
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
 		        			// Create the top-level label tree
 		        			selfElement.children(".labelTree").remove();

@@ -92,7 +92,7 @@ extern class AliasManagerDialog extends JQ {
 			        		.button()
 			        		.click( function(evt: JQEvent): Void {
 			        			alias.data.isDefault = true;
-			        			EM.change(EMEvent.ALIAS_EDIT, alias);
+			        			EM.change(EMEvent.UpdateAlias, alias);
 			        		});
 
 			        	var editBtn: JQ = new JQ("<button>Edit</button>")
@@ -106,8 +106,8 @@ extern class AliasManagerDialog extends JQ {
 			        		.appendTo(btnDiv)
 			        		.button()
 			        		.click( function(evt: JQEvent): Void {
-			        				//delete alias
-			        			} );
+		        				EM.change(EMEvent.DeleteAlias, alias);
+			        		});
 		        	} else {
 		        		if ( M.getX(AppContext.AGENT.userData.imgSrc, "").isNotBlank()) {
 							imgSrc = AppContext.AGENT.userData.imgSrc;
@@ -221,11 +221,11 @@ extern class AliasManagerDialog extends JQ {
 		        						alias = new Alias();
 		        						alias.data = new UserData();
 		        						function() {
-		        							EM.change(EMEvent.ALIAS_CREATE, alias);
+		        							EM.change(EMEvent.CreateAlias, alias);
 		        						};
 		        					} else {
 		        						function() {
-		        							EM.change(EMEvent.ALIAS_EDIT, alias);
+		        							EM.change(EMEvent.UpdateAlias, alias);
 		        						};
 		        					}
 		        				}
@@ -233,7 +233,7 @@ extern class AliasManagerDialog extends JQ {
 		        				alias.data.imgSrc = profilePic;
 		        				applyDlg();
 		        				self._showAliasDetail(alias);
-		        				// EM.change(EMEvent.ALIAS_EDIT, alias);
+		        				// EM.change(EMEvent.UpdateAlias, alias);
 		        			} );
 
 		        	var cancelBtn: JQ = new JQ("<button>Cancel</button>")
@@ -291,8 +291,9 @@ extern class AliasManagerDialog extends JQ {
 					}
 
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EM.change(EMEvent.ALIAS_CREATE, alias);
+    				EM.change(EMEvent.CreateAlias, alias);
 
+/*	TODO:  Listen to changes to the model here...
     				EM.listenOnce(EMEvent.NewAlias, new EMListener(function(n:Nothing): Void {
     						selfElement.close();
     						AppContext.AGENT.aliasSet.add(alias);
@@ -300,6 +301,7 @@ extern class AliasManagerDialog extends JQ {
     						EM.change(EMEvent.AliasLoaded, alias);
     					}, "AliasManagerDialog-AliasManager")
     				);
+*/
 	        	},
 
 		        _buildDialog: function(): Void {

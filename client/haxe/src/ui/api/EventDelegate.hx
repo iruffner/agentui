@@ -71,11 +71,15 @@ class EventDelegate {
             protocolHandler.nextPage(nextPageURI);
         }));
 
-        EM.addListener(EMEvent.ALIAS_CREATE, new EMListener(function(alias: Alias): Void {
+        EM.addListener(EMEvent.CreateAlias, new EMListener(function(alias: Alias): Void {
             protocolHandler.createAlias(alias);
         }));
 
-        EM.addListener(EMEvent.ALIAS_EDIT, new EMListener(function(alias: Alias): Void {
+        EM.addListener(EMEvent.DeleteAlias, new EMListener(function(alias: Alias): Void {
+            protocolHandler.deleteAlias(alias);
+        }));
+
+        EM.addListener(EMEvent.UpdateAlias, new EMListener(function(alias: Alias): Void {
             protocolHandler.updateAlias(alias);
         }));
 
@@ -146,67 +150,6 @@ class EventDelegate {
         EM.addListener(EMEvent.RESTORE, new EMListener(function(n: Nothing): Void{
         	protocolHandler.restore();
         }));
-
-        processHash.set(MsgType.evalSubscribeResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("evalResponse was received from the server");
-    		AppContext.LOGGER.debug(data);
-    		var evalResponse: EvalResponse = AppContext.SERIALIZER.fromJsonX(data, EvalResponse);
-    		EM.change(EMEvent.MoreContent, evalResponse.contentImpl.content); 
-    	});
-
-        processHash.set(MsgType.evalComplete, function(data: Dynamic){
-    		AppContext.LOGGER.debug("evalComplete was received from the server");
-    		var evalComplete: EvalComplete = AppContext.SERIALIZER.fromJsonX(data, EvalComplete);
-    		EM.change(EMEvent.EndOfContent, evalComplete.contentImpl.content); 
-    	});
-
-        processHash.set(MsgType.sessionPong, function(data: Dynamic){
-    		// AppContext.LOGGER.debug("sessionPong was received from the server");
-    	});
-
-        processHash.set(MsgType.evalSubscribeCancelResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("evalSubscribeCancelResponse was received from the server");
-    	});
-
-        processHash.set(MsgType.updateUserResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("updateUserResponse was received from the server");
-    	});
-
-        processHash.set(MsgType.addAliasLabelsResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("addAliasLabelsResponse was received from the server");
-    	});
-        
-        processHash.set(MsgType.addAgentAliasesResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("addAgentAliasesResponse was received from the server");
-    		EM.change(EMEvent.NewAlias);
-    	});
-
-        processHash.set(MsgType.addAgentAliasesError, function(data: Dynamic){
-    		AppContext.LOGGER.error("addAgentAliasesError was received from the server");
-    	});
-
-        processHash.set(MsgType.removeAgentAliasesResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("removeAgentAliasesResponse was received from the server");
-    	});
-
-        processHash.set(MsgType.removeAgentAliasesError, function(data: Dynamic){
-    		AppContext.LOGGER.error("removeAgentAliasesError was received from the server");
-    	});
-
-        processHash.set(MsgType.getAliasConnectionsError, function(data: Dynamic){
-    		AppContext.LOGGER.error("getAliasConnectionsError was received from the server");
-    	});
-
-     //    processHash.set(MsgType.getAliasLabelsResponse, function(data: Dynamic){
-    	// 	AppContext.LOGGER.debug("getAliasLabelsResponse was received from the server");
-    	// 	var resp: GetAliasLabelsResponse = AppContext.SERIALIZER.fromJsonX(data, GetAliasLabelsResponse);
-    	// 	AppContext.alias.labelSet.clear();
-    	// 	AppContext.alias.labelSet.addAll(resp.contentImpl.aliasLabels);
-    	// });
-
-        processHash.set(MsgType.getAliasLabelsError, function(data: Dynamic){
-    		AppContext.LOGGER.error("getAliasLabelsError was received from the server");
-    	});
 
         processHash.set(MsgType.introductionNotification, function(data: Dynamic){
     		AppContext.LOGGER.debug("introductionNotification was received from the server");

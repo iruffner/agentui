@@ -109,17 +109,6 @@ class CreateUserResponse extends ProtocolMessage<CreateUserResponseData> {
 			public var agentURI: String;
 		}
 
-class UpdateUserRequest extends ProtocolMessage<UpdateUserRequestData> {
-	public function new() {
-		super(MsgType.updateUserRequest, UpdateUserRequestData);
-	}
-}
-
-		class UpdateUserRequestData extends PayloadWithSessionURI {
-			public var jsonBlob: Dynamic;
-		}
-
-
 /** 
 	Initialize Session Request/Response 
 **/
@@ -192,22 +181,6 @@ class ConnectionProfileResponse extends ProtocolMessage<ConnectionProfileRespons
 		}
 
 /** 
-	Ping/pop Request/Response 
-**/
-class SessionPingRequest extends ProtocolMessage<PayloadWithSessionURI> {
-	public function new() {
-		super(MsgType.sessionPing, PayloadWithSessionURI);
-	}
-}
-
-class SessionPongResponse extends ProtocolMessage<PayloadWithSessionURI> {
-	public function new() {
-		super(MsgType.sessionPong, PayloadWithSessionURI);
-	}
-}
-
-
-/** 
 	Close Session Request/Response 
 **/
 class CloseSessionRequest extends ProtocolMessage<PayloadWithSessionURI> {
@@ -222,70 +195,6 @@ class CloseSessionResponse extends ProtocolMessage<PayloadWithSessionURI> {
 	}
 }
 
-/** 
-	Evaluate Request/Response 
-**/
-class EvalSubscribeRequest extends ProtocolMessage<EvalRequestData> {
-	public function new() {
-		super(MsgType.evalSubscribeRequest, EvalRequestData);
-	}
-}
-
-		class EvalRequestData extends PayloadWithSessionURI {
-			public var expression: ProtocolMessage<Dynamic>;
-		}
-
-class EvalNextPageRequest extends ProtocolMessage<EvalNextPageRequestData> {
-	public function new() {
-		super(MsgType.evalSubscribeRequest, EvalNextPageRequestData);
-	}
-}
-
-		class EvalNextPageRequestData extends PayloadWithSessionURI {
-			public var nextPage: String;
-		}
-
-class EvalResponse extends ProtocolMessage<EvalResponseData> {
-	public function new() {
-		super(MsgType.evalSubscribeResponse, EvalResponseData);
-	}
-}
-
-class EvalComplete extends ProtocolMessage<EvalResponseData> {
-	public function new() {
-		super(MsgType.evalComplete, EvalResponseData);
-	}
-}
-
-		class EvalResponseData extends PayloadWithSessionURI {
-			public var pageOfPosts: Array<String>;
-			@:optional public var connection: Connection;
-			@:optional public var filter: String;
-
-			@:transient public var content: Array<Content<Dynamic>>;
-
-			private function readResolve(): Void {
-				if(pageOfPosts.hasValues()) {
-					content = new Array<Content<Dynamic>>();
-					for(p_ in 0...pageOfPosts.length) {
-						var post: Dynamic = haxe.Json.parse(pageOfPosts[p_]);
-						content.push(AppContext.SERIALIZER.fromJsonX(post, Content));
-					}
-				}
-			}
-
-		}
-
-class EvalError extends ProtocolMessage<EvalErrorData> {
-	public function new() {
-		super(MsgType.evalError, EvalErrorData);
-	}
-}
-
-		class EvalErrorData extends PayloadWithSessionURI {
-			public var errorMsg: String;
-		}
-
 class FeedExpr extends ProtocolMessage<FeedExprData> {
 	public function new() {
 		super(MsgType.feedExpr, FeedExprData);
@@ -297,26 +206,6 @@ class FeedExpr extends ProtocolMessage<FeedExprData> {
 			public var label: String;
 			// public var uid: String; // this is a valid option, but currently have no UI actions that would warrant it
 		}
-
-/** 
-	Stop Evaluation Request/Response 
-**/
-class EvalSubscribeCancelRequest extends ProtocolMessage<EvalSubscribeCancelRequestData> {
-	public function new() {
-		super(MsgType.evalSubscribeCancelRequest, EvalSubscribeCancelRequestData);
-	}
-}
-
-		class EvalSubscribeCancelRequestData extends PayloadWithSessionURI {
-			public var connections: Array<Connection>;
-			public var filter: String;
-		}
-
-class EvalSubscribeCancelResponse extends ProtocolMessage<PayloadWithSessionURI> {
-	public function new() {
-		super(MsgType.evalSubscribeCancelResponse, PayloadWithSessionURI);
-	}
-}
 
 class InsertContent extends ProtocolMessage<InsertContentData> {
 	public function new() {
@@ -353,46 +242,6 @@ class BaseAgentAliasRequest extends ProtocolMessage<AgentAliasRequestData> {
 			public var alias: String;
 		}
 
-class AddAgentAliasesResponse extends ProtocolMessage<PayloadWithSessionURI> {
-	public function new() {
-		super(MsgType.addAgentAliasesResponse, PayloadWithSessionURI);
-	}
-}
-
-class AddAgentAliasesError extends ProtocolMessage<ErrorPayload> {
-	public function new() {
-		super(MsgType.addAgentAliasesError, ErrorPayload);
-	}
-}
-
-class RemoveAgentAliasesResponse extends ProtocolMessage<PayloadWithSessionURI> {
-	public function new() {
-		super(MsgType.removeAgentAliasesResponse, PayloadWithSessionURI);
-	}
-}
-
-class RemoveAgentAliasesError extends ProtocolMessage<ErrorPayload> {
-	public function new() {
-		super(MsgType.removeAgentAliasesError, ErrorPayload);
-	}
-}
-
-class GetAliasConnectionsResponse extends ProtocolMessage<AliasConnectionsResponseData> {
-	public function new() {
-		super(MsgType.getAliasConnectionsResponse, AliasConnectionsResponseData);
-	}
-}
-
-		class AliasConnectionsResponseData extends PayloadWithSessionURI {
-			public var connections: Array<Connection>;
-		}
-
-class GetAliasLabelsResponse extends ProtocolMessage<AliasLabelsRequestData> {
-	public function new() {
-		super(MsgType.getAliasLabelsResponse, AliasLabelsRequestData);
-	}
-}
-
 		class AliasLabelsRequestData extends PayloadWithSessionURI {
 			var labels: Array<String>;
 			@:transient public var aliasLabels(get,never): Array<Label>;
@@ -409,40 +258,6 @@ class GetAliasLabelsResponse extends ProtocolMessage<AliasLabelsRequestData> {
 				else return null;
 			}
 		}
-
-class AddAliasLabelsRequest extends ProtocolMessage<AddAliasLabelsRequestData> {
-	public function new() {
-		super(MsgType.addAliasLabelsRequest, AddAliasLabelsRequestData);
-	}
-}
-
-		class AddAliasLabelsRequestData extends PayloadWithSessionURI {
-			public var labels: Array<String>;
-			public var alias: String;
-		}
-
-class AddAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
-	public function new() {
-		super(MsgType.addAliasLabelsResponse, PayloadWithSessionURI);
-	}
-}
-
-class UpdateAliasLabelsRequest extends ProtocolMessage<UpdateAliasLabelsRequestData> {
-	public function new() {
-		super(MsgType.updateAliasLabelsRequest, UpdateAliasLabelsRequestData);
-	}
-}
-
-		class UpdateAliasLabelsRequestData extends PayloadWithSessionURI {
-			public var labels: Array<String>;
-			public var alias: String;
-		}
-
-class UpdateAliasLabelsResponse extends ProtocolMessage<PayloadWithSessionURI> {
-	public function new() {
-		super(MsgType.updateAliasLabelsResponse, PayloadWithSessionURI);
-	}
-}
 
 /** 
 	Introductions 
@@ -580,39 +395,15 @@ enum MsgType {
 	initializeSessionResponse;
 	initializeSessionError;
 	connectionProfileResponse;
-	sessionPing;
-	sessionPong;
 	closeSessionRequest;
 	closeSessionResponse;
-	evalSubscribeRequest;
-	evalSubscribeResponse;
-	evalComplete;
-	evalError;
-	evalSubscribeCancelRequest;
-	evalSubscribeCancelResponse;
 	createUserRequest;
 	createUserError;
 	createUserWaiting;
 	confirmEmailToken;
 	createUserResponse;
-	updateUserRequest;
-	updateUserResponse;
 	insertContent;
 	feedExpr;
-
-	addAgentAliasesRequest;
-	addAgentAliasesError;
-	addAgentAliasesResponse;
-	removeAgentAliasesRequest;
-	removeAgentAliasesError;
-	removeAgentAliasesResponse;
-
-	getAliasConnectionsRequest;
-	getAliasConnectionsResponse;
-	getAliasConnectionsError;
-	getAliasLabelsRequest;
-	getAliasLabelsResponse;
-	getAliasLabelsError;
 
 	addAliasLabelsRequest;
 	addAliasLabelsResponse;
