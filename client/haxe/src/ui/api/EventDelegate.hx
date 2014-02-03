@@ -3,7 +3,6 @@ package ui.api;
 import m3.jq.JQ;
 
 import ui.api.ProtocolHandler;
-import ui.api.ProtocolMessage;
 import ui.model.ModelObj;
 import ui.model.EM;
 import ui.model.Filter;
@@ -11,38 +10,14 @@ import ui.model.Filter;
 class EventDelegate {
 	
 	private var protocolHandler:ProtocolHandler;
-	public var processHash: Map<MsgType,Dynamic->Void>;
 	private var filterIsRunning: Bool = false;
 
 	public function new(protocolHandler:ProtocolHandler) {
 		this.protocolHandler = protocolHandler;
-		this.processHash = new Map<MsgType,Dynamic->Void>();
-
 		this._setUpEventListeners();
 	}
 
 	private function _setUpEventListeners() {
-
-		EM.addListener(EMEvent.TEST, new EMListener(function(data: Dynamic): Void {
-			var msgType: MsgType = {
-				try {
-					Type.createEnum(MsgType, data.msgType);
-				} catch (err: Dynamic) {
-					null;
-				}
-			}
-			var processor: Dynamic->Void = processHash.get(msgType);
-			if(processor == null) {
-				if(data != null) {
-					AppContext.LOGGER.info("no processor for " + data.msgType);
-				} else { 
-					AppContext.LOGGER.info("no data returned on polling channel response");
-				}
-			} else {
-				AppContext.LOGGER.debug("received " + data.msgType);
-				processor(data);
-			}
-		}));
 
 		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
 			if(filterIsRunning) {
@@ -150,43 +125,5 @@ class EventDelegate {
         EM.addListener(EMEvent.RESTORE, new EMListener(function(n: Nothing): Void{
         	protocolHandler.restore();
         }));
-
-        processHash.set(MsgType.introductionNotification, function(data: Dynamic){
-    		AppContext.LOGGER.debug("introductionNotification was received from the server");
-    		var notification: IntroductionNotification = AppContext.SERIALIZER.fromJsonX(data, IntroductionNotification);
-    		EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
-    	});
-
-        processHash.set(MsgType.beginIntroductionResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("beginIntroductionResponse was received from the server");
-    		EM.change(EMEvent.INTRODUCTION_RESPONSE);
-    	});
-
-        processHash.set(MsgType.introductionConfirmationResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("introductionConfirmationResponse was received from the server");
-    		EM.change(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE);
-    	});
-
-        processHash.set(MsgType.connectNotification, function(data: Dynamic){
-    		AppContext.LOGGER.debug("connectNotification was received from the server");
-    		var notification: ConnectNotification = AppContext.SERIALIZER.fromJsonX(data, ConnectNotification);
-    		var conn: Connection = notification.contentImpl.connection;
-    		conn.profile = notification.contentImpl.profile;
-    		EM.change(EMEvent.NewConnection, conn);
-    	});
-
-        processHash.set(MsgType.connectionProfileResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("connectionProfileResponse was received from the server");
-    		var connectionProfileResponse = AppContext.SERIALIZER.fromJsonX(data, ConnectionProfileResponse);
-    		var c: Connection = connectionProfileResponse.contentImpl.connection;
-    		c.profile = connectionProfileResponse.contentImpl.profile;
-    		EM.change(EMEvent.ConnectionUpdate, c);
-    	});
-
-        processHash.set(MsgType.restoresResponse, function(data: Dynamic){
-    		AppContext.LOGGER.debug("restoresResponse was received from the server");
-    		var restoresResponse = AppContext.SERIALIZER.fromJsonX(data, RestoresResponse);
-    		EM.change(EMEvent.AVAILABLE_BACKUPS, restoresResponse.contentImpl.backups);
-    	});
 	}
 }

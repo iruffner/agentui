@@ -12,7 +12,6 @@ import ui.model.ModelObj;
 import ui.api.CrudMessage;
 
 import m3.exception.Exception;
-import ui.exception.InitializeSessionException;
 
 interface Requester {
 	function start(?opts: AjaxOptions): Dynamic;

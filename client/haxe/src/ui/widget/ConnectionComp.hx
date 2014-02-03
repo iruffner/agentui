@@ -8,7 +8,6 @@ import m3.widget.Widgets;
 import ui.model.ModelObj;
 import m3.observable.OSet.ObservableSet;
 import m3.exception.Exception;
-import ui.api.ProtocolMessage;
 
 using ui.widget.ConnectionAvatar;
 using m3.helper.StringHelper;

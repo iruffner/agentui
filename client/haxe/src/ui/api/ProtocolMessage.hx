@@ -71,16 +71,6 @@ class ConfirmUserToken extends ProtocolMessage<ConfirmUserTokenData> {
 			public var token: String;
 		}
 		
-class CreateUserResponse extends ProtocolMessage<CreateUserResponseData> {
-	public function new() {
-		super(MsgType.createUserResponse, CreateUserResponseData);
-	}
-}
-
-		class CreateUserResponseData extends Payload {
-			public var agentURI: String;
-		}
-
 /** 
 	Initialize Session Request/Response 
 **/
@@ -129,29 +119,6 @@ class InitializeSessionError extends ProtocolMessage<PayloadWithReason> {
 	}
 }
 
-class ConnectionProfileResponse extends ProtocolMessage<ConnectionProfileResponseData> {
-	public function new() {
-		super(MsgType.connectionProfileResponse, ConnectionProfileResponseData);
-	}
-}
-
-		class ConnectionProfileResponseData extends PayloadWithSessionURI {
-			public var connection: Connection;
-			// public var jsonBlob: UserData;
-			var jsonBlob: String;
-
-			@:transient public var profile: UserData;
-
-			private function readResolve(): Void {
-				if(jsonBlob.isNotBlank()) {
-					var p: Dynamic = haxe.Json.parse(jsonBlob);
-					profile = AppContext.SERIALIZER.fromJsonX(p, UserData);
-				} else {
-					profile = new UserData();
-				}
-			}
-		}
-
 /** 
 	Close Session Request/Response 
 **/
@@ -177,58 +144,6 @@ class FeedExpr extends ProtocolMessage<FeedExprData> {
 			public var cnxns: Array<Connection>;
 			public var label: String;
 			// public var uid: String; // this is a valid option, but currently have no UI actions that would warrant it
-		}
-
-class InsertContent extends ProtocolMessage<InsertContentData> {
-	public function new() {
-		super(MsgType.insertContent, InsertContentData);
-	}
-}
-		class InsertContentData extends Payload {
-			public var cnxns: Array<Connection>;
-			public var label: String;
-			public var value: String;
-			public var uid: String;
-		}
-
-/** 
-	Aliases 
-**/
-class BaseAgentAliasesRequest extends ProtocolMessage<AgentAliasesRequestData> {
-	public function new(msgType: MsgType) {
-		super(msgType, AgentAliasesRequestData);
-	}
-}
-
-		class AgentAliasesRequestData extends PayloadWithSessionURI {
-			public var aliases: Array<String>;
-		}
-
-class BaseAgentAliasRequest extends ProtocolMessage<AgentAliasRequestData> {
-	public function new(msgType: MsgType) {
-		super(msgType, AgentAliasRequestData);
-	}
-}
-
-		class AgentAliasRequestData extends PayloadWithSessionURI {
-			public var alias: String;
-		}
-
-		class AliasLabelsRequestData extends PayloadWithSessionURI {
-			var labels: Array<String>;
-			@:transient public var aliasLabels(get,never): Array<Label>;
-
-			function get_aliasLabels(): Array<Label> {
-				if(labels.hasValues()) {
-					var aliasLabels: Array<Label> = [];
-					var i: Int;
-					for (i in 0...labels.length) {
-						aliasLabels = aliasLabels.concat(PrologHelper.tagTreeFromString(labels[i]));
-					}
-					return aliasLabels;
-				}
-				else return null;
-			}
 		}
 
 /** 
@@ -366,18 +281,10 @@ enum MsgType {
 	initializeSessionRequest;
 	initializeSessionResponse;
 	initializeSessionError;
-	connectionProfileResponse;
 	closeSessionRequest;
 	closeSessionResponse;
 	confirmEmailToken;
-	createUserResponse;
-	insertContent;
 	feedExpr;
-
-	addAliasLabelsRequest;
-	addAliasLabelsResponse;
-	updateAliasLabelsRequest;
-	updateAliasLabelsResponse;
 
 	beginIntroductionRequest;
 	beginIntroductionResponse;

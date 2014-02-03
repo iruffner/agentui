@@ -6,7 +6,6 @@ import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
 import m3.exception.Exception;
-import ui.api.ProtocolMessage;
 using m3.helper.StringHelper;
 
 typedef RequestIntroductionDialogOptions = {
