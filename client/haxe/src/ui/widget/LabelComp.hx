@@ -11,6 +11,8 @@ import ui.widget.FilterableComponent;
 import m3.exception.Exception;
 import m3.util.UidGenerator;
 
+import ui.model.EM;
+using ui.widget.LabelComp;
 using m3.helper.OSetHelper;
 using StringTools;
 
@@ -40,14 +42,13 @@ class LabelCompHelper {
 		return l.labelComp("option", "parentIid");
 	}
 }
-
 @:native("$")
 extern class LabelComp extends FilterableComponent {
 
 	@:overload(function<T>(cmd : String):T{})
 	@:overload(function<T>(cmd:String, opt:String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function labelComp(opts: LabelCompOptions): LabelComp;
+	function labelComp(?opts: LabelCompOptions): LabelComp;
 
 	private static function __init__(): Void {
 		var defineWidget: Void->LabelCompWidgetDef = function(): LabelCompWidgetDef {
@@ -71,6 +72,7 @@ extern class LabelComp extends FilterableComponent {
 				            	var clone: LabelComp = new LabelComp("<div class='clone'></div>");
 				            	clone.labelComp({
 			                        labelIid: labelComp.labelComp("option", "labelIid"),
+			                        parentIid: labelComp.labelComp("option", "parentIid"),
 			                        isDragByHelper: isDragByHelper,
 			                        containment: containment,
 			                        dragstop: dragstop,
@@ -165,11 +167,11 @@ extern class LabelComp extends FilterableComponent {
 			            }
 
 		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-		            				AppContext.LOGGER.debug("dragstop on label | " + self.label.name);
-			                		if(self.options.dragstop != null) {
-			                			self.options.dragstop(dragstopEvt, dragstopUi);
-			                		}
-			                	});
+            				AppContext.LOGGER.debug("dragstop on label | " + self.label.name);
+	                		if (self.options.dragstop != null) {
+	                			self.options.dragstop(dragstopEvt, dragstopUi);
+	                		}
+			            });
 
 			            cast(selfElement, JQDraggable).draggable({ 
 				    		containment: self.options.containment, 
@@ -183,30 +185,45 @@ extern class LabelComp extends FilterableComponent {
 				    		}
 				    	});
 
+			            var copyOrMoveLabel = function(event: JQEvent, _ui: UIDroppable) {
+			            	var labelComp: LabelComp = cast(_ui.draggable, LabelComp);
+			            	var eld = new EditLabelData(labelComp.getLabel(), labelComp.parentIid(), self.getLabel().iid);
+			            	if (event.ctrlKey) {
+			            		EM.change(EMEvent.CopyLabel, eld);
+			            	} else {
+			            		EM.change(EMEvent.MoveLabel, eld);
+			            	}
+			            };
+
 			            cast(selfElement, JQDroppable).droppable({
 				    		accept: function(d) {
-				    			return !JQ.cur.parent().is(".filterCombination") && JQ.cur.parent().is(".dropCombiner") && d.is(".label");
+				    			return !JQ.cur.parent().is(".filterCombination") && 
+				    			        d.is(".label") && 
+				    			        (JQ.cur.parent().is(".dropCombiner") || JQ.cur.parent().is(".labelTreeBranch")); 
 				    		},
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
 					      	greedy: true,
-					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
-					      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
-					      		filterCombiner.appendTo(JQ.cur.parent());
-					      		filterCombiner.filterCombination({
-					      			event: event,
-					      			type: "LABEL",
-					      			dragstop: self.options.dragstop
-				      			});
-				      			filterCombiner.filterCombination("addFilterable", JQ.cur);
+					      	drop: function(event: JQEvent, _ui: UIDroppable) {
+					      		if (JQ.cur.parent().is(".labelTreeBranch")) {
+					      			copyOrMoveLabel(event, _ui);
+					      		} else {
+						      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
+						      		filterCombiner.appendTo(JQ.cur.parent());
+						      		filterCombiner.filterCombination({
+						      			event: event,
+						      			type: "LABEL",
+						      			dragstop: self.options.dragstop
+					      			});
+					      			filterCombiner.filterCombination("addFilterable", JQ.cur);
 
-				      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"window");
+					      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"window");
 
-				                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
+					                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
 
-				      			filterCombiner.filterCombination("addFilterable", clone);
-
-				      			filterCombiner.filterCombination("position");
+					      			filterCombiner.filterCombination("addFilterable", clone);
+					      			filterCombiner.filterCombination("position");
+					      		}
 					      	},
 					      	tolerance: "pointer"
 				    	});

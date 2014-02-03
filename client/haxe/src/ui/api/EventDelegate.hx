@@ -90,6 +90,14 @@ class EventDelegate {
             protocolHandler.updateLabel(data);
         }));
 
+        EM.addListener(EMEvent.MoveLabel, new EMListener(function(data:EditLabelData): Void {
+            protocolHandler.moveLabel(data);
+        }));
+
+        EM.addListener(EMEvent.CopyLabel, new EMListener(function(data:EditLabelData): Void {
+            protocolHandler.copyLabel(data);
+        }));
+
         EM.addListener(EMEvent.DeleteLabel, new EMListener(function(data:EditLabelData): Void {
             protocolHandler.deleteLabel(data);
         }));

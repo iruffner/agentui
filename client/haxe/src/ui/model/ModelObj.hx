@@ -342,6 +342,8 @@ class ContentData {
 
 class Content<T:(ContentData)> extends ModelObjWithIid {
 	public var contentType: ContentType;
+	public var aliasIid: String;
+
 	private var data:Dynamic;
 	@:transient public var props: T;
 
@@ -352,8 +354,9 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 
 	public function new (contentType:ContentType, type: Class<T>) {
 		super();
-		this.data = {};
 		this.contentType = contentType;
+		this.aliasIid = "";
+		this.data = {};
 		this.type = type;
 		this.props = Type.createInstance(type, []);
 	}
@@ -522,10 +525,12 @@ class IntroductionConfirmation extends ModelObj {
 class EditLabelData {
 	public var label:Label;
 	public var parentIid:String;
+	public var newParentId:String;
 
-	public function new(label:Label, ?parentIid:String) {
+	public function new(label:Label, ?parentIid:String, ?newParentId) {
 		this.label = label;
 		this.parentIid = parentIid;
+		this.newParentId = newParentId;
 	}
 }
 

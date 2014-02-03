@@ -197,10 +197,29 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
-	public function moveLabel(label:Label, parent:Label):Void {
-		// TODO:  Delete labelChild, add labelChild
+	public function moveLabel(data:EditLabelData):Void {
+		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
+		});
+		var lcToRemove = lcs.iterator().next();
+
+		var lcToAdd = new LabelChild(data.newParentId, data.label.iid);
+
+		var context = Synchronizer.createContext(2, "labelMoved");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(DELETE, context + "labelChild", DeleteMessage.create(lcToRemove)),
+			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lcToAdd))]);
+		req.start();
 	}
  
+	public function copyLabel(data:EditLabelData):Void {
+		var lcToAdd = new LabelChild(data.newParentId, data.label.iid);
+		var context = Synchronizer.createContext(2, "labelCopied");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lcToAdd))]);
+		req.start();
+	}
+
 	public function deleteLabel(data:EditLabelData):Void {
 
 		var labelChildren = AppContext.getDescendentLabelChildren(data.label.iid);
@@ -208,32 +227,14 @@ class BennuHandler implements ProtocolHandler {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
 		});
 		labelChildren = labelChildren.concat(lcs.asArray());
-		var labelledContent = new FilteredSet<LabeledContent>(AppContext.LABELEDCONTENT, function(lc:LabeledContent):Bool{
-			return lc.labelIid == data.label.iid;
-		}).asArray();
 
-		// TODO:  need to determine if the label(s) should be deleted.  The criteria being that
-		// there are no references to them in either the LabelChildren or the LabelledContent...
-		var labels = AppContext.getLabelDescendents(data.label.iid).asArray();
-		var count = labels.length + labelChildren.length + labelledContent.length;
-		var context = Synchronizer.createContext(count, "labelDeleted");
+		var context = Synchronizer.createContext(labelChildren.length, "labelDeleted");
 
 		var requests = new Array<ChannelRequestMessage>();
-
-		// Create messages for each of these datatypes
-		for (label in labels) {
-			label.deleted = true;
-			requests.push(new ChannelRequestMessage(DELETE, context + "label", DeleteMessage.create(label)));
-		}
 
 		for (lc in labelChildren) {
 			lc.deleted = true;
 			requests.push(new ChannelRequestMessage(DELETE, context + "labelChild", DeleteMessage.create(lc)));
-		}
-
-		for (lc in labelledContent) {
-			lc.deleted = true;
-			requests.push(new ChannelRequestMessage(DELETE, context + "labeledContent", DeleteMessage.create(lc)));
 		}
 
 		new SubmitRequest(requests).start();

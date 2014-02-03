@@ -34,10 +34,7 @@ class ResponseProcessor {
     						synchronizer = Synchronizer.add(data.context);
     					}
     					synchronizer.dataReceived(data.result, context[3]);
-    				} else {
-                        AppContext.LOGGER.error("TODO:  Delete Me when server is fixed...");
-                        updateModel(data.result, context[3]);
-                    }
+    				}
                 }
 			}
 		});

@@ -121,6 +121,8 @@ enum EMEvent {
 
 	CreateLabel;
 	UpdateLabel;
+	MoveLabel;
+	CopyLabel;
 	DeleteLabel;
 
 	INTRODUCTION_REQUEST;
