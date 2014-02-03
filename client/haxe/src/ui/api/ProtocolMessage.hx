@@ -61,34 +61,6 @@ class ErrorPayload extends PayloadWithSessionURI {
 	public var reason: String;
 }
 
-/** 
-	Create User Request/Response 
-**/
-class CreateUserRequest extends ProtocolMessage<UserRequestData> {
-	public function new() {
-		super(MsgType.createUserRequest, UserRequestData);
-	}
-}
-
-		class UserRequestData extends Payload {
-			public var email: String;
-			public var password: String;
-			public var jsonBlob: Dynamic;
-		}
-
-class CreateUserError extends ProtocolMessage<PayloadWithReason> {
-	public function new() {
-		super(MsgType.createUserError, PayloadWithReason);
-	}
-}
-
-
-class CreateUserWaiting extends ProtocolMessage<Payload> {
-	public function new() {
-		super(MsgType.createUserWaiting, Payload);
-	}
-}
-
 class ConfirmUserToken extends ProtocolMessage<ConfirmUserTokenData> {
 	public function new() {
 		super(MsgType.confirmEmailToken, ConfirmUserTokenData);
@@ -397,9 +369,6 @@ enum MsgType {
 	connectionProfileResponse;
 	closeSessionRequest;
 	closeSessionResponse;
-	createUserRequest;
-	createUserError;
-	createUserWaiting;
 	confirmEmailToken;
 	createUserResponse;
 	insertContent;
