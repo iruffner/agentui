@@ -55,7 +55,7 @@ class AppContext {
         // Create a dummy agent
         AGENT = new Agent();
         AGENT.userData = new UserData("Qoid", "media/test/koi.jpg");
-        AGENT.iid = "xyz_my_agent_id_pdq";
+        AGENT.iid = "007";
 
     	LOGGER = new Logga(LogLevel.DEBUG);
         

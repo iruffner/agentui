@@ -4663,7 +4663,7 @@ ui.AppContext.set_alias = function(alias) {
 ui.AppContext.init = function() {
 	ui.AppContext.AGENT = new ui.model.Agent();
 	ui.AppContext.AGENT.userData = new ui.model.UserData("Qoid","media/test/koi.jpg");
-	ui.AppContext.AGENT.iid = "xyz_my_agent_id_pdq";
+	ui.AppContext.AGENT.iid = "007";
 	ui.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
 	ui.AppContext._i = new m3.observable.ObservableSet(function(n) {
 		return n.contentImpl.correlationId;
