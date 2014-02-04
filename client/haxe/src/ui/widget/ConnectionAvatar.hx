@@ -91,8 +91,8 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.name());
 
 		        	var imgSrc: String = "media/default_avatar.jpg";
-		        	if(M.getX(self.options.connection.profile.imgSrc, "").isNotBlank() ) {
-		        		imgSrc = self.options.connection.profile.imgSrc;
+		        	if(M.getX(self.options.connection.data.imgSrc, "").isNotBlank() ) {
+		        		imgSrc = self.options.connection.data.imgSrc;
 		        	}
 
 		            var img: JQ = new JQ("<img src='" + imgSrc + "' class='shadow'/>");
@@ -177,12 +177,12 @@ extern class ConnectionAvatar extends FilterableComponent {
 					self.options.connection = conn;
 
 					var imgSrc: String = "media/default_avatar.jpg";
-		        	if(M.getX(self.options.connection.profile.imgSrc, "").isNotBlank() ) {
-		        		imgSrc = self.options.connection.profile.imgSrc;
+		        	if(M.getX(self.options.connection.data.imgSrc, "").isNotBlank() ) {
+		        		imgSrc = self.options.connection.data.imgSrc;
 		        	}
 
 		        	selfElement.children("img").attr("src", imgSrc);
-		            selfElement.attr("title", M.getX(self.options.connection.profile.name,""));
+		            selfElement.attr("title", M.getX(self.options.connection.data.name,""));
 	        	},
 
 		        destroy: function() {

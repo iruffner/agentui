@@ -111,7 +111,7 @@ extern class ConnectionComp extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 					self.options.connection = conn;
 
-		            selfElement.children(".name").text(M.getX(self.options.connection.profile.name, ""));
+		            selfElement.children(".name").text(M.getX(self.options.connection.data.name, ""));
 
 		            self._avatar.update(conn);
 	        	},

@@ -50,24 +50,24 @@ extern class ScoreComp extends JQ {
 		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
 	            	var connection: Connection = null;//AppContext.alias.connectionSet.getElementComplex(content.creator);
 
- 	            	if (self.contentTimeLines.get(content.creator) == null) {
+ 	            	if (self.contentTimeLines.get(content.aliasIid) == null) {
  	            		var timeLine = new ContentTimeLine(self.paper, connection, 
  	            			                               self.startTime.getTime(), 
  	            			                               self.endTime.getTime(),
  	            			                               self.initialWidth);
- 	            		self.contentTimeLines.set(content.creator, timeLine);
+ 	            		self.contentTimeLines.set(content.aliasIid, timeLine);
 		            }
 
-	            	self.contentTimeLines.get(content.creator).addContent(content);
-	            	self.uberGroup.append(self.contentTimeLines.get(content.creator).timeLineElement);
+	            	self.contentTimeLines.get(content.aliasIid).addContent(content);
+	            	self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
 				},
 
 				_deleteContent: function (content:Content<Dynamic>) {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
-		        	var ctl = self.contentTimeLines.get(content.creator);
+		        	var ctl = self.contentTimeLines.get(content.aliasIid);
 		        	if (ctl != null) {
 			        	ctl.removeElements();
-						self.contentTimeLines.remove(content.creator);
+						self.contentTimeLines.remove(content.aliasIid);
 						if (!self.contentTimeLines.iterator().hasNext()) {
 							ContentTimeLine.resetPositions();
 						}

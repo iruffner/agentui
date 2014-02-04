@@ -73,7 +73,7 @@ class ContentTimeLine {
 		var ellipse = paper.ellipse(time_line_x + width/2, time_line_y + height/2, width/2, height/2);
 		ellipse.attr({fill:"#fff", stroke:"#000", strokeWidth:"1px"});
 
-		var imgSrc = M.getX(connection.profile.imgSrc,"media/default_avatar.jpg");
+		var imgSrc = M.getX(connection.data.imgSrc,"media/default_avatar.jpg");
 		var img = paper.image(imgSrc, time_line_x, time_line_y, width, height)
                				       .attr({"preserveAspectRatio":"true"});
         img.attr({mask: ellipse});
@@ -117,8 +117,6 @@ class ContentTimeLine {
 	}
 
 	private function addContentElement(content:Content<Dynamic>, ele:SnapElement) {
-		ele.attr({"contentType": Std.string(content.contentType)});
-		ele.attr({"id" : content.creator + "-" + content.iid});
 
 		ele = ele.click(function(evt:Event):Void {
 			var clone = cloneElement(ele);

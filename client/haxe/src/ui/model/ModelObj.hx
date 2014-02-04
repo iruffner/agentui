@@ -136,14 +136,6 @@ class Agent extends ModelObj {
 	private function writeResolve(): Void {
 		aliases = aliasSet.asArray();
 	}
-
-	public function getSelfConnection(): Connection {
-		var conn: Connection = new Connection();
-		conn.source = sessionURI;
-		conn.target = sessionURI;
-		conn.label = currentAlias.name;
-		return conn;
-	}
 }
 
 class UserData extends ModelObj {
@@ -222,41 +214,24 @@ class LabelChild extends ModelObjWithIid {
 }
 
 class Connection extends ModelObjWithIid implements Filterable {
-	@:transient public var uid(get, null): String;
 
-	public var source: String;
-	public var target: String;
-	public var label: String;
-
-	@:transient public var profile: UserData;
-
-	@:transient public var connectionSet: ObservableSet<Connection>;
-	@:transient public var connectionLabelSet: ObservableSet<Label>;
-	@:transient public var userSharedLabelSet: ObservableSet<Label>;
-
-	function get_uid(): String {
-		return Connection.identifier(this);
-	}
+	public var url: String;
+	public var data:UserData;
 
 	public static function identifier(c: Connection): String {
 		return c.iid;
 	}
 
-
 	public function new(?profile: UserData) {
 		super();
-		this.profile = profile;
-	}
-
-	public function name() : String {
-		return this.profile != null ? this.profile.name : "";
 	}
 
 	public function equals(c: Connection): Bool {
-		return 
-			this.source == c.source &&
-			this.target == c.target &&
-			this.label == c.label;
+		return this.iid == c.iid;
+	}
+
+	public function name():String {
+		return data.name;
 	}
 }
 
@@ -347,7 +322,6 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	private var data:Dynamic;
 	@:transient public var props: T;
 
-	@:optional public var creator: String;
 	@:transient @:isVar public var created(get, null): Date;
 	@:transient @:isVar public var modified(get, null): Date;
 	@:transient var type: Class<T>;
@@ -355,7 +329,7 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	public function new (contentType:ContentType, type: Class<T>) {
 		super();
 		this.contentType = contentType;
-		this.aliasIid = "";
+		this.aliasIid = AppContext.alias.iid;
 		this.data = {};
 		this.type = type;
 		this.props = Type.createInstance(type, []);

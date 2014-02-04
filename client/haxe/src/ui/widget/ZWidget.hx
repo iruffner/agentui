@@ -85,10 +85,6 @@ extern class ZWidget extends JQ {
         							notification.contentImpl.profile.name = "Uncle Leo";
 					                notification.contentImpl.profile.imgSrc = "media/test/uncle_leo.jpg";
 					                notification.contentImpl.connection = new Connection();
-					                notification.contentImpl.connection.source = "fakesource";
-					                notification.contentImpl.connection.target = "faketarget";
-					                notification.contentImpl.connection.label = "fakelabel";
-
 					                EM.change(EMEvent.TEST, AppContext.SERIALIZER.toJson(notification));
         						})
         					.appendTo(self.container);

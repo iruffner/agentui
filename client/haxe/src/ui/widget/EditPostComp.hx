@@ -333,7 +333,7 @@ extern class EditPostComp extends JQ {
 					      	hoverClass: "ui-state-active",
 					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 					      		// Check to see if the element being dropped is already in the container
-						      	if (isDuplicate(".connectionAvatar", _ui.draggable, tags, function(ele:JQ){return new ConnectionAvatar(ele).getConnection().uid;} )
+						      	if (isDuplicate(".connectionAvatar", _ui.draggable, tags, function(ele:JQ){return new ConnectionAvatar(ele).getConnection().iid;} )
 					      		 || isDuplicate(".labelComp"       , _ui.draggable, tags, function(ele:JQ){return new LabelComp(ele).getLabel().iid;})) {
 					      			if (_ui.draggable.parent().attr("id") != "edit_post_comps_tags") {
 						      			_ui.draggable.draggable("option", "revert", true);

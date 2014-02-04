@@ -65,7 +65,8 @@ extern class ConnectionsList extends JQ {
 
 			        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn: Connection) {
 			        		if(conn != null) {
-			                	self._setConnections(conn.connectionSet);
+			        			AppContext.LOGGER.warn("fix me self._setConnections(conn.connectionSet)");
+//			                	self._setConnections(conn.connectionSet);
 			        		} else { 
 			        			AppContext.LOGGER.warn("fix me self._setConnections(alias.connectionSet)");
 		                		// self._setConnections(AppContext.alias.connectionSet);

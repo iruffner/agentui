@@ -64,11 +64,11 @@ extern class MessagingComp extends JQ {
 					      	greedy: true,
 					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
 					      		var connection: Connection = cast(_ui.draggable, ConnectionAvatar).connectionAvatar("option", "connection");
-					      		var id: String = "chat-" + connection.uid;
+					      		var id: String = "chat-" + connection.iid;
 					      		//create and add a new Chat Comp
 					      		var li: JQ = 
 					      			new JQ("<li><a href='#" + id + "'><img src='" + 
-					      					M.getX(connection.profile.imgSrc, "") + 
+					      					M.getX(connection.data.imgSrc, "") + 
 					      					"'></a></li>").appendTo(ul);
 
 					      		var chatComp: ChatComp = new ChatComp("<div id='" + id + "'></div>").chatComp({

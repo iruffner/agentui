@@ -60,7 +60,7 @@ extern class IntroductionNotificationComp extends JQ {
 
 		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(conn));");
 		        	var connFromAlias: Connection = null;//AppContext.alias.connectionSet.getElement(Connection.identifier(conn));
-		        	if(connFromAlias != null) conn.profile = connFromAlias.profile;
+		        	if(connFromAlias != null) conn.data = connFromAlias.data;
 
 		        	self.listenerUid = EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, new EMListener(function(e:Dynamic) {
 		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {
@@ -86,7 +86,7 @@ extern class IntroductionNotificationComp extends JQ {
 
 		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		        	var title = new JQ("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
-		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + data.connection.profile.name + "</div>").appendTo(invitationText);
+		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + data.connection.data.name + "</div>").appendTo(invitationText);
 		        	var date  =	new JQ("<div class='content-timestamp'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='invitation-message'>" + data.message + "</div>").appendTo(invitationText);
 					var accept = new JQ("<button>Accept</button>")

@@ -60,10 +60,10 @@ class AppContext {
     	LOGGER = new Logga(LogLevel.DEBUG);
         
         _i = new ObservableSet<IntroductionNotification>(
-                    function(n: IntroductionNotification): String {
-                        return n.contentImpl.correlationId;
-                    }
-                );
+            function(n: IntroductionNotification): String {
+                return n.contentImpl.correlationId;
+            }
+        );
 
         INTRODUCTIONS = new GroupedSet<IntroductionNotification>( 
         	_i , 
