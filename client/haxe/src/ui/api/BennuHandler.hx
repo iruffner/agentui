@@ -254,7 +254,7 @@ class BennuHandler implements ProtocolHandler {
 		];
 		new SubmitRequest(requests).start();
 		var types = ["alias", "label", "labelchild", "content", "labeledcontent"];
-		requests = [new ChannelRequestMessage(REGISTER, "aliases-changes", new RegisterMessage(types, "listeningToAll"))];
+		requests = [new ChannelRequestMessage(REGISTER, "aliases-changes", new RegisterMessage(types))];
 		new SubmitRequest(requests).start();
 	}
 

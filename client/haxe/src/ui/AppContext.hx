@@ -90,7 +90,6 @@ class AppContext {
         LABELCHILDREN = new FilteredSet<LabelChild>(MASTER_LABELCHILDREN, function(c:LabelChild):Bool {
             return !c.deleted;
         });
-
         GROUPED_LABELCHILDREN = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
             return lc.parentIid;
         });

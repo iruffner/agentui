@@ -54,10 +54,8 @@ class QueryMessage extends BennuMessage {
 @:rtti
 class RegisterMessage implements ChannelMessage {
 	public var types: Array<String>;
-	public var handle:String;
-	public function new (types:Array<String>, handle:String) {
+	public function new (types:Array<String>) {
 		this.types = types;
-		this.handle = handle;		
 	}	
 }
 
