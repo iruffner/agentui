@@ -15,7 +15,6 @@ import m3.util.JqueryUtil;
 import m3.exception.Exception;
 
 using m3.helper.OSetHelper;
-using ui.widget.ContentComp;
 using ui.widget.UrlComp;
 using ui.widget.UploadComp;
 using ui.widget.LabelComp;
@@ -215,8 +214,8 @@ extern class EditPostComp extends JQ {
 						.button({text: false, icons: { primary: "ui-icon-closethick"}})
 						.css("width", "23px")
 						.click(function(evt: JQEvent): Void {
-							close();
 							EM.change(EMEvent.EditContentClosed, self.options.content);
+							close();
 						}
 					);
 

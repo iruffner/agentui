@@ -4633,7 +4633,7 @@ ui.AgentUi.start = function() {
 	new $("#connections").connectionsList();
 	new $("#labelsList").labelsList();
 	new $("#filter").filterComp(null);
-	new $("#feed").contentFeed({ content : ui.AppContext.CONTENT});
+	new $("#feed").contentFeed({ });
 	new $("#userId").userComp();
 	new $("#postInput").postComp();
 	new $("#sideRight #sideRightInvite").inviteComp();
@@ -8358,8 +8358,8 @@ var defineWidget = function() {
 			close();
 		});
 		new $("<button title='Close'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-closethick"}}).css("width","23px").click(function(evt) {
-			close();
 			ui.model.EM.change(ui.model.EMEvent.EditContentClosed,self2.options.content);
+			close();
 		});
 	}, _updateContent : function() {
 		var self = this;
@@ -8556,10 +8556,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentFeed must be a div element");
 		selfElement.addClass("container " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
 		selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
-		self.content = new m3.observable.MappedSet(self.options.content,function(content) {
-			return new $("<div></div>").contentComp({ content : content});
-		});
-		self.content.mapListen(function(content,contentComp,evt) {
+		self.mapListener = function(content,contentComp,evt) {
 			if(evt.isAdd()) {
 				var contentComps = new $(".contentComp");
 				if(contentComps.length == 0) new $("#postInput").after(contentComp); else {
@@ -8578,7 +8575,23 @@ var defineWidget = function() {
 				}
 				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 			} else if(evt.isUpdate()) ui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
+		};
+		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
+			self._resetContents(ui.AppContext.get_alias().get_iid());
+		},"UserComp-User"));
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			self._resetContents(alias.get_iid());
+		},"UserComp-Alias"));
+	}, _resetContents : function(aliasIid) {
+		var self = this;
+		var selfElement = this.element;
+		if(self.content != null) self.content.removeListeners(self.mapListener);
+		selfElement.find(".contentComp").remove();
+		self.options.content = ui.AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
+		self.content = new m3.observable.MappedSet(self.options.content,function(content) {
+			return new $("<div></div>").contentComp({ content : content});
 		});
+		self.content.mapListen(self.mapListener);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};

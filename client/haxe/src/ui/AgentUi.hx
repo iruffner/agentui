@@ -121,7 +121,6 @@ class AgentUi {
         new FilterComp("#filter").filterComp(null);
 
         new ContentFeed("#feed").contentFeed({
-            content: AppContext.CONTENT
         });
 
         new UserComp("#userId").userComp();
