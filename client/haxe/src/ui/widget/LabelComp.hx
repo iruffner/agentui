@@ -166,11 +166,36 @@ extern class LabelComp extends FilterableComponent {
 			            	helper = self.options.helperFcn;
 			            }
 
-		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, _ui: UIDraggable): Void {
             				AppContext.LOGGER.debug("dragstop on label | " + self.label.name);
 	                		if (self.options.dragstop != null) {
-	                			self.options.dragstop(dragstopEvt, dragstopUi);
+	                			self.options.dragstop(dragstopEvt, _ui);
 	                		}
+	                		new JQ(js.Browser.document).off("keydown keyup");
+	                		_ui.helper.find("#copyIndicator").remove();
+			            });
+
+			            var showOrHideCopyIndicator = function(event:JQEvent, _ui: UIDraggable) {
+		            		var ci = _ui.helper.find("#copyIndicator");
+		            		if (event.ctrlKey) {
+		            			if (ci.length == 0) {
+			            			new JQ("<div id='copyIndicator' class='ui-icon ui-icon-circle-plus' style='position:relative;top:-10px;'></div>").appendTo(_ui.helper);
+			            		} else {
+			            			ci.show();
+			            		}
+		            		} else {
+		            			ci.hide();
+		            		}			            	
+			            }
+
+			            selfElement.on("dragstart", function(event: JQEvent, _ui: UIDraggable): Void {
+			            	new JQ(js.Browser.document).on("keydown keyup", function(event:JQEvent){
+			            		showOrHideCopyIndicator(event, _ui);
+			            	});
+			            });
+
+		            	selfElement.on("drag", function(event: JQEvent, _ui: UIDraggable): Void {
+		            		showOrHideCopyIndicator(event, _ui);
 			            });
 
 			            cast(selfElement, JQDraggable).draggable({ 

@@ -8240,9 +8240,25 @@ var defineWidget = function() {
 			});
 			var helper = "clone";
 			if(!self2.options.isDragByHelper) helper = "original"; else if(self2.options.helperFcn != null && Reflect.isFunction(self2.options.helperFcn)) helper = self2.options.helperFcn;
-			selfElement1.on("dragstop",function(dragstopEvt,dragstopUi) {
+			selfElement1.on("dragstop",function(dragstopEvt,_ui) {
 				ui.AppContext.LOGGER.debug("dragstop on label | " + self2.label.name);
-				if(self2.options.dragstop != null) self2.options.dragstop(dragstopEvt,dragstopUi);
+				if(self2.options.dragstop != null) self2.options.dragstop(dragstopEvt,_ui);
+				new $(js.Browser.document).off("keydown keyup");
+				_ui.helper.find("#copyIndicator").remove();
+			});
+			var showOrHideCopyIndicator = function(event,_ui) {
+				var ci = _ui.helper.find("#copyIndicator");
+				if(event.ctrlKey) {
+					if(ci.length == 0) new $("<div id='copyIndicator' class='ui-icon ui-icon-circle-plus' style='position:relative;top:-10px;'></div>").appendTo(_ui.helper); else ci.show();
+				} else ci.hide();
+			};
+			selfElement1.on("dragstart",function(event,_ui1) {
+				new $(js.Browser.document).on("keydown keyup",function(event1) {
+					showOrHideCopyIndicator(event1,_ui1);
+				});
+			});
+			selfElement1.on("drag",function(event,_ui) {
+				showOrHideCopyIndicator(event,_ui);
 			});
 			(js.Boot.__cast(selfElement1 , $)).draggable({ containment : self2.options.containment, helper : helper, distance : 10, scroll : false, revertDuration : 200, start : function(evt,_ui) {
 				(js.Boot.__cast(selfElement1 , $)).draggable("option","revert",false);
