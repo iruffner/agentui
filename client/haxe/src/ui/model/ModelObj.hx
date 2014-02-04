@@ -61,9 +61,11 @@ class ModelObjWithIid extends ModelObj {
 	}
 }
 
-class Agent extends ModelObjWithIid {
+class Agent extends ModelObj {
+	public var iid: String;
   	public var name: String;
   	public var data: Dynamic;
+	public var deleted: Bool;
 
 	@:transient public var sessionURI: String;
 	@:transient public var userData: UserData; 
