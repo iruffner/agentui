@@ -116,6 +116,12 @@ class ResponseProcessor {
 	    }
 	    AppContext.alias = initialAlias;
 
+        // Set the uber label
+        var fs = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(c:Label):Bool {
+            return c.name == "uber label";
+        });
+        AppContext.UBER_LABEL = fs.iterator().next();
+
     	// Fire the events that will cause the UI to load the data
 		EM.change(EMEvent.AGENT, AppContext.AGENT);
 		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);

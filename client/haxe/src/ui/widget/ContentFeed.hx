@@ -81,12 +81,12 @@ extern class ContentFeed extends JQ {
 
 	            	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
 	            		self._resetContents(AppContext.alias.iid);
-		        		}, "UserComp-User")
+		        		}, "ContentFeed-AGENT")
 		        	);
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
 		        		self._resetContents(alias.iid);
-		        		}, "UserComp-Alias")
+		        		}, "ContentFeed-AliasLoaded")
 		        	);
 		        },
 
@@ -98,6 +98,9 @@ extern class ContentFeed extends JQ {
 		        	}
 		        	selfElement.find(".contentComp").remove();
 		        	self.options.content = AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
+		        	if (self.options.content == null) {
+		        		self.options.content = AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
+		        	}
 		        	self.content = new MappedSet<Content<Dynamic>, ContentComp>(self.options.content, function(content: Content<Dynamic>): ContentComp {
 	        			return new ContentComp("<div></div>").contentComp({
 	        				content: content

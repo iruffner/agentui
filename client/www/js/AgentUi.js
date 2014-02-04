@@ -4955,7 +4955,7 @@ ui.api.BennuHandler.prototype = {
 		var requests = new Array();
 		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "alias",ui.api.DeleteMessage.create(alias)));
 		new ui.api.SubmitRequest(requests).start();
-		var data = new ui.model.EditLabelData(ui.AppContext.LABELS.delegate().get(alias.rootLabelIid),"");
+		var data = new ui.model.EditLabelData(ui.AppContext.LABELS.delegate().get(alias.rootLabelIid),ui.AppContext.UBER_LABEL.get_iid());
 		this.deleteLabel(data);
 	}
 	,updateAlias: function(alias) {
@@ -4965,7 +4965,8 @@ ui.api.BennuHandler.prototype = {
 	}
 	,createAlias: function(alias) {
 		var label = new ui.model.Label(alias.name);
-		var lc = new ui.model.LabelChild("",label.get_iid());
+		label.data.color = "#000000";
+		var lc = new ui.model.LabelChild(ui.AppContext.UBER_LABEL.get_iid(),label.get_iid());
 		alias.rootLabelIid = label.get_iid();
 		var context = ui.api.Synchronizer.createContext(3,"aliasCreated");
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "alias",ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lc))]);
@@ -5825,6 +5826,10 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	}
 	if(initialAlias == null) initialAlias = ui.AppContext.AGENT.aliasSet.iterator().next();
 	ui.AppContext.set_alias(initialAlias);
+	var fs = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELS,function(c) {
+		return c.name == "uber label";
+	});
+	ui.AppContext.UBER_LABEL = fs.iterator().next();
 	ui.model.EM.change(ui.model.EMEvent.AGENT,ui.AppContext.AGENT);
 	ui.model.EM.change(ui.model.EMEvent.LOAD_ALIAS,ui.AppContext.get_alias());
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
@@ -8564,16 +8569,17 @@ var defineWidget = function() {
 		};
 		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
 			self._resetContents(ui.AppContext.get_alias().get_iid());
-		},"UserComp-User"));
+		},"ContentFeed-AGENT"));
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
 			self._resetContents(alias.get_iid());
-		},"UserComp-Alias"));
+		},"ContentFeed-AliasLoaded"));
 	}, _resetContents : function(aliasIid) {
 		var self = this;
 		var selfElement = this.element;
 		if(self.content != null) self.content.removeListeners(self.mapListener);
 		selfElement.find(".contentComp").remove();
 		self.options.content = ui.AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
+		if(self.options.content == null) self.options.content = ui.AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
 		self.content = new m3.observable.MappedSet(self.options.content,function(content) {
 			return new $("<div></div>").contentComp({ content : content});
 		});

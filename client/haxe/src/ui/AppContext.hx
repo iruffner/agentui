@@ -20,6 +20,7 @@ class AppContext {
     public static var CHANNEL:String;
     public static var LOGGER: Logga;
     public static var AGENT: Agent;
+    public static var UBER_LABEL: Label;
     public static var TARGET: Connection;
     public static var SERIALIZER: Serializer;
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
