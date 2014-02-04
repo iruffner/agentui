@@ -8258,7 +8258,7 @@ var defineWidget = function() {
 				if(event.ctrlKey) ui.model.EM.change(ui.model.EMEvent.CopyLabel,eld); else ui.model.EM.change(ui.model.EMEvent.MoveLabel,eld);
 			};
 			(js.Boot.__cast(selfElement1 , $)).droppable({ accept : function(d) {
-				return !$(this).parent()["is"](".filterCombination") && d["is"](".label") && ($(this).parent()["is"](".dropCombiner") || $(this).parent()["is"](".labelTreeBranch"));
+				return !$(this).parent()["is"](".filterCombination") && (d["is"](".label") && ($(this).parent()["is"](".dropCombiner") || $(this).parent()["is"](".labelTreeBranch"))) || $(this)["is"]("labelslist");
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 				if($(this).parent()["is"](".labelTreeBranch")) copyOrMoveLabel(event,_ui); else {
 					var filterCombiner = new $("<div></div>");
