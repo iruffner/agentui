@@ -26,6 +26,7 @@ class AppContext {
 
     public static var CONTENT: OSet<Content<Dynamic>>;
     public static var MASTER_CONTENT: ObservableSet<Content<Dynamic>>;
+    public static var GROUPED_CONTENT: GroupedSet<Content<Dynamic>>;
 
     public static var LABELS:OSet<Label>;
     public static var MASTER_LABELS:ObservableSet<Label>;
@@ -75,6 +76,9 @@ class AppContext {
         MASTER_CONTENT = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
         CONTENT = new FilteredSet<Content<Dynamic>>(MASTER_CONTENT, function(c:Content<Dynamic>):Bool {
             return !c.deleted;
+        });
+        GROUPED_CONTENT = new GroupedSet<Content<Dynamic>>(CONTENT, function(c:Content<Dynamic>):String{
+            return c.aliasIid;
         });
 
         MASTER_LABELS = new ObservableSet<Label>(Label.identifier);

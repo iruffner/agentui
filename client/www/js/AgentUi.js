@@ -4675,6 +4675,9 @@ ui.AppContext.init = function() {
 	ui.AppContext.CONTENT = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONTENT,function(c) {
 		return !c.deleted;
 	});
+	ui.AppContext.GROUPED_CONTENT = new m3.observable.GroupedSet(ui.AppContext.CONTENT,function(c) {
+		return c.aliasIid;
+	});
 	ui.AppContext.MASTER_LABELS = new m3.observable.ObservableSet(ui.model.Label.identifier);
 	ui.AppContext.LABELS = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELS,function(c) {
 		return !c.deleted;
