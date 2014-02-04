@@ -8249,7 +8249,7 @@ var defineWidget = function() {
 			var showOrHideCopyIndicator = function(event,_ui) {
 				var ci = _ui.helper.find("#copyIndicator");
 				if(event.ctrlKey) {
-					if(ci.length == 0) new $("<div id='copyIndicator' class='ui-icon ui-icon-circle-plus' style='position:relative;top:-10px;'></div>").appendTo(_ui.helper); else ci.show();
+					if(ci.length == 0) new $("<img src='svg/add.svg' id='copyIndicator'/>").appendTo(_ui.helper); else ci.show();
 				} else ci.hide();
 			};
 			selfElement1.on("dragstart",function(event,_ui1) {

@@ -1203,3 +1203,9 @@ body {
 	fill:  #fff;
 	pointer-events: none;
 }
+
+/* label drag-drop */
+#copyIndicator {
+	position:relative;
+	top:-14px;
+}

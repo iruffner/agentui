@@ -179,7 +179,7 @@ extern class LabelComp extends FilterableComponent {
 		            		var ci = _ui.helper.find("#copyIndicator");
 		            		if (event.ctrlKey) {
 		            			if (ci.length == 0) {
-			            			new JQ("<div id='copyIndicator' class='ui-icon ui-icon-circle-plus' style='position:relative;top:-10px;'></div>").appendTo(_ui.helper);
+			            			new JQ("<img src='svg/add.svg' id='copyIndicator'/>").appendTo(_ui.helper);
 			            		} else {
 			            			ci.show();
 			            		}
