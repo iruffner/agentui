@@ -44,7 +44,7 @@ class ResponseProcessor {
         type = type.toLowerCase();
         switch (type) {
             case "alias":
-                AppContext.AGENT.aliasSet.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Alias));
+                AppContext.MASTER_ALIASES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Alias));
             case "content":
                 AppContext.MASTER_CONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Content));
             case "label":
@@ -62,9 +62,9 @@ class ResponseProcessor {
 	    if (data.primaryKey != null) {
             switch (type) {
                 case "alias":
-                    var alias = AppContext.AGENT.aliasSet.getElement(data.primaryKey);
+                    var alias = AppContext.MASTER_ALIASES.getElement(data.primaryKey);
                 	alias.deleted = true;
-                	AppContext.AGENT.aliasSet.addOrUpdate(alias);
+                	AppContext.MASTER_ALIASES.addOrUpdate(alias);
                 case "content":
                     var content = AppContext.MASTER_CONTENT.getElement(data.primaryKey);
                 	content.deleted = true;
@@ -81,8 +81,8 @@ class ResponseProcessor {
                     var lc = AppContext.MASTER_LABELEDCONTENT.getElement(data.primaryKey);
                     lc.deleted = true;
                     AppContext.MASTER_LABELEDCONTENT.addOrUpdate(lc);
-            default:
-                ui.AppContext.LOGGER.error("Unknown type: " + type);
+                default:
+                    ui.AppContext.LOGGER.error("Unknown type: " + type);
             }
         } else {
             updateModelObject(data.instance, type);
@@ -91,28 +91,21 @@ class ResponseProcessor {
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
-		AppContext.AGENT.aliasSet.addAll(data.aliases);
+		AppContext.MASTER_ALIASES.addAll(data.aliases);
 		AppContext.MASTER_LABELS.addAll(data.labels);
 		AppContext.MASTER_CONTENT.addAll(data.content);
 		AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
 		AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
 
-	    // Set the current alias
-    	if (AppContext.AGENT.aliasSet.isEmpty()) {
-    		var defaultAlias: Alias = new Alias("Default Alias");
-    		EM.change(EMEvent.CreateAlias, defaultAlias);
-    		AppContext.AGENT.aliasSet.add(defaultAlias);
-    	}
-
     	var initialAlias:Alias = null;
-    	for (alias in AppContext.AGENT.aliasSet) {
+    	for (alias in AppContext.ALIASES) {
     		if (alias.data.isDefault) {
     			initialAlias = alias;
     			break;
     		}
     	}
     	if (initialAlias == null) {
-	     	initialAlias = AppContext.AGENT.aliasSet.iterator().next();
+	     	initialAlias = AppContext.ALIASES.iterator().next();
 	    }
 	    AppContext.alias = initialAlias;
 

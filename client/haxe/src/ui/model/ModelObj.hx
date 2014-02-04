@@ -70,7 +70,6 @@ class Agent extends ModelObj {
 	@:transient public var sessionURI: String;
 	@:transient public var userData: UserData; 
 	
-	@:transient public var aliasSet: ObservableSet<Alias>;
 	@:transient public var labelSet: ObservableSet<Label>;
 
 	private var aliases: Array<Alias>;
@@ -82,9 +81,6 @@ class Agent extends ModelObj {
 	public function new () {
 		super();
 		registerModelListeners();
-		this.aliasSet = new ObservableSet<Alias>(Alias.identifier);
-		this.aliasSet.visualId = "Agent Aliases";
-
 		this.labelSet = new ObservableSet<Label>(Label.identifier);
 	}
 
@@ -109,11 +105,8 @@ class Agent extends ModelObj {
 	}
 
 	private function get_currentAlias(): Alias {
-		if(currentAlias == null && !aliasSet.isEmpty()) {
-			currentAlias = aliasSet.iterator().next();
-		} else if (currentAlias == null) {
-			currentAlias = new Alias();
-			AppContext.LOGGER.warn("No aliases found for user.");
+		if(currentAlias == null) {
+			currentAlias = AppContext.ALIASES.iterator().next();
 		}
 		return currentAlias;
 	}
@@ -127,14 +120,6 @@ class Agent extends ModelObj {
 		//TODO //IMPLEMENT ME
 		AppContext.LOGGER.warn("implement User.hasValidSession");
 		return true;
-	}
-
-	private function readResolve(): Void {
-		aliasSet = new ObservableSet<Alias>(Alias.identifier, aliases);
-	}
-
-	private function writeResolve(): Void {
-		aliases = aliasSet.asArray();
 	}
 }
 

@@ -6,6 +6,7 @@ import m3.jq.M3Menu;
 import m3.jq.M3Dialog;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
+import m3.observable.OSet;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
@@ -29,7 +30,7 @@ typedef UserCompWidgetDef = {
 	var _setUser: Void->Void;
 	var _setTarget: Connection->Void;
 	var _createImgMenu: UserCompWidgetDef->M3Menu;
-	var _createAliasMenu: UserCompWidgetDef->M3Menu;
+	var _createAliasMenu: UserCompWidgetDef->OSet<Alias>->M3Menu;
 	var destroy: Void->Void;
 
 	@:optional var container: JQ;
@@ -139,35 +140,29 @@ extern class UserComp extends JQ {
 					return menu;
 		       	},
 
-		       	_createAliasMenu: function(self: UserCompWidgetDef) : M3Menu {
+		       	_createAliasMenu: function(self: UserCompWidgetDef, aliases:OSet<Alias>) : M3Menu {
 		        	var menu: M3Menu = new M3Menu("<ul id='userAliasMenu'></ul>");
 		        	menu.appendTo(self.container);
 
 		        	var menuOptions:Array<MenuOption> = [];
 
-					var user = self.user;
-					var iter: Iterator<Alias> = M.getX(user.aliasSet.iterator());
-
 					var menuOption: MenuOption;
 
-			        if(iter != null) {
-						while(iter.hasNext()) {
-							var alias: Alias = iter.next();
-							menuOption = {
-    							label: alias.name,
-    							icon: "ui-icon-person",
-    							action: function(evt: JQEvent, m: M3Menu): Void {
-    								if (Alias.identifier(user.currentAlias) == Alias.identifier(alias)) {
-    									menu.hide();
-    								} else {
-	    								user.currentAlias = alias;
-	    								EM.change(EMEvent.LOAD_ALIAS, alias);
-	    								EM.change(EMEvent.AliasLoaded, alias);
-	    							}
+					for (alias in aliases) {
+						menuOption = {
+							label: alias.name,
+							icon: "ui-icon-person",
+							action: function(evt: JQEvent, m: M3Menu): Void {
+								if (Alias.identifier(AppContext.alias) == Alias.identifier(alias)) {
+									menu.hide();
+								} else {
+    								AppContext.alias = alias;
+    								EM.change(EMEvent.LOAD_ALIAS, alias);
+    								EM.change(EMEvent.AliasLoaded, alias);
     							}
-    						};
-    						menuOptions.push(menuOption);
-						}
+							}
+						};
+						menuOptions.push(menuOption);
 					}
 
 					menuOption = {
@@ -236,7 +231,7 @@ extern class UserComp extends JQ {
 			        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Aliases</a>");
 		        		changeDiv.append(self.switchAliasLink);
 
-		        		var aliasMenu = self._createAliasMenu(self);
+		        		var aliasMenu = self._createAliasMenu(self, AppContext.ALIASES);
 
 			        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
 			        		// ui.widget.DialogManager.showAliasManager();

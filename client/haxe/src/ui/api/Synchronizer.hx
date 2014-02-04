@@ -57,7 +57,7 @@ class Synchronizer {
         if (data.primaryKey != null) {
             switch (responseType) {
                 case "alias":
-                    var alias = ui.AppContext.AGENT.aliasSet.getElement(data.primaryKey);
+                    var alias = ui.AppContext.MASTER_ALIASES.getElement(data.primaryKey);
                     if (alias != null) {
                         parms.aliases.push(alias);
                     }

@@ -21,6 +21,8 @@ class AppContext {
     public static var LOGGER: Logga;
     public static var AGENT: Agent;
     public static var UBER_LABEL: Label;
+    public static var MASTER_ALIASES:ObservableSet<Alias>;
+    public static var ALIASES:OSet<Alias>;
     public static var TARGET: Connection;
     public static var SERIALIZER: Serializer;
     public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
@@ -73,6 +75,11 @@ class AppContext {
         		return Connection.identifier(n.contentImpl.connection);
         	}
     	);
+
+        MASTER_ALIASES = new ObservableSet<Alias>(ModelObjWithIid.identifier);
+        ALIASES = new FilteredSet<Alias>(MASTER_ALIASES, function(a:Alias):Bool {
+            return !a.deleted;
+        });
 
         MASTER_CONTENT = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
         CONTENT = new FilteredSet<Content<Dynamic>>(MASTER_CONTENT, function(c:Content<Dynamic>):Bool {

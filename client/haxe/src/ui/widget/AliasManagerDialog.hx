@@ -126,7 +126,7 @@ extern class AliasManagerDialog extends JQ {
     				rightDiv.append("<br/>");
 
 		        	rightDiv.append("<h2>Aliases</h2>");
-		        	AppContext.AGENT.aliasSet.iter(
+		        	AppContext.ALIASES.iter(
 		        			function(a: Alias): Void {
 		        				var span: JQ = new JQ("<span class='clickable'></span>")
 		        					.appendTo(rightDiv)
@@ -254,7 +254,7 @@ extern class AliasManagerDialog extends JQ {
     				rightDiv.append("<br/>");
 
 		        	rightDiv.append("<h2>Aliases</h2>");
-		        	AppContext.AGENT.aliasSet.iter(
+		        	AppContext.ALIASES.iter(
 		        			function(a: Alias): Void {
 		        				var span: JQ = new JQ("<span class='clickable'></span>")
 		        					.appendTo(rightDiv)
@@ -292,16 +292,6 @@ extern class AliasManagerDialog extends JQ {
 
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EM.change(EMEvent.CreateAlias, alias);
-
-/*	TODO:  Listen to changes to the model here...
-    				EM.listenOnce(EMEvent.NewAlias, new EMListener(function(n:Nothing): Void {
-    						selfElement.close();
-    						AppContext.AGENT.aliasSet.add(alias);
-    						AppContext.alias = alias;
-    						EM.change(EMEvent.AliasLoaded, alias);
-    					}, "AliasManagerDialog-AliasManager")
-    				);
-*/
 	        	},
 
 		        _buildDialog: function(): Void {
