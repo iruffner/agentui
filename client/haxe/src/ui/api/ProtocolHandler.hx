@@ -9,7 +9,6 @@ interface ProtocolHandler {
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void;
 	public function nextPage(nextPageURI: String): Void;
 	public function createUser(newUser: NewUser): Void;
-	public function validateUser(token: String): Void;
 	public function updateUser(user: Agent): Void;
 	public function createContent(data:EditContentData):Void;
 	public function updateContent(data:EditContentData):Void;

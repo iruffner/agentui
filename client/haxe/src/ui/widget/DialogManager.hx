@@ -7,7 +7,6 @@ import ui.widget.LoginDialog;
 import ui.widget.NewAliasDialog;
 import ui.widget.NewUserDialog;
 import ui.widget.RequestIntroductionDialog;
-import ui.widget.SignupConfirmationDialog;
 
 @:expose
 class DialogManager {
@@ -40,10 +39,6 @@ class DialogManager {
 
     public static function showNewUser(): Void {
         showDialog("newUserDialog");
-    }
-
-    public static function showSignupConfirmation(): Void {
-        showDialog("signupConfirmationDialog");
     }
 
     public static function showNewAlias(): Void {

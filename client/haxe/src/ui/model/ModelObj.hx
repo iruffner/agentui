@@ -61,11 +61,9 @@ class ModelObjWithIid extends ModelObj {
 	}
 }
 
-class Agent extends ModelObj {
-	public var iid: String;
+class Agent extends ModelObjWithIid {
   	public var name: String;
   	public var data: Dynamic;
-  	public var deleted: Bool;
 
 	@:transient public var sessionURI: String;
 	@:transient public var userData: UserData; 
@@ -142,12 +140,14 @@ class UserData extends ModelObj {
 	public var name: String;
 	@:optional public var imgSrc: String;
 	@:optional public var isDefault:Bool;
+	@:optional public var email:String;
 
 	public function new(?name:String="", ?imgSrc:String="") {
 		super();
 		this.name = name;
 		this.imgSrc = imgSrc;
 		this.isDefault = false;
+		this.email = "";
 	}
 }
 

@@ -63,9 +63,6 @@ class BennuHandler implements ProtocolHandler {
 	public function createUser(newUser: NewUser): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
-	public function validateUser(token: String): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	}
 	public function updateUser(agent: Agent): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}

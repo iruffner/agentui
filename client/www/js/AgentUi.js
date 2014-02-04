@@ -4974,9 +4974,6 @@ ui.api.BennuHandler.prototype = {
 	,updateUser: function(agent) {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
 	}
-	,validateUser: function(token) {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
 	,createUser: function(newUser) {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
 	}
@@ -5146,9 +5143,6 @@ ui.api.EventDelegate.prototype = {
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.USER_UPDATE,new ui.model.EMListener(function(agent) {
 			_g.protocolHandler.updateUser(agent);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATE,new ui.model.EMListener(function(token) {
-			_g.protocolHandler.validateUser(token);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.CreateContent,new ui.model.EMListener(function(data) {
 			_g.protocolHandler.createContent(data);
@@ -6107,7 +6101,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","EditContentClosed","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","USER_VALIDATE","USER_VALIDATED","AGENT","FitWindow","PAGE_CLOSE","LOAD_ALIAS","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","INTRODUCTION_CONFIRMATION","INTRODUCTION_CONFIRMATION_RESPONSE","INTRODUCTION_NOTIFICATION","DELETE_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","EditContentClosed","USER_LOGIN","USER_CREATE","USER_UPDATE","USER_SIGNUP","AGENT","FitWindow","PAGE_CLOSE","LOAD_ALIAS","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","INTRODUCTION_CONFIRMATION","INTRODUCTION_CONFIRMATION_RESPONSE","INTRODUCTION_NOTIFICATION","DELETE_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.TEST = ["TEST",0];
 ui.model.EMEvent.TEST.toString = $estr;
 ui.model.EMEvent.TEST.__enum__ = ui.model.EMEvent;
@@ -6141,97 +6135,91 @@ ui.model.EMEvent.USER_UPDATE.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",10];
 ui.model.EMEvent.USER_SIGNUP.toString = $estr;
 ui.model.EMEvent.USER_SIGNUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_VALIDATE = ["USER_VALIDATE",11];
-ui.model.EMEvent.USER_VALIDATE.toString = $estr;
-ui.model.EMEvent.USER_VALIDATE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_VALIDATED = ["USER_VALIDATED",12];
-ui.model.EMEvent.USER_VALIDATED.toString = $estr;
-ui.model.EMEvent.USER_VALIDATED.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AGENT = ["AGENT",13];
+ui.model.EMEvent.AGENT = ["AGENT",11];
 ui.model.EMEvent.AGENT.toString = $estr;
 ui.model.EMEvent.AGENT.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FitWindow = ["FitWindow",14];
+ui.model.EMEvent.FitWindow = ["FitWindow",12];
 ui.model.EMEvent.FitWindow.toString = $estr;
 ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.PAGE_CLOSE = ["PAGE_CLOSE",15];
+ui.model.EMEvent.PAGE_CLOSE = ["PAGE_CLOSE",13];
 ui.model.EMEvent.PAGE_CLOSE.toString = $estr;
 ui.model.EMEvent.PAGE_CLOSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.LOAD_ALIAS = ["LOAD_ALIAS",16];
+ui.model.EMEvent.LOAD_ALIAS = ["LOAD_ALIAS",14];
 ui.model.EMEvent.LOAD_ALIAS.toString = $estr;
 ui.model.EMEvent.LOAD_ALIAS.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AliasLoaded = ["AliasLoaded",17];
+ui.model.EMEvent.AliasLoaded = ["AliasLoaded",15];
 ui.model.EMEvent.AliasLoaded.toString = $estr;
 ui.model.EMEvent.AliasLoaded.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateAlias = ["CreateAlias",18];
+ui.model.EMEvent.CreateAlias = ["CreateAlias",16];
 ui.model.EMEvent.CreateAlias.toString = $estr;
 ui.model.EMEvent.CreateAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateAlias = ["UpdateAlias",19];
+ui.model.EMEvent.UpdateAlias = ["UpdateAlias",17];
 ui.model.EMEvent.UpdateAlias.toString = $estr;
 ui.model.EMEvent.UpdateAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteAlias = ["DeleteAlias",20];
+ui.model.EMEvent.DeleteAlias = ["DeleteAlias",18];
 ui.model.EMEvent.DeleteAlias.toString = $estr;
 ui.model.EMEvent.DeleteAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateContent = ["CreateContent",21];
+ui.model.EMEvent.CreateContent = ["CreateContent",19];
 ui.model.EMEvent.CreateContent.toString = $estr;
 ui.model.EMEvent.CreateContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteContent = ["DeleteContent",22];
+ui.model.EMEvent.DeleteContent = ["DeleteContent",20];
 ui.model.EMEvent.DeleteContent.toString = $estr;
 ui.model.EMEvent.DeleteContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateContent = ["UpdateContent",23];
+ui.model.EMEvent.UpdateContent = ["UpdateContent",21];
 ui.model.EMEvent.UpdateContent.toString = $estr;
 ui.model.EMEvent.UpdateContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateLabel = ["CreateLabel",24];
+ui.model.EMEvent.CreateLabel = ["CreateLabel",22];
 ui.model.EMEvent.CreateLabel.toString = $estr;
 ui.model.EMEvent.CreateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateLabel = ["UpdateLabel",25];
+ui.model.EMEvent.UpdateLabel = ["UpdateLabel",23];
 ui.model.EMEvent.UpdateLabel.toString = $estr;
 ui.model.EMEvent.UpdateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.MoveLabel = ["MoveLabel",26];
+ui.model.EMEvent.MoveLabel = ["MoveLabel",24];
 ui.model.EMEvent.MoveLabel.toString = $estr;
 ui.model.EMEvent.MoveLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CopyLabel = ["CopyLabel",27];
+ui.model.EMEvent.CopyLabel = ["CopyLabel",25];
 ui.model.EMEvent.CopyLabel.toString = $estr;
 ui.model.EMEvent.CopyLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteLabel = ["DeleteLabel",28];
+ui.model.EMEvent.DeleteLabel = ["DeleteLabel",26];
 ui.model.EMEvent.DeleteLabel.toString = $estr;
 ui.model.EMEvent.DeleteLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",29];
+ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",27];
 ui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",30];
+ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",28];
 ui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_CONFIRMATION = ["INTRODUCTION_CONFIRMATION",31];
+ui.model.EMEvent.INTRODUCTION_CONFIRMATION = ["INTRODUCTION_CONFIRMATION",29];
 ui.model.EMEvent.INTRODUCTION_CONFIRMATION.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_CONFIRMATION.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE = ["INTRODUCTION_CONFIRMATION_RESPONSE",32];
+ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE = ["INTRODUCTION_CONFIRMATION_RESPONSE",30];
 ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_NOTIFICATION = ["INTRODUCTION_NOTIFICATION",33];
+ui.model.EMEvent.INTRODUCTION_NOTIFICATION = ["INTRODUCTION_NOTIFICATION",31];
 ui.model.EMEvent.INTRODUCTION_NOTIFICATION.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_NOTIFICATION.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DELETE_NOTIFICATION = ["DELETE_NOTIFICATION",34];
+ui.model.EMEvent.DELETE_NOTIFICATION = ["DELETE_NOTIFICATION",32];
 ui.model.EMEvent.DELETE_NOTIFICATION.toString = $estr;
 ui.model.EMEvent.DELETE_NOTIFICATION.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.NewConnection = ["NewConnection",35];
+ui.model.EMEvent.NewConnection = ["NewConnection",33];
 ui.model.EMEvent.NewConnection.toString = $estr;
 ui.model.EMEvent.NewConnection.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.ConnectionUpdate = ["ConnectionUpdate",36];
+ui.model.EMEvent.ConnectionUpdate = ["ConnectionUpdate",34];
 ui.model.EMEvent.ConnectionUpdate.toString = $estr;
 ui.model.EMEvent.ConnectionUpdate.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",37];
+ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",35];
 ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
 ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.BACKUP = ["BACKUP",38];
+ui.model.EMEvent.BACKUP = ["BACKUP",36];
 ui.model.EMEvent.BACKUP.toString = $estr;
 ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORE = ["RESTORE",39];
+ui.model.EMEvent.RESTORE = ["RESTORE",37];
 ui.model.EMEvent.RESTORE.toString = $estr;
 ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",40];
+ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",38];
 ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
 ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",41];
+ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",39];
 ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
@@ -6869,9 +6857,6 @@ ui.widget.DialogManager.showLogin = function() {
 }
 ui.widget.DialogManager.showNewUser = function() {
 	ui.widget.DialogManager.showDialog("newUserDialog");
-}
-ui.widget.DialogManager.showSignupConfirmation = function() {
-	ui.widget.DialogManager.showDialog("signupConfirmationDialog");
 }
 ui.widget.DialogManager.showNewAlias = function() {
 	ui.widget.DialogManager.showDialog("newAliasDialog");
@@ -8258,7 +8243,7 @@ var defineWidget = function() {
 				if(event.ctrlKey) ui.model.EM.change(ui.model.EMEvent.CopyLabel,eld); else ui.model.EM.change(ui.model.EMEvent.MoveLabel,eld);
 			};
 			(js.Boot.__cast(selfElement1 , $)).droppable({ accept : function(d) {
-				return !$(this).parent()["is"](".filterCombination") && (d["is"](".label") && ($(this).parent()["is"](".dropCombiner") || $(this).parent()["is"](".labelTreeBranch"))) || $(this)["is"]("labelslist");
+				return !$(this).parent()["is"](".filterCombination") && d["is"](".label") && ($(this).parent()["is"](".dropCombiner") || $(this).parent()["is"](".labelTreeBranch"));
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 				if($(this).parent()["is"](".labelTreeBranch")) copyOrMoveLabel(event,_ui); else {
 					var filterCombiner = new $("<div></div>");
@@ -9044,10 +9029,6 @@ var defineWidget = function() {
 			self1._newUser = true;
 			$(this).dialog("close");
 			ui.widget.DialogManager.showNewUser();
-		}, Validate : function() {
-			self1._newUser = true;
-			$(this).dialog("close");
-			ui.widget.DialogManager.showSignupConfirmation();
 		}}, beforeClose : function(evt,ui1) {
 			if(!self1._newUser && (self1.user == null || !self1.user.hasValidSession())) {
 				m3.util.JqueryUtil.alert("A valid user is required to use the app");
@@ -9518,66 +9499,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.restoreWidget",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of SignupConfirmationDialog must be a div element");
-		self._cancelled = false;
-		selfElement.addClass("signupConfirmationDialog").hide();
-		selfElement.append("<p> Your request for a User Agent has been submitted. Upon receiving your confirmation email, you may click the " + "link it contains or paste the token below to validate your email address.");
-		self.inputLabel = new $("<div class='labelDiv'><label id='confirmTokenLabel' for='confirmToken'>Your Token</label></div>").appendTo(selfElement);
-		self.input = new $("<input id='confirmToken' />").appendTo(selfElement);
-		self.input.keypress(function(evt) {
-			if(evt.keyCode == 13) self._validateUser();
-		});
-		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
-			self._setUser(agent);
-		},"SignupConfirmationDialog-Agent"));
-	}, initialized : false, _validateUser : function() {
-		var self = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var token = self.input.val();
-		if(m3.helper.StringHelper.isBlank(token)) {
-			self.inputLabel.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.USER_VALIDATE,token);
-		ui.model.EM.addListener(ui.model.EMEvent.USER_VALIDATED,new ui.model.EMListener(function(n) {
-			selfElement1.dialog("close");
-		},"SignupConfirmationDialog-UserValidated"));
-	}, _buildDialog : function() {
-		var self1 = this;
-		var selfElement2 = this.element;
-		self1.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Email Validation", height : 420, width : 420, modal : true, buttons : { Validate : function() {
-			self1._validateUser();
-		}, Cancel : function() {
-			self1._cancelled = true;
-			$(this).dialog("close");
-		}}, close : function(evt,ui1) {
-			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			if(self1.user == null || !self1.user.hasValidSession()) ui.widget.DialogManager.showLogin();
-		}};
-		selfElement2.dialog(dlgOptions);
-	}, _setUser : function(user) {
-		var self = this;
-		self.user = user;
-	}, open : function() {
-		var self = this;
-		var selfElement = this.element;
-		self._cancelled = false;
-		if(!self.initialized) self._buildDialog();
-		self.input.focus();
-		selfElement.dialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.signupConfirmationDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;

@@ -70,10 +70,6 @@ class EventDelegate {
             protocolHandler.updateUser(agent);
         }));
 
-        EM.addListener(EMEvent.USER_VALIDATE, new EMListener(function(token: String): Void {
-            protocolHandler.validateUser(token);
-        }));
-
         EM.addListener(EMEvent.CreateContent, new EMListener(function(data:EditContentData): Void {
         	protocolHandler.createContent(data);
     	}));

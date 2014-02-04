@@ -204,11 +204,6 @@ extern class LoginDialog extends JQ {
 		        				self._newUser = true;
 		        				JQDialog.cur.dialog("close");
 		        				DialogManager.showNewUser();
-		        			},
-		        			"Validate": function() {
-		        				self._newUser = true;
-		        				JQDialog.cur.dialog("close");
-		        				DialogManager.showSignupConfirmation();
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {
