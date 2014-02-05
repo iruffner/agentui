@@ -267,13 +267,16 @@ class BennuHandler implements ProtocolHandler {
 
 	private function onCreateChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
 		AppContext.CHANNEL = data.id;
-		AppContext.AGENT.iid = this.loggedInAgentId;
-		AppContext.AGENT.userData = new UserData(this.loggedInAgentId, "media/test/koi.jpg");
+
+		// Create a dummy agent with the correct agent id
+        AppContext.AGENT = new Agent();
+        AppContext.AGENT.iid = this.loggedInAgentId;
+
 		_startPolling();
 
-		var context = Synchronizer.createContext(5, "initialDataLoad");
+		var context = Synchronizer.createContext(6, "initialDataLoad");
 		var requests = [
-//			new ChannelRequestMessage(QUERY, context + "agent"          , new QueryMessage("agent", "iid=" + this.loggedInAgentId)),
+			new ChannelRequestMessage(QUERY, context + "agent"          , new QueryMessage("agent", "iid=" + this.loggedInAgentId)),
 			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
 			new ChannelRequestMessage(QUERY, context + "labels"         , new QueryMessage("label")),
 			new ChannelRequestMessage(QUERY, context + "contents"       , new QueryMessage("content")),

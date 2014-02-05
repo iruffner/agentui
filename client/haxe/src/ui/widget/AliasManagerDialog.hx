@@ -109,11 +109,11 @@ extern class AliasManagerDialog extends JQ {
 		        				EM.change(EMEvent.DeleteAlias, alias);
 			        		});
 		        	} else {
-		        		if ( M.getX(AppContext.AGENT.userData.imgSrc, "").isNotBlank()) {
-							imgSrc = AppContext.AGENT.userData.imgSrc;
+		        		if ( M.getX(AppContext.AGENT.data.imgSrc, "").isNotBlank()) {
+							imgSrc = AppContext.AGENT.data.imgSrc;
 						}
 		        		leftDiv.append(new JQ("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
-		        		leftDiv.append(new JQ("<h2>" + AppContext.AGENT.userData.name + "</h2>"));
+		        		leftDiv.append(new JQ("<h2>" + AppContext.AGENT.data.name + "</h2>"));
 		        	}
 
 		        	rightDiv.append("<h2>Agent</h2>");
@@ -122,7 +122,7 @@ extern class AliasManagerDialog extends JQ {
 		        					.click(function(evt: JQEvent) {
 		        							self._showAliasDetail(null);
 		        						})
-		        					.append(M.getX(AppContext.AGENT.userData.name, ""));
+		        					.append(M.getX(AppContext.AGENT.data.name, ""));
     				rightDiv.append("<br/>");
 
 		        	rightDiv.append("<h2>Aliases</h2>");
@@ -250,7 +250,7 @@ extern class AliasManagerDialog extends JQ {
 		        					.click(function(evt: JQEvent) {
 		        							self._showAliasDetail(null);
 		        						})
-		        					.append(M.getX(AppContext.AGENT.userData.name, ""));
+		        					.append(M.getX(AppContext.AGENT.data.name, ""));
     				rightDiv.append("<br/>");
 
 		        	rightDiv.append("<h2>Aliases</h2>");

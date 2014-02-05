@@ -87,7 +87,10 @@ class Synchronizer {
         } else {
         	switch (responseType) {
                 case "agent":
-                    parms.agent = AppContext.SERIALIZER.fromJsonX(data.instance, Agent);
+                    if (data[0].data.name == null) {
+                        data[0].data.name = "";
+                    }
+                    parms.agent = AppContext.SERIALIZER.fromJsonX(data[0], Agent);
 
         		case "alias":
         			parms.aliases.push(AppContext.SERIALIZER.fromJsonX(data.instance, Alias));

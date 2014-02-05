@@ -55,12 +55,8 @@ class AppContext {
     private static var _i: ObservableSet<IntroductionNotification>;
 
     public static function init() {
-
-        // Create a dummy agent
-        AGENT = new Agent();
-        AGENT.userData = new UserData("Qoid", "media/test/koi.jpg");
-        AGENT.iid = "007";
-
+        AGENT = null;
+        
     	LOGGER = new Logga(LogLevel.DEBUG);
         
         _i = new ObservableSet<IntroductionNotification>(
@@ -207,4 +203,13 @@ class AppContext {
         }
         return labelDescendents;
     }
+
+/*
+    public static function isDescendent(parentIid:String, childIid:String) {
+            var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+                return lc.parentIid == iid;
+            }).asArray();
+
+    }
+*/
 }

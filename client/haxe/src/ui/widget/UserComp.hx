@@ -126,7 +126,7 @@ extern class UserComp extends JQ {
 														M3Dialog.cur.m3dialog("close");
 													},
 													"Set Profile Image": function() {
-														AppContext.AGENT.userData.imgSrc = uploadComp.value();
+														AppContext.AGENT.data.imgSrc = uploadComp.value();
 														EM.change(EMEvent.USER_UPDATE, AppContext.AGENT);
 														M3Dialog.cur.m3dialog("close");
 													}
@@ -190,8 +190,8 @@ extern class UserComp extends JQ {
 					if(user != null) {
 						if ( M.getX(user.currentAlias.data.imgSrc, "").isNotBlank()) {
 							imgSrc = user.currentAlias.data.imgSrc;
-						} else if (user.userData.imgSrc.isNotBlank()){
-							imgSrc = user.userData.imgSrc;
+						} else if (user.data.imgSrc.isNotBlank()){
+							imgSrc = user.data.imgSrc;
 						}
 					}
 
@@ -217,7 +217,7 @@ extern class UserComp extends JQ {
 
 		        	self.userIdTxt = new JQ("<div class='userIdTxt'></div>");
 		        	self.container.append(self.userIdTxt);
-		        	var name: String = M.getX(user.userData.name, "");
+		        	var name: String = M.getX(user.data.name, "");
 		        	var aliasLabel: String = M.getX(user.currentAlias.name, "");
 		        	if(aliasLabel.isBlank()) aliasLabel = "";
 		        	self.userIdTxt

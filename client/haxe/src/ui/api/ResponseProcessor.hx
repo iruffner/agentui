@@ -11,6 +11,7 @@ import ui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
+using m3.helper.StringHelper;
 using Lambda;
 
 class ResponseProcessor {
@@ -92,7 +93,11 @@ class ResponseProcessor {
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
-        //AppContext.AGENT = data.agent;
+        AppContext.AGENT = data.agent;
+        if (AppContext.AGENT.data.name.isBlank()) {
+            AppContext.AGENT.data = new UserData(data.agent.name, "media/test/koi.jpg");
+        }
+
 		AppContext.MASTER_ALIASES.addAll(data.aliases);
 		AppContext.MASTER_LABELS.addAll(data.labels);
 		AppContext.MASTER_CONTENT.addAll(data.content);

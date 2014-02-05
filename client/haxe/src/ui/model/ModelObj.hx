@@ -63,45 +63,21 @@ class ModelObjWithIid extends ModelObj {
 
 class Agent extends ModelObj {
 	public var iid: String;
+	public var agentId: String;
   	public var name: String;
-  	public var data: Dynamic;
+  	public var data: UserData;
 	public var deleted: Bool;
 
 	@:transient public var sessionURI: String;
-	@:transient public var userData: UserData; 
 	
 	@:transient public var labelSet: ObservableSet<Label>;
 
-	private var aliases: Array<Alias>;
-	public var defaultAlias: Alias;
-	
-	@:isVar public var currentAlias (get,set): Alias;
-
+	@:transient @:isVar public var currentAlias (get,set): Alias;
 
 	public function new () {
 		super();
-		registerModelListeners();
+		this.data = new UserData();
 		this.labelSet = new ObservableSet<Label>(Label.identifier);
-	}
-
-	private function registerModelListeners(): Void {
-    //     EM.addListener(EMEvent.DeleteLabel, new EMListener(function(labels: Array<Label>): Void {
-    //     		for (i in 1...labels.length) {
-				// 	this.currentAlias.labelSet.delete(labels[i]);
-				// }
-				// EM.change(EMEvent.FitWindow);
-    // 		}, "User-DeleteLabel")
-    //     );
-    //     EM.addListener(EMEvent.ConnectionUpdate, new EMListener(function(conn: Connection): Void {
-    //             this.currentAlias.connectionSet.update(conn);
-				// EM.change(EMEvent.FitWindow);
-    //         }, "User-ConnUpdate")
-    //     );
-    //     EM.addListener(EMEvent.NewConnection, new EMListener(function(conn: Connection): Void {
-    //             this.currentAlias.connectionSet.update(conn);
-				// EM.change(EMEvent.FitWindow);
-    //         }, "User-ConnUpdate")
-    //     );
 	}
 
 	private function get_currentAlias(): Alias {
