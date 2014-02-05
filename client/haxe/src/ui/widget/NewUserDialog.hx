@@ -2,6 +2,7 @@ package ui.widget;
 
 import m3.jq.JQ;
 import m3.jq.JQDialog;
+import m3.jq.PlaceHolderUtil;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
@@ -88,41 +89,10 @@ extern class NewUserDialog extends JQ {
 		        			}
 		        		});
 
-		        	self.placeholder_n.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_n.hide();
-		        			self.input_n.show().focus();
-		        		});
 
-		        	self.input_n.blur(function(evt: JQEvent): Void {
-		        			if(self.input_n.val().isBlank()) {
-			        			self.placeholder_n.show();
-			        			self.input_n.hide();
-		        			}
-		        		});
-
-		        	self.placeholder_pw.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_pw.hide();
-		        			self.input_pw.show().focus();
-		        		});
-
-		        	self.input_pw.blur(function(evt: JQEvent): Void {
-		        			if(self.input_pw.val().isBlank()) {
-			        			self.placeholder_pw.show();
-			        			self.input_pw.hide();
-		        			}
-		        		});
-
-		        	self.placeholder_em.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_em.hide();
-		        			self.input_em.show().focus();
-		        		});
-
-		        	self.input_em.blur(function(evt: JQEvent): Void {
-		        			if(self.input_em.val().isBlank()) {
-			        			self.placeholder_em.show();
-			        			self.input_em.hide();
-		        			}
-		        		});
+		        	PlaceHolderUtil.setFocusBehavior(self.input_n, self.placeholder_n);
+		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
+		        	PlaceHolderUtil.setFocusBehavior(self.input_em, self.placeholder_em);
 
 		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
 	        				self._setUser(agent);

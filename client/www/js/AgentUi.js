@@ -3133,6 +3133,21 @@ m3.util.UidGenerator.randomNumChar = function() {
 	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.nums)) >= m3.util.UidGenerator.nums.length) continue;
 	return Std.parseInt(m3.util.UidGenerator.nums.charAt(i));
 }
+m3.jq.PlaceHolderUtil = function() { }
+$hxClasses["m3.jq.PlaceHolderUtil"] = m3.jq.PlaceHolderUtil;
+m3.jq.PlaceHolderUtil.__name__ = ["m3","jq","PlaceHolderUtil"];
+m3.jq.PlaceHolderUtil.setFocusBehavior = function(input,placeholder) {
+	placeholder.focus(function(evt) {
+		placeholder.hide();
+		input.show().focus();
+	});
+	input.blur(function(evt) {
+		if(m3.helper.StringHelper.isBlank(input.val())) {
+			placeholder.show();
+			input.hide();
+		}
+	});
+}
 m3.log._RemoteLogga = {}
 m3.log._RemoteLogga.RemoteLoggingTimer = function(remoteLogFcn,getMsgs) {
 	this.paused = false;
@@ -8925,40 +8940,19 @@ var defineWidget = function() {
 		self.input_un = new $("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
 		inputs.append("<br/>");
-		self.input_pw = new $("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		self.input_pw = new $("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 		self.input_un.val("qoid@qoid.com");
 		self.input_pw.val("ohyea");
 		inputs.children("input").keypress(function(evt) {
 			if(evt.keyCode == 13) self._login();
 		});
-		self.placeholder_un.focus(function(evt) {
-			self.placeholder_un.hide();
-			self.input_un.show().focus();
-		});
-		self.input_un.blur(function(evt) {
-			if(m3.helper.StringHelper.isBlank(self.input_un.val())) {
-				self.placeholder_un.show();
-				self.input_un.hide();
-			}
-		});
-		self.placeholder_pw.focus(function(evt) {
-			self.placeholder_pw.hide();
-			self.input_pw.show().focus();
-		});
-		self.input_pw.blur(function(evt) {
-			if(m3.helper.StringHelper.isBlank(self.input_pw.val())) {
-				self.placeholder_pw.show();
-				self.input_pw.hide();
-			}
-		});
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_un,self.placeholder_un);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
 		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
 			self._setUser(agent);
 			if(agent == null) self.open(); else selfElement.dialog("close");
-		},"Login-User"));
-		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(user) {
-			selfElement.dialog("close");
-		},"Login-UserSignup"));
+		},"Login-AGENT"));
 	}, initialized : false, _login : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -9005,6 +8999,7 @@ var defineWidget = function() {
 		if(!self.initialized) self._buildDialog();
 		selfElement.children("#un_label").focus();
 		self.input_un.blur();
+		self.input_pw.blur();
 		selfElement.dialog("open");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
@@ -9120,36 +9115,9 @@ var defineWidget = function() {
 		inputs.children("input").keypress(function(evt) {
 			if(evt.keyCode == 13) self._createNewUser();
 		});
-		self.placeholder_n.focus(function(evt) {
-			self.placeholder_n.hide();
-			self.input_n.show().focus();
-		});
-		self.input_n.blur(function(evt) {
-			if(m3.helper.StringHelper.isBlank(self.input_n.val())) {
-				self.placeholder_n.show();
-				self.input_n.hide();
-			}
-		});
-		self.placeholder_pw.focus(function(evt) {
-			self.placeholder_pw.hide();
-			self.input_pw.show().focus();
-		});
-		self.input_pw.blur(function(evt) {
-			if(m3.helper.StringHelper.isBlank(self.input_pw.val())) {
-				self.placeholder_pw.show();
-				self.input_pw.hide();
-			}
-		});
-		self.placeholder_em.focus(function(evt) {
-			self.placeholder_em.hide();
-			self.input_em.show().focus();
-		});
-		self.input_em.blur(function(evt) {
-			if(m3.helper.StringHelper.isBlank(self.input_em.val())) {
-				self.placeholder_em.show();
-				self.input_em.hide();
-			}
-		});
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_n,self.placeholder_n);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_em,self.placeholder_em);
 		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
 			self._setUser(agent);
 		},"NewUserDialog-Agent"));

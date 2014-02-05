@@ -2,6 +2,7 @@ package ui.widget;
 
 import m3.jq.JQ;
 import m3.jq.JQDialog;
+import m3.jq.PlaceHolderUtil;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
 import ui.model.EM;
@@ -67,8 +68,8 @@ extern class LoginDialog extends JQ {
 		        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
 		        	inputs.append("<br/>");
 
-		        	self.input_pw = new JQ("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		        	self.placeholder_pw = new JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		        	self.input_pw = new JQ("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		        	self.placeholder_pw = new JQ("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 		        	// inputs.append("<br/>");
 		        	// self.input_ag = new JQ("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	// self.placeholder_ag = new JQ("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
@@ -82,29 +83,8 @@ extern class LoginDialog extends JQ {
 		        			}
 		        		});
 
-		        	self.placeholder_un.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_un.hide();
-		        			self.input_un.show().focus();
-		        		});
-
-		        	self.input_un.blur(function(evt: JQEvent): Void {
-		        			if(self.input_un.val().isBlank()) {
-			        			self.placeholder_un.show();
-			        			self.input_un.hide();
-		        			}
-		        		});
-
-		        	self.placeholder_pw.focus(function(evt: JQEvent): Void {
-		        			self.placeholder_pw.hide();
-		        			self.input_pw.show().focus();
-		        		});
-
-		        	self.input_pw.blur(function(evt: JQEvent): Void {
-		        			if(self.input_pw.val().isBlank()) {
-			        			self.placeholder_pw.show();
-			        			self.input_pw.hide();
-		        			}
-		        		});
+		        	PlaceHolderUtil.setFocusBehavior(self.input_un, self.placeholder_un);
+		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
 
 		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
 	        				self._setUser(agent);
@@ -113,12 +93,7 @@ extern class LoginDialog extends JQ {
 		        			} else {
     							selfElement.dialog("close");
 		        			}
-		        		}, "Login-User")
-		        	);
-
-		        	EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(user: Agent): Void {
-	        				selfElement.dialog("close");
-		        		}, "Login-UserSignup")
+		        		}, "Login-AGENT")
 		        	);
 		        },
 
@@ -200,6 +175,7 @@ extern class LoginDialog extends JQ {
 		        	}
 		        	selfElement.children("#un_label").focus();
 	        		self.input_un.blur();
+	        		self.input_pw.blur();
 	        		selfElement.dialog("open");
         		},
 		        
