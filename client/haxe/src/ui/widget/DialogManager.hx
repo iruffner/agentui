@@ -5,7 +5,7 @@ import m3.jq.JQ;
 import ui.widget.AliasManagerDialog;
 import ui.widget.LoginDialog;
 import ui.widget.NewAliasDialog;
-import ui.widget.NewUserDialog;
+import ui.widget.CreateAgentDialog;
 import ui.widget.RequestIntroductionDialog;
 
 @:expose

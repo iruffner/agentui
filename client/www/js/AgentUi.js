@@ -8575,6 +8575,83 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of CreateAgentDialog must be a div element");
+		self._cancelled = false;
+		selfElement.addClass("newUserDialog").hide();
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
+		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
+		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
+		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
+		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_em = new $("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_em = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		inputs.append("<br/>");
+		inputs.children("input").keypress(function(evt) {
+			if(evt.keyCode == 13) self._createNewUser();
+		});
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_n,self.placeholder_n);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_em,self.placeholder_em);
+		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
+			self._setUser(agent);
+		},"CreateAgentDialog-Agent"));
+	}, initialized : false, _createNewUser : function() {
+		var self = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var newUser = new ui.model.NewUser();
+		newUser.name = self.input_n.val();
+		if(m3.helper.StringHelper.isBlank(newUser.name)) {
+			self.placeholder_n.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EM.change(ui.model.EMEvent.CreateAgent,newUser);
+		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(n) {
+			selfElement1.dialog("close");
+		},"CreateAgentDialog-UserSignup"));
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement2 = this.element;
+		self1.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, modal : true, buttons : { 'Create My Agent' : function() {
+			self1._registered = true;
+			self1._createNewUser();
+		}, Cancel : function() {
+			self1._cancelled = true;
+			$(this).dialog("close");
+		}}, close : function(evt,ui1) {
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
+			if(self1._cancelled || !self1._registered && (self1.user == null || !self1.user.hasValidSession())) ui.widget.DialogManager.showLogin();
+		}};
+		selfElement2.dialog(dlgOptions);
+	}, _setUser : function(user) {
+		var self = this;
+		self.user = user;
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		self._cancelled = false;
+		if(!self.initialized) self._buildDialog();
+		selfElement.children("#n_label").focus();
+		self.input_n.blur();
+		selfElement.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.newUserDialog",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LiveBuildToggle must be a div element");
 		selfElement.addClass("liveBuildToggle");
 		var build = new $("<div class='ui-widget-content ui-state-active ui-corner-left build'>Build</div>");
@@ -9091,83 +9168,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.newAliasDialog",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of NewUserDialog must be a div element");
-		self._cancelled = false;
-		selfElement.addClass("newUserDialog").hide();
-		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
-		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
-		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
-		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
-		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
-		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_em = new $("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_em = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		inputs.append("<br/>");
-		inputs.children("input").keypress(function(evt) {
-			if(evt.keyCode == 13) self._createNewUser();
-		});
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_n,self.placeholder_n);
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_em,self.placeholder_em);
-		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
-			self._setUser(agent);
-		},"NewUserDialog-Agent"));
-	}, initialized : false, _createNewUser : function() {
-		var self = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var newUser = new ui.model.NewUser();
-		newUser.name = self.input_n.val();
-		if(m3.helper.StringHelper.isBlank(newUser.name)) {
-			self.placeholder_n.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.CreateAgent,newUser);
-		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(n) {
-			selfElement1.dialog("close");
-		},"NewUserDialog-UserSignup"));
-	}, _buildDialog : function() {
-		var self1 = this;
-		var selfElement2 = this.element;
-		self1.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, modal : true, buttons : { 'Create My Agent' : function() {
-			self1._registered = true;
-			self1._createNewUser();
-		}, Cancel : function() {
-			self1._cancelled = true;
-			$(this).dialog("close");
-		}}, close : function(evt,ui1) {
-			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			if(self1._cancelled || !self1._registered && (self1.user == null || !self1.user.hasValidSession())) ui.widget.DialogManager.showLogin();
-		}};
-		selfElement2.dialog(dlgOptions);
-	}, _setUser : function(user) {
-		var self = this;
-		self.user = user;
-	}, open : function() {
-		var self = this;
-		var selfElement = this.element;
-		self._cancelled = false;
-		if(!self.initialized) self._buildDialog();
-		selfElement.children("#n_label").focus();
-		self.input_n.blur();
-		selfElement.dialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.newUserDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;

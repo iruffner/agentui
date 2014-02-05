@@ -10,11 +10,11 @@ import m3.exception.Exception;
 
 using m3.helper.StringHelper;
 
-typedef NewUserDialogOptions = {
+typedef CreateAgentDialogOptions = {
 }
 
-typedef NewUserDialogWidgetDef = {
-	@:optional var options: NewUserDialogOptions;
+typedef CreateAgentDialogWidgetDef = {
+	@:optional var options: CreateAgentDialogOptions;
 	@:optional var user: Agent;
 	@:optional var _cancelled: Bool;
 	@:optional var _registered: Bool;
@@ -40,20 +40,20 @@ typedef NewUserDialogWidgetDef = {
 }
 
 @:native("$")
-extern class NewUserDialog extends JQ {
+extern class CreateAgentDialog extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function newUserDialog(?opts: NewUserDialogOptions): NewUserDialog;
+	function newUserDialog(?opts: CreateAgentDialogOptions): CreateAgentDialog;
 
 	private static function __init__(): Void {
-		var defineWidget: Void->NewUserDialogWidgetDef = function(): NewUserDialogWidgetDef {
+		var defineWidget: Void->CreateAgentDialogWidgetDef = function(): CreateAgentDialogWidgetDef {
 			return {
 		        _create: function(): Void {
-		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
+		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new Exception("Root of NewUserDialog must be a div element");
+		        		throw new Exception("Root of CreateAgentDialog must be a div element");
 		        	}
 
 		        	self._cancelled = false;
@@ -96,14 +96,14 @@ extern class NewUserDialog extends JQ {
 
 		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
 	        				self._setUser(agent);
-		        		},"NewUserDialog-Agent")
+		        		},"CreateAgentDialog-Agent")
 		        	);
 		        },
 
 		        initialized: false,
 
 		        _createNewUser: function(): Void {
-		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
+		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
@@ -136,11 +136,11 @@ extern class NewUserDialog extends JQ {
 
     				EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(n: Nothing): Void {
     						selfElement.dialog("close");
-    				}, "NewUserDialog-UserSignup"));
+    				}, "CreateAgentDialog-UserSignup"));
 	        	},
 
 		        _buildDialog: function(): Void {
-		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
+		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
 		        	self.initialized = true;
@@ -172,13 +172,13 @@ extern class NewUserDialog extends JQ {
 		        },
 
 		        _setUser: function(user: Agent): Void {
-		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
+		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();
 
 		        	self.user = user;
 	        	},
 
 	        	open: function(): Void {
-		        	var self: NewUserDialogWidgetDef = Widgets.getSelf();
+		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
 					self._cancelled = false;
