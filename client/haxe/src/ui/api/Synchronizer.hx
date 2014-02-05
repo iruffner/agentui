@@ -6,6 +6,7 @@ import ui.model.ModelObj;
 using m3.helper.OSetHelper;
 
 class SynchronizationParms {
+    public var agent:Agent;
     public var aliases:Array<Alias>;
     public var labels:Array<Label>;
     public var labelChildren:Array<LabelChild>;
@@ -13,6 +14,7 @@ class SynchronizationParms {
     public var labeledContent:Array<LabeledContent>;
 
     public function new() {
+        agent = null;
         aliases = new Array<Alias>();
         labels  = new Array<Label>();
         labelChildren = new Array<LabelChild>();
@@ -84,6 +86,9 @@ class Synchronizer {
             }
         } else {
         	switch (responseType) {
+                case "agent":
+                    parms.agent = AppContext.SERIALIZER.fromJsonX(data.instance, Agent);
+
         		case "alias":
         			parms.aliases.push(AppContext.SERIALIZER.fromJsonX(data.instance, Alias));
         		case "aliases":

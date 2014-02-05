@@ -4844,20 +4844,20 @@ ui.api.BennuHandler.prototype = {
 	}
 	,onCreateChannel: function(data,textStatus,jqXHR) {
 		ui.AppContext.CHANNEL = data.id;
+		ui.AppContext.AGENT.iid = this.loggedInAgentId;
+		ui.AppContext.AGENT.userData = new ui.model.UserData(this.loggedInAgentId,"media/test/koi.jpg");
 		this._startPolling();
 		var context = ui.api.Synchronizer.createContext(5,"initialDataLoad");
 		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
 		new ui.api.SubmitRequest(requests).start();
 		var types = ["alias","label","labelchild","content","labeledcontent"];
-		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,"aliases-changes",new ui.api.RegisterMessage(types))];
+		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,"register-changes",new ui.api.RegisterMessage(types))];
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,deleteLabel: function(data) {
-		var labelChildren = ui.AppContext.getDescendentLabelChildren(data.label.get_iid());
-		var lcs = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
+		var labelChildren = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
 			return lc.parentIid == data.parentIid && lc.childIid == data.label.get_iid();
-		});
-		labelChildren = labelChildren.concat(lcs.asArray());
+		}).asArray();
 		var context = ui.api.Synchronizer.createContext(labelChildren.length,"labelDeleted");
 		var requests = new Array();
 		var _g = 0;
@@ -4870,8 +4870,9 @@ ui.api.BennuHandler.prototype = {
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,copyLabel: function(data) {
-		var lcToAdd = new ui.model.LabelChild(data.newParentId,data.label.get_iid());
-		var context = ui.api.Synchronizer.createContext(2,"labelCopied");
+		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.get_iid());
+		if(lcToAdd == null) lcToAdd = new ui.model.LabelChild(data.newParentId,data.label.get_iid()); else lcToAdd.deleted = false;
+		var context = ui.api.Synchronizer.createContext(1,"labelCopied");
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lcToAdd))]);
 		req.start();
 	}
@@ -4879,11 +4880,18 @@ ui.api.BennuHandler.prototype = {
 		var lcs = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
 			return lc.parentIid == data.parentIid && lc.childIid == data.label.get_iid();
 		});
-		var lcToRemove = lcs.iterator().next();
-		var lcToAdd = new ui.model.LabelChild(data.newParentId,data.label.get_iid());
+		var lcToRemove = this.getExistingLabelChild(data.parentIid,data.label.get_iid());
+		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.get_iid());
+		if(lcToAdd == null) lcToAdd = new ui.model.LabelChild(data.newParentId,data.label.get_iid()); else lcToAdd.deleted = false;
 		var context = ui.api.Synchronizer.createContext(2,"labelMoved");
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labelChild",ui.api.DeleteMessage.create(lcToRemove)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lcToAdd))]);
 		req.start();
+	}
+	,getExistingLabelChild: function(parentIid,childIid) {
+		var lcs = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+			return lc.parentIid == parentIid && lc.childIid == childIid;
+		});
+		return lcs.iterator().next();
 	}
 	,updateLabel: function(data) {
 		var context = ui.api.Synchronizer.createContext(1,"labelUpdated");
@@ -5033,6 +5041,7 @@ ui.api.BennuHandler.prototype = {
 		req.start();
 	}
 	,getAgent: function(login) {
+		this.loggedInAgentId = login.agentId;
 		new ui.api.BennuRequest("/api/channel/create/" + login.agentId,"",$bind(this,this.onCreateChannel)).start();
 	}
 	,__class__: ui.api.BennuHandler
@@ -5770,7 +5779,10 @@ ui.api.ResponseProcessor.__name__ = ["ui","api","ResponseProcessor"];
 ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 	if(dataArr == null || dataArr.length == 0) return;
 	Lambda.iter(dataArr,function(data) {
-		if(data.success == false) m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "      Context: " + Std.string(data.context)); else if(data.type != null) ui.api.ResponseProcessor.updateModelObject(data.instance,data.type); else if(js.Boot.__instanceof(data.result,String)) ui.AppContext.LOGGER.info(data); else {
+		if(data.success == false) {
+			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
+			ui.AppContext.LOGGER.error(data.error.stacktrace);
+		} else if(data.type != null) ui.api.ResponseProcessor.updateModelObject(data.instance,data.type); else if(js.Boot.__instanceof(data.result,String)) ui.AppContext.LOGGER.info(data); else {
 			var context = data.context.split("-");
 			if(context != null && context[2] == "initialDataLoad") {
 				var synchronizer = ui.api.Synchronizer.synchronizers.get(context[0]);
@@ -5859,6 +5871,7 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
 }
 ui.api.SynchronizationParms = function() {
+	this.agent = null;
 	this.aliases = new Array();
 	this.labels = new Array();
 	this.labelChildren = new Array();
@@ -5914,6 +5927,9 @@ ui.api.Synchronizer.prototype = {
 			if(lc != null) this.parms.labeledContent.push(lc);
 			break;
 		} else switch(responseType) {
+		case "agent":
+			this.parms.agent = ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Agent);
+			break;
 		case "alias":
 			this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Alias));
 			break;
@@ -9019,7 +9035,7 @@ var defineWidget = function() {
 		inputs.append("<br/>");
 		self.input_pw = new $("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		self.placeholder_pw = new $("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		self.input_un.val("qoid@qoid.com");
+		self.input_un.val("");
 		self.input_pw.val("ohyea");
 		inputs.children("input").keypress(function(evt) {
 			if(evt.keyCode == 13) self._login();
@@ -9056,7 +9072,6 @@ var defineWidget = function() {
 			self1._login();
 		}, 'I\'m New...' : function() {
 			self1._newUser = true;
-			$(this).dialog("close");
 			ui.widget.DialogManager.showNewUser();
 		}}, beforeClose : function(evt,ui) {
 			if(!self1._newUser && (self1.user == null || !self1.user.hasValidSession())) {

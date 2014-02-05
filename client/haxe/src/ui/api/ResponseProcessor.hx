@@ -20,8 +20,9 @@ class ResponseProcessor {
 
 		dataArr.iter(function(data:Dynamic): Void {
 			if (data.success == false) {
-				JqueryUtil.alert("ERROR:  " + data.error.message + "      Context: " + data.context);
-			} else {
+				JqueryUtil.alert("ERROR:  " + data.error.message + "     Context: " + data.context);
+	            AppContext.LOGGER.error(data.error.stacktrace);
+            } else {
                 if (data.type != null) {
                     updateModelObject(data.instance, data.type);
                 } else if (Std.is(data.result,String)) {
@@ -91,6 +92,7 @@ class ResponseProcessor {
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
+        //AppContext.AGENT = data.agent;
 		AppContext.MASTER_ALIASES.addAll(data.aliases);
 		AppContext.MASTER_LABELS.addAll(data.labels);
 		AppContext.MASTER_CONTENT.addAll(data.content);

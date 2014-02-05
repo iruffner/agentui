@@ -16,6 +16,7 @@ using Lambda;
 
 class BennuHandler implements ProtocolHandler {
 
+	private var loggedInAgentId:String;
 	// Message Paths
 	private static var UPSERT = "/api/upsert";
 	private static var DELETE = "/api/delete";
@@ -32,6 +33,7 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function getAgent(login: Login): Void {
+		this.loggedInAgentId = login.agentId;
 		// Establish a connection with the server to get the channel_id
 		new BennuRequest("/api/channel/create/" + login.agentId, "", onCreateChannel).start();
 	}
@@ -203,13 +205,26 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
+	private function getExistingLabelChild(parentIid:String, childIid:String):LabelChild {
+		var lcs = new FilteredSet<LabelChild>(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
+			return (lc.parentIid == parentIid && lc.childIid == childIid);
+		});
+
+		return lcs.iterator().next();
+	}
+
 	public function moveLabel(data:EditLabelData):Void {
 		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
 		});
-		var lcToRemove = lcs.iterator().next();
+		var lcToRemove:LabelChild = getExistingLabelChild(data.parentIid, data.label.iid);
 
-		var lcToAdd = new LabelChild(data.newParentId, data.label.iid);
+		var lcToAdd:LabelChild = getExistingLabelChild(data.newParentId, data.label.iid);
+		if (lcToAdd == null) {
+			lcToAdd = new LabelChild(data.newParentId, data.label.iid);
+		} else {
+			lcToAdd.deleted = false;
+		}
 
 		var context = Synchronizer.createContext(2, "labelMoved");
 		var req = new SubmitRequest([
@@ -219,8 +234,13 @@ class BennuHandler implements ProtocolHandler {
 	}
  
 	public function copyLabel(data:EditLabelData):Void {
-		var lcToAdd = new LabelChild(data.newParentId, data.label.iid);
-		var context = Synchronizer.createContext(2, "labelCopied");
+		var lcToAdd:LabelChild = getExistingLabelChild(data.newParentId, data.label.iid);
+		if (lcToAdd == null) {
+			lcToAdd = new LabelChild(data.newParentId, data.label.iid);
+		} else {
+			lcToAdd.deleted = false;
+		}
+		var context = Synchronizer.createContext(1, "labelCopied");
 		var req = new SubmitRequest([
 			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lcToAdd))]);
 		req.start();
@@ -228,11 +248,10 @@ class BennuHandler implements ProtocolHandler {
 
 	public function deleteLabel(data:EditLabelData):Void {
 
-		var labelChildren = AppContext.getDescendentLabelChildren(data.label.iid);
-		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+		// Delete the label child that is associated with this label
+		var labelChildren:Array<LabelChild> = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
-		});
-		labelChildren = labelChildren.concat(lcs.asArray());
+		}).asArray();
 
 		var context = Synchronizer.createContext(labelChildren.length, "labelDeleted");
 
@@ -248,10 +267,13 @@ class BennuHandler implements ProtocolHandler {
 
 	private function onCreateChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
 		AppContext.CHANNEL = data.id;
+		AppContext.AGENT.iid = this.loggedInAgentId;
+		AppContext.AGENT.userData = new UserData(this.loggedInAgentId, "media/test/koi.jpg");
 		_startPolling();
 
 		var context = Synchronizer.createContext(5, "initialDataLoad");
 		var requests = [
+//			new ChannelRequestMessage(QUERY, context + "agent"          , new QueryMessage("agent", "iid=" + this.loggedInAgentId)),
 			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
 			new ChannelRequestMessage(QUERY, context + "labels"         , new QueryMessage("label")),
 			new ChannelRequestMessage(QUERY, context + "contents"       , new QueryMessage("content")),
@@ -260,7 +282,7 @@ class BennuHandler implements ProtocolHandler {
 		];
 		new SubmitRequest(requests).start();
 		var types = ["alias", "label", "labelchild", "content", "labeledcontent"];
-		requests = [new ChannelRequestMessage(REGISTER, "aliases-changes", new RegisterMessage(types))];
+		requests = [new ChannelRequestMessage(REGISTER, "register-changes", new RegisterMessage(types))];
 		new SubmitRequest(requests).start();
 	}
 

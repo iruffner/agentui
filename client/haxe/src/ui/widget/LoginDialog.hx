@@ -74,7 +74,7 @@ extern class LoginDialog extends JQ {
 		        	// self.input_ag = new JQ("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	// self.placeholder_ag = new JQ("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 
-	        		self.input_un.val("qoid@qoid.com");
+	        		self.input_un.val("");
 	        		self.input_pw.val("ohyea");
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
@@ -143,7 +143,6 @@ extern class LoginDialog extends JQ {
 		        			},
 		        			"I\\\'m New...": function() {
 		        				self._newUser = true;
-		        				JQDialog.cur.dialog("close");
 		        				DialogManager.showNewUser();
 		        			}
 		        		},
