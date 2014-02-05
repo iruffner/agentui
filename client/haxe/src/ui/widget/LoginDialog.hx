@@ -60,30 +60,21 @@ extern class LoginDialog extends JQ {
 		        	var labels: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 		        	var inputs: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 
-		        	if(ui.AgentUi.agentURI.isBlank()) {
-		        		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Email</label></div>");
-		        	}
+	        		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Agent Id</label></div>");
 		        	labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
-		        	// labels.append("<div class='labelDiv'><label for='login_ag'>Agency</label></div>");
 
-		        	if(ui.AgentUi.agentURI.isBlank()) {
-			        	self.input_un = new JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-			        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
-			        	inputs.append("<br/>");
-			        }
+		        	self.input_un = new JQ("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		        	self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		        	inputs.append("<br/>");
+
 		        	self.input_pw = new JQ("<input type='password' id='login_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	self.placeholder_pw = new JQ("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 		        	// inputs.append("<br/>");
 		        	// self.input_ag = new JQ("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	// self.placeholder_ag = new JQ("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 
-		        	if(AppContext.DEMO) {
-		        		self.input_un.val("Jerry.Seinfeld");
-		        		self.input_pw.val("Bosco");
-		        	} else if(true) {
-		        		self.input_un.val("qoid@qoid.com");
-		        		self.input_pw.val("ohyea");
-		        	}
+	        		self.input_un.val("qoid@qoid.com");
+	        		self.input_pw.val("ohyea");
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
 		        			if(evt.keyCode == 13) {
@@ -91,19 +82,17 @@ extern class LoginDialog extends JQ {
 		        			}
 		        		});
 
-		        	if(ui.AgentUi.agentURI.isBlank()) {
-			        	self.placeholder_un.focus(function(evt: JQEvent): Void {
-			        			self.placeholder_un.hide();
-			        			self.input_un.show().focus();
-			        		});
+		        	self.placeholder_un.focus(function(evt: JQEvent): Void {
+		        			self.placeholder_un.hide();
+		        			self.input_un.show().focus();
+		        		});
 
-			        	self.input_un.blur(function(evt: JQEvent): Void {
-			        			if(self.input_un.val().isBlank()) {
-				        			self.placeholder_un.show();
-				        			self.input_un.hide();
-			        			}
-			        		});
-			        }
+		        	self.input_un.blur(function(evt: JQEvent): Void {
+		        			if(self.input_un.val().isBlank()) {
+			        			self.placeholder_un.show();
+			        			self.input_un.hide();
+		        			}
+		        		});
 
 		        	self.placeholder_pw.focus(function(evt: JQEvent): Void {
 		        			self.placeholder_pw.hide();
@@ -116,18 +105,6 @@ extern class LoginDialog extends JQ {
 			        			self.input_pw.hide();
 		        			}
 		        		});
-
-		        	// self.placeholder_ag.focus(function(evt: JQEvent): Void {
-		        	// 		self.placeholder_ag.hide();
-		        	// 		self.input_ag.show().focus();
-		        	// 	});
-
-		        	// self.input_ag.blur(function(evt: JQEvent): Void {
-		        	// 		if(self.input_ag.val().isBlank()) {
-			        // 			self.placeholder_ag.show();
-			        // 			self.input_ag.hide();
-		        	// 		}
-		        	// 	});
 
 		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
 	        				self._setUser(agent);
@@ -152,31 +129,20 @@ extern class LoginDialog extends JQ {
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
 		        	var valid = true;
-    				var login: Login;
-    				if(ui.AgentUi.agentURI.isNotBlank()) {
-    					login = new LoginById();
-    					cast(login,LoginById).uuid = ui.AgentUi.agentURI;
-    				} else {
-    					login = new LoginByUn();
-    					var l: LoginByUn = cast(login,LoginByUn);
-    					l.email = self.input_un.val();
-	    				if(l.email.isBlank() && ui.AgentUi.agentURI.isBlank()) {
-	    					self.placeholder_un.addClass("ui-state-error");
-	    					valid = false;
-	    				}
+    				var login = new Login();
+					login.agentId = self.input_un.val();
+    				if(login.agentId.isBlank()) {
+    					self.placeholder_un.addClass("ui-state-error");
+    					valid = false;
     				}
+
     				login.password = self.input_pw.val();
     				if(login.password.isBlank()) {
     					self.placeholder_pw.addClass("ui-state-error");
     					valid = false;
     				}
-    				// login.agency = self.input_ag.val();
-    				// if(login.agency.isBlank()) {
-    				// 	self.placeholder_ag.addClass("ui-state-error");
-    				// 	valid = false;
-    				// }
 
-    				if(!valid) return;
+    				if(!valid)return;
 
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
 
@@ -200,7 +166,7 @@ extern class LoginDialog extends JQ {
 //		        				$(".loginDialog + div button").button("option", "disabled", true);
 		        				self._login();
 		        			},
-		        			"I\\\'m New": function() {
+		        			"I\\\'m New...": function() {
 		        				self._newUser = true;
 		        				JQDialog.cur.dialog("close");
 		        				DialogManager.showNewUser();
@@ -233,9 +199,7 @@ extern class LoginDialog extends JQ {
 		        		self._buildDialog();
 		        	}
 		        	selfElement.children("#un_label").focus();
-		        	if(ui.AgentUi.agentURI.isBlank()) {
-		        		self.input_un.blur();
-		        	}
+	        		self.input_un.blur();
 	        		selfElement.dialog("open");
         		},
 		        

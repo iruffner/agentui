@@ -100,18 +100,6 @@ extern class NewUserDialog extends JQ {
 		        			}
 		        		});
 
-		        	// self.placeholder_un.focus(function(evt: JQEvent): Void {
-		        	// 		self.placeholder_un.hide();
-		        	// 		self.input_un.show().focus();
-		        	// 	});
-
-		        	// self.input_un.blur(function(evt: JQEvent): Void {
-		        	// 		if(self.input_un.val().isBlank()) {
-			        // 			self.placeholder_un.show();
-			        // 			self.input_un.hide();
-		        	// 		}
-		        	// 	});
-
 		        	self.placeholder_pw.focus(function(evt: JQEvent): Void {
 		        			self.placeholder_pw.hide();
 		        			self.input_pw.show().focus();
@@ -155,6 +143,7 @@ extern class NewUserDialog extends JQ {
     				// 	self.placeholder_un.addClass("ui-state-error");
     				// 	valid = false;
     				// }
+    				/*
     				newUser.pwd = self.input_pw.val();
     				if(newUser.pwd.isBlank()) {
     					self.placeholder_pw.addClass("ui-state-error");
@@ -165,6 +154,7 @@ extern class NewUserDialog extends JQ {
     					self.placeholder_em.addClass("ui-state-error");
     					valid = false;
     				}
+    				*/
     				newUser.name = self.input_n.val();
     				if(newUser.name.isBlank()) {
     					self.placeholder_n.addClass("ui-state-error");
@@ -172,11 +162,11 @@ extern class NewUserDialog extends JQ {
     				}
     				if(!valid) return;
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EM.change(EMEvent.USER_CREATE, newUser);
+    				EM.change(EMEvent.CreateAgent, newUser);
 
     				EM.addListener(EMEvent.USER_SIGNUP, new EMListener(function(n: Nothing): Void {
     						selfElement.dialog("close");
-    					}, "NewUserDialog-UserSignup"));
+    				}, "NewUserDialog-UserSignup"));
 	        	},
 
 		        _buildDialog: function(): Void {
@@ -192,7 +182,7 @@ extern class NewUserDialog extends JQ {
 		        		width: 400,
 		        		modal: true,
 		        		buttons: {
-		        			"Create my Agent": function() {
+		        			"Create My Agent": function() {
 		        				self._registered = true;
 		        				self._createNewUser();
 		        			},

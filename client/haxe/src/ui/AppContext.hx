@@ -144,7 +144,7 @@ class AppContext {
         );
 
         EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
-        EM.addListener(EMEvent.USER_CREATE, fireFitWindow);
+        EM.addListener(EMEvent.CreateAgent, fireFitWindow);
 
         EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {
                 AGENT = agent;

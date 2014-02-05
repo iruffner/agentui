@@ -4,11 +4,11 @@ import ui.model.ModelObj;
 import ui.model.Filter;
 
 interface ProtocolHandler {
-	public function getUser(login: Login): Void;
+	public function getAgent(login: Login): Void;
 	public function filter(filter: Filter): Void;
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void;
 	public function nextPage(nextPageURI: String): Void;
-	public function createUser(newUser: NewUser): Void;
+	public function createAgent(newUser: NewUser): Void;
 	public function updateUser(user: Agent): Void;
 	public function createContent(data:EditContentData):Void;
 	public function updateContent(data:EditContentData):Void;

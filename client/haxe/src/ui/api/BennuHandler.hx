@@ -31,9 +31,22 @@ class BennuHandler implements ProtocolHandler {
 		this.eventDelegate = new EventDelegate(this);
 	}
 
-	public function getUser(login: Login): Void {
+	public function getAgent(login: Login): Void {
 		// Establish a connection with the server to get the channel_id
-		new BennuRequest("/api/channel/create/" + AppContext.AGENT.iid, "", onCreateChannel).start();
+		new BennuRequest("/api/channel/create/" + login.agentId, "", onCreateChannel).start();
+	}
+
+	public function createAgent(newUser: NewUser): Void {
+		var req = new BennuRequest("/api/agent/create/" + newUser.name, "", 
+			function (data: Dynamic, textStatus: String, jqXHR: JQXHR) {
+				js.Lib.alert(data);
+				EM.change(EMEvent.USER_SIGNUP, "");
+			}
+		);
+		req.start();
+	}
+	public function updateUser(agent: Agent): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 
 	public function beginIntroduction(intro: Introduction): Void {
@@ -58,12 +71,6 @@ class BennuHandler implements ProtocolHandler {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 	public function nextPage(nextPageURI: String): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	}
-	public function createUser(newUser: NewUser): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	}
-	public function updateUser(agent: Agent): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 

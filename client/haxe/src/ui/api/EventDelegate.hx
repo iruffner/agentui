@@ -59,11 +59,11 @@ class EventDelegate {
         }));
 
         EM.addListener(EMEvent.USER_LOGIN, new EMListener(function(login: Login): Void {
-          	protocolHandler.getUser(login);
+          	protocolHandler.getAgent(login);
         }));
 
-        EM.addListener(EMEvent.USER_CREATE, new EMListener(function(user: NewUser): Void {
-            protocolHandler.createUser(user);
+        EM.addListener(EMEvent.CreateAgent, new EMListener(function(user: NewUser): Void {
+            protocolHandler.createAgent(user);
         }));
 
         EM.addListener(EMEvent.USER_UPDATE, new EMListener(function(agent: Agent): Void {

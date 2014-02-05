@@ -97,7 +97,7 @@ enum EMEvent {
 	EditContentClosed;
 
 	USER_LOGIN;
-	USER_CREATE;
+	CreateAgent;
 	USER_UPDATE;
 	USER_SIGNUP;
 	AGENT;

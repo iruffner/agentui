@@ -423,29 +423,8 @@ class Login extends ModelObj {
 	public function new () {
 		super();
 	}
+	public var agentId:String;
 	public var password: String;
-
-	public function getUri(): String {
-		return throw new Exception("don't call me!");
-	}
-}
-
-class LoginByUn extends Login {
-	public var email: String;
-	// public var agency: String;
-
-	override public function getUri(): String {
-		// return "agent://" + username + ":" + password + "@server:9876/" + agency + "?email=george@costanza.com&fullname=George+Costanza";
-		return "agent://email/" + email + "?password=" + password;
-	}
-}
-
-class LoginById extends Login {
-	public var uuid: String;
-
-	override public function getUri(): String {
-		return uuid + "?password=" + password;
-	}
 }
 
 class NewUser extends ModelObj {
