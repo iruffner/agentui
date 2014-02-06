@@ -4846,7 +4846,7 @@ ui.api.BennuHandler.prototype = {
 		ui.AppContext.AGENT.iid = this.loggedInAgentId;
 		this._startPolling();
 		var context = ui.api.Synchronizer.createContext(6,"initialDataLoad");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid=" + this.loggedInAgentId)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
+		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid='" + this.loggedInAgentId + "'")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
 		new ui.api.SubmitRequest(requests).start();
 		var types = ["alias","label","labelchild","content","labeledcontent"];
 		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,"register-changes",new ui.api.RegisterMessage(types))];
@@ -8934,13 +8934,14 @@ var defineWidget = function() {
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid});
 		self.children.listen(function(lc,evt) {
-			if(ui.AppContext.AGENT == null) return;
-			var ll = new $("#labelsList");
-			var sel = ll.labelsList("getSelected");
-			if(sel != null && sel.labelComp("getLabel").iid == lc.parentIid) {
-				if(m3.helper.OSetHelper.hasValues(self.children)) {
-					labelChildren.show();
-					labelChildren.addClass("labelTreeFullWidth");
+			if(evt.isAdd()) {
+				var ll = new $("#labelsList");
+				var sel = ll.labelsList("getSelected");
+				if(sel != null && sel.labelComp("getLabel").iid == lc.parentIid) {
+					if(m3.helper.OSetHelper.hasValues(self.children)) {
+						labelChildren.show();
+						labelChildren.addClass("labelTreeFullWidth");
+					}
 				}
 			}
 		});

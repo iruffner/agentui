@@ -272,7 +272,7 @@ class BennuHandler implements ProtocolHandler {
 
 		var context = Synchronizer.createContext(6, "initialDataLoad");
 		var requests = [
-			new ChannelRequestMessage(QUERY, context + "agent"          , new QueryMessage("agent", "iid=" + this.loggedInAgentId)),
+			new ChannelRequestMessage(QUERY, context + "agent"          , new QueryMessage("agent", "iid='" + this.loggedInAgentId + "'")),
 			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
 			new ChannelRequestMessage(QUERY, context + "labels"         , new QueryMessage("label")),
 			new ChannelRequestMessage(QUERY, context + "contents"       , new QueryMessage("content")),
