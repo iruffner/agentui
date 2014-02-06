@@ -45,7 +45,7 @@ class AppContext {
     @:isVar public static var alias(get, set): Alias;
 
     private static function get_alias(): Alias {
-        return AGENT.currentAlias;
+        return (AGENT == null) ? null : AGENT.currentAlias;
     }
     private static function set_alias(alias:Alias): Alias {
         AGENT.currentAlias = alias;
@@ -203,13 +203,4 @@ class AppContext {
         }
         return labelDescendents;
     }
-
-/*
-    public static function isDescendent(parentIid:String, childIid:String) {
-            var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
-                return lc.parentIid == iid;
-            }).asArray();
-
-    }
-*/
 }

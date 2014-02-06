@@ -105,7 +105,6 @@ enum EMEvent {
 	FitWindow;
 	PAGE_CLOSE;
 
-	LOAD_ALIAS;
 	AliasLoaded;
 
 	CreateAlias;

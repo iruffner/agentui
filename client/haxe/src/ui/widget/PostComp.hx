@@ -233,6 +233,7 @@ extern class PostComp extends JQ {
 		        									doTextPost(evt, ContentType.IMAGE, imageInput.value());
 		        									imageInput.clear();
 		        								}
+		        								tags.children(".label").remove();
 		        							});
 		        },
 

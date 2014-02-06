@@ -34,30 +34,17 @@ class ModelObjWithIid extends ModelObj {
 	// Added here for all models
 	public var deleted:Bool;
 	var agentId: String;
-
-	@:isVar public var iid(get,set): String;
+	public var iid: String;
 
 	public function new() {
 		super();
 		this.iid = UidGenerator.create(32);
 		this.deleted = false;
-		this.agentId = AppContext.AGENT.iid;
+		this.agentId = (AppContext.AGENT == null) ? null : AppContext.AGENT.iid;
 	}
 
 	public static function identifier(t: ModelObjWithIid): String {
 		return t.iid;
-	}
-
-	private function get_iid(): String {
-		if(this.iid.isBlank()) {
-			this.iid = UidGenerator.create(32);
-		}
-		return this.iid;
-	}
-
-	private function set_iid(id: String): String {
-		this.iid = id;
-		return this.iid;
 	}
 }
 
@@ -68,34 +55,11 @@ class Agent extends ModelObj {
   	public var data: UserData;
 	public var deleted: Bool;
 
-	@:transient public var sessionURI: String;
-	
-	@:transient public var labelSet: ObservableSet<Label>;
-
-	@:transient @:isVar public var currentAlias (get,set): Alias;
+	@:transient public var currentAlias: Alias;
 
 	public function new () {
 		super();
 		this.data = new UserData();
-		this.labelSet = new ObservableSet<Label>(Label.identifier);
-	}
-
-	private function get_currentAlias(): Alias {
-		if(currentAlias == null) {
-			currentAlias = AppContext.ALIASES.iterator().next();
-		}
-		return currentAlias;
-	}
-
-	private function set_currentAlias(alias: Alias): Alias {
-		currentAlias = alias;
-		return currentAlias;
-	}
-
-	public function hasValidSession(): Bool {
-		//TODO //IMPLEMENT ME
-		AppContext.LOGGER.warn("implement User.hasValidSession");
-		return true;
 	}
 }
 
@@ -292,7 +256,7 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	public function new (contentType:ContentType, type: Class<T>) {
 		super();
 		this.contentType = contentType;
-		this.aliasIid = AppContext.alias.iid;
+		this.aliasIid = (AppContext.alias == null) ? null : AppContext.alias.iid;
 		this.data = {};
 		this.type = type;
 		this.props = Type.createInstance(type, []);

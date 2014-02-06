@@ -147,7 +147,7 @@ extern class LoginDialog extends JQ {
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {
-		        			if(!self._newUser && (self.user == null || !self.user.hasValidSession())) {
+		        			if(!self._newUser && self.user == null) {
 		        				JqueryUtil.alert("A valid user is required to use the app");
 		        				return false;
 		        			}

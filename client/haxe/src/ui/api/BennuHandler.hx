@@ -99,15 +99,11 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function deleteAlias(alias: Alias): Void {
-		// TODO:  Delete the label and label childs associated with this alias
-		// NB:  Only delete labels that are orphans...
 		alias.deleted = true;
 		var context = Synchronizer.createContext(1, "aliasDeleted");
-		var requests = new Array<ChannelRequestMessage>();
-		requests.push(new ChannelRequestMessage(DELETE, context + "alias", DeleteMessage.create(alias)));
-		new SubmitRequest(requests).start();
-
-		// TODO: Do we delete all content with this label?
+		new SubmitRequest(
+			[new ChannelRequestMessage(DELETE, context + "alias", DeleteMessage.create(alias))]
+		).start();
 
 		// TODO: the parentLabelIid might not be blank...
 		var data = new EditLabelData(AppContext.LABELS.delegate().get(alias.rootLabelIid),

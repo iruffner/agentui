@@ -59,37 +59,6 @@ class ResponseProcessor {
                 AppContext.LOGGER.error("Unknown type: " + type);
         }
     }
-	private static function updateModel(data:Dynamic, type:String) {
-
-	    if (data.primaryKey != null) {
-            switch (type) {
-                case "alias":
-                    var alias = AppContext.MASTER_ALIASES.getElement(data.primaryKey);
-                	alias.deleted = true;
-                	AppContext.MASTER_ALIASES.addOrUpdate(alias);
-                case "content":
-                    var content = AppContext.MASTER_CONTENT.getElement(data.primaryKey);
-                	content.deleted = true;
-                	AppContext.MASTER_CONTENT.addOrUpdate(content);
-                case "label":
-                    var label = AppContext.MASTER_LABELS.getElement(data.primaryKey);
-                   	label.deleted = true;
-                    AppContext.MASTER_LABELS.addOrUpdate(label);
-                case "labelChild":
-                    var lc = AppContext.MASTER_LABELCHILDREN.getElement(data.primaryKey);
-                   	lc.deleted = true;
-                    AppContext.MASTER_LABELCHILDREN.addOrUpdate(lc);
-                case "labeledContent":
-                    var lc = AppContext.MASTER_LABELEDCONTENT.getElement(data.primaryKey);
-                    lc.deleted = true;
-                    AppContext.MASTER_LABELEDCONTENT.addOrUpdate(lc);
-                default:
-                    ui.AppContext.LOGGER.error("Unknown type: " + type);
-            }
-        } else {
-            updateModelObject(data.instance, type);
-        }
-	}
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
@@ -124,7 +93,6 @@ class ResponseProcessor {
 
     	// Fire the events that will cause the UI to load the data
 		EM.change(EMEvent.AGENT, AppContext.AGENT);
-		EM.change(EMEvent.LOAD_ALIAS, AppContext.alias);
 		EM.change(EMEvent.FitWindow);
 	}
 }

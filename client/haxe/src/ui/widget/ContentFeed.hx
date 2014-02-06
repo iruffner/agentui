@@ -15,7 +15,6 @@ import m3.helper.StringHelper;
 using ui.widget.ContentComp;
 
 typedef ContentFeedOptions = {
-	@:optional var content: OSet<Content<Dynamic>>;
 }
 
 typedef ContentFeedWidgetDef = {
@@ -97,11 +96,19 @@ extern class ContentFeed extends JQ {
 		        		self.content.removeListeners(self.mapListener);
 		        	}
 		        	selfElement.find(".contentComp").remove();
-		        	self.options.content = AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
-		        	if (self.options.content == null) {
-		        		self.options.content = AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
-		        	}
-		        	self.content = new MappedSet<Content<Dynamic>, ContentComp>(self.options.content, function(content: Content<Dynamic>): ContentComp {
+
+		        	var content:OSet<Content<Dynamic>>;
+
+		        	// if we are showing content for the uber alias, get all content
+		        	if (AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == AppContext.UBER_LABEL.iid) {
+		        		content = AppContext.CONTENT;
+		        	} else {
+			        	content = AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
+			        	if (content == null) {
+			        		content = AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
+			        	}
+			        }
+		        	self.content = new MappedSet<Content<Dynamic>, ContentComp>(content, function(content: Content<Dynamic>): ContentComp {
 	        			return new ContentComp("<div></div>").contentComp({
 	        				content: content
 	        			});

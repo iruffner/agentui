@@ -157,7 +157,6 @@ extern class UserComp extends JQ {
 									menu.hide();
 								} else {
     								AppContext.alias = alias;
-    								EM.change(EMEvent.LOAD_ALIAS, alias);
     								EM.change(EMEvent.AliasLoaded, alias);
     							}
 							}

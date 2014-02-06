@@ -163,7 +163,7 @@ extern class CreateAgentDialog extends JQ {
 		        		},
 		        		close: function(evt: JQEvent, ui: UIJQDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");
-		        			if(self._cancelled || (!self._registered && (self.user == null || !self.user.hasValidSession()))) {
+		        			if(self._cancelled || (!self._registered && self.user == null)) {
 		        				DialogManager.showLogin();
 		        			}
 		        		}

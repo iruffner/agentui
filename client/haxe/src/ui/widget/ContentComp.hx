@@ -105,14 +105,11 @@ extern class ContentComp extends JQ {
 						});
 		        	
 		        	var postCreator: JQ = new JQ("<aside class='postCreator'></aside>").appendTo(postWr);
-		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
-		        	var connection: Connection = null;//AppContext.alias.connectionSet.getElementComplex(content.creator);
-		        	if(connection == null) {
-		        		connection = AppContext.alias.asConnection();
-		        	}
+
+		        	var alias = AppContext.ALIASES.delegate().get(self.options.content.aliasIid);
 	        		new ConnectionAvatar("<div></div>").connectionAvatar({
 	        				dndEnabled: false,
-	        				connection: connection
+	        				connection: alias.asConnection()
 	        			}).appendTo(postCreator);
 
 
