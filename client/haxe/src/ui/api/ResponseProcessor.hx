@@ -62,9 +62,11 @@ class ResponseProcessor {
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		// Load the data into the app context
-        AppContext.AGENT = data.agent;
+        if (data.agent != null) {
+            AppContext.AGENT = data.agent;
+        }
         if (AppContext.AGENT.data.name.isBlank()) {
-            AppContext.AGENT.data = new UserData(data.agent.name, "media/test/koi.jpg");
+            AppContext.AGENT.data = new UserData(AppContext.AGENT.name, "media/test/koi.jpg");
         }
 
 		AppContext.MASTER_ALIASES.addAll(data.aliases);

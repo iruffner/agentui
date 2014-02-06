@@ -267,6 +267,7 @@ class BennuHandler implements ProtocolHandler {
 		// Create a dummy agent with the correct agent id
         AppContext.AGENT = new Agent();
         AppContext.AGENT.iid = this.loggedInAgentId;
+        AppContext.AGENT.name = this.loggedInAgentId;
 
 		_startPolling();
 

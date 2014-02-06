@@ -4844,6 +4844,7 @@ ui.api.BennuHandler.prototype = {
 		ui.AppContext.CHANNEL = data.id;
 		ui.AppContext.AGENT = new ui.model.Agent();
 		ui.AppContext.AGENT.iid = this.loggedInAgentId;
+		ui.AppContext.AGENT.name = this.loggedInAgentId;
 		this._startPolling();
 		var context = ui.api.Synchronizer.createContext(6,"initialDataLoad");
 		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid='" + this.loggedInAgentId + "'")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
@@ -5810,8 +5811,8 @@ ui.api.ResponseProcessor.updateModelObject = function(instance,type) {
 	}
 }
 ui.api.ResponseProcessor.initialDataLoad = function(data) {
-	ui.AppContext.AGENT = data.agent;
-	if(m3.helper.StringHelper.isBlank(ui.AppContext.AGENT.data.name)) ui.AppContext.AGENT.data = new ui.model.UserData(data.agent.name,"media/test/koi.jpg");
+	if(data.agent != null) ui.AppContext.AGENT = data.agent;
+	if(m3.helper.StringHelper.isBlank(ui.AppContext.AGENT.data.name)) ui.AppContext.AGENT.data = new ui.model.UserData(ui.AppContext.AGENT.name,"media/test/koi.jpg");
 	ui.AppContext.MASTER_ALIASES.addAll(data.aliases);
 	ui.AppContext.MASTER_LABELS.addAll(data.labels);
 	ui.AppContext.MASTER_CONTENT.addAll(data.content);
@@ -5893,8 +5894,10 @@ ui.api.Synchronizer.prototype = {
 			break;
 		} else switch(responseType) {
 		case "agent":
-			if(data[0].data.name == null) data[0].data.name = "";
-			this.parms.agent = ui.AppContext.SERIALIZER.fromJsonX(data[0],ui.model.Agent);
+			if(data.length > 0) {
+				if(data[0].data.name == null) data[0].data.name = "";
+				this.parms.agent = ui.AppContext.SERIALIZER.fromJsonX(data[0],ui.model.Agent);
+			}
 			break;
 		case "alias":
 			this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Alias));
