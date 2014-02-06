@@ -64,6 +64,10 @@ class ResponseProcessor {
 		// Load the data into the app context
         if (data.agent != null) {
             AppContext.AGENT = data.agent;
+        } else {
+            // Create a dummy agent with the correct agent id
+            AppContext.AGENT = new Agent();
+            AppContext.AGENT.iid = AppContext.AGENT.name = data.aliases[0].agentId;
         }
         if (AppContext.AGENT.data.name.isBlank()) {
             AppContext.AGENT.data = new UserData(AppContext.AGENT.name, "media/test/koi.jpg");

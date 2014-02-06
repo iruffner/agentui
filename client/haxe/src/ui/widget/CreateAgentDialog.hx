@@ -30,7 +30,7 @@ typedef CreateAgentDialogWidgetDef = {
 	
 	var initialized: Bool;
 
-	var _setUser: Agent->Void;
+	var _setAgent: Agent->Void;
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
 	var _createNewUser: Void->Void;
@@ -95,7 +95,7 @@ extern class CreateAgentDialog extends JQ {
 		        	PlaceHolderUtil.setFocusBehavior(self.input_em, self.placeholder_em);
 
 		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
-	        				self._setUser(agent);
+	        				self._setAgent(agent);
 		        		},"CreateAgentDialog-Agent")
 		        	);
 		        },
@@ -171,7 +171,7 @@ extern class CreateAgentDialog extends JQ {
 		        	selfElement.dialog(dlgOptions);
 		        },
 
-		        _setUser: function(user: Agent): Void {
+		        _setAgent: function(user: Agent): Void {
 		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();
 
 		        	self.user = user;

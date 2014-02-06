@@ -80,8 +80,11 @@ class ChannelRequestMessageBundle {
 	private var channel:String;
 	private var requests:Array<ChannelRequestMessage>;
 
-	public function new(?requests_:Array<ChannelRequestMessage>) {
-		this.agentId = AppContext.AGENT.iid;
+	public function new(?requests_:Array<ChannelRequestMessage>, ?agentId:String) {
+		this.agentId = agentId;
+		if (this.agentId == null) {
+			this.agentId = AppContext.AGENT.iid;
+		}
 		this.channel = AppContext.CHANNEL;
 		if (requests_ == null) {
 			this.requests = new Array<ChannelRequestMessage>();

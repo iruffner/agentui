@@ -91,7 +91,9 @@ class BennuRequest extends BaseRequest implements Requester {
 }
 
 class SubmitRequest extends BaseRequest implements Requester {
-	public function new(msgs:Array<ChannelRequestMessage>, ?successFcn: Dynamic->String->JQXHR->Void) {
+	public function new(msgs:Array<ChannelRequestMessage>,
+						?agentId:String,
+		                ?successFcn: Dynamic->String->JQXHR->Void) {
 		this.baseOpts = {
 			dataType: "text",
 			async: true,
@@ -103,7 +105,7 @@ class SubmitRequest extends BaseRequest implements Requester {
 			};
 		}
 
-		var bundle = new ChannelRequestMessageBundle(msgs);
+		var bundle = new ChannelRequestMessageBundle(msgs, agentId);
 		var data = AppContext.SERIALIZER.toJsonString(bundle);
 
 		super(data, successFcn);

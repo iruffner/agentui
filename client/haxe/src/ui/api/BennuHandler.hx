@@ -264,11 +264,6 @@ class BennuHandler implements ProtocolHandler {
 	private function onCreateChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
 		AppContext.CHANNEL = data.id;
 
-		// Create a dummy agent with the correct agent id
-        AppContext.AGENT = new Agent();
-        AppContext.AGENT.iid = this.loggedInAgentId;
-        AppContext.AGENT.name = this.loggedInAgentId;
-
 		_startPolling();
 
 		var context = Synchronizer.createContext(6, "initialDataLoad");
@@ -280,10 +275,10 @@ class BennuHandler implements ProtocolHandler {
 			new ChannelRequestMessage(QUERY, context + "labeledContents", new QueryMessage("labeledContent")),
 			new ChannelRequestMessage(QUERY, context + "labelChildren"  , new QueryMessage("labelChild"))
 		];
-		new SubmitRequest(requests).start();
+		new SubmitRequest(requests, this.loggedInAgentId).start();
 		var types = ["alias", "label", "labelchild", "content", "labeledcontent"];
 		requests = [new ChannelRequestMessage(REGISTER, "register-changes", new RegisterMessage(types))];
-		new SubmitRequest(requests).start();
+		new SubmitRequest(requests, this.loggedInAgentId).start();
 	}
 
 	private function _startPolling(): Void {

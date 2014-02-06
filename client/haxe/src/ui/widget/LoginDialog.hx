@@ -16,8 +16,6 @@ typedef LoginDialogOptions = {
 
 typedef LoginDialogWidgetDef = {
 	@:optional var options: LoginDialogOptions;
-	@:optional var user: Agent;
-	@:optional var _newUser: Bool;
 
 	@:optional var input_un: JQ;
 	@:optional var input_pw: JQ;
@@ -28,7 +26,6 @@ typedef LoginDialogWidgetDef = {
 	
 	var initialized: Bool;
 
-	var _setUser: Agent->Void;
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
 	var _login: Void->Void;
@@ -53,8 +50,6 @@ extern class LoginDialog extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of LoginDialog must be a div element");
 		        	}
-
-		        	self._newUser = false;
 
 		        	selfElement.addClass("loginDialog").hide();
 
@@ -87,12 +82,7 @@ extern class LoginDialog extends JQ {
 		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
 
 		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
-	        				self._setUser(agent);
-		        			if(agent == null) {
-		        				self.open();
-		        			} else {
-    							selfElement.dialog("close");
-		        			}
+    						selfElement.dialog("close");
 		        		}, "Login-AGENT")
 		        	);
 		        },
@@ -142,13 +132,12 @@ extern class LoginDialog extends JQ {
 		        				self._login();
 		        			},
 		        			"I\\\'m New...": function() {
-		        				self._newUser = true;
 		        				DialogManager.showNewUser();
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {
-		        			if(!self._newUser && self.user == null) {
-		        				JqueryUtil.alert("A valid user is required to use the app");
+		        			if(AppContext.AGENT == null) {
+		        				JqueryUtil.alert("A valid login is required to use the app");
 		        				return false;
 		        			}
 		        			return true;
@@ -157,17 +146,9 @@ extern class LoginDialog extends JQ {
 		        	selfElement.dialog(dlgOptions);
 		        },
 
-		        _setUser: function(user: Agent): Void {
-		        	var self: LoginDialogWidgetDef = Widgets.getSelf();
-
-		        	self.user = user;
-	        	},
-
 	        	open: function(): Void {
 		        	var self: LoginDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
-
-					self._newUser = false;
 
 		        	if(!self.initialized) {
 		        		self._buildDialog();
