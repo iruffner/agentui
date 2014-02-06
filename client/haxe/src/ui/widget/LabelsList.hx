@@ -21,17 +21,30 @@ typedef LabelsListWidgetDef = {
 	var _create: Void->Void;
 	var _showNewLabelPopup:JQ->Bool->Void;
 	var destroy: Void->Void;
+	var getSelected: Void->LabelComp;
+}
+
+
+class LabelsListHelper {
+	public static function getSelected(l: LabelsList): LabelComp {
+		return l.labelsList("getSelected");
+	}
 }
 
 @:native("$")
 extern class LabelsList extends JQ {
-	@:overload(function(cmd : String):Bool{})
+	@:overload(function<T>(cmd : String):T{})
+	@:overload(function<T>(cmd:String, opt:String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
 	function labelsList(): LabelsList;
 
 	private static function __init__(): Void {
 		var defineWidget: Void->LabelsListWidgetDef = function(): LabelsListWidgetDef {
 			return {
+				getSelected: function() : LabelComp {
+					var self: LabelsListWidgetDef = Widgets.getSelf();
+					return self.selectedLabelComp;
+				},
 				_showNewLabelPopup: function(reference: JQ, isUpdate:Bool): Void {
 					var self: LabelsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
@@ -126,7 +139,7 @@ extern class LabelsList extends JQ {
 		        	}
 
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
-
+		        	self.selectedLabelComp = null;
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
 		        			// Create the top-level label tree
 		        			selfElement.children(".labelTree").remove();

@@ -7,6 +7,9 @@ import ui.model.EM;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
+import ui.widget.LabelComp;
+using ui.widget.LabelComp;
+using ui.widget.LabelsList;
 using m3.helper.OSetHelper;
 
 typedef LabelTreeBranchOptions = {
@@ -81,6 +84,19 @@ extern class LabelTreeBranch extends JQ {
 		            labelChildren.labelTree({
 		            	parentIid: self.options.labelIid
 	            	});
+
+		            self.children.listen(function(lc:LabelChild, evt:EventType):Void {
+		            	if (AppContext.AGENT == null) {return;}
+	            		var ll = new LabelsList("#labelsList");
+	            		var sel = ll.labelsList("getSelected");
+	            		if (sel != null && sel.labelComp("getLabel").iid == lc.parentIid) {
+	            			if (self.children.hasValues()) {
+	            				labelChildren.show();
+	            				labelChildren.addClass("labelTreeFullWidth");
+            				}
+	            		}
+		            });
+
 		            selfElement.append(labelChildren);
 	            	label.add(expander).click(function(evt: JQEvent): Void {
 	            			if(self.children.hasValues()) {

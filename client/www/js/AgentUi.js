@@ -6871,6 +6871,12 @@ ui.widget.LiveBuildToggleHelper.isLive = function(l) {
 ui.widget.IntroductionNotificationCompHelper = function() { }
 $hxClasses["ui.widget.IntroductionNotificationCompHelper"] = ui.widget.IntroductionNotificationCompHelper;
 ui.widget.IntroductionNotificationCompHelper.__name__ = ["ui","widget","IntroductionNotificationCompHelper"];
+ui.widget.LabelsListHelper = function() { }
+$hxClasses["ui.widget.LabelsListHelper"] = ui.widget.LabelsListHelper;
+ui.widget.LabelsListHelper.__name__ = ["ui","widget","LabelsListHelper"];
+ui.widget.LabelsListHelper.getSelected = function(l) {
+	return l.labelsList("getSelected");
+}
 ui.widget.score = {}
 ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime,initialWidth) {
 	this.paper = paper;
@@ -8761,6 +8767,153 @@ var defineWidget = function() {
 };
 $.widget("ui.inviteComp",defineWidget());
 var defineWidget = function() {
+	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of Popup must be a div element");
+		selfElement.addClass("ocontainer shadow popup");
+		if(!self.options.modal) new $("body").one("click",function(evt) {
+			selfElement.remove();
+			self.destroy();
+		});
+		self.options.createFcn(selfElement);
+		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.popup",defineWidget());
+var defineWidget = function() {
+	return { getSelected : function() {
+		var self = this;
+		return self.selectedLabelComp;
+	}, _showNewLabelPopup : function(reference,isUpdate) {
+		var self1 = this;
+		var selfElement = this.element;
+		var popup = new $("<div style='position: absolute;width:300px;'></div>");
+		popup.appendTo(selfElement);
+		popup = popup.popup({ createFcn : function(el) {
+			var createLabel = null;
+			var updateLabel = null;
+			var stopFcn = function(evt) {
+				evt.stopPropagation();
+			};
+			var enterFcn = function(evt) {
+				if(evt.keyCode == 13) {
+					if(isUpdate) updateLabel(); else createLabel();
+				}
+			};
+			var container = new $("<div class='icontainer'></div>").appendTo(el);
+			container.click(stopFcn).keypress(enterFcn);
+			var parent = null;
+			if(!isUpdate) {
+				container.append("<label for='labelParent'>Parent: </label> ");
+				parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + ui.AppContext.get_alias().rootLabelIid + "'>No Parent</option></select>").appendTo(container);
+				parent.click(stopFcn);
+				var aliasLabels = ui.AppContext.getLabelDescendents(ui.AppContext.get_alias().rootLabelIid);
+				var iter = aliasLabels.iterator();
+				while(iter.hasNext()) {
+					var label = iter.next();
+					if(label.iid != ui.AppContext.get_alias().rootLabelIid) {
+						var option = "<option value='" + label.iid + "'";
+						if(self1.selectedLabelComp != null && ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp).iid == label.iid) option += " SELECTED";
+						option += ">" + label.name + "</option>";
+						parent.append(option);
+					}
+				}
+			}
+			container.append("<br/><label for='labelName'>Name: </label> ");
+			var input = new $("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
+			input.keypress(enterFcn).click(function(evt) {
+				evt.stopPropagation();
+				if($(this).val() == "New Label") $(this).val("");
+			}).focus();
+			var buttonText = "Add Label";
+			if(isUpdate) {
+				buttonText = "Update Label";
+				input.val(ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp).name);
+			}
+			container.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt) {
+				if(isUpdate) updateLabel(); else createLabel();
+			});
+			createLabel = function() {
+				if(input.val().length == 0) return;
+				ui.AppContext.LOGGER.info("Create new label | " + input.val());
+				var label = new ui.model.Label();
+				label.name = input.val();
+				var eventData = new ui.model.EditLabelData(label,parent.val());
+				ui.model.EM.change(ui.model.EMEvent.CreateLabel,eventData);
+				new $("body").click();
+			};
+			updateLabel = function() {
+				if(input.val().length == 0) return;
+				var label = ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp);
+				ui.AppContext.LOGGER.info("Update label | " + label.iid);
+				label.name = input.val();
+				var eventData = new ui.model.EditLabelData(label);
+				ui.model.EM.change(ui.model.EMEvent.UpdateLabel,eventData);
+				new $("body").click();
+			};
+		}, positionalElement : reference});
+	}, _create : function() {
+		var self2 = this;
+		var selfElement1 = this.element;
+		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
+		selfElement1.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
+		self2.selectedLabelComp = null;
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			selfElement1.children(".labelTree").remove();
+			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid});
+			selfElement1.prepend(labelTree);
+		},"LabelsList-Alias"));
+		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
+		selfElement1.append(newLabelButton).append("<div class='clear'></div>");
+		newLabelButton.button().click(function(evt) {
+			evt.stopPropagation();
+			self2.selectedLabelComp = null;
+			self2._showNewLabelPopup(newLabelButton,false);
+		});
+		var menu = new $("<ul id='label-action-menu'></ul>");
+		menu.appendTo(selfElement1);
+		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "New Child Label", icon : "ui-icon-circle-plus", action : function(evt,m) {
+			evt.stopPropagation();
+			var reference = self2.selectedLabelComp;
+			if(reference == null) reference = new $(evt.target);
+			self2._showNewLabelPopup(reference,false);
+			menu.hide();
+			return false;
+		}},{ label : "Edit Label", icon : "ui-icon-pencil", action : function(evt,m) {
+			evt.stopPropagation();
+			var reference = self2.selectedLabelComp;
+			if(reference == null) reference = new $(evt.target);
+			self2._showNewLabelPopup(reference,true);
+			menu.hide();
+			return false;
+		}},{ label : "Delete Label", icon : "ui-icon-circle-minus", action : function(evt,m) {
+			if(self2.selectedLabelComp != null) m3.util.JqueryUtil.confirm("Delete Label","Are you sure you want to delete this label?",function() {
+				ui.model.EM.change(ui.model.EMEvent.DeleteLabel,new ui.model.EditLabelData(ui.widget.LabelCompHelper.getLabel(self2.selectedLabelComp),ui.widget.LabelCompHelper.parentIid(self2.selectedLabelComp)));
+			});
+		}}], width : 225}).hide();
+		selfElement1.bind("contextmenu",function(evt) {
+			menu.show();
+			menu.position({ my : "left top", of : evt});
+			var target = new $(evt.target);
+			if(!target.hasClass("labelComp")) {
+				var parents = target.parents(".labelComp");
+				if(parents.length > 0) target = new $(parents[0]); else target = null;
+			}
+			if(target != null) self2.selectedLabelComp = new $(target); else self2.selectedLabelComp = null;
+			evt.preventDefault();
+			evt.stopPropagation();
+			return false;
+		});
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.labelsList",defineWidget());
+var defineWidget = function() {
 	return { options : { parentIid : null, labelIid : null}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -8779,6 +8932,17 @@ var defineWidget = function() {
 		self.children = ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid});
+		self.children.listen(function(lc,evt) {
+			if(ui.AppContext.AGENT == null) return;
+			var ll = new $("#labelsList");
+			var sel = ll.labelsList("getSelected");
+			if(sel != null && sel.labelComp("getLabel").iid == lc.parentIid) {
+				if(m3.helper.OSetHelper.hasValues(self.children)) {
+					labelChildren.show();
+					labelChildren.addClass("labelTreeFullWidth");
+				}
+			}
+		});
 		selfElement.append(labelChildren);
 		label.add(expander).click(function(evt) {
 			if(m3.helper.OSetHelper.hasValues(self.children)) {
@@ -8816,149 +8980,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.labelTree",defineWidget());
-var defineWidget = function() {
-	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of Popup must be a div element");
-		selfElement.addClass("ocontainer shadow popup");
-		if(!self.options.modal) new $("body").one("click",function(evt) {
-			selfElement.remove();
-			self.destroy();
-		});
-		self.options.createFcn(selfElement);
-		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.popup",defineWidget());
-var defineWidget = function() {
-	return { _showNewLabelPopup : function(reference,isUpdate) {
-		var self = this;
-		var selfElement = this.element;
-		var popup = new $("<div style='position: absolute;width:300px;'></div>");
-		popup.appendTo(selfElement);
-		popup = popup.popup({ createFcn : function(el) {
-			var createLabel = null;
-			var updateLabel = null;
-			var stopFcn = function(evt) {
-				evt.stopPropagation();
-			};
-			var enterFcn = function(evt) {
-				if(evt.keyCode == 13) {
-					if(isUpdate) updateLabel(); else createLabel();
-				}
-			};
-			var container = new $("<div class='icontainer'></div>").appendTo(el);
-			container.click(stopFcn).keypress(enterFcn);
-			var parent = null;
-			if(!isUpdate) {
-				container.append("<label for='labelParent'>Parent: </label> ");
-				parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + ui.AppContext.get_alias().rootLabelIid + "'>No Parent</option></select>").appendTo(container);
-				parent.click(stopFcn);
-				var aliasLabels = ui.AppContext.getLabelDescendents(ui.AppContext.get_alias().rootLabelIid);
-				var iter = aliasLabels.iterator();
-				while(iter.hasNext()) {
-					var label = iter.next();
-					if(label.iid != ui.AppContext.get_alias().rootLabelIid) {
-						var option = "<option value='" + label.iid + "'";
-						if(self.selectedLabelComp != null && ui.widget.LabelCompHelper.getLabel(self.selectedLabelComp).iid == label.iid) option += " SELECTED";
-						option += ">" + label.name + "</option>";
-						parent.append(option);
-					}
-				}
-			}
-			container.append("<br/><label for='labelName'>Name: </label> ");
-			var input = new $("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
-			input.keypress(enterFcn).click(function(evt) {
-				evt.stopPropagation();
-				if($(this).val() == "New Label") $(this).val("");
-			}).focus();
-			var buttonText = "Add Label";
-			if(isUpdate) {
-				buttonText = "Update Label";
-				input.val(ui.widget.LabelCompHelper.getLabel(self.selectedLabelComp).name);
-			}
-			container.append("<br/>");
-			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt) {
-				if(isUpdate) updateLabel(); else createLabel();
-			});
-			createLabel = function() {
-				if(input.val().length == 0) return;
-				ui.AppContext.LOGGER.info("Create new label | " + input.val());
-				var label = new ui.model.Label();
-				label.name = input.val();
-				var eventData = new ui.model.EditLabelData(label,parent.val());
-				ui.model.EM.change(ui.model.EMEvent.CreateLabel,eventData);
-				new $("body").click();
-			};
-			updateLabel = function() {
-				if(input.val().length == 0) return;
-				var label = ui.widget.LabelCompHelper.getLabel(self.selectedLabelComp);
-				ui.AppContext.LOGGER.info("Update label | " + label.iid);
-				label.name = input.val();
-				var eventData = new ui.model.EditLabelData(label);
-				ui.model.EM.change(ui.model.EMEvent.UpdateLabel,eventData);
-				new $("body").click();
-			};
-		}, positionalElement : reference});
-	}, _create : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
-		selfElement1.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			selfElement1.children(".labelTree").remove();
-			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid});
-			selfElement1.prepend(labelTree);
-		},"LabelsList-Alias"));
-		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
-		selfElement1.append(newLabelButton).append("<div class='clear'></div>");
-		newLabelButton.button().click(function(evt) {
-			evt.stopPropagation();
-			self1.selectedLabelComp = null;
-			self1._showNewLabelPopup(newLabelButton,false);
-		});
-		var menu = new $("<ul id='label-action-menu'></ul>");
-		menu.appendTo(selfElement1);
-		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "New Child Label", icon : "ui-icon-circle-plus", action : function(evt,m) {
-			evt.stopPropagation();
-			var reference = self1.selectedLabelComp;
-			if(reference == null) reference = new $(evt.target);
-			self1._showNewLabelPopup(reference,false);
-			menu.hide();
-			return false;
-		}},{ label : "Edit Label", icon : "ui-icon-pencil", action : function(evt,m) {
-			evt.stopPropagation();
-			var reference = self1.selectedLabelComp;
-			if(reference == null) reference = new $(evt.target);
-			self1._showNewLabelPopup(reference,true);
-			menu.hide();
-			return false;
-		}},{ label : "Delete Label", icon : "ui-icon-circle-minus", action : function(evt,m) {
-			if(self1.selectedLabelComp != null) m3.util.JqueryUtil.confirm("Delete Label","Are you sure you want to delete this label?",function() {
-				ui.model.EM.change(ui.model.EMEvent.DeleteLabel,new ui.model.EditLabelData(ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp),ui.widget.LabelCompHelper.parentIid(self1.selectedLabelComp)));
-			});
-		}}], width : 225}).hide();
-		selfElement1.bind("contextmenu",function(evt) {
-			menu.show();
-			menu.position({ my : "left top", of : evt});
-			var target = new $(evt.target);
-			if(!target.hasClass("labelComp")) {
-				var parents = target.parents(".labelComp");
-				if(parents.length > 0) target = new $(parents[0]); else target = null;
-			}
-			if(target != null) self1.selectedLabelComp = new $(target); else self1.selectedLabelComp = null;
-			evt.preventDefault();
-			evt.stopPropagation();
-			return false;
-		});
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.labelsList",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
