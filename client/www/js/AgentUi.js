@@ -8863,6 +8863,7 @@ var defineWidget = function() {
 		selfElement1.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
 		self2.selectedLabelComp = null;
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			self2.selectedLabelComp = null;
 			selfElement1.children(".labelTree").remove();
 			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid});
 			selfElement1.prepend(labelTree);
