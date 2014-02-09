@@ -55,8 +55,6 @@ class Agent extends ModelObj {
   	public var data: UserData;
 	public var deleted: Bool;
 
-	@:transient public var currentAlias: Alias;
-
 	public function new () {
 		super();
 		this.data = new UserData();
@@ -126,10 +124,6 @@ class LabelChild extends ModelObjWithIid {
 	public var childIid: String;
 	@:optional public var data: Dynamic;
 
-	public static function identifier(l: LabelChild): String {
-		return l.iid;
-	}
-
 	public function new(?parentIid: String, ?childIid: String) {
 		if (parentIid != null && childIid != null && parentIid == childIid) {
 			throw new Exception("parentIid and childIid of LabelChild must be different");
@@ -137,6 +131,25 @@ class LabelChild extends ModelObjWithIid {
 		super();
 		this.parentIid = parentIid;
 		this.childIid  = childIid;
+	}
+
+	public static function identifier(l: LabelChild): String {
+		return l.iid;
+	}
+}
+
+class LabelAcl extends ModelObjWithIid {
+	public var connectionIid: String;
+  	public var labelIid: String;
+
+	public function new(?connectionIid: String, ?labelIid: String) {
+		super();
+		this.connectionIid = connectionIid;
+		this.labelIid  = labelIid;
+	}
+
+	public static function identifier(l: LabelAcl): String {
+		return l.iid;
 	}
 }
 
@@ -256,7 +269,7 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	public function new (contentType:ContentType, type: Class<T>) {
 		super();
 		this.contentType = contentType;
-		this.aliasIid = (AppContext.alias == null) ? null : AppContext.alias.iid;
+		this.aliasIid = (AppContext.currentAlias == null) ? null : AppContext.currentAlias.iid;
 		this.data = {};
 		this.type = type;
 		this.props = Type.createInstance(type, []);

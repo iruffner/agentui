@@ -42,15 +42,7 @@ class AppContext {
     public static var MASTER_LABELEDCONTENT:ObservableSet<LabeledContent>;
     public static var GROUPED_LABELEDCONTENT: GroupedSet<LabeledContent>;
 
-    @:isVar public static var alias(get, set): Alias;
-
-    private static function get_alias(): Alias {
-        return (AGENT == null) ? null : AGENT.currentAlias;
-    }
-    private static function set_alias(alias:Alias): Alias {
-        AGENT.currentAlias = alias;
-        return alias;
-    }
+    public static var currentAlias: Alias;
 
     private static var _i: ObservableSet<IntroductionNotification>;
 
@@ -144,7 +136,7 @@ class AppContext {
 
         EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {
                 AGENT = agent;
-                EM.change(EMEvent.AliasLoaded, agent.currentAlias);
+                EM.change(EMEvent.AliasLoaded, AppContext.currentAlias);
             }, "AgentUi-AGENT")
         );
 

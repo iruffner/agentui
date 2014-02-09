@@ -36,7 +36,6 @@ class AgentUi {
     public static var PROTOCOL: ProtocolHandler;
     public static var URL: String = "";//"http://64.27.3.17";
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
-    public static var agentURI: String;
 
 	public static function main() {
         AppContext.init();
@@ -54,11 +53,10 @@ class AgentUi {
         var z: ZWidget = new ZWidget("<div></div>");
         var r: RestoreWidget = new RestoreWidget("<div></div>");
         
-
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + N");
-                var connection: Connection = null;//AppContext.alias.connectionSet.asArray()[2];
+                var connection: Connection = null;//AppContext.currentAlias.connectionSet.asArray()[2];
 
                 var notification: IntroductionNotification = new IntroductionNotification();
                 notification.contentImpl = new IntroductionNotificationData();
@@ -72,7 +70,7 @@ class AgentUi {
             }
             else if(evt.altKey && evt.shiftKey && evt.keyCode == 77 /* ALT+SHIFT+M */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + M");
-                var connection: Connection = null;//AppContext.alias.connectionSet.asArray()[2];
+                var connection: Connection = null;//AppContext.currentAlias.connectionSet.asArray()[2];
                 var notification: IntroductionNotification = new IntroductionNotification();
                 notification.contentImpl.connection = connection;
                 notification.contentImpl.correlationId = "abc123";
@@ -144,16 +142,6 @@ class AgentUi {
         r.appendTo(new JQ(js.Browser.document.body));
         r.restoreWidget();
 
-        if(urlVars.agentURI.isNotBlank()) {
-            agentURI = urlVars.agentURI;
-            // LOGGER.info("Login via id | " + urlVars.uuid);
-            // var login: LoginById = new LoginById();
-            // login.id = urlVars.agentURI;
-            // EM.change(EMEvent.USER_LOGIN, login);
-        //     showLogin();
-        // } else {
-        //     showNewUser();
-        }
         DialogManager.showLogin();
     }
 

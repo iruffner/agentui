@@ -25,11 +25,9 @@ typedef UserCompOptions = {
 
 typedef UserCompWidgetDef = {
 	@:optional var options: UserCompOptions;
-	@:optional var user: Agent;
 	var _create: Void->Void;
 	var _setUser: Void->Void;
 	var _setTarget: Connection->Void;
-	var _createImgMenu: UserCompWidgetDef->M3Menu;
 	var _createAliasMenu: UserCompWidgetDef->OSet<Alias>->M3Menu;
 	var destroy: Void->Void;
 
@@ -60,12 +58,6 @@ extern class UserComp extends JQ {
 		        	self.container = new JQ("<div class='container'></div>");
 		        	selfElement.append(self.container);
 		        	self._setUser();//init the components
-
-		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
-		        			self.user = agent;
-		        			self._setUser();
-		        		}, "UserComp-User")
-		        	);
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
 		        			self._setUser();
@@ -102,44 +94,6 @@ extern class UserComp extends JQ {
 						});
 		        },
 
-		       	_createImgMenu: function(self: UserCompWidgetDef) : M3Menu {
-		        	var menu: M3Menu = new M3Menu("<ul id='userImgMenu'></ul>");
-		        	menu.appendTo(self.container);
-        			menu.m3menu({
-        					menuOptions: [
-        						{ 
-        							label: "Set Profile Image",
-        							icon: "ui-icon-image",
-        							action: function(evt: JQEvent, m: M3Menu): Void {
-        								var dlg: M3Dialog = new M3Dialog("<div id='profilePictureUploader'></div>");
-        								dlg.appendTo(self.container);
-        								var uploadComp: UploadComp = new UploadComp("<div class='boxsizingBorder' style='height: 150px;'></div>");
-        								uploadComp.appendTo(dlg);
-        								uploadComp.uploadComp();
-        								
-        								dlg.m3dialog({
-        										width: 800,
-        										height: 305,
-        										title: "Profile Image Uploader",
-        										buttons: {
-        											"Cancel" : function() {
-														M3Dialog.cur.m3dialog("close");
-													},
-													"Set Profile Image": function() {
-														AppContext.AGENT.data.imgSrc = uploadComp.value();
-														EM.change(EMEvent.USER_UPDATE, AppContext.AGENT);
-														M3Dialog.cur.m3dialog("close");
-													}
-        										}
-        									});
-        							}
-        						}
-        					],
-        					width: 225
-        				}).hide();
-					return menu;
-		       	},
-
 		       	_createAliasMenu: function(self: UserCompWidgetDef, aliases:OSet<Alias>) : M3Menu {
 		        	var menu: M3Menu = new M3Menu("<ul id='userAliasMenu'></ul>");
 		        	menu.appendTo(self.container);
@@ -153,10 +107,10 @@ extern class UserComp extends JQ {
 							label: alias.name,
 							icon: "ui-icon-person",
 							action: function(evt: JQEvent, m: M3Menu): Void {
-								if (Alias.identifier(AppContext.alias) == Alias.identifier(alias)) {
+								if (Alias.identifier(AppContext.currentAlias) == Alias.identifier(alias)) {
 									menu.hide();
 								} else {
-    								AppContext.alias = alias;
+    								AppContext.currentAlias = alias;
     								EM.change(EMEvent.AliasLoaded, alias);
     							}
 							}
@@ -182,42 +136,20 @@ extern class UserComp extends JQ {
 		        _setUser: function(): Void {
 		        	var self: UserCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
-		        	var user = self.user;
 
 					self.container.empty();
-					var imgSrc: String = "media/default_avatar.jpg";
-					if(user != null) {
-						if ( M.getX(user.currentAlias.data.imgSrc, "").isNotBlank()) {
-							imgSrc = user.currentAlias.data.imgSrc;
-						} else if (user.data.imgSrc.isNotBlank()){
-							imgSrc = user.data.imgSrc;
-						}
+					var imgSrc: String = "media/test/koi.jpg";
+					if ( M.getX(AppContext.currentAlias.data.imgSrc, "").isNotBlank()) {
+						imgSrc = AppContext.currentAlias.data.imgSrc;
 					}
 
 		        	self.userImg = new JQ("<img alt='user' src='" + imgSrc + "' class='userImg shadow'/>");
 		        	self.container.append(self.userImg);
 
-		        	var imgMenu = self._createImgMenu(self);
-
-					var displayImgMenu = function(evt: JQEvent): Dynamic {
-	        			new JQ(".nonmodalPopup").hide();
-	        			imgMenu.show();
-	        			imgMenu.position({
-	        					my: "left top",
-	        					of: evt
-	        				});
-						evt.preventDefault();
-	        			evt.stopPropagation();
-	        			return false;
-	        		};
-
-		        	self.userImg.bind("contextmenu", displayImgMenu);
-		        	self.userImg.click(displayImgMenu);
-
 		        	self.userIdTxt = new JQ("<div class='userIdTxt'></div>");
 		        	self.container.append(self.userIdTxt);
-		        	var name: String = M.getX(user.data.name, "");
-		        	var aliasLabel: String = M.getX(user.currentAlias.name, "");
+		        	var name: String = M.getX(AppContext.AGENT.data.name, "");
+		        	var aliasLabel: String = M.getX(AppContext.currentAlias.name, "");
 		        	if(aliasLabel.isBlank()) aliasLabel = "";
 		        	self.userIdTxt
 		        		.append("<strong>" + name + "</strong>")
@@ -226,26 +158,24 @@ extern class UserComp extends JQ {
 		        	var changeDiv: JQ = new JQ("<div class='ui-helper-clearfix'></div>");
 	        		self.container.append(changeDiv);
 
-	        		if(user != null) {
-			        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Aliases</a>");
-		        		changeDiv.append(self.switchAliasLink);
+		        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Aliases</a>");
+	        		changeDiv.append(self.switchAliasLink);
 
-		        		var aliasMenu = self._createAliasMenu(self, AppContext.ALIASES);
+	        		var aliasMenu = self._createAliasMenu(self, AppContext.ALIASES);
 
-			        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
-			        		// ui.widget.DialogManager.showAliasManager();
-		        			aliasMenu.show();
-		        			aliasMenu.position({
-			        			my: "left top",
-			        			at: "right-6px center",
-			        			of: selfElement
-			        		});
+		        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
+		        		// ui.widget.DialogManager.showAliasManager();
+	        			aliasMenu.show();
+	        			aliasMenu.position({
+		        			my: "left top",
+		        			at: "right-6px center",
+		        			of: selfElement
+		        		});
 
-							evt.preventDefault();
-		        			evt.stopPropagation();
-		        			return false;
-			        	});
-			        }
+						evt.preventDefault();
+	        			evt.stopPropagation();
+	        			return false;
+		        	});
 	        	},
 
 	        	_setTarget: function(conn: Connection): Void {

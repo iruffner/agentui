@@ -79,7 +79,7 @@ extern class ContentFeed extends JQ {
 	            	};
 
 	            	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
-	            		self._resetContents(AppContext.alias.iid);
+	            		self._resetContents(AppContext.currentAlias.iid);
 		        		}, "ContentFeed-AGENT")
 		        	);
 

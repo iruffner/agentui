@@ -89,7 +89,7 @@ class ResponseProcessor {
     	if (initialAlias == null) {
 	     	initialAlias = AppContext.ALIASES.iterator().next();
 	    }
-	    AppContext.alias = initialAlias;
+	    AppContext.currentAlias = initialAlias;
 
         // Set the uber label
         var fs = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(c:Label):Bool {

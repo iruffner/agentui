@@ -69,7 +69,7 @@ extern class ConnectionsList extends JQ {
 //			                	self._setConnections(conn.connectionSet);
 			        		} else { 
 			        			AppContext.LOGGER.warn("fix me self._setConnections(alias.connectionSet)");
-		                		// self._setConnections(AppContext.alias.connectionSet);
+		                		// self._setConnections(AppContext.currentAlias.connectionSet);
 		                	}
 			            }, "ConnectionsList-TargetChange")
 			        );

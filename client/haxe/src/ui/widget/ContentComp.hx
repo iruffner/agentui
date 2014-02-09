@@ -143,7 +143,7 @@ extern class ContentComp extends JQ {
 		        	while(connIter.hasNext()) {
 		        		var connection: Connection = connIter.next();
 		        		AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(connection));");
-		        		var connWithProfile: Connection = null;//AppContext.alias.connectionSet.getElement(Connection.identifier(connection));
+		        		var connWithProfile: Connection = null;//AppContext.currentAlias.connectionSet.getElement(Connection.identifier(connection));
 		        		if(connWithProfile != null) connection = connWithProfile;
 		        		new ConnectionAvatar("<div></div>").connectionAvatar({
 		        				dndEnabled: false,

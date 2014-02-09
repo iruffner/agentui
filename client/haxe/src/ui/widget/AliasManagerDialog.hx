@@ -71,7 +71,7 @@ extern class AliasManagerDialog extends JQ {
 			        		.appendTo(leftDiv)
 			        		.button()
 			        		.click( function(evt: JQEvent): Void {
-			        				AppContext.alias = alias;
+			        				AppContext.currentAlias = alias;
     								EM.change(EMEvent.AliasLoaded, alias);
 			        				selfElement.close();
 			        			} );
