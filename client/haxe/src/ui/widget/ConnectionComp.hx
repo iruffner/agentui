@@ -6,7 +6,7 @@ import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
 import ui.model.ModelObj;
-import m3.observable.OSet.ObservableSet;
+import m3.observable.OSet;
 import m3.exception.Exception;
 
 using ui.widget.ConnectionAvatar;
@@ -104,6 +104,17 @@ extern class ConnectionComp extends JQ {
 				      	tolerance: "pointer"
 			    	});
 
+			    	// Set up a listener to introduction changes
+			    	var set: OSet<Introduction> = new FilteredSet(AppContext.INTRODUCTIONS, function(i:Introduction):Bool {
+                		return (i.aConnectionIid == self.options.connection.iid || i.bConnectionIid == self.options.connection.iid);
+                	});
+                	set.listen(function(i:Introduction, evt:EventType):Void{
+                		if (evt.isAdd()) {
+                			self.addNotification();
+                		} else if (evt.isDelete()) {
+                			self.deleteNotification();
+                		}
+                	});
 		        },
 
 		        update: function(conn: Connection): Void {

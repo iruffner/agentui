@@ -35,7 +35,7 @@ class BennuHandler implements ProtocolHandler {
 	public function getAgent(login: Login): Void {
 		this.loggedInAgentId = login.agentId;
 		// Establish a connection with the server to get the channel_id
-		new BennuRequest("/api/channel/create/" + login.agentId, "", onCreateChannel).start();
+		new BennuRequest("/api/channel/create/" + login.agentId, "", onCreateSubmitChannel).start();
 	}
 
 	public function createAgent(newUser: NewUser): Void {
@@ -54,7 +54,7 @@ class BennuHandler implements ProtocolHandler {
 	public function beginIntroduction(intro: Introduction): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	} 
-	public function confirmIntroduction(confirmation: IntroductionConfirmation): Void {
+	public function confirmIntroduction(confirmation: IntroductionResponse): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 	public function backup(/*backupName: String*/): Void {
@@ -261,22 +261,32 @@ class BennuHandler implements ProtocolHandler {
 		new SubmitRequest(requests).start();
 	}
 
-	private function onCreateChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
-		AppContext.CHANNEL = data.id;
+	private function onCreateSubmitChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
+		AppContext.SUBMIT_CHANNEL = data.id;
 
 		_startPolling();
 
-		var context = Synchronizer.createContext(6, "initialDataLoad");
+		var context = Synchronizer.createContext(9, "initialDataLoad");
 		var requests = [
 			new ChannelRequestMessage(QUERY, context + "agent"          , new QueryMessage("agent", "iid='" + this.loggedInAgentId + "'")),
 			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
+			new ChannelRequestMessage(QUERY, context + "introductions"  , new QueryMessage("introduction")),
+			new ChannelRequestMessage(QUERY, context + "connections"    , new QueryMessage("connection")),
+			new ChannelRequestMessage(QUERY, context + "notifications"  , new QueryMessage("notification")),
 			new ChannelRequestMessage(QUERY, context + "labels"         , new QueryMessage("label")),
 			new ChannelRequestMessage(QUERY, context + "contents"       , new QueryMessage("content")),
 			new ChannelRequestMessage(QUERY, context + "labeledContents", new QueryMessage("labeledContent")),
 			new ChannelRequestMessage(QUERY, context + "labelChildren"  , new QueryMessage("labelChild"))
 		];
 		new SubmitRequest(requests, this.loggedInAgentId).start();
-		var types = ["alias", "label", "labelchild", "content", "labeledcontent"];
+
+		// TODO: Create a separate channel to receive model updates
+		var types = ["alias", "connection", "content", "introduction", "label", "labelchild", "labeledcontent"];
+		requests = [new ChannelRequestMessage(REGISTER, "register-changes", new RegisterMessage(types))];
+		new SubmitRequest(requests, this.loggedInAgentId).start();
+
+		// TODO: Create a separate channel to receive notifications
+		types = ["notification"];
 		requests = [new ChannelRequestMessage(REGISTER, "register-changes", new RegisterMessage(types))];
 		new SubmitRequest(requests, this.loggedInAgentId).start();
 	}

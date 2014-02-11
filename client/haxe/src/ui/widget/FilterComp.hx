@@ -82,12 +82,14 @@ extern class FilterComp extends JQ {
 			                if (JQ.cur.children(".connectionAvatar").length == 0) {
 				                if (_ui.draggable.hasClass("connectionAvatar")) {
 				                	var connection = cast(_ui.draggable, ConnectionAvatar).getConnection();
-				                	var set: OSet<IntroductionNotification> = AppContext.INTRODUCTIONS.getElement(Connection.identifier(connection));
+				                	var set: OSet<Notification<Dynamic>> = new FilteredSet(AppContext.NOTIFICATIONS, function(n:Notification<Dynamic>):Bool {
+				                		return (n.kind == NotificationKind.IntroductionRequest);
+				                	});
 				                	if (set.hasValues()) {
 				                		var iter = set.iterator();
 				                		var introComp = new IntroductionNotificationComp("<div></div>").introductionNotificationComp({
-				  		        				notification: iter.next()
-				 		        			});
+			  		        				notification: cast(iter.next(), IntroductionRequest)
+			 		        			});
 
 				                		introComp.insertAfter(new JQ("#filter"));
 				                		return;

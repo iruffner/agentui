@@ -102,10 +102,6 @@ class EventDelegate {
         	protocolHandler.beginIntroduction(intro);
         }));
 
-        EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION, new EMListener(function(confirmation: IntroductionConfirmation):Void{
-        	protocolHandler.confirmIntroduction(confirmation);
-        }));
-
         EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
         	// Do something
         }));

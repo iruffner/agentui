@@ -27,7 +27,7 @@ class ResponseProcessor {
                 if (data.type != null) {
                     updateModelObject(data.instance, data.type);
                 } else if (Std.is(data.result,String)) {
-                    ui.AppContext.LOGGER.info(data);
+                    ui.AppContext.LOGGER.warn(data);
                 } else {
     				var context:Array<String> = data.context.split("-");
     				if (context != null && context[2] == "initialDataLoad") {

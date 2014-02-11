@@ -23,7 +23,7 @@ using ui.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
 
 typedef IntroductionNotificationCompOptions = {
-	var notification: IntroductionNotification;
+	var notification: IntroductionRequest;
 }
 
 typedef IntroductionNotificationCompWidgetDef = {
@@ -54,15 +54,20 @@ extern class IntroductionNotificationComp extends JQ {
 		        	}
 		        	selfElement.addClass("introductionNotificationComp container boxsizingBorder");
 
-		        	var data = self.options.notification.contentImpl;
+		        	var data = self.options.notification.props;
 
-		        	var conn: Connection = data.connection;
+		        	// Get the Introduction and the connection
+		        	var intro = AppContext.INTRODUCTIONS.getElement(data.introductionIid);
+
+		        	// TODO:  How do you tell which connection is which???
+		        	var conn: Connection = AppContext.MASTER_CONNECTIONS.getElement(intro.aConnectionIid);
 
 		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(conn));");
 		        	var connFromAlias: Connection = null;//AppContext.currentAlias.connectionSet.getElement(Connection.identifier(conn));
 		        	if(connFromAlias != null) conn.data = connFromAlias.data;
 
-		        	self.listenerUid = EM.addListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, new EMListener(function(e:Dynamic) {
+		        	// TODO:  Need some kind of an object that will fire an event when the response is received...
+		        	self.listenerUid = EM.addListener(EMEvent.RespondToIntroduction_RESPONSE, new EMListener(function(e:Dynamic) {
 		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {
 		        			EM.change(EMEvent.DELETE_NOTIFICATION, self.options.notification);
 		        			self.destroy();
@@ -73,20 +78,20 @@ extern class IntroductionNotificationComp extends JQ {
 		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 
 		        	var avatar = new ConnectionAvatar("<div class='avatar introduction-avatar'></div>").connectionAvatar({
-		        		connection: data.connection,
+		        		connection: conn,
 		        		dndEnabled: false,
 		        		isDragByHelper: true,
 		        		containment: false
 	        		}).appendTo(intro_table.find("td:nth-child(1)"));
 
 	        		var invitationConfirmation = function(accepted:Bool) {
-	        			var confirmation = new IntroductionConfirmation( accepted, data.introSessionId, data.correlationId);
-	        			EM.change(EMEvent.INTRODUCTION_CONFIRMATION, confirmation);
+	        			var confirmation = new IntroductionResponse(data.introductionIid, accepted);
+	        			EM.change(EMEvent.RespondToIntroduction, confirmation);
 	        		}
 
 		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		        	var title = new JQ("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
-		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + data.connection.data.name + "</div>").appendTo(invitationText);
+		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
 		        	var date  =	new JQ("<div class='content-timestamp'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='invitation-message'>" + data.message + "</div>").appendTo(invitationText);
 					var accept = new JQ("<button>Accept</button>")
@@ -102,12 +107,12 @@ extern class IntroductionNotificationComp extends JQ {
 							        	invitationConfirmation(false);
 							        });
 
-					intro_table.find("td:nth-child(3)").append("<div>" + data.profile.name + "</div><div><img class='intro-profile-img container' src='" + data.profile.imgSrc + "'/></div>");
+					intro_table.find("td:nth-child(3)").append("<div>" + conn.data.name + "</div><div><img class='intro-profile-img container' src='" + conn.data.imgSrc + "'/></div>");
 		        },
 
 		        destroy: function() {
 		        	var self: IntroductionNotificationCompWidgetDef = Widgets.getSelf();
-		        	EM.removeListener(EMEvent.INTRODUCTION_CONFIRMATION_RESPONSE, self.listenerUid);
+		        	EM.removeListener(EMEvent.RespondToIntroduction_RESPONSE, self.listenerUid);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

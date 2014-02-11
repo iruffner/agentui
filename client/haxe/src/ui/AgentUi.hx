@@ -55,6 +55,7 @@ class AgentUi {
         
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
+                /*
                 AppContext.LOGGER.debug("ALT + SHIFT + N");
                 var connection: Connection = null;//AppContext.currentAlias.connectionSet.asArray()[2];
 
@@ -67,14 +68,17 @@ class AgentUi {
                 notification.contentImpl.profile.imgSrc = "media/test/uncle_leo.jpg";
 
                 EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
+                */
             }
             else if(evt.altKey && evt.shiftKey && evt.keyCode == 77 /* ALT+SHIFT+M */) {
+                /*
                 AppContext.LOGGER.debug("ALT + SHIFT + M");
                 var connection: Connection = null;//AppContext.currentAlias.connectionSet.asArray()[2];
                 var notification: IntroductionNotification = new IntroductionNotification();
                 notification.contentImpl.connection = connection;
                 notification.contentImpl.correlationId = "abc123";
                 EM.change(EMEvent.DELETE_NOTIFICATION, notification);
+                */
             }
             else if(evt.altKey && evt.shiftKey && evt.keyCode == 90 /* ALT+SHIFT+Z */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + Z");

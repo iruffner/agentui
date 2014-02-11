@@ -215,7 +215,7 @@ class LongPollingRequest extends BaseRequest implements Requester {
 		if (running) {
 			// Set the url here in case the polling frequency has changed
 			baseOpts.url = AgentUi.URL + "/api/channel/poll?channel=" + 
-			               AppContext.CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
+			               AppContext.SUBMIT_CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
 			baseOpts.timeout = this.timeout + 1000;
 
 			jqXHR = super.start();

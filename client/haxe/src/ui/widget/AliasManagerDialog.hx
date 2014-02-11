@@ -66,18 +66,18 @@ extern class AliasManagerDialog extends JQ {
 					var rightDiv: JQ = new JQ("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement);
 		        	var imgSrc: String = "media/default_avatar.jpg";
 
-		        	if(alias != null) {
+		        	if (alias != null) {
 		        		var loadAliasBtn: JQ = new JQ("<button class='fleft'>Use This Alias</button>")
 			        		.appendTo(leftDiv)
 			        		.button()
 			        		.click( function(evt: JQEvent): Void {
-			        				AppContext.currentAlias = alias;
-    								EM.change(EMEvent.AliasLoaded, alias);
-			        				selfElement.close();
-			        			} );
+		        				AppContext.currentAlias = alias;
+								EM.change(EMEvent.AliasLoaded, alias);
+		        				selfElement.close();
+		        			});
 		        		leftDiv.append("<br class='clear'/><br/>");
 
-						if ( M.getX(alias.data.imgSrc, "").isNotBlank()) {
+						if (M.getX(alias.data.imgSrc, "").isNotBlank()) {
 							imgSrc = alias.data.imgSrc;
 						}
 			        	leftDiv.append(new JQ("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));

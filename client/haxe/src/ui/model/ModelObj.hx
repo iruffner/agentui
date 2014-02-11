@@ -154,8 +154,8 @@ class LabelAcl extends ModelObjWithIid {
 }
 
 class Connection extends ModelObjWithIid implements Filterable {
-
-	public var url: String;
+	public var localPeerId: String;
+  	public var remotePeerId: String;
 	public var data:UserData;
 
 	public static function identifier(c: Connection): String {
@@ -174,6 +174,17 @@ class Connection extends ModelObjWithIid implements Filterable {
 		return data.name;
 	}
 }
+//-------------------------------------------------------------------------------------
+// Content
+//-------------------------------------------------------------------------------------
+
+enum ContentType {
+	AUDIO;
+	IMAGE;
+	URL;
+	TEXT;
+}
+
 
 class ContentHandler implements TypeHandler {
 	
@@ -365,12 +376,80 @@ class UrlContent extends Content<UrlContentData> {
 	}
 }
 
-enum ContentType {
-	AUDIO;
-	IMAGE;
-	URL;
-	TEXT;
+//----------------------------------------------------------------
+// Notifications
+//----------------------------------------------------------------
+
+enum NotificationKind {
+	Ping;
+    Pong;
+    IntroductionRequest;
+    IntroductionResponse;
 }
+
+class Notification<T> extends ModelObjWithIid {
+	public var consumed: Bool;
+	public var fromConnectionIid: String;  
+	public var kind: NotificationKind;
+	private var data:Dynamic;
+	@:transient public var props: T;
+
+	@:transient var type: Class<T>;
+
+	public function new (kind:NotificationKind, type: Class<T>) {
+		super();
+		this.kind = kind;
+		this.data = {};
+		this.type = type;
+		this.props = Type.createInstance(type, []);
+	}
+
+	private function readResolve(): Void {
+		this.props = AppContext.SERIALIZER.fromJsonX(this.data, this.type);
+	}
+
+	private function writeResolve(): Void {
+		this.data = AppContext.SERIALIZER.toJson(this.props);
+	}
+}
+
+enum IntroductionState {
+	NotResponded;
+    Accepted;
+    Rejected;
+}
+
+class Introduction extends ModelObjWithIid {
+	public var aConnectionIid: String;
+	public var aMessage: String;
+	public var bConnectionIid: String;
+	public var bMessage: String;
+}
+
+class IntroductionRequest extends Notification<IntroductionRequestData> {
+	public function new () {
+		super(NotificationKind.IntroductionRequest, IntroductionRequestData);
+	}
+}
+	class IntroductionRequestData {
+		public var introductionIid: String;
+		public var message: String;
+	}
+
+class IntroductionResponse extends Notification<IntroductionResponseData> {
+	public function new (introductionIid: String, accepted:Bool) {
+		super(NotificationKind.IntroductionResponse, IntroductionResponseData);
+		this.props.introductionIid = introductionIid;
+		this.props.accepted = accepted;
+	}
+}
+	class IntroductionResponseData {
+		public var introductionIid: String;
+		public var accepted: Bool;
+	}
+
+//-------------------------------------------------------------------
+// Classes used to copy data around
 
 class Login extends ModelObj {
 	public function new () {
@@ -390,30 +469,6 @@ class NewUser extends ModelObj {
 		super();
 	}
 }
-
-class Introduction extends ModelObj {
-	public var aConn: Connection;
-	public var bConn: Connection;
-
-	public var aMsg: String;
-	public var bMsg: String;
-}
-
-class IntroductionConfirmation extends ModelObj {
-	public var accepted: Bool;
-	public var introSessionId: String;
-	public var correlationId: String;
-
-	public function new(accepted:Bool, introSessionId:String, correlationId:String) {
-		super();
-		this.accepted       = accepted;
-		this.introSessionId = introSessionId;
-		this.correlationId  = correlationId;
-	}
-}
-
-//-------------------------------------------------------------------
-// Classes used to copy data around
 
 class EditLabelData {
 	public var label:Label;

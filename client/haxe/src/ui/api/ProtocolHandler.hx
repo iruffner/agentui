@@ -22,7 +22,7 @@ interface ProtocolHandler {
 	public function deleteAlias(alias: Alias): Void;
 	public function updateAlias(alias: Alias): Void;
 	public function beginIntroduction(intro: Introduction): Void; 
-	public function confirmIntroduction(confirmation: IntroductionConfirmation): Void;
+	public function confirmIntroduction(confirmation: IntroductionResponse): Void;
 	public function backup(/*backupName: String*/): Void;
 	public function restore(/*backupName: String*/): Void;
 	public function restores(): Void;

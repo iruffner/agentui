@@ -85,7 +85,7 @@ class ChannelRequestMessageBundle {
 		if (this.agentId == null) {
 			this.agentId = AppContext.AGENT.iid;
 		}
-		this.channel = AppContext.CHANNEL;
+		this.channel = AppContext.SUBMIT_CHANNEL;
 		if (requests_ == null) {
 			this.requests = new Array<ChannelRequestMessage>();
 		} else {

@@ -68,7 +68,7 @@ extern class ZWidget extends JQ {
 					          //       EM.change(EMEvent.TEST, AppContext.SERIALIZER.toJson(notification));
         						})
         					.appendTo(self.container);
-
+/*
         			new JQ("<button>Introduction Confirmation Response</button>")
         					.button()
         					.click(function(evt: JQEvent): Void {
@@ -88,7 +88,7 @@ extern class ZWidget extends JQ {
 					                EM.change(EMEvent.TEST, AppContext.SERIALIZER.toJson(notification));
         						})
         					.appendTo(self.container);
-
+*/
 					cast(selfElement, M3Dialog).m3dialog({
 							autoOpen: false
 						});

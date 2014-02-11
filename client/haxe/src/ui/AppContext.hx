@@ -17,7 +17,10 @@ using m3.helper.OSetHelper;
 
 class AppContext {
 	public static var DEMO: Bool = false;
-    public static var CHANNEL:String;
+    public static var SUBMIT_CHANNEL:String;
+    public static var MODEL_CHANNEL:String;
+    public static var NOTIFICATION_CHANNEL:String;
+
     public static var LOGGER: Logga;
     public static var AGENT: Agent;
     public static var UBER_LABEL: Label;
@@ -25,7 +28,14 @@ class AppContext {
     public static var ALIASES:OSet<Alias>;
     public static var TARGET: Connection;
     public static var SERIALIZER: Serializer;
-    public static var INTRODUCTIONS: GroupedSet<IntroductionNotification>;
+
+    public static var NOTIFICATIONS:OSet<Notification<Dynamic>>;
+    public static var MASTER_NOTIFICATIONS: ObservableSet<Notification<Dynamic>>;
+
+    public static var INTRODUCTIONS: ObservableSet<Introduction>;
+
+    public static var CONNECTIONS:OSet<Connection>;
+    public static var MASTER_CONNECTIONS: ObservableSet<Connection>;
 
     public static var CONTENT: OSet<Content<Dynamic>>;
     public static var MASTER_CONTENT: ObservableSet<Content<Dynamic>>;
@@ -44,25 +54,17 @@ class AppContext {
 
     public static var currentAlias: Alias;
 
-    private static var _i: ObservableSet<IntroductionNotification>;
-
     public static function init() {
         AGENT = null;
         
     	LOGGER = new Logga(LogLevel.DEBUG);
-        
-        _i = new ObservableSet<IntroductionNotification>(
-            function(n: IntroductionNotification): String {
-                return n.contentImpl.correlationId;
-            }
-        );
 
-        INTRODUCTIONS = new GroupedSet<IntroductionNotification>( 
-        	_i , 
-        	function(n: IntroductionNotification): String {
-        		return Connection.identifier(n.contentImpl.connection);
-        	}
-    	);
+        INTRODUCTIONS = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
+
+        MASTER_NOTIFICATIONS = new ObservableSet<Notification<Dynamic>>(ModelObjWithIid.identifier);
+        NOTIFICATIONS = new FilteredSet<Notification<Dynamic>>(MASTER_NOTIFICATIONS, function(a:Notification<Dynamic>):Bool {
+            return !a.deleted && !a.consumed;
+        });
 
         MASTER_ALIASES = new ObservableSet<Alias>(ModelObjWithIid.identifier);
         ALIASES = new FilteredSet<Alias>(MASTER_ALIASES, function(a:Alias):Bool {
@@ -79,6 +81,11 @@ class AppContext {
 
         MASTER_LABELS = new ObservableSet<Label>(Label.identifier);
         LABELS = new FilteredSet<Label>(MASTER_LABELS, function(c:Label):Bool {
+            return !c.deleted;
+        });
+
+        MASTER_CONNECTIONS = new ObservableSet<Connection>(Connection.identifier);
+        CONNECTIONS = new FilteredSet<Connection>(MASTER_CONNECTIONS, function(c:Connection):Bool {
             return !c.deleted;
         });
 
@@ -131,21 +138,16 @@ class AppContext {
             })
         );
 
-        EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
-        EM.addListener(EMEvent.CreateAgent, fireFitWindow);
-
         EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {
                 AGENT = agent;
                 EM.change(EMEvent.AliasLoaded, AppContext.currentAlias);
             }, "AgentUi-AGENT")
         );
 
-        EM.addListener(EMEvent.FitWindow, fitWindowListener);
+        EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
+        EM.addListener(EMEvent.CreateAgent, fireFitWindow);
 
-        EM.addListener(EMEvent.INTRODUCTION_NOTIFICATION, new EMListener(function(notification: IntroductionNotification) {
-                _i.add(notification);
-            }, "AgentUi-IntroNotification")
-        );
+        EM.addListener(EMEvent.FitWindow, fitWindowListener);
 	}
 
     public static function getDescendentLabelChildren(iid:String):Array<LabelChild> {
