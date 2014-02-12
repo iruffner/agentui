@@ -22,7 +22,7 @@ typedef ConnectionsListWidgetDef = {
 	// var connections: ObservableSet<Connection>;
 	@:optional var connectionsMap: MappedSet<Connection, ConnectionComp>;
 	var _create: Void->Void;
-	var _setConnections: ObservableSet<Connection>->Void;
+	var _setConnections: OSet<Connection>->Void;
 	var destroy: Void->Void;
 	var filterConnections: String->Void;
 	var _mapListener: Connection->ConnectionComp->EventType->Void;
@@ -58,18 +58,15 @@ extern class ConnectionsList extends JQ {
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-			                AppContext.LOGGER.warn("fix me self._setConnections(alias.connectionSet)");
-			                // self._setConnections(alias.connectionSet);
+			                self._setConnections(AppContext.CONNECTIONS);
 			            }, "ConnectionsList-Alias")
 			        );
 
 			        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn: Connection) {
 			        		if(conn != null) {
-			        			AppContext.LOGGER.warn("fix me self._setConnections(conn.connectionSet)");
-//			                	self._setConnections(conn.connectionSet);
+			                	self._setConnections(AppContext.CONNECTIONS);
 			        		} else { 
-			        			AppContext.LOGGER.warn("fix me self._setConnections(alias.connectionSet)");
-		                		// self._setConnections(AppContext.currentAlias.connectionSet);
+		                		self._setConnections(AppContext.CONNECTIONS);
 		                	}
 			            }, "ConnectionsList-TargetChange")
 			        );
@@ -87,7 +84,7 @@ extern class ConnectionsList extends JQ {
 					EM.change(EMEvent.FitWindow);
             	},
 
-		        _setConnections: function(connections: ObservableSet<Connection>): Void {
+		        _setConnections: function(connections: OSet<Connection>): Void {
 		        	var self: ConnectionsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 

@@ -78,6 +78,9 @@ class ResponseProcessor {
 		AppContext.MASTER_CONTENT.addAll(data.content);
 		AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
 		AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
+        AppContext.MASTER_CONNECTIONS.addAll(data.connections);
+        AppContext.INTRODUCTIONS.addAll(data.introductions);
+        AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
 
     	var initialAlias:Alias = null;
     	for (alias in AppContext.ALIASES) {

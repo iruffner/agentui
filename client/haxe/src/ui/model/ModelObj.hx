@@ -151,16 +151,18 @@ class LabelAcl extends ModelObjWithIid {
 }
 
 class Connection extends ModelObjWithIid {
+	public var aliasIid:String;
 	public var localPeerId: String;
   	public var remotePeerId: String;
-	public var data:UserData;
+	@:optional public var data:UserData;
 
 	public static function identifier(c: Connection): String {
 		return c.iid;
 	}
 
-	public function new(?profile: UserData) {
+	public function new() {
 		super();
+		this.data = new UserData("No Profile", "media/test/tesla.jpg");
 	}
 
 	public function equals(c: Connection): Bool {
@@ -171,6 +173,7 @@ class Connection extends ModelObjWithIid {
 		return data.name;
 	}
 }
+
 //-------------------------------------------------------------------------------------
 // Content
 //-------------------------------------------------------------------------------------

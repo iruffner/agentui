@@ -8,18 +8,24 @@ using m3.helper.OSetHelper;
 class SynchronizationParms {
     public var agent:Agent;
     public var aliases:Array<Alias>;
+    public var content:Array<Content<Dynamic>>;
+    public var connections:Array<Connection>;
+    public var introductions:Array<Introduction>;
     public var labels:Array<Label>;
     public var labelChildren:Array<LabelChild>;
-    public var content:Array<Content<Dynamic>>;
     public var labeledContent:Array<LabeledContent>;
+    public var notifications:Array<Notification<Dynamic>>;
 
     public function new() {
         agent = null;
         aliases = new Array<Alias>();
+        content = new Array<Content<Dynamic>>();
+        connections = new Array<Connection>();
+        introductions = new Array<Introduction>();
         labels  = new Array<Label>();
         labelChildren = new Array<LabelChild>();
-        content = new Array<Content<Dynamic>>();
         labeledContent = new Array<LabeledContent>();
+        notifications = new Array<Notification<Dynamic>>();
     }
 }
 
@@ -99,11 +105,23 @@ class Synchronizer {
         			for (alias_ in cast(data, Array<Dynamic>)) {
         				parms.aliases.push(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
         			}
+                case "connection":
+                    parms.connections.push(AppContext.SERIALIZER.fromJsonX(data.instance, Connection));
+                case "connections":
+                    for (content_ in cast(data, Array<Dynamic>)) {
+                        parms.connections.push(AppContext.SERIALIZER.fromJsonX(content_, Connection));
+                    }
                 case "content":
                     parms.content.push(AppContext.SERIALIZER.fromJsonX(data.instance, Content));
                 case "contents":
                     for (content_ in cast(data, Array<Dynamic>)) {
                         parms.content.push(AppContext.SERIALIZER.fromJsonX(content_, Content));
+                    }
+                case "introduction":
+                    parms.introductions.push(AppContext.SERIALIZER.fromJsonX(data.instance, Introduction));
+                case "introductions":
+                    for (content_ in cast(data, Array<Dynamic>)) {
+                        parms.introductions.push(AppContext.SERIALIZER.fromJsonX(content_, Introduction));
                     }
         		case "label":
         			parms.labels.push(AppContext.SERIALIZER.fromJsonX(data.instance, Label));
@@ -122,6 +140,12 @@ class Synchronizer {
                 case "labeledContents":
                     for (labeledContent_ in cast(data, Array<Dynamic>)) {
                         parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(labeledContent_, LabeledContent));
+                    }
+                case "notification":
+                    parms.notifications.push(AppContext.SERIALIZER.fromJsonX(data.instance, Notification));
+                case "notifications":
+                    for (content_ in cast(data, Array<Dynamic>)) {
+                        parms.notifications.push(AppContext.SERIALIZER.fromJsonX(content_, Notification));
                     }
         	}
         }
