@@ -98,7 +98,6 @@ enum EMEvent {
 
 	USER_LOGIN;
 	CreateAgent;
-	USER_UPDATE;
 	USER_SIGNUP;
 	AGENT;
 

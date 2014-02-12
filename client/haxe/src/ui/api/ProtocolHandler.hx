@@ -9,7 +9,6 @@ interface ProtocolHandler {
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void;
 	public function nextPage(nextPageURI: String): Void;
 	public function createAgent(newUser: NewUser): Void;
-	public function updateUser(user: Agent): Void;
 	public function createContent(data:EditContentData):Void;
 	public function updateContent(data:EditContentData):Void;
 	public function deleteContent(data:EditContentData):Void;
@@ -22,7 +21,7 @@ interface ProtocolHandler {
 	public function deleteAlias(alias: Alias): Void;
 	public function updateAlias(alias: Alias): Void;
 	public function beginIntroduction(intro: Introduction): Void; 
-	public function confirmIntroduction(confirmation: IntroductionResponse): Void;
+	public function confirmIntroduction(confirmation: IntroductionResponseClass): Void;
 	public function backup(/*backupName: String*/): Void;
 	public function restore(/*backupName: String*/): Void;
 	public function restores(): Void;

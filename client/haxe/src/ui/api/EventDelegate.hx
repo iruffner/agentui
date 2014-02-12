@@ -66,10 +66,6 @@ class EventDelegate {
             protocolHandler.createAgent(user);
         }));
 
-        EM.addListener(EMEvent.USER_UPDATE, new EMListener(function(agent: Agent): Void {
-            protocolHandler.updateUser(agent);
-        }));
-
         EM.addListener(EMEvent.CreateContent, new EMListener(function(data:EditContentData): Void {
         	protocolHandler.createContent(data);
     	}));

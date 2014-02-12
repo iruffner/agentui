@@ -23,6 +23,8 @@ class BennuHandler implements ProtocolHandler {
 	private static var QUERY  = "/api/query";
 	private static var REGISTER = "/api/squery/register" ;
 	private static var DEREGISTER = "/api/squery/deregister" ;
+	private static var INTRODUCE = "/api/introduction/initiate";
+	private static var INTRO_RESPONSE = "/api/introduction/respond";
 
 	private var eventDelegate:EventDelegate;
 	private var listeningChannel: LongPollingRequest;
@@ -47,16 +49,21 @@ class BennuHandler implements ProtocolHandler {
 		);
 		req.start();
 	}
-	public function updateUser(agent: Agent): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	}
 
 	public function beginIntroduction(intro: Introduction): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	} 
-	public function confirmIntroduction(confirmation: IntroductionResponse): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
+		var context = Synchronizer.createContext(1, "beginIntroduction");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(INTRODUCE, context + "introduction", CrudMessage.create(intro))]);
+		req.start();
 	}
+
+	public function confirmIntroduction(confirmation: IntroductionResponseClass): Void {
+		var context = Synchronizer.createContext(1, "confirmIntroduction");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(INTRO_RESPONSE, context + "introduction", CrudMessage.create(confirmation))]);
+		req.start();
+	}
+
 	public function backup(/*backupName: String*/): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}

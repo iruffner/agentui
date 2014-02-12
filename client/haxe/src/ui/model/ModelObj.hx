@@ -92,9 +92,6 @@ class Alias extends ModelObjWithIid {
 	}
 }
 
-interface Filterable {
-}
-
 class LabelData extends ModelObj {
 	public var color:String;
 	public function new() {
@@ -103,7 +100,7 @@ class LabelData extends ModelObj {
 	}
 }
 
-class Label extends ModelObjWithIid implements Filterable {
+class Label extends ModelObjWithIid {
 	public var name: String;
 	public var data: LabelData;
 	@:transient public var labelChildren:OSet<LabelChild>;
@@ -153,7 +150,7 @@ class LabelAcl extends ModelObjWithIid {
 	}
 }
 
-class Connection extends ModelObjWithIid implements Filterable {
+class Connection extends ModelObjWithIid {
 	public var localPeerId: String;
   	public var remotePeerId: String;
 	public var data:UserData;
@@ -380,6 +377,33 @@ class UrlContent extends Content<UrlContentData> {
 // Notifications
 //----------------------------------------------------------------
 
+class NotificationHandler implements TypeHandler {
+	
+    public function new() {
+    }
+
+    public function read(fromJson: {kind: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
+        var obj: Notification<Dynamic> = null;
+
+        switch (NotificationKind.createByName(fromJson.kind) ) {
+        	case NotificationKind.Ping:
+        		obj = null;
+        	case NotificationKind.Pong:
+        		obj = null;
+        	case NotificationKind.IntroductionRequest:
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionRequestClass);
+        	case NotificationKind.IntroductionResponse:
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionResponseClass);
+        }
+
+        return obj;
+    }
+
+    public function write(value: Dynamic, writer: JsonWriter): Dynamic {
+        return AppContext.SERIALIZER.toJson(value);
+    }
+}
+
 enum NotificationKind {
 	Ping;
     Pong;
@@ -413,6 +437,8 @@ class Notification<T> extends ModelObjWithIid {
 	}
 }
 
+
+
 enum IntroductionState {
 	NotResponded;
     Accepted;
@@ -426,7 +452,7 @@ class Introduction extends ModelObjWithIid {
 	public var bMessage: String;
 }
 
-class IntroductionRequest extends Notification<IntroductionRequestData> {
+class IntroductionRequestClass extends Notification<IntroductionRequestData> {
 	public function new () {
 		super(NotificationKind.IntroductionRequest, IntroductionRequestData);
 	}
@@ -436,7 +462,7 @@ class IntroductionRequest extends Notification<IntroductionRequestData> {
 		public var message: String;
 	}
 
-class IntroductionResponse extends Notification<IntroductionResponseData> {
+class IntroductionResponseClass extends Notification<IntroductionResponseData> {
 	public function new (introductionIid: String, accepted:Bool) {
 		super(NotificationKind.IntroductionResponse, IntroductionResponseData);
 		this.props.introductionIid = introductionIid;

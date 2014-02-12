@@ -23,7 +23,7 @@ using ui.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
 
 typedef IntroductionNotificationCompOptions = {
-	var notification: IntroductionRequest;
+	var notification: IntroductionRequestClass;
 }
 
 typedef IntroductionNotificationCompWidgetDef = {
@@ -85,7 +85,7 @@ extern class IntroductionNotificationComp extends JQ {
 	        		}).appendTo(intro_table.find("td:nth-child(1)"));
 
 	        		var invitationConfirmation = function(accepted:Bool) {
-	        			var confirmation = new IntroductionResponse(data.introductionIid, accepted);
+	        			var confirmation = new IntroductionResponseClass(data.introductionIid, accepted);
 	        			EM.change(EMEvent.RespondToIntroduction, confirmation);
 	        		}
 
