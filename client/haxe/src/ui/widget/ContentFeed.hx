@@ -100,7 +100,7 @@ extern class ContentFeed extends JQ {
 		        	var content:OSet<Content<Dynamic>>;
 
 		        	// if we are showing content for the uber alias, get all content
-		        	if (AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == AppContext.UBER_LABEL.iid) {
+		        	if (AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == AppContext.UBER_LABEL_IID) {
 		        		content = AppContext.CONTENT;
 		        	} else {
 			        	content = AppContext.GROUPED_CONTENT.delegate().get(aliasIid);

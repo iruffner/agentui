@@ -77,12 +77,12 @@ extern class AliasManagerDialog extends JQ {
 		        			});
 		        		leftDiv.append("<br class='clear'/><br/>");
 
-						if (M.getX(alias.data.imgSrc, "").isNotBlank()) {
-							imgSrc = alias.data.imgSrc;
+						if (M.getX(alias.profile.imgSrc, "").isNotBlank()) {
+							imgSrc = alias.profile.imgSrc;
 						}
 			        	leftDiv.append(new JQ("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
 
-			        	leftDiv.append(new JQ("<h2>" + alias.name + "</h2>"));
+			        	leftDiv.append(new JQ("<h2>" + alias.profile.name + "</h2>"));
 
 			        	var btnDiv: JQ = new JQ("<div></div>").appendTo(leftDiv);
 
@@ -132,7 +132,7 @@ extern class AliasManagerDialog extends JQ {
 		        					.click(function(evt: JQEvent) {
 		        							self._showAliasDetail(a);
 		        						})
-		        					.append(a.name);
+		        					.append(a.profile.name);
 		        				rightDiv.append("<br/>");
 		        			}
 		        		);
@@ -160,7 +160,7 @@ extern class AliasManagerDialog extends JQ {
 
 		        	leftDiv.append("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Alias Name:</div>");
 		        	var aliasName: JQ = new JQ("<input class='ui-corner-all ui-state-active ui-widget-content' style='width: 80%;padding: .2em .4em;'/>").appendTo(leftDiv);
-		        	if(alias != null) aliasName.val(alias.name);
+		        	if(alias != null) aliasName.val(alias.profile.name);
 		        	leftDiv.append("<br/><br/>");
 
 		        	var aliasImg: JQ = null;
@@ -194,8 +194,8 @@ extern class AliasManagerDialog extends JQ {
 		        								})
 		        					)
 		        		);
-					if ( M.getX(alias.data.imgSrc, "").isNotBlank()) {
-						imgSrc = alias.data.imgSrc;
+					if ( M.getX(alias.profile.imgSrc, "").isNotBlank()) {
+						imgSrc = alias.profile.imgSrc;
 					}
 					aliasImg = new JQ("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>");
 		        	leftDiv.append(aliasImg);
@@ -218,7 +218,6 @@ extern class AliasManagerDialog extends JQ {
 		        				var applyDlg = {
 		        					if(alias == null) {
 		        						alias = new Alias();
-		        						alias.data = new UserData();
 		        						function() {
 		        							EM.change(EMEvent.CreateAlias, alias);
 		        						};
@@ -228,8 +227,8 @@ extern class AliasManagerDialog extends JQ {
 		        						};
 		        					}
 		        				}
-		        				alias.name = name;
-		        				alias.data.imgSrc = profilePic;
+		        				alias.profile.name = name;
+		        				alias.profile.imgSrc = profilePic;
 		        				applyDlg();
 		        				self._showAliasDetail(alias);
 		        				// EM.change(EMEvent.UpdateAlias, alias);
@@ -260,7 +259,7 @@ extern class AliasManagerDialog extends JQ {
 		        					.click(function(evt: JQEvent) {
 		        							self._showAliasDetail(a);
 		        						})
-		        					.append(a.name);
+		        					.append(a.profile.name);
 		        				rightDiv.append("<br/>");
 		        			}
 		        		);
@@ -283,9 +282,9 @@ extern class AliasManagerDialog extends JQ {
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
     				var alias: Alias = new Alias();
-    				alias.name = self.aliasName.val();
-    				alias.data.name = self.username.val();
-					if (alias.data.name.isBlank() || alias.name.isBlank()) {
+    				alias.profile.name = self.aliasName.val();
+    				alias.profile.name = self.username.val();
+					if (alias.profile.name.isBlank() || alias.profile.name.isBlank()) {
 						return;
 					}
 

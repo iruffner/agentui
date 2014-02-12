@@ -104,7 +104,7 @@ extern class UserComp extends JQ {
 
 					for (alias in aliases) {
 						menuOption = {
-							label: alias.name,
+							label: alias.profile.name,
 							icon: "ui-icon-person",
 							action: function(evt: JQEvent, m: M3Menu): Void {
 								if (Alias.identifier(AppContext.currentAlias) == Alias.identifier(alias)) {
@@ -139,8 +139,8 @@ extern class UserComp extends JQ {
 
 					self.container.empty();
 					var imgSrc: String = "media/test/koi.jpg";
-					if ( M.getX(AppContext.currentAlias.data.imgSrc, "").isNotBlank()) {
-						imgSrc = AppContext.currentAlias.data.imgSrc;
+					if ( M.getX(AppContext.currentAlias.profile.imgSrc, "").isNotBlank()) {
+						imgSrc = AppContext.currentAlias.profile.imgSrc;
 					}
 
 		        	self.userImg = new JQ("<img alt='user' src='" + imgSrc + "' class='userImg shadow'/>");
@@ -149,7 +149,7 @@ extern class UserComp extends JQ {
 		        	self.userIdTxt = new JQ("<div class='userIdTxt'></div>");
 		        	self.container.append(self.userIdTxt);
 		        	var name: String = M.getX(AppContext.AGENT.data.name, "");
-		        	var aliasLabel: String = M.getX(AppContext.currentAlias.name, "");
+		        	var aliasLabel: String = M.getX(AppContext.currentAlias.profile.name, "");
 		        	if(aliasLabel.isBlank()) aliasLabel = "";
 		        	self.userIdTxt
 		        		.append("<strong>" + name + "</strong>")

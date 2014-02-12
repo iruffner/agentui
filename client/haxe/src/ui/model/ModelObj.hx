@@ -64,27 +64,31 @@ class Agent extends ModelObj {
 class UserData extends ModelObj {
 	public var name: String;
 	@:optional public var imgSrc: String;
-	@:optional public var isDefault:Bool;
-	@:optional public var email:String;
 
 	public function new(?name:String="", ?imgSrc:String="") {
 		super();
 		this.name = name;
 		this.imgSrc = imgSrc;
+	}
+}
+
+class AliasData extends ModelObj {
+	@:optional public var isDefault:Bool;
+	public function new() {
+		super();
 		this.isDefault = false;
-		this.email = "";
 	}
 }
 
 class Alias extends ModelObjWithIid {
 	public var rootLabelIid:String;
-	public var name: String;
-	public var data: UserData;
+	public var profile: UserData;
+	@:optional public var data: AliasData;
 
-	public function new(?name:String) {
+	public function new() {
 		super();
-		this.name = name;
-		this.data = new UserData();
+		this.profile = new UserData();
+		this.data = new AliasData();
 	}
 	
 	public static function identifier(alias: Alias): String {

@@ -4,7 +4,6 @@ import ui.model.ModelObj;
 import m3.jq.JQ;
 import ui.widget.AliasManagerDialog;
 import ui.widget.LoginDialog;
-import ui.widget.NewAliasDialog;
 import ui.widget.CreateAgentDialog;
 import ui.widget.RequestIntroductionDialog;
 
@@ -40,10 +39,6 @@ class DialogManager {
     public static function showNewUser(): Void {
         showDialog("newUserDialog");
     }
-
-    public static function showNewAlias(): Void {
-        showDialog("newAliasDialog");
-    }	
 
     public static function requestIntroduction(from:Connection, to:Connection): Void {
         var options:Dynamic = {}

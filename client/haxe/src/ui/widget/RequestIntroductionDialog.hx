@@ -121,7 +121,7 @@ extern class RequestIntroductionDialog extends JQ {
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
 					// Build out the introduction request message
-					var alias:String = AppContext.currentAlias.name;
+					var alias:String = AppContext.currentAlias.profile.name;
 					var intro: Introduction = new Introduction();
 					intro.aConnectionIid = self.options.to.iid;
 					intro.bConnectionIid = self.options.from.iid;

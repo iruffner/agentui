@@ -94,11 +94,18 @@ class ResponseProcessor {
 	    }
 	    AppContext.currentAlias = initialAlias;
 
-        // Set the uber label
+        // Set the uber label's iid
         var fs = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(c:Label):Bool {
             return c.name == "uber label";
         });
-        AppContext.UBER_LABEL = fs.iterator().next();
+        AppContext.UBER_LABEL_IID = fs.iterator().next().iid;
+
+        // Set the intro label's iid
+        var fs = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(c:Label):Bool {
+            return c.name == "intro label";
+        });
+        AppContext.INTRO_LABEL_IID = fs.iterator().next().iid;
+        AppContext.LABELCHILDREN.refilter();
 
     	// Fire the events that will cause the UI to load the data
 		EM.change(EMEvent.AGENT, AppContext.AGENT);

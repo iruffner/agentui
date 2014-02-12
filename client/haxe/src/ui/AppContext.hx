@@ -23,32 +23,33 @@ class AppContext {
 
     public static var LOGGER: Logga;
     public static var AGENT: Agent;
-    public static var UBER_LABEL: Label;
+    public static var UBER_LABEL_IID: String;
+    public static var INTRO_LABEL_IID: String;
     public static var MASTER_ALIASES:ObservableSet<Alias>;
     public static var ALIASES:OSet<Alias>;
     public static var TARGET: Connection;
     public static var SERIALIZER: Serializer;
 
-    public static var NOTIFICATIONS:OSet<Notification<Dynamic>>;
+    public static var NOTIFICATIONS:FilteredSet<Notification<Dynamic>>;
     public static var MASTER_NOTIFICATIONS: ObservableSet<Notification<Dynamic>>;
 
     public static var INTRODUCTIONS: ObservableSet<Introduction>;
 
-    public static var CONNECTIONS:OSet<Connection>;
+    public static var CONNECTIONS:FilteredSet<Connection>;
     public static var MASTER_CONNECTIONS: ObservableSet<Connection>;
 
-    public static var CONTENT: OSet<Content<Dynamic>>;
+    public static var CONTENT: FilteredSet<Content<Dynamic>>;
     public static var MASTER_CONTENT: ObservableSet<Content<Dynamic>>;
     public static var GROUPED_CONTENT: GroupedSet<Content<Dynamic>>;
 
-    public static var LABELS:OSet<Label>;
+    public static var LABELS:FilteredSet<Label>;
     public static var MASTER_LABELS:ObservableSet<Label>;
     
-    public static var LABELCHILDREN:OSet<LabelChild>;
+    public static var LABELCHILDREN:FilteredSet<LabelChild>;
     public static var MASTER_LABELCHILDREN:ObservableSet<LabelChild>;
     public static var GROUPED_LABELCHILDREN: GroupedSet<LabelChild>;
 
-    public static var LABELEDCONTENT:OSet<LabeledContent>;
+    public static var LABELEDCONTENT:FilteredSet<LabeledContent>;
     public static var MASTER_LABELEDCONTENT:ObservableSet<LabeledContent>;
     public static var GROUPED_LABELEDCONTENT: GroupedSet<LabeledContent>;
 
@@ -91,7 +92,7 @@ class AppContext {
 
         MASTER_LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
         LABELCHILDREN = new FilteredSet<LabelChild>(MASTER_LABELCHILDREN, function(c:LabelChild):Bool {
-            return !c.deleted;
+            return !c.deleted && c.childIid != INTRO_LABEL_IID;
         });
         GROUPED_LABELCHILDREN = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
             return lc.parentIid;

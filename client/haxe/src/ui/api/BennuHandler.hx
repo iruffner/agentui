@@ -85,9 +85,9 @@ class BennuHandler implements ProtocolHandler {
 
 	public function createAlias(alias: Alias): Void {
 		// Create a label child, which will connect the parent and the child
-		var label = new Label(alias.name);
+		var label = new Label(alias.profile.name);
 		label.data.color = "#000000";
-		var lc = new LabelChild(AppContext.UBER_LABEL.iid, label.iid);
+		var lc = new LabelChild(AppContext.UBER_LABEL_IID, label.iid);
 		alias.rootLabelIid = label.iid;
 
 		var context = Synchronizer.createContext(3, "aliasCreated");
@@ -114,7 +114,7 @@ class BennuHandler implements ProtocolHandler {
 
 		// TODO: the parentLabelIid might not be blank...
 		var data = new EditLabelData(AppContext.LABELS.delegate().get(alias.rootLabelIid),
-			                         AppContext.UBER_LABEL.iid);
+			                         AppContext.UBER_LABEL_IID);
 		deleteLabel(data);
 	}
 
