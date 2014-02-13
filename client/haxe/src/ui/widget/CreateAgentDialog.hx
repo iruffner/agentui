@@ -44,7 +44,7 @@ extern class CreateAgentDialog extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function newUserDialog(?opts: CreateAgentDialogOptions): CreateAgentDialog;
+	function createAgentDialog(?opts: CreateAgentDialogOptions): CreateAgentDialog;
 
 	private static function __init__(): Void {
 		var defineWidget: Void->CreateAgentDialogWidgetDef = function(): CreateAgentDialogWidgetDef {
@@ -58,7 +58,7 @@ extern class CreateAgentDialog extends JQ {
 
 		        	self._cancelled = false;
 
-		        	selfElement.addClass("newUserDialog").hide();
+		        	selfElement.addClass("createAgentDialog").hide();
 
 		        	var labels: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 		        	var inputs: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
@@ -196,6 +196,6 @@ extern class CreateAgentDialog extends JQ {
 		        }
 		    };
 		}
-		JQ.widget( "ui.newUserDialog", defineWidget());
+		JQ.widget( "ui.createAgentDialog", defineWidget());
 	}
 }

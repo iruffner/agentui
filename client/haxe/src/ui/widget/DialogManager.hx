@@ -36,8 +36,8 @@ class DialogManager {
         showDialog("loginDialog");
     }
 
-    public static function showNewUser(): Void {
-        showDialog("newUserDialog");
+    public static function showCreateAgent(): Void {
+        showDialog("createAgentDialog");
     }
 
     public static function requestIntroduction(from:Connection, to:Connection): Void {

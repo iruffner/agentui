@@ -6434,8 +6434,8 @@ ui.widget.DialogManager.showDialog = function(dialogFcnName,options) {
 ui.widget.DialogManager.showLogin = function() {
 	ui.widget.DialogManager.showDialog("loginDialog");
 }
-ui.widget.DialogManager.showNewUser = function() {
-	ui.widget.DialogManager.showDialog("newUserDialog");
+ui.widget.DialogManager.showCreateAgent = function() {
+	ui.widget.DialogManager.showDialog("createAgentDialog");
 }
 ui.widget.DialogManager.requestIntroduction = function(from,to) {
 	var options = { };
@@ -8161,7 +8161,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of CreateAgentDialog must be a div element");
 		self._cancelled = false;
-		selfElement.addClass("newUserDialog").hide();
+		selfElement.addClass("createAgentDialog").hide();
 		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
 		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
 		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
@@ -8231,7 +8231,7 @@ var defineWidget = function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.newUserDialog",defineWidget());
+$.widget("ui.createAgentDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -8654,7 +8654,7 @@ var defineWidget = function() {
 		var dlgOptions = { autoOpen : false, title : "Login", height : 280, width : 400, modal : true, buttons : { Login : function() {
 			self1._login();
 		}, 'I\'m New...' : function() {
-			ui.widget.DialogManager.showNewUser();
+			ui.widget.DialogManager.showCreateAgent();
 		}}, beforeClose : function(evt,ui1) {
 			if(ui.AppContext.AGENT == null) {
 				m3.util.JqueryUtil.alert("A valid login is required to use the app");

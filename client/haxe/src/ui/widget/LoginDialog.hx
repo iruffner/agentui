@@ -132,7 +132,7 @@ extern class LoginDialog extends JQ {
 		        				self._login();
 		        			},
 		        			"I\\\'m New...": function() {
-		        				DialogManager.showNewUser();
+		        				DialogManager.showCreateAgent();
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {

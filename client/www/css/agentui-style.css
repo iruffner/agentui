@@ -52,23 +52,23 @@ body {
 
 /* Login
 -----------------------------------------------------------------------------*/
-.loginDialog, .newUserDialog {
+.loginDialog, .createAgentDialog {
 	min-width: 400px;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
-	.loginDialog .placeholder, .newUserDialog .placeholder {
+	.loginDialog .placeholder, .createAgentDialog .placeholder {
 		color: lightgray;
 	}
 
-	.loginDialog input, .newUserDialog input {
+	.loginDialog input, .createAgentDialog input {
 		min-width: 225px;
 		padding: 4px;
 	}
 
-	.loginDialog .labelDiv, .newUserDialog .labelDiv {
+	.loginDialog .labelDiv, .createAgentDialog .labelDiv {
 		line-height: 1.65em;
 		margin-right: 10px;
 		padding: 4px;
