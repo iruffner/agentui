@@ -4650,11 +4650,9 @@ ui.api.BennuHandler.prototype = {
 		var context = ui.api.Synchronizer.createContext(9,"initialDataLoad");
 		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid='" + this.loggedInAgentId + "'")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "introductions",new ui.api.QueryMessage("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "connections",new ui.api.QueryMessage("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "notifications",new ui.api.QueryMessage("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
-		var types = ["alias","connection","content","introduction","label","labelchild","labeledcontent"];
-		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,"register-changes",new ui.api.RegisterMessage(types))];
-		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
-		types = ["notification"];
-		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,"register-changes",new ui.api.RegisterMessage(types))];
+		context = ui.api.Synchronizer.createContext(1,"registerModelUpdates");
+		var types = ["alias","connection","content","introduction","label","labelchild","labeledcontent","notification"];
+		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,context,new ui.api.RegisterMessage(types))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
 	}
 	,deleteLabel: function(data) {
@@ -5230,21 +5228,9 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 		} else if(data.type != null) ui.api.ResponseProcessor.updateModelObject(data.instance,data.type); else if(js.Boot.__instanceof(data.result,String)) ui.AppContext.LOGGER.warn(data); else {
 			var context = data.context.split("-");
 			if(context == null) return;
-			if(context[2] == "initialDataLoad") {
-				var synchronizer = ui.api.Synchronizer.synchronizers.get(context[0]);
-				if(synchronizer == null) synchronizer = ui.api.Synchronizer.add(data.context);
-				synchronizer.dataReceived(data.result,context[3]);
-			} else if(context[2] == "getProfiles") {
-				var _g = 0, _g1 = js.Boot.__cast(data.result , Array);
-				while(_g < _g1.length) {
-					var rec = _g1[_g];
-					++_g;
-					var fields = Reflect.fields(rec);
-					var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,fields[0]);
-					connection.data = ui.AppContext.SERIALIZER.fromJsonX(Reflect.getProperty(rec,fields[0]),ui.model.UserData);
-					ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
-				}
-			}
+			var synchronizer = ui.api.Synchronizer.synchronizers.get(context[0]);
+			if(synchronizer == null) synchronizer = ui.api.Synchronizer.add(data.context);
+			synchronizer.dataReceived(data);
 		}
 	});
 }
@@ -5323,6 +5309,20 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.AGENT,ui.AppContext.AGENT);
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
 }
+ui.api.ResponseProcessor.registerModelUpdates = function(data) {
+	ui.api.ResponseProcessor.modelUpdateHandle = data.result.handle;
+}
+ui.api.ResponseProcessor.getProfiles = function(data) {
+	var _g = 0, _g1 = js.Boot.__cast(data.result , Array);
+	while(_g < _g1.length) {
+		var rec = _g1[_g];
+		++_g;
+		var fields = Reflect.fields(rec);
+		var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,fields[0]);
+		connection.data = ui.AppContext.SERIALIZER.fromJsonX(Reflect.getProperty(rec,fields[0]),ui.model.UserData);
+		ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+	}
+}
 ui.api.SynchronizationParms = function() {
 	this.agent = null;
 	this.aliases = new Array();
@@ -5333,6 +5333,7 @@ ui.api.SynchronizationParms = function() {
 	this.labelChildren = new Array();
 	this.labeledContent = new Array();
 	this.notifications = new Array();
+	this.result = { };
 };
 $hxClasses["ui.api.SynchronizationParms"] = ui.api.SynchronizationParms;
 ui.api.SynchronizationParms.__name__ = ["ui","api","SynchronizationParms"];
@@ -5360,29 +5361,12 @@ ui.api.Synchronizer.remove = function(iid) {
 	ui.api.Synchronizer.synchronizers.remove(iid);
 }
 ui.api.Synchronizer.prototype = {
-	dataReceived: function(data,responseType) {
-		if(data.primaryKey != null) switch(responseType) {
-		case "alias":
-			var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,data.primaryKey);
-			if(alias != null) this.parms.aliases.push(alias);
-			break;
-		case "content":
-			var content = m3.helper.OSetHelper.getElement(ui.AppContext.CONTENT,data.primaryKey);
-			if(content != null) this.parms.content.push(content);
-			break;
-		case "label":
-			var label = m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,data.primaryKey);
-			if(label != null) this.parms.labels.push(label);
-			break;
-		case "labelChild":
-			var lc = m3.helper.OSetHelper.getElement(ui.AppContext.LABELCHILDREN,data.primaryKey);
-			if(lc != null) this.parms.labelChildren.push(lc);
-			break;
-		case "labeledContent":
-			var lc = m3.helper.OSetHelper.getElement(ui.AppContext.LABELEDCONTENT,data.primaryKey);
-			if(lc != null) this.parms.labeledContent.push(lc);
-			break;
-		} else switch(responseType) {
+	dataReceived: function(dataObj) {
+		var context = dataObj.context.split("-");
+		var responseType = context[3];
+		this.parms.result = dataObj.result;
+		var data = dataObj.result;
+		switch(responseType) {
 		case "agent":
 			if(data.length > 0) {
 				if(data[0].data.name == null) data[0].data.name = "";
@@ -5390,7 +5374,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "alias":
-			this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Alias));
+			this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Alias));
 			break;
 		case "aliases":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
@@ -5401,7 +5385,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "connection":
-			this.parms.connections.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Connection));
+			this.parms.connections.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Connection));
 			break;
 		case "connections":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
@@ -5412,7 +5396,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "content":
-			this.parms.content.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Content));
+			this.parms.content.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Content));
 			break;
 		case "contents":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
@@ -5423,7 +5407,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "introduction":
-			this.parms.introductions.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Introduction));
+			this.parms.introductions.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Introduction));
 			break;
 		case "introductions":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
@@ -5434,7 +5418,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "label":
-			this.parms.labels.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Label));
+			this.parms.labels.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Label));
 			break;
 		case "labels":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
@@ -5445,7 +5429,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "labelChild":
-			this.parms.labelChildren.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.LabelChild));
+			this.parms.labelChildren.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.LabelChild));
 			break;
 		case "labelChildren":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
@@ -5456,7 +5440,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "labeledContent":
-			this.parms.labeledContent.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.LabeledContent));
+			this.parms.labeledContent.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.LabeledContent));
 			break;
 		case "labeledContents":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
@@ -5467,7 +5451,7 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "notification":
-			this.parms.notifications.push(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Notification));
+			this.parms.notifications.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Notification));
 			break;
 		case "notifications":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
@@ -5481,8 +5465,15 @@ ui.api.Synchronizer.prototype = {
 		this.numResponsesExpected -= 1;
 		if(this.numResponsesExpected == 0) {
 			var func = Reflect.field(ui.api.ResponseProcessor,this.oncomplete);
-			func.apply(ui.api.ResponseProcessor,[this.parms]);
+			if(func == null) ui.AppContext.LOGGER.warn("Missing oncomplete function: " + this.oncomplete); else func.apply(ui.api.ResponseProcessor,[this.parms]);
 			ui.api.Synchronizer.remove(this.iid);
+			var length = 0;
+			var $it0 = ui.api.Synchronizer.synchronizers.keys();
+			while( $it0.hasNext() ) {
+				var key = $it0.next();
+				length += 1;
+			}
+			ui.AppContext.LOGGER.info("Number Synchronizers: " + length);
 		}
 	}
 	,__class__: ui.api.Synchronizer

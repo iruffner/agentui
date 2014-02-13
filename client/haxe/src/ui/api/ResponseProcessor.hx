@@ -16,6 +16,8 @@ using Lambda;
 
 class ResponseProcessor {
 
+    public static var modelUpdateHandle:String;
+
 	public static function processResponse(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
 		if (dataArr == null || dataArr.length == 0) { return; }
 
@@ -31,20 +33,12 @@ class ResponseProcessor {
                 } else {
     				var context:Array<String> = data.context.split("-");
                     if (context == null) {return;}
-    				if (context[2] == "initialDataLoad") {
-    					var synchronizer = Synchronizer.synchronizers.get(context[0]);
-    					if (synchronizer == null) {
-    						synchronizer = Synchronizer.add(data.context);
-    					}
-    					synchronizer.dataReceived(data.result, context[3]);
-    				} else if (context[2] == "getProfiles") {
-                        for (rec in cast(data.result, Array<Dynamic>)) {
-                            var fields = Reflect.fields(rec);
-                            var connection = AppContext.MASTER_CONNECTIONS.getElement(fields[0]);
-                            connection.data = AppContext.SERIALIZER.fromJsonX(Reflect.getProperty(rec,fields[0]), UserData);
-                            AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
-                        }
-                    }
+
+					var synchronizer = Synchronizer.synchronizers.get(context[0]);
+					if (synchronizer == null) {
+						synchronizer = Synchronizer.add(data.context);
+					}
+					synchronizer.dataReceived(data);
                 }
 			}
 		});
@@ -132,4 +126,17 @@ class ResponseProcessor {
 		EM.change(EMEvent.AGENT, AppContext.AGENT);
 		EM.change(EMEvent.FitWindow);
 	}
+
+    public static function registerModelUpdates(data:SynchronizationParms) {
+        modelUpdateHandle = data.result.handle;
+    }
+
+    public static function getProfiles(data:SynchronizationParms) {
+        for (rec in cast(data.result, Array<Dynamic>)) {
+            var fields = Reflect.fields(rec);
+            var connection = AppContext.MASTER_CONNECTIONS.getElement(fields[0]);
+            connection.data = AppContext.SERIALIZER.fromJsonX(Reflect.getProperty(rec,fields[0]), UserData);
+            AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+        }
+    }
 }

@@ -500,8 +500,7 @@ body {
 			bottom: 0;
 			right: 5px;
 			width: 6em;
-			/*margin-left: 8.75em;*/
-			margin-bottom: .3em;
+			margin-bottom: 1em;
 			cursor: pointer;
 		}
 		#userId .aliasBtn {
