@@ -25,23 +25,20 @@ class BennuHandler implements ProtocolHandler {
 	private static var DEREGISTER = "/api/squery/deregister" ;
 	private static var INTRODUCE = "/api/introduction/initiate";
 	private static var INTRO_RESPONSE = "/api/introduction/respond";
-	private static var GET_PROFILE = "/api/profile/get ";
+	private static var GET_PROFILE = "/api/profile/get";
 
 	private var eventDelegate:EventDelegate;
 	private var listeningChannel: LongPollingRequest;
-
 
 	public function new() {
 		this.eventDelegate = new EventDelegate(this);
 	}
 
-	public function getProfile(connectionIid:Array<String>) {
-		/*
-		var context = Synchronizer.createContext(1, "getProfile");
+	public function getProfiles(connectionIids:Array<String>) {
+		var context = Synchronizer.createContext(1, "getProfiles");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(INTRODUCE, context + "introduction", CrudMessage.create(intro))]);
+			new ChannelRequestMessage(GET_PROFILE, context + "profiles", new GetProfileMessage(connectionIids))]);
 		req.start();
-		*/
 	}
 
 	public function getAgent(login: Login): Void {

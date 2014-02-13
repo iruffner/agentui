@@ -5,6 +5,7 @@ import ui.model.ModelObj;
 import ui.model.Filter;
 
 interface ProtocolHandler {
+	public function getProfiles(connectionIids:Array<String>):Void;
 	public function getAgent(login: Login): Void;
 	public function filter(filter: Filter): Void;
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void;

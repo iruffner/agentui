@@ -30,13 +30,21 @@ class ResponseProcessor {
                     ui.AppContext.LOGGER.warn(data);
                 } else {
     				var context:Array<String> = data.context.split("-");
-    				if (context != null && context[2] == "initialDataLoad") {
+                    if (context == null) {return;}
+    				if (context[2] == "initialDataLoad") {
     					var synchronizer = Synchronizer.synchronizers.get(context[0]);
     					if (synchronizer == null) {
     						synchronizer = Synchronizer.add(data.context);
     					}
     					synchronizer.dataReceived(data.result, context[3]);
-    				}
+    				} else if (context[2] == "getProfiles") {
+                        for (rec in cast(data.result, Array<Dynamic>)) {
+                            var fields = Reflect.fields(rec);
+                            var connection = AppContext.MASTER_CONNECTIONS.getElement(fields[0]);
+                            connection.data = AppContext.SERIALIZER.fromJsonX(Reflect.getProperty(rec,fields[0]), UserData);
+                            AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+                        }
+                    }
                 }
 			}
 		});
@@ -87,6 +95,13 @@ class ResponseProcessor {
         AppContext.MASTER_CONNECTIONS.addAll(data.connections);
         AppContext.INTRODUCTIONS.addAll(data.introductions);
         AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
+
+        // Request the profile for the connections
+        var connectionIids = new Array<String>();
+        for (connection in AppContext.MASTER_CONNECTIONS) {
+            connectionIids.push(connection.iid);
+        }
+        AgentUi.PROTOCOL.getProfiles(connectionIids);
 
     	var initialAlias:Alias = null;
     	for (alias in AppContext.ALIASES) {
