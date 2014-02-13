@@ -11,7 +11,6 @@ import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
-import ui.api.ProtocolMessage;
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;

@@ -6,7 +6,6 @@ import m3.jq.JQDroppable;
 import m3.observable.OSet;
 import m3.widget.Widgets;
 
-import ui.api.ProtocolMessage;
 import ui.model.EM;
 import ui.model.ModelObj;
 

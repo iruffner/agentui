@@ -464,6 +464,7 @@ class IntroductionRequestClass extends Notification<IntroductionRequestData> {
 		super(NotificationKind.IntroductionRequest, IntroductionRequestData);
 	}
 }
+	@:rtti
 	class IntroductionRequestData {
 		public var introductionIid: String;
 		public var message: String;
@@ -476,6 +477,7 @@ class IntroductionResponseClass extends Notification<IntroductionResponseData> {
 		this.props.accepted = accepted;
 	}
 }
+	@:rtti
 	class IntroductionResponseData {
 		public var introductionIid: String;
 		public var accepted: Bool;

@@ -47,14 +47,20 @@ class ResponseProcessor {
         switch (type) {
             case "alias":
                 AppContext.MASTER_ALIASES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Alias));
+            case "connection":
+                AppContext.MASTER_CONNECTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Connection));
             case "content":
                 AppContext.MASTER_CONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Content));
+            case "introduction":
+                AppContext.INTRODUCTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Introduction));
             case "label":
                 AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Label));
             case "labelchild":
                 AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, LabelChild));
             case "labeledcontent":
                 AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, LabeledContent));
+            case "notification":
+                AppContext.MASTER_NOTIFICATIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Notification));
             default:
                 AppContext.LOGGER.error("Unknown type: " + type);
         }

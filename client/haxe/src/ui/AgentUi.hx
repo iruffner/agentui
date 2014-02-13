@@ -12,7 +12,6 @@ import ui.model.Node;
 import ui.model.EM;
 import ui.api.BennuHandler;
 import ui.api.ProtocolHandler;
-import ui.api.ProtocolMessage;
 
 
 import m3.observable.OSet;
@@ -50,7 +49,6 @@ class AgentUi {
             AppContext.DEMO = true;
         } 
 
-        var z: ZWidget = new ZWidget("<div></div>");
         var r: RestoreWidget = new RestoreWidget("<div></div>");
         
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
@@ -79,12 +77,6 @@ class AgentUi {
                 notification.contentImpl.correlationId = "abc123";
                 EM.change(EMEvent.DELETE_NOTIFICATION, notification);
                 */
-            }
-            else if(evt.altKey && evt.shiftKey && evt.keyCode == 90 /* ALT+SHIFT+Z */) {
-                AppContext.LOGGER.debug("ALT + SHIFT + Z");
-                if(ui.AppContext.DEMO) {
-                    z.zWidget("open");
-                }
             }
             else if(evt.altKey && evt.shiftKey && evt.keyCode == 82 /* ALT+SHIFT+R */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + R");
@@ -137,11 +129,6 @@ class AgentUi {
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();
         });
-
-        if(ui.AppContext.DEMO) {
-            z.appendTo(new JQ(js.Browser.document.body));
-            z.zWidget();
-        }
 
         r.appendTo(new JQ(js.Browser.document.body));
         r.restoreWidget();

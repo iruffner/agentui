@@ -8,7 +8,6 @@ import m3.log.LogLevel;
 import m3.observable.OSet;
 import m3.serialization.Serialization;
 
-import ui.api.ProtocolMessage;
 import ui.model.EM;
 import ui.model.ModelObj;
 
@@ -108,6 +107,7 @@ class AppContext {
         
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());
+        SERIALIZER.addHandler(Notification, new NotificationHandler());
 
     	registerGlobalListeners();
     }

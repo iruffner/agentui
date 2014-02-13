@@ -2,6 +2,7 @@ package ui.api;
 
 import m3.jq.JQ;
 
+import ui.api.CrudMessage;
 import ui.api.ProtocolHandler;
 import ui.model.ModelObj;
 import ui.model.EM;
@@ -92,6 +93,10 @@ class EventDelegate {
 
         EM.addListener(EMEvent.DeleteLabel, new EMListener(function(data:EditLabelData): Void {
             protocolHandler.deleteLabel(data);
+        }));
+
+        EM.addListener(EMEvent.RespondToIntroduction, new EMListener(function(intro: IntroResponseMessage):Void{
+            protocolHandler.confirmIntroduction(intro);
         }));
 
         EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(intro: Introduction):Void{

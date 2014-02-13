@@ -59,6 +59,30 @@ class RegisterMessage implements ChannelMessage {
 	}	
 }
 
+@:rtti
+class IntroMessage implements ChannelMessage {
+	public var aConnectionIid: String;
+	public var aMessage: String;
+	public var bConnectionIid: String;
+	public var bMessage: String;
+	public function new(i:Introduction) {
+		this.aConnectionIid = i.aConnectionIid;
+		this.aMessage = i.aMessage;
+		this.bConnectionIid = i.bConnectionIid;
+		this.bMessage = i.bMessage;
+	}
+}
+
+@:rtti
+class IntroResponseMessage implements ChannelMessage {
+	public var notificationIid: String;
+	public var accepted: Bool;
+
+	public function new(notificationIid: String, accepted: Bool) {
+		this.notificationIid = notificationIid;
+		this.accepted = accepted;
+	}
+}
 
 @:rtti
 class ChannelRequestMessage {

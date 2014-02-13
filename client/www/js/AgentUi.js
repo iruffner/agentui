@@ -4437,14 +4437,10 @@ ui.AgentUi.main = function() {
 ui.AgentUi.start = function() {
 	var urlVars = m3.util.HtmlUtil.getUrlVars();
 	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "yes" || urlVars.demo == "true")) ui.AppContext.DEMO = true;
-	var z = new $("<div></div>");
 	var r = new $("<div></div>");
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 78) {
 		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 77) {
-		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 90) {
-			ui.AppContext.LOGGER.debug("ALT + SHIFT + Z");
-			if(ui.AppContext.DEMO) z.zWidget("open");
 		} else if(evt.altKey && evt.shiftKey && evt.keyCode == 82) {
 			ui.AppContext.LOGGER.debug("ALT + SHIFT + R");
 			r.restoreWidget("open");
@@ -4476,10 +4472,6 @@ ui.AgentUi.start = function() {
 	new $("body").click(function(evt) {
 		new $(".nonmodalPopup").hide();
 	});
-	if(ui.AppContext.DEMO) {
-		z.appendTo(new $(js.Browser.document.body));
-		z.zWidget();
-	}
 	r.appendTo(new $(js.Browser.document.body));
 	r.restoreWidget();
 	ui.widget.DialogManager.showLogin();
@@ -4530,6 +4522,7 @@ ui.AppContext.init = function() {
 	});
 	ui.AppContext.SERIALIZER = new m3.serialization.Serializer();
 	ui.AppContext.SERIALIZER.addHandler(ui.model.Content,new ui.model.ContentHandler());
+	ui.AppContext.SERIALIZER.addHandler(ui.model.Notification,new ui.model.NotificationHandler());
 	ui.AppContext.registerGlobalListeners();
 }
 ui.AppContext.registerGlobalListeners = function() {
@@ -4829,12 +4822,12 @@ ui.api.BennuHandler.prototype = {
 	}
 	,confirmIntroduction: function(confirmation) {
 		var context = ui.api.Synchronizer.createContext(1,"confirmIntroduction");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRO_RESPONSE,context + "introduction",ui.api.CrudMessage.create(confirmation))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRO_RESPONSE,context + "introduction",confirmation)]);
 		req.start();
 	}
 	,beginIntroduction: function(intro) {
 		var context = ui.api.Synchronizer.createContext(1,"beginIntroduction");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRODUCE,context + "introduction",ui.api.CrudMessage.create(intro))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRODUCE,context + "introduction",new ui.api.IntroMessage(intro))]);
 		req.start();
 	}
 	,createAgent: function(newUser) {
@@ -4847,6 +4840,8 @@ ui.api.BennuHandler.prototype = {
 	,getAgent: function(login) {
 		this.loggedInAgentId = login.agentId;
 		new ui.api.BennuRequest("/api/channel/create/" + login.agentId,"",$bind(this,this.onCreateSubmitChannel)).start();
+	}
+	,getProfile: function(connectionIid) {
 	}
 	,__class__: ui.api.BennuHandler
 }
@@ -4908,6 +4903,28 @@ ui.api.RegisterMessage.__name__ = ["ui","api","RegisterMessage"];
 ui.api.RegisterMessage.__interfaces__ = [ui.api.ChannelMessage];
 ui.api.RegisterMessage.prototype = {
 	__class__: ui.api.RegisterMessage
+}
+ui.api.IntroMessage = function(i) {
+	this.aConnectionIid = i.aConnectionIid;
+	this.aMessage = i.aMessage;
+	this.bConnectionIid = i.bConnectionIid;
+	this.bMessage = i.bMessage;
+};
+$hxClasses["ui.api.IntroMessage"] = ui.api.IntroMessage;
+ui.api.IntroMessage.__name__ = ["ui","api","IntroMessage"];
+ui.api.IntroMessage.__interfaces__ = [ui.api.ChannelMessage];
+ui.api.IntroMessage.prototype = {
+	__class__: ui.api.IntroMessage
+}
+ui.api.IntroResponseMessage = function(notificationIid,accepted) {
+	this.notificationIid = notificationIid;
+	this.accepted = accepted;
+};
+$hxClasses["ui.api.IntroResponseMessage"] = ui.api.IntroResponseMessage;
+ui.api.IntroResponseMessage.__name__ = ["ui","api","IntroResponseMessage"];
+ui.api.IntroResponseMessage.__interfaces__ = [ui.api.ChannelMessage];
+ui.api.IntroResponseMessage.prototype = {
+	__class__: ui.api.IntroResponseMessage
 }
 ui.api.ChannelRequestMessage = function(path,context,msg) {
 	this.path = path;
@@ -5006,6 +5023,9 @@ ui.api.EventDelegate.prototype = {
 		ui.model.EM.addListener(ui.model.EMEvent.DeleteLabel,new ui.model.EMListener(function(data) {
 			_g.protocolHandler.deleteLabel(data);
 		}));
+		ui.model.EM.addListener(ui.model.EMEvent.RespondToIntroduction,new ui.model.EMListener(function(intro) {
+			_g.protocolHandler.confirmIntroduction(intro);
+		}));
 		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_REQUEST,new ui.model.EMListener(function(intro) {
 			_g.protocolHandler.beginIntroduction(intro);
 		}));
@@ -5020,289 +5040,6 @@ ui.api.EventDelegate.prototype = {
 	}
 	,__class__: ui.api.EventDelegate
 }
-ui.api.HasContent = function() { }
-$hxClasses["ui.api.HasContent"] = ui.api.HasContent;
-ui.api.HasContent.__name__ = ["ui","api","HasContent"];
-ui.api.HasContent.prototype = {
-	__class__: ui.api.HasContent
-}
-ui.api.ProtocolMessage = function(msgType,type) {
-	this.msgType = msgType;
-	this.type = type;
-	this.contentImpl = Type.createInstance(type,[]);
-};
-$hxClasses["ui.api.ProtocolMessage"] = ui.api.ProtocolMessage;
-ui.api.ProtocolMessage.__name__ = ["ui","api","ProtocolMessage"];
-ui.api.ProtocolMessage.prototype = {
-	writeResolve: function() {
-		this.content = ui.AppContext.SERIALIZER.toJson(this.contentImpl);
-	}
-	,readResolve: function() {
-		this.contentImpl = ui.AppContext.SERIALIZER.fromJsonX(this.content,this.type);
-	}
-	,__class__: ui.api.ProtocolMessage
-}
-ui.api.Payload = function() {
-};
-$hxClasses["ui.api.Payload"] = ui.api.Payload;
-ui.api.Payload.__name__ = ["ui","api","Payload"];
-ui.api.Payload.prototype = {
-	__class__: ui.api.Payload
-}
-ui.api.PayloadWithSessionURI = function() {
-	ui.api.Payload.call(this);
-};
-$hxClasses["ui.api.PayloadWithSessionURI"] = ui.api.PayloadWithSessionURI;
-ui.api.PayloadWithSessionURI.__name__ = ["ui","api","PayloadWithSessionURI"];
-ui.api.PayloadWithSessionURI.__super__ = ui.api.Payload;
-ui.api.PayloadWithSessionURI.prototype = $extend(ui.api.Payload.prototype,{
-	__class__: ui.api.PayloadWithSessionURI
-});
-ui.api.PayloadWithReason = function() {
-	ui.api.Payload.call(this);
-};
-$hxClasses["ui.api.PayloadWithReason"] = ui.api.PayloadWithReason;
-ui.api.PayloadWithReason.__name__ = ["ui","api","PayloadWithReason"];
-ui.api.PayloadWithReason.__super__ = ui.api.Payload;
-ui.api.PayloadWithReason.prototype = $extend(ui.api.Payload.prototype,{
-	__class__: ui.api.PayloadWithReason
-});
-ui.api.ErrorPayload = function() {
-	ui.api.PayloadWithSessionURI.call(this);
-};
-$hxClasses["ui.api.ErrorPayload"] = ui.api.ErrorPayload;
-ui.api.ErrorPayload.__name__ = ["ui","api","ErrorPayload"];
-ui.api.ErrorPayload.__super__ = ui.api.PayloadWithSessionURI;
-ui.api.ErrorPayload.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
-	__class__: ui.api.ErrorPayload
-});
-ui.api.ConfirmUserToken = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.confirmEmailToken,ui.api.ConfirmUserTokenData);
-};
-$hxClasses["ui.api.ConfirmUserToken"] = ui.api.ConfirmUserToken;
-ui.api.ConfirmUserToken.__name__ = ["ui","api","ConfirmUserToken"];
-ui.api.ConfirmUserToken.__super__ = ui.api.ProtocolMessage;
-ui.api.ConfirmUserToken.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.ConfirmUserToken
-});
-ui.api.ConfirmUserTokenData = function() {
-	ui.api.Payload.call(this);
-};
-$hxClasses["ui.api.ConfirmUserTokenData"] = ui.api.ConfirmUserTokenData;
-ui.api.ConfirmUserTokenData.__name__ = ["ui","api","ConfirmUserTokenData"];
-ui.api.ConfirmUserTokenData.__super__ = ui.api.Payload;
-ui.api.ConfirmUserTokenData.prototype = $extend(ui.api.Payload.prototype,{
-	__class__: ui.api.ConfirmUserTokenData
-});
-ui.api.InitializeSessionRequest = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.initializeSessionRequest,ui.api.InitializeSessionRequestData);
-};
-$hxClasses["ui.api.InitializeSessionRequest"] = ui.api.InitializeSessionRequest;
-ui.api.InitializeSessionRequest.__name__ = ["ui","api","InitializeSessionRequest"];
-ui.api.InitializeSessionRequest.__super__ = ui.api.ProtocolMessage;
-ui.api.InitializeSessionRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.InitializeSessionRequest
-});
-ui.api.InitializeSessionRequestData = function() {
-	ui.api.Payload.call(this);
-};
-$hxClasses["ui.api.InitializeSessionRequestData"] = ui.api.InitializeSessionRequestData;
-ui.api.InitializeSessionRequestData.__name__ = ["ui","api","InitializeSessionRequestData"];
-ui.api.InitializeSessionRequestData.__super__ = ui.api.Payload;
-ui.api.InitializeSessionRequestData.prototype = $extend(ui.api.Payload.prototype,{
-	__class__: ui.api.InitializeSessionRequestData
-});
-ui.api.InitializeSessionResponse = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.initializeSessionResponse,ui.api.InitializeSessionResponseData);
-};
-$hxClasses["ui.api.InitializeSessionResponse"] = ui.api.InitializeSessionResponse;
-ui.api.InitializeSessionResponse.__name__ = ["ui","api","InitializeSessionResponse"];
-ui.api.InitializeSessionResponse.__super__ = ui.api.ProtocolMessage;
-ui.api.InitializeSessionResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.InitializeSessionResponse
-});
-ui.api.InitializeSessionResponseData = function() {
-	ui.api.Payload.call(this);
-};
-$hxClasses["ui.api.InitializeSessionResponseData"] = ui.api.InitializeSessionResponseData;
-ui.api.InitializeSessionResponseData.__name__ = ["ui","api","InitializeSessionResponseData"];
-ui.api.InitializeSessionResponseData.__super__ = ui.api.Payload;
-ui.api.InitializeSessionResponseData.prototype = $extend(ui.api.Payload.prototype,{
-	get_labels: function() {
-		if(m3.helper.ArrayHelper.hasValues(this.listOfLabels)) {
-			var labels = [];
-			var i;
-			var _g1 = 0, _g = this.listOfLabels.length;
-			while(_g1 < _g) {
-				var i1 = _g1++;
-				labels = labels.concat(ui.helper.PrologHelper.tagTreeFromString(this.listOfLabels[i1]));
-			}
-			return labels;
-		} else return null;
-	}
-	,__class__: ui.api.InitializeSessionResponseData
-});
-ui.api.InitializeSessionError = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.initializeSessionError,ui.api.PayloadWithReason);
-};
-$hxClasses["ui.api.InitializeSessionError"] = ui.api.InitializeSessionError;
-ui.api.InitializeSessionError.__name__ = ["ui","api","InitializeSessionError"];
-ui.api.InitializeSessionError.__super__ = ui.api.ProtocolMessage;
-ui.api.InitializeSessionError.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.InitializeSessionError
-});
-ui.api.CloseSessionRequest = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.closeSessionRequest,ui.api.PayloadWithSessionURI);
-};
-$hxClasses["ui.api.CloseSessionRequest"] = ui.api.CloseSessionRequest;
-ui.api.CloseSessionRequest.__name__ = ["ui","api","CloseSessionRequest"];
-ui.api.CloseSessionRequest.__super__ = ui.api.ProtocolMessage;
-ui.api.CloseSessionRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.CloseSessionRequest
-});
-ui.api.CloseSessionResponse = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.closeSessionResponse,ui.api.PayloadWithSessionURI);
-};
-$hxClasses["ui.api.CloseSessionResponse"] = ui.api.CloseSessionResponse;
-ui.api.CloseSessionResponse.__name__ = ["ui","api","CloseSessionResponse"];
-ui.api.CloseSessionResponse.__super__ = ui.api.ProtocolMessage;
-ui.api.CloseSessionResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.CloseSessionResponse
-});
-ui.api.FeedExpr = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.feedExpr,ui.api.FeedExprData);
-};
-$hxClasses["ui.api.FeedExpr"] = ui.api.FeedExpr;
-ui.api.FeedExpr.__name__ = ["ui","api","FeedExpr"];
-ui.api.FeedExpr.__super__ = ui.api.ProtocolMessage;
-ui.api.FeedExpr.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.FeedExpr
-});
-ui.api.FeedExprData = function() {
-	ui.api.Payload.call(this);
-};
-$hxClasses["ui.api.FeedExprData"] = ui.api.FeedExprData;
-ui.api.FeedExprData.__name__ = ["ui","api","FeedExprData"];
-ui.api.FeedExprData.__super__ = ui.api.Payload;
-ui.api.FeedExprData.prototype = $extend(ui.api.Payload.prototype,{
-	__class__: ui.api.FeedExprData
-});
-ui.api.BackupRequest = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.backupRequest,ui.api.BackupData);
-};
-$hxClasses["ui.api.BackupRequest"] = ui.api.BackupRequest;
-ui.api.BackupRequest.__name__ = ["ui","api","BackupRequest"];
-ui.api.BackupRequest.__super__ = ui.api.ProtocolMessage;
-ui.api.BackupRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.BackupRequest
-});
-ui.api.BackupData = function() {
-	ui.api.PayloadWithSessionURI.call(this);
-};
-$hxClasses["ui.api.BackupData"] = ui.api.BackupData;
-ui.api.BackupData.__name__ = ["ui","api","BackupData"];
-ui.api.BackupData.__super__ = ui.api.PayloadWithSessionURI;
-ui.api.BackupData.prototype = $extend(ui.api.PayloadWithSessionURI.prototype,{
-	__class__: ui.api.BackupData
-});
-ui.api.RestoreRequest = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoreRequest,ui.api.BackupData);
-};
-$hxClasses["ui.api.RestoreRequest"] = ui.api.RestoreRequest;
-ui.api.RestoreRequest.__name__ = ["ui","api","RestoreRequest"];
-ui.api.RestoreRequest.__super__ = ui.api.ProtocolMessage;
-ui.api.RestoreRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.RestoreRequest
-});
-ui.api.RestoresRequest = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoresRequest,ui.api.PayloadWithSessionURI);
-};
-$hxClasses["ui.api.RestoresRequest"] = ui.api.RestoresRequest;
-ui.api.RestoresRequest.__name__ = ["ui","api","RestoresRequest"];
-ui.api.RestoresRequest.__super__ = ui.api.ProtocolMessage;
-ui.api.RestoresRequest.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.RestoresRequest
-});
-ui.api.RestoresResponse = function() {
-	ui.api.ProtocolMessage.call(this,ui.api.MsgType.restoresResponse,ui.api.RestoresData);
-};
-$hxClasses["ui.api.RestoresResponse"] = ui.api.RestoresResponse;
-ui.api.RestoresResponse.__name__ = ["ui","api","RestoresResponse"];
-ui.api.RestoresResponse.__super__ = ui.api.ProtocolMessage;
-ui.api.RestoresResponse.prototype = $extend(ui.api.ProtocolMessage.prototype,{
-	__class__: ui.api.RestoresResponse
-});
-ui.api.RestoresData = function() {
-	ui.api.Payload.call(this);
-};
-$hxClasses["ui.api.RestoresData"] = ui.api.RestoresData;
-ui.api.RestoresData.__name__ = ["ui","api","RestoresData"];
-ui.api.RestoresData.__super__ = ui.api.Payload;
-ui.api.RestoresData.prototype = $extend(ui.api.Payload.prototype,{
-	__class__: ui.api.RestoresData
-});
-ui.api.MsgType = $hxClasses["ui.api.MsgType"] = { __ename__ : ["ui","api","MsgType"], __constructs__ : ["initializeSessionRequest","initializeSessionResponse","initializeSessionError","closeSessionRequest","closeSessionResponse","confirmEmailToken","feedExpr","beginIntroductionRequest","beginIntroductionResponse","introductionNotification","introductionConfirmationRequest","introductionConfirmationResponse","connectNotification","backupRequest","backupResponse","restoresRequest","restoresResponse","restoreRequest","restoreResponse","crudMessage"] }
-ui.api.MsgType.initializeSessionRequest = ["initializeSessionRequest",0];
-ui.api.MsgType.initializeSessionRequest.toString = $estr;
-ui.api.MsgType.initializeSessionRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.initializeSessionResponse = ["initializeSessionResponse",1];
-ui.api.MsgType.initializeSessionResponse.toString = $estr;
-ui.api.MsgType.initializeSessionResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.initializeSessionError = ["initializeSessionError",2];
-ui.api.MsgType.initializeSessionError.toString = $estr;
-ui.api.MsgType.initializeSessionError.__enum__ = ui.api.MsgType;
-ui.api.MsgType.closeSessionRequest = ["closeSessionRequest",3];
-ui.api.MsgType.closeSessionRequest.toString = $estr;
-ui.api.MsgType.closeSessionRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.closeSessionResponse = ["closeSessionResponse",4];
-ui.api.MsgType.closeSessionResponse.toString = $estr;
-ui.api.MsgType.closeSessionResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.confirmEmailToken = ["confirmEmailToken",5];
-ui.api.MsgType.confirmEmailToken.toString = $estr;
-ui.api.MsgType.confirmEmailToken.__enum__ = ui.api.MsgType;
-ui.api.MsgType.feedExpr = ["feedExpr",6];
-ui.api.MsgType.feedExpr.toString = $estr;
-ui.api.MsgType.feedExpr.__enum__ = ui.api.MsgType;
-ui.api.MsgType.beginIntroductionRequest = ["beginIntroductionRequest",7];
-ui.api.MsgType.beginIntroductionRequest.toString = $estr;
-ui.api.MsgType.beginIntroductionRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.beginIntroductionResponse = ["beginIntroductionResponse",8];
-ui.api.MsgType.beginIntroductionResponse.toString = $estr;
-ui.api.MsgType.beginIntroductionResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.introductionNotification = ["introductionNotification",9];
-ui.api.MsgType.introductionNotification.toString = $estr;
-ui.api.MsgType.introductionNotification.__enum__ = ui.api.MsgType;
-ui.api.MsgType.introductionConfirmationRequest = ["introductionConfirmationRequest",10];
-ui.api.MsgType.introductionConfirmationRequest.toString = $estr;
-ui.api.MsgType.introductionConfirmationRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.introductionConfirmationResponse = ["introductionConfirmationResponse",11];
-ui.api.MsgType.introductionConfirmationResponse.toString = $estr;
-ui.api.MsgType.introductionConfirmationResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.connectNotification = ["connectNotification",12];
-ui.api.MsgType.connectNotification.toString = $estr;
-ui.api.MsgType.connectNotification.__enum__ = ui.api.MsgType;
-ui.api.MsgType.backupRequest = ["backupRequest",13];
-ui.api.MsgType.backupRequest.toString = $estr;
-ui.api.MsgType.backupRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.backupResponse = ["backupResponse",14];
-ui.api.MsgType.backupResponse.toString = $estr;
-ui.api.MsgType.backupResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.restoresRequest = ["restoresRequest",15];
-ui.api.MsgType.restoresRequest.toString = $estr;
-ui.api.MsgType.restoresRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.restoresResponse = ["restoresResponse",16];
-ui.api.MsgType.restoresResponse.toString = $estr;
-ui.api.MsgType.restoresResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.restoreRequest = ["restoreRequest",17];
-ui.api.MsgType.restoreRequest.toString = $estr;
-ui.api.MsgType.restoreRequest.__enum__ = ui.api.MsgType;
-ui.api.MsgType.restoreResponse = ["restoreResponse",18];
-ui.api.MsgType.restoreResponse.toString = $estr;
-ui.api.MsgType.restoreResponse.__enum__ = ui.api.MsgType;
-ui.api.MsgType.crudMessage = ["crudMessage",19];
-ui.api.MsgType.crudMessage.toString = $estr;
-ui.api.MsgType.crudMessage.__enum__ = ui.api.MsgType;
-ui.api.Reason = $hxClasses["ui.api.Reason"] = { __ename__ : ["ui","api","Reason"], __constructs__ : [] }
 ui.api.Requester = function() { }
 $hxClasses["ui.api.Requester"] = ui.api.Requester;
 ui.api.Requester.__name__ = ["ui","api","Requester"];
@@ -5489,8 +5226,14 @@ ui.api.ResponseProcessor.updateModelObject = function(instance,type) {
 	case "alias":
 		ui.AppContext.MASTER_ALIASES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(instance,ui.model.Alias));
 		break;
+	case "connection":
+		ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(instance,ui.model.Connection));
+		break;
 	case "content":
 		ui.AppContext.MASTER_CONTENT.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(instance,ui.model.Content));
+		break;
+	case "introduction":
+		ui.AppContext.INTRODUCTIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(instance,ui.model.Introduction));
 		break;
 	case "label":
 		ui.AppContext.MASTER_LABELS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(instance,ui.model.Label));
@@ -5500,6 +5243,9 @@ ui.api.ResponseProcessor.updateModelObject = function(instance,type) {
 		break;
 	case "labeledcontent":
 		ui.AppContext.MASTER_LABELEDCONTENT.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(instance,ui.model.LabeledContent));
+		break;
+	case "notification":
+		ui.AppContext.MASTER_NOTIFICATIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(instance,ui.model.Notification));
 		break;
 	default:
 		ui.AppContext.LOGGER.error("Unknown type: " + type);
@@ -7848,8 +7594,8 @@ var defineWidget = function() {
 			var droppee = self.options.connection;
 			if(!dropper.equals(droppee)) ui.widget.DialogManager.requestIntroduction(dropper,droppee);
 		}, tolerance : "pointer"});
-		var set = new m3.observable.FilteredSet(ui.AppContext.INTRODUCTIONS,function(i) {
-			return i.aConnectionIid == self.options.connection.iid || i.bConnectionIid == self.options.connection.iid;
+		var set = new m3.observable.FilteredSet(ui.AppContext.NOTIFICATIONS,function(n) {
+			return n.fromConnectionIid == self.options.connection.iid && n.kind == ui.model.NotificationKind.IntroductionRequest;
 		});
 		set.listen(function(i,evt) {
 			if(evt.isAdd()) self.addNotification(); else if(evt.isDelete()) self.deleteNotification();
@@ -8485,10 +8231,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
 		selfElement.addClass("introductionNotificationComp container boxsizingBorder");
-		var data = self.options.notification.props;
-		var intro = m3.helper.OSetHelper.getElement(ui.AppContext.INTRODUCTIONS,data.introductionIid);
-		var conn = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,intro.aConnectionIid);
-		ui.AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(conn));");
+		var conn = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,self.options.notification.fromConnectionIid);
 		var connFromAlias = null;
 		if(connFromAlias != null) conn.data = connFromAlias.data;
 		self.listenerUid = ui.model.EM.addListener(ui.model.EMEvent.RespondToIntroduction_RESPONSE,new ui.model.EMListener(function(e) {
@@ -8501,14 +8244,14 @@ var defineWidget = function() {
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connection : conn, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationConfirmation = function(accepted) {
-			var confirmation = new ui.model.IntroductionResponseClass(data.introductionIid,accepted);
+			var confirmation = new ui.api.IntroResponseMessage(self.options.notification.iid,accepted);
 			ui.model.EM.change(ui.model.EMEvent.RespondToIntroduction,confirmation);
 		};
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
 		var from = new $("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
 		var date = new $("<div class='content-timestamp'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var message = new $("<div class='invitation-message'>" + data.message + "</div>").appendTo(invitationText);
+		var message = new $("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
 		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
 			invitationConfirmation(true);
 		});
@@ -9299,25 +9042,6 @@ var defineWidget = function() {
 };
 $.widget("ui.userComp",defineWidget());
 var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ZWidget must be a div element");
-		selfElement.addClass("zwidget");
-		self.container = new $("<div class=''></div>");
-		selfElement.append(self.container);
-		new $("<button>Introduction Notification</button>").button().click(function(evt) {
-		}).appendTo(self.container);
-		(js.Boot.__cast(selfElement , $)).m3dialog({ autoOpen : false});
-	}, open : function() {
-		var selfElement = this.element;
-		selfElement.m3dialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.zWidget",defineWidget());
-var defineWidget = function() {
 	return { _addContent : function(content) {
 		var self = this;
 		ui.AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
@@ -9404,35 +9128,16 @@ ui.api.BennuHandler.REGISTER = "/api/squery/register";
 ui.api.BennuHandler.DEREGISTER = "/api/squery/deregister";
 ui.api.BennuHandler.INTRODUCE = "/api/introduction/initiate";
 ui.api.BennuHandler.INTRO_RESPONSE = "/api/introduction/respond";
+ui.api.BennuHandler.GET_PROFILE = "/api/profile/get ";
 ui.api.BennuMessage.__rtti = "<class path=\"ui.api.BennuMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"13\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.DeleteMessage.__rtti = "<class path=\"ui.api.DeleteMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"26\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"39\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"34\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<q><c path=\"String\"/></q>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"type:?q\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.api.RegisterMessage.__rtti = "<class path=\"ui.api.RegisterMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<types public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></types>\n\t<new public=\"1\" set=\"method\" line=\"57\"><f a=\"types\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"69\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<agentId><c path=\"String\"/></agentId>\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"96\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"100\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"83\"><f a=\"?requests_:?agentId\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ProtocolMessage.__rtti = "<class path=\"ui.api.ProtocolMessage\" params=\"T\">\n\t<msgType public=\"1\" set=\"null\"><e path=\"ui.api.MsgType\"/></msgType>\n\t<content>\n\t\t<d/>\n\t\t<meta><m n=\":isVar\"/></meta>\n\t</content>\n\t<contentImpl public=\"1\">\n\t\t<c path=\"ui.api.ProtocolMessage.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</contentImpl>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"31\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"35\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"25\"><f a=\"msgType:type\">\n\t<e path=\"ui.api.MsgType\"/>\n\t<x path=\"Class\"><c path=\"ui.api.ProtocolMessage.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.Payload.__rtti = "<class path=\"ui.api.Payload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<new public=\"1\" set=\"method\" line=\"42\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.PayloadWithSessionURI.__rtti = "<class path=\"ui.api.PayloadWithSessionURI\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.PayloadWithReason.__rtti = "<class path=\"ui.api.PayloadWithReason\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"53\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ErrorPayload.__rtti = "<class path=\"ui.api.ErrorPayload\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<reason public=\"1\"><c path=\"String\"/></reason>\n\t<new public=\"1\" set=\"method\" line=\"57\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ConfirmUserToken.__rtti = "<class path=\"ui.api.ConfirmUserToken\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.ConfirmUserTokenData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"62\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.ConfirmUserTokenData.__rtti = "<class path=\"ui.api.ConfirmUserTokenData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<token public=\"1\"><c path=\"String\"/></token>\n\t<new public=\"1\" set=\"method\" line=\"67\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionRequest.__rtti = "<class path=\"ui.api.InitializeSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"75\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionRequestData.__rtti = "<class path=\"ui.api.InitializeSessionRequestData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<agentURI public=\"1\"><c path=\"String\"/></agentURI>\n\t<new public=\"1\" set=\"method\" line=\"80\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionResponse.__rtti = "<class path=\"ui.api.InitializeSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.InitializeSessionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"85\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionResponseData.__rtti = "<class path=\"ui.api.InitializeSessionResponseData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<sessionURI public=\"1\"><c path=\"String\"/></sessionURI>\n\t<listOfAliases public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></listOfAliases>\n\t<defaultAlias public=\"1\"><c path=\"String\"/></defaultAlias>\n\t<listOfConnections public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></listOfConnections>\n\t<lastActiveLabel public=\"1\"><c path=\"String\"/></lastActiveLabel>\n\t<jsonBlob public=\"1\"><c path=\"ui.model.UserData\"/></jsonBlob>\n\t<listOfLabels><c path=\"Array\"><c path=\"String\"/></c></listOfLabels>\n\t<labels public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"Array\"><c path=\"ui.model.Label\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labels>\n\t<get_labels set=\"method\" line=\"100\"><f a=\"\"><c path=\"Array\"><c path=\"ui.model.Label\"/></c></f></get_labels>\n\t<new public=\"1\" set=\"method\" line=\"90\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.InitializeSessionError.__rtti = "<class path=\"ui.api.InitializeSessionError\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithReason\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"114\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionRequest.__rtti = "<class path=\"ui.api.CloseSessionRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"123\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.CloseSessionResponse.__rtti = "<class path=\"ui.api.CloseSessionResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"129\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.FeedExpr.__rtti = "<class path=\"ui.api.FeedExpr\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.FeedExprData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"135\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.FeedExprData.__rtti = "<class path=\"ui.api.FeedExprData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<cnxns public=\"1\"><c path=\"Array\"><c path=\"ui.model.Connection\"/></c></cnxns>\n\t<label public=\"1\"><c path=\"String\"/></label>\n\t<new public=\"1\" set=\"method\" line=\"140\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.BackupRequest.__rtti = "<class path=\"ui.api.BackupRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.BackupData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"151\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.BackupData.__rtti = "<class path=\"ui.api.BackupData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.PayloadWithSessionURI\"/>\n\t<new public=\"1\" set=\"method\" line=\"155\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.RestoreRequest.__rtti = "<class path=\"ui.api.RestoreRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.BackupData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"160\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.RestoresRequest.__rtti = "<class path=\"ui.api.RestoresRequest\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.PayloadWithSessionURI\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"166\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.RestoresResponse.__rtti = "<class path=\"ui.api.RestoresResponse\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.ProtocolMessage\"><c path=\"ui.api.RestoresData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"172\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.api.RestoresData.__rtti = "<class path=\"ui.api.RestoresData\" params=\"\" module=\"ui.api.ProtocolMessage\">\n\t<extends path=\"ui.api.Payload\"/>\n\t<backups public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></backups>\n\t<new public=\"1\" set=\"method\" line=\"177\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.api.IntroMessage.__rtti = "<class path=\"ui.api.IntroMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"68\"><f a=\"i\">\n\t<c path=\"ui.model.Introduction\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.IntroResponseMessage.__rtti = "<class path=\"ui.api.IntroResponseMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"81\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"93\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<agentId><c path=\"String\"/></agentId>\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"120\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"124\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"107\"><f a=\"?requests_:?agentId\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"26\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.model.ModelObjWithIid.__rtti = "<class path=\"ui.model.ModelObjWithIid\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"46\" static=\"1\"><f a=\"t\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
@@ -9459,9 +9164,11 @@ ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" mo
 ui.model.Notification.__rtti = "<class path=\"ui.model.Notification\" params=\"T\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"ui.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"ui.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"438\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"442\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"430\"><f a=\"kind:type\">\n\t<e path=\"ui.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"ui.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.Introduction.__rtti = "<class path=\"ui.model.Introduction\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"455\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.IntroductionRequestClass.__rtti = "<class path=\"ui.model.IntroductionRequestClass\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Notification\"><c path=\"ui.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"463\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.IntroductionResponseClass.__rtti = "<class path=\"ui.model.IntroductionResponseClass\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Notification\"><c path=\"ui.model.IntroductionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"473\"><f a=\"introductionIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"488\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"501\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.IntroductionRequestData.__rtti = "<class path=\"ui.model.IntroductionRequestData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.model.IntroductionResponseClass.__rtti = "<class path=\"ui.model.IntroductionResponseClass\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Notification\"><c path=\"ui.model.IntroductionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"474\"><f a=\"introductionIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.IntroductionResponseData.__rtti = "<class path=\"ui.model.IntroductionResponseData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"490\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"503\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.widget.score.ContentTimeLine.initial_y_pos = 60;
 ui.widget.score.ContentTimeLine.next_y_pos = ui.widget.score.ContentTimeLine.initial_y_pos;
 ui.widget.score.ContentTimeLine.next_x_pos = 10;

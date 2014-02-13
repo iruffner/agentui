@@ -11,7 +11,7 @@ import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
-import ui.api.ProtocolMessage;
+import ui.api.CrudMessage;
 import ui.model.ModelObj;
 import ui.model.Node;
 import ui.model.Filter;
@@ -54,15 +54,8 @@ extern class IntroductionNotificationComp extends JQ {
 		        	}
 		        	selfElement.addClass("introductionNotificationComp container boxsizingBorder");
 
-		        	var data = self.options.notification.props;
+		        	var conn: Connection = AppContext.MASTER_CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
-		        	// Get the Introduction and the connection
-		        	var intro = AppContext.INTRODUCTIONS.getElement(data.introductionIid);
-
-		        	// TODO:  How do you tell which connection is which???
-		        	var conn: Connection = AppContext.MASTER_CONNECTIONS.getElement(intro.aConnectionIid);
-
-		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(conn));");
 		        	var connFromAlias: Connection = null;//AppContext.currentAlias.connectionSet.getElement(Connection.identifier(conn));
 		        	if(connFromAlias != null) conn.data = connFromAlias.data;
 
@@ -85,7 +78,7 @@ extern class IntroductionNotificationComp extends JQ {
 	        		}).appendTo(intro_table.find("td:nth-child(1)"));
 
 	        		var invitationConfirmation = function(accepted:Bool) {
-	        			var confirmation = new IntroductionResponseClass(data.introductionIid, accepted);
+	        			var confirmation = new IntroResponseMessage(self.options.notification.iid, accepted);
 	        			EM.change(EMEvent.RespondToIntroduction, confirmation);
 	        		}
 
@@ -93,7 +86,7 @@ extern class IntroductionNotificationComp extends JQ {
 		        	var title = new JQ("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
 		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
 		        	var date  =	new JQ("<div class='content-timestamp'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
-		        	var message = new JQ("<div class='invitation-message'>" + data.message + "</div>").appendTo(invitationText);
+		        	var message = new JQ("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
 					var accept = new JQ("<button>Accept</button>")
 							        .appendTo(invitationText)
 							        .button()

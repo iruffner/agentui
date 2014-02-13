@@ -25,6 +25,7 @@ class BennuHandler implements ProtocolHandler {
 	private static var DEREGISTER = "/api/squery/deregister" ;
 	private static var INTRODUCE = "/api/introduction/initiate";
 	private static var INTRO_RESPONSE = "/api/introduction/respond";
+	private static var GET_PROFILE = "/api/profile/get ";
 
 	private var eventDelegate:EventDelegate;
 	private var listeningChannel: LongPollingRequest;
@@ -32,6 +33,15 @@ class BennuHandler implements ProtocolHandler {
 
 	public function new() {
 		this.eventDelegate = new EventDelegate(this);
+	}
+
+	public function getProfile(connectionIid:Array<String>) {
+		/*
+		var context = Synchronizer.createContext(1, "getProfile");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(INTRODUCE, context + "introduction", CrudMessage.create(intro))]);
+		req.start();
+		*/
 	}
 
 	public function getAgent(login: Login): Void {
@@ -53,14 +63,14 @@ class BennuHandler implements ProtocolHandler {
 	public function beginIntroduction(intro: Introduction): Void {
 		var context = Synchronizer.createContext(1, "beginIntroduction");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(INTRODUCE, context + "introduction", CrudMessage.create(intro))]);
+			new ChannelRequestMessage(INTRODUCE, context + "introduction", new IntroMessage(intro))]);
 		req.start();
 	}
 
-	public function confirmIntroduction(confirmation: IntroductionResponseClass): Void {
+	public function confirmIntroduction(confirmation: IntroResponseMessage): Void {
 		var context = Synchronizer.createContext(1, "confirmIntroduction");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(INTRO_RESPONSE, context + "introduction", CrudMessage.create(confirmation))]);
+			new ChannelRequestMessage(INTRO_RESPONSE, context + "introduction", confirmation)]);
 		req.start();
 	}
 

@@ -1,5 +1,6 @@
 package ui.api;
 
+import ui.api.CrudMessage;
 import ui.model.ModelObj;
 import ui.model.Filter;
 
@@ -21,7 +22,7 @@ interface ProtocolHandler {
 	public function deleteAlias(alias: Alias): Void;
 	public function updateAlias(alias: Alias): Void;
 	public function beginIntroduction(intro: Introduction): Void; 
-	public function confirmIntroduction(confirmation: IntroductionResponseClass): Void;
+	public function confirmIntroduction(confirmation: IntroResponseMessage): Void;
 	public function backup(/*backupName: String*/): Void;
 	public function restore(/*backupName: String*/): Void;
 	public function restores(): Void;
