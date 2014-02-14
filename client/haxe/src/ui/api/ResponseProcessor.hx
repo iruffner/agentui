@@ -92,13 +92,6 @@ class ResponseProcessor {
         AppContext.INTRODUCTIONS.addAll(data.introductions);
         AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
 
-        // Request the profile for the connections
-        var connectionIids = new Array<String>();
-        for (connection in AppContext.MASTER_CONNECTIONS) {
-            connectionIids.push(connection.iid);
-        }
-        AgentUi.PROTOCOL.getProfiles(connectionIids);
-
     	var initialAlias:Alias = null;
     	for (alias in AppContext.ALIASES) {
     		if (alias.data.isDefault) {

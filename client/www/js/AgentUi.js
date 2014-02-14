@@ -4506,6 +4506,9 @@ ui.AppContext.init = function() {
 	ui.AppContext.CONNECTIONS = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONNECTIONS,function(c) {
 		return !c.deleted;
 	});
+	ui.AppContext.MASTER_CONNECTIONS.listen(function(c,evt) {
+		if(evt.isAddOrUpdate()) ui.AgentUi.PROTOCOL.getProfiles([c.iid]);
+	});
 	ui.AppContext.MASTER_LABELCHILDREN = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
 	ui.AppContext.LABELCHILDREN = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(c) {
 		return !c.deleted && c.childIid != ui.AppContext.INTRO_LABEL_IID;
@@ -5231,6 +5234,7 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 }
 ui.api.ResponseProcessor.updateModelObject = function(data) {
 	var type = data.type.toLowerCase();
+	ui.AppContext.LOGGER.info("Received update for: " + type);
 	switch(type) {
 	case "alias":
 		ui.AppContext.MASTER_ALIASES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Alias));
@@ -5274,17 +5278,10 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.AppContext.MASTER_CONNECTIONS.addAll(data.connections);
 	ui.AppContext.INTRODUCTIONS.addAll(data.introductions);
 	ui.AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
-	var connectionIids = new Array();
-	var $it0 = ui.AppContext.MASTER_CONNECTIONS.iterator();
-	while( $it0.hasNext() ) {
-		var connection = $it0.next();
-		connectionIids.push(connection.iid);
-	}
-	ui.AgentUi.PROTOCOL.getProfiles(connectionIids);
 	var initialAlias = null;
-	var $it1 = ui.AppContext.ALIASES.iterator();
-	while( $it1.hasNext() ) {
-		var alias = $it1.next();
+	var $it0 = ui.AppContext.ALIASES.iterator();
+	while( $it0.hasNext() ) {
+		var alias = $it0.next();
 		if(alias.data.isDefault) {
 			initialAlias = alias;
 			break;

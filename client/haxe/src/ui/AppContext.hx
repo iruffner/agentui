@@ -88,6 +88,11 @@ class AppContext {
         CONNECTIONS = new FilteredSet<Connection>(MASTER_CONNECTIONS, function(c:Connection):Bool {
             return !c.deleted;
         });
+        MASTER_CONNECTIONS.listen(function(c:Connection, evt:EventType): Void {
+            if (evt.isAddOrUpdate()) {
+                AgentUi.PROTOCOL.getProfiles([c.iid]);
+            }
+        });
 
         MASTER_LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
         LABELCHILDREN = new FilteredSet<LabelChild>(MASTER_LABELCHILDREN, function(c:LabelChild):Bool {
