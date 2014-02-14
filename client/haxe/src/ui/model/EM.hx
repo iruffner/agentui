@@ -126,8 +126,6 @@ enum EMEvent {
 	RespondToIntroduction_RESPONSE;
 	INTRODUCTION_NOTIFICATION;
 
-	DELETE_NOTIFICATION;
-
 	NewConnection;
 	ConnectionUpdate;
 

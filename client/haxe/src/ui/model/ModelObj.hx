@@ -51,6 +51,7 @@ class ModelObjWithIid extends ModelObj {
 class Agent extends ModelObj {
 	public var iid: String;
 	public var agentId: String;
+	public var uberAliasIid: String;
   	public var name: String;
   	public var data: UserData;
 	public var deleted: Bool;

@@ -69,64 +69,66 @@ class Synchronizer {
         parms.result = dataObj.result;
         var data:Dynamic = dataObj.result;
 
-    	switch (responseType) {
-            case "agent":
-                if (data.length > 0) {
-                    if (data[0].data.name == null) {
-                        data[0].data.name = "";
+        if (!Std.is(data,String)) {
+        	switch (responseType) {
+                case "agent":
+                    if (data.length > 0) {
+                        if (data[0].data.name == null) {
+                            data[0].data.name = "";
+                        }
+                        parms.agent = AppContext.SERIALIZER.fromJsonX(data[0], Agent);
                     }
-                    parms.agent = AppContext.SERIALIZER.fromJsonX(data[0], Agent);
-                }
-    		case "alias":
-    			parms.aliases.push(AppContext.SERIALIZER.fromJsonX(data, Alias));
-    		case "aliases":
-    			for (alias_ in cast(data, Array<Dynamic>)) {
-    				parms.aliases.push(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
-    			}
-            case "connection":
-                parms.connections.push(AppContext.SERIALIZER.fromJsonX(data, Connection));
-            case "connections":
-                for (content_ in cast(data, Array<Dynamic>)) {
-                    parms.connections.push(AppContext.SERIALIZER.fromJsonX(content_, Connection));
-                }
-            case "content":
-                parms.content.push(AppContext.SERIALIZER.fromJsonX(data, Content));
-            case "contents":
-                for (content_ in cast(data, Array<Dynamic>)) {
-                    parms.content.push(AppContext.SERIALIZER.fromJsonX(content_, Content));
-                }
-            case "introduction":
-                parms.introductions.push(AppContext.SERIALIZER.fromJsonX(data, Introduction));
-            case "introductions":
-                for (content_ in cast(data, Array<Dynamic>)) {
-                    parms.introductions.push(AppContext.SERIALIZER.fromJsonX(content_, Introduction));
-                }
-    		case "label":
-    			parms.labels.push(AppContext.SERIALIZER.fromJsonX(data, Label));
-    		case "labels":
-    			for (label_ in cast(data, Array<Dynamic>)) {
-    				parms.labels.push(AppContext.SERIALIZER.fromJsonX(label_, Label));
-    			}
-    		case "labelChild":
-    			parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(data, LabelChild));
-    		case "labelChildren":
-    			for (labelChild_ in cast(data, Array<Dynamic>)) {
-    				parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
-    			}
-            case "labeledContent":
-                parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(data, LabeledContent));
-            case "labeledContents":
-                for (labeledContent_ in cast(data, Array<Dynamic>)) {
-                    parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(labeledContent_, LabeledContent));
-                }
-            case "notification":
-                parms.notifications.push(AppContext.SERIALIZER.fromJsonX(data, Notification));
-            case "notifications":
-                for (content_ in cast(data, Array<Dynamic>)) {
-                    parms.notifications.push(AppContext.SERIALIZER.fromJsonX(content_, Notification));
-                }
-    	}
-
+        		case "alias":
+        			parms.aliases.push(AppContext.SERIALIZER.fromJsonX(data, Alias));
+        		case "aliases":
+        			for (alias_ in cast(data, Array<Dynamic>)) {
+        				parms.aliases.push(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
+        			}
+                case "connection":
+                    parms.connections.push(AppContext.SERIALIZER.fromJsonX(data, Connection));
+                case "connections":
+                    for (content_ in cast(data, Array<Dynamic>)) {
+                        parms.connections.push(AppContext.SERIALIZER.fromJsonX(content_, Connection));
+                    }
+                case "content":
+                    parms.content.push(AppContext.SERIALIZER.fromJsonX(data, Content));
+                case "contents":
+                    for (content_ in cast(data, Array<Dynamic>)) {
+                        parms.content.push(AppContext.SERIALIZER.fromJsonX(content_, Content));
+                    }
+                case "introduction":
+                    parms.introductions.push(AppContext.SERIALIZER.fromJsonX(data, Introduction));
+                case "introductions":
+                    for (content_ in cast(data, Array<Dynamic>)) {
+                        parms.introductions.push(AppContext.SERIALIZER.fromJsonX(content_, Introduction));
+                    }
+        		case "label":
+        			parms.labels.push(AppContext.SERIALIZER.fromJsonX(data, Label));
+        		case "labels":
+        			for (label_ in cast(data, Array<Dynamic>)) {
+        				parms.labels.push(AppContext.SERIALIZER.fromJsonX(label_, Label));
+        			}
+        		case "labelChild":
+        			parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(data, LabelChild));
+        		case "labelChildren":
+        			for (labelChild_ in cast(data, Array<Dynamic>)) {
+        				parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
+        			}
+                case "labeledContent":
+                    parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(data, LabeledContent));
+                case "labeledContents":
+                    for (labeledContent_ in cast(data, Array<Dynamic>)) {
+                        parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(labeledContent_, LabeledContent));
+                    }
+                case "notification":
+                    parms.notifications.push(AppContext.SERIALIZER.fromJsonX(data, Notification));
+                case "notifications":
+                    for (content_ in cast(data, Array<Dynamic>)) {
+                        parms.notifications.push(AppContext.SERIALIZER.fromJsonX(content_, Notification));
+                    }
+        	}
+        }
+        
     	numResponsesExpected -= 1;
     	if (numResponsesExpected == 0) {
     		var func = Reflect.field(ResponseProcessor, oncomplete);

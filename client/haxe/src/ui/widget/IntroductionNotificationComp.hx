@@ -59,10 +59,8 @@ extern class IntroductionNotificationComp extends JQ {
 		        	var connFromAlias: Connection = null;//AppContext.currentAlias.connectionSet.getElement(Connection.identifier(conn));
 		        	if(connFromAlias != null) conn.data = connFromAlias.data;
 
-		        	// TODO:  Need some kind of an object that will fire an event when the response is received...
 		        	self.listenerUid = EM.addListener(EMEvent.RespondToIntroduction_RESPONSE, new EMListener(function(e:Dynamic) {
 		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {
-		        			EM.change(EMEvent.DELETE_NOTIFICATION, self.options.notification);
 		        			self.destroy();
 		        			selfElement.remove();
 		        		});

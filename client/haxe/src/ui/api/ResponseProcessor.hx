@@ -30,8 +30,6 @@ class ResponseProcessor {
                     processProfile(data.data);
                 } else if (data.responseType == "squery") {
                     updateModelObject(data.data);
-                } else if (Std.is(data.result,String)) {
-                    ui.AppContext.LOGGER.warn(data);
                 } else {
     				var context:Array<String> = data.context.split("-");
                     if (context == null) {return;}
@@ -105,10 +103,8 @@ class ResponseProcessor {
 	    AppContext.currentAlias = initialAlias;
 
         // Set the uber label's iid
-        var fs = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(c:Label):Bool {
-            return c.name == "uber label";
-        });
-        AppContext.UBER_LABEL_IID = fs.iterator().next().iid;
+        var uberAlias = AppContext.ALIASES.getElement(AppContext.AGENT.uberAliasIid);
+        AppContext.UBER_LABEL_IID = uberAlias.rootLabelIid;
 
         // Set the intro label's iid
         var fs = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(c:Label):Bool {
@@ -130,5 +126,13 @@ class ResponseProcessor {
         var connection = AppContext.MASTER_CONNECTIONS.getElement(rec.connectionIid);
         connection.data = AppContext.SERIALIZER.fromJsonX(rec.profile, UserData);
         AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+    }
+
+    public static function beginIntroduction(data:SynchronizationParms) {
+        EM.change(EMEvent.INTRODUCTION_RESPONSE);
+    }
+
+    public static function confirmIntroduction(data:SynchronizationParms) {
+        EM.change(RespondToIntroduction_RESPONSE);
     }
 }

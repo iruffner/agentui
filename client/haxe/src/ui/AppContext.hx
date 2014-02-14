@@ -89,7 +89,7 @@ class AppContext {
             return !c.deleted;
         });
         MASTER_CONNECTIONS.listen(function(c:Connection, evt:EventType): Void {
-            if (evt.isAddOrUpdate()) {
+            if (evt.isAdd()) {
                 AgentUi.PROTOCOL.getProfiles([c.iid]);
             }
         });

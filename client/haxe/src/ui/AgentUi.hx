@@ -52,33 +52,7 @@ class AgentUi {
         var r: RestoreWidget = new RestoreWidget("<div></div>");
         
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
-            if(evt.altKey && evt.shiftKey && evt.keyCode == 78 /* ALT+SHIFT+N */) {
-                /*
-                AppContext.LOGGER.debug("ALT + SHIFT + N");
-                var connection: Connection = null;//AppContext.currentAlias.connectionSet.asArray()[2];
-
-                var notification: IntroductionNotification = new IntroductionNotification();
-                notification.contentImpl = new IntroductionNotificationData();
-                notification.contentImpl.connection = connection;
-                notification.contentImpl.correlationId = "abc123";
-                notification.contentImpl.message = "hey guys!  Are you ready to get to know eachother???";
-                notification.contentImpl.profile.name = "Uncle Leo";
-                notification.contentImpl.profile.imgSrc = "media/test/uncle_leo.jpg";
-
-                EM.change(EMEvent.INTRODUCTION_NOTIFICATION, notification);
-                */
-            }
-            else if(evt.altKey && evt.shiftKey && evt.keyCode == 77 /* ALT+SHIFT+M */) {
-                /*
-                AppContext.LOGGER.debug("ALT + SHIFT + M");
-                var connection: Connection = null;//AppContext.currentAlias.connectionSet.asArray()[2];
-                var notification: IntroductionNotification = new IntroductionNotification();
-                notification.contentImpl.connection = connection;
-                notification.contentImpl.correlationId = "abc123";
-                EM.change(EMEvent.DELETE_NOTIFICATION, notification);
-                */
-            }
-            else if(evt.altKey && evt.shiftKey && evt.keyCode == 82 /* ALT+SHIFT+R */) {
+            if(evt.altKey && evt.shiftKey && evt.keyCode == 82 /* ALT+SHIFT+R */) {
                 AppContext.LOGGER.debug("ALT + SHIFT + R");
                 r.restoreWidget("open");
             }
