@@ -57,7 +57,7 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
-	public function beginIntroduction(intro: Introduction): Void {
+	public function beginIntroduction(intro: IntroductionRequest): Void {
 		var context = Synchronizer.createContext(1, "beginIntroduction");
 		var req = new SubmitRequest([
 			new ChannelRequestMessage(INTRODUCE, context + "introduction", new IntroMessage(intro))]);

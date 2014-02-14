@@ -398,9 +398,9 @@ class NotificationHandler implements TypeHandler {
         	case NotificationKind.Pong:
         		obj = null;
         	case NotificationKind.IntroductionRequest:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionRequestClass);
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionRequestNotification);
         	case NotificationKind.IntroductionResponse:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionResponseClass);
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionResponseNotification);
         }
 
         return obj;
@@ -452,14 +452,22 @@ enum IntroductionState {
     Rejected;
 }
 
-class Introduction extends ModelObjWithIid {
+class IntroductionRequest extends ModelObjWithIid {
 	public var aConnectionIid: String;
-	public var aMessage: String;
 	public var bConnectionIid: String;
+	public var aMessage: String;
 	public var bMessage: String;
 }
 
-class IntroductionRequestClass extends Notification<IntroductionRequestData> {
+class Introduction extends ModelObjWithIid {
+	public var aConnectionIid: String;
+	public var bConnectionIid: String;
+	public var aState: IntroductionState;
+	public var bState: IntroductionState;
+}
+
+
+class IntroductionRequestNotification extends Notification<IntroductionRequestData> {
 	public function new () {
 		super(NotificationKind.IntroductionRequest, IntroductionRequestData);
 	}
@@ -468,9 +476,10 @@ class IntroductionRequestClass extends Notification<IntroductionRequestData> {
 	class IntroductionRequestData {
 		public var introductionIid: String;
 		public var message: String;
+		public var profile: UserData;
 	}
 
-class IntroductionResponseClass extends Notification<IntroductionResponseData> {
+class IntroductionResponseNotification extends Notification<IntroductionResponseData> {
 	public function new (introductionIid: String, accepted:Bool) {
 		super(NotificationKind.IntroductionResponse, IntroductionResponseData);
 		this.props.introductionIid = introductionIid;

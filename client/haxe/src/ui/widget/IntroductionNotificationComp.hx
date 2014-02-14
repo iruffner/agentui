@@ -23,7 +23,7 @@ using ui.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
 
 typedef IntroductionNotificationCompOptions = {
-	var notification: IntroductionRequestClass;
+	var notification: IntroductionRequestNotification;
 }
 
 typedef IntroductionNotificationCompWidgetDef = {

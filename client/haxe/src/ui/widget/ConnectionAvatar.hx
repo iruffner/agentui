@@ -144,27 +144,34 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 			            cast(selfElement, JQDroppable).droppable({
 				    		accept: function(d) {
-				    			return !JQ.cur.parent().is(".filterCombination") && JQ.cur.parent().is(".dropCombiner") && d.is(".connectionAvatar");
+				    			return !JQ.cur.parent().is(".filterCombination") && 
+				    					(d.is(".labelComp") ||
+ 				    			         (JQ.cur.parent().is(".dropCombiner") && d.is(".connectionAvatar")));
 				    		},
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",
 					      	greedy: true,
-					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
-					      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
-					      		filterCombiner.appendTo(JQ.cur.parent());
-					      		filterCombiner.filterCombination({
-					      			event: event,
-					      			type: "CONNECTION",
-					      			dragstop: self.options.dragstop
-				      			});
-				      			filterCombiner.filterCombination("addFilterable", JQ.cur);
+					      	drop: function(event: JQEvent, _ui: UIDroppable ) {
+					      		if (_ui.draggable.is(".labelComp")) {
+									var labelComp: LabelComp = cast(_ui.draggable, LabelComp);
+									js.Lib.alert(labelComp);
+					      		} else {
+						      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
+						      		filterCombiner.appendTo(JQ.cur.parent());
+						      		filterCombiner.filterCombination({
+						      			event: event,
+						      			type: "CONNECTION",
+						      			dragstop: self.options.dragstop
+					      			});
+					      			filterCombiner.filterCombination("addFilterable", JQ.cur);
 
-				      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
-				                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
+					      			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
+					                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
 
-				      			filterCombiner.filterCombination("addFilterable", clone);
+					      			filterCombiner.filterCombination("addFilterable", clone);
 
-				      			filterCombiner.filterCombination("position");
+					      			filterCombiner.filterCombination("position");
+					      		}
 					      	},
 					      	tolerance: "pointer"
 				    	});

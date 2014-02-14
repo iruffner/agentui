@@ -87,7 +87,7 @@ extern class FilterComp extends JQ {
 				                	if (set.hasValues()) {
 				                		var iter = set.iterator();
 				                		var introComp = new IntroductionNotificationComp("<div></div>").introductionNotificationComp({
-			  		        				notification: cast(iter.next(), IntroductionRequestClass)
+			  		        				notification: cast(iter.next(), IntroductionRequestNotification)
 			 		        			});
 
 				                		introComp.insertAfter(new JQ("#filter"));

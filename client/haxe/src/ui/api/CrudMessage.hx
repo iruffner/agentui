@@ -65,7 +65,7 @@ class IntroMessage implements ChannelMessage {
 	public var aMessage: String;
 	public var bConnectionIid: String;
 	public var bMessage: String;
-	public function new(i:Introduction) {
+	public function new(i:IntroductionRequest) {
 		this.aConnectionIid = i.aConnectionIid;
 		this.aMessage = i.aMessage;
 		this.bConnectionIid = i.bConnectionIid;

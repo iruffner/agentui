@@ -122,7 +122,7 @@ extern class RequestIntroductionDialog extends JQ {
 
 					// Build out the introduction request message
 					var alias:String = AppContext.currentAlias.profile.name;
-					var intro: Introduction = new Introduction();
+					var intro: IntroductionRequest = new IntroductionRequest();
 					intro.aConnectionIid = self.options.to.iid;
 					intro.bConnectionIid = self.options.from.iid;
 					intro.aMessage = new JQ("#to_text").val();

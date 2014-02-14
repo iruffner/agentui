@@ -99,7 +99,7 @@ class EventDelegate {
             protocolHandler.confirmIntroduction(intro);
         }));
 
-        EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(intro: Introduction):Void{
+        EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(intro: IntroductionRequest):Void{
         	protocolHandler.beginIntroduction(intro);
         }));
 

@@ -29,7 +29,7 @@ class ResponseProcessor {
                 if (data.responseType == "profile") {
                     processProfile(data.data);
                 } else if (data.responseType == "squery") {
-                    updateModelObject(data.data.instance, data.data.type);
+                    updateModelObject(data.data);
                 } else if (Std.is(data.result,String)) {
                     ui.AppContext.LOGGER.warn(data);
                 } else {
@@ -46,25 +46,25 @@ class ResponseProcessor {
 		});
 	}
 
-    private static function updateModelObject(instance:Dynamic, type:String) {
-        type = type.toLowerCase();
+    private static function updateModelObject(data:Dynamic) {
+        var type:String = data.type.toLowerCase();
         switch (type) {
             case "alias":
-                AppContext.MASTER_ALIASES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Alias));
+                AppContext.MASTER_ALIASES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Alias));
             case "connection":
-                AppContext.MASTER_CONNECTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Connection));
+                AppContext.MASTER_CONNECTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Connection));
             case "content":
-                AppContext.MASTER_CONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Content));
+                AppContext.MASTER_CONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Content));
             case "introduction":
-                AppContext.INTRODUCTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Introduction));
+                AppContext.INTRODUCTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Introduction));
             case "label":
-                AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Label));
+                AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Label));
             case "labelchild":
-                AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, LabelChild));
+                AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabelChild));
             case "labeledcontent":
-                AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, LabeledContent));
+                AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabeledContent));
             case "notification":
-                AppContext.MASTER_NOTIFICATIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(instance, Notification));
+                AppContext.MASTER_NOTIFICATIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Notification));
             default:
                 AppContext.LOGGER.error("Unknown type: " + type);
         }
