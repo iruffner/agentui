@@ -6373,21 +6373,6 @@ ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
 ui.widget.ConnectionAvatarHelper.update = function(c,connection) {
 	return c.connectionAvatar("update",connection);
 }
-ui.widget.ConnectionCompHelper = function() { }
-$hxClasses["ui.widget.ConnectionCompHelper"] = ui.widget.ConnectionCompHelper;
-ui.widget.ConnectionCompHelper.__name__ = ["ui","widget","ConnectionCompHelper"];
-ui.widget.ConnectionCompHelper.connection = function(c) {
-	return c.connectionComp("option","connection");
-}
-ui.widget.ConnectionCompHelper.update = function(c,connection) {
-	return c.connectionComp("update",connection);
-}
-ui.widget.ConnectionCompHelper.addNotification = function(c) {
-	return c.connectionComp("addNotification");
-}
-ui.widget.ConnectionCompHelper.deleteNotification = function(c) {
-	return c.connectionComp("deleteNotification");
-}
 ui.widget.DialogManager = function() { }
 $hxClasses["ui.widget.DialogManager"] = ui.widget.DialogManager;
 $hxExpose(ui.widget.DialogManager, "ui.widget.DialogManager");
@@ -6427,6 +6412,24 @@ ui.widget.DialogManager.requestIntroduction = function(from,to) {
 }
 ui.widget.DialogManager.showAliasManager = function() {
 	ui.widget.DialogManager.showDialog("aliasManagerDialog");
+}
+ui.widget.DialogManager.allowAccess = function() {
+	ui.widget.DialogManager.showDialog("allowAccessDialog");
+}
+ui.widget.ConnectionCompHelper = function() { }
+$hxClasses["ui.widget.ConnectionCompHelper"] = ui.widget.ConnectionCompHelper;
+ui.widget.ConnectionCompHelper.__name__ = ["ui","widget","ConnectionCompHelper"];
+ui.widget.ConnectionCompHelper.connection = function(c) {
+	return c.connectionComp("option","connection");
+}
+ui.widget.ConnectionCompHelper.update = function(c,connection) {
+	return c.connectionComp("update",connection);
+}
+ui.widget.ConnectionCompHelper.addNotification = function(c) {
+	return c.connectionComp("addNotification");
+}
+ui.widget.ConnectionCompHelper.deleteNotification = function(c) {
+	return c.connectionComp("deleteNotification");
 }
 ui.widget.ConnectionListHelper = function() { }
 $hxClasses["ui.widget.ConnectionListHelper"] = ui.widget.ConnectionListHelper;
@@ -7307,6 +7310,34 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AllowAccessDialog must be a div element");
+		self._initialized = false;
+		selfElement.addClass("allowAccessDialog").hide();
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement = this.element;
+		self1._initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Allow Access", height : 320, width : 400, modal : true, buttons : { Allow : function() {
+			self1._allowAccess();
+		}, Cancel : function() {
+			$(this).dialog("close");
+		}}};
+		selfElement.dialog(dlgOptions);
+	}, _allowAccess : function() {
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!self._initialized) self._buildDialog();
+		selfElement.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.allowAccessDialog",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AndOrToggle must be a div element");
 		selfElement.addClass("andOrToggle");
 		var or = new $("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
@@ -7556,7 +7587,7 @@ var defineWidget = function() {
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 				if(_ui.draggable["is"](".labelComp")) {
 					var labelComp = js.Boot.__cast(_ui.draggable , $);
-					js.Lib.alert(labelComp);
+					ui.widget.DialogManager.allowAccess();
 				} else {
 					var filterCombiner = new $("<div></div>");
 					filterCombiner.appendTo($(this).parent());

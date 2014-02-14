@@ -19,10 +19,8 @@ typedef LoginDialogWidgetDef = {
 
 	@:optional var input_un: JQ;
 	@:optional var input_pw: JQ;
-	@:optional var input_ag: JQ;
 	@:optional var placeholder_un: JQ;
 	@:optional var placeholder_pw: JQ;
-	@:optional var placeholder_ag: JQ;
 	
 	var initialized: Bool;
 
@@ -65,9 +63,6 @@ extern class LoginDialog extends JQ {
 
 		        	self.input_pw = new JQ("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	self.placeholder_pw = new JQ("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		        	// inputs.append("<br/>");
-		        	// self.input_ag = new JQ("<input id='login_ag' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		        	// self.placeholder_ag = new JQ("<input id='login_ag_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 
 	        		self.input_un.val("");
 	        		self.input_pw.val("ohyea");

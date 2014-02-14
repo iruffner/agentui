@@ -6,6 +6,7 @@ import ui.widget.AliasManagerDialog;
 import ui.widget.LoginDialog;
 import ui.widget.CreateAgentDialog;
 import ui.widget.RequestIntroductionDialog;
+import ui.widget.AllowAccessDialog;
 
 @:expose
 class DialogManager {
@@ -51,4 +52,7 @@ class DialogManager {
         showDialog("aliasManagerDialog");
     }   
 
+    public static function allowAccess(): Void {
+        showDialog("allowAccessDialog");
+    }   
 }

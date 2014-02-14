@@ -6,6 +6,7 @@ import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.jq.JQTooltip;
 import m3.widget.Widgets;
+import ui.widget.DialogManager;
 import ui.model.ModelObj;
 import ui.model.Node;
 import m3.observable.OSet.ObservableSet;
@@ -154,7 +155,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 					      	drop: function(event: JQEvent, _ui: UIDroppable ) {
 					      		if (_ui.draggable.is(".labelComp")) {
 									var labelComp: LabelComp = cast(_ui.draggable, LabelComp);
-									js.Lib.alert(labelComp);
+									DialogManager.allowAccess();
 					      		} else {
 						      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
 						      		filterCombiner.appendTo(JQ.cur.parent());
