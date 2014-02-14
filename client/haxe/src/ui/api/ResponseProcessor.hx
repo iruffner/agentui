@@ -26,8 +26,10 @@ class ResponseProcessor {
 				JqueryUtil.alert("ERROR:  " + data.error.message + "     Context: " + data.context);
 	            AppContext.LOGGER.error(data.error.stacktrace);
             } else {
-                if (data.type != null) {
-                    updateModelObject(data.instance, data.type);
+                if (data.responseType == "profile") {
+                    processProfile(data.data);
+                } else if (data.responseType == "squery") {
+                    updateModelObject(data.data.instance, data.data.type);
                 } else if (Std.is(data.result,String)) {
                     ui.AppContext.LOGGER.warn(data);
                 } else {
@@ -131,12 +133,9 @@ class ResponseProcessor {
         modelUpdateHandle = data.result.handle;
     }
 
-    public static function getProfiles(data:SynchronizationParms) {
-        for (rec in cast(data.result, Array<Dynamic>)) {
-            var fields = Reflect.fields(rec);
-            var connection = AppContext.MASTER_CONNECTIONS.getElement(fields[0]);
-            connection.data = AppContext.SERIALIZER.fromJsonX(Reflect.getProperty(rec,fields[0]), UserData);
-            AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
-        }
+    public static function processProfile(rec:Dynamic) {
+        var connection = AppContext.MASTER_CONNECTIONS.getElement(rec.connectionIid);
+        connection.data = AppContext.SERIALIZER.fromJsonX(rec.profile, UserData);
+        AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
     }
 }
