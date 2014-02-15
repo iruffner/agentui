@@ -50,20 +50,27 @@ extern class AllowAccessDialog extends JQ {
 		        	var self: AllowAccessDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-	        		new LabelComp("<div></div>").labelComp({
-        				dndEnabled: false,
-	        			labelIid: self.options.label.iid
-	        		}).appendTo(selfElement);
+					selfElement.append("<div>Would you like to allow</div>");
 
 	        		new ConnectionAvatar("<div></div>").connectionAvatar({
         				dndEnabled: false,
         				connection: self.options.connection
         			}).appendTo(selfElement);
 
+					selfElement.append("<div>" + self.options.connection.data.name + "</div>");
+					selfElement.append("<div>&nbsp;</div>");
+					selfElement.append("<div>to access the label:</div>");
+					selfElement.append("<div>&nbsp;</div>");
+
+	        		new LabelComp("<div></div>").labelComp({
+        				dndEnabled: false,
+	        			labelIid: self.options.label.iid
+	        		}).appendTo(selfElement);
+
 		        	var dlgOptions: JQDialogOptions = {
 		        		autoOpen: false,
 		        		title: "Allow Access",
-		        		height: 320,
+		        		height: 290,
 		        		width: 400,
 		        		modal: true,
 		        		buttons: {
