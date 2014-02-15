@@ -174,8 +174,6 @@ extern class RequestIntroductionDialog extends JQ {
 					}
 		        	self._buildDialog();
 
-		        	// selfElement.children("#n_label").focus();
-		        	// self.input_n.blur();
 	        		selfElement.dialog("open");
         		},
 		        

@@ -6357,21 +6357,14 @@ ui.model.ConnectionNode.prototype = $extend(ui.model.ContentNode.prototype,{
 	,__class__: ui.model.ConnectionNode
 });
 ui.widget = {}
-ui.widget.ChatOrientation = $hxClasses["ui.widget.ChatOrientation"] = { __ename__ : ["ui","widget","ChatOrientation"], __constructs__ : ["chatRight","chatLeft"] }
-ui.widget.ChatOrientation.chatRight = ["chatRight",0];
-ui.widget.ChatOrientation.chatRight.toString = $estr;
-ui.widget.ChatOrientation.chatRight.__enum__ = ui.widget.ChatOrientation;
-ui.widget.ChatOrientation.chatLeft = ["chatLeft",1];
-ui.widget.ChatOrientation.chatLeft.toString = $estr;
-ui.widget.ChatOrientation.chatLeft.__enum__ = ui.widget.ChatOrientation;
-ui.widget.ConnectionAvatarHelper = function() { }
-$hxClasses["ui.widget.ConnectionAvatarHelper"] = ui.widget.ConnectionAvatarHelper;
-ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelper"];
-ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
-	return c.connectionAvatar("option","connection");
+ui.widget.LabelCompHelper = function() { }
+$hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
+ui.widget.LabelCompHelper.__name__ = ["ui","widget","LabelCompHelper"];
+ui.widget.LabelCompHelper.getLabel = function(l) {
+	return l.labelComp("getLabel");
 }
-ui.widget.ConnectionAvatarHelper.update = function(c,connection) {
-	return c.connectionAvatar("update",connection);
+ui.widget.LabelCompHelper.parentIid = function(l) {
+	return l.labelComp("option","parentIid");
 }
 ui.widget.DialogManager = function() { }
 $hxClasses["ui.widget.DialogManager"] = ui.widget.DialogManager;
@@ -6413,8 +6406,27 @@ ui.widget.DialogManager.requestIntroduction = function(from,to) {
 ui.widget.DialogManager.showAliasManager = function() {
 	ui.widget.DialogManager.showDialog("aliasManagerDialog");
 }
-ui.widget.DialogManager.allowAccess = function() {
-	ui.widget.DialogManager.showDialog("allowAccessDialog");
+ui.widget.DialogManager.allowAccess = function(label,connection) {
+	var options = { };
+	options.label = label;
+	options.connection = connection;
+	ui.widget.DialogManager.showDialog("allowAccessDialog",options);
+}
+ui.widget.ChatOrientation = $hxClasses["ui.widget.ChatOrientation"] = { __ename__ : ["ui","widget","ChatOrientation"], __constructs__ : ["chatRight","chatLeft"] }
+ui.widget.ChatOrientation.chatRight = ["chatRight",0];
+ui.widget.ChatOrientation.chatRight.toString = $estr;
+ui.widget.ChatOrientation.chatRight.__enum__ = ui.widget.ChatOrientation;
+ui.widget.ChatOrientation.chatLeft = ["chatLeft",1];
+ui.widget.ChatOrientation.chatLeft.toString = $estr;
+ui.widget.ChatOrientation.chatLeft.__enum__ = ui.widget.ChatOrientation;
+ui.widget.ConnectionAvatarHelper = function() { }
+$hxClasses["ui.widget.ConnectionAvatarHelper"] = ui.widget.ConnectionAvatarHelper;
+ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelper"];
+ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
+	return c.connectionAvatar("option","connection");
+}
+ui.widget.ConnectionAvatarHelper.update = function(c,connection) {
+	return c.connectionAvatar("update",connection);
 }
 ui.widget.ConnectionCompHelper = function() { }
 $hxClasses["ui.widget.ConnectionCompHelper"] = ui.widget.ConnectionCompHelper;
@@ -6445,15 +6457,6 @@ ui.widget.ContentCompHelper.content = function(cc) {
 }
 ui.widget.ContentCompHelper.update = function(cc,c) {
 	return cc.contentComp("update",c);
-}
-ui.widget.LabelCompHelper = function() { }
-$hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
-ui.widget.LabelCompHelper.__name__ = ["ui","widget","LabelCompHelper"];
-ui.widget.LabelCompHelper.getLabel = function(l) {
-	return l.labelComp("getLabel");
-}
-ui.widget.LabelCompHelper.parentIid = function(l) {
-	return l.labelComp("option","parentIid");
 }
 ui.widget.UploadCompHelper = function() { }
 $hxClasses["ui.widget.UploadCompHelper"] = ui.widget.UploadCompHelper;
@@ -7310,34 +7313,6 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AllowAccessDialog must be a div element");
-		self._initialized = false;
-		selfElement.addClass("allowAccessDialog").hide();
-	}, _buildDialog : function() {
-		var self1 = this;
-		var selfElement = this.element;
-		self1._initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Allow Access", height : 320, width : 400, modal : true, buttons : { Allow : function() {
-			self1._allowAccess();
-		}, Cancel : function() {
-			$(this).dialog("close");
-		}}};
-		selfElement.dialog(dlgOptions);
-	}, _allowAccess : function() {
-	}, open : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!self._initialized) self._buildDialog();
-		selfElement.dialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.allowAccessDialog",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AndOrToggle must be a div element");
 		selfElement.addClass("andOrToggle");
 		var or = new $("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
@@ -7366,41 +7341,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.andOrToggle",defineWidget());
-var defineWidget = function() {
-	return { options : { message : null, orientation : null}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ChatMessageComp must be a div element");
-		selfElement.addClass("chatMessageComp ui-helper-clearfix " + Std.string(self.options.orientation) + m3.widget.Widgets.getWidgetClasses());
-		new $("<div>" + self.options.message.props.text + "</div>").appendTo(selfElement);
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.chatMessageComp",defineWidget());
-var defineWidget = function() {
-	return { options : { connection : null, messages : null}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ChatComp must be a div element");
-		selfElement.addClass("chatComp " + m3.widget.Widgets.getWidgetClasses());
-		var chatMsgs = new $("<div class='chatMsgs'></div>").appendTo(selfElement);
-		var chatInput = new $("<div class='chatInput'></div>").appendTo(selfElement);
-		var input = new $("<input class='ui-corner-all ui-widget-content boxsizingBorder' />").appendTo(chatInput);
-		self.chatMessages = new m3.observable.MappedSet(self.options.messages,function(msg) {
-			return new $("<div></div>").chatMessageComp({ message : msg, orientation : ui.widget.ChatOrientation.chatRight});
-		});
-		self.chatMessages.listen(function(chatMessageComp,evt) {
-			if(evt.isAdd()) {
-				chatMsgs.append(chatMessageComp);
-				chatMsgs.scrollTop(chatMsgs.height());
-			} else if(evt.isUpdate()) chatMessageComp.chatMessageComp("update"); else if(evt.isDelete()) chatMessageComp.remove();
-		});
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.chatComp",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -7532,209 +7472,6 @@ var defineWidget = function() {
 };
 $.widget("ui.filterCombination",defineWidget());
 var defineWidget = function() {
-	return { options : { connection : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
-		if(containment == null) containment = false;
-		if(isDragByHelper == null) isDragByHelper = false;
-		var connectionAvatar = js.Boot.__cast(filterableComp , $);
-		if(connectionAvatar.hasClass("clone")) return connectionAvatar;
-		var clone = new $("<div class='clone'></div>");
-		clone.connectionAvatar({ connection : connectionAvatar.connectionAvatar("option","connection"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : connectionAvatar.connectionAvatar("option","classes"), cloneFcn : connectionAvatar.connectionAvatar("option","cloneFcn"), dropTargetClass : connectionAvatar.connectionAvatar("option","dropTargetClass"), helperFcn : connectionAvatar.connectionAvatar("option","helperFcn")});
-		return clone;
-	}, dropTargetClass : "connectionDT", helperFcn : function() {
-		var clone = $(this).clone();
-		return clone.children("img").addClass("connectionDraggingImg");
-	}}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionAvatar must be a div element");
-		selfElement.attr("id","connavatar_" + StringTools.htmlEscape(self.options.connection.name()));
-		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.name());
-		var imgSrc = "media/default_avatar.jpg";
-		if(m3.helper.StringHelper.isNotBlank((function($this) {
-			var $r;
-			try {
-				$r = self.options.connection.data.imgSrc;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)))) imgSrc = self.options.connection.data.imgSrc;
-		var img = new $("<img src='" + imgSrc + "' class='shadow'/>");
-		selfElement.append(img);
-		(js.Boot.__cast(selfElement , $)).tooltip();
-		if(!self.options.dndEnabled) img.mousedown(function(evt) {
-			return false;;
-		}); else {
-			selfElement.addClass("filterable");
-			selfElement.data("clone",self.options.cloneFcn);
-			selfElement.data("dropTargetClass",self.options.dropTargetClass);
-			selfElement.data("getNode",function() {
-				var node = new ui.model.ConnectionNode();
-				node.type = "CONNECTION";
-				node.content = self.options.connection;
-				return node;
-			});
-			selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
-				if(self.options.dragstop != null) self.options.dragstop(dragstopEvt,dragstopUi);
-			});
-			var helper = "clone";
-			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
-			(js.Boot.__cast(selfElement , $)).draggable({ containment : self.options.containment, helper : helper, distance : 10, revertDuration : 200, scroll : false, start : function(evt,_ui) {
-				(js.Boot.__cast(selfElement , $)).draggable("option","revert",false);
-			}});
-			(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
-				return !$(this).parent()["is"](".filterCombination") && (d["is"](".labelComp") || $(this).parent()["is"](".dropCombiner") && d["is"](".connectionAvatar"));
-			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
-				if(_ui.draggable["is"](".labelComp")) {
-					var labelComp = js.Boot.__cast(_ui.draggable , $);
-					ui.widget.DialogManager.allowAccess();
-				} else {
-					var filterCombiner = new $("<div></div>");
-					filterCombiner.appendTo($(this).parent());
-					filterCombiner.filterCombination({ event : event, type : "CONNECTION", dragstop : self.options.dragstop});
-					filterCombiner.filterCombination("addFilterable",$(this));
-					var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
-					clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
-					filterCombiner.filterCombination("addFilterable",clone);
-					filterCombiner.filterCombination("position");
-				}
-			}, tolerance : "pointer"});
-		}
-	}, update : function(conn) {
-		var self = this;
-		var selfElement = this.element;
-		self.options.connection = conn;
-		var imgSrc = "media/default_avatar.jpg";
-		if(m3.helper.StringHelper.isNotBlank((function($this) {
-			var $r;
-			try {
-				$r = self.options.connection.data.imgSrc;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)))) imgSrc = self.options.connection.data.imgSrc;
-		selfElement.children("img").attr("src",imgSrc);
-		selfElement.attr("title",(function($this) {
-			var $r;
-			try {
-				$r = self.options.connection.data.name;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)));
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.connectionAvatar",defineWidget());
-var defineWidget = function() {
-	return { options : { connection : null, classes : null}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionComp must be a div element");
-		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connection container boxsizingBorder");
-		self._avatar = new $("<div class='avatar'></div>").connectionAvatar({ connection : self.options.connection, dndEnabled : true, isDragByHelper : true, containment : false});
-		var notificationDiv = new $(".notifications",selfElement);
-		if(!notificationDiv.exists()) notificationDiv = new $("<div class='notifications'>0</div>");
-		notificationDiv.appendTo(selfElement);
-		selfElement.append(self._avatar);
-		selfElement.append("<div class='name'>" + self.options.connection.name() + "</div>");
-		selfElement.append("<div class='clear'></div>");
-		(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
-			return d["is"](".connectionAvatar");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
-			var dropper = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
-			var droppee = self.options.connection;
-			if(!dropper.equals(droppee)) ui.widget.DialogManager.requestIntroduction(dropper,droppee);
-		}, tolerance : "pointer"});
-		var set = new m3.observable.FilteredSet(ui.AppContext.NOTIFICATIONS,function(n) {
-			return n.fromConnectionIid == self.options.connection.iid && n.kind == ui.model.NotificationKind.IntroductionRequest;
-		});
-		set.listen(function(i,evt) {
-			if(evt.isAdd()) self.addNotification(); else if(evt.isDelete()) self.deleteNotification();
-		});
-	}, update : function(conn) {
-		var self = this;
-		var selfElement = this.element;
-		self.options.connection = conn;
-		selfElement.children(".name").text((function($this) {
-			var $r;
-			try {
-				$r = self.options.connection.data.name;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)));
-		ui.widget.ConnectionAvatarHelper.update(self._avatar,conn);
-	}, addNotification : function() {
-		var self = this;
-		var selfElement = this.element;
-		var notificationDiv = new $(".notifications",selfElement);
-		var count = Std.parseInt(notificationDiv.html());
-		count += 1;
-		notificationDiv.html(Std.string(count));
-		notificationDiv.css("visibility","visible");
-	}, deleteNotification : function() {
-		var self = this;
-		var selfElement = this.element;
-		var notificationDiv = new $(".notifications",selfElement);
-		var count = Std.parseInt(notificationDiv.html());
-		if(count <= 1) {
-			notificationDiv.html("0");
-			notificationDiv.css("visibility","hidden");
-		} else {
-			count -= 1;
-			notificationDiv.html(Std.string(count));
-		}
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.connectionComp",defineWidget());
-var defineWidget = function() {
-	return { options : { itemsClass : null}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsList must be a div element");
-		selfElement.addClass(m3.widget.Widgets.getWidgetClasses());
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			self._setConnections(ui.AppContext.CONNECTIONS);
-		},"ConnectionsList-Alias"));
-		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
-			if(conn != null) self._setConnections(ui.AppContext.CONNECTIONS); else self._setConnections(ui.AppContext.CONNECTIONS);
-		},"ConnectionsList-TargetChange"));
-	}, _mapListener : function(conn,connComp,evt) {
-		if(evt.isAdd()) {
-			var spacer = new $("#sideRightSpacer");
-			spacer.before(connComp);
-		} else if(evt.isUpdate()) ui.widget.ConnectionCompHelper.update(connComp,conn); else if(evt.isDelete()) connComp.remove();
-		ui.model.EM.change(ui.model.EMEvent.FitWindow);
-	}, _setConnections : function(connections) {
-		var self = this;
-		var selfElement = this.element;
-		selfElement.children(".connection").remove();
-		if(self.connectionsMap != null) self.connectionsMap.removeListeners(self._mapListener);
-		self.connectionsMap = new m3.observable.MappedSet(connections,function(conn) {
-			return new $("<div></div>").connectionComp({ connection : conn});
-		});
-		self.connectionsMap.mapListen(self._mapListener);
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}, filterConnections : function(term) {
-		term = term.toLowerCase();
-		var self = this;
-		var iter = self.connectionsMap.iterator();
-		while(iter.hasNext()) {
-			var c = iter.next();
-			if(term == "" || ui.widget.ConnectionCompHelper.connection(c).name().toLowerCase().indexOf(term) != -1) c.show(); else c.hide();
-		}
-	}};
-};
-$.widget("ui.connectionsList",defineWidget());
-var defineWidget = function() {
 	return { options : { labelIid : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dropTargetClass : "labelDT", dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
 		if(containment == null) containment = false;
 		if(isDragByHelper == null) isDragByHelper = false;
@@ -7853,6 +7590,276 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.labelComp",defineWidget());
+var defineWidget = function() {
+	return { options : { connection : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
+		if(containment == null) containment = false;
+		if(isDragByHelper == null) isDragByHelper = false;
+		var connectionAvatar = js.Boot.__cast(filterableComp , $);
+		if(connectionAvatar.hasClass("clone")) return connectionAvatar;
+		var clone = new $("<div class='clone'></div>");
+		clone.connectionAvatar({ connection : connectionAvatar.connectionAvatar("option","connection"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : connectionAvatar.connectionAvatar("option","classes"), cloneFcn : connectionAvatar.connectionAvatar("option","cloneFcn"), dropTargetClass : connectionAvatar.connectionAvatar("option","dropTargetClass"), helperFcn : connectionAvatar.connectionAvatar("option","helperFcn")});
+		return clone;
+	}, dropTargetClass : "connectionDT", helperFcn : function() {
+		var clone = $(this).clone();
+		return clone.children("img").addClass("connectionDraggingImg");
+	}}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionAvatar must be a div element");
+		selfElement.attr("id","connavatar_" + StringTools.htmlEscape(self.options.connection.name()));
+		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.name());
+		var imgSrc = "media/default_avatar.jpg";
+		if(m3.helper.StringHelper.isNotBlank((function($this) {
+			var $r;
+			try {
+				$r = self.options.connection.data.imgSrc;
+			} catch( __e ) {
+				$r = "";
+			}
+			return $r;
+		}(this)))) imgSrc = self.options.connection.data.imgSrc;
+		var img = new $("<img src='" + imgSrc + "' class='shadow'/>");
+		selfElement.append(img);
+		(js.Boot.__cast(selfElement , $)).tooltip();
+		if(!self.options.dndEnabled) img.mousedown(function(evt) {
+			return false;;
+		}); else {
+			selfElement.addClass("filterable");
+			selfElement.data("clone",self.options.cloneFcn);
+			selfElement.data("dropTargetClass",self.options.dropTargetClass);
+			selfElement.data("getNode",function() {
+				var node = new ui.model.ConnectionNode();
+				node.type = "CONNECTION";
+				node.content = self.options.connection;
+				return node;
+			});
+			selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
+				if(self.options.dragstop != null) self.options.dragstop(dragstopEvt,dragstopUi);
+			});
+			var helper = "clone";
+			if(!self.options.isDragByHelper) helper = "original"; else if(self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) helper = self.options.helperFcn;
+			(js.Boot.__cast(selfElement , $)).draggable({ containment : self.options.containment, helper : helper, distance : 10, revertDuration : 200, scroll : false, start : function(evt,_ui) {
+				(js.Boot.__cast(selfElement , $)).draggable("option","revert",false);
+			}});
+			(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
+				return !$(this).parent()["is"](".filterCombination") && (d["is"](".labelComp") || $(this).parent()["is"](".dropCombiner") && d["is"](".connectionAvatar"));
+			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
+				if(_ui.draggable["is"](".labelComp")) {
+					var labelComp = js.Boot.__cast(_ui.draggable , $);
+					ui.widget.DialogManager.allowAccess(labelComp.labelComp("getLabel"),self.options.connection);
+				} else {
+					var filterCombiner = new $("<div></div>");
+					filterCombiner.appendTo($(this).parent());
+					filterCombiner.filterCombination({ event : event, type : "CONNECTION", dragstop : self.options.dragstop});
+					filterCombiner.filterCombination("addFilterable",$(this));
+					var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,"#filter");
+					clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
+					filterCombiner.filterCombination("addFilterable",clone);
+					filterCombiner.filterCombination("position");
+				}
+			}, tolerance : "pointer"});
+		}
+	}, update : function(conn) {
+		var self = this;
+		var selfElement = this.element;
+		self.options.connection = conn;
+		var imgSrc = "media/default_avatar.jpg";
+		if(m3.helper.StringHelper.isNotBlank((function($this) {
+			var $r;
+			try {
+				$r = self.options.connection.data.imgSrc;
+			} catch( __e ) {
+				$r = "";
+			}
+			return $r;
+		}(this)))) imgSrc = self.options.connection.data.imgSrc;
+		selfElement.children("img").attr("src",imgSrc);
+		selfElement.attr("title",(function($this) {
+			var $r;
+			try {
+				$r = self.options.connection.data.name;
+			} catch( __e ) {
+				$r = "";
+			}
+			return $r;
+		}(this)));
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.connectionAvatar",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AllowAccessDialog must be a div element");
+		selfElement.addClass("allowAccessDialog").hide();
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement = this.element;
+		new $("<div></div>").labelComp({ dndEnabled : false, labelIid : self1.options.label.iid}).appendTo(selfElement);
+		new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : self1.options.connection}).appendTo(selfElement);
+		var dlgOptions = { autoOpen : false, title : "Allow Access", height : 320, width : 400, modal : true, buttons : { Allow : function() {
+			self1._allowAccess();
+		}, Cancel : function() {
+			$(this).dialog("close");
+		}}};
+		selfElement.dialog(dlgOptions);
+	}, _allowAccess : function() {
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(selfElement.exists()) {
+			selfElement.empty();
+			self._create();
+		}
+		self._buildDialog();
+		selfElement.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.allowAccessDialog",defineWidget());
+var defineWidget = function() {
+	return { options : { message : null, orientation : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ChatMessageComp must be a div element");
+		selfElement.addClass("chatMessageComp ui-helper-clearfix " + Std.string(self.options.orientation) + m3.widget.Widgets.getWidgetClasses());
+		new $("<div>" + self.options.message.props.text + "</div>").appendTo(selfElement);
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.chatMessageComp",defineWidget());
+var defineWidget = function() {
+	return { options : { connection : null, messages : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ChatComp must be a div element");
+		selfElement.addClass("chatComp " + m3.widget.Widgets.getWidgetClasses());
+		var chatMsgs = new $("<div class='chatMsgs'></div>").appendTo(selfElement);
+		var chatInput = new $("<div class='chatInput'></div>").appendTo(selfElement);
+		var input = new $("<input class='ui-corner-all ui-widget-content boxsizingBorder' />").appendTo(chatInput);
+		self.chatMessages = new m3.observable.MappedSet(self.options.messages,function(msg) {
+			return new $("<div></div>").chatMessageComp({ message : msg, orientation : ui.widget.ChatOrientation.chatRight});
+		});
+		self.chatMessages.listen(function(chatMessageComp,evt) {
+			if(evt.isAdd()) {
+				chatMsgs.append(chatMessageComp);
+				chatMsgs.scrollTop(chatMsgs.height());
+			} else if(evt.isUpdate()) chatMessageComp.chatMessageComp("update"); else if(evt.isDelete()) chatMessageComp.remove();
+		});
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.chatComp",defineWidget());
+var defineWidget = function() {
+	return { options : { connection : null, classes : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionComp must be a div element");
+		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connection container boxsizingBorder");
+		self._avatar = new $("<div class='avatar'></div>").connectionAvatar({ connection : self.options.connection, dndEnabled : true, isDragByHelper : true, containment : false});
+		var notificationDiv = new $(".notifications",selfElement);
+		if(!notificationDiv.exists()) notificationDiv = new $("<div class='notifications'>0</div>");
+		notificationDiv.appendTo(selfElement);
+		selfElement.append(self._avatar);
+		selfElement.append("<div class='name'>" + self.options.connection.name() + "</div>");
+		selfElement.append("<div class='clear'></div>");
+		(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
+			return d["is"](".connectionAvatar");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
+			var dropper = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
+			var droppee = self.options.connection;
+			if(!dropper.equals(droppee)) ui.widget.DialogManager.requestIntroduction(dropper,droppee);
+		}, tolerance : "pointer"});
+		var set = new m3.observable.FilteredSet(ui.AppContext.NOTIFICATIONS,function(n) {
+			return n.fromConnectionIid == self.options.connection.iid && n.kind == ui.model.NotificationKind.IntroductionRequest;
+		});
+		set.listen(function(i,evt) {
+			if(evt.isAdd()) self.addNotification(); else if(evt.isDelete()) self.deleteNotification();
+		});
+	}, update : function(conn) {
+		var self = this;
+		var selfElement = this.element;
+		self.options.connection = conn;
+		selfElement.children(".name").text((function($this) {
+			var $r;
+			try {
+				$r = self.options.connection.data.name;
+			} catch( __e ) {
+				$r = "";
+			}
+			return $r;
+		}(this)));
+		ui.widget.ConnectionAvatarHelper.update(self._avatar,conn);
+	}, addNotification : function() {
+		var self = this;
+		var selfElement = this.element;
+		var notificationDiv = new $(".notifications",selfElement);
+		var count = Std.parseInt(notificationDiv.html());
+		count += 1;
+		notificationDiv.html(Std.string(count));
+		notificationDiv.css("visibility","visible");
+	}, deleteNotification : function() {
+		var self = this;
+		var selfElement = this.element;
+		var notificationDiv = new $(".notifications",selfElement);
+		var count = Std.parseInt(notificationDiv.html());
+		if(count <= 1) {
+			notificationDiv.html("0");
+			notificationDiv.css("visibility","hidden");
+		} else {
+			count -= 1;
+			notificationDiv.html(Std.string(count));
+		}
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.connectionComp",defineWidget());
+var defineWidget = function() {
+	return { options : { itemsClass : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsList must be a div element");
+		selfElement.addClass(m3.widget.Widgets.getWidgetClasses());
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			self._setConnections(ui.AppContext.CONNECTIONS);
+		},"ConnectionsList-Alias"));
+		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
+			if(conn != null) self._setConnections(ui.AppContext.CONNECTIONS); else self._setConnections(ui.AppContext.CONNECTIONS);
+		},"ConnectionsList-TargetChange"));
+	}, _mapListener : function(conn,connComp,evt) {
+		if(evt.isAdd()) {
+			var spacer = new $("#sideRightSpacer");
+			spacer.before(connComp);
+		} else if(evt.isUpdate()) ui.widget.ConnectionCompHelper.update(connComp,conn); else if(evt.isDelete()) connComp.remove();
+		ui.model.EM.change(ui.model.EMEvent.FitWindow);
+	}, _setConnections : function(connections) {
+		var self = this;
+		var selfElement = this.element;
+		selfElement.children(".connection").remove();
+		if(self.connectionsMap != null) self.connectionsMap.removeListeners(self._mapListener);
+		self.connectionsMap = new m3.observable.MappedSet(connections,function(conn) {
+			return new $("<div></div>").connectionComp({ connection : conn});
+		});
+		self.connectionsMap.mapListen(self._mapListener);
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}, filterConnections : function(term) {
+		term = term.toLowerCase();
+		var self = this;
+		var iter = self.connectionsMap.iterator();
+		while(iter.hasNext()) {
+			var c = iter.next();
+			if(term == "" || ui.widget.ConnectionCompHelper.connection(c).name().toLowerCase().indexOf(term) != -1) c.show(); else c.hide();
+		}
+	}};
+};
+$.widget("ui.connectionsList",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		$.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";

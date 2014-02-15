@@ -11,26 +11,28 @@ import m3.exception.Exception;
 using m3.helper.StringHelper;
 
 typedef AllowAccessDialogOptions = {
+	label:Label,
+	connection:Connection
 }
 
 typedef AllowAccessDialogWidgetDef = {
 	@:optional var options: AllowAccessDialogOptions;
-	@:optional var _initialized: Bool;
 	
+	var _buildDialog: Void->Void;
 	var open: Void->Void;
 
-	var _allowAccess: Void->Void;
 	var _create: Void->Void;
-	var _buildDialog: Void->Void;
 	var destroy: Void->Void;
+
+	var _allowAccess: Void->Void;
 }
 
 @:native("$")
 extern class AllowAccessDialog extends JQ {
 
-	@:overload(function(cmd : String):Bool{})
+	@:overload(function<T>(cmd : String):T{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function allowAccessDialog(?opts: AllowAccessDialogOptions): AllowAccessDialog;
+	function allowAccessDialog(opts: AllowAccessDialogOptions): AllowAccessDialog;
 
 	private static function __init__(): Void {
 		var defineWidget: Void->AllowAccessDialogWidgetDef = function(): AllowAccessDialogWidgetDef {
@@ -41,7 +43,6 @@ extern class AllowAccessDialog extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of AllowAccessDialog must be a div element");
 		        	}
-		        	self._initialized = false;
 		        	selfElement.addClass("allowAccessDialog").hide();
 		        },
 
@@ -49,7 +50,15 @@ extern class AllowAccessDialog extends JQ {
 		        	var self: AllowAccessDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-		        	self._initialized = true;
+	        		new LabelComp("<div></div>").labelComp({
+        				dndEnabled: false,
+	        			labelIid: self.options.label.iid
+	        		}).appendTo(selfElement);
+
+	        		new ConnectionAvatar("<div></div>").connectionAvatar({
+        				dndEnabled: false,
+        				connection: self.options.connection
+        			}).appendTo(selfElement);
 
 		        	var dlgOptions: JQDialogOptions = {
 		        		autoOpen: false,
@@ -77,9 +86,12 @@ extern class AllowAccessDialog extends JQ {
 		        	var self: AllowAccessDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-		        	if(!self._initialized) {
-		        		self._buildDialog();
-		        	}
+					if (selfElement.exists()) {
+						selfElement.empty();
+						self._create();
+					}
+		        	self._buildDialog();
+
 	        		selfElement.dialog("open");
         		},
 		        

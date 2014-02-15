@@ -15,6 +15,7 @@ import m3.exception.Exception;
 
 using StringTools;
 using m3.helper.StringHelper;
+using ui.widget.LabelComp;
 
 typedef ConnectionAvatarOptions = {
 	>FilterableCompOptions,
@@ -155,7 +156,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 					      	drop: function(event: JQEvent, _ui: UIDroppable ) {
 					      		if (_ui.draggable.is(".labelComp")) {
 									var labelComp: LabelComp = cast(_ui.draggable, LabelComp);
-									DialogManager.allowAccess();
+									DialogManager.allowAccess(labelComp.labelComp("getLabel"), self.options.connection);
 					      		} else {
 						      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
 						      		filterCombiner.appendTo(JQ.cur.parent());

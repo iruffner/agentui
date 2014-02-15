@@ -52,7 +52,10 @@ class DialogManager {
         showDialog("aliasManagerDialog");
     }   
 
-    public static function allowAccess(): Void {
-        showDialog("allowAccessDialog");
+    public static function allowAccess(label:Label, connection:Connection): Void {
+        var options:Dynamic = {}
+        options.label = label;
+        options.connection = connection;
+        showDialog("allowAccessDialog", options);
     }   
 }
