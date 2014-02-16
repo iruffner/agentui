@@ -107,6 +107,10 @@ class EventDelegate {
         	// Do something
         }));
 
+        EM.addListener(EMEvent.GrantAccess, new EMListener(function(parms:Dynamic):Void{
+            protocolHandler.grantAccess(parms.connectionIid, parms.labelIid);
+        }));
+
         // EM.addListener(EMEvent.BACKUP, new EMListener(function(nameOfBackup: String): Void{
         // 	protocolHandler.backup(nameOfBackup);
         // }));

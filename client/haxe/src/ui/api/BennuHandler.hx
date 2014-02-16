@@ -71,6 +71,15 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
+	public function grantAccess(connectionIid:String, labelIid:String): Void {
+		var acl = new LabelAcl(connectionIid, labelIid);
+		var context = Synchronizer.createContext(1, "grantAccess");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(UPSERT, context + "labelacl", CrudMessage.create(acl))
+		]);
+		req.start();
+	}
+
 	public function backup(/*backupName: String*/): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}

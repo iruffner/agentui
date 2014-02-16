@@ -120,11 +120,13 @@ enum EMEvent {
 	CopyLabel;
 	DeleteLabel;
 
+	GrantAccess;
+	AccessGranted;
+
 	INTRODUCTION_REQUEST;
 	INTRODUCTION_RESPONSE;
 	RespondToIntroduction;
 	RespondToIntroduction_RESPONSE;
-	INTRODUCTION_NOTIFICATION;
 
 	NewConnection;
 	ConnectionUpdate;

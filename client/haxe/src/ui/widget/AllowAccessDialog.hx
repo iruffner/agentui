@@ -9,6 +9,7 @@ import ui.model.EM;
 import m3.exception.Exception;
 
 using m3.helper.StringHelper;
+using m3.jq.JQDialog;
 
 typedef AllowAccessDialogOptions = {
 	label:Label,
@@ -86,7 +87,18 @@ extern class AllowAccessDialog extends JQ {
 		        },
 
 		        _allowAccess: function() : Void {
+		        	var self: AllowAccessDialogWidgetDef = Widgets.getSelf();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
+		        	EM.listenOnce(EMEvent.AccessGranted, new EMListener(function(n: Nothing): Void {
+             			selfElement.close();
+             		}));
+
+		        	var parms = {
+		        		connectionIid: self.options.connection.iid,
+		        		labelIid: self.options.label.iid,
+		        	}
+		        	EM.change(EMEvent.GrantAccess, parms);
 		        },
 
 	        	open: function(): Void {

@@ -4819,6 +4819,12 @@ ui.api.BennuHandler.prototype = {
 	,backup: function() {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
 	}
+	,grantAccess: function(connectionIid,labelIid) {
+		var acl = new ui.model.LabelAcl(connectionIid,labelIid);
+		var context = ui.api.Synchronizer.createContext(1,"grantAccess");
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelacl",ui.api.CrudMessage.create(acl))]);
+		req.start();
+	}
 	,confirmIntroduction: function(confirmation) {
 		var context = ui.api.Synchronizer.createContext(1,"confirmIntroduction");
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRO_RESPONSE,context + "introduction",confirmation)]);
@@ -5041,6 +5047,9 @@ ui.api.EventDelegate.prototype = {
 			_g.protocolHandler.beginIntroduction(intro);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.GrantAccess,new ui.model.EMListener(function(parms) {
+			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.BACKUP,new ui.model.EMListener(function(n) {
 			_g.protocolHandler.backup();
@@ -5309,6 +5318,9 @@ ui.api.ResponseProcessor.beginIntroduction = function(data) {
 }
 ui.api.ResponseProcessor.confirmIntroduction = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.RespondToIntroduction_RESPONSE);
+}
+ui.api.ResponseProcessor.grantAccess = function(data) {
+	ui.model.EM.change(ui.model.EMEvent.AccessGranted);
 }
 ui.api.SynchronizationParms = function() {
 	this.agent = null;
@@ -5616,7 +5628,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","EditContentClosed","USER_LOGIN","CreateAgent","USER_SIGNUP","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","INTRODUCTION_NOTIFICATION","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","EditContentClosed","USER_LOGIN","CreateAgent","USER_SIGNUP","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.TEST = ["TEST",0];
 ui.model.EMEvent.TEST.toString = $estr;
 ui.model.EMEvent.TEST.__enum__ = ui.model.EMEvent;
@@ -5692,40 +5704,43 @@ ui.model.EMEvent.CopyLabel.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.DeleteLabel = ["DeleteLabel",24];
 ui.model.EMEvent.DeleteLabel.toString = $estr;
 ui.model.EMEvent.DeleteLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",25];
+ui.model.EMEvent.GrantAccess = ["GrantAccess",25];
+ui.model.EMEvent.GrantAccess.toString = $estr;
+ui.model.EMEvent.GrantAccess.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.AccessGranted = ["AccessGranted",26];
+ui.model.EMEvent.AccessGranted.toString = $estr;
+ui.model.EMEvent.AccessGranted.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",27];
 ui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",26];
+ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",28];
 ui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",27];
+ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",29];
 ui.model.EMEvent.RespondToIntroduction.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",28];
+ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",30];
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_NOTIFICATION = ["INTRODUCTION_NOTIFICATION",29];
-ui.model.EMEvent.INTRODUCTION_NOTIFICATION.toString = $estr;
-ui.model.EMEvent.INTRODUCTION_NOTIFICATION.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.NewConnection = ["NewConnection",30];
+ui.model.EMEvent.NewConnection = ["NewConnection",31];
 ui.model.EMEvent.NewConnection.toString = $estr;
 ui.model.EMEvent.NewConnection.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.ConnectionUpdate = ["ConnectionUpdate",31];
+ui.model.EMEvent.ConnectionUpdate = ["ConnectionUpdate",32];
 ui.model.EMEvent.ConnectionUpdate.toString = $estr;
 ui.model.EMEvent.ConnectionUpdate.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",32];
+ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",33];
 ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
 ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.BACKUP = ["BACKUP",33];
+ui.model.EMEvent.BACKUP = ["BACKUP",34];
 ui.model.EMEvent.BACKUP.toString = $estr;
 ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORE = ["RESTORE",34];
+ui.model.EMEvent.RESTORE = ["RESTORE",35];
 ui.model.EMEvent.RESTORE.toString = $estr;
 ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",35];
+ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",36];
 ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
 ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",36];
+ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",37];
 ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
@@ -7711,6 +7726,13 @@ var defineWidget = function() {
 		}}};
 		selfElement.dialog(dlgOptions);
 	}, _allowAccess : function() {
+		var self = this;
+		var selfElement1 = this.element;
+		ui.model.EM.listenOnce(ui.model.EMEvent.AccessGranted,new ui.model.EMListener(function(n) {
+			m3.jq.JQDialogHelper.close(selfElement1);
+		}));
+		var parms = { connectionIid : self.options.connection.iid, labelIid : self.options.label.iid};
+		ui.model.EM.change(ui.model.EMEvent.GrantAccess,parms);
 	}, open : function() {
 		var self = this;
 		var selfElement = this.element;

@@ -135,4 +135,8 @@ class ResponseProcessor {
     public static function confirmIntroduction(data:SynchronizationParms) {
         EM.change(RespondToIntroduction_RESPONSE);
     }
+
+    public static function grantAccess(data:SynchronizationParms) {
+        EM.change(AccessGranted);
+    }
 }
