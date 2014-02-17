@@ -53,16 +53,16 @@ class Agent extends ModelObj {
 	public var agentId: String;
 	public var uberAliasIid: String;
   	public var name: String;
-  	public var data: UserData;
+  	public var data: Profile;
 	public var deleted: Bool;
 
 	public function new () {
 		super();
-		this.data = new UserData();
+		this.data = new Profile();
 	}
 }
 
-class UserData extends ModelObj {
+class Profile extends ModelObj {
 	public var name: String;
 	@:optional public var imgSrc: String;
 
@@ -83,12 +83,12 @@ class AliasData extends ModelObj {
 
 class Alias extends ModelObjWithIid {
 	public var rootLabelIid:String;
-	public var profile: UserData;
+	public var profile: Profile;
 	@:optional public var data: AliasData;
 
 	public function new() {
 		super();
-		this.profile = new UserData();
+		this.profile = new Profile();
 		this.data = new AliasData();
 	}
 	
@@ -159,7 +159,7 @@ class Connection extends ModelObjWithIid {
 	public var aliasIid:String;
 	public var localPeerId: String;
   	public var remotePeerId: String;
-	@:optional public var data:UserData;
+	@:optional public var data:Profile;
 
 	public static function identifier(c: Connection): String {
 		return c.iid;
@@ -167,7 +167,7 @@ class Connection extends ModelObjWithIid {
 
 	public function new() {
 		super();
-		this.data = new UserData("No Profile", "media/test/tesla.jpg");
+		this.data = new Profile("No Profile", "media/test/tesla.jpg");
 	}
 
 	public function equals(c: Connection): Bool {
@@ -477,7 +477,7 @@ class IntroductionRequestNotification extends Notification<IntroductionRequestDa
 	class IntroductionRequestData {
 		public var introductionIid: String;
 		public var message: String;
-		public var profile: UserData;
+		public var profile: Profile;
 	}
 
 class IntroductionResponseNotification extends Notification<IntroductionResponseData> {

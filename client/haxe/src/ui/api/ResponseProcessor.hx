@@ -78,7 +78,7 @@ class ResponseProcessor {
             AppContext.AGENT.iid = AppContext.AGENT.name = data.aliases[0].agentId;
         }
         if (AppContext.AGENT.data.name.isBlank()) {
-            AppContext.AGENT.data = new UserData(AppContext.AGENT.name, "media/test/koi.jpg");
+            AppContext.AGENT.data = new Profile(AppContext.AGENT.name, "media/test/koi.jpg");
         }
 
 		AppContext.MASTER_ALIASES.addAll(data.aliases);
@@ -124,7 +124,7 @@ class ResponseProcessor {
 
     public static function processProfile(rec:Dynamic) {
         var connection = AppContext.MASTER_CONNECTIONS.getElement(rec.connectionIid);
-        connection.data = AppContext.SERIALIZER.fromJsonX(rec.profile, UserData);
+        connection.data = AppContext.SERIALIZER.fromJsonX(rec.profile, Profile);
         AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
     }
 
