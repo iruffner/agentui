@@ -1,6 +1,7 @@
 package ui.api;
 
 import haxe.Json;
+import haxe.Timer;
 
 import m3.jq.JQ;
 import m3.util.JqueryUtil;
@@ -154,6 +155,7 @@ class LongPollingRequest extends BaseRequest implements Requester {
 
 	private var jqXHR: Dynamic;
 	private var running: Bool = true;
+	private var delayNextPoll: Bool = false;
 
 	public var timeout:Int = 30000;
 
@@ -175,6 +177,7 @@ class LongPollingRequest extends BaseRequest implements Requester {
 			}
 		};
 		var errorFcn = function(jqXHR:JQXHR, textStatus:String, errorThrown:String): Void {
+	   		delayNextPoll = true;
 	   		AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 		};
 
@@ -213,12 +216,17 @@ class LongPollingRequest extends BaseRequest implements Requester {
 
 	private function poll(): Void {
 		if (running) {
-			// Set the url here in case the polling frequency has changed
-			baseOpts.url = AgentUi.URL + "/api/channel/poll?channel=" + 
-			               AppContext.SUBMIT_CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
-			baseOpts.timeout = this.timeout + 1000;
+			if (delayNextPoll == true) {
+				delayNextPoll = false;
+				Timer.delay(poll, Std.int(timeout/2));
+			} else {
+				// Set the url here in case the polling frequency has changed
+				baseOpts.url = AgentUi.URL + "/api/channel/poll?channel=" + 
+				               AppContext.SUBMIT_CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
+				baseOpts.timeout = this.timeout + 1000;
 
-			jqXHR = super.start();
+				jqXHR = super.start();
+			}
 		}
 	}
 }

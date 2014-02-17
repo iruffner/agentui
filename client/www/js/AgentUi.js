@@ -2505,6 +2505,13 @@ m3.helper.DateHelper.isBefore = function(d1,d2) {
 m3.helper.DateHelper.isAfter = function(d1,d2) {
 	return !m3.helper.DateHelper.isBefore(d1,d2);
 }
+m3.helper.DateHelper.isBeforeToday = function(d) {
+	return d.getTime() < m3.helper.DateHelper.startOfToday().getTime();
+}
+m3.helper.DateHelper.startOfToday = function() {
+	var now = new Date();
+	return HxOverrides.strDate(now.getFullYear() + "-" + m3.helper.StringHelper.padLeft("" + (now.getMonth() + 1),2,"0") + "-" + m3.helper.StringHelper.padLeft("" + now.getDate(),2,"0"));
+}
 m3.helper.OSetHelper = function() { }
 $hxClasses["m3.helper.OSetHelper"] = m3.helper.OSetHelper;
 m3.helper.OSetHelper.__name__ = ["m3","helper","OSetHelper"];
@@ -4370,6 +4377,16 @@ m3.util.JqueryUtil.getEmptyRow = function() {
 m3.util.JqueryUtil.getEmptyCell = function() {
 	return new $("<td></td>");
 }
+m3.util.Browser = function() { }
+$hxClasses["m3.util.Browser"] = m3.util.Browser;
+m3.util.Browser.__name__ = ["m3","util","Browser"];
+m3.util.Browser.get_msie = function() {
+	return new EReg("MSIE ([0-9]+)\\.","").match(js.Browser.navigator.userAgent);
+}
+m3.util.Browser.get_version = function() {
+	var ereg = new EReg("MSIE ([0-9]+)\\.","");
+	if(ereg.match(js.Browser.navigator.userAgent)) return ereg.matched(1); else return null;
+}
 m3.util.M = function() { }
 $hxClasses["m3.util.M"] = m3.util.M;
 m3.util.M.__name__ = ["m3","util","M"];
@@ -5168,6 +5185,7 @@ ui.api.QueryRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 });
 ui.api.LongPollingRequest = function(requestToRepeat,successFcn,ajaxOpts) {
 	this.timeout = 30000;
+	this.delayNextPoll = false;
 	this.running = true;
 	var _g = this;
 	this.baseOpts = { complete : function(jqXHR,textStatus) {
@@ -5179,6 +5197,7 @@ ui.api.LongPollingRequest = function(requestToRepeat,successFcn,ajaxOpts) {
 		if(_g.running) successFcn(data,textStatus,jqXHR);
 	};
 	var errorFcn = function(jqXHR,textStatus,errorThrown) {
+		_g.delayNextPoll = true;
 		ui.AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 	};
 	ui.api.BaseRequest.call(this,requestToRepeat,wrappedSuccessFcn,errorFcn);
@@ -5191,9 +5210,14 @@ ui.api.LongPollingRequest.__super__ = ui.api.BaseRequest;
 ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	poll: function() {
 		if(this.running) {
-			this.baseOpts.url = ui.AgentUi.URL + "/api/channel/poll?channel=" + ui.AppContext.SUBMIT_CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
-			this.baseOpts.timeout = this.timeout + 1000;
-			this.jqXHR = ui.api.BaseRequest.prototype.start.call(this);
+			if(this.delayNextPoll == true) {
+				this.delayNextPoll = false;
+				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
+			} else {
+				this.baseOpts.url = ui.AgentUi.URL + "/api/channel/poll?channel=" + ui.AppContext.SUBMIT_CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
+				this.baseOpts.timeout = this.timeout + 1000;
+				this.jqXHR = ui.api.BaseRequest.prototype.start.call(this);
+			}
 		}
 	}
 	,abort: function() {
