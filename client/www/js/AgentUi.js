@@ -7618,7 +7618,7 @@ var defineWidget = function() {
 		var labelComp = js.Boot.__cast(filterableComp , $);
 		if(labelComp.hasClass("clone")) return labelComp;
 		var clone = new $("<div class='clone'></div>");
-		clone.labelComp({ labelIid : labelComp.labelComp("option","labelIid"), parentIid : labelComp.labelComp("option","parentIid"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : labelComp.labelComp("option","classes"), cloneFcn : labelComp.labelComp("option","cloneFcn"), dropTargetClass : labelComp.labelComp("option","dropTargetClass")});
+		clone.labelComp({ labelIid : labelComp.labelComp("option","labelIid"), parentIid : labelComp.labelComp("option","parentIid"), labelPath : labelComp.labelComp("option","labelPath"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : labelComp.labelComp("option","classes"), cloneFcn : labelComp.labelComp("option","cloneFcn"), dropTargetClass : labelComp.labelComp("option","dropTargetClass")});
 		return clone;
 	}}, getLabel : function() {
 		var self = this;
@@ -8565,7 +8565,7 @@ var defineWidget = function() {
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
 			self2.selectedLabelComp = null;
 			selfElement1.children(".labelTree").remove();
-			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid});
+			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid, labelPath : [alias.rootLabelIid]});
 			selfElement1.prepend(labelTree);
 		},"LabelsList-Alias"));
 		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
@@ -8615,14 +8615,14 @@ var defineWidget = function() {
 };
 $.widget("ui.labelsList",defineWidget());
 var defineWidget = function() {
-	return { options : { parentIid : null, labelIid : null}, _create : function() {
+	return { options : { parentIid : null, labelIid : null, labelPath : []}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTreeBranch must be a div element");
 		selfElement.addClass("labelTreeBranch ");
 		var expander = new $("<div class='labelTreeExpander' style='visibility:hidden;'><b>+</b></div>");
 		selfElement.append(expander);
-		var label = new $("<div></div>").labelComp({ parentIid : self.options.parentIid, labelIid : self.options.labelIid, isDragByHelper : true, containment : false, dragstop : null});
+		var label = new $("<div></div>").labelComp({ parentIid : self.options.parentIid, labelIid : self.options.labelIid, labelPath : self.options.labelPath, isDragByHelper : true, containment : false, dragstop : null});
 		selfElement.append(label);
 		selfElement.hover(function() {
 			if(m3.helper.OSetHelper.hasValues(self.children)) expander.css("visibility","visible");
@@ -8632,7 +8632,7 @@ var defineWidget = function() {
 		if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.labelIid);
 		self.children = ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
-		labelChildren.labelTree({ parentIid : self.options.labelIid});
+		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
 			if(evt.isAdd()) {
 				var ll = new $("#labelsList");
@@ -8660,7 +8660,7 @@ var defineWidget = function() {
 };
 $.widget("ui.labelTreeBranch",defineWidget());
 var defineWidget = function() {
-	return { options : { parentIid : null, itemsClass : null}, _create : function() {
+	return { options : { parentIid : null, itemsClass : null, labelPath : []}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTree must be a div element");
@@ -8671,7 +8671,9 @@ var defineWidget = function() {
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) labelTreeBranch.remove();
 		};
 		self.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid),function(labelChild) {
-			return new $("<div></div>").labelTreeBranch({ parentIid : self.options.parentIid, labelIid : labelChild.childIid});
+			var labelPath = self.options.labelPath.slice();
+			labelPath.push(labelChild.childIid);
+			return new $("<div></div>").labelTreeBranch({ parentIid : self.options.parentIid, labelIid : labelChild.childIid, labelPath : labelPath});
 		});
 		self.mappedLabels.visualId = self.options.parentIid + "_map";
 		self.mappedLabels.listen(self.onchangeLabelChildren);

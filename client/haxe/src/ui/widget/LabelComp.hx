@@ -20,6 +20,7 @@ typedef LabelCompOptions  = {
 	>FilterableCompOptions,
 	var labelIid: String;
 	@:optional var parentIid:String;
+	@:optional var labelPath:Array<String>;
 }
 
 typedef LabelCompWidgetDef = {
@@ -73,6 +74,7 @@ extern class LabelComp extends FilterableComponent {
 				            	clone.labelComp({
 			                        labelIid: labelComp.labelComp("option", "labelIid"),
 			                        parentIid: labelComp.labelComp("option", "parentIid"),
+			                        labelPath: labelComp.labelComp("option", "labelPath"),
 			                        isDragByHelper: isDragByHelper,
 			                        containment: containment,
 			                        dragstop: dragstop,

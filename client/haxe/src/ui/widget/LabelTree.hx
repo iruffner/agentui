@@ -11,6 +11,7 @@ using m3.helper.OSetHelper;
 
 typedef LabelTreeOptions = {
 	var parentIid:String;
+	var labelPath:Array<String>;
 	@:optional var itemsClass: String;
 }
 
@@ -33,7 +34,8 @@ extern class LabelTree extends JQ {
 			return {
 		        options: {
 		        	parentIid:null,
-		            itemsClass: null
+		            itemsClass: null,
+		            labelPath: []
 		        },
 
 		        _create: function(): Void {
@@ -62,9 +64,12 @@ extern class LabelTree extends JQ {
 
             		self.mappedLabels = new MappedSet<LabelChild, LabelTreeBranch>(AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid), 
 		        		function(labelChild: LabelChild): LabelTreeBranch {
+		        			var labelPath = self.options.labelPath.copy();
+		        			labelPath.push(labelChild.childIid);
 		        			return new LabelTreeBranch("<div></div>").labelTreeBranch({
 		        				parentIid: self.options.parentIid,
-		        				labelIid: labelChild.childIid
+		        				labelIid: labelChild.childIid,
+		        				labelPath: labelPath
 		        			});
 	        		});
 		        	self.mappedLabels.visualId = self.options.parentIid + "_map";

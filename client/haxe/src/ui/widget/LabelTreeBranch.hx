@@ -15,6 +15,7 @@ using m3.helper.OSetHelper;
 typedef LabelTreeBranchOptions = {
 	var parentIid: String;
 	var labelIid: String;
+	var labelPath:Array<String>;
 }
 
 typedef LabelTreeBranchWidgetDef = {
@@ -37,7 +38,8 @@ extern class LabelTreeBranch extends JQ {
 			return {
 		        options: {
 		        	parentIid: null,
-		        	labelIid: null
+		        	labelIid: null,
+		        	labelPath: []
 		        },
 		        
 		        _create: function(): Void {
@@ -55,6 +57,7 @@ extern class LabelTreeBranch extends JQ {
 		        	var label: LabelComp = new LabelComp("<div></div>").labelComp({
 		        			parentIid: self.options.parentIid,
 		        			labelIid: self.options.labelIid,
+		        			labelPath: self.options.labelPath,
 		        			isDragByHelper: true,
 		        			containment: false,
 		        			dragstop: null
@@ -82,7 +85,8 @@ extern class LabelTreeBranch extends JQ {
 
 		            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren' style='display: none;'></div>");
 		            labelChildren.labelTree({
-		            	parentIid: self.options.labelIid
+		            	parentIid: self.options.labelIid,
+		            	labelPath: self.options.labelPath
 	            	});
 
 		            // Listen to changes to the model.  If 

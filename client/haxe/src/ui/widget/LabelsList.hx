@@ -146,7 +146,8 @@ extern class LabelsList extends JQ {
 	        			// Create the top-level label tree
 	        			selfElement.children(".labelTree").remove();
 						var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
-			                parentIid:alias.rootLabelIid
+			                parentIid:alias.rootLabelIid,
+			                labelPath:[alias.rootLabelIid]
 			            });
 			        	selfElement.prepend(labelTree);
         			}, "LabelsList-Alias"));
