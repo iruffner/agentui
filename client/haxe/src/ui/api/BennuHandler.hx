@@ -17,6 +17,7 @@ using Lambda;
 class BennuHandler implements ProtocolHandler {
 
 	private var loggedInAgentId:String;
+
 	// Message Paths
 	private static var UPSERT = "/api/upsert";
 	private static var DELETE = "/api/delete";
@@ -34,6 +35,10 @@ class BennuHandler implements ProtocolHandler {
 		this.eventDelegate = new EventDelegate(this);
 	}
 
+	private function createChannel(agentId:String, successFunc:Dynamic->String->JQXHR->Void) {
+		new BennuRequest("/api/channel/create/" + agentId, "", successFunc).start();		
+	}
+
 	public function getProfiles(connectionIids:Array<String>) {
 		var context = Synchronizer.createContext(1, "getProfiles");
 		var req = new SubmitRequest([
@@ -41,10 +46,9 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
-	public function getAgent(login: Login): Void {
-		this.loggedInAgentId = login.agentId;
-		// Establish a connection with the server to get the channel_id
-		new BennuRequest("/api/channel/create/" + login.agentId, "", onCreateSubmitChannel).start();
+	public function login(login: Login): Void {
+		loggedInAgentId = login.agentId;
+		createChannel(login.agentId, onCreateSubmitChannel);
 	}
 
 	public function createAgent(newUser: NewUser): Void {
@@ -90,6 +94,7 @@ class BennuHandler implements ProtocolHandler {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 	public function filter(filter: Filter): Void {
+		// If there is a filter running...
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void {

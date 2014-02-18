@@ -60,7 +60,7 @@ class EventDelegate {
         }));
 
         EM.addListener(EMEvent.USER_LOGIN, new EMListener(function(login: Login): Void {
-          	protocolHandler.getAgent(login);
+          	protocolHandler.login(login);
         }));
 
         EM.addListener(EMEvent.CreateAgent, new EMListener(function(user: NewUser): Void {
@@ -103,12 +103,12 @@ class EventDelegate {
         	protocolHandler.beginIntroduction(intro);
         }));
 
-        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
-        	// Do something
-        }));
-
         EM.addListener(EMEvent.GrantAccess, new EMListener(function(parms:Dynamic):Void{
             protocolHandler.grantAccess(parms.connectionIid, parms.labelIid);
+        }));
+
+        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
+            // Do something
         }));
 
         // EM.addListener(EMEvent.BACKUP, new EMListener(function(nameOfBackup: String): Void{

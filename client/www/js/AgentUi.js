@@ -4859,14 +4859,17 @@ ui.api.BennuHandler.prototype = {
 		});
 		req.start();
 	}
-	,getAgent: function(login) {
+	,login: function(login) {
 		this.loggedInAgentId = login.agentId;
-		new ui.api.BennuRequest("/api/channel/create/" + login.agentId,"",$bind(this,this.onCreateSubmitChannel)).start();
+		this.createChannel(login.agentId,$bind(this,this.onCreateSubmitChannel));
 	}
 	,getProfiles: function(connectionIids) {
 		var context = ui.api.Synchronizer.createContext(1,"getProfiles");
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.GET_PROFILE,context + "profiles",new ui.api.GetProfileMessage(connectionIids))]);
 		req.start();
+	}
+	,createChannel: function(agentId,successFunc) {
+		new ui.api.BennuRequest("/api/channel/create/" + agentId,"",successFunc).start();
 	}
 	,__class__: ui.api.BennuHandler
 }
@@ -5031,7 +5034,7 @@ ui.api.EventDelegate.prototype = {
 			_g.protocolHandler.updateAlias(alias);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,new ui.model.EMListener(function(login) {
-			_g.protocolHandler.getAgent(login);
+			_g.protocolHandler.login(login);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.CreateAgent,new ui.model.EMListener(function(user) {
 			_g.protocolHandler.createAgent(user);
@@ -5063,10 +5066,10 @@ ui.api.EventDelegate.prototype = {
 		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_REQUEST,new ui.model.EMListener(function(intro) {
 			_g.protocolHandler.beginIntroduction(intro);
 		}));
-		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
-		}));
 		ui.model.EM.addListener(ui.model.EMEvent.GrantAccess,new ui.model.EMListener(function(parms) {
 			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.BACKUP,new ui.model.EMListener(function(n) {
 			_g.protocolHandler.backup();
