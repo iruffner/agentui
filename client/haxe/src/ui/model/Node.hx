@@ -3,7 +3,6 @@ package ui.model;
 import ui.model.ModelObj;
 import m3.exception.Exception;
 
-import ui.helper.PrologHelper;
 import m3.observable.OSet.ObservableSet;
 
 using m3.helper.ArrayHelper;
@@ -13,44 +12,45 @@ class Node {
 	public var nodes: Array<Node>;
 	public var type: String = "ROOT";
 
+	public function new(?type:String) {
+		if (type != null) {
+			this.type = type;
+		}
+	}
+
 	public function addNode(n: Node) {
 		this.nodes.push(n);
 	}
 
 	public function hasChildren(): Bool {
-		return this.nodes.hasValues(); //this.connectionNodes.hasValues() || this.labelNodes.hasValues();
+		return this.nodes.hasValues();
 	}
 
-	public function getProlog(): String {
-		throw new Exception("override me");
-		return null;
+	public function getQuery(): String {
+		return "";
 	}
 }
 
 class And extends Node {
 	public function new() {
+		super("AND");
 		nodes = new Array<Node>();
-	}
-
-	override public function getProlog(): String {
-		return "all";
 	}
 }
 
 class Or extends Node {
 	public function new() {
+		super("OR");
 		nodes = new Array<Node>();
-	}
-
-	override public function getProlog(): String {
-		return "any";
 	}
 }
 
 class ContentNode<T> extends Node {
 	public var content: T;
 
-	public function new() {
+	public function new(type:String, content: T) {
+		super(type);
+		this.content = content;
 	}
 
 	override public function hasChildren(): Bool {
@@ -59,13 +59,32 @@ class ContentNode<T> extends Node {
 }
 
 class LabelNode extends ContentNode<Label> {
-	override public function getProlog(): String {
-		return PrologHelper.labelsToProlog(new ObservableSet<Label>(Label.identifier, [this.content]));
+	public var labelPath:Array<String>;
+
+	public function new(label:Label, labelPath:Array<String>) {
+		super("LABEL", label);
+		this.labelPath = labelPath;
+	}
+
+	override public function getQuery(): String {
+		var ret = "hasLabelPath(";
+		for (i in 0...labelPath.length) {
+			ret += "'" + labelPath[i] + "'";
+			if (i < labelPath.length - 1) {
+				ret += ",";
+			}
+		}
+		ret += ")";
+		return ret;
 	}
 }
 
 class ConnectionNode extends ContentNode<Connection> {
-	override public function getProlog(): String {
-		return PrologHelper.connectionsToProlog(new ObservableSet<Connection>(Connection.identifier, [this.content]));
+	public function new(connection:Connection) {
+		super("CONNECTION", connection);
+	}
+
+	override public function getQuery(): String {
+		return "";
 	}
 }

@@ -29,6 +29,7 @@ typedef FilterCompWidgetDef = {
 	var _create: Void->Void;
 	var destroy: Void->Void;
 	var fireFilter: Void->Void;
+	var clearFilter: Void->Void;
 }
 
 class FilterCompHelper {
@@ -122,6 +123,20 @@ extern class FilterComp extends JQ {
 			                self.fireFilter();
 				      	}
 				    });
+
+		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
+		        		self.clearFilter();
+		        		}, "FilterComp-AliasLoaded")
+		        	);
+		        },
+
+		        clearFilter: function():Void {
+					var selfElement: JQ = Widgets.getSelfElement();
+					var filterables: JQ = selfElement.children(".filterable");
+		        	filterables.each(function (idx: Int, ele: Element): Void {
+		        		var jq = new JQ(ele);
+		        		jq.remove();
+		        	});
 		        },
 
 		        fireFilter: function(): Void {
@@ -134,17 +149,23 @@ extern class FilterComp extends JQ {
 		        	root.type = "ROOT";
 
 		        	var filterables: JQ = selfElement.children(".filterable");
-		        	filterables.each(function (idx: Int, el: Element): Void {
+
+		        	if (filterables.length == 0) {
+						EM.change(EMEvent.AliasLoaded, AppContext.currentAlias);
+		        	} else {
+			        	filterables.each(function (idx: Int, el: Element): Void {
 		        			var filterable: FilterableComponent = new FilterableComponent(el);
 		        			var node: Node = filterable.data("getNode")();
 		        			root.addNode(node);
 		        		});
-					
-					if(!liveToggle.isLive()) {
-						EM.change(EMEvent.FILTER_CHANGE, new Filter(root));
-					} else {
-		        		EM.change(EMEvent.FILTER_RUN, new Filter(root));
-		        	}
+						
+						var filter = new Filter(root);
+						if(!liveToggle.isLive()) {
+							EM.change(EMEvent.FILTER_CHANGE, filter);
+						} else {
+			        		EM.change(EMEvent.FILTER_RUN, filter);
+			        	}
+			        }
 	        	},
 
 		        destroy: function() {

@@ -4553,16 +4553,6 @@ ui.AppContext.registerGlobalListeners = function() {
 	var fireFitWindow = new ui.model.EMListener(function(n) {
 		ui.model.EM.change(ui.model.EMEvent.FitWindow);
 	},"FireFitWindowListener");
-	var processContent = new ui.model.EMListener(function(arrOfContent) {
-		if(m3.helper.ArrayHelper.hasValues(arrOfContent)) ui.AppContext.MASTER_CONTENT.addAll(arrOfContent);
-		ui.model.EM.change(ui.model.EMEvent.FitWindow);
-	},"ContentProcessor");
-	ui.model.EM.addListener(ui.model.EMEvent.MoreContent,processContent);
-	ui.model.EM.addListener(ui.model.EMEvent.EndOfContent,processContent);
-	ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(n) {
-		ui.AppContext.MASTER_CONTENT.clear();
-		ui.model.EM.change(ui.model.EMEvent.FitWindow);
-	}));
 	ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
 		ui.AppContext.AGENT = agent;
 		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias);
@@ -4825,7 +4815,9 @@ ui.api.BennuHandler.prototype = {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
 	}
 	,filter: function(filter) {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
+		var context = ui.api.Synchronizer.createContext(1,"filterContent");
+		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content",filter.getQuery()))];
+		new ui.api.SubmitRequest(requests).start();
 	}
 	,restores: function() {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
@@ -5010,19 +5002,10 @@ ui.api.EventDelegate.prototype = {
 	_setUpEventListeners: function() {
 		var _g = this;
 		ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filter) {
-			if(_g.filterIsRunning) _g.protocolHandler.stopCurrentFilter(function() {
-				_g.protocolHandler.filter(filter);
-			}); else _g.protocolHandler.filter(filter);
-			_g.filterIsRunning = true;
+			_g.protocolHandler.filter(filter);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.PAGE_CLOSE,new ui.model.EMListener(function(n) {
 			if(_g.filterIsRunning) _g.protocolHandler.stopCurrentFilter($.noop,false);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.EndOfContent,new ui.model.EMListener(function(nextPageURI) {
-			_g.filterIsRunning = false;
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.NextContent,new ui.model.EMListener(function(nextPageURI) {
-			_g.protocolHandler.nextPage(nextPageURI);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.CreateAlias,new ui.model.EMListener(function(alias) {
 			_g.protocolHandler.createAlias(alias);
@@ -5349,6 +5332,26 @@ ui.api.ResponseProcessor.confirmIntroduction = function(data) {
 ui.api.ResponseProcessor.grantAccess = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.AccessGranted);
 }
+ui.api.ResponseProcessor.filterContent = function(data) {
+	var arr = new Array();
+	var _g = 0, _g1 = data.content;
+	while(_g < _g1.length) {
+		var c = _g1[_g];
+		++_g;
+		arr.push(c.iid);
+	}
+	var filteredContent = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONTENT,function(c) {
+		var _g = 0;
+		while(_g < arr.length) {
+			var iid = arr[_g];
+			++_g;
+			if(c.iid == iid) return true;
+		}
+		return false;
+	});
+	ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,filteredContent);
+	ui.model.EM.change(ui.model.EMEvent.FitWindow);
+}
 ui.api.SynchronizationParms = function() {
 	this.agent = null;
 	this.aliases = new Array();
@@ -5556,42 +5559,6 @@ ui.helper.ModelHelper.asConnection = function(alias) {
 	}(this)));
 	return conn;
 }
-ui.helper.PrologHelper = function() { }
-$hxClasses["ui.helper.PrologHelper"] = ui.helper.PrologHelper;
-ui.helper.PrologHelper.__name__ = ["ui","helper","PrologHelper"];
-ui.helper.PrologHelper.tagTreeAsStrings = function(labels) {
-	var sarray = new Array();
-	return sarray;
-}
-ui.helper.PrologHelper._processTagChildren = function(original,set) {
-	var str = "";
-	return str;
-}
-ui.helper.PrologHelper.tagTreeFromString = function(str) {
-	var larray = new Array();
-	var parser = new ui.helper.LabelStringParser(str);
-	var term = parser.nextTerm();
-	if(term != "and") parser.restore(term);
-	larray = ui.helper.PrologHelper._processDataLogChildren(null,parser);
-	return larray;
-}
-ui.helper.PrologHelper._processDataLogChildren = function(parentLabel,parser) {
-	var larray = new Array();
-	return larray;
-}
-ui.helper.PrologHelper.labelsToProlog = function(contentTags) {
-	var sarray = [];
-	return (sarray.length > 1?"each(":"") + sarray.join(",") + (sarray.length > 1?")":"");
-}
-ui.helper.PrologHelper.connectionsToProlog = function(connections) {
-	var sarray = [];
-	Lambda.iter(connections,function(c) {
-		var s = "";
-		sarray.push(ui.AppContext.SERIALIZER.toJsonString(c));
-	});
-	var str = sarray.join(",");
-	return "all(" + (m3.helper.StringHelper.isBlank(str)?"_":"[" + str + "]") + ")";
-}
 ui.model = {}
 ui.model.EM = function() { }
 $hxClasses["ui.model.EM"] = ui.model.EM;
@@ -5655,137 +5622,123 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["TEST","FILTER_RUN","FILTER_CHANGE","MoreContent","NextContent","EndOfContent","EditContentClosed","USER_LOGIN","CreateAgent","USER_SIGNUP","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","NewConnection","ConnectionUpdate","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
-ui.model.EMEvent.TEST = ["TEST",0];
-ui.model.EMEvent.TEST.toString = $estr;
-ui.model.EMEvent.TEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",1];
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","USER_LOGIN","CreateAgent","USER_SIGNUP","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FILTER_CHANGE = ["FILTER_CHANGE",2];
+ui.model.EMEvent.FILTER_CHANGE = ["FILTER_CHANGE",1];
 ui.model.EMEvent.FILTER_CHANGE.toString = $estr;
 ui.model.EMEvent.FILTER_CHANGE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.MoreContent = ["MoreContent",3];
-ui.model.EMEvent.MoreContent.toString = $estr;
-ui.model.EMEvent.MoreContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.NextContent = ["NextContent",4];
-ui.model.EMEvent.NextContent.toString = $estr;
-ui.model.EMEvent.NextContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.EndOfContent = ["EndOfContent",5];
-ui.model.EMEvent.EndOfContent.toString = $estr;
-ui.model.EMEvent.EndOfContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.EditContentClosed = ["EditContentClosed",6];
+ui.model.EMEvent.LoadFilteredContent = ["LoadFilteredContent",2];
+ui.model.EMEvent.LoadFilteredContent.toString = $estr;
+ui.model.EMEvent.LoadFilteredContent.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.EditContentClosed = ["EditContentClosed",3];
 ui.model.EMEvent.EditContentClosed.toString = $estr;
 ui.model.EMEvent.EditContentClosed.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_LOGIN = ["USER_LOGIN",7];
+ui.model.EMEvent.USER_LOGIN = ["USER_LOGIN",4];
 ui.model.EMEvent.USER_LOGIN.toString = $estr;
 ui.model.EMEvent.USER_LOGIN.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateAgent = ["CreateAgent",8];
+ui.model.EMEvent.CreateAgent = ["CreateAgent",5];
 ui.model.EMEvent.CreateAgent.toString = $estr;
 ui.model.EMEvent.CreateAgent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",9];
+ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",6];
 ui.model.EMEvent.USER_SIGNUP.toString = $estr;
 ui.model.EMEvent.USER_SIGNUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AGENT = ["AGENT",10];
+ui.model.EMEvent.AGENT = ["AGENT",7];
 ui.model.EMEvent.AGENT.toString = $estr;
 ui.model.EMEvent.AGENT.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FitWindow = ["FitWindow",11];
+ui.model.EMEvent.FitWindow = ["FitWindow",8];
 ui.model.EMEvent.FitWindow.toString = $estr;
 ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.PAGE_CLOSE = ["PAGE_CLOSE",12];
+ui.model.EMEvent.PAGE_CLOSE = ["PAGE_CLOSE",9];
 ui.model.EMEvent.PAGE_CLOSE.toString = $estr;
 ui.model.EMEvent.PAGE_CLOSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AliasLoaded = ["AliasLoaded",13];
+ui.model.EMEvent.AliasLoaded = ["AliasLoaded",10];
 ui.model.EMEvent.AliasLoaded.toString = $estr;
 ui.model.EMEvent.AliasLoaded.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateAlias = ["CreateAlias",14];
+ui.model.EMEvent.CreateAlias = ["CreateAlias",11];
 ui.model.EMEvent.CreateAlias.toString = $estr;
 ui.model.EMEvent.CreateAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateAlias = ["UpdateAlias",15];
+ui.model.EMEvent.UpdateAlias = ["UpdateAlias",12];
 ui.model.EMEvent.UpdateAlias.toString = $estr;
 ui.model.EMEvent.UpdateAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteAlias = ["DeleteAlias",16];
+ui.model.EMEvent.DeleteAlias = ["DeleteAlias",13];
 ui.model.EMEvent.DeleteAlias.toString = $estr;
 ui.model.EMEvent.DeleteAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateContent = ["CreateContent",17];
+ui.model.EMEvent.CreateContent = ["CreateContent",14];
 ui.model.EMEvent.CreateContent.toString = $estr;
 ui.model.EMEvent.CreateContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteContent = ["DeleteContent",18];
+ui.model.EMEvent.DeleteContent = ["DeleteContent",15];
 ui.model.EMEvent.DeleteContent.toString = $estr;
 ui.model.EMEvent.DeleteContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateContent = ["UpdateContent",19];
+ui.model.EMEvent.UpdateContent = ["UpdateContent",16];
 ui.model.EMEvent.UpdateContent.toString = $estr;
 ui.model.EMEvent.UpdateContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateLabel = ["CreateLabel",20];
+ui.model.EMEvent.CreateLabel = ["CreateLabel",17];
 ui.model.EMEvent.CreateLabel.toString = $estr;
 ui.model.EMEvent.CreateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateLabel = ["UpdateLabel",21];
+ui.model.EMEvent.UpdateLabel = ["UpdateLabel",18];
 ui.model.EMEvent.UpdateLabel.toString = $estr;
 ui.model.EMEvent.UpdateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.MoveLabel = ["MoveLabel",22];
+ui.model.EMEvent.MoveLabel = ["MoveLabel",19];
 ui.model.EMEvent.MoveLabel.toString = $estr;
 ui.model.EMEvent.MoveLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CopyLabel = ["CopyLabel",23];
+ui.model.EMEvent.CopyLabel = ["CopyLabel",20];
 ui.model.EMEvent.CopyLabel.toString = $estr;
 ui.model.EMEvent.CopyLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteLabel = ["DeleteLabel",24];
+ui.model.EMEvent.DeleteLabel = ["DeleteLabel",21];
 ui.model.EMEvent.DeleteLabel.toString = $estr;
 ui.model.EMEvent.DeleteLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.GrantAccess = ["GrantAccess",25];
+ui.model.EMEvent.GrantAccess = ["GrantAccess",22];
 ui.model.EMEvent.GrantAccess.toString = $estr;
 ui.model.EMEvent.GrantAccess.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AccessGranted = ["AccessGranted",26];
+ui.model.EMEvent.AccessGranted = ["AccessGranted",23];
 ui.model.EMEvent.AccessGranted.toString = $estr;
 ui.model.EMEvent.AccessGranted.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",27];
+ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",24];
 ui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",28];
+ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",25];
 ui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",29];
+ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",26];
 ui.model.EMEvent.RespondToIntroduction.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",30];
+ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",27];
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.NewConnection = ["NewConnection",31];
-ui.model.EMEvent.NewConnection.toString = $estr;
-ui.model.EMEvent.NewConnection.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.ConnectionUpdate = ["ConnectionUpdate",32];
-ui.model.EMEvent.ConnectionUpdate.toString = $estr;
-ui.model.EMEvent.ConnectionUpdate.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",33];
+ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",28];
 ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
 ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.BACKUP = ["BACKUP",34];
+ui.model.EMEvent.BACKUP = ["BACKUP",29];
 ui.model.EMEvent.BACKUP.toString = $estr;
 ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORE = ["RESTORE",35];
+ui.model.EMEvent.RESTORE = ["RESTORE",30];
 ui.model.EMEvent.RESTORE.toString = $estr;
 ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",36];
+ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",31];
 ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
 ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",37];
+ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",32];
 ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
 	this.rootNode = node;
-	this.connectionNodes = new Array();
-	this.labelNodes = new Array();
+	this.nodes = new Array();
 	if(node.hasChildren()) {
-		var _g1 = 0, _g = node.nodes.length;
-		while(_g1 < _g) {
-			var ch_ = _g1++;
-			if(node.nodes[ch_].type == "CONNECTION") this.connectionNodes.push(node.nodes[ch_]); else if(node.nodes[ch_].type == "LABEL") this.labelNodes.push(node.nodes[ch_]); else throw new m3.exception.Exception("dont know how to handle node of type " + node.nodes[ch_].type);
+		var _g = 0, _g1 = node.nodes;
+		while(_g < _g1.length) {
+			var childNode = _g1[_g];
+			++_g;
+			this.nodes.push(childNode);
 		}
 	}
 };
 $hxClasses["ui.model.Filter"] = ui.model.Filter;
 ui.model.Filter.__name__ = ["ui","model","Filter"];
 ui.model.Filter.prototype = {
-	_prologify: function(nodes) {
+	_queryify: function(nodes,joinWith) {
+		if(joinWith == null) joinWith = " OR ";
 		var str = "";
 		if(m3.helper.ArrayHelper.hasValues(nodes)) {
 			str += "(";
@@ -5793,23 +5746,19 @@ ui.model.Filter.prototype = {
 			var _g1 = 0, _g = nodes.length;
 			while(_g1 < _g) {
 				var ln_ = _g1++;
-				if(iteration++ > 0) str += ",";
-				str += nodes[ln_].getProlog();
-				if(nodes[ln_].hasChildren()) str += this._prologify(nodes[ln_].nodes);
+				if(iteration++ > 0) str += joinWith;
+				str += nodes[ln_].getQuery();
+				if(nodes[ln_].hasChildren()) {
+					var jw = nodes[ln_].type == "AND"?" AND ":" OR ";
+					str += this._queryify(nodes[ln_].nodes,jw);
+				}
 			}
 			str += ")";
 		}
 		return str;
 	}
-	,labelsProlog: function() {
-		var s = this._prologify(this.labelNodes);
-		if(m3.helper.StringHelper.isBlank(s)) s = "()";
-		return this.rootNode.getProlog() + s;
-	}
-	,toProlog: function() {
-		var queries = [this._prologify(this.labelNodes),this._prologify(this.connectionNodes)];
-		var query = m3.helper.ArrayHelper.joinX(queries,",");
-		return query;
+	,getQuery: function() {
+		return this._queryify(this.nodes);
 	}
 	,__class__: ui.model.Filter
 }
@@ -6321,15 +6270,15 @@ ui.model.EditContentData.__name__ = ["ui","model","EditContentData"];
 ui.model.EditContentData.prototype = {
 	__class__: ui.model.EditContentData
 }
-ui.model.Node = function() {
+ui.model.Node = function(type) {
 	this.type = "ROOT";
+	if(type != null) this.type = type;
 };
 $hxClasses["ui.model.Node"] = ui.model.Node;
 ui.model.Node.__name__ = ["ui","model","Node"];
 ui.model.Node.prototype = {
-	getProlog: function() {
-		throw new m3.exception.Exception("override me");
-		return null;
+	getQuery: function() {
+		return "";
 	}
 	,hasChildren: function() {
 		return m3.helper.ArrayHelper.hasValues(this.nodes);
@@ -6340,30 +6289,28 @@ ui.model.Node.prototype = {
 	,__class__: ui.model.Node
 }
 ui.model.And = function() {
+	ui.model.Node.call(this,"AND");
 	this.nodes = new Array();
 };
 $hxClasses["ui.model.And"] = ui.model.And;
 ui.model.And.__name__ = ["ui","model","And"];
 ui.model.And.__super__ = ui.model.Node;
 ui.model.And.prototype = $extend(ui.model.Node.prototype,{
-	getProlog: function() {
-		return "all";
-	}
-	,__class__: ui.model.And
+	__class__: ui.model.And
 });
 ui.model.Or = function() {
+	ui.model.Node.call(this,"OR");
 	this.nodes = new Array();
 };
 $hxClasses["ui.model.Or"] = ui.model.Or;
 ui.model.Or.__name__ = ["ui","model","Or"];
 ui.model.Or.__super__ = ui.model.Node;
 ui.model.Or.prototype = $extend(ui.model.Node.prototype,{
-	getProlog: function() {
-		return "any";
-	}
-	,__class__: ui.model.Or
+	__class__: ui.model.Or
 });
-ui.model.ContentNode = function() {
+ui.model.ContentNode = function(type,content) {
+	ui.model.Node.call(this,type);
+	this.content = content;
 };
 $hxClasses["ui.model.ContentNode"] = ui.model.ContentNode;
 ui.model.ContentNode.__name__ = ["ui","model","ContentNode"];
@@ -6374,27 +6321,36 @@ ui.model.ContentNode.prototype = $extend(ui.model.Node.prototype,{
 	}
 	,__class__: ui.model.ContentNode
 });
-ui.model.LabelNode = function() {
-	ui.model.ContentNode.call(this);
+ui.model.LabelNode = function(label,labelPath) {
+	ui.model.ContentNode.call(this,"LABEL",label);
+	this.labelPath = labelPath;
 };
 $hxClasses["ui.model.LabelNode"] = ui.model.LabelNode;
 ui.model.LabelNode.__name__ = ["ui","model","LabelNode"];
 ui.model.LabelNode.__super__ = ui.model.ContentNode;
 ui.model.LabelNode.prototype = $extend(ui.model.ContentNode.prototype,{
-	getProlog: function() {
-		return ui.helper.PrologHelper.labelsToProlog(new m3.observable.ObservableSet(ui.model.Label.identifier,[this.content]));
+	getQuery: function() {
+		var ret = "hasLabelPath(";
+		var _g1 = 0, _g = this.labelPath.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			ret += "'" + this.labelPath[i] + "'";
+			if(i < this.labelPath.length - 1) ret += ",";
+		}
+		ret += ")";
+		return ret;
 	}
 	,__class__: ui.model.LabelNode
 });
-ui.model.ConnectionNode = function() {
-	ui.model.ContentNode.call(this);
+ui.model.ConnectionNode = function(connection) {
+	ui.model.ContentNode.call(this,"CONNECTION",connection);
 };
 $hxClasses["ui.model.ConnectionNode"] = ui.model.ConnectionNode;
 ui.model.ConnectionNode.__name__ = ["ui","model","ConnectionNode"];
 ui.model.ConnectionNode.__super__ = ui.model.ContentNode;
 ui.model.ConnectionNode.prototype = $extend(ui.model.ContentNode.prototype,{
-	getProlog: function() {
-		return ui.helper.PrologHelper.connectionsToProlog(new m3.observable.ObservableSet(ui.model.Connection.identifier,[this.content]));
+	getQuery: function() {
+		return "";
 	}
 	,__class__: ui.model.ConnectionNode
 });
@@ -7390,7 +7346,6 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of FilterCombination must be a div element");
 		selfElement.data("getNode",function() {
 			var root = (selfElement.children(".andOrToggle").data("getNode"))();
-			root.type = self.options.type;
 			var filterables = selfElement.children(".filterable");
 			filterables.each(function(idx,el) {
 				var filterable = new $(el);
@@ -7551,10 +7506,7 @@ var defineWidget = function() {
 			selfElement.data("clone",self.options.cloneFcn);
 			selfElement.data("dropTargetClass",self.options.dropTargetClass);
 			selfElement.data("getNode",function() {
-				var node = new ui.model.ConnectionNode();
-				node.type = "CONNECTION";
-				node.content = self.options.connection;
-				return node;
+				return new ui.model.ConnectionNode(self.options.connection);
 			});
 			selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
 				if(self.options.dragstop != null) self.options.dragstop(dragstopEvt,dragstopUi);
@@ -7623,6 +7575,17 @@ var defineWidget = function() {
 	}}, getLabel : function() {
 		var self = this;
 		return self.label;
+	}, getLabelPathNames : function() {
+		var self = this;
+		var ret = new Array();
+		var _g = 0, _g1 = self.options.labelPath;
+		while(_g < _g1.length) {
+			var iid = _g1[_g];
+			++_g;
+			var label = m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,iid);
+			ret.push(label.name);
+		}
+		return ret;
 	}, _registerListeners : function() {
 		var self1 = this;
 		var selfElement = this.element;
@@ -7673,10 +7636,7 @@ var defineWidget = function() {
 			selfElement1.data("clone",self2.options.cloneFcn);
 			selfElement1.data("dropTargetClass",self2.options.dropTargetClass);
 			selfElement1.data("getNode",function() {
-				var node = new ui.model.LabelNode();
-				node.type = "LABEL";
-				node.content = self2.label;
-				return node;
+				return new ui.model.LabelNode(self2.label,self2.getLabelPathNames());
 			});
 			var helper = "clone";
 			if(!self2.options.isDragByHelper) helper = "original"; else if(self2.options.helperFcn != null && Reflect.isFunction(self2.options.helperFcn)) helper = self2.options.helperFcn;
@@ -8215,16 +8175,23 @@ var defineWidget = function() {
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
 			self._resetContents(alias.iid);
 		},"ContentFeed-AliasLoaded"));
+		ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,new ui.model.EMListener(function(content) {
+			self._setContent(content);
+		},"ContentFeed-LoadFilteredContent"));
 	}, _resetContents : function(aliasIid) {
 		var self = this;
 		var selfElement = this.element;
-		if(self.content != null) self.content.removeListeners(self.mapListener);
-		selfElement.find(".contentComp").remove();
 		var content;
 		if(ui.AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == ui.AppContext.UBER_LABEL_IID) content = ui.AppContext.CONTENT; else {
 			content = ui.AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
 			if(content == null) content = ui.AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
 		}
+		self._setContent(content);
+	}, _setContent : function(content) {
+		var self = this;
+		var selfElement = this.element;
+		if(self.content != null) self.content.removeListeners(self.mapListener);
+		selfElement.find(".contentComp").remove();
 		self.content = new m3.observable.MappedSet(content,function(content1) {
 			return new $("<div></div>").contentComp({ content : content1});
 		});
@@ -8423,6 +8390,16 @@ var defineWidget = function() {
 			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : "#filter"});
 			self.fireFilter();
 		}});
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			self.clearFilter();
+		},"FilterComp-AliasLoaded"));
+	}, clearFilter : function() {
+		var selfElement = this.element;
+		var filterables = selfElement.children(".filterable");
+		filterables.each(function(idx,ele) {
+			var jq = new $(ele);
+			jq.remove();
+		});
 	}, fireFilter : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -8430,12 +8407,15 @@ var defineWidget = function() {
 		var root = (selfElement.children(".rootToggle").data("getNode"))();
 		root.type = "ROOT";
 		var filterables = selfElement.children(".filterable");
-		filterables.each(function(idx,el) {
-			var filterable = new $(el);
-			var node = (filterable.data("getNode"))();
-			root.addNode(node);
-		});
-		if(!ui.widget.LiveBuildToggleHelper.isLive(liveToggle)) ui.model.EM.change(ui.model.EMEvent.FILTER_CHANGE,new ui.model.Filter(root)); else ui.model.EM.change(ui.model.EMEvent.FILTER_RUN,new ui.model.Filter(root));
+		if(filterables.length == 0) ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias); else {
+			filterables.each(function(idx,el) {
+				var filterable = new $(el);
+				var node = (filterable.data("getNode"))();
+				root.addNode(node);
+			});
+			var filter = new ui.model.Filter(root);
+			if(!ui.widget.LiveBuildToggleHelper.isLive(liveToggle)) ui.model.EM.change(ui.model.EMEvent.FILTER_CHANGE,filter); else ui.model.EM.change(ui.model.EMEvent.FILTER_RUN,filter);
+		}
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};

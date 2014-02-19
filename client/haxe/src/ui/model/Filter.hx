@@ -6,62 +6,40 @@ using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
 
 class Filter {
-	public var labelNodes: Array<Node>;
-	public var connectionNodes: Array<Node>;
 	public var rootNode: Node;
+	public var nodes: Array<Node>;
 
 	public function new(node: Node) {
 		this.rootNode = node;
-		connectionNodes = new Array<Node>();
-		labelNodes = new Array<Node>();
+		nodes = new Array<Node>();
 		if(node.hasChildren()) {
-			for(ch_ in 0...node.nodes.length) {
-				if(node.nodes[ch_].type == "CONNECTION") {
-					connectionNodes.push(node.nodes[ch_]);
-				} else if(node.nodes[ch_].type == "LABEL") {
-					labelNodes.push(node.nodes[ch_]);
-				} else {
-					throw new Exception("dont know how to handle node of type " + node.nodes[ch_].type);
-				}
+			for(childNode in node.nodes) {
+				nodes.push(childNode);
 			}
 		}
 	}
 
-	public function toProlog(): String {
-		var queries: Array<String> = [_prologify(labelNodes), _prologify(connectionNodes)];
-		var query: String = queries.joinX(",");
-		return query;
+	public function getQuery(): String {
+		return _queryify(nodes);
 	}
 
-	public function labelsProlog(): String {
-		var s: String = _prologify(labelNodes);
-		if(s.isBlank()) {
-			s = "()";
+	private function _queryify(nodes: Array<Node>, ?joinWith:String): String {
+		if (joinWith == null) {
+			joinWith = " OR ";
 		}
-		return rootNode.getProlog() /*+ "("*/ + s /*+ ")"*/;
-	}
-
-	private function _prologify(nodes: Array<Node>): String {
 		var str: String = "";
-		if(nodes.hasValues()) {
-			// if(nodes.length == 1) {
-			// 	str += nodes[0].getProlog();
-			// } else {
-
-			// }
-
-			// if(nodes.length > 1)
-				str += "(";
+		if (nodes.hasValues()) {
+			str += "(";
 			var iteration: Int = 0;
 			for(ln_ in 0...nodes.length) {
-				if(iteration++ > 0) str += ",";
-				str += nodes[ln_].getProlog();
+				if (iteration++ > 0) str += joinWith;
+				str += nodes[ln_].getQuery();
 				if(nodes[ln_].hasChildren()) {
-					str += _prologify(nodes[ln_].nodes);
+					var jw:String = (nodes[ln_].type == "AND") ? " AND " : " OR ";
+					str += _queryify(nodes[ln_].nodes, jw);
 				}
 			}
-			// if(nodes.length > 1)
-				str += ")";
+			str += ")";
 		}
 		return str;
 	}

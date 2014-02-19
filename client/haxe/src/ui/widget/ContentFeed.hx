@@ -24,6 +24,7 @@ typedef ContentFeedWidgetDef = {
 	var _create: Void->Void;
 	var destroy: Void->Void;
 	var _resetContents: String->Void;
+	var _setContent: OSet<Content<Dynamic>>->Void;
 }
 
 @:native("$")
@@ -87,15 +88,16 @@ extern class ContentFeed extends JQ {
 		        		self._resetContents(alias.iid);
 		        		}, "ContentFeed-AliasLoaded")
 		        	);
+
+		        	EM.addListener(EMEvent.LoadFilteredContent, new EMListener(function(content: OSet<Content<Dynamic>>): Void {
+		        		self._setContent(content);
+		        		}, "ContentFeed-LoadFilteredContent")
+		        	);
 		        },
 
 		        _resetContents: function(aliasIid:String) {
 		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
-		        	if (self.content != null) {
-		        		self.content.removeListeners(self.mapListener);
-		        	}
-		        	selfElement.find(".contentComp").remove();
 
 		        	var content:OSet<Content<Dynamic>>;
 
@@ -108,6 +110,18 @@ extern class ContentFeed extends JQ {
 			        		content = AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
 			        	}
 			        }
+			        self._setContent(content);
+		        },
+
+		        _setContent: function(content:OSet<Content<Dynamic>>) {
+		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+		        	if (self.content != null) {
+		        		self.content.removeListeners(self.mapListener);
+		        	}
+		        	selfElement.find(".contentComp").remove();
+
 		        	self.content = new MappedSet<Content<Dynamic>, ContentComp>(content, function(content: Content<Dynamic>): ContentComp {
 	        			return new ContentComp("<div></div>").contentComp({
 	        				content: content

@@ -139,4 +139,19 @@ class ResponseProcessor {
     public static function grantAccess(data:SynchronizationParms) {
         EM.change(AccessGranted);
     }
+
+    public static function filterContent(data:SynchronizationParms) {
+        var arr = new Array<String>();
+        for (c in data.content) {
+            arr.push(c.iid);
+        }
+        var filteredContent = new FilteredSet<Content<Dynamic>>(AppContext.MASTER_CONTENT,function(c:Content<Dynamic>):Bool{
+            for (iid in arr) {
+                if (c.iid == iid) {return true;}
+            }
+            return false;
+        });
+        EM.change(LoadFilteredContent, filteredContent);
+        EM.change(EMEvent.FitWindow);
+    }
 }

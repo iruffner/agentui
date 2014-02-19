@@ -129,21 +129,6 @@ class AppContext {
                 EM.change(EMEvent.FitWindow);
             }, "FireFitWindowListener");
 
-        var processContent = new EMListener(function(arrOfContent: Array<Content<Dynamic>>): Void {
-                if(arrOfContent.hasValues()) {
-                    AppContext.MASTER_CONTENT.addAll(arrOfContent);
-                }
-                EM.change(EMEvent.FitWindow);            
-            }, "ContentProcessor");
-
-        EM.addListener(EMEvent.MoreContent, processContent);
-        EM.addListener(EMEvent.EndOfContent, processContent);
-        EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(n: Nothing): Void {
-                AppContext.MASTER_CONTENT.clear();
-                EM.change(EMEvent.FitWindow);
-            })
-        );
-
         EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {
                 AGENT = agent;
                 EM.change(EMEvent.AliasLoaded, AppContext.currentAlias);

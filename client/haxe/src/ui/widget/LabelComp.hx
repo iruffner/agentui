@@ -33,6 +33,7 @@ typedef LabelCompWidgetDef = {
 	@:optional var _onupdate: Label->EventType->Void;
 	var destroy: Void->Void;
 	var getLabel:Void->Label;
+	var getLabelPathNames: Void->Array<String>;
 }
 
 class LabelCompHelper {
@@ -89,6 +90,16 @@ extern class LabelComp extends FilterableComponent {
 		        getLabel: function():Label {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 		        	return self.label;
+		        },
+
+		        getLabelPathNames: function(): Array<String> {
+		        	var self: LabelCompWidgetDef = Widgets.getSelf();
+		        	var ret = new Array<String>();
+		        	for (iid in self.options.labelPath) {
+		        		var label = AppContext.LABELS.getElement(iid);
+		        		ret.push(label.name);
+		        	}
+		        	return ret;
 		        },
 
 		        _registerListeners: function():Void {
@@ -155,10 +166,7 @@ extern class LabelComp extends FilterableComponent {
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
 		            	selfElement.data("getNode", function(): Node {
-			            		var node: LabelNode = new LabelNode();
-			            		node.type = "LABEL";
-			            		node.content = self.label;
-			            		return node;
+			            		return new LabelNode(self.label, self.getLabelPathNames());
 			            	});
 
 			            var helper: Dynamic = "clone";

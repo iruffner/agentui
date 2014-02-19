@@ -113,10 +113,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
 		            	selfElement.data("getNode", function(): Node {
-			            		var node: ConnectionNode = new ConnectionNode();
-			            		node.type = "CONNECTION";
-			            		node.content = self.options.connection;
-			            		return node;
+			            		return new ConnectionNode(self.options.connection);
 			            	});
 
 		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {

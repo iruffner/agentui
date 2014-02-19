@@ -21,30 +21,13 @@ class EventDelegate {
 	private function _setUpEventListeners() {
 
 		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
-			if(filterIsRunning) {
-				protocolHandler.stopCurrentFilter(
-					function() { 
-							protocolHandler.filter(filter); 
-						} 
-				);
-			} else {
-        		protocolHandler.filter(filter);
-			} 
-			filterIsRunning = true;
+        	protocolHandler.filter(filter);
         }));
 
         EM.addListener(EMEvent.PAGE_CLOSE, new EMListener(function(n: Nothing): Void {
 			if(filterIsRunning) {
 				protocolHandler.stopCurrentFilter(JQ.noop, false);
 			} 
-        }));
-
-        EM.addListener(EMEvent.EndOfContent, new EMListener(function(nextPageURI: String): Void {
-            filterIsRunning = false;
-        }));
-
-        EM.addListener(EMEvent.NextContent, new EMListener(function(nextPageURI: String): Void {
-            protocolHandler.nextPage(nextPageURI);
         }));
 
         EM.addListener(EMEvent.CreateAlias, new EMListener(function(alias: Alias): Void {

@@ -58,13 +58,12 @@ extern class FilterCombination extends FilterableComponent {
 
 		        	selfElement.data("getNode", function(): Node {
 		            		var root: Node = selfElement.children(".andOrToggle").data("getNode")();
-		            		root.type = self.options.type;
 		            		var filterables: JQ = selfElement.children(".filterable");
 				        	filterables.each(function (idx: Int, el: Element): Void {
-				        			var filterable: FilterableComponent = new FilterableComponent(el);
-				        			var node: Node = filterable.data("getNode")();
-				        			root.addNode(node);
-				        		});
+			        			var filterable: FilterableComponent = new FilterableComponent(el);
+			        			var node: Node = filterable.data("getNode")();
+			        			root.addNode(node);
+			        		});
 		            		return root;
 		            	});
 					

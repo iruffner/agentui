@@ -94,8 +94,11 @@ class BennuHandler implements ProtocolHandler {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 	public function filter(filter: Filter): Void {
-		// If there is a filter running...
-		throw new Exception("E_NOTIMPLEMENTED"); 
+		var context = Synchronizer.createContext(1, "filterContent");
+		var requests = [
+			new ChannelRequestMessage(QUERY, context + "contents", new QueryMessage("content", filter.getQuery())),
+		];
+		new SubmitRequest(requests).start();
 	}
 	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
