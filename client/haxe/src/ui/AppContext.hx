@@ -135,9 +135,6 @@ class AppContext {
             }, "AgentUi-AGENT")
         );
 
-        EM.addListener(EMEvent.USER_LOGIN, fireFitWindow);
-        EM.addListener(EMEvent.CreateAgent, fireFitWindow);
-
         EM.addListener(EMEvent.FitWindow, fitWindowListener);
 	}
 

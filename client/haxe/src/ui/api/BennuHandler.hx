@@ -54,8 +54,7 @@ class BennuHandler implements ProtocolHandler {
 	public function createAgent(newUser: NewUser): Void {
 		var req = new BennuRequest("/api/agent/create/" + newUser.name, "", 
 			function (data: Dynamic, textStatus: String, jqXHR: JQXHR) {
-				js.Lib.alert(data);
-				EM.change(EMEvent.USER_SIGNUP, "");
+				EM.change(EMEvent.AgentCreated);
 			}
 		);
 		req.start();

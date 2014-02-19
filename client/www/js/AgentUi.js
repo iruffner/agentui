@@ -2184,12 +2184,6 @@ js.Cookie.all = function() {
 js.Cookie.get = function(name) {
 	return js.Cookie.all().get(name);
 }
-js.Lib = function() { }
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
-}
 js.d3 = {}
 js.d3._D3 = {}
 js.d3._D3.InitPriority = function() { }
@@ -4557,8 +4551,6 @@ ui.AppContext.registerGlobalListeners = function() {
 		ui.AppContext.AGENT = agent;
 		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias);
 	},"AgentUi-AGENT"));
-	ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,fireFitWindow);
-	ui.model.EM.addListener(ui.model.EMEvent.CreateAgent,fireFitWindow);
 	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,fitWindowListener);
 }
 ui.AppContext.getDescendentLabelChildren = function(iid) {
@@ -4846,8 +4838,7 @@ ui.api.BennuHandler.prototype = {
 	}
 	,createAgent: function(newUser) {
 		var req = new ui.api.BennuRequest("/api/agent/create/" + newUser.name,"",function(data,textStatus,jqXHR) {
-			js.Lib.alert(data);
-			ui.model.EM.change(ui.model.EMEvent.USER_SIGNUP,"");
+			ui.model.EM.change(ui.model.EMEvent.AgentCreated);
 		});
 		req.start();
 	}
@@ -5622,7 +5613,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","USER_LOGIN","CreateAgent","USER_SIGNUP","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","USER_LOGIN","CreateAgent","AgentCreated","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
@@ -5641,9 +5632,9 @@ ui.model.EMEvent.USER_LOGIN.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.CreateAgent = ["CreateAgent",5];
 ui.model.EMEvent.CreateAgent.toString = $estr;
 ui.model.EMEvent.CreateAgent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_SIGNUP = ["USER_SIGNUP",6];
-ui.model.EMEvent.USER_SIGNUP.toString = $estr;
-ui.model.EMEvent.USER_SIGNUP.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.AgentCreated = ["AgentCreated",6];
+ui.model.EMEvent.AgentCreated.toString = $estr;
+ui.model.EMEvent.AgentCreated.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.AGENT = ["AGENT",7];
 ui.model.EMEvent.AGENT.toString = $estr;
 ui.model.EMEvent.AGENT.__enum__ = ui.model.EMEvent;
@@ -8244,7 +8235,7 @@ var defineWidget = function() {
 		if(!valid) return;
 		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
 		ui.model.EM.change(ui.model.EMEvent.CreateAgent,newUser);
-		ui.model.EM.addListener(ui.model.EMEvent.USER_SIGNUP,new ui.model.EMListener(function(n) {
+		ui.model.EM.listenOnce(ui.model.EMEvent.AgentCreated,new ui.model.EMListener(function(n) {
 			selfElement1.dialog("close");
 		},"CreateAgentDialog-UserSignup"));
 	}, _buildDialog : function() {

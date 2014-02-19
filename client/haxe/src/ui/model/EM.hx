@@ -94,7 +94,7 @@ enum EMEvent {
 
 	USER_LOGIN;
 	CreateAgent;
-	USER_SIGNUP;
+	AgentCreated;
 	AGENT;
 
 	FitWindow;
