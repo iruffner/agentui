@@ -3,7 +3,9 @@ package ui.widget;
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
+import m3.jq.M3Menu;
 import m3.observable.OSet;
+import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
 import ui.model.EM;
@@ -20,6 +22,7 @@ typedef ConnectionsListWidgetDef = {
 	var options: ConnectionsListOptions;
 	// var connections: ObservableSet<Connection>;
 	@:optional var connectionsMap: MappedSet<Connection, ConnectionComp>;
+	@:optional var selectedConnectionComp:ConnectionComp;
 	var _create: Void->Void;
 	var _setConnections: OSet<Connection>->Void;
 	var destroy: Void->Void;
@@ -69,6 +72,72 @@ extern class ConnectionsList extends JQ {
 		                	}
 			            }, "ConnectionsList-TargetChange")
 			        );
+
+		        	var menu: M3Menu = new M3Menu("<ul id='label-action-menu'></ul>");
+		        	menu.appendTo(selfElement);
+        			menu.m3menu({
+        				classes: "container shadow",
+    					menuOptions: [
+    						{ 
+    							label: "Configure Access...",
+    							icon: "ui-icon-circle-plus",
+    							action: function(evt: JQEvent, m: M3Menu): Dynamic {
+    								evt.stopPropagation();
+    								/*
+    								var reference:JQ = self.selectedConnectionComp;
+    								if (reference == null) {
+    									reference = new JQ(evt.target);
+    								}
+    								*/
+    								return false;
+    							}
+    						},
+    						{ 
+    							label: "Delete Connection",
+    							icon: "ui-icon-circle-minus",
+    							action: function(evt: JQEvent, m: M3Menu): Void {
+    								if (self.selectedConnectionComp != null) {
+    									JqueryUtil.confirm("Delete Connection", "Are you sure you want to delete this connection?", 
+   		        							function(){
+   		        								EM.change(EMEvent.DeleteConnection, self.selectedConnectionComp.connection());
+   		        							}
+   		        						);
+    								}
+    							}
+    						}
+
+    					],
+    					width: 225
+    				}).hide();
+		        
+					selfElement.bind("contextmenu",function(evt: JQEvent): Dynamic {
+	        			menu.show();
+	        			menu.position({
+	        				my: "left top",
+	        				of: evt
+	        			});
+
+	        			var target = new JQ(evt.target);
+
+	        			if (!target.hasClass("connection")) {
+	        				var parents = target.parents(".connection");
+	        				if (parents.length > 0) {
+	        					target = new JQ(parents[0]);
+	        				} else {
+	        					target = null;
+	        				}
+	        			}
+
+	        			if (target != null) {
+	        				self.selectedConnectionComp = new ConnectionComp(target);
+	        			} else {
+	        				self.selectedConnectionComp = null;
+	        			}
+
+						evt.preventDefault();
+	        			evt.stopPropagation();
+	        			return false;
+					});
 		        },
 
 		        _mapListener: function(conn: Connection, connComp: ConnectionComp, evt: EventType): Void {

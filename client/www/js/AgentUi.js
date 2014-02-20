@@ -4822,6 +4822,11 @@ ui.api.BennuHandler.prototype = {
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelacl",ui.api.CrudMessage.create(acl))]);
 		req.start();
 	}
+	,deleteConnection: function(c) {
+		c.deleted = true;
+		var context = ui.api.Synchronizer.createContext(1,"connectionDeleted");
+		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "connection",ui.api.DeleteMessage.create(c))]).start();
+	}
 	,confirmIntroduction: function(confirmation) {
 		var context = ui.api.Synchronizer.createContext(1,"confirmIntroduction");
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRO_RESPONSE,context + "introduction",confirmation)]);
@@ -5038,6 +5043,9 @@ ui.api.EventDelegate.prototype = {
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.GrantAccess,new ui.model.EMListener(function(parms) {
 			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.DeleteConnection,new ui.model.EMListener(function(c) {
+			_g.protocolHandler.deleteConnection(c);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
 		}));
@@ -5612,7 +5620,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","USER_LOGIN","CreateAgent","AgentCreated","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","USER_LOGIN","CreateAgent","AgentCreated","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
@@ -5685,31 +5693,34 @@ ui.model.EMEvent.GrantAccess.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.AccessGranted = ["AccessGranted",23];
 ui.model.EMEvent.AccessGranted.toString = $estr;
 ui.model.EMEvent.AccessGranted.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",24];
+ui.model.EMEvent.DeleteConnection = ["DeleteConnection",24];
+ui.model.EMEvent.DeleteConnection.toString = $estr;
+ui.model.EMEvent.DeleteConnection.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",25];
 ui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",25];
+ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",26];
 ui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",26];
+ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",27];
 ui.model.EMEvent.RespondToIntroduction.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",27];
+ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",28];
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",28];
+ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",29];
 ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
 ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.BACKUP = ["BACKUP",29];
+ui.model.EMEvent.BACKUP = ["BACKUP",30];
 ui.model.EMEvent.BACKUP.toString = $estr;
 ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORE = ["RESTORE",30];
+ui.model.EMEvent.RESTORE = ["RESTORE",31];
 ui.model.EMEvent.RESTORE.toString = $estr;
 ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",31];
+ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",32];
 ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
 ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",32];
+ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",33];
 ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
@@ -7831,6 +7842,29 @@ var defineWidget = function() {
 		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
 			if(conn != null) self._setConnections(ui.AppContext.CONNECTIONS); else self._setConnections(ui.AppContext.CONNECTIONS);
 		},"ConnectionsList-TargetChange"));
+		var menu = new $("<ul id='label-action-menu'></ul>");
+		menu.appendTo(selfElement);
+		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "Configure Access...", icon : "ui-icon-circle-plus", action : function(evt,m) {
+			evt.stopPropagation();
+			return false;
+		}},{ label : "Delete Connection", icon : "ui-icon-circle-minus", action : function(evt,m) {
+			if(self.selectedConnectionComp != null) m3.util.JqueryUtil.confirm("Delete Connection","Are you sure you want to delete this connection?",function() {
+				ui.model.EM.change(ui.model.EMEvent.DeleteConnection,ui.widget.ConnectionCompHelper.connection(self.selectedConnectionComp));
+			});
+		}}], width : 225}).hide();
+		selfElement.bind("contextmenu",function(evt) {
+			menu.show();
+			menu.position({ my : "left top", of : evt});
+			var target = new $(evt.target);
+			if(!target.hasClass("connection")) {
+				var parents = target.parents(".connection");
+				if(parents.length > 0) target = new $(parents[0]); else target = null;
+			}
+			if(target != null) self.selectedConnectionComp = new $(target); else self.selectedConnectionComp = null;
+			evt.preventDefault();
+			evt.stopPropagation();
+			return false;
+		});
 	}, _mapListener : function(conn,connComp,evt) {
 		if(evt.isAdd()) {
 			var spacer = new $("#sideRightSpacer");

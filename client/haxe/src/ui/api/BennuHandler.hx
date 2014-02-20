@@ -74,6 +74,14 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
+	public function deleteConnection(c:Connection): Void {
+		c.deleted = true;
+		var context = Synchronizer.createContext(1, "connectionDeleted");
+		new SubmitRequest(
+			[new ChannelRequestMessage(DELETE, context + "connection", DeleteMessage.create(c))]
+		).start();
+	}
+
 	public function grantAccess(connectionIid:String, labelIid:String): Void {
 		var acl = new LabelAcl(connectionIid, labelIid);
 		var context = Synchronizer.createContext(1, "grantAccess");

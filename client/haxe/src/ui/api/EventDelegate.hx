@@ -90,6 +90,10 @@ class EventDelegate {
             protocolHandler.grantAccess(parms.connectionIid, parms.labelIid);
         }));
 
+        EM.addListener(EMEvent.DeleteConnection, new EMListener(function(c:Connection):Void{
+            protocolHandler.deleteConnection(c);
+        }));
+
         EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
             // Do something
         }));

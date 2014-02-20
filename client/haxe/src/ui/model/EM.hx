@@ -119,6 +119,8 @@ enum EMEvent {
 	GrantAccess;
 	AccessGranted;
 
+	DeleteConnection;
+
 	INTRODUCTION_REQUEST;
 	INTRODUCTION_RESPONSE;
 	RespondToIntroduction;
