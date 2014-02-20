@@ -52,7 +52,6 @@ extern class LabelTree extends JQ {
     				}
 
 			        self.onchangeLabelChildren = function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
-	        			AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
 	            		if(evt.isAdd()) {
 	            			selfElement.append(labelTreeBranch);
 	            		} else if (evt.isUpdate()) {

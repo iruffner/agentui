@@ -119,15 +119,8 @@ class AppContext {
 
 	static function registerGlobalListeners() {
         new JQ(js.Browser.window).on("unload", function(evt: JQEvent){
-                EM.change(EMEvent.PAGE_CLOSE);
-            });
-		var fitWindowListener = new EMListener(function(n: Nothing) {
-                untyped __js__("fitWindow()");
-            }, "FitWindowListener");
-
-        var fireFitWindow = new EMListener(function(n: Nothing) {
-                EM.change(EMEvent.FitWindow);
-            }, "FireFitWindowListener");
+            EM.change(EMEvent.PAGE_CLOSE);
+        });
 
         EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {
                 AGENT = agent;
@@ -135,7 +128,10 @@ class AppContext {
             }, "AgentUi-AGENT")
         );
 
-        EM.addListener(EMEvent.FitWindow, fitWindowListener);
+        EM.addListener(EMEvent.FitWindow, new EMListener(function(n: Nothing) {
+                untyped __js__("fitWindow()");
+            }, "FitWindowListener")
+        );
 	}
 
     public static function getDescendentLabelChildren(iid:String):Array<LabelChild> {

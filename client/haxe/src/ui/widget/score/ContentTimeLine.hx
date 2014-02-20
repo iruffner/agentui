@@ -16,7 +16,7 @@ class ContentTimeLine {
  	private static var height:Int = 70;
 
 	private var paper: Snap;
-	private var connection: Connection;
+	private var profile: Profile;
 	private var connectionElement:SnapElement;
 	public var timeLineElement:SnapElement;
 
@@ -36,11 +36,11 @@ class ContentTimeLine {
 		ContentTimeLine.next_x_pos = 10;
  	}
 
-	public function new(paper:Snap, connection: Connection, startTime:Float, endTime:Float, initialWidth:Float) {
-		this.paper      = paper;
-		this.connection = connection;
-		this.startTime  = startTime;
-		this.endTime    = endTime;
+	public function new(paper:Snap, profile: Profile, startTime:Float, endTime:Float, initialWidth:Float) {
+		this.paper        = paper;
+		this.profile      = profile;
+		this.startTime    = startTime;
+		this.endTime      = endTime;
 		this.initialWidth = initialWidth;
 
 		this.contents = new Array<Content<Dynamic>>();
@@ -73,7 +73,7 @@ class ContentTimeLine {
 		var ellipse = paper.ellipse(time_line_x + width/2, time_line_y + height/2, width/2, height/2);
 		ellipse.attr({fill:"#fff", stroke:"#000", strokeWidth:"1px"});
 
-		var imgSrc = M.getX(connection.data.imgSrc,"media/default_avatar.jpg");
+		var imgSrc = M.getX(profile.imgSrc,"media/default_avatar.jpg");
 		var img = paper.image(imgSrc, time_line_x, time_line_y, width, height)
                				       .attr({"preserveAspectRatio":"true"});
         img.attr({mask: ellipse});

@@ -47,11 +47,9 @@ extern class ScoreComp extends JQ {
 
 				_addContent: function(content:Content<Dynamic>): Void {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
-		        	AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
-	            	var connection: Connection = null;//AppContext.currentAlias.connectionSet.getElementComplex(content.creator);
-
+	            	var alias = AppContext.MASTER_ALIASES.getElement(content.aliasIid);
  	            	if (self.contentTimeLines.get(content.aliasIid) == null) {
- 	            		var timeLine = new ContentTimeLine(self.paper, connection, 
+ 	            		var timeLine = new ContentTimeLine(self.paper, alias.profile, 
  	            			                               self.startTime.getTime(), 
  	            			                               self.endTime.getTime(),
  	            			                               self.initialWidth);

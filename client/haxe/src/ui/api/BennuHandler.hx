@@ -312,7 +312,7 @@ class BennuHandler implements ProtocolHandler {
 
 		// TODO: Create a separate channel to receive model updates???
 		context = Synchronizer.createContext(1, "registerModelUpdates");
-		var types = ["alias", "connection", "content", "introduction", "label", "labelchild", "labeledcontent", "notification"];
+		var types = ["alias", "connection", "content", "introduction", "label", "labelchild", "labeledcontent", "notification", "profile"];
 		requests = [new ChannelRequestMessage(REGISTER, context, new RegisterMessage(types))];
 		new SubmitRequest(requests, this.loggedInAgentId).start();
 	}

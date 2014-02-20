@@ -4541,17 +4541,13 @@ ui.AppContext.registerGlobalListeners = function() {
 	new $(js.Browser.window).on("unload",function(evt) {
 		ui.model.EM.change(ui.model.EMEvent.PAGE_CLOSE);
 	});
-	var fitWindowListener = new ui.model.EMListener(function(n) {
-		fitWindow();
-	},"FitWindowListener");
-	var fireFitWindow = new ui.model.EMListener(function(n) {
-		ui.model.EM.change(ui.model.EMEvent.FitWindow);
-	},"FireFitWindowListener");
 	ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
 		ui.AppContext.AGENT = agent;
 		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias);
 	},"AgentUi-AGENT"));
-	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,fitWindowListener);
+	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,new ui.model.EMListener(function(n) {
+		fitWindow();
+	},"FitWindowListener"));
 }
 ui.AppContext.getDescendentLabelChildren = function(iid) {
 	var lcs = new Array();
@@ -4646,7 +4642,7 @@ ui.api.BennuHandler.prototype = {
 		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid='" + this.loggedInAgentId + "'")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "introductions",new ui.api.QueryMessage("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "connections",new ui.api.QueryMessage("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "notifications",new ui.api.QueryMessage("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
 		context = ui.api.Synchronizer.createContext(1,"registerModelUpdates");
-		var types = ["alias","connection","content","introduction","label","labelchild","labeledcontent","notification"];
+		var types = ["alias","connection","content","introduction","label","labelchild","labeledcontent","notification","profile"];
 		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,context,new ui.api.RegisterMessage(types))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
 	}
@@ -6487,9 +6483,9 @@ ui.widget.LabelsListHelper.getSelected = function(l) {
 	return l.labelsList("getSelected");
 }
 ui.widget.score = {}
-ui.widget.score.ContentTimeLine = function(paper,connection,startTime,endTime,initialWidth) {
+ui.widget.score.ContentTimeLine = function(paper,profile,startTime,endTime,initialWidth) {
 	this.paper = paper;
-	this.connection = connection;
+	this.profile = profile;
 	this.startTime = startTime;
 	this.endTime = endTime;
 	this.initialWidth = initialWidth;
@@ -6661,7 +6657,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var imgSrc = (function($this) {
 			var $r;
 			try {
-				$r = $this.connection.data.imgSrc;
+				$r = $this.profile.imgSrc;
 			} catch( __e ) {
 				$r = "media/default_avatar.jpg";
 			}
@@ -8638,7 +8634,6 @@ var defineWidget = function() {
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
 		if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
 		self.onchangeLabelChildren = function(labelTreeBranch,evt) {
-			ui.AppContext.LOGGER.debug(self.mappedLabels.visualId + " | LabelTree | " + evt.name() + " | New Branch");
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) labelTreeBranch.remove();
 		};
 		self.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid),function(labelChild) {
@@ -9132,10 +9127,9 @@ $.widget("ui.userComp",defineWidget());
 var defineWidget = function() {
 	return { _addContent : function(content) {
 		var self = this;
-		ui.AppContext.LOGGER.warn("fix me -- AppContext.CONNECTIONS.getElement(content.creator);");
-		var connection = null;
+		var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,content.aliasIid);
 		if(self.contentTimeLines.get(content.aliasIid) == null) {
-			var timeLine = new ui.widget.score.ContentTimeLine(self.paper,connection,self.startTime.getTime(),self.endTime.getTime(),self.initialWidth);
+			var timeLine = new ui.widget.score.ContentTimeLine(self.paper,alias.profile,self.startTime.getTime(),self.endTime.getTime(),self.initialWidth);
 			self.contentTimeLines.set(content.aliasIid,timeLine);
 		}
 		self.contentTimeLines.get(content.aliasIid).addContent(content);
