@@ -168,7 +168,7 @@ class Connection extends ModelObjWithIid {
 
 	public function new() {
 		super();
-		this.data = new Profile("No Profile", "media/test/tesla.jpg");
+		this.data = new Profile("-->*<--", "");
 	}
 
 	public function equals(c: Connection): Bool {

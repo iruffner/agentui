@@ -78,7 +78,7 @@ class ResponseProcessor {
             AppContext.AGENT.iid = AppContext.AGENT.name = data.aliases[0].agentId;
         }
         if (AppContext.AGENT.data.name.isBlank()) {
-            AppContext.AGENT.data = new Profile(AppContext.AGENT.name, "media/test/koi.jpg");
+            AppContext.AGENT.data = new Profile(AppContext.AGENT.name, "media/koi.jpg");
         }
 
 		AppContext.MASTER_ALIASES.addAll(data.aliases);

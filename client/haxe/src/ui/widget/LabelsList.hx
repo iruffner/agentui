@@ -24,7 +24,6 @@ typedef LabelsListWidgetDef = {
 	var getSelected: Void->LabelComp;
 }
 
-
 class LabelsListHelper {
 	public static function getSelected(l: LabelsList): LabelComp {
 		return l.labelsList("getSelected");

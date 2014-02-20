@@ -63,11 +63,6 @@ extern class LabelComp extends FilterableComponent {
 		            classes: null,
 		            dropTargetClass: "labelDT",
 		            dragstop: null,
-		            		// function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-				              //   		if(!tags.intersects(clone)) {
-				              //   			clone.remove();
-				              //   		}
-				              //   	})
 		            cloneFcn: function(filterableComp: FilterableComponent, ?isDragByHelper: Bool = false, ?containment: Dynamic = false, ?dragstop: JQEvent->UIDraggable->Void): LabelComp {
 		            			var labelComp: LabelComp = cast(filterableComp, LabelComp);
 				            	if(labelComp.hasClass("clone")) return labelComp;

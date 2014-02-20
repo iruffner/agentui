@@ -5272,7 +5272,7 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 		ui.AppContext.AGENT = new ui.model.Agent();
 		ui.AppContext.AGENT.iid = ui.AppContext.AGENT.name = data.aliases[0].agentId;
 	}
-	if(m3.helper.StringHelper.isBlank(ui.AppContext.AGENT.data.name)) ui.AppContext.AGENT.data = new ui.model.Profile(ui.AppContext.AGENT.name,"media/test/koi.jpg");
+	if(m3.helper.StringHelper.isBlank(ui.AppContext.AGENT.data.name)) ui.AppContext.AGENT.data = new ui.model.Profile(ui.AppContext.AGENT.name,"media/koi.jpg");
 	ui.AppContext.MASTER_ALIASES.addAll(data.aliases);
 	ui.AppContext.MASTER_LABELS.addAll(data.labels);
 	ui.AppContext.MASTER_CONTENT.addAll(data.content);
@@ -5878,7 +5878,7 @@ ui.model.LabelAcl.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
 });
 ui.model.Connection = function() {
 	ui.model.ModelObjWithIid.call(this);
-	this.data = new ui.model.Profile("No Profile","media/test/tesla.jpg");
+	this.data = new ui.model.Profile("-->*<--","");
 };
 $hxClasses["ui.model.Connection"] = ui.model.Connection;
 ui.model.Connection.__name__ = ["ui","model","Connection"];
@@ -9067,7 +9067,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement1 = this.element;
 		self.container.empty();
-		var imgSrc = "media/test/koi.jpg";
+		var imgSrc = "media/koi.jpg";
 		if(m3.helper.StringHelper.isNotBlank((function($this) {
 			var $r;
 			try {

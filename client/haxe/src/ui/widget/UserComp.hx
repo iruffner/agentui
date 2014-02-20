@@ -138,7 +138,7 @@ extern class UserComp extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					self.container.empty();
-					var imgSrc: String = "media/test/koi.jpg";
+					var imgSrc: String = "media/koi.jpg";
 					if ( M.getX(AppContext.currentAlias.profile.imgSrc, "").isNotBlank()) {
 						imgSrc = AppContext.currentAlias.profile.imgSrc;
 					}
