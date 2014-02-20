@@ -5263,6 +5263,9 @@ ui.api.ResponseProcessor.updateModelObject = function(data) {
 	case "notification":
 		ui.AppContext.MASTER_NOTIFICATIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Notification));
 		break;
+	case "profile":
+		ui.api.ResponseProcessor.processProfile(data.instance);
+		break;
 	default:
 		ui.AppContext.LOGGER.error("Unknown type: " + type);
 	}
@@ -7472,19 +7475,10 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionAvatar must be a div element");
 		selfElement.attr("id","connavatar_" + StringTools.htmlEscape(self.options.connection.name()));
-		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title",self.options.connection.name());
-		var imgSrc = "media/default_avatar.jpg";
-		if(m3.helper.StringHelper.isNotBlank((function($this) {
-			var $r;
-			try {
-				$r = self.options.connection.data.imgSrc;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)))) imgSrc = self.options.connection.data.imgSrc;
-		var img = new $("<img src='" + imgSrc + "' class='shadow'/>");
+		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable");
+		var img = new $("<img src='media/default_avatar.jpg' class='shadow'/>");
 		selfElement.append(img);
+		self._updateWidgets();
 		(js.Boot.__cast(selfElement , $)).tooltip();
 		if(!self.options.dndEnabled) img.mousedown(function(evt) {
 			return false;;
@@ -7525,6 +7519,10 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		self.options.connection = conn;
+		self._updateWidgets();
+	}, _updateWidgets : function() {
+		var self = this;
+		var selfElement = this.element;
 		var imgSrc = "media/default_avatar.jpg";
 		if(m3.helper.StringHelper.isNotBlank((function($this) {
 			var $r;

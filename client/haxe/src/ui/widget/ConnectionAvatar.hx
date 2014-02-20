@@ -28,6 +28,7 @@ typedef ConnectionAvatarWidgetDef = {
 	@:optional var _super: Void->Void;
 	var update: Connection->Void;
 	var destroy: Void->Void;
+	var _updateWidgets: Void->Void;
 }
 
 class ConnectionAvatarHelper {
@@ -89,16 +90,12 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	}
 
 		        	selfElement.attr("id", "connavatar_" + (self.options.connection.name()).htmlEscape());
+		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable");
 
-		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable").attr("title", self.options.connection.name());
-
-		        	var imgSrc: String = "media/default_avatar.jpg";
-		        	if(M.getX(self.options.connection.data.imgSrc, "").isNotBlank() ) {
-		        		imgSrc = self.options.connection.data.imgSrc;
-		        	}
-
-		            var img: JQ = new JQ("<img src='" + imgSrc + "' class='shadow'/>");
+		            var img: JQ = new JQ("<img src='media/default_avatar.jpg' class='shadow'/>");
 		            selfElement.append(img);
+
+		            self._updateWidgets();
 
 		            cast(selfElement, JQTooltip).tooltip();
 
@@ -181,6 +178,12 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 					self.options.connection = conn;
+					self._updateWidgets();
+	        	},
+
+		        _updateWidgets: function(): Void {
+		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
 
 					var imgSrc: String = "media/default_avatar.jpg";
 		        	if(M.getX(self.options.connection.data.imgSrc, "").isNotBlank() ) {

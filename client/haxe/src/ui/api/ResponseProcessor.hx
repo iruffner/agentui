@@ -63,6 +63,8 @@ class ResponseProcessor {
                 AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabeledContent));
             case "notification":
                 AppContext.MASTER_NOTIFICATIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Notification));
+            case "profile":
+                processProfile(data.instance);
             default:
                 AppContext.LOGGER.error("Unknown type: " + type);
         }
