@@ -107,7 +107,7 @@ class LabelData extends ModelObj {
 
 class Label extends ModelObjWithIid {
 	public var name: String;
-	public var data: LabelData;
+	@:optional public var data: LabelData;
 	@:transient public var labelChildren:OSet<LabelChild>;
 
 	public function new(?name: String) {
@@ -159,6 +159,7 @@ class Connection extends ModelObjWithIid {
 	public var aliasIid:String;
 	public var localPeerId: String;
   	public var remotePeerId: String;
+  	public var metaLabelIid: String;
 	@:optional public var data:Profile;
 
 	public static function identifier(c: Connection): String {
