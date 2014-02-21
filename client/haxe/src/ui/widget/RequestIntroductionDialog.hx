@@ -94,7 +94,7 @@ extern class RequestIntroductionDialog extends JQ {
  	  		        				.appendTo(divTa1)
  	  		        				.attr("id", "from_text")
  	  		        				.keyup(from_text_changed)
- 	  		        				.val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + AppContext.AGENT.data.name);
+ 	  		        				.val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + AppContext.currentAlias.profile.name);
 
 		        	var divTa2:JQ = new JQ("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
 					var to_text: JQ = new JQ("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>")

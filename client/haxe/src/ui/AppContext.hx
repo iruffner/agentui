@@ -118,10 +118,6 @@ class AppContext {
     }
 
     static function setAgent(agent:Agent) {
-        if (agent.data.name.isBlank()) {
-            agent.data = new Profile(agent.name, "media/koi.jpg");
-        }
-
         AGENT = agent;
 
         // Set the current alias

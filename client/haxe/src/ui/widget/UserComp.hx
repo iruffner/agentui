@@ -26,7 +26,7 @@ typedef UserCompOptions = {
 typedef UserCompWidgetDef = {
 	@:optional var options: UserCompOptions;
 	var _create: Void->Void;
-	var _setUser: Void->Void;
+	var _setAlias: Alias->Void;
 	var _setTarget: Connection->Void;
 	var _createAliasMenu: UserCompWidgetDef->OSet<Alias>->M3Menu;
 	var destroy: Void->Void;
@@ -57,10 +57,10 @@ extern class UserComp extends JQ {
 		        	selfElement.addClass("ocontainer shadow ");
 		        	self.container = new JQ("<div class='container'></div>");
 		        	selfElement.append(self.container);
-		        	self._setUser();//init the components
+		        	self._setAlias(new Alias());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
-		        			self._setUser();
+		        			self._setAlias(alias);
 		        		}, "UserComp-Alias")
 		        	);
 
@@ -78,7 +78,7 @@ extern class UserComp extends JQ {
 				                		selfElement.removeClass("targetChange");
 				                		JqueryUtil.deleteEffects(dragstopEvt);
 				                		AppContext.TARGET = null;
-				                		self._setUser();
+				                		self._setAlias(AppContext.currentAlias);
 				                	}
 				                };
 
@@ -133,28 +133,21 @@ extern class UserComp extends JQ {
 		       	},
 
 
-		        _setUser: function(): Void {
+		        _setAlias: function(alias:Alias): Void {
 		        	var self: UserCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					self.container.empty();
-					var imgSrc: String = "media/koi.jpg";
-					if ( M.getX(AppContext.currentAlias.profile.imgSrc, "").isNotBlank()) {
-						imgSrc = AppContext.currentAlias.profile.imgSrc;
-					}
 
-		        	self.userImg = new JQ("<img alt='user' src='" + imgSrc + "' class='userImg shadow'/>");
+		        	self.userImg = new JQ("<img alt='user' src='" + alias.profile.imgSrc + "' class='userImg shadow'/>");
 		        	self.container.append(self.userImg);
 
 		        	self.userIdTxt = new JQ("<div class='userIdTxt'></div>");
 		        	self.container.append(self.userIdTxt);
-		        	var name: String = M.getX(AppContext.AGENT.data.name, "");
-		        	var aliasLabel: String = M.getX(AppContext.currentAlias.profile.name, "");
-		        	if(aliasLabel.isBlank()) aliasLabel = "";
 		        	self.userIdTxt
-		        		.append("<strong>" + name + "</strong>")
+		        		.append("<strong>" + alias.agentId + "</strong>")
 		        		.append("<br/>")
-		        		.append("<font style='font-size:12px'>" + aliasLabel + "</font>");
+		        		.append("<font style='font-size:12px'>" + alias.profile.name + "</font>");
 		        	var changeDiv: JQ = new JQ("<div class='ui-helper-clearfix'></div>");
 	        		self.container.append(changeDiv);
 

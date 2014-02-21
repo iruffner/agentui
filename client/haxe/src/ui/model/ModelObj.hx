@@ -53,12 +53,11 @@ class Agent extends ModelObj {
 	public var agentId: String;
 	public var uberAliasIid: String;
   	public var name: String;
-  	public var data: Profile;
 	public var deleted: Bool;
+	@:optional public var data: Dynamic;
 
 	public function new () {
 		super();
-		this.data = new Profile();
 	}
 }
 
@@ -66,10 +65,10 @@ class Profile extends ModelObj {
 	public var name: String;
 	@:optional public var imgSrc: String;
 
-	public function new(?name:String="", ?imgSrc:String="") {
+	public function new(?name:String, ?imgSrc:String) {
 		super();
-		this.name = name;
-		this.imgSrc = imgSrc;
+		this.name   = (name == null)   ? "Qoid"          : name;
+		this.imgSrc = (imgSrc == null) ? "media/koi.jpg" : imgSrc;
 	}
 }
 
@@ -90,6 +89,7 @@ class Alias extends ModelObjWithIid {
 		super();
 		this.profile = new Profile();
 		this.data = new AliasData();
+		this.agentId = "";
 	}
 	
 	public static function identifier(alias: Alias): String {

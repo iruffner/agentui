@@ -4546,7 +4546,6 @@ ui.AppContext.init = function() {
 	ui.AppContext.registerGlobalListeners();
 }
 ui.AppContext.setAgent = function(agent) {
-	if(m3.helper.StringHelper.isBlank(agent.data.name)) agent.data = new ui.model.Profile(agent.name,"media/koi.jpg");
 	ui.AppContext.AGENT = agent;
 	var $it0 = ui.AppContext.ALIASES.iterator();
 	while( $it0.hasNext() ) {
@@ -5309,7 +5308,6 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 		ui.AppContext.AGENT = new ui.model.Agent();
 		ui.AppContext.AGENT.iid = ui.AppContext.AGENT.name = data.aliases[0].agentId;
 	}
-	if(m3.helper.StringHelper.isBlank(ui.AppContext.AGENT.data.name)) ui.AppContext.AGENT.data = new ui.model.Profile(ui.AppContext.AGENT.name,"media/koi.jpg");
 	ui.AppContext.MASTER_ALIASES.addAll(data.aliases);
 	ui.AppContext.MASTER_LABELS.addAll(data.labels);
 	ui.AppContext.MASTER_CONTENT.addAll(data.content);
@@ -5809,7 +5807,6 @@ ui.model.ModelObjWithIid.prototype = $extend(ui.model.ModelObj.prototype,{
 });
 ui.model.Agent = function() {
 	ui.model.ModelObj.call(this);
-	this.data = new ui.model.Profile();
 };
 $hxClasses["ui.model.Agent"] = ui.model.Agent;
 ui.model.Agent.__name__ = ["ui","model","Agent"];
@@ -5818,11 +5815,9 @@ ui.model.Agent.prototype = $extend(ui.model.ModelObj.prototype,{
 	__class__: ui.model.Agent
 });
 ui.model.Profile = function(name,imgSrc) {
-	if(imgSrc == null) imgSrc = "";
-	if(name == null) name = "";
 	ui.model.ModelObj.call(this);
-	this.name = name;
-	this.imgSrc = imgSrc;
+	this.name = name == null?"Qoid":name;
+	this.imgSrc = imgSrc == null?"media/koi.jpg":imgSrc;
 };
 $hxClasses["ui.model.Profile"] = ui.model.Profile;
 ui.model.Profile.__name__ = ["ui","model","Profile"];
@@ -5844,6 +5839,7 @@ ui.model.Alias = function() {
 	ui.model.ModelObjWithIid.call(this);
 	this.profile = new ui.model.Profile();
 	this.data = new ui.model.AliasData();
+	this.agentId = "";
 };
 $hxClasses["ui.model.Alias"] = ui.model.Alias;
 ui.model.Alias.__name__ = ["ui","model","Alias"];
@@ -7176,35 +7172,10 @@ var defineWidget = function() {
 			var deleteBtn = new $("<button>Delete</button>").appendTo(btnDiv).button().click(function(evt) {
 				ui.model.EM.change(ui.model.EMEvent.DeleteAlias,alias);
 			});
-		} else {
-			if(m3.helper.StringHelper.isNotBlank((function($this) {
-				var $r;
-				try {
-					$r = ui.AppContext.AGENT.data.imgSrc;
-				} catch( __e ) {
-					$r = "";
-				}
-				return $r;
-			}(this)))) imgSrc = ui.AppContext.AGENT.data.imgSrc;
-			leftDiv.append(new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
-			leftDiv.append(new $("<h2>" + ui.AppContext.AGENT.data.name + "</h2>"));
 		}
-		rightDiv.append("<h2>Agent</h2>");
-		var span = new $("<span class='clickable'></span>").appendTo(rightDiv).click(function(evt) {
-			self1._showAliasDetail(null);
-		}).append((function($this) {
-			var $r;
-			try {
-				$r = ui.AppContext.AGENT.data.name;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)));
-		rightDiv.append("<br/>");
 		rightDiv.append("<h2>Aliases</h2>");
 		Lambda.iter(ui.AppContext.ALIASES,function(a) {
-			var span1 = new $("<span class='clickable'></span>").appendTo(rightDiv).click(function(evt) {
+			var span = new $("<span class='clickable'></span>").appendTo(rightDiv).click(function(evt) {
 				self1._showAliasDetail(a);
 			}).append(a.profile.name);
 			rightDiv.append("<br/>");
@@ -7276,22 +7247,9 @@ var defineWidget = function() {
 		var cancelBtn = new $("<button>Cancel</button>").appendTo(btnDiv).button().click(function(evt) {
 			self2._showAliasDetail(alias1);
 		});
-		rightDiv1.append("<h2>Agent</h2>");
-		var span = new $("<span class='clickable'></span>").appendTo(rightDiv1).click(function(evt) {
-			self2._showAliasDetail(null);
-		}).append((function($this) {
-			var $r;
-			try {
-				$r = ui.AppContext.AGENT.data.name;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)));
-		rightDiv1.append("<br/>");
 		rightDiv1.append("<h2>Aliases</h2>");
 		Lambda.iter(ui.AppContext.ALIASES,function(a1) {
-			var span1 = new $("<span class='clickable'></span>").appendTo(rightDiv1).click(function(evt) {
+			var span = new $("<span class='clickable'></span>").appendTo(rightDiv1).click(function(evt) {
 				self2._showAliasDetail(a1);
 			}).append(a1.profile.name);
 			rightDiv1.append("<br/>");
@@ -8967,7 +8925,7 @@ var defineWidget = function() {
 			}
 		};
 		var divTa1 = new $("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
-		var from_text = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AppContext.AGENT.data.name);
+		var from_text = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AppContext.currentAlias.profile.name);
 		var divTa2 = new $("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
 		var to_text = new $("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","to_text").val(from_text.val());
 	}, _appendConnectionAvatar : function(connection,parent) {
@@ -9057,9 +9015,9 @@ var defineWidget = function() {
 		selfElement.addClass("ocontainer shadow ");
 		self.container = new $("<div class='container'></div>");
 		selfElement.append(self.container);
-		self._setUser();
+		self._setAlias(new ui.model.Alias());
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			self._setUser();
+			self._setAlias(alias);
 		},"UserComp-Alias"));
 		(js.Boot.__cast(self.container , $)).droppable({ accept : function(d) {
 			return d["is"](".connectionAvatar");
@@ -9070,7 +9028,7 @@ var defineWidget = function() {
 					selfElement.removeClass("targetChange");
 					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
 					ui.AppContext.TARGET = null;
-					self._setUser();
+					self._setAlias(ui.AppContext.currentAlias);
 				}
 			};
 			selfElement.addClass("targetChange");
@@ -9104,44 +9062,15 @@ var defineWidget = function() {
 		menuOptions.push(menuOption);
 		menu.m3menu({ menuOptions : menuOptions}).hide();
 		return menu;
-	}, _setUser : function() {
+	}, _setAlias : function(alias) {
 		var self = this;
 		var selfElement1 = this.element;
 		self.container.empty();
-		var imgSrc = "media/koi.jpg";
-		if(m3.helper.StringHelper.isNotBlank((function($this) {
-			var $r;
-			try {
-				$r = ui.AppContext.currentAlias.profile.imgSrc;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)))) imgSrc = ui.AppContext.currentAlias.profile.imgSrc;
-		self.userImg = new $("<img alt='user' src='" + imgSrc + "' class='userImg shadow'/>");
+		self.userImg = new $("<img alt='user' src='" + alias.profile.imgSrc + "' class='userImg shadow'/>");
 		self.container.append(self.userImg);
 		self.userIdTxt = new $("<div class='userIdTxt'></div>");
 		self.container.append(self.userIdTxt);
-		var name = (function($this) {
-			var $r;
-			try {
-				$r = ui.AppContext.AGENT.data.name;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this));
-		var aliasLabel = (function($this) {
-			var $r;
-			try {
-				$r = ui.AppContext.currentAlias.profile.name;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this));
-		if(m3.helper.StringHelper.isBlank(aliasLabel)) aliasLabel = "";
-		self.userIdTxt.append("<strong>" + name + "</strong>").append("<br/>").append("<font style='font-size:12px'>" + aliasLabel + "</font>");
+		self.userIdTxt.append("<strong>" + alias.agentId + "</strong>").append("<br/>").append("<font style='font-size:12px'>" + alias.profile.name + "</font>");
 		var changeDiv = new $("<div class='ui-helper-clearfix'></div>");
 		self.container.append(changeDiv);
 		self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
@@ -9264,10 +9193,10 @@ ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequest
 ui.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"26\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.model.ModelObjWithIid.__rtti = "<class path=\"ui.model.ModelObjWithIid\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"46\" static=\"1\"><f a=\"t\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Agent.__rtti = "<class path=\"ui.model.Agent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<uberAliasIid public=\"1\"><c path=\"String\"/></uberAliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\"><c path=\"ui.model.Profile\"/></data>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Profile.__rtti = "<class path=\"ui.model.Profile\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"69\"><f a=\"?name:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.AliasData.__rtti = "<class path=\"ui.model.AliasData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"78\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"95\" static=\"1\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<profile public=\"1\"><c path=\"ui.model.Profile\"/></profile>\n\t<data public=\"1\">\n\t\t<c path=\"ui.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"89\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Agent.__rtti = "<class path=\"ui.model.Agent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<uberAliasIid public=\"1\"><c path=\"String\"/></uberAliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Profile.__rtti = "<class path=\"ui.model.Profile\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"68\"><f a=\"?name:?imgSrc\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.AliasData.__rtti = "<class path=\"ui.model.AliasData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"77\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"95\" static=\"1\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<profile public=\"1\"><c path=\"ui.model.Profile\"/></profile>\n\t<data public=\"1\">\n\t\t<c path=\"ui.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"88\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.LabelData.__rtti = "<class path=\"ui.model.LabelData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"119\" static=\"1\"><f a=\"l\">\n\t<c path=\"ui.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"ui.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"ui.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"113\"><f a=\"?name\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.LabelChild.__rtti = "<class path=\"ui.model.LabelChild\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"138\" static=\"1\"><f a=\"l\">\n\t<c path=\"ui.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"129\"><f a=\"?parentIid:?childIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
