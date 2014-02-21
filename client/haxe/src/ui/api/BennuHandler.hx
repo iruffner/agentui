@@ -118,7 +118,7 @@ class BennuHandler implements ProtocolHandler {
 		// Create a label child, which will connect the parent and the child
 		var label = new Label(alias.profile.name);
 		label.data.color = "#000000";
-		var lc = new LabelChild(AppContext.UBER_LABEL_IID, label.iid);
+		var lc = new LabelChild(AppContext.getUberLabelIid(), label.iid);
 		alias.rootLabelIid = label.iid;
 
 		var context = Synchronizer.createContext(3, "aliasCreated");
@@ -145,7 +145,7 @@ class BennuHandler implements ProtocolHandler {
 
 		// TODO: the parentLabelIid might not be blank...
 		var data = new EditLabelData(AppContext.LABELS.delegate().get(alias.rootLabelIid),
-			                         AppContext.UBER_LABEL_IID);
+			                         AppContext.getUberLabelIid());
 		deleteLabel(data);
 	}
 
@@ -297,6 +297,13 @@ class BennuHandler implements ProtocolHandler {
 		}
 
 		new SubmitRequest(requests).start();
+	}
+
+	public function getAgent(agentId:String):Void {
+		var context = Synchronizer.createContext(1, "getAgent");
+		new SubmitRequest([
+			new ChannelRequestMessage(QUERY, context + "agent", new QueryMessage("agent", "iid='" + agentId + "'"))
+		]).start();
 	}
 
 	private function onCreateSubmitChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {

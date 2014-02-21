@@ -39,6 +39,17 @@ class Synchronizer {
 		return UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete + "-";
 	}
 
+    public static function processResponse(data:Dynamic):Void {
+        var context:Array<String> = data.context.split("-");
+        if (context == null) {return;}
+
+        var synchronizer = Synchronizer.synchronizers.get(context[0]);
+        if (synchronizer == null) {
+            synchronizer = Synchronizer.add(data.context);
+        }
+        synchronizer.dataReceived(data);
+    }
+
 	public static function add(context:String):Synchronizer {
 		var parts:Array<String> = context.split("-");
 		var synchronizer = new Synchronizer(parts[0], Std.parseInt(parts[1]), parts[2]);

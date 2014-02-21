@@ -15,7 +15,6 @@ typedef CreateAgentDialogOptions = {
 
 typedef CreateAgentDialogWidgetDef = {
 	@:optional var options: CreateAgentDialogOptions;
-	@:optional var user: Agent;
 	@:optional var _cancelled: Bool;
 	@:optional var _registered: Bool;
 
@@ -30,7 +29,6 @@ typedef CreateAgentDialogWidgetDef = {
 	
 	var initialized: Bool;
 
-	var _setAgent: Agent->Void;
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
 	var _createNewUser: Void->Void;
@@ -84,20 +82,14 @@ extern class CreateAgentDialog extends JQ {
 		        	// self.placeholder_em = new JQ("<input id='login_em_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
-		        			if(evt.keyCode == 13) {
-		        				self._createNewUser();
-		        			}
-		        		});
-
+	        			if(evt.keyCode == 13) {
+	        				self._createNewUser();
+	        			}
+	        		});
 
 		        	PlaceHolderUtil.setFocusBehavior(self.input_n, self.placeholder_n);
 		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
 		        	PlaceHolderUtil.setFocusBehavior(self.input_em, self.placeholder_em);
-
-		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
-	        				self._setAgent(agent);
-		        		},"CreateAgentDialog-Agent")
-		        	);
 		        },
 
 		        initialized: false,
@@ -135,7 +127,7 @@ extern class CreateAgentDialog extends JQ {
     				EM.change(EMEvent.CreateAgent, newUser);
 
     				EM.listenOnce(EMEvent.AgentCreated, new EMListener(function(n: Nothing): Void {
-    						selfElement.dialog("close");
+    					selfElement.dialog("close");
     				}, "CreateAgentDialog-UserSignup"));
 	        	},
 
@@ -163,19 +155,11 @@ extern class CreateAgentDialog extends JQ {
 		        		},
 		        		close: function(evt: JQEvent, ui: UIJQDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");
-		        			if(self._cancelled || (!self._registered && self.user == null)) {
-		        				DialogManager.showLogin();
-		        			}
+	        				DialogManager.showLogin();
 		        		}
 		        	};
 		        	selfElement.dialog(dlgOptions);
 		        },
-
-		        _setAgent: function(user: Agent): Void {
-		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();
-
-		        	self.user = user;
-	        	},
 
 	        	open: function(): Void {
 		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();

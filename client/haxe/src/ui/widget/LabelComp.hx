@@ -133,7 +133,7 @@ extern class LabelComp extends FilterableComponent {
 
 		        	self.label = AppContext.LABELS.getElement(self.options.labelIid);
 		        	if (self.label == null) {
-		        		self.label = new Label("-->8<--");
+		        		self.label = new Label("-->*<--");
 		        		self.label.iid = self.options.labelIid;
 		        		AppContext.MASTER_LABELS.add(self.label);
 		        	}

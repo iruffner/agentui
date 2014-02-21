@@ -44,11 +44,6 @@ class AgentUi {
     }
 
     public static function start(): Void {
-        var urlVars: Dynamic<String> = HtmlUtil.getUrlVars();
-        if(urlVars.demo.isNotBlank() && (urlVars.demo == "yes" || urlVars.demo == "true")) {
-            AppContext.DEMO = true;
-        } 
-
         var r: RestoreWidget = new RestoreWidget("<div></div>");
         
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {

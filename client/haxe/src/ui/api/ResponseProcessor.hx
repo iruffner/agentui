@@ -1,6 +1,7 @@
 package ui.api;
 
 import haxe.ds.StringMap;
+import haxe.Timer;
 
 import m3.jq.JQ;
 import m3.util.JqueryUtil;
@@ -8,6 +9,7 @@ import m3.observable.OSet;
 import ui.api.Synchronizer;
 import ui.model.EM;
 import ui.model.ModelObj;
+import ui.api.Requester;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
@@ -27,18 +29,11 @@ class ResponseProcessor {
 	            AppContext.LOGGER.error(data.error.stacktrace);
             } else {
                 if (data.responseType == "profile") {
-                    processProfile(data.data);
+                    Timer.delay(function() {processProfile(data.data);}, 50);
                 } else if (data.responseType == "squery") {
                     updateModelObject(data.data);
                 } else {
-    				var context:Array<String> = data.context.split("-");
-                    if (context == null) {return;}
-
-					var synchronizer = Synchronizer.synchronizers.get(context[0]);
-					if (synchronizer == null) {
-						synchronizer = Synchronizer.add(data.context);
-					}
-					synchronizer.dataReceived(data);
+                    Synchronizer.processResponse(data);
                 }
 			}
 		});
@@ -75,7 +70,8 @@ class ResponseProcessor {
         if (data.agent != null) {
             AppContext.AGENT = data.agent;
         } else {
-            // Create a dummy agent with the correct agent id
+            // Create a dummy agent with the correct agent id.  This will be used
+            // in sending messages
             AppContext.AGENT = new Agent();
             AppContext.AGENT.iid = AppContext.AGENT.name = data.aliases[0].agentId;
         }
@@ -92,32 +88,11 @@ class ResponseProcessor {
         AppContext.INTRODUCTIONS.addAll(data.introductions);
         AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
 
-    	var initialAlias:Alias = null;
-    	for (alias in AppContext.ALIASES) {
-    		if (alias.data.isDefault) {
-    			initialAlias = alias;
-    			break;
-    		}
-    	}
-    	if (initialAlias == null) {
-	     	initialAlias = AppContext.ALIASES.iterator().next();
-	    }
-	    AppContext.currentAlias = initialAlias;
-
-        // Set the uber label's iid
-        var uberAlias = AppContext.ALIASES.getElement(AppContext.AGENT.uberAliasIid);
-        AppContext.UBER_LABEL_IID = uberAlias.rootLabelIid;
-
-        // Set the intro label's iid
-        var fs = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(c:Label):Bool {
-            return c.name == "intro label";
-        });
-        AppContext.INTRO_LABEL_IID = fs.iterator().next().iid;
-        AppContext.LABELCHILDREN.refilter();
-
-    	// Fire the events that will cause the UI to load the data
-		EM.change(EMEvent.AGENT, AppContext.AGENT);
-		EM.change(EMEvent.FitWindow);
+        if (data.agent == null) {
+            AgentUi.PROTOCOL.getAgent(data.aliases[0].agentId);
+        } else {
+            EM.change(EMEvent.AGENT, data.agent);
+        }
 	}
 
     public static function registerModelUpdates(data:SynchronizationParms) {
@@ -155,5 +130,9 @@ class ResponseProcessor {
         });
         EM.change(LoadFilteredContent, filteredContent);
         EM.change(EMEvent.FitWindow);
+    }
+
+    public static function getAgent(data:SynchronizationParms) {
+        EM.change(EMEvent.AGENT, data.agent);
     }
 }

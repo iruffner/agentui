@@ -2184,6 +2184,12 @@ js.Cookie.all = function() {
 js.Cookie.get = function(name) {
 	return js.Cookie.all().get(name);
 }
+js.Lib = function() { }
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
+}
 js.d3 = {}
 js.d3._D3 = {}
 js.d3._D3.InitPriority = function() { }
@@ -3296,7 +3302,7 @@ m3.observable.GroupedSet = function(source,groupingFn) {
 		var previousGroupingKey = _g._identityToGrouping.get(groupingKey);
 		if(type.isAddOrUpdate()) {
 			if(previousGroupingKey != groupingKey) {
-				_g["delete"](t);
+				_g["delete"](t,false);
 				_g.add(t);
 			}
 		} else _g["delete"](t);
@@ -3347,7 +3353,8 @@ m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype
 			this.fire(groupedSet,m3.observable.EventType.Update);
 		}
 	}
-	,'delete': function(t) {
+	,'delete': function(t,deleteEmptySet) {
+		if(deleteEmptySet == null) deleteEmptySet = true;
 		var id = (this._source.identifier())(t);
 		var key = this._identityToGrouping.get(id);
 		if(key != null) {
@@ -3355,7 +3362,7 @@ m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype
 			var groupedSet = this._groupedSets.get(key);
 			if(groupedSet != null) {
 				groupedSet["delete"](t);
-				if(groupedSet.isEmpty()) {
+				if(groupedSet.isEmpty() && deleteEmptySet) {
 					this._groupedSets.remove(key);
 					this.fire(groupedSet,m3.observable.EventType.Delete);
 				} else this.fire(groupedSet,m3.observable.EventType.Update);
@@ -4446,8 +4453,6 @@ ui.AgentUi.main = function() {
 	ui.AgentUi.HOT_KEY_ACTIONS = new Array();
 }
 ui.AgentUi.start = function() {
-	var urlVars = m3.util.HtmlUtil.getUrlVars();
-	if(m3.helper.StringHelper.isNotBlank(urlVars.demo) && (urlVars.demo == "yes" || urlVars.demo == "true")) ui.AppContext.DEMO = true;
 	var r = new $("<div></div>");
 	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 82) {
@@ -4512,15 +4517,18 @@ ui.AppContext.init = function() {
 		return !c.deleted;
 	});
 	ui.AppContext.MASTER_CONNECTIONS = new m3.observable.ObservableSet(ui.model.Connection.identifier);
-	ui.AppContext.CONNECTIONS = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONNECTIONS,function(c) {
-		return !c.deleted;
-	});
 	ui.AppContext.MASTER_CONNECTIONS.listen(function(c,evt) {
 		if(evt.isAdd()) ui.AgentUi.PROTOCOL.getProfiles([c.iid]);
 	});
+	ui.AppContext.CONNECTIONS = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONNECTIONS,function(c) {
+		return !c.deleted;
+	});
+	ui.AppContext.GROUPED_CONNECTIONS = new m3.observable.GroupedSet(ui.AppContext.CONNECTIONS,function(c) {
+		return c.aliasIid;
+	});
 	ui.AppContext.MASTER_LABELCHILDREN = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
 	ui.AppContext.LABELCHILDREN = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(c) {
-		return !c.deleted && c.childIid != ui.AppContext.INTRO_LABEL_IID;
+		return !c.deleted;
 	});
 	ui.AppContext.GROUPED_LABELCHILDREN = new m3.observable.GroupedSet(ui.AppContext.LABELCHILDREN,function(lc) {
 		return lc.parentIid;
@@ -4537,13 +4545,31 @@ ui.AppContext.init = function() {
 	ui.AppContext.SERIALIZER.addHandler(ui.model.Notification,new ui.model.NotificationHandler());
 	ui.AppContext.registerGlobalListeners();
 }
+ui.AppContext.setAgent = function(agent) {
+	if(m3.helper.StringHelper.isBlank(agent.data.name)) agent.data = new ui.model.Profile(agent.name,"media/koi.jpg");
+	ui.AppContext.AGENT = agent;
+	var $it0 = ui.AppContext.ALIASES.iterator();
+	while( $it0.hasNext() ) {
+		var alias = $it0.next();
+		if(alias.data.isDefault) {
+			ui.AppContext.currentAlias = alias;
+			break;
+		}
+	}
+	if(ui.AppContext.currentAlias == null) ui.AppContext.currentAlias = ui.AppContext.ALIASES.iterator().next();
+	ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias);
+	ui.model.EM.change(ui.model.EMEvent.FitWindow);
+}
+ui.AppContext.getUberLabelIid = function() {
+	var uberAlias = m3.helper.OSetHelper.getElement(ui.AppContext.ALIASES,ui.AppContext.AGENT.uberAliasIid);
+	if(uberAlias == null) return ui.AppContext.currentAlias.rootLabelIid; else return uberAlias.rootLabelIid;
+}
 ui.AppContext.registerGlobalListeners = function() {
 	new $(js.Browser.window).on("unload",function(evt) {
 		ui.model.EM.change(ui.model.EMEvent.PAGE_CLOSE);
 	});
 	ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
-		ui.AppContext.AGENT = agent;
-		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias);
+		ui.AppContext.setAgent(agent);
 	},"AgentUi-AGENT"));
 	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,new ui.model.EMListener(function(n) {
 		fitWindow();
@@ -4645,6 +4671,10 @@ ui.api.BennuHandler.prototype = {
 		var types = ["alias","connection","content","introduction","label","labelchild","labeledcontent","notification","profile"];
 		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,context,new ui.api.RegisterMessage(types))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
+	}
+	,getAgent: function(agentId) {
+		var context = ui.api.Synchronizer.createContext(1,"getAgent");
+		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid='" + agentId + "'"))]).start();
 	}
 	,deleteLabel: function(data) {
 		var labelChildren = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
@@ -4778,7 +4808,7 @@ ui.api.BennuHandler.prototype = {
 		alias.deleted = true;
 		var context = ui.api.Synchronizer.createContext(1,"aliasDeleted");
 		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "alias",ui.api.DeleteMessage.create(alias))]).start();
-		var data = new ui.model.EditLabelData(ui.AppContext.LABELS.delegate().get(alias.rootLabelIid),ui.AppContext.UBER_LABEL_IID);
+		var data = new ui.model.EditLabelData(ui.AppContext.LABELS.delegate().get(alias.rootLabelIid),ui.AppContext.getUberLabelIid());
 		this.deleteLabel(data);
 	}
 	,updateAlias: function(alias) {
@@ -4789,7 +4819,7 @@ ui.api.BennuHandler.prototype = {
 	,createAlias: function(alias) {
 		var label = new ui.model.Label(alias.profile.name);
 		label.data.color = "#000000";
-		var lc = new ui.model.LabelChild(ui.AppContext.UBER_LABEL_IID,label.iid);
+		var lc = new ui.model.LabelChild(ui.AppContext.getUberLabelIid(),label.iid);
 		alias.rootLabelIid = label.iid;
 		var context = ui.api.Synchronizer.createContext(3,"aliasCreated");
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "alias",ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lc))]);
@@ -5235,13 +5265,9 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 		if(data.success == false) {
 			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
 			ui.AppContext.LOGGER.error(data.error.stacktrace);
-		} else if(data.responseType == "profile") ui.api.ResponseProcessor.processProfile(data.data); else if(data.responseType == "squery") ui.api.ResponseProcessor.updateModelObject(data.data); else {
-			var context = data.context.split("-");
-			if(context == null) return;
-			var synchronizer = ui.api.Synchronizer.synchronizers.get(context[0]);
-			if(synchronizer == null) synchronizer = ui.api.Synchronizer.add(data.context);
-			synchronizer.dataReceived(data);
-		}
+		} else if(data.responseType == "profile") haxe.Timer.delay(function() {
+			ui.api.ResponseProcessor.processProfile(data.data);
+		},50); else if(data.responseType == "squery") ui.api.ResponseProcessor.updateModelObject(data.data); else ui.api.Synchronizer.processResponse(data);
 	});
 }
 ui.api.ResponseProcessor.updateModelObject = function(data) {
@@ -5292,26 +5318,7 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.AppContext.MASTER_CONNECTIONS.addAll(data.connections);
 	ui.AppContext.INTRODUCTIONS.addAll(data.introductions);
 	ui.AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
-	var initialAlias = null;
-	var $it0 = ui.AppContext.ALIASES.iterator();
-	while( $it0.hasNext() ) {
-		var alias = $it0.next();
-		if(alias.data.isDefault) {
-			initialAlias = alias;
-			break;
-		}
-	}
-	if(initialAlias == null) initialAlias = ui.AppContext.ALIASES.iterator().next();
-	ui.AppContext.currentAlias = initialAlias;
-	var uberAlias = m3.helper.OSetHelper.getElement(ui.AppContext.ALIASES,ui.AppContext.AGENT.uberAliasIid);
-	ui.AppContext.UBER_LABEL_IID = uberAlias.rootLabelIid;
-	var fs = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELS,function(c) {
-		return c.name == "intro label";
-	});
-	ui.AppContext.INTRO_LABEL_IID = fs.iterator().next().iid;
-	ui.AppContext.LABELCHILDREN.refilter();
-	ui.model.EM.change(ui.model.EMEvent.AGENT,ui.AppContext.AGENT);
-	ui.model.EM.change(ui.model.EMEvent.FitWindow);
+	if(data.agent == null) ui.AgentUi.PROTOCOL.getAgent(data.aliases[0].agentId); else ui.model.EM.change(ui.model.EMEvent.AGENT,data.agent);
 }
 ui.api.ResponseProcessor.registerModelUpdates = function(data) {
 	ui.api.ResponseProcessor.modelUpdateHandle = data.result.handle;
@@ -5350,6 +5357,9 @@ ui.api.ResponseProcessor.filterContent = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,filteredContent);
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
 }
+ui.api.ResponseProcessor.getAgent = function(data) {
+	ui.model.EM.change(ui.model.EMEvent.AGENT,data.agent);
+}
 ui.api.SynchronizationParms = function() {
 	this.agent = null;
 	this.aliases = new Array();
@@ -5377,6 +5387,13 @@ $hxClasses["ui.api.Synchronizer"] = ui.api.Synchronizer;
 ui.api.Synchronizer.__name__ = ["ui","api","Synchronizer"];
 ui.api.Synchronizer.createContext = function(numResponsesExpected,oncomplete) {
 	return m3.util.UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete + "-";
+}
+ui.api.Synchronizer.processResponse = function(data) {
+	var context = data.context.split("-");
+	if(context == null) return;
+	var synchronizer = ui.api.Synchronizer.synchronizers.get(context[0]);
+	if(synchronizer == null) synchronizer = ui.api.Synchronizer.add(data.context);
+	synchronizer.dataReceived(data);
 }
 ui.api.Synchronizer.add = function(context) {
 	var parts = context.split("-");
@@ -7611,7 +7628,7 @@ var defineWidget = function() {
 		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelComp must be a div element");
 		self2.label = m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,self2.options.labelIid);
 		if(self2.label == null) {
-			self2.label = new ui.model.Label("-->8<--");
+			self2.label = new ui.model.Label("-->*<--");
 			self2.label.iid = self2.options.labelIid;
 			ui.AppContext.MASTER_LABELS.add(self2.label);
 		}
@@ -7837,10 +7854,11 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsList must be a div element");
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses());
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			self._setConnections(ui.AppContext.CONNECTIONS);
+			if(ui.AppContext.GROUPED_CONNECTIONS.delegate().get(alias.iid) == null) ui.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(alias.iid);
+			self._setConnections(ui.AppContext.GROUPED_CONNECTIONS.delegate().get(alias.iid));
 		},"ConnectionsList-Alias"));
 		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
-			if(conn != null) self._setConnections(ui.AppContext.CONNECTIONS); else self._setConnections(ui.AppContext.CONNECTIONS);
+			js.Lib.alert("TODO...");
 		},"ConnectionsList-TargetChange"));
 		var menu = new $("<ul id='label-action-menu'></ul>");
 		menu.appendTo(selfElement);
@@ -8188,9 +8206,6 @@ var defineWidget = function() {
 				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 			} else if(evt.isUpdate()) ui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
 		};
-		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
-			self._resetContents(ui.AppContext.currentAlias.iid);
-		},"ContentFeed-AGENT"));
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
 			self._resetContents(alias.iid);
 		},"ContentFeed-AliasLoaded"));
@@ -8201,7 +8216,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		var content;
-		if(ui.AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == ui.AppContext.UBER_LABEL_IID) content = ui.AppContext.CONTENT; else {
+		if(ui.AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == ui.AppContext.getUberLabelIid()) content = ui.AppContext.CONTENT; else {
 			content = ui.AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
 			if(content == null) content = ui.AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
 		}
@@ -8247,9 +8262,6 @@ var defineWidget = function() {
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_n,self.placeholder_n);
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_em,self.placeholder_em);
-		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
-			self._setAgent(agent);
-		},"CreateAgentDialog-Agent"));
 	}, initialized : false, _createNewUser : function() {
 		var self = this;
 		var selfElement1 = this.element;
@@ -8278,12 +8290,9 @@ var defineWidget = function() {
 			$(this).dialog("close");
 		}}, close : function(evt,ui1) {
 			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			if(self1._cancelled || !self1._registered && self1.user == null) ui.widget.DialogManager.showLogin();
+			ui.widget.DialogManager.showLogin();
 		}};
 		selfElement2.dialog(dlgOptions);
-	}, _setAgent : function(user) {
-		var self = this;
-		self.user = user;
 	}, open : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -9228,11 +9237,10 @@ m3.observable.AbstractSet.__rtti = "<class path=\"m3.observable.AbstractSet\" pa
 m3.observable.ObservableSet.__rtti = "<class path=\"m3.observable.ObservableSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"m3.util.SizedMap\"><c path=\"m3.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"168\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"172\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"180\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"184\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"188\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"200\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"204\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"208\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"216\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"220\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"227\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"231\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"159\"><f a=\"identifier:?tArr\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.MappedSet.__rtti = "<class path=\"m3.observable.MappedSet\" params=\"T:U\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<_remapOnUpdate><x path=\"Bool\"/></_remapOnUpdate>\n\t<_mapListeners><c path=\"Array\"><f a=\"::\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_mapListeners>\n\t<_sourceListener set=\"method\" line=\"259\"><f a=\"t:type\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></_sourceListener>\n\t<identifier public=\"1\" set=\"method\" line=\"280\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"284\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"288\"><f a=\"u\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"299\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.MappedSet.U\"/></t></f></iterator>\n\t<mapListen public=\"1\" set=\"method\" line=\"303\"><f a=\"f\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></mapListen>\n\t<removeListeners public=\"1\" set=\"method\" line=\"314\"><f a=\"mapListener\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListeners>\n\t<new public=\"1\" set=\"method\" line=\"249\"><f a=\"source:mapper:?remapOnUpdate\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<delegate public=\"1\" set=\"method\" line=\"347\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"351\"><f a=\"t\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"368\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"372\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"376\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.FilteredSet.T\"/></t></f></iterator>\n\t<asArray public=\"1\" set=\"method\" line=\"380\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.FilteredSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"326\"><f a=\"source:filter\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"419\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"442\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"461\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"470\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"474\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"485\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"489\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"398\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"541\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"549\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"554\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"572\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"576\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"582\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"586\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"590\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"502\"><f a=\"source:?sortByFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"418\"><f a=\"t:?deleteEmptySet\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"441\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"460\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"469\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"473\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"484\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"488\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"398\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"540\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"548\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"553\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"571\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"575\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"581\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"585\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"589\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"501\"><f a=\"source:?sortByFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
 ui.AgentUi.URL = "";
-ui.AppContext.DEMO = false;
 ui.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
 ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
 ui.api.BennuHandler.UPSERT = "/api/upsert";

@@ -12,18 +12,14 @@ import ui.model.EM;
 import ui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
+using m3.helper.StringHelper;
 using m3.helper.OSetHelper;
 
 class AppContext {
-	public static var DEMO: Bool = false;
     public static var SUBMIT_CHANNEL:String;
-    public static var MODEL_CHANNEL:String;
-    public static var NOTIFICATION_CHANNEL:String;
 
     public static var LOGGER: Logga;
     public static var AGENT: Agent;
-    public static var UBER_LABEL_IID: String;
-    public static var INTRO_LABEL_IID: String;
     public static var MASTER_ALIASES:ObservableSet<Alias>;
     public static var ALIASES:OSet<Alias>;
     public static var TARGET: Connection;
@@ -36,6 +32,7 @@ class AppContext {
 
     public static var CONNECTIONS:FilteredSet<Connection>;
     public static var MASTER_CONNECTIONS: ObservableSet<Connection>;
+    public static var GROUPED_CONNECTIONS: GroupedSet<Connection>;
 
     public static var CONTENT: FilteredSet<Content<Dynamic>>;
     public static var MASTER_CONTENT: ObservableSet<Content<Dynamic>>;
@@ -85,18 +82,21 @@ class AppContext {
         });
 
         MASTER_CONNECTIONS = new ObservableSet<Connection>(Connection.identifier);
-        CONNECTIONS = new FilteredSet<Connection>(MASTER_CONNECTIONS, function(c:Connection):Bool {
-            return !c.deleted;
-        });
         MASTER_CONNECTIONS.listen(function(c:Connection, evt:EventType): Void {
             if (evt.isAdd()) {
                 AgentUi.PROTOCOL.getProfiles([c.iid]);
             }
         });
+        CONNECTIONS = new FilteredSet<Connection>(MASTER_CONNECTIONS, function(c:Connection):Bool {
+            return !c.deleted;
+        });
+        GROUPED_CONNECTIONS = new GroupedSet<Connection>(CONNECTIONS, function(c:Connection):String {
+            return c.aliasIid;
+        });
 
         MASTER_LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
         LABELCHILDREN = new FilteredSet<LabelChild>(MASTER_LABELCHILDREN, function(c:LabelChild):Bool {
-            return !c.deleted && c.childIid != INTRO_LABEL_IID;
+            return !c.deleted;
         });
         GROUPED_LABELCHILDREN = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
             return lc.parentIid;
@@ -117,14 +117,44 @@ class AppContext {
     	registerGlobalListeners();
     }
 
+    static function setAgent(agent:Agent) {
+        if (agent.data.name.isBlank()) {
+            agent.data = new Profile(agent.name, "media/koi.jpg");
+        }
+
+        AGENT = agent;
+
+        // Set the current alias
+        for (alias in ALIASES) {
+            if (alias.data.isDefault) {
+                currentAlias = alias;
+                break;
+            }
+        }
+        if (currentAlias == null) {
+            currentAlias = ALIASES.iterator().next();
+        }
+
+        EM.change(EMEvent.AliasLoaded, currentAlias);
+        EM.change(EMEvent.FitWindow);
+    }
+
+    public static function getUberLabelIid() {
+        var uberAlias = ALIASES.getElement(AppContext.AGENT.uberAliasIid);
+        if (uberAlias == null) {
+            return currentAlias.rootLabelIid;
+        } else {
+            return uberAlias.rootLabelIid;
+        }
+    }
+
 	static function registerGlobalListeners() {
         new JQ(js.Browser.window).on("unload", function(evt: JQEvent){
             EM.change(EMEvent.PAGE_CLOSE);
         });
 
         EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {
-                AGENT = agent;
-                EM.change(EMEvent.AliasLoaded, AppContext.currentAlias);
+            setAgent(agent);
             }, "AgentUi-AGENT")
         );
 

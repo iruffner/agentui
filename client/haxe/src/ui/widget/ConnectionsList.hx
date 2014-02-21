@@ -60,16 +60,15 @@ extern class ConnectionsList extends JQ {
 		        	selfElement.addClass(Widgets.getWidgetClasses());
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-			                self._setConnections(AppContext.CONNECTIONS);
+		        			if (AppContext.GROUPED_CONNECTIONS.delegate().get(alias.iid) == null) {
+		        				AppContext.GROUPED_CONNECTIONS.addEmptyGroup(alias.iid);
+		        			}
+			                self._setConnections(AppContext.GROUPED_CONNECTIONS.delegate().get(alias.iid));
 			            }, "ConnectionsList-Alias")
 			        );
 
 			        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn: Connection) {
-			        		if(conn != null) {
-			                	self._setConnections(AppContext.CONNECTIONS);
-			        		} else { 
-		                		self._setConnections(AppContext.CONNECTIONS);
-		                	}
+			        	js.Lib.alert("TODO...");
 			            }, "ConnectionsList-TargetChange")
 			        );
 

@@ -79,11 +79,6 @@ extern class ContentFeed extends JQ {
 	            		}
 	            	};
 
-	            	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
-	            		self._resetContents(AppContext.currentAlias.iid);
-		        		}, "ContentFeed-AGENT")
-		        	);
-
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
 		        		self._resetContents(alias.iid);
 		        		}, "ContentFeed-AliasLoaded")
@@ -102,7 +97,7 @@ extern class ContentFeed extends JQ {
 		        	var content:OSet<Content<Dynamic>>;
 
 		        	// if we are showing content for the uber alias, get all content
-		        	if (AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == AppContext.UBER_LABEL_IID) {
+		        	if (AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == AppContext.getUberLabelIid()) {
 		        		content = AppContext.CONTENT;
 		        	} else {
 			        	content = AppContext.GROUPED_CONTENT.delegate().get(aliasIid);

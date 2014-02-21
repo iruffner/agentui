@@ -29,4 +29,5 @@ interface ProtocolHandler {
 	public function restores(): Void;
 	public function grantAccess(connectionIid:String, labelIid:String): Void;
 	public function deleteConnection(c:Connection): Void;
+	public function getAgent(id:String): Void;
 }
