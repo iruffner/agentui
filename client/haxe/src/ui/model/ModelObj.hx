@@ -530,13 +530,13 @@ class EditLabelData {
 
 class EditContentData {
 	public var content:Content<Dynamic>;
-	public var labels:Array<Label>;
+	public var labelIids:Array<String>;
 
-	public function new(content:Content<Dynamic>, ?labels:Array<Label>) {
+	public function new(content:Content<Dynamic>, ?labelIids:Array<String>) {
 		this.content = content;
-		if (labels == null) {
-			labels = new Array<Label>();
+		if (labelIids == null) {
+			labelIids = new Array<String>();
 		}
-		this.labels = labels;
+		this.labelIids = labelIids;
 	}
 }

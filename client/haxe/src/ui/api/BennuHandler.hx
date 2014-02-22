@@ -150,11 +150,11 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function createContent(data:EditContentData):Void {
-		var context = Synchronizer.createContext(1 + data.labels.length, "contentCreated");
+		var context = Synchronizer.createContext(1 + data.labelIids.length, "contentCreated");
 		var requests = new Array<ChannelRequestMessage>();
 		requests.push(new ChannelRequestMessage(UPSERT, context + "content", CrudMessage.create(data.content)));
-		for (label in data.labels) {
-			var labeledContent = new LabeledContent(data.content.iid, label.iid);
+		for (iid in data.labelIids) {
+			var labeledContent = new LabeledContent(data.content.iid, iid);
 			requests.push(new ChannelRequestMessage(UPSERT, context + "labeledContent", CrudMessage.create(labeledContent)));
 		}
 		new SubmitRequest(requests).start();
@@ -166,8 +166,8 @@ class BennuHandler implements ProtocolHandler {
 		var labelsToDelete = new Array<LabeledContent>();
 		for (labeledContent in currentLabels) {
 			var found = false;
-			for (label in data.labels) {
-				if (label.iid == labeledContent.labelIid) {
+			for (iid in data.labelIids) {
+				if (iid == labeledContent.labelIid) {
 					found = true;
 					break;
 				}
@@ -179,16 +179,16 @@ class BennuHandler implements ProtocolHandler {
 
 		// Find the labels to add
 		var labelsToAdd = new Array<LabeledContent>();
-		for (label in data.labels) {
+		for (iid in data.labelIids) {
 			var found = false;
 			for (labeledContent in currentLabels) {
-				if (label.iid == labeledContent.labelIid) {
+				if (iid == labeledContent.labelIid) {
 					found = true;
 					break;
 				}
 			}
 			if (!found) {
-				labelsToAdd.push(new LabeledContent(data.content.iid, label.iid));
+				labelsToAdd.push(new LabeledContent(data.content.iid, iid));
 			}
 		}
 		var context = Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length, "contentUpdated");		
@@ -209,7 +209,7 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function deleteContent(data:EditContentData):Void {
-		var context = Synchronizer.createContext(1 + data.labels.length, "contentDeleted");		
+		var context = Synchronizer.createContext(1 + data.labelIids.length, "contentDeleted");		
 		var requests = new Array<ChannelRequestMessage>();
 		data.content.deleted = true;
 		requests.push(new ChannelRequestMessage(DELETE, context + "content", CrudMessage.create(data.content)));

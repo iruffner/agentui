@@ -25,8 +25,8 @@ typedef ContentCompWidgetDef = {
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
 	var toggleActive:Void->Void;
-	@:optional var mappedLabels:MappedSet<LabeledContent, LabelComp>;
-	@:optional var onchangeLabelChildren:LabelComp->EventType->Void;
+	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
+	@:optional var onchangeLabelChildren:JQ->EventType->Void;
 }
 
 class ContentCompHelper {
@@ -114,43 +114,42 @@ extern class ContentComp extends JQ {
 
 
 		        	var postLabels = new JQ("<aside class='postLabels'></div>").appendTo(postWr);
+		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>").appendTo(postWr);
 
 		        	if (AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) {
 		        		AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
 		        	}
-		        	self.onchangeLabelChildren = function(labelComp: LabelComp, evt: EventType): Void {
+		        	self.onchangeLabelChildren = function(ele: JQ, evt: EventType): Void {
 	            		if(evt.isAdd()) {
-	            			postLabels.append(labelComp);
+	            			if (ele.is(".connectionAvatar")) {
+	            				postConnections.append(ele);
+	            			} else {
+		            			postLabels.append(ele);
+		            		}
 	            		} else if (evt.isUpdate()) {
 	            			throw new Exception("this should never happen");
 	            		} else if (evt.isDelete()) {
-	            			labelComp.remove();
+	            			ele.remove();
 	            		}
 	            	};
 
-            		self.mappedLabels = new MappedSet<LabeledContent, LabelComp>(AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid), 
-		        		function(lc: LabeledContent): LabelComp {
-		        			return new LabelComp("<div class='small'></div>").labelComp({
-		        				dndEnabled: false,
-		        				labelIid: lc.labelIid
-		        			});
+            		self.mappedLabels = new MappedSet<LabeledContent, JQ>(AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid), 
+		        		function(lc: LabeledContent): JQ {
+		        			var connection = AppContext.connectionFromMetaLabel(lc.labelIid);
+		        			if (connection != null) {
+		        				return new ConnectionAvatar("<div></div>").connectionAvatar({
+			        				dndEnabled: false,
+			        				connection: connection
+			        			});
+		        			} else {
+			        			return new LabelComp("<div class='small'></div>").labelComp({
+			        				dndEnabled: false,
+			        				labelIid: lc.labelIid
+			        			});
+			        		}
 		        		}
 		        	);
-		        	self.mappedLabels.listen(self.onchangeLabelChildren);
-/*		        	
-		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>").appendTo(postWr);
-		        	var connIter: Iterator<Connection> = content.connectionSet.iterator();
-		        	while(connIter.hasNext()) {
-		        		var connection: Connection = connIter.next();
-		        		AppContext.LOGGER.error("fix me -- AppContext.CONNECTIONS.getElement(Connection.identifier(connection));");
-		        		var connWithProfile: Connection = null;//AppContext.currentAlias.connectionSet.getElement(Connection.identifier(connection));
-		        		if(connWithProfile != null) connection = connWithProfile;
-		        		new ConnectionAvatar("<div></div>").connectionAvatar({
-		        				dndEnabled: false,
-		        				connection: connection
-		        			}).appendTo(postConnections);
-		        	}
-		        	*/
+		        	self.mappedLabels.listen(self.onchangeLabelChildren);		        	
 				},
 		        
 		        _create: function(): Void {

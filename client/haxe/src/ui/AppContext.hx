@@ -205,4 +205,15 @@ class AppContext {
         }
         return labelDescendents;
     }
+
+    public static function connectionFromMetaLabel(metaLabelIid:String):Connection {
+        var ret:Connection = null;
+        for (connection in CONNECTIONS) {
+            if (connection.metaLabelIid == metaLabelIid) {
+                ret = connection;
+                break;
+            }
+        }
+        return ret;
+    }
 }

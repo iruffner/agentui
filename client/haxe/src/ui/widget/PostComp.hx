@@ -211,12 +211,12 @@ extern class PostComp extends JQ {
 					addConnectionsAndLabels = function(ccd: EditContentData): Void {
 						tags.children(".label").each(function(i: Int, dom: Element): Void {
 							var labelComp: LabelComp = new LabelComp(dom);
-							ccd.labels.push(labelComp.getLabel());
+							ccd.labelIids.push(labelComp.getLabel().iid);
 						});
 						tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
-							var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-							ui.AppContext.LOGGER.warn("fix me:  content.connectionSet.add(conn.getConnection())");
-							//content.connectionSet.add( conn.getConnection() );
+							var avatar: ConnectionAvatar = new ConnectionAvatar(dom);
+							var connection = avatar.getConnection();
+							ccd.labelIids.push(connection.metaLabelIid);
 						});
 					}
 
@@ -234,6 +234,7 @@ extern class PostComp extends JQ {
 		        									imageInput.clear();
 		        								}
 		        								tags.children(".label").remove();
+		        								tags.children(".connectionAvatar").remove();
 		        							});
 		        },
 

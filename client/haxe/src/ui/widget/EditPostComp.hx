@@ -240,7 +240,7 @@ extern class EditPostComp extends JQ {
 
 					self.tags.children(".label").each(function(i: Int, dom: Element): Void {
 						var labelComp: LabelComp = new LabelComp(dom);
-						ecd.labels.push(labelComp.getLabel());
+						ecd.labelIids.push(labelComp.getLabel().iid);
 					});
 					
 					/*

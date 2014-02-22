@@ -4535,6 +4535,18 @@ ui.AppContext.getLabelDescendents = function(iid) {
 	}
 	return labelDescendents;
 }
+ui.AppContext.connectionFromMetaLabel = function(metaLabelIid) {
+	var ret = null;
+	var $it0 = ui.AppContext.CONNECTIONS.iterator();
+	while( $it0.hasNext() ) {
+		var connection = $it0.next();
+		if(connection.metaLabelIid == metaLabelIid) {
+			ret = connection;
+			break;
+		}
+	}
+	return ret;
+}
 ui.SystemStatus = function() {
 	this.lastPong = new Date();
 	this.timer = new haxe.Timer(7000);
@@ -4645,7 +4657,7 @@ ui.api.BennuHandler.prototype = {
 		req.start();
 	}
 	,deleteContent: function(data) {
-		var context = ui.api.Synchronizer.createContext(1 + data.labels.length,"contentDeleted");
+		var context = ui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentDeleted");
 		var requests = new Array();
 		data.content.deleted = true;
 		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "content",ui.api.CrudMessage.create(data.content)));
@@ -4664,11 +4676,11 @@ ui.api.BennuHandler.prototype = {
 		while( $it0.hasNext() ) {
 			var labeledContent = $it0.next();
 			var found = false;
-			var _g = 0, _g1 = data.labels;
+			var _g = 0, _g1 = data.labelIids;
 			while(_g < _g1.length) {
-				var label = _g1[_g];
+				var iid = _g1[_g];
 				++_g;
-				if(label.iid == labeledContent.labelIid) {
+				if(iid == labeledContent.labelIid) {
 					found = true;
 					break;
 				}
@@ -4676,20 +4688,20 @@ ui.api.BennuHandler.prototype = {
 			if(!found) labelsToDelete.push(labeledContent);
 		}
 		var labelsToAdd = new Array();
-		var _g = 0, _g1 = data.labels;
+		var _g = 0, _g1 = data.labelIids;
 		while(_g < _g1.length) {
-			var label = _g1[_g];
+			var iid = _g1[_g];
 			++_g;
 			var found = false;
 			var $it1 = currentLabels.iterator();
 			while( $it1.hasNext() ) {
 				var labeledContent = $it1.next();
-				if(label.iid == labeledContent.labelIid) {
+				if(iid == labeledContent.labelIid) {
 					found = true;
 					break;
 				}
 			}
-			if(!found) labelsToAdd.push(new ui.model.LabeledContent(data.content.iid,label.iid));
+			if(!found) labelsToAdd.push(new ui.model.LabeledContent(data.content.iid,iid));
 		}
 		var context = ui.api.Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length,"contentUpdated");
 		var requests = new Array();
@@ -4710,14 +4722,14 @@ ui.api.BennuHandler.prototype = {
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,createContent: function(data) {
-		var context = ui.api.Synchronizer.createContext(1 + data.labels.length,"contentCreated");
+		var context = ui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentCreated");
 		var requests = new Array();
 		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "content",ui.api.CrudMessage.create(data.content)));
-		var _g = 0, _g1 = data.labels;
+		var _g = 0, _g1 = data.labelIids;
 		while(_g < _g1.length) {
-			var label = _g1[_g];
+			var iid = _g1[_g];
 			++_g;
-			var labeledContent = new ui.model.LabeledContent(data.content.iid,label.iid);
+			var labeledContent = new ui.model.LabeledContent(data.content.iid,iid);
 			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labeledContent",ui.api.CrudMessage.create(labeledContent)));
 		}
 		new ui.api.SubmitRequest(requests).start();
@@ -6189,10 +6201,10 @@ ui.model.EditLabelData.__name__ = ["ui","model","EditLabelData"];
 ui.model.EditLabelData.prototype = {
 	__class__: ui.model.EditLabelData
 }
-ui.model.EditContentData = function(content,labels) {
+ui.model.EditContentData = function(content,labelIids) {
 	this.content = content;
-	if(labels == null) labels = new Array();
-	this.labels = labels;
+	if(labelIids == null) labelIids = new Array();
+	this.labelIids = labelIids;
 };
 $hxClasses["ui.model.EditContentData"] = ui.model.EditContentData;
 ui.model.EditContentData.__name__ = ["ui","model","EditContentData"];
@@ -7892,7 +7904,7 @@ var defineWidget = function() {
 		var ecd1 = new ui.model.EditContentData(self.options.content);
 		self.tags.children(".label").each(function(i,dom) {
 			var labelComp = new $(dom);
-			ecd1.labels.push(ui.widget.LabelCompHelper.getLabel(labelComp));
+			ecd1.labelIids.push(ui.widget.LabelCompHelper.getLabel(labelComp).iid);
 		});
 		return ecd1;
 	}, _create : function() {
@@ -8014,12 +8026,16 @@ var defineWidget = function() {
 		var alias = ui.AppContext.ALIASES.delegate().get(self.options.content.aliasIid);
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : ui.helper.ModelHelper.asConnection(alias)}).appendTo(postCreator);
 		var postLabels = new $("<aside class='postLabels'></div>").appendTo(postWr);
+		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		if(ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) ui.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
-		self.onchangeLabelChildren = function(labelComp,evt) {
-			if(evt.isAdd()) postLabels.append(labelComp); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) labelComp.remove();
+		self.onchangeLabelChildren = function(ele,evt) {
+			if(evt.isAdd()) {
+				if(ele["is"](".connectionAvatar")) postConnections.append(ele); else postLabels.append(ele);
+			} else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) ele.remove();
 		};
 		self.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),function(lc) {
-			return new $("<div class='small'></div>").labelComp({ dndEnabled : false, labelIid : lc.labelIid});
+			var connection = ui.AppContext.connectionFromMetaLabel(lc.labelIid);
+			if(connection != null) return new $("<div></div>").connectionAvatar({ dndEnabled : false, connection : connection}); else return new $("<div class='small'></div>").labelComp({ dndEnabled : false, labelIid : lc.labelIid});
 		});
 		self.mappedLabels.listen(self.onchangeLabelChildren);
 	}, _create : function() {
@@ -8789,11 +8805,12 @@ var defineWidget = function() {
 		addConnectionsAndLabels = function(ccd1) {
 			tags.children(".label").each(function(i,dom) {
 				var labelComp = new $(dom);
-				ccd1.labels.push(ui.widget.LabelCompHelper.getLabel(labelComp));
+				ccd1.labelIids.push(ui.widget.LabelCompHelper.getLabel(labelComp).iid);
 			});
 			tags.children(".connectionAvatar").each(function(i,dom) {
-				var conn = new $(dom);
-				ui.AppContext.LOGGER.warn("fix me:  content.connectionSet.add(conn.getConnection())");
+				var avatar = new $(dom);
+				var connection = ui.widget.ConnectionAvatarHelper.getConnection(avatar);
+				ccd1.labelIids.push(connection.metaLabelIid);
 			});
 		};
 		var postButton = new $("<button>Post</button>").appendTo(selfElement).button().click(function(evt) {
@@ -8805,6 +8822,7 @@ var defineWidget = function() {
 				ui.widget.UploadCompHelper.clear(imageInput);
 			}
 			tags.children(".label").remove();
+			tags.children(".connectionAvatar").remove();
 		});
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
