@@ -36,12 +36,20 @@ class And extends Node {
 		super("AND");
 		nodes = new Array<Node>();
 	}
+
+	override public function getQuery(): String {
+		return " AND ";
+	}
 }
 
 class Or extends Node {
 	public function new() {
 		super("OR");
 		nodes = new Array<Node>();
+	}
+
+	override public function getQuery(): String {
+		return " OR ";
 	}
 }
 

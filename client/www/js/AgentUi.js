@@ -112,15 +112,6 @@ DateTools.__format = function(d,f) {
 DateTools.format = function(d,f) {
 	return DateTools.__format(d,f);
 }
-DateTools.delta = function(d,t) {
-	return (function($this) {
-		var $r;
-		var d1 = new Date();
-		d1.setTime(d.getTime() + t);
-		$r = d1;
-		return $r;
-	}(this));
-}
 var EReg = function(r,opt) {
 	opt = opt.split("u").join("");
 	this.r = new RegExp(r,opt);
@@ -367,9 +358,6 @@ Std.parseInt = function(x) {
 	if(isNaN(v)) return null;
 	return v;
 }
-Std.parseFloat = function(x) {
-	return parseFloat(x);
-}
 Std.random = function(x) {
 	return x <= 0?0:Math.floor(Math.random() * x);
 }
@@ -387,12 +375,6 @@ StringBuf.prototype = {
 var StringTools = function() { }
 $hxClasses["StringTools"] = StringTools;
 StringTools.__name__ = ["StringTools"];
-StringTools.urlEncode = function(s) {
-	return encodeURIComponent(s);
-}
-StringTools.urlDecode = function(s) {
-	return decodeURIComponent(s.split("+").join(" "));
-}
 StringTools.htmlEscape = function(s,quotes) {
 	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
 	return quotes?s.split("\"").join("&quot;").split("'").join("&#039;"):s;
@@ -2154,36 +2136,6 @@ js.Boot.__cast = function(o,t) {
 js.Browser = function() { }
 $hxClasses["js.Browser"] = js.Browser;
 js.Browser.__name__ = ["js","Browser"];
-js.Cookie = function() { }
-$hxClasses["js.Cookie"] = js.Cookie;
-js.Cookie.__name__ = ["js","Cookie"];
-js.Cookie.set = function(name,value,expireDelay,path,domain) {
-	var s = name + "=" + StringTools.urlEncode(value);
-	if(expireDelay != null) {
-		var d = DateTools.delta(new Date(),expireDelay * 1000);
-		s += ";expires=" + d.toGMTString();
-	}
-	if(path != null) s += ";path=" + path;
-	if(domain != null) s += ";domain=" + domain;
-	js.Browser.document.cookie = s;
-}
-js.Cookie.all = function() {
-	var h = new haxe.ds.StringMap();
-	var a = js.Browser.document.cookie.split(";");
-	var _g = 0;
-	while(_g < a.length) {
-		var e = a[_g];
-		++_g;
-		e = StringTools.ltrim(e);
-		var t = e.split("=");
-		if(t.length < 2) continue;
-		h.set(t[0],StringTools.urlDecode(t[1]));
-	}
-	return h;
-}
-js.Cookie.get = function(name) {
-	return js.Cookie.all().get(name);
-}
 js.Lib = function() { }
 $hxClasses["js.Lib"] = js.Lib;
 js.Lib.__name__ = ["js","Lib"];
@@ -4252,39 +4204,6 @@ m3.util.ColorProvider.getRandomColor = function() {
 	m3.util.ColorProvider._LAST_COLORS_USED.push(index);
 	return m3.util.ColorProvider._COLORS[index];
 }
-m3.util.HtmlUtil = function() { }
-$hxClasses["m3.util.HtmlUtil"] = m3.util.HtmlUtil;
-m3.util.HtmlUtil.__name__ = ["m3","util","HtmlUtil"];
-m3.util.HtmlUtil.readCookie = function(name) {
-	return js.Cookie.get(name);
-}
-m3.util.HtmlUtil.setCookie = function(name,value) {
-	js.Cookie.set(name,value);
-}
-m3.util.HtmlUtil.getUrlVars = function() {
-	var vars = { };
-	var hash;
-	var hashes = HxOverrides.substr(js.Browser.window.location.search,1,null).split("&");
-	var _g1 = 0, _g = hashes.length;
-	while(_g1 < _g) {
-		var i_ = _g1++;
-		hash = hashes[i_].split("=");
-		vars[hash[0]] = hash[1];
-	}
-	return vars;
-}
-m3.util.HtmlUtil.getAndroidVersion = function() {
-	var ua = js.Browser.navigator.userAgent;
-	var regex = new EReg("Android\\s([0-9\\.]*)","");
-	var match = regex.match(ua);
-	var version = match?regex.matched(1):null;
-	if(m3.helper.StringHelper.isNotBlank(version)) try {
-		return Std.parseFloat(version);
-	} catch( err ) {
-		m3.log.Logga.get_DEFAULT().error("Error parsing android version | " + version);
-	}
-	return null;
-}
 m3.util.JqueryUtil = function() { }
 $hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
 $hxExpose(m3.util.JqueryUtil, "m3.util.JqueryUtil");
@@ -4477,8 +4396,8 @@ ui.AgentUi.start = function() {
 	new $("#sideRight #chat").messagingComp();
 	new $("#connections").connectionsList();
 	new $("#labelsList").labelsList();
-	new $("#filter").filterComp(null);
-	new $("#feed").contentFeed({ });
+	new $("#filter").filterComp();
+	new $("#feed").contentFeed();
 	new $("#userId").userComp();
 	new $("#postInput").postComp();
 	new $("#sideRight #sideRightInvite").inviteComp();
@@ -4547,6 +4466,7 @@ ui.AppContext.init = function() {
 }
 ui.AppContext.setAgent = function(agent) {
 	ui.AppContext.AGENT = agent;
+	ui.AppContext.currentAlias = ui.AppContext.ALIASES.iterator().next();
 	var $it0 = ui.AppContext.ALIASES.iterator();
 	while( $it0.hasNext() ) {
 		var alias = $it0.next();
@@ -4555,7 +4475,6 @@ ui.AppContext.setAgent = function(agent) {
 			break;
 		}
 	}
-	if(ui.AppContext.currentAlias == null) ui.AppContext.currentAlias = ui.AppContext.ALIASES.iterator().next();
 	ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias);
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
 }
@@ -5754,7 +5673,6 @@ $hxClasses["ui.model.Filter"] = ui.model.Filter;
 ui.model.Filter.__name__ = ["ui","model","Filter"];
 ui.model.Filter.prototype = {
 	_queryify: function(nodes,joinWith) {
-		if(joinWith == null) joinWith = " OR ";
 		var str = "";
 		if(m3.helper.ArrayHelper.hasValues(nodes)) {
 			str += "(";
@@ -5764,17 +5682,14 @@ ui.model.Filter.prototype = {
 				var ln_ = _g1++;
 				if(iteration++ > 0) str += joinWith;
 				str += nodes[ln_].getQuery();
-				if(nodes[ln_].hasChildren()) {
-					var jw = nodes[ln_].type == "AND"?" AND ":" OR ";
-					str += this._queryify(nodes[ln_].nodes,jw);
-				}
+				if(nodes[ln_].hasChildren()) str += this._queryify(nodes[ln_].nodes,nodes[ln_].getQuery());
 			}
 			str += ")";
 		}
 		return str;
 	}
 	,getQuery: function() {
-		return this._queryify(this.nodes);
+		return this._queryify(this.nodes,this.rootNode.getQuery());
 	}
 	,__class__: ui.model.Filter
 }
@@ -6310,7 +6225,10 @@ $hxClasses["ui.model.And"] = ui.model.And;
 ui.model.And.__name__ = ["ui","model","And"];
 ui.model.And.__super__ = ui.model.Node;
 ui.model.And.prototype = $extend(ui.model.Node.prototype,{
-	__class__: ui.model.And
+	getQuery: function() {
+		return " AND ";
+	}
+	,__class__: ui.model.And
 });
 ui.model.Or = function() {
 	ui.model.Node.call(this,"OR");
@@ -6320,7 +6238,10 @@ $hxClasses["ui.model.Or"] = ui.model.Or;
 ui.model.Or.__name__ = ["ui","model","Or"];
 ui.model.Or.__super__ = ui.model.Node;
 ui.model.Or.prototype = $extend(ui.model.Node.prototype,{
-	__class__: ui.model.Or
+	getQuery: function() {
+		return " OR ";
+	}
+	,__class__: ui.model.Or
 });
 ui.model.ContentNode = function(type,content) {
 	ui.model.Node.call(this,type);

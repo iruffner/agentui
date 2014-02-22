@@ -3,29 +3,16 @@ package ui;
 import js.JQuery;
 
 import m3.jq.JQ;
-
 import m3.log.Logga;
 import m3.log.LogLevel;
+import m3.serialization.Serialization;
 
-import ui.model.ModelObj;
-import ui.model.Node;
-import ui.model.EM;
 import ui.api.BennuHandler;
 import ui.api.ProtocolHandler;
-
-
-import m3.observable.OSet;
-
-import m3.util.UidGenerator;
-import m3.util.HtmlUtil;
-
 import ui.widget.*;
 import ui.widget.score.ScoreComp;
 
-import m3.serialization.Serialization;
-
 using m3.helper.ArrayHelper;
-using m3.helper.StringHelper;
 using ui.widget.ConnectionsList;
 using Lambda;
 
@@ -33,7 +20,7 @@ using Lambda;
 class AgentUi {
     
     public static var PROTOCOL: ProtocolHandler;
-    public static var URL: String = "";//"http://64.27.3.17";
+    public static var URL: String = "";
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
 
 	public static function main() {
@@ -56,10 +43,10 @@ class AgentUi {
         new JQ("body").keyup(function(evt: JQEvent) {
             if(HOT_KEY_ACTIONS.hasValues()) {
                 HOT_KEY_ACTIONS.iter(
-                        function(act: JQEvent->Void) {
-                            act(evt);
-                        }
-                    );
+                    function(act: JQEvent->Void) {
+                        act(evt);
+                    }
+                );
             }
         });
 
@@ -81,10 +68,9 @@ class AgentUi {
 
         new LabelsList("#labelsList").labelsList();
 
-        new FilterComp("#filter").filterComp(null);
+        new FilterComp("#filter").filterComp();
 
-        new ContentFeed("#feed").contentFeed({
-        });
+        new ContentFeed("#feed").contentFeed();
 
         new UserComp("#userId").userComp();
         

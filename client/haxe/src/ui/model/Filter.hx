@@ -20,13 +20,10 @@ class Filter {
 	}
 
 	public function getQuery(): String {
-		return _queryify(nodes);
+		return _queryify(nodes, rootNode.getQuery());
 	}
 
-	private function _queryify(nodes: Array<Node>, ?joinWith:String): String {
-		if (joinWith == null) {
-			joinWith = " OR ";
-		}
+	private function _queryify(nodes: Array<Node>, joinWith:String): String {
 		var str: String = "";
 		if (nodes.hasValues()) {
 			str += "(";
@@ -35,8 +32,7 @@ class Filter {
 				if (iteration++ > 0) str += joinWith;
 				str += nodes[ln_].getQuery();
 				if(nodes[ln_].hasChildren()) {
-					var jw:String = (nodes[ln_].type == "AND") ? " AND " : " OR ";
-					str += _queryify(nodes[ln_].nodes, jw);
+					str += _queryify(nodes[ln_].nodes, nodes[ln_].getQuery());
 				}
 			}
 			str += ")";

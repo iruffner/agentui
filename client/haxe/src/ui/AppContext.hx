@@ -121,14 +121,12 @@ class AppContext {
         AGENT = agent;
 
         // Set the current alias
+        currentAlias = ALIASES.iterator().next();
         for (alias in ALIASES) {
             if (alias.data.isDefault) {
                 currentAlias = alias;
                 break;
             }
-        }
-        if (currentAlias == null) {
-            currentAlias = ALIASES.iterator().next();
         }
 
         EM.change(EMEvent.AliasLoaded, currentAlias);
