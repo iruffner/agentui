@@ -243,12 +243,10 @@ extern class EditPostComp extends JQ {
 						ecd.labelIids.push(labelComp.getLabel().iid);
 					});
 					
-					/*
 					self.tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
 						var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-					//	self.options.content.connectionSet.add( conn.getConnection() );
+						ecd.labelIids.push(conn.getConnection().metaLabelIid);
 					});
-					*/
 
 					return ecd;
 				},

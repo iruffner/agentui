@@ -78,12 +78,12 @@ class ResponseProcessor {
 
 		AppContext.MASTER_ALIASES.addAll(data.aliases);
 		AppContext.MASTER_LABELS.addAll(data.labels);
-		AppContext.MASTER_CONTENT.addAll(data.content);
-		AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
 		AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
         AppContext.MASTER_CONNECTIONS.addAll(data.connections);
         AppContext.INTRODUCTIONS.addAll(data.introductions);
         AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
+        AppContext.MASTER_CONTENT.addAll(data.content);
+        AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
 
         if (data.agent == null) {
             AgentUi.PROTOCOL.getAgent(data.aliases[0].agentId);

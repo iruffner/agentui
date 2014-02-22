@@ -6,7 +6,6 @@ import m3.observable.OSet;
 import m3.serialization.Serialization;
 import m3.exception.Exception;
 
-import ui.helper.LabelStringParser;
 import ui.model.EM;
 
 using m3.serialization.TypeTools;
@@ -173,10 +172,6 @@ class Connection extends ModelObjWithIid {
 
 	public function equals(c: Connection): Bool {
 		return this.iid == c.iid;
-	}
-
-	public function name():String {
-		return data.name;
 	}
 }
 

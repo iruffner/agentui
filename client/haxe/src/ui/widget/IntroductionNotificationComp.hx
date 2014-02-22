@@ -68,7 +68,7 @@ extern class IntroductionNotificationComp extends JQ {
 		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 
 		        	var avatar = new ConnectionAvatar("<div class='avatar introduction-avatar'></div>").connectionAvatar({
-		        		connection: conn,
+		        		connectionIid: conn.iid,
 		        		dndEnabled: false,
 		        		isDragByHelper: true,
 		        		containment: false

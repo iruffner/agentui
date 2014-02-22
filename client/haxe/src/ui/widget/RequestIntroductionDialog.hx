@@ -56,8 +56,8 @@ extern class RequestIntroductionDialog extends JQ {
 		        	self._appendConnectionAvatar(self.options.from, connections);
 		        	connections.append("<div class='labelDiv'>&nbsp;</div>");
 
-		        	var toName = self.options.to.name();
-		        	var fromName = self.options.from.name();
+		        	var toName = self.options.to.data.name;
+		        	var fromName = self.options.from.data.name;
 
 		        	var ridTitle:JQ = new JQ("<div class='rid_row'></div>").appendTo(selfElement);
 		        	var introDiv = new JQ("<div class='rid_cell' style='text-align:left;'>Introduction Message for " + toName + "</div>")
@@ -105,13 +105,13 @@ extern class RequestIntroductionDialog extends JQ {
 
 		        _appendConnectionAvatar: function(connection:Connection, parent:JQ): Void {
 		        	var avatar = new ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({
-		        		connection: connection,
+		        		connectionIid: connection.iid,
 		        		dndEnabled: false,
 		        		isDragByHelper: true,
 		        		containment: false
 	        		}).appendTo(parent).css("display", "inline");
 
-		        	parent.append("<div class='labelDiv' style='display:inline'>" + connection.name() + "</div>");
+		        	parent.append("<div class='labelDiv' style='display:inline'>" + connection.data.name + "</div>");
 		        },
 
 		        initialized: false,

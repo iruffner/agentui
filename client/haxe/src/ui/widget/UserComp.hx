@@ -176,7 +176,7 @@ extern class UserComp extends JQ {
 		        	self.switchAliasLink.hide();
 	        		self.userIdTxt
 	        			.empty()
-		        		.append("<strong>" + conn.name() + "</strong>");
+		        		.append("<strong>" + conn.data.name + "</strong>");
 
 		        	AppContext.TARGET = conn;
 	        		EM.change(EMEvent.TARGET_CHANGE, conn);

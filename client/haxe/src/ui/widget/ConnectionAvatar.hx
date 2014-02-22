@@ -5,6 +5,7 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.jq.JQTooltip;
+import m3.observable.OSet;
 import m3.widget.Widgets;
 import ui.widget.DialogManager;
 import ui.model.ModelObj;
@@ -14,30 +15,33 @@ import ui.widget.FilterableComponent;
 import m3.exception.Exception;
 
 using StringTools;
+using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 using ui.widget.LabelComp;
 
 typedef ConnectionAvatarOptions = {
 	>FilterableCompOptions,
-	var connection: Connection;
+	@:optional var connectionIid: String;
+	@:optional var aliasIid: String;
 }
 
 typedef ConnectionAvatarWidgetDef = {
 	var options: ConnectionAvatarOptions;
 	var _create: Void->Void;
 	@:optional var _super: Void->Void;
-	var update: Connection->Void;
 	var destroy: Void->Void;
-	var _updateWidgets: Void->Void;
+	var _updateWidgets: Profile->Void;
+	var getConnection: Void->Connection;
+
+	@:optional var filteredSetConnection:FilteredSet<Connection>;
+	@:optional var _onUpdateConnection: Connection->EventType->Void;
+	@:optional var filteredSetAlias:FilteredSet<Alias>;
+	@:optional var _onUpdateAlias: Alias->EventType->Void;
 }
 
 class ConnectionAvatarHelper {
 	public static function getConnection(c: ConnectionAvatar): Connection {
-		return c.connectionAvatar("option", "connection");
-	}
-
-	public static function update(c: ConnectionAvatar, connection: Connection): Connection {
-		return c.connectionAvatar("update", connection);
+		return c.connectionAvatar("getConnection");
 	}
 }
 
@@ -53,7 +57,6 @@ extern class ConnectionAvatar extends FilterableComponent {
 		var defineWidget: Void->ConnectionAvatarWidgetDef = function(): ConnectionAvatarWidgetDef {
 			return {
 		        options: {
-		            connection: null,
 		            isDragByHelper: true,
 		            containment: false,
 		            dndEnabled: true,
@@ -64,7 +67,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 			            	if(connectionAvatar.hasClass("clone")) return connectionAvatar;
 			            	var clone: ConnectionAvatar = new ConnectionAvatar("<div class='clone'></div>");
 			            	clone.connectionAvatar({
-			                        connection: connectionAvatar.connectionAvatar("option", "connection"),
+			                        connectionIid: connectionAvatar.connectionAvatar("option", "connectionIid"),
 			                        isDragByHelper: isDragByHelper,
 			                        containment: containment,
 			                        dragstop: dragstop,
@@ -81,6 +84,11 @@ extern class ConnectionAvatar extends FilterableComponent {
 			    			return clone.children("img").addClass("connectionDraggingImg");
 	    				}
 		        },
+
+		        getConnection: function():Connection {
+		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
+		        	return AppContext.CONNECTIONS.getElement(self.options.connectionIid);
+		        },
 		        
 		        _create: function(): Void {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
@@ -89,13 +97,38 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        		throw new Exception("Root of ConnectionAvatar must be a div element");
 		        	}
 
-		        	selfElement.attr("id", "connavatar_" + (self.options.connection.name()).htmlEscape());
+		        	var id = "connavatar_" + ((self.options.aliasIid == null) ? self.options.connectionIid : self.options.aliasIid);
+		        	selfElement.attr("id", id);
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable");
 
 		            var img: JQ = new JQ("<img src='media/default_avatar.jpg' class='shadow'/>");
 		            selfElement.append(img);
 
-		            self._updateWidgets();
+		            self._updateWidgets(new Profile());
+
+		        	if (self.options.connectionIid != null) {
+		        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.CONNECTIONS,function(c:Connection):Bool{
+		        			return c.iid == self.options.connectionIid;
+		        		});
+		        		self._onUpdateConnection = function(c:Connection, evt:EventType) {
+		        			if (evt.isAddOrUpdate()) {
+		        				self._updateWidgets(c.data);
+		        			}
+		        		}
+		        		self.filteredSetConnection.listen(self._onUpdateConnection);
+		        	} else if (self.options.aliasIid != null){
+		        		self.filteredSetAlias = new FilteredSet<Alias>(AppContext.ALIASES,function(a:Alias):Bool{
+		        			return a.iid == self.options.aliasIid;
+		        		});
+		        		self._onUpdateAlias = function(a:Alias, evt:EventType) {
+		        			if (evt.isAddOrUpdate()) {
+		        				self._updateWidgets(a.profile);
+		        			}
+		        		}
+		        		self.filteredSetAlias.listen(self._onUpdateAlias);
+		        	} else {
+		        		throw new Exception("connectionIid or aliasIid must be set");
+		        	}
 
 		            cast(selfElement, JQTooltip).tooltip();
 
@@ -110,14 +143,18 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            	);
 		            	selfElement.data("dropTargetClass", self.options.dropTargetClass);
 		            	selfElement.data("getNode", function(): Node {
-			            		return new ConnectionNode(self.options.connection);
-			            	});
+		            		if (self.options.connectionIid != null) {
+		            			return new ConnectionNode(self.getConnection());
+		            		} else {
+		            			return null;
+		            		}
+		            	});
 
 		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-		                		if(self.options.dragstop != null) {
-		                			self.options.dragstop(dragstopEvt, dragstopUi);
-		                		}
-		                	});
+	                		if(self.options.dragstop != null) {
+	                			self.options.dragstop(dragstopEvt, dragstopUi);
+	                		}
+	                	});
 
 			            var helper: Dynamic = "clone";
 			            if(!self.options.isDragByHelper) {
@@ -150,7 +187,8 @@ extern class ConnectionAvatar extends FilterableComponent {
 					      	drop: function(event: JQEvent, _ui: UIDroppable ) {
 					      		if (_ui.draggable.is(".labelComp")) {
 									var labelComp: LabelComp = cast(_ui.draggable, LabelComp);
-									DialogManager.allowAccess(labelComp.labelComp("getLabel"), self.options.connection);
+									var connection = AppContext.CONNECTIONS.getElement(self.options.connectionIid);
+									DialogManager.allowAccess(labelComp.labelComp("getLabel"), connection);
 					      		} else {
 						      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
 						      		filterCombiner.appendTo(JQ.cur.parent());
@@ -174,27 +212,28 @@ extern class ConnectionAvatar extends FilterableComponent {
 					}
 		        },
 
-		        update: function(conn: Connection): Void {
-		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-					self.options.connection = conn;
-					self._updateWidgets();
-	        	},
-
-		        _updateWidgets: function(): Void {
+		        _updateWidgets: function(profile:Profile): Void {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					var imgSrc: String = "media/default_avatar.jpg";
-		        	if(M.getX(self.options.connection.data.imgSrc, "").isNotBlank() ) {
-		        		imgSrc = self.options.connection.data.imgSrc;
+		        	if(M.getX(profile.imgSrc, "").isNotBlank() ) {
+		        		imgSrc = profile.imgSrc;
 		        	}
 
 		        	selfElement.children("img").attr("src", imgSrc);
-		            selfElement.attr("title", M.getX(self.options.connection.data.name,""));
+		            selfElement.attr("title", M.getX(profile.name,""));
 	        	},
 
 		        destroy: function() {
+		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
+		        	if (self.filteredSetConnection != null) {
+			        	self.filteredSetConnection.removeListener(self._onUpdateConnection);
+		        	}
+		        	else if (self.filteredSetAlias != null) {
+			        	self.filteredSetAlias.removeListener(self._onUpdateAlias);
+		        	}
+
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

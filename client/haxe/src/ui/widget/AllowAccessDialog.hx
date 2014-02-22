@@ -55,7 +55,7 @@ extern class AllowAccessDialog extends JQ {
 
 	        		new ConnectionAvatar("<div></div>").connectionAvatar({
         				dndEnabled: false,
-        				connection: self.options.connection
+        				connectionIid: self.options.connection.iid
         			}).appendTo(selfElement);
 
 					selfElement.append("<div>" + self.options.connection.data.name + "</div>");

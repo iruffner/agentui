@@ -11,7 +11,6 @@ import m3.util.JqueryUtil;
 import ui.model.EM;
 
 using m3.helper.OSetHelper;
-using ui.helper.ModelHelper;
 
 typedef ContentCompOptions = {
 	var content: Content<Dynamic>;
@@ -109,7 +108,7 @@ extern class ContentComp extends JQ {
 		        	var alias = AppContext.ALIASES.delegate().get(self.options.content.aliasIid);
 	        		new ConnectionAvatar("<div></div>").connectionAvatar({
 	        				dndEnabled: false,
-	        				connection: alias.asConnection()
+	        				aliasIid: alias.iid
 	        			}).appendTo(postCreator);
 
 
@@ -139,7 +138,7 @@ extern class ContentComp extends JQ {
 		        			if (connection != null) {
 		        				return new ConnectionAvatar("<div></div>").connectionAvatar({
 			        				dndEnabled: false,
-			        				connection: connection
+			        				connectionIid: connection.iid
 			        			});
 		        			} else {
 			        			return new LabelComp("<div class='small'></div>").labelComp({

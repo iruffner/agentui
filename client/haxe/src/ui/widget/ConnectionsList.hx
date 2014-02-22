@@ -179,7 +179,7 @@ extern class ConnectionsList extends JQ {
 		        	var iter: Iterator<ConnectionComp> = self.connectionsMap.iterator();
 		        	while (iter.hasNext()) {
 		        		var c:ConnectionComp = iter.next();
-		        		if (term == "" || c.connection().name().toLowerCase().indexOf(term) != -1) {
+		        		if (term == "" || c.connection().data.name.toLowerCase().indexOf(term) != -1) {
 		        			c.show();
 		        		} else {
 		        			c.hide();

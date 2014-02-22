@@ -71,7 +71,7 @@ extern class ConnectionComp extends JQ {
 
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connection container boxsizingBorder");
 		        	self._avatar = new ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({
-		        		connection: self.options.connection,
+		        		connectionIid: self.options.connection.iid,
 		        		dndEnabled: true,
 		        		isDragByHelper: true,
 		        		containment: false
@@ -83,7 +83,7 @@ extern class ConnectionComp extends JQ {
 
 					notificationDiv.appendTo(selfElement);
 		            selfElement.append(self._avatar);
-		            selfElement.append("<div class='name'>" + self.options.connection.name() + "</div>");
+		            selfElement.append("<div class='name'>" + self.options.connection.data.name + "</div>");
 		            selfElement.append("<div class='clear'></div>");
 		        
 		            cast(selfElement, JQDroppable).droppable({
@@ -124,8 +124,6 @@ extern class ConnectionComp extends JQ {
 					self.options.connection = conn;
 
 		            selfElement.children(".name").text(M.getX(self.options.connection.data.name, ""));
-
-		            self._avatar.update(conn);
 	        	},
 
 	        	addNotification: function(): Void {
