@@ -7828,24 +7828,28 @@ var defineWidget = function() {
 		self.tags.append(clone);
 		clone.css({ position : "absolute"});
 		if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : self.tags});
-	}, _initConections : function() {
-		var self = this;
-		var selfElement = this.element;
-		return null;
 	}, _initLabels : function(of) {
 		var self1 = this;
 		var selfElement = this.element;
 		var edit_post_comps_tags = new $("#edit_post_comps_tags",selfElement);
 		if(ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self1.options.content.iid) == null) ui.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self1.options.content.iid);
-		self1.onchangeLabelChildren = function(labelComp,evt) {
-			if(evt.isAdd()) edit_post_comps_tags.append(labelComp); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) labelComp.remove();
+		self1.onchangeLabelChildren = function(jq,evt) {
+			if(evt.isAdd()) edit_post_comps_tags.append(jq); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) jq.remove();
 		};
 		self1.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self1.options.content.iid),function(lc) {
-			var lc1 = new $("<div></div>").labelComp({ labelIid : lc.labelIid, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self1._getDragStop()});
-			lc1.css("position","absolute").addClass("small");
-			lc1.position({ my : "top", at : "bottom", of : of, collision : "flipfit", within : self1.tags});
-			of = lc1;
-			return lc1;
+			var connection = ui.AppContext.connectionFromMetaLabel(lc.labelIid);
+			if(connection != null) {
+				var ca = new $("<div></div>").connectionAvatar({ connectionIid : connection.iid, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self1._getDragStop()}).appendTo(edit_post_comps_tags).css("position","absolute");
+				ca.position({ my : "left", at : "right", of : of, collision : "flipfit", within : self1.tags});
+				of = ca;
+				return ca;
+			} else {
+				var lc1 = new $("<div></div>").labelComp({ labelIid : lc.labelIid, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self1._getDragStop()});
+				lc1.css("position","absolute").addClass("small");
+				lc1.position({ my : "top", at : "bottom", of : of, collision : "flipfit", within : self1.tags});
+				of = lc1;
+				return lc1;
+			}
 		});
 		self1.mappedLabels.listen(self1.onchangeLabelChildren);
 	}, _createButtonBlock : function(self2,selfElement1) {
@@ -7963,8 +7967,7 @@ var defineWidget = function() {
 			self3._addToTagsContainer(_ui);
 		}});
 		self3.tags = tags;
-		var jq = self3._initConections();
-		self3._initLabels(jq);
+		self3._initLabels(null);
 	}, destroy : function() {
 		var self = this;
 		self.mappedLabels.removeListener(self.onchangeLabelChildren);

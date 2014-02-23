@@ -29,10 +29,9 @@ typedef EditPostCompWidgetDef = {
 	@:optional var tags: JQDroppable;
 	@:optional var valueElement: JQ;
 	@:optional var uploadComp:UploadComp;
-	@:optional var mappedLabels:MappedSet<LabeledContent, LabelComp>;
-	@:optional var onchangeLabelChildren:LabelComp->EventType->Void;
+	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
+	@:optional var onchangeLabelChildren:JQ->EventType->Void;
 	var _create: Void->Void;
-	var _initConections:Void->JQ;
 	var _initLabels:JQ->Void;
 	var _addToTagsContainer:UIDroppable->Void;
 	var _getDragStop:Void->(JQEvent->UIDraggable->Void);
@@ -90,43 +89,6 @@ extern class EditPostComp extends JQ {
 
 				},
 
-				_initConections: function() : JQ {
-		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-					// TODO:  fix me
-/*
-		        	var connIter: Iterator<Connection> = self.options.content.connectionSet.iterator();
-		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
-
-		        	var of:JQ = null;
-
-		        	while(connIter.hasNext()) {
-		        		var connection: Connection = connIter.next();
-
-		        		var ca = new ConnectionAvatar("<div></div>").connectionAvatar({
-		        				connection: connection,
-		        				dndEnabled: true,
-				        		isDragByHelper: false,
-				        		containment: false,
-				        		dragstop: self._getDragStop()
-		        			}).appendTo(edit_post_comps_tags)
-		        		      .css("position", "absolute");
-
-			        	ca.position({
-		                    	my: "left",
-		                    	at: "right",
-		                    	of: of,
-		                    	collision: "flipfit",
-		                    	within: self.tags
-	                	});
-
-	                	of = ca;
-		        	}
-
-		        	return of;
-		        	*/
-		        	return null;
-				},
 
 				_initLabels: function(of:JQ) : Void {
 		        	var self: EditPostCompWidgetDef = Widgets.getSelf();
@@ -137,36 +99,59 @@ extern class EditPostComp extends JQ {
 		        		AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
 		        	}
 
-		        	self.onchangeLabelChildren = function(labelComp: LabelComp, evt: EventType): Void {
+		        	self.onchangeLabelChildren = function(jq: JQ, evt: EventType): Void {
 	            		if(evt.isAdd()) {
-	            			edit_post_comps_tags.append(labelComp);
+	            			edit_post_comps_tags.append(jq);
 	            		} else if (evt.isUpdate()) {
 	            			throw new Exception("this should never happen");
 	            		} else if (evt.isDelete()) {
-	            			labelComp.remove();
+	            			jq.remove();
 	            		}
 	            	};
 
-            		self.mappedLabels = new MappedSet<LabeledContent, LabelComp>(AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid), 
-		        		function(lc: LabeledContent): LabelComp {
-			        		var lc = new LabelComp("<div></div>").labelComp({
-			        				labelIid: lc.labelIid,
-			        				dndEnabled: true,
-					        		isDragByHelper: false,
-					        		containment: false,
-					        		dragstop: self._getDragStop(),
-			        			    });
-			        		lc.css("position", "absolute")
-			        		  .addClass("small");
-			        		lc.position({
-				                my: "top",
-			                    	at: "bottom",
-			                    	of: of,
-			                    	collision: "flipfit",
-			                    	within: self.tags
+            		self.mappedLabels = new MappedSet<LabeledContent, JQ>(AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid), 
+		        		function(lc: LabeledContent): JQ {
+		        			var connection = AppContext.connectionFromMetaLabel(lc.labelIid);
+		        			if (connection != null) {
+				        		var ca = new ConnectionAvatar("<div></div>").connectionAvatar({
+				        				connectionIid: connection.iid,
+				        				dndEnabled: true,
+						        		isDragByHelper: false,
+						        		containment: false,
+						        		dragstop: self._getDragStop()
+				        			}).appendTo(edit_post_comps_tags)
+				        		      .css("position", "absolute");
+
+					        	ca.position({
+				                    	my: "left",
+				                    	at: "right",
+				                    	of: of,
+				                    	collision: "flipfit",
+				                    	within: self.tags
 			                	});
-		                	of = lc;
-		                	return lc;
+
+			                	of = ca;
+			                	return ca;
+		        			} else {
+				        		var lc = new LabelComp("<div></div>").labelComp({
+				        				labelIid: lc.labelIid,
+				        				dndEnabled: true,
+						        		isDragByHelper: false,
+						        		containment: false,
+						        		dragstop: self._getDragStop(),
+				        			    });
+				        		lc.css("position", "absolute")
+				        		  .addClass("small");
+				        		lc.position({
+					                my: "top",
+				                    	at: "bottom",
+				                    	of: of,
+				                    	collision: "flipfit",
+				                    	within: self.tags
+				                	});
+			                	of = lc;
+			                	return lc;
+			                }
 		        		}
 		        	);
 		        	self.mappedLabels.listen(self.onchangeLabelChildren);
@@ -345,8 +330,7 @@ extern class EditPostComp extends JQ {
 
 					self.tags = tags;
 
-		        	var jq = self._initConections();
-		        	self._initLabels(jq);
+		        	self._initLabels(null);
 		        },
 
 		        destroy: function() {
