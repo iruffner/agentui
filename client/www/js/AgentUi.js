@@ -4980,6 +4980,9 @@ ui.api.EventDelegate.prototype = {
 		ui.model.EM.addListener(ui.model.EMEvent.UpdateContent,new ui.model.EMListener(function(data) {
 			_g.protocolHandler.updateContent(data);
 		}));
+		ui.model.EM.addListener(ui.model.EMEvent.DeleteContent,new ui.model.EMListener(function(data) {
+			_g.protocolHandler.deleteContent(data);
+		}));
 		ui.model.EM.addListener(ui.model.EMEvent.CreateLabel,new ui.model.EMListener(function(data) {
 			_g.protocolHandler.createLabel(data);
 		}));
@@ -7831,8 +7834,9 @@ var defineWidget = function() {
 		new $("<button title='Remove Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-circle-close"}}).css("width","23px").click(function(evt) {
 			evt.stopPropagation();
 			m3.util.JqueryUtil.confirm("Delete Post","Are you sure you want to remove this post?",function() {
+				var ecd = self2._updateContent();
 				close();
-				ui.model.EM.change(ui.model.EMEvent.DeleteContent,self2.options.content);
+				ui.model.EM.change(ui.model.EMEvent.DeleteContent,ecd);
 			});
 		});
 		new $("<button title='Update Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-disk"}}).css("width","23px").click(function(evt) {

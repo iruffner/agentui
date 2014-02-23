@@ -58,6 +58,10 @@ class EventDelegate {
             protocolHandler.updateContent(data);
         }));
 
+        EM.addListener(EMEvent.DeleteContent, new EMListener(function(data:EditContentData): Void {
+            protocolHandler.deleteContent(data);
+        }));
+
         EM.addListener(EMEvent.CreateLabel, new EMListener(function(data:EditLabelData): Void {
         	protocolHandler.createLabel(data);
     	}));

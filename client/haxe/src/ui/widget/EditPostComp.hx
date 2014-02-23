@@ -190,8 +190,9 @@ extern class EditPostComp extends JQ {
 							evt.stopPropagation();
 							JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
 								function(){
+									var ecd = self._updateContent();
 									close();
-									EM.change(EMEvent.DeleteContent, self.options.content);
+									EM.change(EMEvent.DeleteContent, ecd);
 								}
 							);
 						}
