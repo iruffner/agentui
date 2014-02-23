@@ -7,9 +7,7 @@ import ui.model.Filter;
 interface ProtocolHandler {
 	public function getProfiles(connectionIids:Array<String>):Void;
 	public function login(login: Login): Void;
-	public function filter(filter: Filter): Void;
-	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void;
-	public function nextPage(nextPageURI: String): Void;
+	public function filter(filter: FilterData): Void;
 	public function createAgent(newUser: NewUser): Void;
 	public function createContent(data:EditContentData):Void;
 	public function updateContent(data:EditContentData):Void;

@@ -1,5 +1,6 @@
 package ui.api;
 
+import ui.model.Filter;
 import ui.model.ModelObj;
 using m3.serialization.TypeTools;
 
@@ -90,6 +91,25 @@ class GetProfileMessage implements ChannelMessage {
 
 	public function new(?connectionIids:Array<String>) {
 		this.connectionIids = (connectionIids == null) ? new Array<String>() : connectionIids;
+	}
+}
+
+@:rtti
+class DistributedQueryMessage implements ChannelMessage{
+	public var type: String;
+	public var q: String;
+	public var aliasIids: Array<String>;
+	public var connectionIids: Array<String>;
+	public var leaveStanding: Bool;
+	public var historical: Bool;
+
+	public function new(fd:FilterData) {
+		type           = fd.type;
+		q              = fd.filter.q;
+		aliasIids      = fd.aliasIids;
+		connectionIids = fd.connectionIids;
+		historical     = true;
+		leaveStanding  = false;
 	}
 }
 

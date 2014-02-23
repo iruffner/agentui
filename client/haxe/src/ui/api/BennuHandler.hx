@@ -19,14 +19,15 @@ class BennuHandler implements ProtocolHandler {
 	private var loggedInAgentId:String;
 
 	// Message Paths
+	private static var QUERY = "/api/query";
+	private static var DQUERY = "/api/query/distributed";
 	private static var UPSERT = "/api/upsert";
 	private static var DELETE = "/api/delete";
-	private static var QUERY  = "/api/query";
 	private static var REGISTER = "/api/squery/register" ;
-	private static var DEREGISTER = "/api/squery/deregister" ;
 	private static var INTRODUCE = "/api/introduction/initiate";
-	private static var INTRO_RESPONSE = "/api/introduction/respond";
+	private static var DEREGISTER = "/api/squery/deregister" ;
 	private static var GET_PROFILE = "/api/profile/get";
+	private static var INTRO_RESPONSE = "/api/introduction/respond";
 
 	private var eventDelegate:EventDelegate;
 	private var listeningChannel: LongPollingRequest;
@@ -100,18 +101,13 @@ class BennuHandler implements ProtocolHandler {
 	public function restores(): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
-	public function filter(filter: Filter): Void {
+
+	public function filter(filterData: FilterData): Void {
 		var context = Synchronizer.createContext(1, "filterContent");
 		var requests = [
-			new ChannelRequestMessage(QUERY, context + "contents", new QueryMessage("content", filter.getQuery())),
+			new ChannelRequestMessage(DQUERY, context + "contents", new DistributedQueryMessage(filterData)),
 		];
 		new SubmitRequest(requests).start();
-	}
-	public function stopCurrentFilter(onSuccessOrError: Void->Void, async: Bool=true): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	}
-	public function nextPage(nextPageURI: String): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 
 	public function createAlias(alias: Alias): Void {

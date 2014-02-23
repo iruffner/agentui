@@ -6,8 +6,9 @@ using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
 
 class Filter {
-	public var rootNode: Node;
-	public var nodes: Array<Node>;
+	private var rootNode: Node;
+	private var nodes: Array<Node>;
+	public var q:String;
 
 	public function new(node: Node) {
 		this.rootNode = node;
@@ -17,9 +18,10 @@ class Filter {
 				nodes.push(childNode);
 			}
 		}
+		q = getQuery();
 	}
 
-	public function getQuery(): String {
+	private function getQuery(): String {
 		return _queryify(nodes, rootNode.getQuery());
 	}
 
@@ -38,5 +40,16 @@ class Filter {
 			str += ")";
 		}
 		return str;
+	}
+}
+
+class FilterData {
+	public var type:String;
+	public var filter:Filter;
+	public var connectionIids:Array<String>;
+	public var aliasIids:Array<String>;
+
+	public function new(type:String) {
+		this.type = type;
 	}
 }

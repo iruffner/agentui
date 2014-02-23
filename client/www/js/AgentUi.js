@@ -4755,16 +4755,9 @@ ui.api.BennuHandler.prototype = {
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "alias",ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lc))]);
 		req.start();
 	}
-	,nextPage: function(nextPageURI) {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,stopCurrentFilter: function(onSuccessOrError,async) {
-		if(async == null) async = true;
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,filter: function(filter) {
+	,filter: function(filterData) {
 		var context = ui.api.Synchronizer.createContext(1,"filterContent");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content",filter.getQuery()))];
+		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DQUERY,context + "contents",new ui.api.DistributedQueryMessage(filterData))];
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,restores: function() {
@@ -4907,6 +4900,20 @@ ui.api.GetProfileMessage.__interfaces__ = [ui.api.ChannelMessage];
 ui.api.GetProfileMessage.prototype = {
 	__class__: ui.api.GetProfileMessage
 }
+ui.api.DistributedQueryMessage = function(fd) {
+	this.type = fd.type;
+	this.q = fd.filter.q;
+	this.aliasIids = fd.aliasIids;
+	this.connectionIids = fd.connectionIids;
+	this.historical = true;
+	this.leaveStanding = false;
+};
+$hxClasses["ui.api.DistributedQueryMessage"] = ui.api.DistributedQueryMessage;
+ui.api.DistributedQueryMessage.__name__ = ["ui","api","DistributedQueryMessage"];
+ui.api.DistributedQueryMessage.__interfaces__ = [ui.api.ChannelMessage];
+ui.api.DistributedQueryMessage.prototype = {
+	__class__: ui.api.DistributedQueryMessage
+}
 ui.api.ChannelRequestMessage = function(path,context,msg) {
 	this.path = path;
 	this.context = context;
@@ -4953,11 +4960,8 @@ ui.api.EventDelegate.__name__ = ["ui","api","EventDelegate"];
 ui.api.EventDelegate.prototype = {
 	_setUpEventListeners: function() {
 		var _g = this;
-		ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filter) {
-			_g.protocolHandler.filter(filter);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.PAGE_CLOSE,new ui.model.EMListener(function(n) {
-			if(_g.filterIsRunning) _g.protocolHandler.stopCurrentFilter($.noop,false);
+		ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filterData) {
+			_g.protocolHandler.filter(filterData);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.CreateAlias,new ui.model.EMListener(function(alias) {
 			_g.protocolHandler.createAlias(alias);
@@ -5631,6 +5635,7 @@ ui.model.Filter = function(node) {
 			this.nodes.push(childNode);
 		}
 	}
+	this.q = this.getQuery();
 };
 $hxClasses["ui.model.Filter"] = ui.model.Filter;
 ui.model.Filter.__name__ = ["ui","model","Filter"];
@@ -5655,6 +5660,14 @@ ui.model.Filter.prototype = {
 		return this._queryify(this.nodes,this.rootNode.getQuery());
 	}
 	,__class__: ui.model.Filter
+}
+ui.model.FilterData = function(type) {
+	this.type = type;
+};
+$hxClasses["ui.model.FilterData"] = ui.model.FilterData;
+ui.model.FilterData.__name__ = ["ui","model","FilterData"];
+ui.model.FilterData.prototype = {
+	__class__: ui.model.FilterData
 }
 ui.model.ModelObj = function() {
 };
@@ -6317,6 +6330,9 @@ $hxClasses["ui.widget.ConnectionAvatarHelper"] = ui.widget.ConnectionAvatarHelpe
 ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelper"];
 ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
 	return c.connectionAvatar("getConnection");
+}
+ui.widget.ConnectionAvatarHelper.getAlias = function(c) {
+	return c.connectionAvatar("getAlias");
 }
 ui.widget.ConnectionCompHelper = function() { }
 $hxClasses["ui.widget.ConnectionCompHelper"] = ui.widget.ConnectionCompHelper;
@@ -7337,6 +7353,9 @@ var defineWidget = function() {
 	}}, getConnection : function() {
 		var self = this;
 		return m3.helper.OSetHelper.getElement(ui.AppContext.CONNECTIONS,self.options.connectionIid);
+	}, getAlias : function() {
+		var self = this;
+		return m3.helper.OSetHelper.getElement(ui.AppContext.ALIASES,self.options.aliasIid);
 	}, _create : function() {
 		var self1 = this;
 		var selfElement = this.element;
@@ -8300,12 +8319,29 @@ var defineWidget = function() {
 		var filterables = selfElement.children(".filterable");
 		if(filterables.length == 0) ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias); else {
 			filterables.each(function(idx,el) {
-				var filterable = new $(el);
-				var node = (filterable.data("getNode"))();
-				root.addNode(node);
+				var jqEle = new $(el);
+				if(!jqEle["is"](".connectionAvatar")) {
+					var filterable = new $(el);
+					var node = (filterable.data("getNode"))();
+					root.addNode(node);
+				}
 			});
-			var filter = new ui.model.Filter(root);
-			if(!ui.widget.LiveBuildToggleHelper.isLive(liveToggle)) ui.model.EM.change(ui.model.EMEvent.FILTER_CHANGE,filter); else ui.model.EM.change(ui.model.EMEvent.FILTER_RUN,filter);
+			var connectionIids = new Array();
+			var aliasIids = new Array();
+			var connComps = selfElement.children(".connectionAvatar");
+			connComps.each(function(idx,el) {
+				var avatar = new $(el);
+				var conn = ui.widget.ConnectionAvatarHelper.getConnection(avatar);
+				if(conn != null) connectionIids.push(conn.iid); else {
+					var alias = ui.widget.ConnectionAvatarHelper.getAlias(avatar);
+					aliasIids.push(alias.iid);
+				}
+			});
+			var filterData = new ui.model.FilterData("content");
+			filterData.filter = new ui.model.Filter(root);
+			filterData.connectionIids = connectionIids;
+			filterData.aliasIids = aliasIids;
+			if(!ui.widget.LiveBuildToggleHelper.isLive(liveToggle)) ui.model.EM.change(ui.model.EMEvent.FILTER_CHANGE,filterData); else ui.model.EM.change(ui.model.EMEvent.FILTER_RUN,filterData);
 		}
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
@@ -9079,24 +9115,26 @@ m3.util.ColorProvider._INDEX = 0;
 ui.AgentUi.URL = "";
 ui.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
 ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
+ui.api.BennuHandler.QUERY = "/api/query";
+ui.api.BennuHandler.DQUERY = "/api/query/distributed";
 ui.api.BennuHandler.UPSERT = "/api/upsert";
 ui.api.BennuHandler.DELETE = "/api/delete";
-ui.api.BennuHandler.QUERY = "/api/query";
 ui.api.BennuHandler.REGISTER = "/api/squery/register";
-ui.api.BennuHandler.DEREGISTER = "/api/squery/deregister";
 ui.api.BennuHandler.INTRODUCE = "/api/introduction/initiate";
-ui.api.BennuHandler.INTRO_RESPONSE = "/api/introduction/respond";
+ui.api.BennuHandler.DEREGISTER = "/api/squery/deregister";
 ui.api.BennuHandler.GET_PROFILE = "/api/profile/get";
-ui.api.BennuMessage.__rtti = "<class path=\"ui.api.BennuMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"13\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.DeleteMessage.__rtti = "<class path=\"ui.api.DeleteMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"26\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"39\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"34\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<q><c path=\"String\"/></q>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"type:?q\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.api.RegisterMessage.__rtti = "<class path=\"ui.api.RegisterMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<types public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></types>\n\t<new public=\"1\" set=\"method\" line=\"57\"><f a=\"types\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.IntroMessage.__rtti = "<class path=\"ui.api.IntroMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"68\"><f a=\"i\">\n\t<c path=\"ui.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.IntroResponseMessage.__rtti = "<class path=\"ui.api.IntroResponseMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"81\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.GetProfileMessage.__rtti = "<class path=\"ui.api.GetProfileMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<new public=\"1\" set=\"method\" line=\"91\"><f a=\"?connectionIids\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<agentId><c path=\"String\"/></agentId>\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"129\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"133\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"116\"><f a=\"?requests_:?agentId\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.BennuHandler.INTRO_RESPONSE = "/api/introduction/respond";
+ui.api.BennuMessage.__rtti = "<class path=\"ui.api.BennuMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"14\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.DeleteMessage.__rtti = "<class path=\"ui.api.DeleteMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"27\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"40\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"35\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<q><c path=\"String\"/></q>\n\t<new public=\"1\" set=\"method\" line=\"49\"><f a=\"type:?q\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.api.RegisterMessage.__rtti = "<class path=\"ui.api.RegisterMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<types public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></types>\n\t<new public=\"1\" set=\"method\" line=\"58\"><f a=\"types\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.IntroMessage.__rtti = "<class path=\"ui.api.IntroMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"69\"><f a=\"i\">\n\t<c path=\"ui.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.IntroResponseMessage.__rtti = "<class path=\"ui.api.IntroResponseMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"82\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.GetProfileMessage.__rtti = "<class path=\"ui.api.GetProfileMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<new public=\"1\" set=\"method\" line=\"92\"><f a=\"?connectionIids\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.DistributedQueryMessage.__rtti = "<class path=\"ui.api.DistributedQueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></aliasIids>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<leaveStanding public=\"1\"><x path=\"Bool\"/></leaveStanding>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<new public=\"1\" set=\"method\" line=\"106\"><f a=\"fd\">\n\t<c path=\"ui.model.FilterData\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"122\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<agentId><c path=\"String\"/></agentId>\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"149\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"153\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"136\"><f a=\"?requests_:?agentId\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"25\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.model.ModelObjWithIid.__rtti = "<class path=\"ui.model.ModelObjWithIid\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"45\" static=\"1\"><f a=\"t\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

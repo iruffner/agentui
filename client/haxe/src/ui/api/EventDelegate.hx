@@ -20,14 +20,8 @@ class EventDelegate {
 
 	private function _setUpEventListeners() {
 
-		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filter: Filter): Void {
-        	protocolHandler.filter(filter);
-        }));
-
-        EM.addListener(EMEvent.PAGE_CLOSE, new EMListener(function(n: Nothing): Void {
-			if(filterIsRunning) {
-				protocolHandler.stopCurrentFilter(JQ.noop, false);
-			} 
+		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filterData:FilterData): Void {
+        	protocolHandler.filter(filterData);
         }));
 
         EM.addListener(EMEvent.CreateAlias, new EMListener(function(alias: Alias): Void {

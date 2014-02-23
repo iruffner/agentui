@@ -154,16 +154,38 @@ extern class FilterComp extends JQ {
 						EM.change(EMEvent.AliasLoaded, AppContext.currentAlias);
 		        	} else {
 			        	filterables.each(function (idx: Int, el: Element): Void {
-		        			var filterable: FilterableComponent = new FilterableComponent(el);
-		        			var node: Node = filterable.data("getNode")();
-		        			root.addNode(node);
+			        		var jqEle = new JQ(el);
+			        		if (!jqEle.is(".connectionAvatar")) {
+			        			var filterable: FilterableComponent = new FilterableComponent(el);
+			        			var node: Node = filterable.data("getNode")();
+			        			root.addNode(node);
+			        		}
 		        		});
+
+			        	var connectionIids = new Array<String>();
+		        		var aliasIids = new Array<String>();
 						
-						var filter = new Filter(root);
+		        		var connComps:JQ = selfElement.children(".connectionAvatar");
+			        	connComps.each(function (idx: Int, el: Element): Void {
+		        			var avatar: ConnectionAvatar = new ConnectionAvatar(el);
+		        			var conn = avatar.getConnection();
+		        			if (conn != null){
+			        			connectionIids.push(conn.iid);
+			        		} else {
+			        			var alias = avatar.getAlias();
+			        			aliasIids.push(alias.iid);
+			        		}
+		        		});
+
+						var filterData = new FilterData("content");
+						filterData.filter = new Filter(root);
+						filterData.connectionIids = connectionIids;
+						filterData.aliasIids      = aliasIids;
+
 						if(!liveToggle.isLive()) {
-							EM.change(EMEvent.FILTER_CHANGE, filter);
+							EM.change(EMEvent.FILTER_CHANGE, filterData);
 						} else {
-			        		EM.change(EMEvent.FILTER_RUN, filter);
+			        		EM.change(EMEvent.FILTER_RUN, filterData);
 			        	}
 			        }
 	        	},

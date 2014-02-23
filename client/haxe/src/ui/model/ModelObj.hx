@@ -535,16 +535,3 @@ class EditContentData {
 		this.labelIids = labelIids;
 	}
 }
-
-/*
-case class DistributedQueryService @Inject()(
-  @Parm("type") _type: String,
-  @Parm("q") queryStr: String,
-  @Parm aliasIids: List[InternalId],
-  @Parm connectionIids: List[InternalId],
-  @Parm leaveStanding: Boolean = false,
-  historical: Boolean = true;
-  @Parm timeout: String = "5 s"
-) extends Logging {
-
-*/

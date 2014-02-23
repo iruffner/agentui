@@ -32,6 +32,7 @@ typedef ConnectionAvatarWidgetDef = {
 	var destroy: Void->Void;
 	var _updateWidgets: Profile->Void;
 	var getConnection: Void->Connection;
+	var getAlias: Void->Alias;
 
 	@:optional var filteredSetConnection:FilteredSet<Connection>;
 	@:optional var _onUpdateConnection: Connection->EventType->Void;
@@ -42,6 +43,10 @@ typedef ConnectionAvatarWidgetDef = {
 class ConnectionAvatarHelper {
 	public static function getConnection(c: ConnectionAvatar): Connection {
 		return c.connectionAvatar("getConnection");
+	}
+
+	public static function getAlias(c: ConnectionAvatar): Alias {
+		return c.connectionAvatar("getAlias");
 	}
 }
 
@@ -90,6 +95,11 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	return AppContext.CONNECTIONS.getElement(self.options.connectionIid);
 		        },
 		        
+		        getAlias: function():Alias {
+		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
+		        	return AppContext.ALIASES.getElement(self.options.aliasIid);
+		        },
+
 		        _create: function(): Void {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
