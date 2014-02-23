@@ -10,6 +10,7 @@ class SynchronizationParms {
     public var aliases:Array<Alias>;
     public var content:Array<Content<Dynamic>>;
     public var connections:Array<Connection>;
+    public var handle:String;
     public var introductions:Array<Introduction>;
     public var labels:Array<Label>;
     public var labelChildren:Array<LabelChild>;
@@ -22,6 +23,7 @@ class SynchronizationParms {
         aliases = new Array<Alias>();
         content = new Array<Content<Dynamic>>();
         connections = new Array<Connection>();
+        handle = "";
         introductions = new Array<Introduction>();
         labels  = new Array<Label>();
         labelChildren = new Array<LabelChild>();
@@ -79,6 +81,11 @@ class Synchronizer {
 
         parms.result = dataObj.result;
         var data:Dynamic = dataObj.result;
+
+        if (data.handle != null) {
+            parms.handle = data.handle;
+            return;
+        }
 
         if (!Std.is(data,String)) {
         	switch (responseType) {

@@ -5301,6 +5301,7 @@ ui.api.SynchronizationParms = function() {
 	this.aliases = new Array();
 	this.content = new Array();
 	this.connections = new Array();
+	this.handle = "";
 	this.introductions = new Array();
 	this.labels = new Array();
 	this.labelChildren = new Array();
@@ -5346,6 +5347,10 @@ ui.api.Synchronizer.prototype = {
 		var responseType = context[3];
 		this.parms.result = dataObj.result;
 		var data = dataObj.result;
+		if(data.handle != null) {
+			this.parms.handle = data.handle;
+			return;
+		}
 		if(!js.Boot.__instanceof(data,String)) switch(responseType) {
 		case "agent":
 			if(data.length > 0) {
