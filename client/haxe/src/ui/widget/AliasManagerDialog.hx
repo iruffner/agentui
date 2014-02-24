@@ -110,17 +110,19 @@ extern class AliasManagerDialog extends JQ {
 		        	}
 
 		        	rightDiv.append("<h2>Aliases</h2>");
+		        	var idx = 0;
 		        	AppContext.ALIASES.iter(
-		        			function(a: Alias): Void {
-		        				var span: JQ = new JQ("<span class='clickable'></span>")
-		        					.appendTo(rightDiv)
-		        					.click(function(evt: JQEvent) {
-		        							self._showAliasDetail(a);
-		        						})
-		        					.append(a.profile.name);
-		        				rightDiv.append("<br/>");
-		        			}
-		        		);
+	        			function(a: Alias): Void {
+	        				var span: JQ = new JQ("<span class='clickable' id='alias_" + Std.string(idx) + "'></span>")
+	        					.appendTo(rightDiv)
+	        					.click(function(evt: JQEvent) {
+	        							self._showAliasDetail(a);
+	        						})
+	        					.append(a.profile.name);
+	        				rightDiv.append("<br/>");
+	        				idx += 1;
+	        			}
+	        		);
 
 		        	new JQ("<button style='margin-top: 30px;'>New Alias</button>")
 		        		.button()
@@ -277,7 +279,7 @@ extern class AliasManagerDialog extends JQ {
 		        		autoOpen: false,
 		        		title: "Alias Manager",
 		        		height: 440,
-		        		width: 480,
+		        		width: 550,
 		        		buttons: {
 		        			// "Create New Alias": function() {
 		        			// 	self._createAliasManager();
@@ -303,6 +305,7 @@ extern class AliasManagerDialog extends JQ {
 		        	// selfElement.children("#n_label").focus();
 		        	// self.aliasName.blur();
 	        		selfElement.open();
+		        	new JQ("#alias_0").click();
         		},
 		        
 		        destroy: function() {

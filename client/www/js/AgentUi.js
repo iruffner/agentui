@@ -4484,7 +4484,7 @@ ui.AppContext.getUberLabelIid = function() {
 }
 ui.AppContext.registerGlobalListeners = function() {
 	new $(js.Browser.window).on("unload",function(evt) {
-		ui.model.EM.change(ui.model.EMEvent.PAGE_CLOSE);
+		ui.model.EM.change(ui.model.EMEvent.UserLogout);
 	});
 	ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(agent) {
 		ui.AppContext.setAgent(agent);
@@ -4972,7 +4972,7 @@ ui.api.EventDelegate.prototype = {
 		ui.model.EM.addListener(ui.model.EMEvent.UpdateAlias,new ui.model.EMListener(function(alias) {
 			_g.protocolHandler.updateAlias(alias);
 		}));
-		ui.model.EM.addListener(ui.model.EMEvent.USER_LOGIN,new ui.model.EMListener(function(login) {
+		ui.model.EM.addListener(ui.model.EMEvent.UserLogin,new ui.model.EMListener(function(login) {
 			_g.protocolHandler.login(login);
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.CreateAgent,new ui.model.EMListener(function(user) {
@@ -5539,7 +5539,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","USER_LOGIN","CreateAgent","AgentCreated","AGENT","FitWindow","PAGE_CLOSE","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","CreateAgent","AgentCreated","AGENT","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
@@ -5552,24 +5552,24 @@ ui.model.EMEvent.LoadFilteredContent.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.EditContentClosed = ["EditContentClosed",3];
 ui.model.EMEvent.EditContentClosed.toString = $estr;
 ui.model.EMEvent.EditContentClosed.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.USER_LOGIN = ["USER_LOGIN",4];
-ui.model.EMEvent.USER_LOGIN.toString = $estr;
-ui.model.EMEvent.USER_LOGIN.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateAgent = ["CreateAgent",5];
+ui.model.EMEvent.CreateAgent = ["CreateAgent",4];
 ui.model.EMEvent.CreateAgent.toString = $estr;
 ui.model.EMEvent.CreateAgent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AgentCreated = ["AgentCreated",6];
+ui.model.EMEvent.AgentCreated = ["AgentCreated",5];
 ui.model.EMEvent.AgentCreated.toString = $estr;
 ui.model.EMEvent.AgentCreated.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AGENT = ["AGENT",7];
+ui.model.EMEvent.AGENT = ["AGENT",6];
 ui.model.EMEvent.AGENT.toString = $estr;
 ui.model.EMEvent.AGENT.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FitWindow = ["FitWindow",8];
+ui.model.EMEvent.FitWindow = ["FitWindow",7];
 ui.model.EMEvent.FitWindow.toString = $estr;
 ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.PAGE_CLOSE = ["PAGE_CLOSE",9];
-ui.model.EMEvent.PAGE_CLOSE.toString = $estr;
-ui.model.EMEvent.PAGE_CLOSE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.UserLogin = ["UserLogin",8];
+ui.model.EMEvent.UserLogin.toString = $estr;
+ui.model.EMEvent.UserLogin.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.UserLogout = ["UserLogout",9];
+ui.model.EMEvent.UserLogout.toString = $estr;
+ui.model.EMEvent.UserLogout.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.AliasLoaded = ["AliasLoaded",10];
 ui.model.EMEvent.AliasLoaded.toString = $estr;
 ui.model.EMEvent.AliasLoaded.__enum__ = ui.model.EMEvent;
@@ -6951,341 +6951,6 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasComp must be a div element");
-		selfElement.addClass("ocontainer shadow ");
-		self.container = new $("<div class='container'></div>");
-		selfElement.append(self.container);
-		self._setAlias(new ui.model.Alias());
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			self._setAlias(alias);
-		},"AliasComp-Alias"));
-		(js.Boot.__cast(self.container , $)).droppable({ accept : function(d) {
-			return d["is"](".connectionAvatar");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
-			var dragstop = function(dragstopEvt,dragstopUi) {
-				if(!self.container.intersects(dragstopUi.helper)) {
-					dragstopUi.helper.remove();
-					selfElement.removeClass("targetChange");
-					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
-					ui.AppContext.TARGET = null;
-					self._setAlias(ui.AppContext.currentAlias);
-				}
-			};
-			selfElement.addClass("targetChange");
-			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
-			clone.addClass("small");
-			clone.insertBefore(new $(".ui-helper-clearfix",self.container));
-			self._setTarget(ui.widget.ConnectionAvatarHelper.getConnection(clone));
-		}});
-	}, _createAliasMenu : function(self,aliases) {
-		var menu = new $("<ul id='userAliasMenu'></ul>");
-		menu.appendTo(self.container);
-		var menuOptions = [];
-		var menuOption;
-		var $it0 = aliases.iterator();
-		while( $it0.hasNext() ) {
-			var alias = $it0.next();
-			var alias1 = [alias];
-			menuOption = { label : alias1[0].profile.name, icon : "ui-icon-person", action : (function(alias1) {
-				return function(evt,m) {
-					if(ui.model.Alias.identifier(ui.AppContext.currentAlias) == ui.model.Alias.identifier(alias1[0])) menu.hide(); else {
-						ui.AppContext.currentAlias = alias1[0];
-						ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias1[0]);
-					}
-				};
-			})(alias1)};
-			menuOptions.push(menuOption);
-		}
-		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt,m) {
-			ui.widget.DialogManager.showAliasManager();
-		}};
-		menuOptions.push(menuOption);
-		menu.m3menu({ menuOptions : menuOptions}).hide();
-		return menu;
-	}, _setAlias : function(alias) {
-		var self = this;
-		var selfElement1 = this.element;
-		self.container.empty();
-		self.userImg = new $("<img alt='user' src='" + alias.profile.imgSrc + "' class='userImg shadow'/>");
-		self.container.append(self.userImg);
-		self.userIdTxt = new $("<div class='userIdTxt'></div>");
-		self.container.append(self.userIdTxt);
-		self.userIdTxt.append("<strong>" + alias.agentId + "</strong>").append("<br/>").append("<font style='font-size:12px'>" + alias.profile.name + "</font>");
-		var changeDiv = new $("<div class='ui-helper-clearfix'></div>");
-		self.container.append(changeDiv);
-		self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
-		changeDiv.append(self.switchAliasLink);
-		var aliasMenu = self._createAliasMenu(self,ui.AppContext.ALIASES);
-		self.switchAliasLink.click(function(evt) {
-			aliasMenu.show();
-			aliasMenu.position({ my : "left top", at : "right-6px center", of : selfElement1});
-			evt.preventDefault();
-			evt.stopPropagation();
-			return false;
-		});
-	}, _setTarget : function(conn) {
-		var self = this;
-		self.switchAliasLink.hide();
-		self.userIdTxt.empty().append("<strong>" + conn.data.name + "</strong>");
-		ui.AppContext.TARGET = conn;
-		ui.model.EM.change(ui.model.EMEvent.TARGET_CHANGE,conn);
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.AliasComp",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UploadComp must be a div element");
-		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
-		self._createFileUploadComponent();
-		selfElement.on("dragleave",function(evt,d) {
-			ui.AppContext.LOGGER.debug("dragleave");
-			var target = evt.target;
-			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-		selfElement.on("dragenter",function(evt,d) {
-			ui.AppContext.LOGGER.debug("dragenter");
-			$(this).addClass("over");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-		selfElement.on("dragover",function(evt,d) {
-			ui.AppContext.LOGGER.debug("dragover");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-		selfElement.on("drop",function(evt,d) {
-			ui.AppContext.LOGGER.debug("drop");
-			self._traverseFiles(evt.originalEvent.dataTransfer.files);
-			$(this).removeClass("drop");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-	}, _createFileUploadComponent : function() {
-		var self1 = this;
-		var selfElement = this.element;
-		if(self1.inner_element_id != null) new $("#" + self1.inner_element_id).remove();
-		self1.inner_element_id = "files-upload-" + StringTools.hex(Std.random(999999));
-		var filesUpload = new $("<input id='" + self1.inner_element_id + "' class='files-upload' type='file'/>").prependTo(selfElement);
-		filesUpload.change(function(evt) {
-			self1._traverseFiles(this.files);
-		});
-	}, _uploadFile : function(file) {
-		var self2 = this;
-		var selfElement = this.element;
-		if(typeof FileReader === 'undefined') {
-			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
-			return;
-		}
-		if(self2.options.contentType == ui.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
-			m3.util.JqueryUtil.alert("Please select an image file.");
-			return;
-		}
-		if(self2.options.contentType == ui.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
-			m3.util.JqueryUtil.alert("Please select an audio file.");
-			return;
-		}
-		ui.AppContext.LOGGER.debug("upload " + Std.string(file.name));
-		var reader = new FileReader();
-		reader.onload = function(evt) {
-			self2.setPreviewImage(evt.target.result);
-			if(self2.options.onload != null) self2.options.onload(evt.target.result);
-		};
-		reader.readAsDataURL(file);
-	}, setPreviewImage : function(src) {
-		var self = this;
-		if(self.previewImg == null) {
-			var selfElement = this.element;
-			self.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
-		}
-		self.previewImg.attr("src",src);
-	}, _traverseFiles : function(files) {
-		ui.AppContext.LOGGER.debug("traverse the files");
-		var self = this;
-		if(m3.helper.ArrayHelper.hasValues(files)) {
-			var _g = 0;
-			while(_g < 1) {
-				var i = _g++;
-				self._uploadFile(files[i]);
-			}
-		} else {
-		}
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}, value : function() {
-		var self = this;
-		return self.previewImg.attr("src");
-	}, clear : function() {
-		var self = this;
-		self.previewImg.remove();
-		self.previewImg = null;
-		self._createFileUploadComponent();
-	}};
-};
-$.widget("ui.uploadComp",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasManagerDialog must be a div element");
-		selfElement.addClass("_aliasManagerDialog").hide();
-		self._showAliasDetail(null);
-	}, initialized : false, _showAliasDetail : function(alias) {
-		var self1 = this;
-		var selfElement1 = this.element;
-		selfElement1.empty();
-		var leftDiv = new $("<div class='fleft boxsizingBorder' style='min-width: 70%; min-height: 100%; padding-top: 15px;'></div>").appendTo(selfElement1);
-		var rightDiv = new $("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement1);
-		var imgSrc = "media/default_avatar.jpg";
-		if(alias != null) {
-			var loadAliasBtn = new $("<button class='fleft'>Use This Alias</button>").appendTo(leftDiv).button().click(function(evt) {
-				ui.AppContext.currentAlias = alias;
-				ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias);
-				m3.jq.JQDialogHelper.close(selfElement1);
-			});
-			leftDiv.append("<br class='clear'/><br/>");
-			if(m3.helper.StringHelper.isNotBlank((function($this) {
-				var $r;
-				try {
-					$r = alias.profile.imgSrc;
-				} catch( __e ) {
-					$r = "";
-				}
-				return $r;
-			}(this)))) imgSrc = alias.profile.imgSrc;
-			leftDiv.append(new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
-			leftDiv.append(new $("<h2>" + alias.profile.name + "</h2>"));
-			var btnDiv = new $("<div></div>").appendTo(leftDiv);
-			var setDefaultBtn = new $("<button>Set Default</button>").appendTo(btnDiv).button().click(function(evt) {
-				alias.data.isDefault = true;
-				ui.model.EM.change(ui.model.EMEvent.UpdateAlias,alias);
-			});
-			var editBtn = new $("<button>Edit</button>").appendTo(btnDiv).button().click(function(evt) {
-				self1._showAliasEditor(alias);
-			});
-			var deleteBtn = new $("<button>Delete</button>").appendTo(btnDiv).button().click(function(evt) {
-				ui.model.EM.change(ui.model.EMEvent.DeleteAlias,alias);
-			});
-		}
-		rightDiv.append("<h2>Aliases</h2>");
-		Lambda.iter(ui.AppContext.ALIASES,function(a) {
-			var span = new $("<span class='clickable'></span>").appendTo(rightDiv).click(function(evt) {
-				self1._showAliasDetail(a);
-			}).append(a.profile.name);
-			rightDiv.append("<br/>");
-		});
-		new $("<button style='margin-top: 30px;'>New Alias</button>").button().click(function(evt) {
-			self1._showAliasEditor(null);
-		}).appendTo(rightDiv);
-	}, _showAliasEditor : function(alias1) {
-		var self2 = this;
-		var selfElement2 = this.element;
-		selfElement2.empty();
-		var leftDiv = new $("<div class='fleft boxsizingBorder' style='min-width: 70%; min-height: 100%; padding-top: 15px;'></div>").appendTo(selfElement2);
-		var rightDiv1 = new $("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement2);
-		var imgSrc = "media/default_avatar.jpg";
-		leftDiv.append("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Alias Name:</div>");
-		var aliasName = new $("<input class='ui-corner-all ui-state-active ui-widget-content' style='width: 80%;padding: .2em .4em;'/>").appendTo(leftDiv);
-		if(alias1 != null) aliasName.val(alias1.profile.name);
-		leftDiv.append("<br/><br/>");
-		var aliasImg = null;
-		leftDiv.append(new $("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Profile Picture: </div>").append(new $("<a style='font-weight: 1em;font-weight: normal; cursor: pointer;'>Change</a>").click(function(evt) {
-			var dlg = new $("<div id='profilePictureUploader'></div>");
-			dlg.appendTo(selfElement2);
-			var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
-			uploadComp.appendTo(dlg);
-			uploadComp.uploadComp({ onload : function(bytes) {
-				m3.jq.M3DialogHelper.close(dlg);
-				aliasImg.attr("src",bytes);
-			}});
-			dlg.m3dialog({ width : 600, height : 305, title : "Profile Image Uploader", buttons : { Cancel : function() {
-				m3.jq.M3DialogHelper.close($(this));
-			}}});
-		})));
-		if(m3.helper.StringHelper.isNotBlank((function($this) {
-			var $r;
-			try {
-				$r = alias1.profile.imgSrc;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)))) imgSrc = alias1.profile.imgSrc;
-		aliasImg = new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>");
-		leftDiv.append(aliasImg);
-		leftDiv.append("<br/><br/>");
-		var btnDiv = new $("<div></div>").appendTo(leftDiv);
-		var updateBtn = new $("<button>" + (alias1 != null?"Update":"Create") + "</button>").appendTo(btnDiv).button().click(function(evt) {
-			var name = aliasName.val();
-			if(m3.helper.StringHelper.isBlank(name)) {
-				m3.util.JqueryUtil.alert("Alias name cannot be blank.","Error");
-				return;
-			}
-			var profilePic = aliasImg.attr("src");
-			if(m3.helper.StringHelper.startsWithAny(profilePic,["media"])) profilePic = "";
-			var applyDlg = alias1 == null?(function($this) {
-				var $r;
-				alias1 = new ui.model.Alias();
-				$r = function() {
-					ui.model.EM.change(ui.model.EMEvent.CreateAlias,alias1);
-				};
-				return $r;
-			}(this)):function() {
-				ui.model.EM.change(ui.model.EMEvent.UpdateAlias,alias1);
-			};
-			alias1.profile.name = name;
-			alias1.profile.imgSrc = profilePic;
-			applyDlg();
-			self2._showAliasDetail(alias1);
-		});
-		var cancelBtn = new $("<button>Cancel</button>").appendTo(btnDiv).button().click(function(evt) {
-			self2._showAliasDetail(alias1);
-		});
-		rightDiv1.append("<h2>Aliases</h2>");
-		Lambda.iter(ui.AppContext.ALIASES,function(a1) {
-			var span = new $("<span class='clickable'></span>").appendTo(rightDiv1).click(function(evt) {
-				self2._showAliasDetail(a1);
-			}).append(a1.profile.name);
-			rightDiv1.append("<br/>");
-		});
-		new $("<button style='margin-top: 30px;'>New Alias</button>").button().click(function(evt) {
-		}).appendTo(rightDiv1);
-	}, _createAliasManager : function() {
-		var self = this;
-		var selfElement = this.element;
-		var alias = new ui.model.Alias();
-		alias.profile.name = self.aliasName.val();
-		alias.profile.name = self.username.val();
-		if(m3.helper.StringHelper.isBlank(alias.profile.name) || m3.helper.StringHelper.isBlank(alias.profile.name)) return;
-		selfElement.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.CreateAlias,alias);
-	}, _buildDialog : function() {
-		var self = this;
-		var selfElement3 = this.element;
-		self.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Alias Manager", height : 440, width : 480, buttons : { }, close : function(evt,ui) {
-			selfElement3.find(".placeholder").removeClass("ui-state-error");
-		}};
-		selfElement3.dialog(dlgOptions);
-	}, open : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!self.initialized) self._buildDialog();
-		m3.jq.JQDialogHelper.open(selfElement);
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.aliasManagerDialog",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AndOrToggle must be a div element");
 		selfElement.addClass("andOrToggle");
 		var or = new $("<div class='ui-widget-content ui-state-active ui-corner-top any'>Any</div>");
@@ -7450,7 +7115,7 @@ var defineWidget = function() {
 		var connectionAvatar = js.Boot.__cast(filterableComp , $);
 		if(connectionAvatar.hasClass("clone")) return connectionAvatar;
 		var clone = new $("<div class='clone'></div>");
-		clone.connectionAvatar({ connectionIid : connectionAvatar.connectionAvatar("option","connectionIid"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : connectionAvatar.connectionAvatar("option","classes"), cloneFcn : connectionAvatar.connectionAvatar("option","cloneFcn"), dropTargetClass : connectionAvatar.connectionAvatar("option","dropTargetClass"), helperFcn : connectionAvatar.connectionAvatar("option","helperFcn")});
+		clone.connectionAvatar({ connectionIid : connectionAvatar.connectionAvatar("option","connectionIid"), aliasIid : connectionAvatar.connectionAvatar("option","aliasIid"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : connectionAvatar.connectionAvatar("option","classes"), cloneFcn : connectionAvatar.connectionAvatar("option","cloneFcn"), dropTargetClass : connectionAvatar.connectionAvatar("option","dropTargetClass"), helperFcn : connectionAvatar.connectionAvatar("option","helperFcn")});
 		return clone;
 	}, dropTargetClass : "connectionDT", helperFcn : function() {
 		var clone = $(this).clone();
@@ -7555,6 +7220,368 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.connectionAvatar",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasComp must be a div element");
+		selfElement.addClass("ocontainer shadow ");
+		self.container = new $("<div class='container'></div>");
+		selfElement.append(self.container);
+		self.avatar = new $("<div></div>").appendTo(self.container);
+		self.userIdTxt = new $("<div class='userIdTxt'></div>");
+		self.container.append(self.userIdTxt);
+		self.userIdTxt.html("...");
+		self._setAlias(new ui.model.Alias());
+		var changeDiv = new $("<div class='ui-helper-clearfix'></div>");
+		self.container.append(changeDiv);
+		self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
+		changeDiv.append(self.switchAliasLink);
+		self.switchAliasLink.click(function(evt) {
+			var aliasMenu = self._createAliasMenu(self,ui.AppContext.ALIASES);
+			aliasMenu.show();
+			aliasMenu.position({ my : "left top", at : "right-6px center", of : selfElement});
+			evt.preventDefault();
+			evt.stopPropagation();
+			return false;
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			self._setAlias(alias);
+		},"AliasComp-Alias"));
+		(js.Boot.__cast(self.container , $)).droppable({ accept : function(d) {
+			return d["is"](".connectionAvatar");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+			var dragstop = function(dragstopEvt,dragstopUi) {
+				if(!self.container.intersects(dragstopUi.helper)) {
+					dragstopUi.helper.remove();
+					selfElement.removeClass("targetChange");
+					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
+					ui.AppContext.TARGET = null;
+					self._setAlias(ui.AppContext.currentAlias);
+				}
+			};
+			selfElement.addClass("targetChange");
+			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
+			clone.addClass("small");
+			clone.insertBefore(new $(".ui-helper-clearfix",self.container));
+			self._setTarget(ui.widget.ConnectionAvatarHelper.getConnection(clone));
+		}});
+	}, _createAliasMenu : function(self,aliases) {
+		new $("#userAliasMenu").remove();
+		var menu = new $("<ul id='userAliasMenu'></ul>");
+		menu.appendTo(self.container);
+		var menuOptions = [];
+		var menuOption;
+		var $it0 = aliases.iterator();
+		while( $it0.hasNext() ) {
+			var alias = $it0.next();
+			var alias1 = [alias];
+			menuOption = { label : alias1[0].profile.name, icon : "ui-icon-person", action : (function(alias1) {
+				return function(evt,m) {
+					if(ui.model.Alias.identifier(ui.AppContext.currentAlias) == ui.model.Alias.identifier(alias1[0])) menu.hide(); else {
+						ui.AppContext.currentAlias = alias1[0];
+						ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias1[0]);
+					}
+				};
+			})(alias1)};
+			menuOptions.push(menuOption);
+		}
+		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt,m) {
+			ui.widget.DialogManager.showAliasManager();
+		}};
+		menuOptions.push(menuOption);
+		menu.m3menu({ menuOptions : menuOptions}).hide();
+		return menu;
+	}, _updateAliasWidgets : function(alias) {
+		var self = this;
+		var avatar = new $("<div class='avatar' style='position:relative;left:50px;'></div>").connectionAvatar({ aliasIid : alias.iid, dndEnabled : true, isDragByHelper : true, containment : false});
+		self.avatar.replaceWith(avatar);
+		self.avatar = avatar;
+		new $(".userIdTxt").html(alias.profile.name);
+	}, _setAlias : function(alias2) {
+		var self1 = this;
+		var selfElement1 = this.element;
+		self1._updateAliasWidgets(alias2);
+		if(self1.aliasSet != null) self1.aliasSet.removeListener(self1._onupdate);
+		self1._onupdate = function(alias,t) {
+			if(t.isAddOrUpdate()) {
+				if(alias.deleted) {
+					self1.destroy();
+					selfElement1.remove();
+				} else self1._updateAliasWidgets(alias);
+			} else if(t.isDelete()) {
+				self1.destroy();
+				selfElement1.remove();
+			}
+		};
+		self1.aliasSet = new m3.observable.FilteredSet(ui.AppContext.ALIASES,function(a) {
+			return a.iid == alias2.iid;
+		});
+		self1.aliasSet.listen(self1._onupdate);
+	}, _setTarget : function(conn) {
+		var self = this;
+		self.switchAliasLink.hide();
+		self.userIdTxt.html(conn.data.name);
+		ui.AppContext.TARGET = conn;
+		ui.model.EM.change(ui.model.EMEvent.TARGET_CHANGE,conn);
+	}, destroy : function() {
+		var self = this;
+		if(self.aliasSet != null) self.aliasSet.removeListener(self._onupdate);
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.AliasComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UploadComp must be a div element");
+		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
+		self._createFileUploadComponent();
+		selfElement.on("dragleave",function(evt,d) {
+			ui.AppContext.LOGGER.debug("dragleave");
+			var target = evt.target;
+			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("dragenter",function(evt,d) {
+			ui.AppContext.LOGGER.debug("dragenter");
+			$(this).addClass("over");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("dragover",function(evt,d) {
+			ui.AppContext.LOGGER.debug("dragover");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("drop",function(evt,d) {
+			ui.AppContext.LOGGER.debug("drop");
+			self._traverseFiles(evt.originalEvent.dataTransfer.files);
+			$(this).removeClass("drop");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+	}, _createFileUploadComponent : function() {
+		var self1 = this;
+		var selfElement = this.element;
+		if(self1.inner_element_id != null) new $("#" + self1.inner_element_id).remove();
+		self1.inner_element_id = "files-upload-" + StringTools.hex(Std.random(999999));
+		var filesUpload = new $("<input id='" + self1.inner_element_id + "' class='files-upload' type='file'/>").prependTo(selfElement);
+		filesUpload.change(function(evt) {
+			self1._traverseFiles(this.files);
+		});
+	}, _uploadFile : function(file) {
+		var self2 = this;
+		var selfElement = this.element;
+		if(typeof FileReader === 'undefined') {
+			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
+			return;
+		}
+		if(self2.options.contentType == ui.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
+			m3.util.JqueryUtil.alert("Please select an image file.");
+			return;
+		}
+		if(self2.options.contentType == ui.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
+			m3.util.JqueryUtil.alert("Please select an audio file.");
+			return;
+		}
+		ui.AppContext.LOGGER.debug("upload " + Std.string(file.name));
+		var reader = new FileReader();
+		reader.onload = function(evt) {
+			self2.setPreviewImage(evt.target.result);
+			if(self2.options.onload != null) self2.options.onload(evt.target.result);
+		};
+		reader.readAsDataURL(file);
+	}, setPreviewImage : function(src) {
+		var self = this;
+		if(self.previewImg == null) {
+			var selfElement = this.element;
+			self.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement);
+		}
+		self.previewImg.attr("src",src);
+	}, _traverseFiles : function(files) {
+		ui.AppContext.LOGGER.debug("traverse the files");
+		var self = this;
+		if(m3.helper.ArrayHelper.hasValues(files)) {
+			var _g = 0;
+			while(_g < 1) {
+				var i = _g++;
+				self._uploadFile(files[i]);
+			}
+		} else {
+		}
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}, value : function() {
+		var self = this;
+		return self.previewImg.attr("src");
+	}, clear : function() {
+		var self = this;
+		self.previewImg.remove();
+		self.previewImg = null;
+		self._createFileUploadComponent();
+	}};
+};
+$.widget("ui.uploadComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasManagerDialog must be a div element");
+		selfElement.addClass("_aliasManagerDialog").hide();
+		self._showAliasDetail(null);
+	}, initialized : false, _showAliasDetail : function(alias) {
+		var self1 = this;
+		var selfElement1 = this.element;
+		selfElement1.empty();
+		var leftDiv = new $("<div class='fleft boxsizingBorder' style='min-width: 70%; min-height: 100%; padding-top: 15px;'></div>").appendTo(selfElement1);
+		var rightDiv = new $("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement1);
+		var imgSrc = "media/default_avatar.jpg";
+		if(alias != null) {
+			var loadAliasBtn = new $("<button class='fleft'>Use This Alias</button>").appendTo(leftDiv).button().click(function(evt) {
+				ui.AppContext.currentAlias = alias;
+				ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias);
+				m3.jq.JQDialogHelper.close(selfElement1);
+			});
+			leftDiv.append("<br class='clear'/><br/>");
+			if(m3.helper.StringHelper.isNotBlank((function($this) {
+				var $r;
+				try {
+					$r = alias.profile.imgSrc;
+				} catch( __e ) {
+					$r = "";
+				}
+				return $r;
+			}(this)))) imgSrc = alias.profile.imgSrc;
+			leftDiv.append(new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
+			leftDiv.append(new $("<h2>" + alias.profile.name + "</h2>"));
+			var btnDiv = new $("<div></div>").appendTo(leftDiv);
+			var setDefaultBtn = new $("<button>Set Default</button>").appendTo(btnDiv).button().click(function(evt) {
+				alias.data.isDefault = true;
+				ui.model.EM.change(ui.model.EMEvent.UpdateAlias,alias);
+			});
+			var editBtn = new $("<button>Edit</button>").appendTo(btnDiv).button().click(function(evt) {
+				self1._showAliasEditor(alias);
+			});
+			var deleteBtn = new $("<button>Delete</button>").appendTo(btnDiv).button().click(function(evt) {
+				ui.model.EM.change(ui.model.EMEvent.DeleteAlias,alias);
+			});
+		}
+		rightDiv.append("<h2>Aliases</h2>");
+		var idx = 0;
+		Lambda.iter(ui.AppContext.ALIASES,function(a) {
+			var span = new $("<span class='clickable' id='alias_" + Std.string(idx) + "'></span>").appendTo(rightDiv).click(function(evt) {
+				self1._showAliasDetail(a);
+			}).append(a.profile.name);
+			rightDiv.append("<br/>");
+			idx += 1;
+		});
+		new $("<button style='margin-top: 30px;'>New Alias</button>").button().click(function(evt) {
+			self1._showAliasEditor(null);
+		}).appendTo(rightDiv);
+	}, _showAliasEditor : function(alias1) {
+		var self2 = this;
+		var selfElement2 = this.element;
+		selfElement2.empty();
+		var leftDiv = new $("<div class='fleft boxsizingBorder' style='min-width: 70%; min-height: 100%; padding-top: 15px;'></div>").appendTo(selfElement2);
+		var rightDiv1 = new $("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement2);
+		var imgSrc = "media/default_avatar.jpg";
+		leftDiv.append("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Alias Name:</div>");
+		var aliasName = new $("<input class='ui-corner-all ui-state-active ui-widget-content' style='width: 80%;padding: .2em .4em;'/>").appendTo(leftDiv);
+		if(alias1 != null) aliasName.val(alias1.profile.name);
+		leftDiv.append("<br/><br/>");
+		var aliasImg = null;
+		leftDiv.append(new $("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Profile Picture: </div>").append(new $("<a style='font-weight: 1em;font-weight: normal; cursor: pointer;'>Change</a>").click(function(evt) {
+			var dlg = new $("<div id='profilePictureUploader'></div>");
+			dlg.appendTo(selfElement2);
+			var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
+			uploadComp.appendTo(dlg);
+			uploadComp.uploadComp({ onload : function(bytes) {
+				m3.jq.M3DialogHelper.close(dlg);
+				aliasImg.attr("src",bytes);
+			}});
+			dlg.m3dialog({ width : 600, height : 305, title : "Profile Image Uploader", buttons : { Cancel : function() {
+				m3.jq.M3DialogHelper.close($(this));
+			}}});
+		})));
+		if(m3.helper.StringHelper.isNotBlank((function($this) {
+			var $r;
+			try {
+				$r = alias1.profile.imgSrc;
+			} catch( __e ) {
+				$r = "";
+			}
+			return $r;
+		}(this)))) imgSrc = alias1.profile.imgSrc;
+		aliasImg = new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>");
+		leftDiv.append(aliasImg);
+		leftDiv.append("<br/><br/>");
+		var btnDiv = new $("<div></div>").appendTo(leftDiv);
+		var updateBtn = new $("<button>" + (alias1 != null?"Update":"Create") + "</button>").appendTo(btnDiv).button().click(function(evt) {
+			var name = aliasName.val();
+			if(m3.helper.StringHelper.isBlank(name)) {
+				m3.util.JqueryUtil.alert("Alias name cannot be blank.","Error");
+				return;
+			}
+			var profilePic = aliasImg.attr("src");
+			if(m3.helper.StringHelper.startsWithAny(profilePic,["media"])) profilePic = "";
+			var applyDlg = alias1 == null?(function($this) {
+				var $r;
+				alias1 = new ui.model.Alias();
+				$r = function() {
+					ui.model.EM.change(ui.model.EMEvent.CreateAlias,alias1);
+				};
+				return $r;
+			}(this)):function() {
+				ui.model.EM.change(ui.model.EMEvent.UpdateAlias,alias1);
+			};
+			alias1.profile.name = name;
+			alias1.profile.imgSrc = profilePic;
+			applyDlg();
+			self2._showAliasDetail(alias1);
+		});
+		var cancelBtn = new $("<button>Cancel</button>").appendTo(btnDiv).button().click(function(evt) {
+			self2._showAliasDetail(alias1);
+		});
+		rightDiv1.append("<h2>Aliases</h2>");
+		Lambda.iter(ui.AppContext.ALIASES,function(a1) {
+			var span = new $("<span class='clickable'></span>").appendTo(rightDiv1).click(function(evt) {
+				self2._showAliasDetail(a1);
+			}).append(a1.profile.name);
+			rightDiv1.append("<br/>");
+		});
+		new $("<button style='margin-top: 30px;'>New Alias</button>").button().click(function(evt) {
+		}).appendTo(rightDiv1);
+	}, _createAliasManager : function() {
+		var self = this;
+		var selfElement = this.element;
+		var alias = new ui.model.Alias();
+		alias.profile.name = self.aliasName.val();
+		alias.profile.name = self.username.val();
+		if(m3.helper.StringHelper.isBlank(alias.profile.name) || m3.helper.StringHelper.isBlank(alias.profile.name)) return;
+		selfElement.find(".ui-state-error").removeClass("ui-state-error");
+		ui.model.EM.change(ui.model.EMEvent.CreateAlias,alias);
+	}, _buildDialog : function() {
+		var self = this;
+		var selfElement3 = this.element;
+		self.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Alias Manager", height : 440, width : 550, buttons : { }, close : function(evt,ui) {
+			selfElement3.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement3.dialog(dlgOptions);
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!self.initialized) self._buildDialog();
+		m3.jq.JQDialogHelper.open(selfElement);
+		new $("#alias_0").click();
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.aliasManagerDialog",defineWidget());
 var defineWidget = function() {
 	return { options : { labelIid : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dropTargetClass : "labelDT", dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
 		if(containment == null) containment = false;
@@ -8739,7 +8766,7 @@ var defineWidget = function() {
 		}
 		if(!valid) return;
 		selfElement.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.USER_LOGIN,login);
+		ui.model.EM.change(ui.model.EMEvent.UserLogin,login);
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement = this.element;

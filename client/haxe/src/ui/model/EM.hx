@@ -92,13 +92,13 @@ enum EMEvent {
 
 	EditContentClosed;
 
-	USER_LOGIN;
 	CreateAgent;
 	AgentCreated;
 	AGENT;
 
 	FitWindow;
-	PAGE_CLOSE;
+	UserLogin;
+	UserLogout;
 
 	AliasLoaded;
 

@@ -73,6 +73,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 			            	var clone: ConnectionAvatar = new ConnectionAvatar("<div class='clone'></div>");
 			            	clone.connectionAvatar({
 			                        connectionIid: connectionAvatar.connectionAvatar("option", "connectionIid"),
+			                        aliasIid: connectionAvatar.connectionAvatar("option", "aliasIid"),
 			                        isDragByHelper: isDragByHelper,
 			                        containment: containment,
 			                        dragstop: dragstop,

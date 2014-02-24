@@ -144,7 +144,7 @@ class AppContext {
 
 	static function registerGlobalListeners() {
         new JQ(js.Browser.window).on("unload", function(evt: JQEvent){
-            EM.change(EMEvent.PAGE_CLOSE);
+            EM.change(EMEvent.UserLogout);
         });
 
         EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {

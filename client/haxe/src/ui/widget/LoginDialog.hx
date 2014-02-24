@@ -106,7 +106,7 @@ extern class LoginDialog extends JQ {
 
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
 
-    				EM.change(EMEvent.USER_LOGIN, login);
+    				EM.change(EMEvent.UserLogin, login);
 	        	},
 
 		        _buildDialog: function(): Void {

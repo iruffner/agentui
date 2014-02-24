@@ -27,6 +27,7 @@ typedef AliasCompWidgetDef = {
 	@:optional var options: AliasCompOptions;
 	var _create: Void->Void;
 	var _setAlias: Alias->Void;
+	var _updateAliasWidgets: Alias->Void;
 	var _setTarget: Connection->Void;
 	var _createAliasMenu: AliasCompWidgetDef->OSet<Alias>->M3Menu;
 	var destroy: Void->Void;
@@ -35,6 +36,10 @@ typedef AliasCompWidgetDef = {
 	@:optional var userImg: JQ;
 	@:optional var userIdTxt: JQ;
 	@:optional var switchAliasLink: JQ;
+	@:optional var avatar: JQ;
+
+	@:optional var aliasSet:FilteredSet<Alias>;
+	@:optional var _onupdate: Alias->EventType->Void;
 }
 
 @:native("$")
@@ -57,7 +62,33 @@ extern class AliasComp extends JQ {
 		        	selfElement.addClass("ocontainer shadow ");
 		        	self.container = new JQ("<div class='container'></div>");
 		        	selfElement.append(self.container);
+
+		        	self.avatar = new JQ("<div></div>").appendTo(self.container);
+		        	self.userIdTxt = new JQ("<div class='userIdTxt'></div>");
+		        	self.container.append(self.userIdTxt);
+		        	self.userIdTxt.html("...");
 		        	self._setAlias(new Alias());
+
+		        	var changeDiv: JQ = new JQ("<div class='ui-helper-clearfix'></div>");
+	        		self.container.append(changeDiv);
+		        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Aliases</a>");
+	        		changeDiv.append(self.switchAliasLink);
+
+		        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
+		        		var aliasMenu = self._createAliasMenu(self, AppContext.ALIASES);
+
+	        			aliasMenu.show();
+	        			aliasMenu.position({
+		        			my: "left top",
+		        			at: "right-6px center",
+		        			of: selfElement
+		        		});
+
+						evt.preventDefault();
+	        			evt.stopPropagation();
+	        			return false;
+		        	});
+
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
 		        			self._setAlias(alias);
@@ -95,6 +126,8 @@ extern class AliasComp extends JQ {
 		        },
 
 		       	_createAliasMenu: function(self: AliasCompWidgetDef, aliases:OSet<Alias>) : M3Menu {
+		       		new JQ("#userAliasMenu").remove();
+
 		        	var menu: M3Menu = new M3Menu("<ul id='userAliasMenu'></ul>");
 		        	menu.appendTo(self.container);
 
@@ -132,57 +165,64 @@ extern class AliasComp extends JQ {
 					return menu;
 		       	},
 
+		       	_updateAliasWidgets: function(alias:Alias):Void {
+		        	var self: AliasCompWidgetDef = Widgets.getSelf();
+		       		var avatar = new ConnectionAvatar("<div class='avatar' style='position:relative;left:50px;'></div>").connectionAvatar({
+		        		aliasIid: alias.iid,
+		        		dndEnabled: true,
+		        		isDragByHelper: true,
+		        		containment: false
+	        		});
+	        		self.avatar.replaceWith(avatar);
+	        		self.avatar = avatar;
+
+	        		new JQ(".userIdTxt").html(alias.profile.name);
+		       	},
 
 		        _setAlias: function(alias:Alias): Void {
 		        	var self: AliasCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-					self.container.empty();
+					self._updateAliasWidgets(alias);
 
-		        	self.userImg = new JQ("<img alt='user' src='" + alias.profile.imgSrc + "' class='userImg shadow'/>");
-		        	self.container.append(self.userImg);
+	        		if (self.aliasSet != null) {
+	        			self.aliasSet.removeListener(self._onupdate);
+	        		}
 
-		        	self.userIdTxt = new JQ("<div class='userIdTxt'></div>");
-		        	self.container.append(self.userIdTxt);
-		        	self.userIdTxt
-		        		.append("<strong>" + alias.agentId + "</strong>")
-		        		.append("<br/>")
-		        		.append("<font style='font-size:12px'>" + alias.profile.name + "</font>");
-		        	var changeDiv: JQ = new JQ("<div class='ui-helper-clearfix'></div>");
-	        		self.container.append(changeDiv);
-
-		        	self.switchAliasLink = new JQ("<a class='aliasToggle'>Aliases</a>");
-	        		changeDiv.append(self.switchAliasLink);
-
-	        		var aliasMenu = self._createAliasMenu(self, AppContext.ALIASES);
-
-		        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
-		        		// ui.widget.DialogManager.showAliasManager();
-	        			aliasMenu.show();
-	        			aliasMenu.position({
-		        			my: "left top",
-		        			at: "right-6px center",
-		        			of: selfElement
-		        		});
-
-						evt.preventDefault();
-	        			evt.stopPropagation();
-	        			return false;
+			        self._onupdate = function(alias:Alias, t:EventType): Void {
+						if (t.isAddOrUpdate()) {
+							if (alias.deleted) {
+					        	self.destroy();
+					        	selfElement.remove();								
+							} else {
+								self._updateAliasWidgets(alias);
+					        }
+				        } else if (t.isDelete()) {
+				        	self.destroy();
+				        	selfElement.remove();
+				        }
+		        	};
+		        
+		        	self.aliasSet = new FilteredSet<Alias>(AppContext.ALIASES, function(a:Alias):Bool {
+		        		return a.iid == alias.iid;
 		        	});
+					self.aliasSet.listen(self._onupdate);
 	        	},
 
 	        	_setTarget: function(conn: Connection): Void {
 		        	var self: AliasCompWidgetDef = Widgets.getSelf();
 		        	self.switchAliasLink.hide();
-	        		self.userIdTxt
-	        			.empty()
-		        		.append("<strong>" + conn.data.name + "</strong>");
+	        		self.userIdTxt.html(conn.data.name);
 
 		        	AppContext.TARGET = conn;
 	        		EM.change(EMEvent.TARGET_CHANGE, conn);
         		},
 
 		        destroy: function() {
+		        	var self: AliasCompWidgetDef = Widgets.getSelf();
+		        	if (self.aliasSet != null) {
+	        			self.aliasSet.removeListener(self._onupdate);
+	        		}
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

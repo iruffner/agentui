@@ -36,7 +36,7 @@ class EventDelegate {
             protocolHandler.updateAlias(alias);
         }));
 
-        EM.addListener(EMEvent.USER_LOGIN, new EMListener(function(login: Login): Void {
+        EM.addListener(EMEvent.UserLogin, new EMListener(function(login: Login): Void {
           	protocolHandler.login(login);
         }));
 
