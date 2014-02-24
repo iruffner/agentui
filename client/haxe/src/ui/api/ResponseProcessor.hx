@@ -18,8 +18,6 @@ using Lambda;
 
 class ResponseProcessor {
 
-    public static var modelUpdateHandle:String;
-
 	public static function processResponse(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
 		if (dataArr == null || dataArr.length == 0) { return; }
 
@@ -103,7 +101,7 @@ class ResponseProcessor {
 	}
 
     public static function registerModelUpdates(data:SynchronizationParms) {
-        modelUpdateHandle = data.result.handle;
+        AgentUi.PROTOCOL.addHandle(data.result.handle);
     }
 
     public static function processProfile(rec:Dynamic) {

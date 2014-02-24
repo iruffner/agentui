@@ -92,6 +92,10 @@ class EventDelegate {
             protocolHandler.deleteConnection(c);
         }));
 
+        EM.addListener(EMEvent.UserLogout, new EMListener(function(c:Nothing):Void{
+            protocolHandler.deregisterListeners();
+        }));
+
         EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
             // Do something
         }));

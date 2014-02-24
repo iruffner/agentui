@@ -17,6 +17,7 @@ using Lambda;
 class BennuHandler implements ProtocolHandler {
 
 	private var loggedInAgentId:String;
+	private var registeredHandles:Array<String>;
 
 	// Message Paths
 	private static var QUERY = "/api/query";
@@ -34,10 +35,25 @@ class BennuHandler implements ProtocolHandler {
 
 	public function new() {
 		this.eventDelegate = new EventDelegate(this);
+		this.registeredHandles = new Array<String>();
 	}
 
 	private function createChannel(agentId:String, successFunc:Dynamic->String->JQXHR->Void) {
 		new BennuRequest("/api/channel/create/" + agentId, "", successFunc).start();		
+	}
+
+	public function addHandle(handle:String):Void {
+		this.registeredHandles.push(handle);
+	}
+
+	public function deregisterListeners():Void {
+		if (this.registeredHandles.length > 0) {
+			var requests = new Array<ChannelRequestMessage>();
+			for (handle in this.registeredHandles) {
+				requests.push(new ChannelRequestMessage(DEREGISTER, "deregister_listeners", new DeregisterMessage(handle)));
+			}
+			new SubmitRequest(requests, this.loggedInAgentId).start({async: false});
+		}
 	}
 
 	public function getProfiles(connectionIids:Array<String>) {
@@ -321,9 +337,9 @@ class BennuHandler implements ProtocolHandler {
 		];
 		new SubmitRequest(requests, this.loggedInAgentId).start();
 
-		// TODO: Create a separate channel to receive model updates???
-		context = Synchronizer.createContext(1, "registerModelUpdates");
-		var types = ["alias", "connection", "content", "introduction", "label", "labelchild", "labeledcontent", "notification", "profile"];
+		context = Synchronizer.createContext(1, "registerModelUpdates") + "-handle";
+		var types = ["alias", "connection", "content", "introduction", "label", 
+		             "labelchild", "labeledcontent", "notification", "profile"];
 		requests = [new ChannelRequestMessage(REGISTER, context, new RegisterMessage(types))];
 		new SubmitRequest(requests, this.loggedInAgentId).start();
 	}

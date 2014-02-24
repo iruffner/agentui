@@ -4579,6 +4579,7 @@ ui.api.ProtocolHandler.prototype = {
 }
 ui.api.BennuHandler = function() {
 	this.eventDelegate = new ui.api.EventDelegate(this);
+	this.registeredHandles = new Array();
 };
 $hxClasses["ui.api.BennuHandler"] = ui.api.BennuHandler;
 ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
@@ -4597,7 +4598,7 @@ ui.api.BennuHandler.prototype = {
 		var context = ui.api.Synchronizer.createContext(9,"initialDataLoad");
 		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid='" + this.loggedInAgentId + "'")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "introductions",new ui.api.QueryMessage("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "connections",new ui.api.QueryMessage("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "notifications",new ui.api.QueryMessage("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
-		context = ui.api.Synchronizer.createContext(1,"registerModelUpdates");
+		context = ui.api.Synchronizer.createContext(1,"registerModelUpdates") + "-handle";
 		var types = ["alias","connection","content","introduction","label","labelchild","labeledcontent","notification","profile"];
 		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,context,new ui.api.RegisterMessage(types))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
@@ -4805,6 +4806,21 @@ ui.api.BennuHandler.prototype = {
 		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.GET_PROFILE,context + "profiles",new ui.api.GetProfileMessage(connectionIids))]);
 		req.start();
 	}
+	,deregisterListeners: function() {
+		if(this.registeredHandles.length > 0) {
+			var requests = new Array();
+			var _g = 0, _g1 = this.registeredHandles;
+			while(_g < _g1.length) {
+				var handle = _g1[_g];
+				++_g;
+				requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DEREGISTER,"deregister_listeners",new ui.api.DeregisterMessage(handle)));
+			}
+			new ui.api.SubmitRequest(requests,this.loggedInAgentId).start({ async : false});
+		}
+	}
+	,addHandle: function(handle) {
+		this.registeredHandles.push(handle);
+	}
 	,createChannel: function(agentId,successFunc) {
 		new ui.api.BennuRequest("/api/channel/create/" + agentId,"",successFunc).start();
 	}
@@ -4868,6 +4884,15 @@ ui.api.RegisterMessage.__name__ = ["ui","api","RegisterMessage"];
 ui.api.RegisterMessage.__interfaces__ = [ui.api.ChannelMessage];
 ui.api.RegisterMessage.prototype = {
 	__class__: ui.api.RegisterMessage
+}
+ui.api.DeregisterMessage = function(handle) {
+	this.handle = handle;
+};
+$hxClasses["ui.api.DeregisterMessage"] = ui.api.DeregisterMessage;
+ui.api.DeregisterMessage.__name__ = ["ui","api","DeregisterMessage"];
+ui.api.DeregisterMessage.__interfaces__ = [ui.api.ChannelMessage];
+ui.api.DeregisterMessage.prototype = {
+	__class__: ui.api.DeregisterMessage
 }
 ui.api.IntroMessage = function(i) {
 	this.aConnectionIid = i.aConnectionIid;
@@ -4942,14 +4967,6 @@ ui.api.ChannelRequestMessageBundle.prototype = {
 	}
 	,__class__: ui.api.ChannelRequestMessageBundle
 }
-ui.api.DeregisterChannelListenerData = function(handle) {
-	this.handle = handle;
-};
-$hxClasses["ui.api.DeregisterChannelListenerData"] = ui.api.DeregisterChannelListenerData;
-ui.api.DeregisterChannelListenerData.__name__ = ["ui","api","DeregisterChannelListenerData"];
-ui.api.DeregisterChannelListenerData.prototype = {
-	__class__: ui.api.DeregisterChannelListenerData
-}
 ui.api.EventDelegate = function(protocolHandler) {
 	this.filterIsRunning = false;
 	this.protocolHandler = protocolHandler;
@@ -5013,6 +5030,9 @@ ui.api.EventDelegate.prototype = {
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.DeleteConnection,new ui.model.EMListener(function(c) {
 			_g.protocolHandler.deleteConnection(c);
+		}));
+		ui.model.EM.addListener(ui.model.EMEvent.UserLogout,new ui.model.EMListener(function(c) {
+			_g.protocolHandler.deregisterListeners();
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
 		}));
@@ -5270,7 +5290,7 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	if(data.agent == null) ui.AgentUi.PROTOCOL.getAgent(data.aliases[0].agentId); else ui.model.EM.change(ui.model.EMEvent.AGENT,data.agent);
 }
 ui.api.ResponseProcessor.registerModelUpdates = function(data) {
-	ui.api.ResponseProcessor.modelUpdateHandle = data.result.handle;
+	ui.AgentUi.PROTOCOL.addHandle(data.result.handle);
 }
 ui.api.ResponseProcessor.processProfile = function(rec) {
 	var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,rec.connectionIid);
@@ -5360,16 +5380,9 @@ ui.api.Synchronizer.prototype = {
 		var responseType = context[3];
 		this.parms.result = dataObj.result;
 		var data = dataObj.result;
-		if(data.handle != null) {
-			this.parms.handle = data.handle;
-			return;
-		}
-		if(!js.Boot.__instanceof(data,String)) switch(responseType) {
+		switch(responseType) {
 		case "agent":
-			if(data.length > 0) {
-				if(data[0].data.name == null) data[0].data.name = "";
-				this.parms.agent = ui.AppContext.SERIALIZER.fromJsonX(data[0],ui.model.Agent);
-			}
+			if(data.length > 0) this.parms.agent = ui.AppContext.SERIALIZER.fromJsonX(data[0],ui.model.Agent);
 			break;
 		case "alias":
 			this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Alias));
@@ -5403,6 +5416,9 @@ ui.api.Synchronizer.prototype = {
 				++_g;
 				this.parms.content.push(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Content));
 			}
+			break;
+		case "handle":
+			this.parms.handle = data.handle;
 			break;
 		case "introduction":
 			this.parms.introductions.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Introduction));
@@ -9176,12 +9192,13 @@ ui.api.DeleteMessage.__rtti = "<class path=\"ui.api.DeleteMessage\" params=\"\" 
 ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"40\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"35\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<q><c path=\"String\"/></q>\n\t<new public=\"1\" set=\"method\" line=\"49\"><f a=\"type:?q\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.api.RegisterMessage.__rtti = "<class path=\"ui.api.RegisterMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<types public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></types>\n\t<new public=\"1\" set=\"method\" line=\"58\"><f a=\"types\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.IntroMessage.__rtti = "<class path=\"ui.api.IntroMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"69\"><f a=\"i\">\n\t<c path=\"ui.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.IntroResponseMessage.__rtti = "<class path=\"ui.api.IntroResponseMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"82\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.GetProfileMessage.__rtti = "<class path=\"ui.api.GetProfileMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<new public=\"1\" set=\"method\" line=\"92\"><f a=\"?connectionIids\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.DistributedQueryMessage.__rtti = "<class path=\"ui.api.DistributedQueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></aliasIids>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<leaveStanding public=\"1\"><x path=\"Bool\"/></leaveStanding>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<new public=\"1\" set=\"method\" line=\"106\"><f a=\"fd\">\n\t<c path=\"ui.model.FilterData\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"122\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<agentId><c path=\"String\"/></agentId>\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"149\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"153\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"136\"><f a=\"?requests_:?agentId\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.DeregisterMessage.__rtti = "<class path=\"ui.api.DeregisterMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<handle public=\"1\"><c path=\"String\"/></handle>\n\t<new public=\"1\" set=\"method\" line=\"66\"><f a=\"handle\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.IntroMessage.__rtti = "<class path=\"ui.api.IntroMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"78\"><f a=\"i\">\n\t<c path=\"ui.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.IntroResponseMessage.__rtti = "<class path=\"ui.api.IntroResponseMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"91\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.GetProfileMessage.__rtti = "<class path=\"ui.api.GetProfileMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<new public=\"1\" set=\"method\" line=\"101\"><f a=\"?connectionIids\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.DistributedQueryMessage.__rtti = "<class path=\"ui.api.DistributedQueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></aliasIids>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<leaveStanding public=\"1\"><x path=\"Bool\"/></leaveStanding>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<new public=\"1\" set=\"method\" line=\"115\"><f a=\"fd\">\n\t<c path=\"ui.model.FilterData\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"131\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<agentId><c path=\"String\"/></agentId>\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"158\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"162\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"145\"><f a=\"?requests_:?agentId\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
 ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"25\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ui.model.ModelObjWithIid.__rtti = "<class path=\"ui.model.ModelObjWithIid\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"45\" static=\"1\"><f a=\"t\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

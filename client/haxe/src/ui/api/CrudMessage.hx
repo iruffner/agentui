@@ -61,6 +61,15 @@ class RegisterMessage implements ChannelMessage {
 }
 
 @:rtti
+class DeregisterMessage implements ChannelMessage {
+	public var handle:String;
+	public function new(handle:String) {
+		this.handle = handle;
+	}
+}
+
+
+@:rtti
 class IntroMessage implements ChannelMessage {
 	public var aConnectionIid: String;
 	public var aMessage: String;
@@ -153,12 +162,5 @@ class ChannelRequestMessageBundle {
 	public function addRequest(path:String, context:String, parms:BennuMessage):Void {
 		var request = new ChannelRequestMessage(path, context, parms);
 		this.addChannelRequest(request);
-	}
-}
-
-class DeregisterChannelListenerData {
-	public var handle:String;
-	public function new(handle:String) {
-		this.handle = handle;
 	}
 }
