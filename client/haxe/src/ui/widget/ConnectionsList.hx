@@ -80,15 +80,7 @@ extern class ConnectionsList extends JQ {
     						{ 
     							label: "Configure Access...",
     							icon: "ui-icon-circle-plus",
-    							action: function(evt: JQEvent, m: M3Menu): Dynamic {
-    								evt.stopPropagation();
-    								/*
-    								var reference:JQ = self.selectedConnectionComp;
-    								if (reference == null) {
-    									reference = new JQ(evt.target);
-    								}
-    								*/
-    								return false;
+    							action: function(evt: JQEvent, m: M3Menu): Void {
     							}
     						},
     						{ 

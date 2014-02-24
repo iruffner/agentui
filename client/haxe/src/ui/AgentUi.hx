@@ -72,7 +72,7 @@ class AgentUi {
 
         new ContentFeed("#feed").contentFeed();
 
-        new UserComp("#userId").userComp();
+        new AliasComp("#userId").AliasComp();
         
         new PostComp("#postInput").postComp();
 

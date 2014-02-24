@@ -20,15 +20,15 @@ using m3.helper.StringHelper;
 using ui.widget.UploadComp;
 using ui.widget.ConnectionAvatar;
 
-typedef UserCompOptions = {
+typedef AliasCompOptions = {
 }
 
-typedef UserCompWidgetDef = {
-	@:optional var options: UserCompOptions;
+typedef AliasCompWidgetDef = {
+	@:optional var options: AliasCompOptions;
 	var _create: Void->Void;
 	var _setAlias: Alias->Void;
 	var _setTarget: Connection->Void;
-	var _createAliasMenu: UserCompWidgetDef->OSet<Alias>->M3Menu;
+	var _createAliasMenu: AliasCompWidgetDef->OSet<Alias>->M3Menu;
 	var destroy: Void->Void;
 
 	@:optional var container: JQ;
@@ -38,20 +38,20 @@ typedef UserCompWidgetDef = {
 }
 
 @:native("$")
-extern class UserComp extends JQ {
+extern class AliasComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function userComp(?opts: UserCompOptions): UserComp;
+	function AliasComp(?opts: AliasCompOptions): AliasComp;
 
 	private static function __init__(): Void {
-		var defineWidget: Void->UserCompWidgetDef = function(): UserCompWidgetDef {
+		var defineWidget: Void->AliasCompWidgetDef = function(): AliasCompWidgetDef {
 			return {
 		        _create: function(): Void {
-		        	var self: UserCompWidgetDef = Widgets.getSelf();
+		        	var self: AliasCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new Exception("Root of UserComp must be a div element");
+		        		throw new Exception("Root of AliasComp must be a div element");
 		        	}
 
 		        	selfElement.addClass("ocontainer shadow ");
@@ -61,7 +61,7 @@ extern class UserComp extends JQ {
 
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
 		        			self._setAlias(alias);
-		        		}, "UserComp-Alias")
+		        		}, "AliasComp-Alias")
 		        	);
 
 		        	cast(self.container, JQDroppable).droppable({
@@ -94,7 +94,7 @@ extern class UserComp extends JQ {
 						});
 		        },
 
-		       	_createAliasMenu: function(self: UserCompWidgetDef, aliases:OSet<Alias>) : M3Menu {
+		       	_createAliasMenu: function(self: AliasCompWidgetDef, aliases:OSet<Alias>) : M3Menu {
 		        	var menu: M3Menu = new M3Menu("<ul id='userAliasMenu'></ul>");
 		        	menu.appendTo(self.container);
 
@@ -134,7 +134,7 @@ extern class UserComp extends JQ {
 
 
 		        _setAlias: function(alias:Alias): Void {
-		        	var self: UserCompWidgetDef = Widgets.getSelf();
+		        	var self: AliasCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					self.container.empty();
@@ -172,7 +172,7 @@ extern class UserComp extends JQ {
 	        	},
 
 	        	_setTarget: function(conn: Connection): Void {
-		        	var self: UserCompWidgetDef = Widgets.getSelf();
+		        	var self: AliasCompWidgetDef = Widgets.getSelf();
 		        	self.switchAliasLink.hide();
 	        		self.userIdTxt
 	        			.empty()
@@ -187,6 +187,6 @@ extern class UserComp extends JQ {
 		        }
 		    };
 		}
-		JQ.widget( "ui.userComp", defineWidget());
+		JQ.widget( "ui.AliasComp", defineWidget());
 	}
 }

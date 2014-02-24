@@ -4398,7 +4398,7 @@ ui.AgentUi.start = function() {
 	new $("#labelsList").labelsList();
 	new $("#filter").filterComp();
 	new $("#feed").contentFeed();
-	new $("#userId").userComp();
+	new $("#userId").AliasComp();
 	new $("#postInput").postComp();
 	new $("#sideRight #sideRightInvite").inviteComp();
 	new $("#score-div").scoreComp({ content : ui.AppContext.CONTENT});
@@ -6268,6 +6268,15 @@ ui.model.ConnectionNode.prototype = $extend(ui.model.ContentNode.prototype,{
 	,__class__: ui.model.ConnectionNode
 });
 ui.widget = {}
+ui.widget.ConnectionAvatarHelper = function() { }
+$hxClasses["ui.widget.ConnectionAvatarHelper"] = ui.widget.ConnectionAvatarHelper;
+ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelper"];
+ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
+	return c.connectionAvatar("getConnection");
+}
+ui.widget.ConnectionAvatarHelper.getAlias = function(c) {
+	return c.connectionAvatar("getAlias");
+}
 ui.widget.DialogManager = function() { }
 $hxClasses["ui.widget.DialogManager"] = ui.widget.DialogManager;
 $hxExpose(ui.widget.DialogManager, "ui.widget.DialogManager");
@@ -6330,15 +6339,6 @@ ui.widget.ChatOrientation.chatRight.__enum__ = ui.widget.ChatOrientation;
 ui.widget.ChatOrientation.chatLeft = ["chatLeft",1];
 ui.widget.ChatOrientation.chatLeft.toString = $estr;
 ui.widget.ChatOrientation.chatLeft.__enum__ = ui.widget.ChatOrientation;
-ui.widget.ConnectionAvatarHelper = function() { }
-$hxClasses["ui.widget.ConnectionAvatarHelper"] = ui.widget.ConnectionAvatarHelper;
-ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelper"];
-ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
-	return c.connectionAvatar("getConnection");
-}
-ui.widget.ConnectionAvatarHelper.getAlias = function(c) {
-	return c.connectionAvatar("getAlias");
-}
 ui.widget.ConnectionCompHelper = function() { }
 $hxClasses["ui.widget.ConnectionCompHelper"] = ui.widget.ConnectionCompHelper;
 ui.widget.ConnectionCompHelper.__name__ = ["ui","widget","ConnectionCompHelper"];
@@ -6934,6 +6934,93 @@ m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
 ui.model.EM.hash = new haxe.ds.EnumValueMap();
 ui.model.EM.oneTimers = new Array();
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasComp must be a div element");
+		selfElement.addClass("ocontainer shadow ");
+		self.container = new $("<div class='container'></div>");
+		selfElement.append(self.container);
+		self._setAlias(new ui.model.Alias());
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			self._setAlias(alias);
+		},"AliasComp-Alias"));
+		(js.Boot.__cast(self.container , $)).droppable({ accept : function(d) {
+			return d["is"](".connectionAvatar");
+		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
+			var dragstop = function(dragstopEvt,dragstopUi) {
+				if(!self.container.intersects(dragstopUi.helper)) {
+					dragstopUi.helper.remove();
+					selfElement.removeClass("targetChange");
+					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
+					ui.AppContext.TARGET = null;
+					self._setAlias(ui.AppContext.currentAlias);
+				}
+			};
+			selfElement.addClass("targetChange");
+			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
+			clone.addClass("small");
+			clone.insertBefore(new $(".ui-helper-clearfix",self.container));
+			self._setTarget(ui.widget.ConnectionAvatarHelper.getConnection(clone));
+		}});
+	}, _createAliasMenu : function(self,aliases) {
+		var menu = new $("<ul id='userAliasMenu'></ul>");
+		menu.appendTo(self.container);
+		var menuOptions = [];
+		var menuOption;
+		var $it0 = aliases.iterator();
+		while( $it0.hasNext() ) {
+			var alias = $it0.next();
+			var alias1 = [alias];
+			menuOption = { label : alias1[0].profile.name, icon : "ui-icon-person", action : (function(alias1) {
+				return function(evt,m) {
+					if(ui.model.Alias.identifier(ui.AppContext.currentAlias) == ui.model.Alias.identifier(alias1[0])) menu.hide(); else {
+						ui.AppContext.currentAlias = alias1[0];
+						ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias1[0]);
+					}
+				};
+			})(alias1)};
+			menuOptions.push(menuOption);
+		}
+		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt,m) {
+			ui.widget.DialogManager.showAliasManager();
+		}};
+		menuOptions.push(menuOption);
+		menu.m3menu({ menuOptions : menuOptions}).hide();
+		return menu;
+	}, _setAlias : function(alias) {
+		var self = this;
+		var selfElement1 = this.element;
+		self.container.empty();
+		self.userImg = new $("<img alt='user' src='" + alias.profile.imgSrc + "' class='userImg shadow'/>");
+		self.container.append(self.userImg);
+		self.userIdTxt = new $("<div class='userIdTxt'></div>");
+		self.container.append(self.userIdTxt);
+		self.userIdTxt.append("<strong>" + alias.agentId + "</strong>").append("<br/>").append("<font style='font-size:12px'>" + alias.profile.name + "</font>");
+		var changeDiv = new $("<div class='ui-helper-clearfix'></div>");
+		self.container.append(changeDiv);
+		self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
+		changeDiv.append(self.switchAliasLink);
+		var aliasMenu = self._createAliasMenu(self,ui.AppContext.ALIASES);
+		self.switchAliasLink.click(function(evt) {
+			aliasMenu.show();
+			aliasMenu.position({ my : "left top", at : "right-6px center", of : selfElement1});
+			evt.preventDefault();
+			evt.stopPropagation();
+			return false;
+		});
+	}, _setTarget : function(conn) {
+		var self = this;
+		self.switchAliasLink.hide();
+		self.userIdTxt.empty().append("<strong>" + conn.data.name + "</strong>");
+		ui.AppContext.TARGET = conn;
+		ui.model.EM.change(ui.model.EMEvent.TARGET_CHANGE,conn);
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.AliasComp",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -7741,8 +7828,6 @@ var defineWidget = function() {
 		var menu = new $("<ul id='label-action-menu'></ul>");
 		menu.appendTo(selfElement);
 		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "Configure Access...", icon : "ui-icon-circle-plus", action : function(evt,m) {
-			evt.stopPropagation();
-			return false;
 		}},{ label : "Delete Connection", icon : "ui-icon-circle-minus", action : function(evt,m) {
 			if(self.selectedConnectionComp != null) m3.util.JqueryUtil.confirm("Delete Connection","Are you sure you want to delete this connection?",function() {
 				ui.model.EM.change(ui.model.EMEvent.DeleteConnection,ui.widget.ConnectionCompHelper.connection(self.selectedConnectionComp));
@@ -8958,93 +9043,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.restoreWidget",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UserComp must be a div element");
-		selfElement.addClass("ocontainer shadow ");
-		self.container = new $("<div class='container'></div>");
-		selfElement.append(self.container);
-		self._setAlias(new ui.model.Alias());
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			self._setAlias(alias);
-		},"UserComp-Alias"));
-		(js.Boot.__cast(self.container , $)).droppable({ accept : function(d) {
-			return d["is"](".connectionAvatar");
-		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
-			var dragstop = function(dragstopEvt,dragstopUi) {
-				if(!self.container.intersects(dragstopUi.helper)) {
-					dragstopUi.helper.remove();
-					selfElement.removeClass("targetChange");
-					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
-					ui.AppContext.TARGET = null;
-					self._setAlias(ui.AppContext.currentAlias);
-				}
-			};
-			selfElement.addClass("targetChange");
-			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
-			clone.addClass("small");
-			clone.insertBefore(new $(".ui-helper-clearfix",self.container));
-			self._setTarget(ui.widget.ConnectionAvatarHelper.getConnection(clone));
-		}});
-	}, _createAliasMenu : function(self,aliases) {
-		var menu = new $("<ul id='userAliasMenu'></ul>");
-		menu.appendTo(self.container);
-		var menuOptions = [];
-		var menuOption;
-		var $it0 = aliases.iterator();
-		while( $it0.hasNext() ) {
-			var alias = $it0.next();
-			var alias1 = [alias];
-			menuOption = { label : alias1[0].profile.name, icon : "ui-icon-person", action : (function(alias1) {
-				return function(evt,m) {
-					if(ui.model.Alias.identifier(ui.AppContext.currentAlias) == ui.model.Alias.identifier(alias1[0])) menu.hide(); else {
-						ui.AppContext.currentAlias = alias1[0];
-						ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias1[0]);
-					}
-				};
-			})(alias1)};
-			menuOptions.push(menuOption);
-		}
-		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt,m) {
-			ui.widget.DialogManager.showAliasManager();
-		}};
-		menuOptions.push(menuOption);
-		menu.m3menu({ menuOptions : menuOptions}).hide();
-		return menu;
-	}, _setAlias : function(alias) {
-		var self = this;
-		var selfElement1 = this.element;
-		self.container.empty();
-		self.userImg = new $("<img alt='user' src='" + alias.profile.imgSrc + "' class='userImg shadow'/>");
-		self.container.append(self.userImg);
-		self.userIdTxt = new $("<div class='userIdTxt'></div>");
-		self.container.append(self.userIdTxt);
-		self.userIdTxt.append("<strong>" + alias.agentId + "</strong>").append("<br/>").append("<font style='font-size:12px'>" + alias.profile.name + "</font>");
-		var changeDiv = new $("<div class='ui-helper-clearfix'></div>");
-		self.container.append(changeDiv);
-		self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
-		changeDiv.append(self.switchAliasLink);
-		var aliasMenu = self._createAliasMenu(self,ui.AppContext.ALIASES);
-		self.switchAliasLink.click(function(evt) {
-			aliasMenu.show();
-			aliasMenu.position({ my : "left top", at : "right-6px center", of : selfElement1});
-			evt.preventDefault();
-			evt.stopPropagation();
-			return false;
-		});
-	}, _setTarget : function(conn) {
-		var self = this;
-		self.switchAliasLink.hide();
-		self.userIdTxt.empty().append("<strong>" + conn.data.name + "</strong>");
-		ui.AppContext.TARGET = conn;
-		ui.model.EM.change(ui.model.EMEvent.TARGET_CHANGE,conn);
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.userComp",defineWidget());
 var defineWidget = function() {
 	return { _addContent : function(content) {
 		var self = this;
