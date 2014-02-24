@@ -164,7 +164,7 @@ extern class FilterComp extends JQ {
 
 			        	var connectionIids = new Array<String>();
 		        		var aliasIids = new Array<String>();
-						
+
 		        		var connComps:JQ = selfElement.children(".connectionAvatar");
 			        	connComps.each(function (idx: Int, el: Element): Void {
 		        			var avatar: ConnectionAvatar = new ConnectionAvatar(el);
@@ -176,6 +176,10 @@ extern class FilterComp extends JQ {
 			        			aliasIids.push(alias.iid);
 			        		}
 		        		});
+
+		        		if (aliasIids.length == 0) {
+		        			aliasIids.push(AppContext.currentAlias.iid);
+		        		}
 
 						var filterData = new FilterData("content");
 						filterData.filter = new Filter(root);

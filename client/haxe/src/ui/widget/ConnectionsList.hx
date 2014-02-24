@@ -96,7 +96,6 @@ extern class ConnectionsList extends JQ {
     								}
     							}
     						}
-
     					],
     					width: 225
     				}).hide();

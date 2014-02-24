@@ -31,7 +31,17 @@ class ResponseProcessor {
                 if (data.responseType == "profile") {
                     Timer.delay(function() {processProfile(data.data);}, 50);
                 } else if (data.responseType == "squery") {
-                    updateModelObject(data.data);
+                    updateModelObject(data.data.type, data.data);
+                } else if (data.responseType == "query") {
+                    var context:Array<String> = data.context.split("-");
+                    if (context[2] == "filterContent") {
+                        var params = new SynchronizationParms();
+                        for (result in cast(data.data.results, Array<Dynamic>)) {
+                            var content:Content<Dynamic> = AppContext.SERIALIZER.fromJsonX(result, Content);
+                            params.content.push(content);
+                        }
+                        filterContent(params);
+                    }
                 } else {
                     Synchronizer.processResponse(data);
                 }
@@ -39,8 +49,8 @@ class ResponseProcessor {
 		});
 	}
 
-    private static function updateModelObject(data:Dynamic) {
-        var type:String = data.type.toLowerCase();
+    private static function updateModelObject(type:String, data:Dynamic) {
+        var type = type.toLowerCase();
         switch (type) {
             case "alias":
                 AppContext.MASTER_ALIASES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Alias));

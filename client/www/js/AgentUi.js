@@ -5204,12 +5204,25 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 			ui.AppContext.LOGGER.error(data.error.stacktrace);
 		} else if(data.responseType == "profile") haxe.Timer.delay(function() {
 			ui.api.ResponseProcessor.processProfile(data.data);
-		},50); else if(data.responseType == "squery") ui.api.ResponseProcessor.updateModelObject(data.data); else ui.api.Synchronizer.processResponse(data);
+		},50); else if(data.responseType == "squery") ui.api.ResponseProcessor.updateModelObject(data.data.type,data.data); else if(data.responseType == "query") {
+			var context = data.context.split("-");
+			if(context[2] == "filterContent") {
+				var params = new ui.api.SynchronizationParms();
+				var _g = 0, _g1 = js.Boot.__cast(data.data.results , Array);
+				while(_g < _g1.length) {
+					var result = _g1[_g];
+					++_g;
+					var content = ui.AppContext.SERIALIZER.fromJsonX(result,ui.model.Content);
+					params.content.push(content);
+				}
+				ui.api.ResponseProcessor.filterContent(params);
+			}
+		} else ui.api.Synchronizer.processResponse(data);
 	});
 }
-ui.api.ResponseProcessor.updateModelObject = function(data) {
-	var type = data.type.toLowerCase();
-	switch(type) {
+ui.api.ResponseProcessor.updateModelObject = function(type,data) {
+	var type1 = type.toLowerCase();
+	switch(type1) {
 	case "alias":
 		ui.AppContext.MASTER_ALIASES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Alias));
 		break;
@@ -5238,7 +5251,7 @@ ui.api.ResponseProcessor.updateModelObject = function(data) {
 		ui.api.ResponseProcessor.processProfile(data.instance);
 		break;
 	default:
-		ui.AppContext.LOGGER.error("Unknown type: " + type);
+		ui.AppContext.LOGGER.error("Unknown type: " + type1);
 	}
 }
 ui.api.ResponseProcessor.initialDataLoad = function(data) {
@@ -8430,6 +8443,7 @@ var defineWidget = function() {
 					aliasIids.push(alias.iid);
 				}
 			});
+			if(aliasIids.length == 0) aliasIids.push(ui.AppContext.currentAlias.iid);
 			var filterData = new ui.model.FilterData("content");
 			filterData.filter = new ui.model.Filter(root);
 			filterData.connectionIids = connectionIids;
