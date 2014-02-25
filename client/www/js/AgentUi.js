@@ -4765,7 +4765,7 @@ ui.api.BennuHandler.prototype = {
 	}
 	,filter: function(filterData) {
 		var context = ui.api.Synchronizer.createContext(1,"filterContent");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DQUERY,context + "contents",new ui.api.DistributedQueryMessage(filterData))];
+		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DQUERY,context + "handle",new ui.api.DistributedQueryMessage(filterData))];
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,restores: function() {
@@ -4950,7 +4950,7 @@ ui.api.DistributedQueryMessage = function(fd) {
 	this.aliasIids = fd.aliasIids;
 	this.connectionIids = fd.connectionIids;
 	this.historical = true;
-	this.leaveStanding = false;
+	this.leaveStanding = true;
 };
 $hxClasses["ui.api.DistributedQueryMessage"] = ui.api.DistributedQueryMessage;
 ui.api.DistributedQueryMessage.__name__ = ["ui","api","DistributedQueryMessage"];
@@ -5333,23 +5333,9 @@ ui.api.ResponseProcessor.grantAccess = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.AccessGranted);
 }
 ui.api.ResponseProcessor.filterContent = function(data) {
-	var arr = new Array();
-	var _g = 0, _g1 = data.content;
-	while(_g < _g1.length) {
-		var c = _g1[_g];
-		++_g;
-		arr.push(c.iid);
-	}
-	var filteredContent = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONTENT,function(c) {
-		var _g = 0;
-		while(_g < arr.length) {
-			var iid = arr[_g];
-			++_g;
-			if(c.iid == iid) return true;
-		}
-		return false;
-	});
-	ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,filteredContent);
+	var displayedContent = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
+	displayedContent.addAll(data.content);
+	ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,displayedContent);
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
 }
 ui.api.ResponseProcessor.getAgent = function(data) {
@@ -8262,6 +8248,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentFeed must be a div element");
+		self.showingFilteredContent = false;
 		selfElement.addClass("container " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
 		selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
 		self.mapListener = function(content,contentComp,evt) {
@@ -8285,10 +8272,15 @@ var defineWidget = function() {
 			} else if(evt.isUpdate()) ui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
 		};
 		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+			self.showingFilteredContent = false;
 			self._resetContents(alias.iid);
 		},"ContentFeed-AliasLoaded"));
 		ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,new ui.model.EMListener(function(content) {
-			self._setContent(content);
+			if(self.showingFilteredContent) self._addToFilteredContent(content); else {
+				self.showingFilteredContent = true;
+				self.filteredContent = content;
+				self._setContent(content);
+			}
 		},"ContentFeed-LoadFilteredContent"));
 	}, _resetContents : function(aliasIid) {
 		var self = this;
@@ -8299,15 +8291,19 @@ var defineWidget = function() {
 			if(content == null) content = ui.AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
 		}
 		self._setContent(content);
+	}, _addToFilteredContent : function(content) {
+		var self = this;
+		self.filteredContent.addAll(content.asArray());
 	}, _setContent : function(content) {
 		var self = this;
 		var selfElement = this.element;
-		if(self.content != null) self.content.removeListeners(self.mapListener);
+		if(self.contentMap != null) self.contentMap.removeListeners(self.mapListener);
 		selfElement.find(".contentComp").remove();
-		self.content = new m3.observable.MappedSet(content,function(content1) {
+		self.content = content;
+		self.contentMap = new m3.observable.MappedSet(self.content,function(content1) {
 			return new $("<div></div>").contentComp({ content : content1});
 		});
-		self.content.mapListen(self.mapListener);
+		self.contentMap.mapListen(self.mapListener);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};

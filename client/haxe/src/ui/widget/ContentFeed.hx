@@ -19,12 +19,16 @@ typedef ContentFeedOptions = {
 
 typedef ContentFeedWidgetDef = {
 	@:optional var options: ContentFeedOptions;
-	@:optional var content: MappedSet<Content<Dynamic>, ContentComp>;
+	@:optional var content: OSet<Content<Dynamic>>;
+	@:optional var filteredContent: ObservableSet<Content<Dynamic>>;
+	@:optional var contentMap: MappedSet<Content<Dynamic>, ContentComp>;
 	@:optional var mapListener: Content<Dynamic>->ContentComp->EventType->Void;
+	@:optional var showingFilteredContent:Bool;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 	var _resetContents: String->Void;
 	var _setContent: OSet<Content<Dynamic>>->Void;
+	var _addToFilteredContent: ObservableSet<Content<Dynamic>>->Void;
 }
 
 @:native("$")
@@ -43,6 +47,7 @@ extern class ContentFeed extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of ContentFeed must be a div element");
 		        	}
+		        	self.showingFilteredContent = false;
 
 		        	selfElement.addClass("container " + Widgets.getWidgetClasses()).css("padding", "10px");
 		        	selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
@@ -79,13 +84,21 @@ extern class ContentFeed extends JQ {
 	            		}
 	            	};
 
+
 		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
+		        		self.showingFilteredContent = false;
 		        		self._resetContents(alias.iid);
 		        		}, "ContentFeed-AliasLoaded")
 		        	);
 
-		        	EM.addListener(EMEvent.LoadFilteredContent, new EMListener(function(content: OSet<Content<Dynamic>>): Void {
-		        		self._setContent(content);
+		        	EM.addListener(EMEvent.LoadFilteredContent, new EMListener(function(content: ObservableSet<Content<Dynamic>>): Void {
+						if (self.showingFilteredContent) {
+			        		self._addToFilteredContent(content);
+			        	} else {
+			        		self.showingFilteredContent = true;
+			        		self.filteredContent = content;
+			        		self._setContent(content);
+			        	}
 		        		}, "ContentFeed-LoadFilteredContent")
 		        	);
 		        },
@@ -108,21 +121,26 @@ extern class ContentFeed extends JQ {
 			        self._setContent(content);
 		        },
 
+		        _addToFilteredContent: function(content:ObservableSet<Content<Dynamic>>) {
+		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
+		        	self.filteredContent.addAll(content.asArray());
+		        },
+
 		        _setContent: function(content:OSet<Content<Dynamic>>) {
 		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
-
-		        	if (self.content != null) {
-		        		self.content.removeListeners(self.mapListener);
+		        	if (self.contentMap != null) {
+		        		self.contentMap.removeListeners(self.mapListener);
 		        	}
 		        	selfElement.find(".contentComp").remove();
 
-		        	self.content = new MappedSet<Content<Dynamic>, ContentComp>(content, function(content: Content<Dynamic>): ContentComp {
+		        	self.content = content;
+		        	self.contentMap = new MappedSet<Content<Dynamic>, ContentComp>(self.content, function(content: Content<Dynamic>): ContentComp {
 	        			return new ContentComp("<div></div>").contentComp({
 	        				content: content
 	        			});
 	        		});
-		        	self.content.mapListen(self.mapListener);
+		        	self.contentMap.mapListen(self.mapListener);
 		        },
 		        
 		        destroy: function() {

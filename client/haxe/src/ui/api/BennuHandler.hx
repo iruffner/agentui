@@ -131,7 +131,7 @@ class BennuHandler implements ProtocolHandler {
 	public function filter(filterData: FilterData): Void {
 		var context = Synchronizer.createContext(1, "filterContent");
 		var requests = [
-			new ChannelRequestMessage(DQUERY, context + "contents", new DistributedQueryMessage(filterData)),
+			new ChannelRequestMessage(DQUERY, context + "handle", new DistributedQueryMessage(filterData)),
 		];
 		new SubmitRequest(requests).start();
 	}

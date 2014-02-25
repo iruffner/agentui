@@ -126,17 +126,9 @@ class ResponseProcessor {
     }
 
     public static function filterContent(data:SynchronizationParms) {
-        var arr = new Array<String>();
-        for (c in data.content) {
-            arr.push(c.iid);
-        }
-        var filteredContent = new FilteredSet<Content<Dynamic>>(AppContext.MASTER_CONTENT,function(c:Content<Dynamic>):Bool{
-            for (iid in arr) {
-                if (c.iid == iid) {return true;}
-            }
-            return false;
-        });
-        EM.change(LoadFilteredContent, filteredContent);
+        var displayedContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
+        displayedContent.addAll(data.content);
+        EM.change(LoadFilteredContent, displayedContent);
         EM.change(EMEvent.FitWindow);
     }
 

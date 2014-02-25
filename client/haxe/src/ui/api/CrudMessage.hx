@@ -118,7 +118,7 @@ class DistributedQueryMessage implements ChannelMessage{
 		aliasIids      = fd.aliasIids;
 		connectionIids = fd.connectionIids;
 		historical     = true;
-		leaveStanding  = false;
+		leaveStanding  = true;
 	}
 }
 
