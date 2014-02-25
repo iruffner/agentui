@@ -234,7 +234,7 @@ class BennuHandler implements ProtocolHandler {
 		var context = Synchronizer.createContext(1 + data.labelIids.length, "contentDeleted");		
 		var requests = new Array<ChannelRequestMessage>();
 		data.content.deleted = true;
-		requests.push(new ChannelRequestMessage(DELETE, context + "content", CrudMessage.create(data.content)));
+		requests.push(new ChannelRequestMessage(DELETE, context + "content", DeleteMessage.create(data.content)));
 
 		for (lc in AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid)) {
 			lc.deleted = true;

@@ -4668,7 +4668,7 @@ ui.api.BennuHandler.prototype = {
 		var context = ui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentDeleted");
 		var requests = new Array();
 		data.content.deleted = true;
-		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "content",ui.api.CrudMessage.create(data.content)));
+		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "content",ui.api.DeleteMessage.create(data.content)));
 		var $it0 = ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid).iterator();
 		while( $it0.hasNext() ) {
 			var lc = $it0.next();
