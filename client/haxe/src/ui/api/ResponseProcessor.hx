@@ -60,6 +60,8 @@ class ResponseProcessor {
                 AppContext.INTRODUCTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Introduction));
             case "label":
                 AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Label));
+            case "labelacl":
+                AppContext.MASTER_LABELACLS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabelAcl));
             case "labelchild":
                 AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabelChild));
             case "labeledcontent":
@@ -92,6 +94,7 @@ class ResponseProcessor {
         AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
         AppContext.MASTER_CONTENT.addAll(data.content);
         AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
+        AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
 
         if (data.agent == null) {
             AgentUi.PROTOCOL.getAgent(data.aliases[0].agentId);

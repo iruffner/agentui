@@ -40,6 +40,10 @@ class AppContext {
 
     public static var LABELS:FilteredSet<Label>;
     public static var MASTER_LABELS:ObservableSet<Label>;
+
+    public static var LABELACLS:FilteredSet<LabelAcl>;
+    public static var MASTER_LABELACLS:ObservableSet<LabelAcl>;
+    public static var GROUPED_LABELACLS: GroupedSet<LabelAcl>;
     
     public static var LABELCHILDREN:FilteredSet<LabelChild>;
     public static var MASTER_LABELCHILDREN:ObservableSet<LabelChild>;
@@ -92,6 +96,14 @@ class AppContext {
         });
         GROUPED_CONNECTIONS = new GroupedSet<Connection>(CONNECTIONS, function(c:Connection):String {
             return c.aliasIid;
+        });
+
+        MASTER_LABELACLS = new ObservableSet<LabelAcl>(LabelAcl.identifier);
+        LABELACLS = new FilteredSet<LabelAcl>(MASTER_LABELACLS, function(l:LabelAcl):Bool {
+            return !l.deleted;
+        });
+        GROUPED_LABELACLS = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
+            return l.connectionIid;
         });
 
         MASTER_LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);

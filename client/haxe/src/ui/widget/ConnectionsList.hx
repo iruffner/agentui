@@ -10,6 +10,7 @@ import m3.widget.Widgets;
 
 import ui.model.EM;
 import ui.model.ModelObj;
+import ui.widget.DialogManager;
 
 using ui.widget.ConnectionComp;
 using Lambda;
@@ -78,9 +79,10 @@ extern class ConnectionsList extends JQ {
         				classes: "container shadow",
     					menuOptions: [
     						{ 
-    							label: "Configure Access...",
+    							label: "Revoke Access...",
     							icon: "ui-icon-circle-plus",
     							action: function(evt: JQEvent, m: M3Menu): Void {
+    								DialogManager.revokeAccess(self.selectedConnectionComp.connection());
     							}
     						},
     						{ 

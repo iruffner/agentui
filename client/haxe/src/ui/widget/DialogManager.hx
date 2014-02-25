@@ -7,6 +7,7 @@ import ui.widget.LoginDialog;
 import ui.widget.CreateAgentDialog;
 import ui.widget.RequestIntroductionDialog;
 import ui.widget.AllowAccessDialog;
+import ui.widget.RevokeAccessDialog;
 
 @:expose
 class DialogManager {
@@ -57,5 +58,11 @@ class DialogManager {
         options.label = label;
         options.connection = connection;
         showDialog("allowAccessDialog", options);
-    }   
+    }
+
+    public static function revokeAccess(connection:Connection):Void {
+        var options:Dynamic = {}
+        options.connection = connection;
+        showDialog("revokeAccessDialog", options);
+    }
 }

@@ -4445,6 +4445,13 @@ ui.AppContext.init = function() {
 	ui.AppContext.GROUPED_CONNECTIONS = new m3.observable.GroupedSet(ui.AppContext.CONNECTIONS,function(c) {
 		return c.aliasIid;
 	});
+	ui.AppContext.MASTER_LABELACLS = new m3.observable.ObservableSet(ui.model.LabelAcl.identifier);
+	ui.AppContext.LABELACLS = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELACLS,function(l) {
+		return !l.deleted;
+	});
+	ui.AppContext.GROUPED_LABELACLS = new m3.observable.GroupedSet(ui.AppContext.LABELACLS,function(l) {
+		return l.connectionIid;
+	});
 	ui.AppContext.MASTER_LABELCHILDREN = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
 	ui.AppContext.LABELCHILDREN = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(c) {
 		return !c.deleted;
@@ -4595,11 +4602,11 @@ ui.api.BennuHandler.prototype = {
 	,onCreateSubmitChannel: function(data,textStatus,jqXHR) {
 		ui.AppContext.SUBMIT_CHANNEL = data.id;
 		this._startPolling();
-		var context = ui.api.Synchronizer.createContext(9,"initialDataLoad");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid='" + this.loggedInAgentId + "'")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "introductions",new ui.api.QueryMessage("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "connections",new ui.api.QueryMessage("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "notifications",new ui.api.QueryMessage("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
+		var context = ui.api.Synchronizer.createContext(10,"initialDataLoad");
+		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "agent",new ui.api.QueryMessage("agent","iid='" + this.loggedInAgentId + "'")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",new ui.api.QueryMessage("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "introductions",new ui.api.QueryMessage("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "connections",new ui.api.QueryMessage("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "notifications",new ui.api.QueryMessage("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",new ui.api.QueryMessage("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelacls",new ui.api.QueryMessage("labelAcl")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "contents",new ui.api.QueryMessage("content")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",new ui.api.QueryMessage("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",new ui.api.QueryMessage("labelChild"))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
-		context = ui.api.Synchronizer.createContext(1,"registerModelUpdates") + "-handle";
-		var types = ["alias","connection","content","introduction","label","labelchild","labeledcontent","notification","profile"];
+		context = ui.api.Synchronizer.createContext(1,"registerModelUpdates") + "handle";
+		var types = ["alias","connection","content","introduction","label","labelacl","labelchild","labeledcontent","notification","profile"];
 		requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.REGISTER,context,new ui.api.RegisterMessage(types))];
 		new ui.api.SubmitRequest(requests,this.loggedInAgentId).start();
 	}
@@ -4769,6 +4776,18 @@ ui.api.BennuHandler.prototype = {
 	}
 	,backup: function() {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
+	}
+	,revokeAccess: function(lacls) {
+		var context = ui.api.Synchronizer.createContext(1,"accessRevoked");
+		var requests = new Array();
+		var _g = 0;
+		while(_g < lacls.length) {
+			var lacl = lacls[_g];
+			++_g;
+			lacl.deleted = true;
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labelAcl",ui.api.DeleteMessage.create(lacl)));
+		}
+		new ui.api.SubmitRequest(requests).start();
 	}
 	,grantAccess: function(connectionIid,labelIid) {
 		var acl = new ui.model.LabelAcl(connectionIid,labelIid);
@@ -5028,6 +5047,9 @@ ui.api.EventDelegate.prototype = {
 		ui.model.EM.addListener(ui.model.EMEvent.GrantAccess,new ui.model.EMListener(function(parms) {
 			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
 		}));
+		ui.model.EM.addListener(ui.model.EMEvent.RevokeAccess,new ui.model.EMListener(function(lacls) {
+			_g.protocolHandler.revokeAccess(lacls);
+		}));
 		ui.model.EM.addListener(ui.model.EMEvent.DeleteConnection,new ui.model.EMListener(function(c) {
 			_g.protocolHandler.deleteConnection(c);
 		}));
@@ -5258,6 +5280,9 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 	case "label":
 		ui.AppContext.MASTER_LABELS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Label));
 		break;
+	case "labelacl":
+		ui.AppContext.MASTER_LABELACLS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.LabelAcl));
+		break;
 	case "labelchild":
 		ui.AppContext.MASTER_LABELCHILDREN.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.LabelChild));
 		break;
@@ -5287,6 +5312,7 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
 	ui.AppContext.MASTER_CONTENT.addAll(data.content);
 	ui.AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
+	ui.AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
 	if(data.agent == null) ui.AgentUi.PROTOCOL.getAgent(data.aliases[0].agentId); else ui.model.EM.change(ui.model.EMEvent.AGENT,data.agent);
 }
 ui.api.ResponseProcessor.registerModelUpdates = function(data) {
@@ -5337,6 +5363,7 @@ ui.api.SynchronizationParms = function() {
 	this.handle = "";
 	this.introductions = new Array();
 	this.labels = new Array();
+	this.labelAcls = new Array();
 	this.labelChildren = new Array();
 	this.labeledContent = new Array();
 	this.notifications = new Array();
@@ -5440,6 +5467,17 @@ ui.api.Synchronizer.prototype = {
 				var label_ = _g1[_g];
 				++_g;
 				this.parms.labels.push(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.Label));
+			}
+			break;
+		case "labelacl":
+			this.parms.labelAcls.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.LabelAcl));
+			break;
+		case "labelacls":
+			var _g = 0, _g1 = js.Boot.__cast(data , Array);
+			while(_g < _g1.length) {
+				var label_ = _g1[_g];
+				++_g;
+				this.parms.labelAcls.push(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.LabelAcl));
 			}
 			break;
 		case "labelChild":
@@ -5555,7 +5593,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","CreateAgent","AgentCreated","AGENT","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","CreateAgent","AgentCreated","AGENT","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
@@ -5628,34 +5666,37 @@ ui.model.EMEvent.GrantAccess.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.AccessGranted = ["AccessGranted",23];
 ui.model.EMEvent.AccessGranted.toString = $estr;
 ui.model.EMEvent.AccessGranted.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteConnection = ["DeleteConnection",24];
+ui.model.EMEvent.RevokeAccess = ["RevokeAccess",24];
+ui.model.EMEvent.RevokeAccess.toString = $estr;
+ui.model.EMEvent.RevokeAccess.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.DeleteConnection = ["DeleteConnection",25];
 ui.model.EMEvent.DeleteConnection.toString = $estr;
 ui.model.EMEvent.DeleteConnection.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",25];
+ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",26];
 ui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",26];
+ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",27];
 ui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",27];
+ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",28];
 ui.model.EMEvent.RespondToIntroduction.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",28];
+ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",29];
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",29];
+ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",30];
 ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
 ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.BACKUP = ["BACKUP",30];
+ui.model.EMEvent.BACKUP = ["BACKUP",31];
 ui.model.EMEvent.BACKUP.toString = $estr;
 ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORE = ["RESTORE",31];
+ui.model.EMEvent.RESTORE = ["RESTORE",32];
 ui.model.EMEvent.RESTORE.toString = $estr;
 ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",32];
+ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",33];
 ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
 ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",33];
+ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",34];
 ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
@@ -6351,6 +6392,11 @@ ui.widget.DialogManager.allowAccess = function(label,connection) {
 	options.label = label;
 	options.connection = connection;
 	ui.widget.DialogManager.showDialog("allowAccessDialog",options);
+}
+ui.widget.DialogManager.revokeAccess = function(connection) {
+	var options = { };
+	options.connection = connection;
+	ui.widget.DialogManager.showDialog("revokeAccessDialog",options);
 }
 ui.widget.LabelCompHelper = function() { }
 $hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
@@ -7883,7 +7929,8 @@ var defineWidget = function() {
 		},"ConnectionsList-TargetChange"));
 		var menu = new $("<ul id='label-action-menu'></ul>");
 		menu.appendTo(selfElement);
-		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "Configure Access...", icon : "ui-icon-circle-plus", action : function(evt,m) {
+		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "Revoke Access...", icon : "ui-icon-circle-plus", action : function(evt,m) {
+			ui.widget.DialogManager.revokeAccess(ui.widget.ConnectionCompHelper.connection(self.selectedConnectionComp));
 		}},{ label : "Delete Connection", icon : "ui-icon-circle-minus", action : function(evt,m) {
 			if(self.selectedConnectionComp != null) m3.util.JqueryUtil.confirm("Delete Connection","Are you sure you want to delete this connection?",function() {
 				ui.model.EM.change(ui.model.EMEvent.DeleteConnection,ui.widget.ConnectionCompHelper.connection(self.selectedConnectionComp));
@@ -9100,6 +9147,59 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.restoreWidget",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RevokeAccessDialog must be a div element");
+		selfElement.addClass("revokeAccessDialog").hide();
+	}, _buildDialog : function() {
+		var self1 = this;
+		var selfElement = this.element;
+		var lacls = ui.AppContext.GROUPED_LABELACLS.delegate().get(self1.options.connection.iid);
+		if(lacls == null) lacls = ui.AppContext.GROUPED_LABELACLS.addEmptyGroup(self1.options.connection.iid);
+		selfElement.append("<div style='margin-bottom:4px;'>To revoke access, check the label.</div>");
+		var $it1 = lacls.iterator();
+		while( $it1.hasNext() ) {
+			var labelAcl = $it1.next();
+			var laclDiv = new $("<div></div>").appendTo(selfElement);
+			new $("<input type=\"checkbox\" style=\"position:relative;top:-18px;\" id=\"cb-" + labelAcl.iid + "\"/>").appendTo(laclDiv);
+			new $("<div></div>").labelComp({ dndEnabled : false, labelIid : labelAcl.labelIid}).appendTo(laclDiv);
+		}
+		var dlgOptions = { autoOpen : false, title : "Revoke Access", height : 290, width : 400, modal : true, buttons : { 'Revoke Access' : function() {
+			self1._revokeAccess();
+			$(this).dialog("close");
+		}, Cancel : function() {
+			$(this).dialog("close");
+		}}};
+		selfElement.dialog(dlgOptions);
+	}, _revokeAccess : function() {
+		var self = this;
+		var selfElement = this.element;
+		var se = new Array();
+		selfElement.find("input[type=checkbox]").each(function(indexInArray,ele) {
+			var cb = new $(ele);
+			if(cb.prop("checked") == true) {
+				var id = cb.attr("id").split("-")[1];
+				se.push(m3.helper.OSetHelper.getElement(ui.AppContext.LABELACLS,id));
+			}
+		});
+		if(se.length > 0) ui.model.EM.change(ui.model.EMEvent.RevokeAccess,se);
+	}, open : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(selfElement.exists()) {
+			selfElement.empty();
+			self._create();
+		}
+		self._buildDialog();
+		selfElement.dialog("open");
+		selfElement.dialog("widget").attr("id","revokeAccessDialog");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.revokeAccessDialog",defineWidget());
 var defineWidget = function() {
 	return { _addContent : function(content) {
 		var self = this;

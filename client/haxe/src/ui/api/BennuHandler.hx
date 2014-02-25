@@ -108,6 +108,16 @@ class BennuHandler implements ProtocolHandler {
 		req.start();
 	}
 
+	public function revokeAccess(lacls:Array<LabelAcl>): Void {
+		var context = Synchronizer.createContext(1, "accessRevoked");
+		var requests = new Array<ChannelRequestMessage>();
+		for (lacl in lacls) {
+			lacl.deleted = true;
+			requests.push(new ChannelRequestMessage(DELETE, context + "labelAcl", DeleteMessage.create(lacl)));
+		}
+		new SubmitRequest(requests).start();
+	}
+
 	public function backup(/*backupName: String*/): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
@@ -323,7 +333,7 @@ class BennuHandler implements ProtocolHandler {
 
 		_startPolling();
 
-		var context = Synchronizer.createContext(9, "initialDataLoad");
+		var context = Synchronizer.createContext(10, "initialDataLoad");
 		var requests = [
 			new ChannelRequestMessage(QUERY, context + "agent"          , new QueryMessage("agent", "iid='" + this.loggedInAgentId + "'")),
 			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
@@ -331,14 +341,15 @@ class BennuHandler implements ProtocolHandler {
 			new ChannelRequestMessage(QUERY, context + "connections"    , new QueryMessage("connection")),
 			new ChannelRequestMessage(QUERY, context + "notifications"  , new QueryMessage("notification")),
 			new ChannelRequestMessage(QUERY, context + "labels"         , new QueryMessage("label")),
+			new ChannelRequestMessage(QUERY, context + "labelacls"      , new QueryMessage("labelAcl")),
 			new ChannelRequestMessage(QUERY, context + "contents"       , new QueryMessage("content")),
 			new ChannelRequestMessage(QUERY, context + "labeledContents", new QueryMessage("labeledContent")),
 			new ChannelRequestMessage(QUERY, context + "labelChildren"  , new QueryMessage("labelChild"))
 		];
 		new SubmitRequest(requests, this.loggedInAgentId).start();
 
-		context = Synchronizer.createContext(1, "registerModelUpdates") + "-handle";
-		var types = ["alias", "connection", "content", "introduction", "label", 
+		context = Synchronizer.createContext(1, "registerModelUpdates") + "handle";
+		var types = ["alias", "connection", "content", "introduction", "label", "labelacl",
 		             "labelchild", "labeledcontent", "notification", "profile"];
 		requests = [new ChannelRequestMessage(REGISTER, context, new RegisterMessage(types))];
 		new SubmitRequest(requests, this.loggedInAgentId).start();

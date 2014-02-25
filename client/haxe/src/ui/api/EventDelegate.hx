@@ -88,6 +88,10 @@ class EventDelegate {
             protocolHandler.grantAccess(parms.connectionIid, parms.labelIid);
         }));
 
+        EM.addListener(EMEvent.RevokeAccess, new EMListener(function(lacls:Array<LabelAcl>):Void{
+            protocolHandler.revokeAccess(lacls);
+        }));
+
         EM.addListener(EMEvent.DeleteConnection, new EMListener(function(c:Connection):Void{
             protocolHandler.deleteConnection(c);
         }));

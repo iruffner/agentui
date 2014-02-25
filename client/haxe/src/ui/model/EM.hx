@@ -118,6 +118,7 @@ enum EMEvent {
 
 	GrantAccess;
 	AccessGranted;
+	RevokeAccess;
 
 	DeleteConnection;
 

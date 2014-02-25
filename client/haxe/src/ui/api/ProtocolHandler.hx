@@ -26,6 +26,7 @@ interface ProtocolHandler {
 	public function restore(/*backupName: String*/): Void;
 	public function restores(): Void;
 	public function grantAccess(connectionIid:String, labelIid:String): Void;
+	public function revokeAccess(lacls:Array<LabelAcl>): Void;
 	public function deleteConnection(c:Connection): Void;
 	public function getAgent(id:String): Void;
 	public function addHandle(handle:String): Void;

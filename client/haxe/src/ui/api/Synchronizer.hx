@@ -15,6 +15,7 @@ class SynchronizationParms {
     public var labels:Array<Label>;
     public var labelChildren:Array<LabelChild>;
     public var labeledContent:Array<LabeledContent>;
+    public var labelAcls:Array<LabelAcl>;
     public var notifications:Array<Notification<Dynamic>>;
     public var result:Dynamic;
 
@@ -26,6 +27,7 @@ class SynchronizationParms {
         handle = "";
         introductions = new Array<Introduction>();
         labels  = new Array<Label>();
+        labelAcls = new Array<LabelAcl>();
         labelChildren = new Array<LabelChild>();
         labeledContent = new Array<LabeledContent>();
         notifications = new Array<Notification<Dynamic>>();
@@ -119,6 +121,12 @@ class Synchronizer {
     			for (label_ in cast(data, Array<Dynamic>)) {
     				parms.labels.push(AppContext.SERIALIZER.fromJsonX(label_, Label));
     			}
+            case "labelacl":
+                parms.labelAcls.push(AppContext.SERIALIZER.fromJsonX(data, LabelAcl));
+            case "labelacls":
+                for (label_ in cast(data, Array<Dynamic>)) {
+                    parms.labelAcls.push(AppContext.SERIALIZER.fromJsonX(label_, LabelAcl));
+                }
     		case "labelChild":
     			parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(data, LabelChild));
     		case "labelChildren":
