@@ -8251,7 +8251,8 @@ var defineWidget = function() {
 		self.showingFilteredContent = false;
 		selfElement.addClass("container " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
 		selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
-		self.mapListener = function(content,contentComp,evt) {
+		self.mapListener = function(content,jq,evt) {
+			var contentComp = new $(jq);
 			if(evt.isAdd()) {
 				var contentComps = new $(".contentComp");
 				if(contentComps.length == 0) new $("#postInput").after(contentComp); else {

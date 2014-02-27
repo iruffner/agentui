@@ -21,8 +21,8 @@ typedef ContentFeedWidgetDef = {
 	@:optional var options: ContentFeedOptions;
 	@:optional var content: OSet<Content<Dynamic>>;
 	@:optional var filteredContent: ObservableSet<Content<Dynamic>>;
-	@:optional var contentMap: MappedSet<Content<Dynamic>, ContentComp>;
-	@:optional var mapListener: Content<Dynamic>->ContentComp->EventType->Void;
+	@:optional var contentMap: MappedSet<Content<Dynamic>, JQ>;
+	@:optional var mapListener: Content<Dynamic>->JQ->EventType->Void;
 	@:optional var showingFilteredContent:Bool;
 	var _create: Void->Void;
 	var destroy: Void->Void;
@@ -52,7 +52,8 @@ extern class ContentFeed extends JQ {
 		        	selfElement.addClass("container " + Widgets.getWidgetClasses()).css("padding", "10px");
 		        	selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
 
-		        	self.mapListener = function(content: Content<Dynamic>, contentComp: ContentComp, evt: EventType): Void {
+		        	self.mapListener = function(content: Content<Dynamic>, jq: JQ, evt: EventType): Void {
+            			var contentComp = new ContentComp(jq);
 	            		if(evt.isAdd()) {
 	            			var contentComps = new JQ(".contentComp");
 	            			if (contentComps.length == 0) {
@@ -135,7 +136,7 @@ extern class ContentFeed extends JQ {
 		        	selfElement.find(".contentComp").remove();
 
 		        	self.content = content;
-		        	self.contentMap = new MappedSet<Content<Dynamic>, ContentComp>(self.content, function(content: Content<Dynamic>): ContentComp {
+		        	self.contentMap = new MappedSet<Content<Dynamic>, JQ>(self.content, function(content: Content<Dynamic>): ContentComp {
 	        			return new ContentComp("<div></div>").contentComp({
 	        				content: content
 	        			});
