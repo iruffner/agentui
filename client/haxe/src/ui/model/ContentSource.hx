@@ -1,23 +1,22 @@
 package ui.model;
 
-import m3.jq.JQ;
 import m3.observable.OSet;
 import ui.model.EM;
 import ui.model.ModelObj;
 
 
-class ContentSource {
+class ContentSource<T> {
 	var content: OSet<Content<Dynamic>>;
 	var filteredContent: ObservableSet<Content<Dynamic>>;
-	var contentMap: MappedSet<Content<Dynamic>, JQ>;
-	var mapListener: Content<Dynamic>->JQ->EventType->Void;
-	var widgetCreator:Content<Dynamic>->JQ;
+	var contentMap: MappedSet<Content<Dynamic>, T>;
+	var mapListener: Content<Dynamic>->T->EventType->Void;
+	var widgetCreator:Content<Dynamic>->T;
 	var showingFilteredContent:Bool;
 	var onBeforeSetContent:Void->Void;
 
-	public function new(mapListener:Content<Dynamic>->JQ->EventType->Void, 
+	public function new(mapListener:Content<Dynamic>->T->EventType->Void, 
 		               onBeforeSetContent:Void->Void,
-		               widgetCreator:Content<Dynamic>->JQ) 
+		               widgetCreator:Content<Dynamic>->T) 
 	{
 		this.mapListener = mapListener;
 		this.onBeforeSetContent = onBeforeSetContent;
@@ -65,7 +64,7 @@ class ContentSource {
 		this.onBeforeSetContent();
 		this.cleanup();
 
-    	this.contentMap = new MappedSet<Content<Dynamic>, JQ>(content, function(content: Content<Dynamic>): JQ {
+    	this.contentMap = new MappedSet<Content<Dynamic>, T>(content, function(content: Content<Dynamic>): T {
 			return widgetCreator(content);
 		});
     	this.contentMap.mapListen(this.mapListener);

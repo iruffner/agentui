@@ -20,7 +20,7 @@ typedef ContentFeedOptions = {
 
 typedef ContentFeedWidgetDef = {
 	@:optional var options: ContentFeedOptions;
-	@:optional var contentSource:ContentSource;
+	@:optional var contentSource:ContentSource<JQ>;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -86,7 +86,7 @@ extern class ContentFeed extends JQ {
 	        				content: content
 	        			});
 	            	}
-	            	self.contentSource = new ContentSource(mapListener, beforeSetContent, widgetCreator);
+	            	self.contentSource = new ContentSource<JQ>(mapListener, beforeSetContent, widgetCreator);
 		        },
 		        
 		        destroy: function() {
