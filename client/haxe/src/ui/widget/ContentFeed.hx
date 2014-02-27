@@ -5,6 +5,7 @@ import js.html.Element;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import ui.model.EM;
+import ui.model.ContentSource;
 import ui.model.ModelObj;
 import m3.observable.OSet;
 import ui.widget.LabelComp;
@@ -19,16 +20,9 @@ typedef ContentFeedOptions = {
 
 typedef ContentFeedWidgetDef = {
 	@:optional var options: ContentFeedOptions;
-	@:optional var content: OSet<Content<Dynamic>>;
-	@:optional var filteredContent: ObservableSet<Content<Dynamic>>;
-	@:optional var contentMap: MappedSet<Content<Dynamic>, JQ>;
-	@:optional var mapListener: Content<Dynamic>->JQ->EventType->Void;
-	@:optional var showingFilteredContent:Bool;
+	@:optional var contentSource:ContentSource;
 	var _create: Void->Void;
 	var destroy: Void->Void;
-	var _resetContents: String->Void;
-	var _setContent: OSet<Content<Dynamic>>->Void;
-	var _addToFilteredContent: ObservableSet<Content<Dynamic>>->Void;
 }
 
 @:native("$")
@@ -47,12 +41,11 @@ extern class ContentFeed extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of ContentFeed must be a div element");
 		        	}
-		        	self.showingFilteredContent = false;
 
 		        	selfElement.addClass("container " + Widgets.getWidgetClasses()).css("padding", "10px");
 		        	selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
 
-		        	self.mapListener = function(content: Content<Dynamic>, jq: JQ, evt: EventType): Void {
+		        	var mapListener = function(content: Content<Dynamic>, jq: JQ, evt: EventType): Void {
             			var contentComp = new ContentComp(jq);
 	            		if(evt.isAdd()) {
 	            			var contentComps = new JQ(".contentComp");
@@ -85,66 +78,20 @@ extern class ContentFeed extends JQ {
 	            		}
 	            	};
 
-
-		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
-		        		self.showingFilteredContent = false;
-		        		self._resetContents(alias.iid);
-		        		}, "ContentFeed-AliasLoaded")
-		        	);
-
-		        	EM.addListener(EMEvent.LoadFilteredContent, new EMListener(function(content: ObservableSet<Content<Dynamic>>): Void {
-						if (self.showingFilteredContent) {
-			        		self._addToFilteredContent(content);
-			        	} else {
-			        		self.showingFilteredContent = true;
-			        		self.filteredContent = content;
-			        		self._setContent(content);
-			        	}
-		        		}, "ContentFeed-LoadFilteredContent")
-		        	);
-		        },
-
-		        _resetContents: function(aliasIid:String) {
-		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-		        	var content:OSet<Content<Dynamic>>;
-
-		        	// if we are showing content for the uber alias, get all content
-		        	if (AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == AppContext.getUberLabelIid()) {
-		        		content = AppContext.CONTENT;
-		        	} else {
-			        	content = AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
-			        	if (content == null) {
-			        		content = AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
-			        	}
-			        }
-			        self._setContent(content);
-		        },
-
-		        _addToFilteredContent: function(content:ObservableSet<Content<Dynamic>>) {
-		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
-		        	self.filteredContent.addAll(content.asArray());
-		        },
-
-		        _setContent: function(content:OSet<Content<Dynamic>>) {
-		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-		        	if (self.contentMap != null) {
-		        		self.contentMap.removeListeners(self.mapListener);
-		        	}
-		        	selfElement.find(".contentComp").remove();
-
-		        	self.content = content;
-		        	self.contentMap = new MappedSet<Content<Dynamic>, JQ>(self.content, function(content: Content<Dynamic>): ContentComp {
-	        			return new ContentComp("<div></div>").contentComp({
+	            	var beforeSetContent = function() {
+			        	selfElement.find(".contentComp").remove();
+	            	};
+	            	var widgetCreator = function(content:Content<Dynamic>):JQ {
+	            		return new ContentComp("<div></div>").contentComp({
 	        				content: content
 	        			});
-	        		});
-		        	self.contentMap.mapListen(self.mapListener);
+	            	}
+	            	self.contentSource = new ContentSource(mapListener, beforeSetContent, widgetCreator);
 		        },
 		        
 		        destroy: function() {
+		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
+		        	self.contentSource.cleanup();
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

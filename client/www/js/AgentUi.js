@@ -5517,6 +5517,47 @@ ui.api.Synchronizer.prototype = {
 	,__class__: ui.api.Synchronizer
 }
 ui.model = {}
+ui.model.ContentSource = function(mapListener,onBeforeSetContent,widgetCreator) {
+	this.mapListener = mapListener;
+	this.onBeforeSetContent = onBeforeSetContent;
+	this.widgetCreator = widgetCreator;
+	this.showingFilteredContent = false;
+	ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener($bind(this,this.onAliasLoaded),"ContentSource-AliasLoaded"));
+	ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,new ui.model.EMListener($bind(this,this.onLoadFilteredContent),"ContentSource-LoadFilteredContent"));
+};
+$hxClasses["ui.model.ContentSource"] = ui.model.ContentSource;
+ui.model.ContentSource.__name__ = ["ui","model","ContentSource"];
+ui.model.ContentSource.prototype = {
+	cleanup: function() {
+		if(this.contentMap != null) this.contentMap.removeListeners(this.mapListener);
+	}
+	,setContent: function(content) {
+		var _g = this;
+		this.onBeforeSetContent();
+		this.cleanup();
+		this.contentMap = new m3.observable.MappedSet(content,function(content1) {
+			return _g.widgetCreator(content1);
+		});
+		this.contentMap.mapListen(this.mapListener);
+	}
+	,onAliasLoaded: function(alias) {
+		this.showingFilteredContent = false;
+		var content;
+		if(ui.AppContext.ALIASES.delegate().get(alias.iid).rootLabelIid == ui.AppContext.getUberLabelIid()) content = ui.AppContext.CONTENT; else {
+			content = ui.AppContext.GROUPED_CONTENT.delegate().get(alias.iid);
+			if(content == null) content = ui.AppContext.GROUPED_CONTENT.addEmptyGroup(alias.iid);
+		}
+		this.setContent(content);
+	}
+	,onLoadFilteredContent: function(content) {
+		if(this.showingFilteredContent) this.filteredContent.addAll(content.asArray()); else {
+			this.showingFilteredContent = true;
+			this.filteredContent = content;
+			this.setContent(content);
+		}
+	}
+	,__class__: ui.model.ContentSource
+}
 ui.model.EM = function() { }
 $hxClasses["ui.model.EM"] = ui.model.EM;
 ui.model.EM.__name__ = ["ui","model","EM"];
@@ -8248,10 +8289,9 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentFeed must be a div element");
-		self.showingFilteredContent = false;
 		selfElement.addClass("container " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
 		selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
-		self.mapListener = function(content,jq,evt) {
+		var mapListener = function(content,jq,evt) {
 			var contentComp = new $(jq);
 			if(evt.isAdd()) {
 				var contentComps = new $(".contentComp");
@@ -8272,40 +8312,16 @@ var defineWidget = function() {
 				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 			} else if(evt.isUpdate()) ui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
 		};
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			self.showingFilteredContent = false;
-			self._resetContents(alias.iid);
-		},"ContentFeed-AliasLoaded"));
-		ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,new ui.model.EMListener(function(content) {
-			if(self.showingFilteredContent) self._addToFilteredContent(content); else {
-				self.showingFilteredContent = true;
-				self.filteredContent = content;
-				self._setContent(content);
-			}
-		},"ContentFeed-LoadFilteredContent"));
-	}, _resetContents : function(aliasIid) {
-		var self = this;
-		var selfElement = this.element;
-		var content;
-		if(ui.AppContext.ALIASES.delegate().get(aliasIid).rootLabelIid == ui.AppContext.getUberLabelIid()) content = ui.AppContext.CONTENT; else {
-			content = ui.AppContext.GROUPED_CONTENT.delegate().get(aliasIid);
-			if(content == null) content = ui.AppContext.GROUPED_CONTENT.addEmptyGroup(aliasIid);
-		}
-		self._setContent(content);
-	}, _addToFilteredContent : function(content) {
-		var self = this;
-		self.filteredContent.addAll(content.asArray());
-	}, _setContent : function(content) {
-		var self = this;
-		var selfElement = this.element;
-		if(self.contentMap != null) self.contentMap.removeListeners(self.mapListener);
-		selfElement.find(".contentComp").remove();
-		self.content = content;
-		self.contentMap = new m3.observable.MappedSet(self.content,function(content1) {
-			return new $("<div></div>").contentComp({ content : content1});
-		});
-		self.contentMap.mapListen(self.mapListener);
+		var beforeSetContent = function() {
+			selfElement.find(".contentComp").remove();
+		};
+		var widgetCreator = function(content) {
+			return new $("<div></div>").contentComp({ content : content});
+		};
+		self.contentSource = new ui.model.ContentSource(mapListener,beforeSetContent,widgetCreator);
 	}, destroy : function() {
+		var self = this;
+		self.contentSource.cleanup();
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
