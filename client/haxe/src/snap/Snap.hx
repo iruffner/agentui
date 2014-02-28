@@ -220,6 +220,7 @@ extern class SnapFragment {
 }
 
 extern class SnapElement {
+	public var id:String;
 	public function new();
 	public function add(el:SnapElement):SnapElement;
 	public function after(el:SnapElement):SnapElement;

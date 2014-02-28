@@ -3,6 +3,7 @@ package ui.widget.score;
 import haxe.ds.StringMap;
 import m3.jq.JQ;
 import m3.widget.Widgets;
+import ui.model.ContentSource;
 import ui.model.ModelObj;
 import m3.observable.OSet;
 import m3.exception.Exception;
@@ -13,7 +14,6 @@ using m3.helper.StringHelper;
 
 
 typedef ScoreCompOptions = {
-  var content: OSet<Content<Dynamic>>;
 }
 
 typedef ScoreCompWidgetDef = {
@@ -25,6 +25,7 @@ typedef ScoreCompWidgetDef = {
 	@:optional var startTime:Date;
 	@:optional var endTime:Date;
 	@:optional var initialWidth:Float;
+	@:optional var contentSource:ContentSource<SnapElement>;
 
 	var _addContent:Content<Dynamic>->Void;
 	var _deleteContent:Content<Dynamic>->Void;
@@ -83,9 +84,7 @@ extern class ScoreComp extends JQ {
 		        	}
 		        	selfElement.addClass("container shadow scoreComp");
 
-		        	self.contentTimeLines = new StringMap<ContentTimeLine>();
-
-	        		self.options.content.listen(function(content: Content<Dynamic>, evt: EventType): Void {
+		        	var mapListener = function(content:Content<Dynamic>, ele:SnapElement, evt:EventType): Void {
 	            		if(evt.isAdd()) {
 	            			self._addContent(content);
 	            		} else if (evt.isUpdate()) {
@@ -93,22 +92,48 @@ extern class ScoreComp extends JQ {
 	            		} else if (evt.isDelete()) {
 	            			self._deleteContent(content);
 	            		}
-	            	});
+	            	};
 
-		        	self.initialWidth = 1000;
+	            	var beforeSetContent = function(content:OSet<Content<Dynamic>>) {
+	            		new JQ("#score-comp-svg").empty();
 
-					self.paper = new Snap("#score-comp-svg");
-					self.uberGroup = self.paper.group(self.paper, [])
-					                           .attr("id", "uber-group")
-					                           .attr("transform", "matrix(1 0 0 1 0 0)");
+		        		self.contentTimeLines = new StringMap<ContentTimeLine>();
 
-					self.startTime = new Date(2012, 1, 1, 0, 0, 0);
-					self.endTime   = new Date(2013, 12, 31, 0, 0, 0);
+			        	self.initialWidth = 1000;
 
-					self.timeMarker = new TimeMarker(self.uberGroup, self.paper, self.initialWidth);
+						self.paper = new Snap("#score-comp-svg");
+						self.uberGroup = self.paper.group(self.paper, [])
+						                           .attr("id", "uber-group")
+						                           .attr("transform", "matrix(1 0 0 1 0 0)");
+
+						self.startTime = null;
+						self.endTime = null;
+						var it = content.iterator();
+						while (it.hasNext()) {
+							var el = it.next();
+							if (self.startTime == null) {
+								self.startTime = self.endTime = el.created;
+							} else {
+								if (el.created.getTime() < self.startTime.getTime()) {
+									self.startTime = el.created;
+								}
+								if (el.created.getTime() > self.endTime.getTime()) {
+									self.endTime = el.created;
+								}
+							}
+						}
+						
+						self.timeMarker = new TimeMarker(self.uberGroup, self.paper, self.initialWidth);
+	            	};
+	            	var widgetCreator = function(content:Content<Dynamic>):SnapElement {
+	            		return null;
+	            	}
+	            	self.contentSource = new ContentSource<SnapElement>(mapListener, beforeSetContent, widgetCreator);
 		        },
 
 		        destroy: function() {
+		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
+		        	self.contentSource.cleanup();
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

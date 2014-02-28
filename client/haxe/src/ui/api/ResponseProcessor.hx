@@ -126,6 +126,7 @@ class ResponseProcessor {
     }
 
     public static function filterContent(data:SynchronizationParms) {
+        if (data.content.length == 0 && !data.handle.isBlank()) {return;}
         var displayedContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
         displayedContent.addAll(data.content);
         EM.change(LoadFilteredContent, displayedContent);

@@ -78,9 +78,8 @@ class AgentUi {
 
         new InviteComp("#sideRight #sideRightInvite").inviteComp();
 
-        new ScoreComp("#score-div").scoreComp({
-            content: AppContext.CONTENT
-        });
+        new ScoreComp("#score-div").scoreComp();
+        
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();
         });

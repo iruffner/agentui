@@ -20,7 +20,7 @@ typedef ContentFeedOptions = {
 
 typedef ContentFeedWidgetDef = {
 	@:optional var options: ContentFeedOptions;
-	@:optional var contentSource:ContentSource<JQ>;
+	@:optional var contentSource:ContentSource<ContentComp>;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -45,8 +45,7 @@ extern class ContentFeed extends JQ {
 		        	selfElement.addClass("container " + Widgets.getWidgetClasses()).css("padding", "10px");
 		        	selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
 
-		        	var mapListener = function(content: Content<Dynamic>, jq: JQ, evt: EventType): Void {
-            			var contentComp = new ContentComp(jq);
+		        	var mapListener = function(content: Content<Dynamic>, contentComp:ContentComp, evt: EventType): Void {
 	            		if(evt.isAdd()) {
 	            			var contentComps = new JQ(".contentComp");
 	            			if (contentComps.length == 0) {
@@ -78,15 +77,15 @@ extern class ContentFeed extends JQ {
 	            		}
 	            	};
 
-	            	var beforeSetContent = function() {
+	            	var beforeSetContent = function(content:OSet<Content<Dynamic>>) {
 			        	selfElement.find(".contentComp").remove();
 	            	};
-	            	var widgetCreator = function(content:Content<Dynamic>):JQ {
+	            	var widgetCreator = function(content:Content<Dynamic>):ContentComp {
 	            		return new ContentComp("<div></div>").contentComp({
 	        				content: content
 	        			});
 	            	}
-	            	self.contentSource = new ContentSource<JQ>(mapListener, beforeSetContent, widgetCreator);
+	            	self.contentSource = new ContentSource<ContentComp>(mapListener, beforeSetContent, widgetCreator);
 		        },
 		        
 		        destroy: function() {

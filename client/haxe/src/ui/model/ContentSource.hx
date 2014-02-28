@@ -6,16 +6,15 @@ import ui.model.ModelObj;
 
 
 class ContentSource<T> {
-	var content: OSet<Content<Dynamic>>;
 	var filteredContent: ObservableSet<Content<Dynamic>>;
 	var contentMap: MappedSet<Content<Dynamic>, T>;
 	var mapListener: Content<Dynamic>->T->EventType->Void;
 	var widgetCreator:Content<Dynamic>->T;
 	var showingFilteredContent:Bool;
-	var onBeforeSetContent:Void->Void;
+	var onBeforeSetContent:OSet<Content<Dynamic>>->Void;
 
 	public function new(mapListener:Content<Dynamic>->T->EventType->Void, 
-		               onBeforeSetContent:Void->Void,
+		               onBeforeSetContent:OSet<Content<Dynamic>>->Void,
 		               widgetCreator:Content<Dynamic>->T) 
 	{
 		this.mapListener = mapListener;
@@ -61,7 +60,7 @@ class ContentSource<T> {
 	}
 
 	private function setContent(content:OSet<Content<Dynamic>>) {
-		this.onBeforeSetContent();
+		this.onBeforeSetContent(content);
 		this.cleanup();
 
     	this.contentMap = new MappedSet<Content<Dynamic>, T>(content, function(content: Content<Dynamic>): T {

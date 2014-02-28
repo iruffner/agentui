@@ -112,12 +112,11 @@ class ContentTimeLine {
 	private function cloneElement(ele:SnapElement):SnapElement {
 		var clone = ele.clone();
 		clone.attr({"contentType": ele.attr("contentType")});
-		clone.attr({"id": ele.attr("id") + "-clone"});
+		clone.id = ele.id + "-clone";
 		return clone;		
 	}
 
 	private function addContentElement(content:Content<Dynamic>, ele:SnapElement) {
-
 		ele = ele.click(function(evt:Event):Void {
 			var clone = cloneElement(ele);
 
@@ -125,7 +124,7 @@ class ContentTimeLine {
 				var bbox = clone.getBBox();
 				var cx = bbox.x + bbox.width/2;
 				var cy = bbox.y + bbox.height/2;
-				var g_id = clone.attr("id");
+				var g_id = clone.id;
 				var g_type = clone.attr("contentType");
 				clone.remove();
 				var ele:SnapElement = null;
@@ -143,11 +142,13 @@ class ContentTimeLine {
 					case "TEXT":
 						ele = paper.rect(bbox.x, bbox.y, bbox.width, bbox.height, 5, 5)
 		                			.attr({"class":"messageContentLarge"});
+		            default:
+		            	AppContext.LOGGER.warn("Unknown Content Type: " + g_type);
 				}
 
 				var g = paper.group(paper,[ele]);
 				g.attr({"contentType": g_type});
-				g.attr({"id": g_id});
+				g.id = g_id;
 				g.click(function(evt:Event){
 					g.remove();
 				});
@@ -204,7 +205,9 @@ class ContentTimeLine {
 			height: ele_height
 		};
 		var icon = Icons.messageIcon(bbox);
-		return paper.group(paper, [rect,icon]);
+		var g = paper.group(paper, [rect,icon]);
+		g.attr("contentType", "TEXT");
+		return g;
 	}
 
 	private function createImageElement(content:ImageContent, x:Float, y:Float, ele_width:Float, ele_height:Float):SnapElement {
@@ -217,14 +220,18 @@ class ContentTimeLine {
 			height: ele_height
 		};
 		var icon = Icons.imageIcon(bbox);
-		return paper.group(paper, [rect,icon]);
+		var g = paper.group(paper, [rect,icon]);
+		g.attr("contentType", "IMAGE");
+		return g;
 	}
 
 	private function createLinkElement(content:UrlContent, x:Float, y:Float, radius:Float):SnapElement {
 		var hex = Shapes.createHexagon(paper, x, y, radius)
 		                .attr({"class":"urlContent"});
 		var icon = Icons.linkIcon(hex.getBBox());
-		return paper.group(paper, [hex, icon]);
+		var g = paper.group(paper, [hex, icon]);
+		g.attr("contentType", "URL");
+		return g;
 	}
 
 	private function createAudioElement(content:AudioContent, x:Float, y:Float, rx:Float, ry:Float):SnapElement {
@@ -232,6 +239,8 @@ class ContentTimeLine {
 			               .attr({"class":"audioEllipse"});
 		var icon = Icons.audioIcon(ellipse.getBBox());
 
-		return paper.group(paper, [ellipse, icon]);
+		var g = paper.group(paper, [ellipse, icon]);
+		g.attr("contentType", "AUDIO");
+		return g;
 	}
 }

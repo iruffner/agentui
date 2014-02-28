@@ -4401,7 +4401,7 @@ ui.AgentUi.start = function() {
 	new $("#userId").AliasComp();
 	new $("#postInput").postComp();
 	new $("#sideRight #sideRightInvite").inviteComp();
-	new $("#score-div").scoreComp({ content : ui.AppContext.CONTENT});
+	new $("#score-div").scoreComp();
 	new $("body").click(function(evt) {
 		new $(".nonmodalPopup").hide();
 	});
@@ -5333,6 +5333,7 @@ ui.api.ResponseProcessor.grantAccess = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.AccessGranted);
 }
 ui.api.ResponseProcessor.filterContent = function(data) {
+	if(data.content.length == 0 && !m3.helper.StringHelper.isBlank(data.handle)) return;
 	var displayedContent = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
 	displayedContent.addAll(data.content);
 	ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,displayedContent);
@@ -5533,7 +5534,7 @@ ui.model.ContentSource.prototype = {
 	}
 	,setContent: function(content) {
 		var _g = this;
-		this.onBeforeSetContent();
+		this.onBeforeSetContent(content);
 		this.cleanup();
 		this.contentMap = new m3.observable.MappedSet(content,function(content1) {
 			return _g.widgetCreator(content1);
@@ -6542,48 +6543,56 @@ ui.widget.score.ContentTimeLine.prototype = {
 	createAudioElement: function(content,x,y,rx,ry) {
 		var ellipse = this.paper.ellipse(x,y,rx,ry).attr({ 'class' : "audioEllipse"});
 		var icon = ui.widget.score.Icons.audioIcon(ellipse.getBBox());
-		return (function($this) {
+		var g = (function($this) {
 			var $r;
 			var e123 = [ellipse,icon];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
+		g.attr("contentType","AUDIO");
+		return g;
 	}
 	,createLinkElement: function(content,x,y,radius) {
 		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,radius).attr({ 'class' : "urlContent"});
 		var icon = ui.widget.score.Icons.linkIcon(hex.getBBox());
-		return (function($this) {
+		var g = (function($this) {
 			var $r;
 			var e123 = [hex,icon];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
+		g.attr("contentType","URL");
+		return g;
 	}
 	,createImageElement: function(content,x,y,ele_width,ele_height) {
 		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "imageContent"});
 		var bbox = { cx : x, cy : y, width : ele_height, height : ele_height};
 		var icon = ui.widget.score.Icons.imageIcon(bbox);
-		return (function($this) {
+		var g = (function($this) {
 			var $r;
 			var e123 = [rect,icon];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
+		g.attr("contentType","IMAGE");
+		return g;
 	}
 	,createTextElement: function(content,x,y,ele_width,ele_height) {
 		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "messageContent"});
 		var bbox = { cx : x, cy : y, width : ele_height, height : ele_height};
 		var icon = ui.widget.score.Icons.messageIcon(bbox);
-		return (function($this) {
+		var g = (function($this) {
 			var $r;
 			var e123 = [rect,icon];
 			var me123 = $this.paper;
 			$r = me123.group.apply(me123, e123);
 			return $r;
 		}(this));
+		g.attr("contentType","TEXT");
+		return g;
 	}
 	,splitText: function(text,max_chars,max_lines) {
 		if(max_lines == null) max_lines = 0;
@@ -6611,7 +6620,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 				var bbox = clone.getBBox();
 				var cx = bbox.x + bbox.width / 2;
 				var cy = bbox.y + bbox.height / 2;
-				var g_id = clone.attr("id");
+				var g_id = clone.id;
 				var g_type = clone.attr("contentType");
 				clone.remove();
 				var ele1 = null;
@@ -6628,6 +6637,8 @@ ui.widget.score.ContentTimeLine.prototype = {
 				case "TEXT":
 					ele1 = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,5,5).attr({ 'class' : "messageContentLarge"});
 					break;
+				default:
+					ui.AppContext.LOGGER.warn("Unknown Content Type: " + g_type);
 				}
 				var g = (function($this) {
 					var $r;
@@ -6637,7 +6648,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 					return $r;
 				}(this));
 				g.attr({ contentType : g_type});
-				g.attr({ id : g_id});
+				g.id = g_id;
 				g.click(function(evt1) {
 					g.remove();
 				});
@@ -6663,7 +6674,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 	,cloneElement: function(ele) {
 		var clone = ele.clone();
 		clone.attr({ contentType : ele.attr("contentType")});
-		clone.attr({ id : Std.string(ele.attr("id")) + "-clone"});
+		clone.id = ele.id + "-clone";
 		return clone;
 	}
 	,createContentElement: function(content) {
@@ -8291,8 +8302,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentFeed must be a div element");
 		selfElement.addClass("container " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
 		selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
-		var mapListener = function(content,jq,evt) {
-			var contentComp = new $(jq);
+		var mapListener = function(content,contentComp,evt) {
 			if(evt.isAdd()) {
 				var contentComps = new $(".contentComp");
 				if(contentComps.length == 0) new $("#postInput").after(contentComp); else {
@@ -8312,7 +8322,7 @@ var defineWidget = function() {
 				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 			} else if(evt.isUpdate()) ui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
 		};
-		var beforeSetContent = function() {
+		var beforeSetContent = function(content) {
 			selfElement.find(".contentComp").remove();
 		};
 		var widgetCreator = function(content) {
@@ -9237,23 +9247,40 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ScoreComp must be a div element");
 		selfElement.addClass("container shadow scoreComp");
-		self1.contentTimeLines = new haxe.ds.StringMap();
-		self1.options.content.listen(function(content,evt) {
+		var mapListener = function(content,ele,evt) {
 			if(evt.isAdd()) self1._addContent(content); else if(evt.isUpdate()) self1._updateContent(content); else if(evt.isDelete()) self1._deleteContent(content);
-		});
-		self1.initialWidth = 1000;
-		self1.paper = new Snap("#score-comp-svg");
-		self1.uberGroup = ((function($this) {
-			var $r;
-			var e123 = [];
-			var me123 = self1.paper;
-			$r = me123.group.apply(me123, e123);
-			return $r;
-		}(this))).attr("id","uber-group").attr("transform","matrix(1 0 0 1 0 0)");
-		self1.startTime = new Date(2012,1,1,0,0,0);
-		self1.endTime = new Date(2013,12,31,0,0,0);
-		self1.timeMarker = new ui.widget.score.TimeMarker(self1.uberGroup,self1.paper,self1.initialWidth);
+		};
+		var beforeSetContent = function(content) {
+			new $("#score-comp-svg").empty();
+			self1.contentTimeLines = new haxe.ds.StringMap();
+			self1.initialWidth = 1000;
+			self1.paper = new Snap("#score-comp-svg");
+			self1.uberGroup = ((function($this) {
+				var $r;
+				var e123 = [];
+				var me123 = self1.paper;
+				$r = me123.group.apply(me123, e123);
+				return $r;
+			}(this))).attr("id","uber-group").attr("transform","matrix(1 0 0 1 0 0)");
+			self1.startTime = null;
+			self1.endTime = null;
+			var it = content.iterator();
+			while(it.hasNext()) {
+				var el = it.next();
+				if(self1.startTime == null) self1.startTime = self1.endTime = el.get_created(); else {
+					if(el.get_created().getTime() < self1.startTime.getTime()) self1.startTime = el.get_created();
+					if(el.get_created().getTime() > self1.endTime.getTime()) self1.endTime = el.get_created();
+				}
+			}
+			self1.timeMarker = new ui.widget.score.TimeMarker(self1.uberGroup,self1.paper,self1.initialWidth);
+		};
+		var widgetCreator = function(content) {
+			return null;
+		};
+		self1.contentSource = new ui.model.ContentSource(mapListener,beforeSetContent,widgetCreator);
 	}, destroy : function() {
+		var self = this;
+		self.contentSource.cleanup();
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
