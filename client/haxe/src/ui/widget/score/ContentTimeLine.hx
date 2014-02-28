@@ -113,6 +113,7 @@ class ContentTimeLine {
 		var clone = ele.clone();
 		clone.attr({"contentType": ele.attr("contentType")});
 		clone.id = ele.id + "-clone";
+		clone.attr({"id": clone.id});
 		return clone;		
 	}
 
@@ -124,7 +125,7 @@ class ContentTimeLine {
 				var bbox = clone.getBBox();
 				var cx = bbox.x + bbox.width/2;
 				var cy = bbox.y + bbox.height/2;
-				var g_id = clone.id;
+				var g_id = clone.attr("id");
 				var g_type = clone.attr("contentType");
 				clone.remove();
 				var ele:SnapElement = null;
@@ -148,6 +149,7 @@ class ContentTimeLine {
 
 				var g = paper.group(paper,[ele]);
 				g.attr({"contentType": g_type});
+				g.attr({"id": g_id});
 				g.id = g_id;
 				g.click(function(evt:Event){
 					g.remove();
