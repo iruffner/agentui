@@ -5394,8 +5394,7 @@ ui.api.Synchronizer.prototype = {
 		var responseType = context[3];
 		this.parms.result = dataObj.result;
 		var data = dataObj.result;
-		if(js.Boot.__instanceof(data,String)) return;
-		switch(responseType) {
+		if(!js.Boot.__instanceof(data,String)) switch(responseType) {
 		case "agent":
 			if(data.length > 0) this.parms.agent = ui.AppContext.SERIALIZER.fromJsonX(data[0],ui.model.Agent);
 			break;
@@ -9228,14 +9227,19 @@ var defineWidget = function() {
 $.widget("ui.revokeAccessDialog",defineWidget());
 var defineWidget = function() {
 	return { _addContent : function(content) {
-		var self = this;
-		var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,content.aliasIid);
-		if(self.contentTimeLines.get(content.aliasIid) == null) {
-			var timeLine = new ui.widget.score.ContentTimeLine(self.paper,alias.profile,self.startTime.getTime(),self.endTime.getTime(),self.initialWidth);
-			self.contentTimeLines.set(content.aliasIid,timeLine);
+		try {
+			var self = this;
+			var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,content.aliasIid);
+			if(self.contentTimeLines.get(content.aliasIid) == null) {
+				if(self.startTime == null) self.startTime = self.endTime = content.get_created();
+				var timeLine = new ui.widget.score.ContentTimeLine(self.paper,alias.profile,self.startTime.getTime(),self.endTime.getTime(),self.initialWidth);
+				self.contentTimeLines.set(content.aliasIid,timeLine);
+			}
+			self.contentTimeLines.get(content.aliasIid).addContent(content);
+			self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
+		} catch( e ) {
+			ui.AppContext.LOGGER.error("error calling _addContent",e);
 		}
-		self.contentTimeLines.get(content.aliasIid).addContent(content);
-		self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
 	}, _deleteContent : function(content) {
 		var self = this;
 		var ctl = self.contentTimeLines.get(content.aliasIid);

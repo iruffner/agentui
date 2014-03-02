@@ -47,18 +47,22 @@ extern class ScoreComp extends JQ {
 			return {
 
 				_addContent: function(content:Content<Dynamic>): Void {
-		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
-	            	var alias = AppContext.MASTER_ALIASES.getElement(content.aliasIid);
- 	            	if (self.contentTimeLines.get(content.aliasIid) == null) {
- 	            		var timeLine = new ContentTimeLine(self.paper, alias.profile, 
- 	            			                               self.startTime.getTime(), 
- 	            			                               self.endTime.getTime(),
- 	            			                               self.initialWidth);
- 	            		self.contentTimeLines.set(content.aliasIid, timeLine);
-		            }
+					try {
+			        	var self: ScoreCompWidgetDef = Widgets.getSelf();
+		            	var alias = AppContext.MASTER_ALIASES.getElement(content.aliasIid);
+	 	            	if (self.contentTimeLines.get(content.aliasIid) == null) {
+	 	            		var timeLine = new ContentTimeLine(self.paper, alias.profile, 
+	 	            			                               self.startTime.getTime(), 
+	 	            			                               self.endTime.getTime(),
+	 	            			                               self.initialWidth);
+	 	            		self.contentTimeLines.set(content.aliasIid, timeLine);
+			            }
 
-	            	self.contentTimeLines.get(content.aliasIid).addContent(content);
-	            	self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
+		            	self.contentTimeLines.get(content.aliasIid).addContent(content);
+		            	self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
+		            } catch (e:Dynamic) {
+		            	AppContext.LOGGER.error("error calling _addContent", e);
+		            }
 				},
 
 				_deleteContent: function (content:Content<Dynamic>) {
