@@ -83,7 +83,7 @@ class Synchronizer {
 
         parms.result = dataObj.result;
         var data:Dynamic = dataObj.result;
-
+        if (Std.is(data, String)) {return;}
     	switch (responseType) {
             case "agent":
                 if (data.length > 0) {

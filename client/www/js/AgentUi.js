@@ -5394,6 +5394,7 @@ ui.api.Synchronizer.prototype = {
 		var responseType = context[3];
 		this.parms.result = dataObj.result;
 		var data = dataObj.result;
+		if(js.Boot.__instanceof(data,String)) return;
 		switch(responseType) {
 		case "agent":
 			if(data.length > 0) this.parms.agent = ui.AppContext.SERIALIZER.fromJsonX(data[0],ui.model.Agent);
