@@ -7336,7 +7336,7 @@ var defineWidget = function() {
 		self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
 		changeDiv.append(self.switchAliasLink);
 		self.switchAliasLink.click(function(evt) {
-			var aliasMenu = self._createAliasMenu(self,ui.AppContext.ALIASES);
+			var aliasMenu = self._createAliasMenu();
 			aliasMenu.show();
 			aliasMenu.position({ my : "left top", at : "right-6px center", of : selfElement});
 			evt.preventDefault();
@@ -7364,12 +7364,16 @@ var defineWidget = function() {
 			clone.insertBefore(new $(".ui-helper-clearfix",self.container));
 			self._setTarget(ui.widget.ConnectionAvatarHelper.getConnection(clone));
 		}});
-	}, _createAliasMenu : function(self,aliases) {
+	}, _createAliasMenu : function() {
+		var self = this;
 		new $("#userAliasMenu").remove();
 		var menu = new $("<ul id='userAliasMenu'></ul>");
 		menu.appendTo(self.container);
 		var menuOptions = [];
 		var menuOption;
+		var aliases = new m3.observable.SortedSet(ui.AppContext.ALIASES,function(a) {
+			return a.profile.name.toLowerCase();
+		});
 		var $it0 = aliases.iterator();
 		while( $it0.hasNext() ) {
 			var alias = $it0.next();

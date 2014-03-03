@@ -29,7 +29,7 @@ typedef AliasCompWidgetDef = {
 	var _setAlias: Alias->Void;
 	var _updateAliasWidgets: Alias->Void;
 	var _setTarget: Connection->Void;
-	var _createAliasMenu: AliasCompWidgetDef->OSet<Alias>->M3Menu;
+	var _createAliasMenu: Void->M3Menu;
 	var destroy: Void->Void;
 
 	@:optional var container: JQ;
@@ -75,7 +75,7 @@ extern class AliasComp extends JQ {
 	        		changeDiv.append(self.switchAliasLink);
 
 		        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
-		        		var aliasMenu = self._createAliasMenu(self, AppContext.ALIASES);
+		        		var aliasMenu = self._createAliasMenu();
 
 	        			aliasMenu.show();
 	        			aliasMenu.position({
@@ -125,7 +125,9 @@ extern class AliasComp extends JQ {
 						});
 		        },
 
-		       	_createAliasMenu: function(self: AliasCompWidgetDef, aliases:OSet<Alias>) : M3Menu {
+		       	_createAliasMenu: function() : M3Menu {
+		        	var self: AliasCompWidgetDef = Widgets.getSelf();
+
 		       		new JQ("#userAliasMenu").remove();
 
 		        	var menu: M3Menu = new M3Menu("<ul id='userAliasMenu'></ul>");
@@ -134,6 +136,10 @@ extern class AliasComp extends JQ {
 		        	var menuOptions:Array<MenuOption> = [];
 
 					var menuOption: MenuOption;
+
+					var aliases = new SortedSet<Alias>(AppContext.ALIASES, function(a:Alias):String {
+						return a.profile.name.toLowerCase();
+					});
 
 					for (alias in aliases) {
 						menuOption = {
