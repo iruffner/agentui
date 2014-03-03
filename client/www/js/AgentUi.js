@@ -5544,11 +5544,7 @@ ui.model.ContentSource.prototype = {
 	,onAliasLoaded: function(alias) {
 		this.showingFilteredContent = false;
 		var content;
-		if(ui.AppContext.ALIASES.delegate().get(alias.iid).rootLabelIid == ui.AppContext.getUberLabelIid()) content = ui.AppContext.CONTENT; else {
-			content = ui.AppContext.GROUPED_CONTENT.delegate().get(alias.iid);
-			if(content == null) content = ui.AppContext.GROUPED_CONTENT.addEmptyGroup(alias.iid);
-		}
-		this.setContent(content);
+		this.setContent(new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier));
 	}
 	,onLoadFilteredContent: function(content) {
 		if(this.showingFilteredContent) this.filteredContent.addAll(content.asArray()); else {
@@ -7908,7 +7904,20 @@ var defineWidget = function() {
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 			var dropper = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
 			var droppee = self.options.connection;
-			if(!dropper.equals(droppee)) ui.widget.DialogManager.requestIntroduction(dropper,droppee);
+			if(!dropper.equals(droppee)) {
+				var intro = null;
+				var $it1 = ui.AppContext.INTRODUCTIONS.iterator();
+				while( $it1.hasNext() ) {
+					var i = $it1.next();
+					if(i.aConnectionIid == dropper.iid && i.bConnectionIid == droppee.iid || i.bConnectionIid == dropper.iid && i.aConnectionIid == droppee.iid) {
+						intro = i;
+						break;
+					}
+				}
+				if(intro != null) {
+					if(intro.bState == ui.model.IntroductionState.NotResponded || intro.aState == ui.model.IntroductionState.NotResponded) m3.util.JqueryUtil.alert("There is already a pending introduction between these two aliases"); else if(intro.bState == ui.model.IntroductionState.Accepted && intro.aState == ui.model.IntroductionState.Accepted) m3.util.JqueryUtil.alert("These two aliases are already connected");
+				} else ui.widget.DialogManager.requestIntroduction(dropper,droppee);
+			}
 		}, tolerance : "pointer"});
 		var set = new m3.observable.FilteredSet(ui.AppContext.NOTIFICATIONS,function(n) {
 			return n.fromConnectionIid == self.options.connection.iid && n.kind == ui.model.NotificationKind.IntroductionRequest;
@@ -9040,6 +9049,10 @@ var defineWidget = function() {
 			});
 		};
 		var postButton = new $("<button>Post</button>").appendTo(selfElement).button().click(function(evt) {
+			if(tags.children(".label").length == 0) {
+				m3.util.JqueryUtil.alert("Labels are required.  Please add at least one label to this content.");
+				return;
+			}
 			if(textInput.isVisible()) {
 				var ta1 = new $("#textInput_ta");
 				doTextPostForElement(evt,ui.model.ContentType.TEXT,ta1);
@@ -9184,9 +9197,9 @@ var defineWidget = function() {
 		var lacls = ui.AppContext.GROUPED_LABELACLS.delegate().get(self1.options.connection.iid);
 		if(lacls == null) lacls = ui.AppContext.GROUPED_LABELACLS.addEmptyGroup(self1.options.connection.iid);
 		selfElement.append("<div style='margin-bottom:4px;'>To revoke access, check the label.</div>");
-		var $it1 = lacls.iterator();
-		while( $it1.hasNext() ) {
-			var labelAcl = $it1.next();
+		var $it2 = lacls.iterator();
+		while( $it2.hasNext() ) {
+			var labelAcl = $it2.next();
 			var laclDiv = new $("<div></div>").appendTo(selfElement);
 			new $("<input type=\"checkbox\" style=\"position:relative;top:-18px;\" id=\"cb-" + labelAcl.iid + "\"/>").appendTo(laclDiv);
 			new $("<div></div>").labelComp({ dndEnabled : false, labelIid : labelAcl.labelIid}).appendTo(laclDiv);
@@ -9231,7 +9244,6 @@ var defineWidget = function() {
 			var self = this;
 			var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,content.aliasIid);
 			if(self.contentTimeLines.get(content.aliasIid) == null) {
-				if(self.startTime == null) self.startTime = self.endTime = content.get_created();
 				var timeLine = new ui.widget.score.ContentTimeLine(self.paper,alias.profile,self.startTime.getTime(),self.endTime.getTime(),self.initialWidth);
 				self.contentTimeLines.set(content.aliasIid,timeLine);
 			}

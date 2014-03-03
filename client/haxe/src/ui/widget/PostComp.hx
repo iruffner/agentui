@@ -224,6 +224,11 @@ extern class PostComp extends JQ {
 		        							.appendTo(selfElement)
 		        							.button()
 		        							.click(function(evt: JQEvent): Void {
+		        								if (tags.children(".label").length == 0) {
+		        									JqueryUtil.alert("Labels are required.  Please add at least one label to this content.");
+		        									return;
+		        								}
+
 		        								if (textInput.isVisible()) {
 		        									var ta = new JQ("#textInput_ta");
 													doTextPostForElement(evt, ContentType.TEXT, ta);

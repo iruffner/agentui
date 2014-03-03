@@ -47,16 +47,7 @@ class ContentSource<T> {
 
     	var content:OSet<Content<Dynamic>>;
 
-    	// if we are showing content for the uber alias, get all content
-    	if (AppContext.ALIASES.delegate().get(alias.iid).rootLabelIid == AppContext.getUberLabelIid()) {
-    		content = AppContext.CONTENT;
-    	} else {
-        	content = AppContext.GROUPED_CONTENT.delegate().get(alias.iid);
-        	if (content == null) {
-        		content = AppContext.GROUPED_CONTENT.addEmptyGroup(alias.iid);
-        	}
-        }
-        setContent(content);
+        setContent(new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier));
 	}
 
 	private function setContent(content:OSet<Content<Dynamic>>) {

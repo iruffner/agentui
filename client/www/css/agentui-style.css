@@ -1109,13 +1109,12 @@ body {
 -----------------------------------------------------------------------------*/
 
 #score-div {
-	height: 100%;
 	 width: 100%;
+  overflow: auto;
 }
 
 #score-comp-svg {
-	height: 100%;
-	 width: 100%;
+	 width: 1200px;
 	border: 1px solid #cccccc;
 }
 

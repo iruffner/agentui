@@ -98,7 +98,24 @@ extern class ConnectionComp extends JQ {
 				      		var droppee:Connection = self.options.connection;
 
 				      		if (!dropper.equals(droppee)) {
-					      		ui.widget.DialogManager.requestIntroduction(dropper, droppee);
+				      			var intro:Introduction = null;
+				      			// Check to see if there is already an introduction in progress
+				      			for (i in AppContext.INTRODUCTIONS) {
+				      				if ((i.aConnectionIid == dropper.iid && i.bConnectionIid == droppee.iid) ||
+				      					(i.bConnectionIid == dropper.iid && i.aConnectionIid == droppee.iid)) {
+				      					intro = i;
+				      					break;
+				      				}
+				      			}
+				      			if (intro != null) {
+				      				if (intro.bState == IntroductionState.NotResponded || intro.aState == IntroductionState.NotResponded) {
+					      				m3.util.JqueryUtil.alert("There is already a pending introduction between these two aliases");
+									} else if (intro.bState == IntroductionState.Accepted && intro.aState == IntroductionState.Accepted) {
+					      				m3.util.JqueryUtil.alert("These two aliases are already connected");
+									}
+				      			} else {
+					      			ui.widget.DialogManager.requestIntroduction(dropper, droppee);
+					      		}
 					      	}
 				      	},
 				      	tolerance: "pointer"
