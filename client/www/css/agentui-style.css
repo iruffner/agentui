@@ -746,7 +746,7 @@ body {
 
 	.connectionsList {
 		margin-top: 10px;
-		padding: 3px;
+		padding: 3px !important;
 		min-height: 250px;
 	}
 
