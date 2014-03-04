@@ -32,7 +32,7 @@ class ModelObj {
 class ModelObjWithIid extends ModelObj {
 	// Added here for all models
 	public var deleted:Bool;
-	public var agentId: String;
+	@:optional public var agentId: String;
 	public var iid: String;
 
 	public function new() {
@@ -49,7 +49,7 @@ class ModelObjWithIid extends ModelObj {
 
 class Agent extends ModelObj {
 	public var iid: String;
-	public var agentId: String;
+	@:optional public var agentId: String;
 	public var uberAliasIid: String;
   	public var name: String;
 	public var deleted: Bool;
