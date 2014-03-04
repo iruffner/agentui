@@ -1,3 +1,4 @@
+
 body {
 	text-align: center;
 	margin-left: 5px;
@@ -740,16 +741,16 @@ body {
 			width: 160px;
 		}
 
-	/* #connections
+	/* .connectionsList
 	-----------------------------------------------------------------------------*/
 
-	#connections {
+	.connectionsList {
 		margin-top: 10px;
 		padding: 3px;
 		min-height: 250px;
 	}
 
-		#connections .connection {
+		.connectionsList .connection {
 			/*float: left;*/
 			margin: 3px auto;
 			width: 100%;
@@ -758,31 +759,31 @@ body {
 			position: relative;
 		}
 
-			#connections .connection div.avatar {
+			.connectionsList .connection div.avatar {
 				/*border-radius: 50%; */
 				max-width: 60px;
 				margin-top: -10px;
 			}
 
-			#connections .connection div.avatar img, .connectionDraggingImg, .connectionAvatar img {
+			.connectionsList .connection div.avatar img, .connectionDraggingImg, .connectionAvatar img {
 				max-width: 60px;
 				border-radius: 50%;
 				border: 1px solid #5c9ccc;
 			}
 
-			#connections .connection .avatar, #connections .connection .name {
+			.connectionsList .connection .avatar, .connectionsList .connection .name {
 				margin-top: 20px;
 			}
 
-			#connections .connection:nth-child(odd) div.avatar, #connections .connection:nth-child(even) div.name {
+			.connectionsList .connection:nth-child(odd) div.avatar, .connectionsList .connection:nth-child(even) div.name {
 				float: left;
 			}
 
-			#connections .connection:nth-child(even) div.avatar, #connections .connection:nth-child(odd) div.name {
+			.connectionsList .connection:nth-child(even) div.avatar, .connectionsList .connection:nth-child(odd) div.name {
 				float: right;
 			}
 
-			#connections .connection .notifications {
+			.connectionsList .connection .notifications {
 				position: absolute;
 				border-radius: 50%;
 				background: red;
@@ -793,12 +794,12 @@ body {
 				visibility: hidden;
 			}
 
-			#connections .connection:nth-child(odd) div.notifications {
+			.connectionsList .connection:nth-child(odd) div.notifications {
 				top: -6px;
 				left: 195px;
 			}
 
-			#connections .connection:nth-child(even) div.notifications {
+			.connectionsList .connection:nth-child(even) div.notifications {
 				top: -6px;
 				left: 0px;
 			}

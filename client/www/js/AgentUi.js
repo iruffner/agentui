@@ -2136,12 +2136,6 @@ js.Boot.__cast = function(o,t) {
 js.Browser = function() { }
 $hxClasses["js.Browser"] = js.Browser;
 js.Browser.__name__ = ["js","Browser"];
-js.Lib = function() { }
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
-}
 js.d3 = {}
 js.d3._D3 = {}
 js.d3._D3.InitPriority = function() { }
@@ -4394,7 +4388,7 @@ ui.AgentUi.start = function() {
 		ui1.newPanel.height(max_height);
 	}});
 	new $("#sideRight #chat").messagingComp();
-	new $("#connections").connectionsList();
+	new $("#connectionsTabsDiv").connectionsTabs();
 	new $("#labelsList").labelsList();
 	new $("#filter").filterComp();
 	new $("#feed").contentFeed();
@@ -5056,7 +5050,7 @@ ui.api.EventDelegate.prototype = {
 		ui.model.EM.addListener(ui.model.EMEvent.UserLogout,new ui.model.EMListener(function(c) {
 			_g.protocolHandler.deregisterListeners();
 		}));
-		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
+		ui.model.EM.addListener(ui.model.EMEvent.TargetChange,new ui.model.EMListener(function(conn) {
 		}));
 		ui.model.EM.addListener(ui.model.EMEvent.BACKUP,new ui.model.EMListener(function(n) {
 			_g.protocolHandler.backup();
@@ -5617,7 +5611,7 @@ ui.model.EMListener.prototype = {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","CreateAgent","AgentCreated","AGENT","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TARGET_CHANGE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","CreateAgent","AgentCreated","AGENT","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
@@ -5708,9 +5702,9 @@ ui.model.EMEvent.RespondToIntroduction.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",29];
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TARGET_CHANGE = ["TARGET_CHANGE",30];
-ui.model.EMEvent.TARGET_CHANGE.toString = $estr;
-ui.model.EMEvent.TARGET_CHANGE.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.TargetChange = ["TargetChange",30];
+ui.model.EMEvent.TargetChange.toString = $estr;
+ui.model.EMEvent.TargetChange.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.BACKUP = ["BACKUP",31];
 ui.model.EMEvent.BACKUP.toString = $estr;
 ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
@@ -7425,7 +7419,7 @@ var defineWidget = function() {
 		self.switchAliasLink.hide();
 		self.userIdTxt.html(conn.data.name);
 		ui.AppContext.TARGET = conn;
-		ui.model.EM.change(ui.model.EMEvent.TARGET_CHANGE,conn);
+		ui.model.EM.change(ui.model.EMEvent.TargetChange,conn);
 	}, destroy : function() {
 		var self = this;
 		if(self.aliasSet != null) self.aliasSet.removeListener(self._onupdate);
@@ -7968,18 +7962,13 @@ var defineWidget = function() {
 };
 $.widget("ui.connectionComp",defineWidget());
 var defineWidget = function() {
-	return { options : { itemsClass : null}, _create : function() {
+	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsList must be a div element");
-		selfElement.addClass(m3.widget.Widgets.getWidgetClasses());
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
-			if(ui.AppContext.GROUPED_CONNECTIONS.delegate().get(alias.iid) == null) ui.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(alias.iid);
-			self._setConnections(ui.AppContext.GROUPED_CONNECTIONS.delegate().get(alias.iid));
-		},"ConnectionsList-Alias"));
-		ui.model.EM.addListener(ui.model.EMEvent.TARGET_CHANGE,new ui.model.EMListener(function(conn) {
-			js.Lib.alert("TODO...");
-		},"ConnectionsList-TargetChange"));
+		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionsList");
+		self.id = selfElement.attr("id");
+		var spacer = new $("<div id=\"" + self.id + "-spacer\" class=\"sideRightSpacer spacer clear\"></div>").appendTo(selfElement);
 		var menu = new $("<ul id='label-action-menu'></ul>");
 		menu.appendTo(selfElement);
 		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "Revoke Access...", icon : "ui-icon-circle-plus", action : function(evt,m) {
@@ -8002,12 +7991,17 @@ var defineWidget = function() {
 			evt.stopPropagation();
 			return false;
 		});
-	}, _mapListener : function(conn,connComp,evt) {
-		if(evt.isAdd()) {
-			var spacer = new $("#sideRightSpacer");
-			spacer.before(connComp);
-		} else if(evt.isUpdate()) ui.widget.ConnectionCompHelper.update(connComp,conn); else if(evt.isDelete()) connComp.remove();
-		ui.model.EM.change(ui.model.EMEvent.FitWindow);
+		self._mapListener = function(conn,connComp,evt) {
+			if(evt.isAdd()) spacer.before(connComp); else if(evt.isUpdate()) ui.widget.ConnectionCompHelper.update(connComp,conn); else if(evt.isDelete()) connComp.remove();
+			ui.model.EM.change(ui.model.EMEvent.FitWindow);
+		};
+		var connections = null;
+		if(selfElement.attr("id") == "connections-all") connections = ui.AppContext.CONNECTIONS; else {
+			var aliasIid = selfElement.attr("id").split("-")[1];
+			connections = ui.AppContext.GROUPED_CONNECTIONS.delegate().get(aliasIid);
+			if(connections == null) connections = ui.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(aliasIid);
+		}
+		self._setConnections(connections);
 	}, _setConnections : function(connections) {
 		var self = this;
 		var selfElement = this.element;
@@ -8030,6 +8024,40 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.connectionsList",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsTabs must be a div element");
+		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionTabs");
+		new $("#connectionsTabs").tabs();
+		self._listener = function(a,evt) {
+			if(evt.isAdd()) self._addTab(a.iid,a.profile.name); else if(evt.isDelete()) {
+				new $("#tab-" + a.iid).remove();
+				new $("#connections-" + a.iid).remove();
+			}
+		};
+		self.aliases = new m3.observable.SortedSet(ui.AppContext.ALIASES,function(a) {
+			return a.profile.name.toLowerCase();
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.AGENT,new ui.model.EMListener(function(n) {
+			self._addTab("all","All");
+			new $("#tab-all").click();
+			self.aliases.listen(self._listener);
+		}));
+	}, _addTab : function(iid,name) {
+		var self = this;
+		var tabs = new $("#connectionsTabs");
+		var ul = new $("#connectionsTabsHeader");
+		var tab = new $("<li><a id='tab-" + iid + "' href='#connections-" + iid + "'>" + name + "</a></li>").appendTo(ul);
+		var connectionDiv = new $("<div id='connections-" + iid + "'></div>").appendTo(tabs);
+		var cl = new $("#connections-" + iid).connectionsList();
+		tabs.tabs("refresh");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.connectionsTabs",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		$.API_KEY = "2e63db21c89b06a54fd2eac5fd96e488";

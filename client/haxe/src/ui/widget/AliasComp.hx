@@ -221,7 +221,7 @@ extern class AliasComp extends JQ {
 	        		self.userIdTxt.html(conn.data.name);
 
 		        	AppContext.TARGET = conn;
-	        		EM.change(EMEvent.TARGET_CHANGE, conn);
+	        		EM.change(EMEvent.TargetChange, conn);
         		},
 
 		        destroy: function() {

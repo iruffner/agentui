@@ -127,7 +127,7 @@ enum EMEvent {
 	RespondToIntroduction;
 	RespondToIntroduction_RESPONSE;
 
-	TARGET_CHANGE;
+	TargetChange;
 
 	BACKUP;
 	RESTORE;

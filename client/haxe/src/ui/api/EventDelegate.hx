@@ -100,7 +100,7 @@ class EventDelegate {
             protocolHandler.deregisterListeners();
         }));
 
-        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn:Connection):Void{
+        EM.addListener(EMEvent.TargetChange, new EMListener(function(conn:Connection):Void{
             // Do something
         }));
 

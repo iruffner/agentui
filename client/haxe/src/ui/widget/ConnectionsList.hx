@@ -20,15 +20,15 @@ typedef ConnectionsListOptions = {
 }
 
 typedef ConnectionsListWidgetDef = {
-	var options: ConnectionsListOptions;
-	// var connections: ObservableSet<Connection>;
+	@:optional var options: ConnectionsListOptions;
 	@:optional var connectionsMap: MappedSet<Connection, ConnectionComp>;
 	@:optional var selectedConnectionComp:ConnectionComp;
+	@:optional var id:String;
 	var _create: Void->Void;
 	var _setConnections: OSet<Connection>->Void;
 	var destroy: Void->Void;
 	var filterConnections: String->Void;
-	var _mapListener: Connection->ConnectionComp->EventType->Void;
+	@:optional var _mapListener: Connection->ConnectionComp->EventType->Void;
 }
 
 class ConnectionListHelper {
@@ -47,31 +47,16 @@ extern class ConnectionsList extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->ConnectionsListWidgetDef = function(): ConnectionsListWidgetDef {
 			return {
-		        options: {
-		            itemsClass: null
-		        },
-
 		        _create: function(): Void {
 		        	var self: ConnectionsListWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 					if(!selfElement.is("div")) {
 		        		throw new Exception("Root of ConnectionsList must be a div element");
 		        	}
-
-		        	selfElement.addClass(Widgets.getWidgetClasses());
-
-		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
-		        			if (AppContext.GROUPED_CONNECTIONS.delegate().get(alias.iid) == null) {
-		        				AppContext.GROUPED_CONNECTIONS.addEmptyGroup(alias.iid);
-		        			}
-			                self._setConnections(AppContext.GROUPED_CONNECTIONS.delegate().get(alias.iid));
-			            }, "ConnectionsList-Alias")
-			        );
-
-			        EM.addListener(EMEvent.TARGET_CHANGE, new EMListener(function(conn: Connection) {
-			        	js.Lib.alert("TODO...");
-			            }, "ConnectionsList-TargetChange")
-			        );
+		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionsList");
+		        	self.id = selfElement.attr("id");
+		        	var spacer = new JQ('<div id="' + self.id + '-spacer" class="sideRightSpacer spacer clear"></div>')
+		        		.appendTo(selfElement);
 
 		        	var menu: M3Menu = new M3Menu("<ul id='label-action-menu'></ul>");
 		        	menu.appendTo(selfElement);
@@ -130,19 +115,30 @@ extern class ConnectionsList extends JQ {
 	        			evt.stopPropagation();
 	        			return false;
 					});
-		        },
 
-		        _mapListener: function(conn: Connection, connComp: ConnectionComp, evt: EventType): Void {
-            		if(evt.isAdd()) {
-			        	var spacer: JQ = new JQ("#sideRightSpacer");
-            			spacer.before(connComp);
-            		} else if (evt.isUpdate()) {
-            			connComp.update(conn);
-            		} else if (evt.isDelete()) {
-            			connComp.remove();
-            		}
-					EM.change(EMEvent.FitWindow);
-            	},
+			        self._mapListener = function(conn: Connection, connComp: ConnectionComp, evt: EventType): Void {
+	            		if(evt.isAdd()) {
+	            			spacer.before(connComp);
+	            		} else if (evt.isUpdate()) {
+	            			connComp.update(conn);
+	            		} else if (evt.isDelete()) {
+	            			connComp.remove();
+	            		}
+						EM.change(EMEvent.FitWindow);
+	            	};
+
+		        	var connections:OSet<Connection> = null;
+		        	if (selfElement.attr("id") == "connections-all") {
+		        		connections = AppContext.CONNECTIONS;
+		        	} else {
+		        		var aliasIid = selfElement.attr("id").split("-")[1];
+		        		connections = AppContext.GROUPED_CONNECTIONS.delegate().get(aliasIid);
+	        			if (connections == null) {
+	        				connections = AppContext.GROUPED_CONNECTIONS.addEmptyGroup(aliasIid);
+	        			}
+		        	}
+		            self._setConnections(connections);
+		        },
 
 		        _setConnections: function(connections: OSet<Connection>): Void {
 		        	var self: ConnectionsListWidgetDef = Widgets.getSelf();

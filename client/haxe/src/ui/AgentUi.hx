@@ -10,6 +10,7 @@ import m3.serialization.Serialization;
 import ui.api.BennuHandler;
 import ui.api.ProtocolHandler;
 import ui.widget.*;
+import ui.widget.ConnectionsTabs;
 import ui.widget.score.ScoreComp;
 
 using m3.helper.ArrayHelper;
@@ -64,7 +65,7 @@ class AgentUi {
         });
         new MessagingComp("#sideRight #chat").messagingComp();
 
-        new ConnectionsList("#connections").connectionsList();
+        new ConnectionsTabs("#connectionsTabsDiv").connectionsTabs();
 
         new LabelsList("#labelsList").labelsList();
 
