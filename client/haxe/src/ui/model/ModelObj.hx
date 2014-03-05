@@ -66,7 +66,7 @@ class Profile extends ModelObj {
 
 	public function new(?name:String, ?imgSrc:String) {
 		super();
-		this.name   = (name == null)   ? "Qoid"          : name;
+		this.name   = (name == null)   ? "Unknown"       : name;
 		this.imgSrc = (imgSrc == null) ? "media/koi.jpg" : imgSrc;
 	}
 }
@@ -269,7 +269,8 @@ class ContentData {
 
 class Content<T:(ContentData)> extends ModelObjWithIid {
 	public var contentType: ContentType;
-	public var aliasIid: String;
+	@:optional public var aliasIid: String;
+	@:optional public var connectionIid: String;
 
 	private var data:Dynamic;
 	@:transient public var props: T;

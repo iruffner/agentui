@@ -36,6 +36,13 @@ class ResponseProcessor {
                         var params = new SynchronizationParms();
                         for (result in cast(data.data.results, Array<Dynamic>)) {
                             var content:Content<Dynamic> = AppContext.SERIALIZER.fromJsonX(result, Content);
+                            if (data.data.aliasIid != null) {
+                                content.aliasIid = data.data.aliasIid;
+                                content.connectionIid = null;
+                            } else if (data.data.connectionIid != null) {
+                                content.aliasIid = null;
+                                content.connectionIid = data.data.connectionIid;                                
+                            }
                             params.content.push(content);
                         }
                         filterContent(params);

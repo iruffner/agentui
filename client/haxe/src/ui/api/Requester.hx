@@ -168,7 +168,11 @@ class LongPollingRequest extends BaseRequest implements Requester {
 		var wrappedSuccessFcn = function(data: Dynamic, textStatus: String, jqXHR: JQXHR) {
 			SystemStatus.instance().onMessage();
 			if (running) {
-				successFcn(data, textStatus, jqXHR);
+				try {
+					successFcn(data, textStatus, jqXHR);
+				} catch (e:Exception) {
+					AppContext.LOGGER.error("Error while polling", e);
+				}
 			}
 		};
 		var errorFcn = function(jqXHR:JQXHR, textStatus:String, errorThrown:String): Void {

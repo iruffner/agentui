@@ -177,10 +177,6 @@ extern class FilterComp extends JQ {
 			        		}
 		        		});
 
-		        		if (aliasIids.length == 0) {
-		        			aliasIids.push(AppContext.currentAlias.iid);
-		        		}
-
 						var filterData = new FilterData("content");
 						filterData.filter = new Filter(root);
 						filterData.connectionIids = connectionIids;

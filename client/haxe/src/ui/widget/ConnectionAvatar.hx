@@ -112,7 +112,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        	selfElement.attr("id", id);
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable");
 
-		            var img: JQ = new JQ("<img src='media/default_avatar.jpg' class='shadow'/>");
+		            var img: JQ = new JQ("<img class='shadow'/>");
 		            selfElement.append(img);
 
 		            self._updateWidgets(new Profile());
@@ -138,7 +138,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        		}
 		        		self.filteredSetAlias.listen(self._onUpdateAlias);
 		        	} else {
-		        		throw new Exception("connectionIid or aliasIid must be set");
+		        		AppContext.LOGGER.warn("Both connectionIid and aliasIid are not set for Avatar");
 		        	}
 
 		            cast(selfElement, JQTooltip).tooltip();
