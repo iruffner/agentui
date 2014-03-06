@@ -67,7 +67,7 @@ extern class ScoreComp extends JQ {
 					try {
 			        	var self: ScoreCompWidgetDef = Widgets.getSelf();
 	 	            	if (self.contentTimeLines.get(content.aliasIid) == null) {
-	 	            		var timeLine = new ContentTimeLine(self.paper, self._getProfile(connection), 
+	 	            		var timeLine = new ContentTimeLine(self.paper, self._getProfile(content), 
 	 	            			                               self.startTime.getTime(), 
 	 	            			                               self.endTime.getTime(),
 	 	            			                               self.viewBoxWidth);
