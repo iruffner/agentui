@@ -26,10 +26,9 @@ class ContentSource<T> {
     		                                               "ContentSource-AliasLoaded")
     	);
 
-    	EM.addListener(EMEvent.LoadFilteredContent, new EMListener(onLoadFilteredContent, 
+    	EM.addListener(EMEvent.LoadFilteredContent, new EMListener(this.onLoadFilteredContent, 
     		                                             "ContentSource-LoadFilteredContent")
     	);
-
 	}
 
 	private function onLoadFilteredContent(content: ObservableSet<Content<Dynamic>>): Void {
@@ -44,9 +43,6 @@ class ContentSource<T> {
 
 	private function onAliasLoaded(alias:Alias) {
 		this.showingFilteredContent = false;
-
-    	var content:OSet<Content<Dynamic>>;
-
         setContent(new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier));
 	}
 

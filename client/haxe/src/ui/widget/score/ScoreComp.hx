@@ -24,12 +24,14 @@ typedef ScoreCompWidgetDef = {
 	@:optional var uberGroup:SnapElement;
 	@:optional var startTime:Date;
 	@:optional var endTime:Date;
-	@:optional var initialWidth:Float;
+	@:optional var viewBoxWidth:Float;
 	@:optional var contentSource:ContentSource<SnapElement>;
 
+	var _getProfile:Content<Dynamic>->Profile;
 	var _addContent:Content<Dynamic>->Void;
 	var _deleteContent:Content<Dynamic>->Void;
 	var _updateContent:Content<Dynamic>->Void;
+	var _updateTimeLines:Void->Void;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -45,21 +47,48 @@ extern class ScoreComp extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->ScoreCompWidgetDef = function(): ScoreCompWidgetDef {
 			return {
+				_updateTimeLines: function():Void {
+
+				},
+
+				_getProfile:function(content:Content<Dynamic>):Profile {
+		            var alias = AppContext.MASTER_ALIASES.getElement(content.aliasIid);
+		            if (alias != null) {
+		            	return alias.profile;
+		            }
+		            var connection = AppContext.CONNECTIONS.getElement(content.connectionIid);
+		            if (connection != null) {
+		            	return connection.data;
+		            }
+		            return new Profile();
+				},
 
 				_addContent: function(content:Content<Dynamic>): Void {
 					try {
 			        	var self: ScoreCompWidgetDef = Widgets.getSelf();
-		            	var alias = AppContext.MASTER_ALIASES.getElement(content.aliasIid);
 	 	            	if (self.contentTimeLines.get(content.aliasIid) == null) {
-	 	            		var timeLine = new ContentTimeLine(self.paper, alias.profile, 
+	 	            		var timeLine = new ContentTimeLine(self.paper, self._getProfile(connection), 
 	 	            			                               self.startTime.getTime(), 
 	 	            			                               self.endTime.getTime(),
-	 	            			                               self.initialWidth);
+	 	            			                               self.viewBoxWidth);
 	 	            		self.contentTimeLines.set(content.aliasIid, timeLine);
 			            }
 
 		            	self.contentTimeLines.get(content.aliasIid).addContent(content);
 		            	self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
+
+		            	var updateTimelines = false;
+		            	if (self.startTime.getTime() > content.created.getTime()) {
+		            		self.startTime = content.created;
+		            		updateTimelines = true;
+		            	}
+		            	if (self.endTime.getTime() < content.created.getTime()) {
+		            		self.endTime = content.created;
+		            		updateTimelines = true;
+		            	}
+		            	if (updateTimelines) {
+		            		self._updateTimeLines();
+		            	}
 		            } catch (e:Dynamic) {
 		            	AppContext.LOGGER.error("error calling _addContent", e);
 		            }
@@ -103,7 +132,7 @@ extern class ScoreComp extends JQ {
 
 		        		self.contentTimeLines = new StringMap<ContentTimeLine>();
 
-			        	self.initialWidth = 1000;
+			        	self.viewBoxWidth = 1000;
 
 						self.paper = new Snap("#score-comp-svg");
 						self.uberGroup = self.paper.group(self.paper, [])
@@ -116,7 +145,8 @@ extern class ScoreComp extends JQ {
 						while (it.hasNext()) {
 							var el = it.next();
 							if (self.startTime == null) {
-								self.startTime = self.endTime = el.created;
+								self.startTime = el.created;
+								self.endTime   = Date.fromTime(self.startTime.getTime() + DateTools.days(1));
 							} else {
 								if (el.created.getTime() < self.startTime.getTime()) {
 									self.startTime = el.created;
@@ -126,8 +156,11 @@ extern class ScoreComp extends JQ {
 								}
 							}
 						}
-						
-						self.timeMarker = new TimeMarker(self.uberGroup, self.paper, self.initialWidth);
+
+						self.startTime = Date.fromTime(self.startTime.getTime() - DateTools.hours(2));
+						self.endTime   = Date.fromTime(self.endTime.getTime()   + DateTools.hours(2));
+						self.timeMarker = new TimeMarker(self.uberGroup, self.paper, 
+							                  self.viewBoxWidth, self.startTime, self.endTime);
 	            	};
 	            	var widgetCreator = function(content:Content<Dynamic>):SnapElement {
 	            		return null;

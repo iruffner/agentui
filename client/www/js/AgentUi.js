@@ -6348,7 +6348,7 @@ ui.model.LabelNode.prototype = $extend(ui.model.ContentNode.prototype,{
 		var _g1 = 0, _g = this.labelPath.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			ret += "'" + this.labelPath[i] + "'";
+			ret += "'" + StringTools.replace(this.labelPath[i],"'","\\'") + "'";
 			if(i < this.labelPath.length - 1) ret += ",";
 		}
 		ret += ")";
