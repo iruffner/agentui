@@ -5,6 +5,7 @@ import m3.exception.Exception;
 
 import m3.observable.OSet.ObservableSet;
 
+using StringTools;
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
 
@@ -77,7 +78,7 @@ class LabelNode extends ContentNode<Label> {
 	override public function getQuery(): String {
 		var ret = "hasLabelPath(";
 		for (i in 0...labelPath.length) {
-			ret += "'" + labelPath[i] + "'";
+			ret += "'" + labelPath[i].replace("'", "\\'") + "'";
 			if (i < labelPath.length - 1) {
 				ret += ",";
 			}
