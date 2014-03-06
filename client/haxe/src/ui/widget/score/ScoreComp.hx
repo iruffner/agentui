@@ -66,16 +66,6 @@ extern class ScoreComp extends JQ {
 				_addContent: function(content:Content<Dynamic>): Void {
 					try {
 			        	var self: ScoreCompWidgetDef = Widgets.getSelf();
-	 	            	if (self.contentTimeLines.get(content.aliasIid) == null) {
-	 	            		var timeLine = new ContentTimeLine(self.paper, self._getProfile(content), 
-	 	            			                               self.startTime.getTime(), 
-	 	            			                               self.endTime.getTime(),
-	 	            			                               self.viewBoxWidth);
-	 	            		self.contentTimeLines.set(content.aliasIid, timeLine);
-			            }
-
-		            	self.contentTimeLines.get(content.aliasIid).addContent(content);
-		            	self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
 
 		            	var updateTimelines = false;
 		            	if (self.startTime.getTime() > content.created.getTime()) {
@@ -89,6 +79,18 @@ extern class ScoreComp extends JQ {
 		            	if (updateTimelines) {
 		            		self._updateTimeLines();
 		            	}
+
+	 	            	if (self.contentTimeLines.get(content.aliasIid) == null) {
+	 	            		var timeLine = new ContentTimeLine(self.paper, self._getProfile(content), 
+	 	            			                               self.startTime.getTime(), 
+	 	            			                               self.endTime.getTime(),
+	 	            			                               self.viewBoxWidth);
+	 	            		self.contentTimeLines.set(content.aliasIid, timeLine);
+			            }
+
+		            	self.contentTimeLines.get(content.aliasIid).addContent(content);
+		            	self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
+
 		            } catch (e:Dynamic) {
 		            	AppContext.LOGGER.error("error calling _addContent", e);
 		            }
@@ -157,8 +159,13 @@ extern class ScoreComp extends JQ {
 							}
 						}
 
-						self.startTime = Date.fromTime(self.startTime.getTime() - DateTools.hours(2));
-						self.endTime   = Date.fromTime(self.endTime.getTime()   + DateTools.hours(2));
+						if (self.startTime == null) {
+							self.startTime = Date.fromTime(Date.now().getTime() - DateTools.hours(2));
+							self.endTime   = Date.fromTime(self.startTime.getTime() + DateTools.hours(24));
+		            	} else {
+							self.startTime = Date.fromTime(self.startTime.getTime() - DateTools.hours(2));
+							self.endTime   = Date.fromTime(self.endTime.getTime()   + DateTools.hours(2));
+						}
 						self.timeMarker = new TimeMarker(self.uberGroup, self.paper, 
 							                  self.viewBoxWidth, self.startTime, self.endTime);
 	            	};

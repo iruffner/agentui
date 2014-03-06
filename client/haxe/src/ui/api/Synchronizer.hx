@@ -6,7 +6,6 @@ import ui.model.ModelObj;
 using m3.helper.OSetHelper;
 
 class SynchronizationParms {
-    public var agent:Agent;
     public var aliases:Array<Alias>;
     public var content:Array<Content<Dynamic>>;
     public var connections:Array<Connection>;
@@ -20,7 +19,6 @@ class SynchronizationParms {
     public var result:Dynamic;
 
     public function new() {
-        agent = null;
         aliases = new Array<Alias>();
         content = new Array<Content<Dynamic>>();
         connections = new Array<Connection>();
@@ -85,10 +83,6 @@ class Synchronizer {
         var data:Dynamic = dataObj.result;
         if (!Std.is(data, String)) {
         	switch (responseType) {
-                case "agent":
-                    if (data.length > 0) {
-                        parms.agent = AppContext.SERIALIZER.fromJsonX(data[0], Agent);
-                    }
         		case "alias":
         			parms.aliases.push(AppContext.SERIALIZER.fromJsonX(data, Alias));
         		case "aliases":

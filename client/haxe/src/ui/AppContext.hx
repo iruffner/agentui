@@ -17,9 +17,9 @@ using m3.helper.OSetHelper;
 
 class AppContext {
     public static var SUBMIT_CHANNEL:String;
+    public static var UBER_ALIAS_ID:String;
 
     public static var LOGGER: Logga;
-    public static var AGENT: Agent;
     public static var MASTER_ALIASES:ObservableSet<Alias>;
     public static var ALIASES:OSet<Alias>;
     public static var TARGET: Connection;
@@ -56,8 +56,6 @@ class AppContext {
     public static var currentAlias: Alias;
 
     public static function init() {
-        AGENT = null;
-        
     	LOGGER = new Logga(LogLevel.DEBUG);
 
         INTRODUCTIONS = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
@@ -129,29 +127,8 @@ class AppContext {
     	registerGlobalListeners();
     }
 
-    static function setAgent(agent:Agent) {
-        AGENT = agent;
-
-        // Set the current alias
-        currentAlias = ALIASES.iterator().next();
-        for (alias in ALIASES) {
-            if (alias.data.isDefault) {
-                currentAlias = alias;
-                break;
-            }
-        }
-
-        EM.change(EMEvent.AliasLoaded, currentAlias);
-        EM.change(EMEvent.FitWindow);
-    }
-
     public static function getUberLabelIid() {
-        var uberAlias = ALIASES.getElement(AppContext.AGENT.uberAliasIid);
-        if (uberAlias == null) {
-            return currentAlias.rootLabelIid;
-        } else {
-            return uberAlias.rootLabelIid;
-        }
+        return ALIASES.getElement(AppContext.UBER_ALIAS_ID).rootLabelIid;
     }
 
 	static function registerGlobalListeners() {
@@ -159,14 +136,15 @@ class AppContext {
             EM.change(EMEvent.UserLogout);
         });
 
-        EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent) {
-            setAgent(agent);
-            }, "AgentUi-AGENT")
+        EM.addListener(EMEvent.InitialDataLoadComplete, new EMListener(function(nada: Nothing) {
+            currentAlias = ALIASES.getElement(UBER_ALIAS_ID);
+            EM.change(EMEvent.AliasLoaded, currentAlias);
+            }, "AppContext-InitialDataLoadComplete")
         );
 
         EM.addListener(EMEvent.FitWindow, new EMListener(function(n: Nothing) {
                 untyped __js__("fitWindow()");
-            }, "FitWindowListener")
+            }, "AppContext-FitWindow")
         );
 	}
 

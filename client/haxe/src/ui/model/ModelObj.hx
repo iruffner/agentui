@@ -32,31 +32,16 @@ class ModelObj {
 class ModelObjWithIid extends ModelObj {
 	// Added here for all models
 	public var deleted:Bool;
-	@:optional public var agentId: String;
 	public var iid: String;
 
 	public function new() {
 		super();
 		this.iid = UidGenerator.create(32);
 		this.deleted = false;
-		this.agentId = (AppContext.AGENT == null) ? null : AppContext.AGENT.iid;
 	}
 
 	public static function identifier(t: ModelObjWithIid): String {
 		return t.iid;
-	}
-}
-
-class Agent extends ModelObj {
-	public var iid: String;
-	@:optional public var agentId: String;
-	public var uberAliasIid: String;
-  	public var name: String;
-	public var deleted: Bool;
-	@:optional public var data: Dynamic;
-
-	public function new () {
-		super();
 	}
 }
 
@@ -88,7 +73,6 @@ class Alias extends ModelObjWithIid {
 		super();
 		this.profile = new Profile();
 		this.data = new AliasData();
-		this.agentId = "";
 	}
 	
 	public static function identifier(alias: Alias): String {

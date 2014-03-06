@@ -83,16 +83,6 @@ class ResponseProcessor {
     }
 
 	public static function initialDataLoad(data:SynchronizationParms) {
-		// Load the data into the app context
-        if (data.agent != null) {
-            AppContext.AGENT = data.agent;
-        } else {
-            // Create a dummy agent with the correct agent id.  This will be used
-            // in sending messages
-            AppContext.AGENT = new Agent();
-            AppContext.AGENT.iid = AppContext.AGENT.name = data.aliases[0].agentId;
-        }
-
 		AppContext.MASTER_ALIASES.addAll(data.aliases);
 		AppContext.MASTER_LABELS.addAll(data.labels);
 		AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
@@ -103,15 +93,17 @@ class ResponseProcessor {
         AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
         AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
 
-        if (data.agent == null) {
-            AgentUi.PROTOCOL.getAgent(data.aliases[0].agentId);
-        } else {
-            EM.change(EMEvent.AGENT, data.agent);
-        }
+        EM.change(EMEvent.InitialDataLoadComplete);
 	}
 
     public static function registerModelUpdates(data:SynchronizationParms) {
         AgentUi.PROTOCOL.addHandle(data.result.handle);
+    }
+
+    public static function aliasCreated(data:SynchronizationParms) {
+        AppContext.MASTER_ALIASES.addAll(data.aliases);
+        AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
+        AppContext.MASTER_LABELS.addAll(data.labels);
     }
 
     public static function processProfile(rec:Dynamic) {
@@ -138,9 +130,5 @@ class ResponseProcessor {
         displayedContent.addAll(data.content);
         EM.change(LoadFilteredContent, displayedContent);
         EM.change(EMEvent.FitWindow);
-    }
-
-    public static function getAgent(data:SynchronizationParms) {
-        EM.change(EMEvent.AGENT, data.agent);
     }
 }

@@ -76,9 +76,9 @@ extern class LoginDialog extends JQ {
 		        	PlaceHolderUtil.setFocusBehavior(self.input_un, self.placeholder_un);
 		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
 
-		        	EM.addListener(EMEvent.AGENT, new EMListener(function(agent: Agent): Void {
+		        	EM.addListener(EMEvent.InitialDataLoadComplete, new EMListener(function(n: Nothing): Void {
     						selfElement.dialog("close");
-		        		}, "Login-AGENT")
+		        		}, "Login-InitialDataLoadComplete")
 		        	);
 		        },
 
@@ -131,7 +131,7 @@ extern class LoginDialog extends JQ {
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {
-		        			if(AppContext.AGENT == null) {
+		        			if(AppContext.UBER_ALIAS_ID == null) {
 		        				JqueryUtil.alert("A valid login is required to use the app");
 		        				return false;
 		        			}

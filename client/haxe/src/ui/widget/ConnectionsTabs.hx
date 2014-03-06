@@ -64,7 +64,7 @@ extern class ConnectionsTabs extends JQ {
 						return a.profile.name.toLowerCase();
 					});
 
-		        	EM.addListener(EMEvent.AGENT, new EMListener(function(n:Nothing) {
+		        	EM.addListener(EMEvent.InitialDataLoadComplete, new EMListener(function(n:Nothing) {
 			        	// Create a connections list for all connections
 			        	self._addTab("all", "All");
 			        	new JQ("#tab-all").click();

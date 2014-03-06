@@ -16,7 +16,6 @@ using Lambda;
 
 class BennuHandler implements ProtocolHandler {
 
-	private var loggedInAgentId:String;
 	private var registeredHandles:Array<String>;
 
 	// Message Paths
@@ -38,8 +37,8 @@ class BennuHandler implements ProtocolHandler {
 		this.registeredHandles = new Array<String>();
 	}
 
-	private function createChannel(agentId:String, successFunc:Dynamic->String->JQXHR->Void) {
-		new BennuRequest("/api/channel/create/" + agentId, "", successFunc).start();		
+	private function createChannel(aliasName:String, successFunc:Dynamic->String->JQXHR->Void) {
+		new BennuRequest("/api/channel/create/" + aliasName, "", successFunc).start();		
 	}
 
 	public function addHandle(handle:String):Void {
@@ -52,7 +51,7 @@ class BennuHandler implements ProtocolHandler {
 			for (handle in this.registeredHandles) {
 				requests.push(new ChannelRequestMessage(DEREGISTER, "deregister_listeners", new DeregisterMessage(handle)));
 			}
-			new SubmitRequest(requests, this.loggedInAgentId).start({async: false});
+			new SubmitRequest(requests).start({async: false});
 		}
 	}
 
@@ -64,7 +63,6 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function login(login: Login): Void {
-		loggedInAgentId = login.agentId;
 		createChannel(login.agentId, onCreateSubmitChannel);
 	}
 
@@ -321,21 +319,14 @@ class BennuHandler implements ProtocolHandler {
 		new SubmitRequest(requests).start();
 	}
 
-	public function getAgent(agentId:String):Void {
-		var context = Synchronizer.createContext(1, "getAgent");
-		new SubmitRequest([
-			new ChannelRequestMessage(QUERY, context + "agent", new QueryMessage("agent", "iid='" + agentId + "'"))
-		]).start();
-	}
-
 	private function onCreateSubmitChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
-		AppContext.SUBMIT_CHANNEL = data.id;
+		AppContext.SUBMIT_CHANNEL = data.channelId;
+		AppContext.UBER_ALIAS_ID = data.aliasIid;
 
 		_startPolling();
 
-		var context = Synchronizer.createContext(10, "initialDataLoad");
+		var context = Synchronizer.createContext(9, "initialDataLoad");
 		var requests = [
-			new ChannelRequestMessage(QUERY, context + "agent"          , new QueryMessage("agent", "iid='" + this.loggedInAgentId + "'")),
 			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
 			new ChannelRequestMessage(QUERY, context + "introductions"  , new QueryMessage("introduction")),
 			new ChannelRequestMessage(QUERY, context + "connections"    , new QueryMessage("connection")),
@@ -346,13 +337,13 @@ class BennuHandler implements ProtocolHandler {
 			new ChannelRequestMessage(QUERY, context + "labeledContents", new QueryMessage("labeledContent")),
 			new ChannelRequestMessage(QUERY, context + "labelChildren"  , new QueryMessage("labelChild"))
 		];
-		new SubmitRequest(requests, this.loggedInAgentId).start();
+		new SubmitRequest(requests).start();
 
 		context = Synchronizer.createContext(1, "registerModelUpdates") + "handle";
 		var types = ["alias", "connection", "content", "introduction", "label", "labelacl",
 		             "labelchild", "labeledcontent", "notification", "profile"];
 		requests = [new ChannelRequestMessage(REGISTER, context, new RegisterMessage(types))];
-		new SubmitRequest(requests, this.loggedInAgentId).start();
+		new SubmitRequest(requests).start();
 	}
 
 	private function _startPolling(): Void {

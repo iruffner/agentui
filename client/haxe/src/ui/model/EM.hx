@@ -94,7 +94,7 @@ enum EMEvent {
 
 	CreateAgent;
 	AgentCreated;
-	AGENT;
+	InitialDataLoadComplete;
 
 	FitWindow;
 	UserLogin;
