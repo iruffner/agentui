@@ -5243,7 +5243,7 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 					}
 					params.content.push(content);
 				}
-				ui.api.ResponseProcessor.filterContent(params);
+				ui.api.ResponseProcessor.filterContent(params,context[0]);
 			}
 		} else ui.api.Synchronizer.processResponse(data);
 	});
@@ -5319,11 +5319,12 @@ ui.api.ResponseProcessor.confirmIntroduction = function(data) {
 ui.api.ResponseProcessor.grantAccess = function(data) {
 	ui.model.EM.change(ui.model.EMEvent.AccessGranted);
 }
-ui.api.ResponseProcessor.filterContent = function(data) {
+ui.api.ResponseProcessor.filterContent = function(data,filterIid) {
 	if(data.content.length == 0 && !m3.helper.StringHelper.isBlank(data.handle)) return;
 	var displayedContent = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
 	displayedContent.addAll(data.content);
-	ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,displayedContent);
+	var fr = new ui.model.FilterResponse(filterIid,displayedContent);
+	ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,fr);
 	ui.model.EM.change(ui.model.EMEvent.FitWindow);
 }
 ui.api.SynchronizationParms = function() {
@@ -5502,7 +5503,7 @@ ui.model.ContentSource = function(mapListener,onBeforeSetContent,widgetCreator) 
 	this.mapListener = mapListener;
 	this.onBeforeSetContent = onBeforeSetContent;
 	this.widgetCreator = widgetCreator;
-	this.showingFilteredContent = false;
+	this.filterIid = null;
 	ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener($bind(this,this.onAliasLoaded),"ContentSource-AliasLoaded"));
 	ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,new ui.model.EMListener($bind(this,this.onLoadFilteredContent),"ContentSource-LoadFilteredContent"));
 };
@@ -5522,14 +5523,14 @@ ui.model.ContentSource.prototype = {
 		this.contentMap.mapListen(this.mapListener);
 	}
 	,onAliasLoaded: function(alias) {
-		this.showingFilteredContent = false;
+		this.filterIid = null;
 		this.setContent(new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier));
 	}
-	,onLoadFilteredContent: function(content) {
-		if(this.showingFilteredContent) this.filteredContent.addAll(content.asArray()); else {
-			this.showingFilteredContent = true;
-			this.filteredContent = content;
-			this.setContent(content);
+	,onLoadFilteredContent: function(fr) {
+		if(this.filterIid == fr.filterIid) this.filteredContent.addAll(fr.content.asArray()); else {
+			this.filterIid = fr.filterIid;
+			this.filteredContent = fr.content;
+			this.setContent(fr.content);
 		}
 	}
 	,__class__: ui.model.ContentSource
@@ -5746,6 +5747,15 @@ $hxClasses["ui.model.FilterData"] = ui.model.FilterData;
 ui.model.FilterData.__name__ = ["ui","model","FilterData"];
 ui.model.FilterData.prototype = {
 	__class__: ui.model.FilterData
+}
+ui.model.FilterResponse = function(filterIid,content) {
+	this.filterIid = filterIid;
+	this.content = content;
+};
+$hxClasses["ui.model.FilterResponse"] = ui.model.FilterResponse;
+ui.model.FilterResponse.__name__ = ["ui","model","FilterResponse"];
+ui.model.FilterResponse.prototype = {
+	__class__: ui.model.FilterResponse
 }
 ui.model.ModelObj = function() {
 };

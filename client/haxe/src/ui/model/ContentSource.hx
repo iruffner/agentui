@@ -3,6 +3,7 @@ package ui.model;
 import m3.observable.OSet;
 import ui.model.EM;
 import ui.model.ModelObj;
+import ui.model.Filter;
 
 
 class ContentSource<T> {
@@ -10,8 +11,9 @@ class ContentSource<T> {
 	var contentMap: MappedSet<Content<Dynamic>, T>;
 	var mapListener: Content<Dynamic>->T->EventType->Void;
 	var widgetCreator:Content<Dynamic>->T;
-	var showingFilteredContent:Bool;
 	var onBeforeSetContent:OSet<Content<Dynamic>>->Void;
+
+	var filterIid:String;
 
 	public function new(mapListener:Content<Dynamic>->T->EventType->Void, 
 		               onBeforeSetContent:OSet<Content<Dynamic>>->Void,
@@ -20,7 +22,7 @@ class ContentSource<T> {
 		this.mapListener = mapListener;
 		this.onBeforeSetContent = onBeforeSetContent;
 		this.widgetCreator = widgetCreator;
-		this.showingFilteredContent = false;
+		this.filterIid = null;
 
     	EM.addListener(EMEvent.AliasLoaded, new EMListener(this.onAliasLoaded, 
     		                                               "ContentSource-AliasLoaded")
@@ -31,18 +33,18 @@ class ContentSource<T> {
     	);
 	}
 
-	private function onLoadFilteredContent(content: ObservableSet<Content<Dynamic>>): Void {
-		if (this.showingFilteredContent) {
-			this.filteredContent.addAll(content.asArray());
+	private function onLoadFilteredContent(fr: FilterResponse): Void {
+		if (this.filterIid == fr.filterIid) {
+			this.filteredContent.addAll(fr.content.asArray());
     	} else {
-    		this.showingFilteredContent = true;
-    		this.filteredContent = content;
-    		this.setContent(content);
+    		this.filterIid = fr.filterIid;
+    		this.filteredContent = fr.content;
+    		this.setContent(fr.content);
     	}
     }
 
 	private function onAliasLoaded(alias:Alias) {
-		this.showingFilteredContent = false;
+		this.filterIid = null;
         setContent(new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier));
 	}
 

@@ -1,6 +1,8 @@
 package ui.model;
 
 import m3.exception.Exception;
+import m3.observable.OSet;
+import ui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
@@ -51,5 +53,14 @@ class FilterData {
 
 	public function new(type:String) {
 		this.type = type;
+	}
+}
+
+class FilterResponse {
+	public var filterIid:String;
+	public var content: ObservableSet<Content<Dynamic>>;
+	public function new(filterIid:String, content: ObservableSet<Content<Dynamic>>) {
+		this.filterIid = filterIid;
+		this.content   = content;
 	}
 }

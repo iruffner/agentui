@@ -8,6 +8,7 @@ import m3.util.JqueryUtil;
 import m3.observable.OSet;
 import ui.api.Synchronizer;
 import ui.model.EM;
+import ui.model.Filter;
 import ui.model.ModelObj;
 import ui.api.Requester;
 
@@ -45,7 +46,7 @@ class ResponseProcessor {
                             }
                             params.content.push(content);
                         }
-                        filterContent(params);
+                        filterContent(params, context[0]);
                     }
                 } else {
                     Synchronizer.processResponse(data);
@@ -124,11 +125,14 @@ class ResponseProcessor {
         EM.change(AccessGranted);
     }
 
-    public static function filterContent(data:SynchronizationParms) {
+    public static function filterContent(data:SynchronizationParms, filterIid:String) {
         if (data.content.length == 0 && !data.handle.isBlank()) {return;}
         var displayedContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
         displayedContent.addAll(data.content);
-        EM.change(LoadFilteredContent, displayedContent);
+
+        var fr = new FilterResponse(filterIid, displayedContent);
+
+        EM.change(LoadFilteredContent, fr);
         EM.change(EMEvent.FitWindow);
     }
 }
