@@ -127,6 +127,15 @@ class AppContext {
     	registerGlobalListeners();
     }
 
+    public static function isAliasRootLabel(iid:String):Bool {
+        for (alias in ALIASES) {
+            if (alias.rootLabelIid == iid) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function getUberLabelIid() {
         return ALIASES.getElement(AppContext.UBER_ALIAS_ID).rootLabelIid;
     }
