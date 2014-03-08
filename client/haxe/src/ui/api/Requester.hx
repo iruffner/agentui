@@ -9,11 +9,6 @@ import m3.util.JqueryUtil;
 import ui.model.ModelObj;
 import ui.api.CrudMessage;
 
-interface Requester {
-	function start(?opts: AjaxOptions): Dynamic;
-	function abort(): Void;
-}
-
 /**
  * Base class for making http requests.
  */
@@ -75,7 +70,7 @@ class BaseRequest {
 	}
 }
 
-class BennuRequest extends BaseRequest implements Requester {
+class BennuRequest extends BaseRequest {
 	public function new(path:String, data:String, successFcn: Dynamic->String->JQXHR->Void) {
 		baseOpts = {
 			async: true,
@@ -86,7 +81,7 @@ class BennuRequest extends BaseRequest implements Requester {
 	}
 }
 
-class SubmitRequest extends BaseRequest implements Requester {
+class SubmitRequest extends BaseRequest {
 	public function new(msgs:Array<ChannelRequestMessage>,
 		                ?successFcn: Dynamic->String->JQXHR->Void) {
 		this.baseOpts = {
@@ -107,7 +102,7 @@ class SubmitRequest extends BaseRequest implements Requester {
 	}
 }
 
-class CrudRequest extends BaseRequest implements Requester {
+class CrudRequest extends BaseRequest {
 
 	public function new(object:ModelObjWithIid, path:String, successFcn: Dynamic->String->JQXHR->Void):Void {
 		var crudMessage = CrudMessage.create(object);
@@ -132,7 +127,7 @@ class DeleteRequest extends CrudRequest {
 	}	
 }
 
-class QueryRequest extends BaseRequest implements Requester {
+class QueryRequest extends BaseRequest {
 	private var queryMessage:QueryMessage;
 
 	public function new(type:String, where:String, successFcn: Dynamic->String->JQXHR->Void):Void {
@@ -145,7 +140,7 @@ class QueryRequest extends BaseRequest implements Requester {
 	}
 }
 
-class LongPollingRequest extends BaseRequest implements Requester {
+class LongPollingRequest extends BaseRequest {
 
 	private var jqXHR: Dynamic;
 	private var running: Bool = true;

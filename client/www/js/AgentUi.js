@@ -5053,12 +5053,6 @@ ui.api.EventDelegate.prototype = {
 	}
 	,__class__: ui.api.EventDelegate
 }
-ui.api.Requester = function() { }
-$hxClasses["ui.api.Requester"] = ui.api.Requester;
-ui.api.Requester.__name__ = ["ui","api","Requester"];
-ui.api.Requester.prototype = {
-	__class__: ui.api.Requester
-}
 ui.api.BaseRequest = function(requestData,successFcn,errorFcn) {
 	this.requestData = requestData;
 	this.onSuccess = successFcn;
@@ -5097,7 +5091,6 @@ ui.api.BennuRequest = function(path,data,successFcn) {
 };
 $hxClasses["ui.api.BennuRequest"] = ui.api.BennuRequest;
 ui.api.BennuRequest.__name__ = ["ui","api","BennuRequest"];
-ui.api.BennuRequest.__interfaces__ = [ui.api.Requester];
 ui.api.BennuRequest.__super__ = ui.api.BaseRequest;
 ui.api.BennuRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	__class__: ui.api.BennuRequest
@@ -5112,7 +5105,6 @@ ui.api.SubmitRequest = function(msgs,successFcn) {
 };
 $hxClasses["ui.api.SubmitRequest"] = ui.api.SubmitRequest;
 ui.api.SubmitRequest.__name__ = ["ui","api","SubmitRequest"];
-ui.api.SubmitRequest.__interfaces__ = [ui.api.Requester];
 ui.api.SubmitRequest.__super__ = ui.api.BaseRequest;
 ui.api.SubmitRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	__class__: ui.api.SubmitRequest
@@ -5124,7 +5116,6 @@ ui.api.CrudRequest = function(object,path,successFcn) {
 };
 $hxClasses["ui.api.CrudRequest"] = ui.api.CrudRequest;
 ui.api.CrudRequest.__name__ = ["ui","api","CrudRequest"];
-ui.api.CrudRequest.__interfaces__ = [ui.api.Requester];
 ui.api.CrudRequest.__super__ = ui.api.BaseRequest;
 ui.api.CrudRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	__class__: ui.api.CrudRequest
@@ -5154,7 +5145,6 @@ ui.api.QueryRequest = function(type,where,successFcn) {
 };
 $hxClasses["ui.api.QueryRequest"] = ui.api.QueryRequest;
 ui.api.QueryRequest.__name__ = ["ui","api","QueryRequest"];
-ui.api.QueryRequest.__interfaces__ = [ui.api.Requester];
 ui.api.QueryRequest.__super__ = ui.api.BaseRequest;
 ui.api.QueryRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	__class__: ui.api.QueryRequest
@@ -5187,7 +5177,6 @@ ui.api.LongPollingRequest = function(requestToRepeat,successFcn,ajaxOpts) {
 };
 $hxClasses["ui.api.LongPollingRequest"] = ui.api.LongPollingRequest;
 ui.api.LongPollingRequest.__name__ = ["ui","api","LongPollingRequest"];
-ui.api.LongPollingRequest.__interfaces__ = [ui.api.Requester];
 ui.api.LongPollingRequest.__super__ = ui.api.BaseRequest;
 ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	poll: function() {
