@@ -2165,6 +2165,79 @@ m3.CrossMojo.prettyPrintString = function(json) {
 m3.CrossMojo.prettyPrint = function(json) {
 	return JSON.stringify(json, undefined, 2);
 }
+m3.event = {}
+m3.event.EventManager = function(logger) {
+	this.logger = logger;
+	this.hash = new haxe.ds.EnumValueMap();
+	this.oneTimers = new Array();
+};
+$hxClasses["m3.event.EventManager"] = m3.event.EventManager;
+m3.event.EventManager.__name__ = ["m3","event","EventManager"];
+m3.event.EventManager.prototype = {
+	change: function(id,t) {
+		this.logger.debug("EVENTMODEL: Change to " + Std.string(id));
+		var map = this.hash.get(id);
+		if(map == null) {
+			this.logger.warn("No listeners for event " + Std.string(id));
+			return;
+		}
+		var iter = map.iterator();
+		while(iter.hasNext()) {
+			var listener = iter.next();
+			this.logger.debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
+			try {
+				listener.change(t);
+				if(HxOverrides.remove(this.oneTimers,listener.get_uid())) map.remove(listener.get_uid());
+			} catch( err ) {
+				this.logger.error("Error executing " + listener.get_name() + " of " + Std.string(id) + " event",m3.log.Logga.getExceptionInst(err));
+			}
+		}
+	}
+	,removeListener: function(id,listenerUid) {
+		var map = this.hash.get(id);
+		if(map != null) map.remove(listenerUid);
+	}
+	,listenOnce: function(id,listener) {
+		var map = this.hash.get(id);
+		this.oneTimers.push(listener.get_uid());
+		return this.addListener(id,listener);
+	}
+	,addListener: function(id,listener) {
+		var map = this.hash.get(id);
+		if(map == null) {
+			map = new haxe.ds.StringMap();
+			this.hash.set(id,map);
+		}
+		map.set(listener.get_uid(),listener);
+		return listener.get_uid();
+	}
+	,setLogger: function(l) {
+		this.logger = l;
+	}
+	,__class__: m3.event.EventManager
+}
+m3.event.EMListener = function(fcn,name) {
+	this.fcn = fcn;
+	this.uid = m3.util.UidGenerator.create(20);
+	this.name = name == null?this.get_uid():name;
+};
+$hxClasses["m3.event.EMListener"] = m3.event.EMListener;
+m3.event.EMListener.__name__ = ["m3","event","EMListener"];
+m3.event.EMListener.prototype = {
+	get_name: function() {
+		return this.name;
+	}
+	,get_uid: function() {
+		return this.uid;
+	}
+	,change: function(t) {
+		this.fcn(t);
+	}
+	,__class__: m3.event.EMListener
+}
+m3.event.EMNothing = function() { }
+$hxClasses["m3.event.EMNothing"] = m3.event.EMNothing;
+m3.event.EMNothing.__name__ = ["m3","event","EMNothing"];
 m3.exception = {}
 m3.exception.Exception = function(message,cause) {
 	this.message = message;
@@ -4413,6 +4486,7 @@ $hxClasses["ui.AppContext"] = ui.AppContext;
 ui.AppContext.__name__ = ["ui","AppContext"];
 ui.AppContext.init = function() {
 	ui.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
+	ui.model.EM.setLogger(ui.AppContext.LOGGER);
 	ui.AppContext.INTRODUCTIONS = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
 	ui.AppContext.MASTER_NOTIFICATIONS = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
 	ui.AppContext.NOTIFICATIONS = new m3.observable.FilteredSet(ui.AppContext.MASTER_NOTIFICATIONS,function(a) {
@@ -4484,13 +4558,13 @@ ui.AppContext.registerGlobalListeners = function() {
 	new $(js.Browser.window).on("unload",function(evt) {
 		ui.model.EM.change(ui.model.EMEvent.UserLogout);
 	});
-	ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,new ui.model.EMListener(function(nada) {
+	ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,function(nada) {
 		ui.AppContext.currentAlias = m3.helper.OSetHelper.getElement(ui.AppContext.ALIASES,ui.AppContext.UBER_ALIAS_ID);
 		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias);
-	},"AppContext-InitialDataLoadComplete"));
-	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,new ui.model.EMListener(function(n) {
+	},"AppContext-InitialDataLoadComplete");
+	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,function(n) {
 		fitWindow();
-	},"AppContext-FitWindow"));
+	},"AppContext-FitWindow");
 }
 ui.AppContext.getDescendentLabelChildren = function(iid) {
 	var lcs = new Array();
@@ -4982,74 +5056,74 @@ ui.api.EventDelegate.__name__ = ["ui","api","EventDelegate"];
 ui.api.EventDelegate.prototype = {
 	_setUpEventListeners: function() {
 		var _g = this;
-		ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,new ui.model.EMListener(function(filterData) {
+		ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,function(filterData) {
 			_g.protocolHandler.filter(filterData);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.CreateAlias,new ui.model.EMListener(function(alias) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.CreateAlias,function(alias) {
 			_g.protocolHandler.createAlias(alias);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteAlias,new ui.model.EMListener(function(alias) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.DeleteAlias,function(alias) {
 			_g.protocolHandler.deleteAlias(alias);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.UpdateAlias,new ui.model.EMListener(function(alias) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.UpdateAlias,function(alias) {
 			_g.protocolHandler.updateAlias(alias);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.UserLogin,new ui.model.EMListener(function(login) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.UserLogin,function(login) {
 			_g.protocolHandler.login(login);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.CreateAgent,new ui.model.EMListener(function(user) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.CreateAgent,function(user) {
 			_g.protocolHandler.createAgent(user);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.CreateContent,new ui.model.EMListener(function(data) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.CreateContent,function(data) {
 			_g.protocolHandler.createContent(data);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.UpdateContent,new ui.model.EMListener(function(data) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.UpdateContent,function(data) {
 			_g.protocolHandler.updateContent(data);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteContent,new ui.model.EMListener(function(data) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.DeleteContent,function(data) {
 			_g.protocolHandler.deleteContent(data);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.CreateLabel,new ui.model.EMListener(function(data) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.CreateLabel,function(data) {
 			_g.protocolHandler.createLabel(data);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.UpdateLabel,new ui.model.EMListener(function(data) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.UpdateLabel,function(data) {
 			_g.protocolHandler.updateLabel(data);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.MoveLabel,new ui.model.EMListener(function(data) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.MoveLabel,function(data) {
 			_g.protocolHandler.moveLabel(data);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.CopyLabel,new ui.model.EMListener(function(data) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.CopyLabel,function(data) {
 			_g.protocolHandler.copyLabel(data);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteLabel,new ui.model.EMListener(function(data) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.DeleteLabel,function(data) {
 			_g.protocolHandler.deleteLabel(data);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.RespondToIntroduction,new ui.model.EMListener(function(intro) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.RespondToIntroduction,function(intro) {
 			_g.protocolHandler.confirmIntroduction(intro);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_REQUEST,new ui.model.EMListener(function(intro) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_REQUEST,function(intro) {
 			_g.protocolHandler.beginIntroduction(intro);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.GrantAccess,new ui.model.EMListener(function(parms) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.GrantAccess,function(parms) {
 			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.RevokeAccess,new ui.model.EMListener(function(lacls) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.RevokeAccess,function(lacls) {
 			_g.protocolHandler.revokeAccess(lacls);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteConnection,new ui.model.EMListener(function(c) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.DeleteConnection,function(c) {
 			_g.protocolHandler.deleteConnection(c);
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.UserLogout,new ui.model.EMListener(function(c) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.UserLogout,function(c) {
 			_g.protocolHandler.deregisterListeners();
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.TargetChange,new ui.model.EMListener(function(conn) {
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.BACKUP,new ui.model.EMListener(function(n) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.TargetChange,function(conn) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.BACKUP,function(n) {
 			_g.protocolHandler.backup();
-		}));
-		ui.model.EM.addListener(ui.model.EMEvent.RESTORE,new ui.model.EMListener(function(n) {
+		});
+		ui.model.EM.addListener(ui.model.EMEvent.RESTORE,function(n) {
 			_g.protocolHandler.restore();
-		}));
+		});
 	}
 	,__class__: ui.api.EventDelegate
 }
@@ -5506,8 +5580,8 @@ ui.model.ContentSource = function(mapListener,onBeforeSetContent,widgetCreator) 
 	this.onBeforeSetContent = onBeforeSetContent;
 	this.widgetCreator = widgetCreator;
 	this.filterIid = null;
-	ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener($bind(this,this.onAliasLoaded),"ContentSource-AliasLoaded"));
-	ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,new ui.model.EMListener($bind(this,this.onLoadFilteredContent),"ContentSource-LoadFilteredContent"));
+	ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,$bind(this,this.onAliasLoaded),"ContentSource-AliasLoaded");
+	ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,$bind(this,this.onLoadFilteredContent),"ContentSource-LoadFilteredContent");
 };
 $hxClasses["ui.model.ContentSource"] = ui.model.ContentSource;
 ui.model.ContentSource.__name__ = ["ui","model","ContentSource"];
@@ -5540,61 +5614,22 @@ ui.model.ContentSource.prototype = {
 ui.model.EM = function() { }
 $hxClasses["ui.model.EM"] = ui.model.EM;
 ui.model.EM.__name__ = ["ui","model","EM"];
-ui.model.EM.addListener = function(id,listener) {
-	var map = ui.model.EM.hash.get(id);
-	if(map == null) {
-		map = new haxe.ds.StringMap();
-		ui.model.EM.hash.set(id,map);
-	}
-	map.set(listener.get_uid(),listener);
-	return listener.get_uid();
+ui.model.EM.setLogger = function(l) {
+	ui.model.EM.delegate.setLogger(l);
 }
-ui.model.EM.listenOnce = function(id,listener) {
-	var map = ui.model.EM.hash.get(id);
-	ui.model.EM.oneTimers.push(listener.get_uid());
-	return ui.model.EM.addListener(id,listener);
+ui.model.EM.addListener = function(id,func,listenerName) {
+	var listener = new m3.event.EMListener(func,listenerName);
+	return ui.model.EM.delegate.addListener(id,listener);
+}
+ui.model.EM.listenOnce = function(id,func,listenerName) {
+	var listener = new m3.event.EMListener(func,listenerName);
+	return ui.model.EM.delegate.listenOnce(id,listener);
 }
 ui.model.EM.removeListener = function(id,listenerUid) {
-	var map = ui.model.EM.hash.get(id);
-	if(map != null) map.remove(listenerUid);
+	ui.model.EM.delegate.removeListener(id,listenerUid);
 }
 ui.model.EM.change = function(id,t) {
-	ui.AppContext.LOGGER.debug("EVENTMODEL: Change to " + Std.string(id));
-	var map = ui.model.EM.hash.get(id);
-	if(map == null) {
-		ui.AppContext.LOGGER.warn("No listeners for event " + Std.string(id));
-		return;
-	}
-	var iter = map.iterator();
-	while(iter.hasNext()) {
-		var listener = iter.next();
-		ui.AppContext.LOGGER.debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
-		try {
-			listener.change(t);
-			if(HxOverrides.remove(ui.model.EM.oneTimers,listener.get_uid())) map.remove(listener.get_uid());
-		} catch( err ) {
-			ui.AppContext.LOGGER.error("Error executing " + listener.get_name() + " of " + Std.string(id) + " event",m3.log.Logga.getExceptionInst(err));
-		}
-	}
-}
-ui.model.EMListener = function(fcn,name) {
-	this.fcn = fcn;
-	this.uid = m3.util.UidGenerator.create(20);
-	this.name = name == null?this.get_uid():name;
-};
-$hxClasses["ui.model.EMListener"] = ui.model.EMListener;
-ui.model.EMListener.__name__ = ["ui","model","EMListener"];
-ui.model.EMListener.prototype = {
-	get_name: function() {
-		return this.name;
-	}
-	,get_uid: function() {
-		return this.uid;
-	}
-	,change: function(t) {
-		this.fcn(t);
-	}
-	,__class__: ui.model.EMListener
+	ui.model.EM.delegate.change(id,t);
 }
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
@@ -6918,6 +6953,8 @@ $.fn.intersects = function(el) {
 	if(t_x[0] < i_x[1] && t_x[1] > i_x[0] && t_y[0] < i_y[1] && t_y[1] > i_y[0]) intersects = true;
 	return intersects;
 };
+m3.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
+m3.util.UidGenerator.nums = "0123456789";
 var defineWidget = function() {
 	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false, onMaxToggle : $.noop}, originalSize : { width : 10, height : 10}, _create : function() {
 		this._super("create");
@@ -7033,8 +7070,7 @@ m3.util.ColorProvider._COLORS.push("#9BCC5C");
 m3.util.ColorProvider._COLORS.push("#CCC45C");
 m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
-ui.model.EM.hash = new haxe.ds.EnumValueMap();
-ui.model.EM.oneTimers = new Array();
+ui.model.EM.delegate = new m3.event.EventManager(ui.AppContext.LOGGER);
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -7333,9 +7369,9 @@ var defineWidget = function() {
 			evt.stopPropagation();
 			return false;
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,function(alias) {
 			self._setAlias(alias);
-		},"AliasComp-Alias"));
+		},"AliasComp-Alias");
 		(js.Boot.__cast(self.container , $)).droppable({ accept : function(d) {
 			return d["is"](".connectionAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
@@ -7826,9 +7862,9 @@ var defineWidget = function() {
 	}, _allowAccess : function() {
 		var self = this;
 		var selfElement1 = this.element;
-		ui.model.EM.listenOnce(ui.model.EMEvent.AccessGranted,new ui.model.EMListener(function(n) {
+		ui.model.EM.listenOnce(ui.model.EMEvent.AccessGranted,function(n) {
 			m3.jq.JQDialogHelper.close(selfElement1);
-		}));
+		});
 		var parms = { connectionIid : self.options.connection.iid, labelIid : self.options.label.iid};
 		ui.model.EM.change(ui.model.EMEvent.GrantAccess,parms);
 	}, open : function() {
@@ -8036,11 +8072,11 @@ var defineWidget = function() {
 		self.aliases = new m3.observable.SortedSet(ui.AppContext.ALIASES,function(a) {
 			return a.profile.name.toLowerCase();
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,new ui.model.EMListener(function(n) {
+		ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,function(n) {
 			self._addTab("all","All");
 			new $("#tab-all").click();
 			self.aliases.listen(self._listener);
-		}));
+		});
 	}, _addTab : function(iid,name) {
 		var self = this;
 		var tabs = new $("#connectionsTabs");
@@ -8313,9 +8349,9 @@ var defineWidget = function() {
 			self1.toggleActive();
 		});
 		self1._createWidgets(selfElement1,self1);
-		ui.model.EM.addListener(ui.model.EMEvent.EditContentClosed,new ui.model.EMListener(function(content) {
+		ui.model.EM.addListener(ui.model.EMEvent.EditContentClosed,function(content) {
 			if(content.iid == self1.options.content.iid) selfElement1.show();
-		}));
+		});
 	}, update : function(content) {
 		var self = this;
 		var selfElement = this.element;
@@ -8417,9 +8453,9 @@ var defineWidget = function() {
 		if(!valid) return;
 		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
 		ui.model.EM.change(ui.model.EMEvent.CreateAgent,newUser);
-		ui.model.EM.listenOnce(ui.model.EMEvent.AgentCreated,new ui.model.EMListener(function(n) {
+		ui.model.EM.listenOnce(ui.model.EMEvent.AgentCreated,function(n) {
 			selfElement1.dialog("close");
-		},"CreateAgentDialog-UserSignup"));
+		},"CreateAgentDialog-UserSignup");
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement2 = this.element;
@@ -8485,14 +8521,12 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
 		selfElement.addClass("introductionNotificationComp container boxsizingBorder");
 		var conn = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,self.options.notification.fromConnectionIid);
-		var connFromAlias = null;
-		if(connFromAlias != null) conn.data = connFromAlias.data;
-		self.listenerUid = ui.model.EM.addListener(ui.model.EMEvent.RespondToIntroduction_RESPONSE,new ui.model.EMListener(function(e) {
+		self.listenerUid = ui.model.EM.addListener(ui.model.EMEvent.RespondToIntroduction_RESPONSE,function(e) {
 			m3.util.JqueryUtil.alert("Your response has been received.","Introduction",function() {
 				self.destroy();
 				selfElement.remove();
 			});
-		}));
+		});
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationConfirmation = function(accepted) {
@@ -8510,7 +8544,7 @@ var defineWidget = function() {
 		var reject = new $("<button>Reject</button>").appendTo(invitationText).button().click(function(evt) {
 			invitationConfirmation(false);
 		});
-		intro_table.find("td:nth-child(3)").append("<div>" + conn.data.name + "</div><div><img class='intro-profile-img container' src='" + conn.data.imgSrc + "'/></div>");
+		intro_table.find("td:nth-child(3)").append("<div>" + self.options.notification.props.profile.name + "</div><div><img class='intro-profile-img container' src='" + self.options.notification.props.profile.imgSrc + "'/></div>");
 	}, destroy : function() {
 		var self = this;
 		ui.model.EM.removeListener(ui.model.EMEvent.RespondToIntroduction_RESPONSE,self.listenerUid);
@@ -8560,9 +8594,9 @@ var defineWidget = function() {
 			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : "#filter"});
 			self.fireFilter();
 		}});
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,function(alias) {
 			self.clearFilter();
-		},"FilterComp-AliasLoaded"));
+		},"FilterComp-AliasLoaded");
 	}, clearFilter : function() {
 		var selfElement = this.element;
 		var filterables = selfElement.children(".filterable");
@@ -8729,12 +8763,12 @@ var defineWidget = function() {
 		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
 		selfElement1.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
 		self2.selectedLabelComp = null;
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,new ui.model.EMListener(function(alias) {
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,function(alias) {
 			self2.selectedLabelComp = null;
 			selfElement1.children(".labelTree").remove();
 			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid, labelPath : [alias.rootLabelIid]});
 			selfElement1.prepend(labelTree);
-		},"LabelsList-Alias"));
+		},"LabelsList-Alias");
 		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
 		selfElement1.append(newLabelButton).append("<div class='clear'></div>");
 		newLabelButton.button().click(function(evt) {
@@ -8872,9 +8906,9 @@ var defineWidget = function() {
 		});
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_un,self.placeholder_un);
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
-		ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,new ui.model.EMListener(function(n) {
+		ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,function(n) {
 			selfElement.dialog("close");
-		},"Login-InitialDataLoadComplete"));
+		},"Login-InitialDataLoadComplete");
 	}, initialized : false, _login : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -9147,9 +9181,9 @@ var defineWidget = function() {
 		intro.bConnectionIid = self.options.from.iid;
 		intro.aMessage = new $("#to_text").val();
 		intro.bMessage = new $("#from_text").val();
-		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_RESPONSE,new ui.model.EMListener(function(n) {
+		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_RESPONSE,function(n) {
 			selfElement1.dialog("close");
-		},"RequestIntroductionDialog-Introduction-Response"));
+		},"RequestIntroductionDialog-Introduction-Response");
 		ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_REQUEST,intro);
 	}, _buildDialog : function() {
 		var self1 = this;
@@ -9405,8 +9439,6 @@ js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 js.Browser.navigator = typeof window != "undefined" ? window.navigator : null;
 js.d3._D3.InitPriority.important = "important";
-m3.util.UidGenerator.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
-m3.util.UidGenerator.nums = "0123456789";
 m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet.T\"/>\n</x></f></delegate>\n\t<getVisualId public=\"1\" set=\"method\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.EventManager.__rtti = "<class path=\"m3.observable.EventManager\" params=\"T\" module=\"m3.observable.OSet\">\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"47\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></add>\n\t<remove public=\"1\" set=\"method\" line=\"55\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></remove>\n\t<fire public=\"1\" set=\"method\" line=\"58\"><f a=\"t:type\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<listenerCount public=\"1\" set=\"method\" line=\"69\"><f a=\"\"><x path=\"Int\"/></f></listenerCount>\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false);

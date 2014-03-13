@@ -24,12 +24,12 @@ class ContentSource<T> {
 		this.widgetCreator = widgetCreator;
 		this.filterIid = null;
 
-    	EM.addListener(EMEvent.AliasLoaded, new EMListener(this.onAliasLoaded, 
-    		                                               "ContentSource-AliasLoaded")
+    	EM.addListener(EMEvent.AliasLoaded, this.onAliasLoaded, 
+    		                                "ContentSource-AliasLoaded"
     	);
 
-    	EM.addListener(EMEvent.LoadFilteredContent, new EMListener(this.onLoadFilteredContent, 
-    		                                             "ContentSource-LoadFilteredContent")
+    	EM.addListener(EMEvent.LoadFilteredContent, this.onLoadFilteredContent, 
+    		                                        "ContentSource-LoadFilteredContent"
     	);
 	}
 

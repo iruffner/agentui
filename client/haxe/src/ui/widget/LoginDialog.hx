@@ -76,9 +76,9 @@ extern class LoginDialog extends JQ {
 		        	PlaceHolderUtil.setFocusBehavior(self.input_un, self.placeholder_un);
 		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
 
-		        	EM.addListener(EMEvent.InitialDataLoadComplete, new EMListener(function(n: Nothing): Void {
+		        	EM.addListener(EMEvent.InitialDataLoadComplete, function(n: Nothing): Void {
     						selfElement.dialog("close");
-		        		}, "Login-InitialDataLoadComplete")
+		        		}, "Login-InitialDataLoadComplete"
 		        	);
 		        },
 

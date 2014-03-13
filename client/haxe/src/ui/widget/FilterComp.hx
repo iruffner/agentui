@@ -124,9 +124,9 @@ extern class FilterComp extends JQ {
 				      	}
 				    });
 
-		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
+		        	EM.addListener(EMEvent.AliasLoaded, function(alias: Alias): Void {
 		        		self.clearFilter();
-		        		}, "FilterComp-AliasLoaded")
+		        		}, "FilterComp-AliasLoaded"
 		        	);
 		        },
 

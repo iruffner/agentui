@@ -20,108 +20,108 @@ class EventDelegate {
 
 	private function _setUpEventListeners() {
 
-		EM.addListener(EMEvent.FILTER_RUN, new EMListener(function(filterData:FilterData): Void {
+		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {
         	protocolHandler.filter(filterData);
-        }));
+        });
 
-        EM.addListener(EMEvent.CreateAlias, new EMListener(function(alias: Alias): Void {
+        EM.addListener(EMEvent.CreateAlias, function(alias: Alias): Void {
             protocolHandler.createAlias(alias);
-        }));
+        });
 
-        EM.addListener(EMEvent.DeleteAlias, new EMListener(function(alias: Alias): Void {
+        EM.addListener(EMEvent.DeleteAlias, function(alias: Alias): Void {
             protocolHandler.deleteAlias(alias);
-        }));
+        });
 
-        EM.addListener(EMEvent.UpdateAlias, new EMListener(function(alias: Alias): Void {
+        EM.addListener(EMEvent.UpdateAlias, function(alias: Alias): Void {
             protocolHandler.updateAlias(alias);
-        }));
+        });
 
-        EM.addListener(EMEvent.UserLogin, new EMListener(function(login: Login): Void {
+        EM.addListener(EMEvent.UserLogin, function(login: Login): Void {
           	protocolHandler.login(login);
-        }));
+        });
 
-        EM.addListener(EMEvent.CreateAgent, new EMListener(function(user: NewUser): Void {
+        EM.addListener(EMEvent.CreateAgent, function(user: NewUser): Void {
             protocolHandler.createAgent(user);
-        }));
+        });
 
-        EM.addListener(EMEvent.CreateContent, new EMListener(function(data:EditContentData): Void {
+        EM.addListener(EMEvent.CreateContent, function(data:EditContentData): Void {
         	protocolHandler.createContent(data);
-    	}));
+    	});
 
-        EM.addListener(EMEvent.UpdateContent, new EMListener(function(data:EditContentData): Void {
+        EM.addListener(EMEvent.UpdateContent, function(data:EditContentData): Void {
             protocolHandler.updateContent(data);
-        }));
+        });
 
-        EM.addListener(EMEvent.DeleteContent, new EMListener(function(data:EditContentData): Void {
+        EM.addListener(EMEvent.DeleteContent, function(data:EditContentData): Void {
             protocolHandler.deleteContent(data);
-        }));
+        });
 
-        EM.addListener(EMEvent.CreateLabel, new EMListener(function(data:EditLabelData): Void {
+        EM.addListener(EMEvent.CreateLabel, function(data:EditLabelData): Void {
         	protocolHandler.createLabel(data);
-    	}));
+    	});
 
-        EM.addListener(EMEvent.UpdateLabel, new EMListener(function(data:EditLabelData): Void {
+        EM.addListener(EMEvent.UpdateLabel, function(data:EditLabelData): Void {
             protocolHandler.updateLabel(data);
-        }));
+        });
 
-        EM.addListener(EMEvent.MoveLabel, new EMListener(function(data:EditLabelData): Void {
+        EM.addListener(EMEvent.MoveLabel, function(data:EditLabelData): Void {
             protocolHandler.moveLabel(data);
-        }));
+        });
 
-        EM.addListener(EMEvent.CopyLabel, new EMListener(function(data:EditLabelData): Void {
+        EM.addListener(EMEvent.CopyLabel, function(data:EditLabelData): Void {
             protocolHandler.copyLabel(data);
-        }));
+        });
 
-        EM.addListener(EMEvent.DeleteLabel, new EMListener(function(data:EditLabelData): Void {
+        EM.addListener(EMEvent.DeleteLabel, function(data:EditLabelData): Void {
             protocolHandler.deleteLabel(data);
-        }));
+        });
 
-        EM.addListener(EMEvent.RespondToIntroduction, new EMListener(function(intro: IntroResponseMessage):Void{
+        EM.addListener(EMEvent.RespondToIntroduction, function(intro: IntroResponseMessage):Void{
             protocolHandler.confirmIntroduction(intro);
-        }));
+        });
 
-        EM.addListener(EMEvent.INTRODUCTION_REQUEST, new EMListener(function(intro: IntroductionRequest):Void{
+        EM.addListener(EMEvent.INTRODUCTION_REQUEST, function(intro: IntroductionRequest):Void{
         	protocolHandler.beginIntroduction(intro);
-        }));
+        });
 
-        EM.addListener(EMEvent.GrantAccess, new EMListener(function(parms:Dynamic):Void{
+        EM.addListener(EMEvent.GrantAccess, function(parms:Dynamic):Void{
             protocolHandler.grantAccess(parms.connectionIid, parms.labelIid);
-        }));
+        });
 
-        EM.addListener(EMEvent.RevokeAccess, new EMListener(function(lacls:Array<LabelAcl>):Void{
+        EM.addListener(EMEvent.RevokeAccess, function(lacls:Array<LabelAcl>):Void{
             protocolHandler.revokeAccess(lacls);
-        }));
+        });
 
-        EM.addListener(EMEvent.DeleteConnection, new EMListener(function(c:Connection):Void{
+        EM.addListener(EMEvent.DeleteConnection, function(c:Connection):Void{
             protocolHandler.deleteConnection(c);
-        }));
+        });
 
-        EM.addListener(EMEvent.UserLogout, new EMListener(function(c:Nothing):Void{
+        EM.addListener(EMEvent.UserLogout, function(c:Nothing):Void{
             protocolHandler.deregisterListeners();
-        }));
+        });
 
-        EM.addListener(EMEvent.TargetChange, new EMListener(function(conn:Connection):Void{
+        EM.addListener(EMEvent.TargetChange, function(conn:Connection):Void{
             // Do something
-        }));
+        });
 
-        // EM.addListener(EMEvent.BACKUP, new EMListener(function(nameOfBackup: String): Void{
+        // EM.addListener(EMEvent.BACKUP, function(nameOfBackup: String): Void{
         // 	protocolHandler.backup(nameOfBackup);
-        // }));
+        // });
 
-        // EM.addListener(EMEvent.RESTORE, new EMListener(function(nameOfBackup: String): Void{
+        // EM.addListener(EMEvent.RESTORE, function(nameOfBackup: String): Void{
         // 	protocolHandler.restore(nameOfBackup);
-        // }));
+        // });
 
-        // EM.addListener(EMEvent.RESTORES_REQUEST, new EMListener(function(n: Nothing): Void{
+        // EM.addListener(EMEvent.RESTORES_REQUEST, function(n: Nothing): Void{
         // 	protocolHandler.restores();
-        // }));
+        // });
 
-		EM.addListener(EMEvent.BACKUP, new EMListener(function(n: Nothing): Void{
+		EM.addListener(EMEvent.BACKUP, function(n: Nothing): Void{
         	protocolHandler.backup();
-        }));
+        });
 
-        EM.addListener(EMEvent.RESTORE, new EMListener(function(n: Nothing): Void{
+        EM.addListener(EMEvent.RESTORE, function(n: Nothing): Void{
         	protocolHandler.restore();
-        }));
+        });
 	}
 }

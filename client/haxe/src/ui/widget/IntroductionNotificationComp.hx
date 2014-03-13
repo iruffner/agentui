@@ -55,15 +55,12 @@ extern class IntroductionNotificationComp extends JQ {
 
 		        	var conn: Connection = AppContext.MASTER_CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
-		        	var connFromAlias: Connection = null;//AppContext.currentAlias.connectionSet.getElement(Connection.identifier(conn));
-		        	if(connFromAlias != null) conn.data = connFromAlias.data;
-
-		        	self.listenerUid = EM.addListener(EMEvent.RespondToIntroduction_RESPONSE, new EMListener(function(e:Dynamic) {
+		        	self.listenerUid = EM.addListener(EMEvent.RespondToIntroduction_RESPONSE, function(e:Dynamic) {
 		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {
 		        			self.destroy();
 		        			selfElement.remove();
 		        		});
-		        	}));
+		        	});
 
 		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 
@@ -97,7 +94,9 @@ extern class IntroductionNotificationComp extends JQ {
 							        	invitationConfirmation(false);
 							        });
 
-					intro_table.find("td:nth-child(3)").append("<div>" + conn.data.name + "</div><div><img class='intro-profile-img container' src='" + conn.data.imgSrc + "'/></div>");
+					intro_table.find("td:nth-child(3)").append(
+						"<div>" + self.options.notification.props.profile.name + 
+						"</div><div><img class='intro-profile-img container' src='" + self.options.notification.props.profile.imgSrc + "'/></div>");
 		        },
 
 		        destroy: function() {

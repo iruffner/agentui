@@ -126,9 +126,9 @@ extern class CreateAgentDialog extends JQ {
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EM.change(EMEvent.CreateAgent, newUser);
 
-    				EM.listenOnce(EMEvent.AgentCreated, new EMListener(function(n: Nothing): Void {
+    				EM.listenOnce(EMEvent.AgentCreated, function(n: Nothing): Void {
     					selfElement.dialog("close");
-    				}, "CreateAgentDialog-UserSignup"));
+    				}, "CreateAgentDialog-UserSignup");
 	        	},
 
 		        _buildDialog: function(): Void {

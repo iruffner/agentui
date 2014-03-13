@@ -90,9 +90,9 @@ extern class AliasComp extends JQ {
 		        	});
 
 
-		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias): Void {
+		        	EM.addListener(EMEvent.AliasLoaded, function(alias: Alias): Void {
 		        			self._setAlias(alias);
-		        		}, "AliasComp-Alias")
+		        		}, "AliasComp-Alias"
 		        	);
 
 		        	cast(self.container, JQDroppable).droppable({

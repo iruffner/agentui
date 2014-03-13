@@ -90,9 +90,9 @@ extern class AllowAccessDialog extends JQ {
 		        	var self: AllowAccessDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-		        	EM.listenOnce(EMEvent.AccessGranted, new EMListener(function(n: Nothing): Void {
+		        	EM.listenOnce(EMEvent.AccessGranted, function(n: Nothing): Void {
              			selfElement.close();
-             		}));
+             		});
 
 		        	var parms = {
 		        		connectionIid: self.options.connection.iid,

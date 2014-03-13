@@ -58,6 +58,8 @@ class AppContext {
     public static function init() {
     	LOGGER = new Logga(LogLevel.DEBUG);
 
+        EM.setLogger(LOGGER);
+
         INTRODUCTIONS = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
 
         MASTER_NOTIFICATIONS = new ObservableSet<Notification<Dynamic>>(ModelObjWithIid.identifier);
@@ -145,15 +147,15 @@ class AppContext {
             EM.change(EMEvent.UserLogout);
         });
 
-        EM.addListener(EMEvent.InitialDataLoadComplete, new EMListener(function(nada: Nothing) {
+        EM.addListener(EMEvent.InitialDataLoadComplete, function(nada: Nothing) {
             currentAlias = ALIASES.getElement(UBER_ALIAS_ID);
             EM.change(EMEvent.AliasLoaded, currentAlias);
-            }, "AppContext-InitialDataLoadComplete")
+            }, "AppContext-InitialDataLoadComplete"
         );
 
-        EM.addListener(EMEvent.FitWindow, new EMListener(function(n: Nothing) {
+        EM.addListener(EMEvent.FitWindow, function(n: Nothing) {
                 untyped __js__("fitWindow()");
-            }, "AppContext-FitWindow")
+            }, "AppContext-FitWindow"
         );
 	}
 

@@ -139,7 +139,7 @@ extern class LabelsList extends JQ {
 
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 		        	self.selectedLabelComp = null;
-		        	EM.addListener(EMEvent.AliasLoaded, new EMListener(function(alias: Alias) {
+		        	EM.addListener(EMEvent.AliasLoaded, function(alias: Alias) {
 		        		self.selectedLabelComp = null;
 
 	        			// Create the top-level label tree
@@ -149,7 +149,7 @@ extern class LabelsList extends JQ {
 			                labelPath:[alias.rootLabelIid]
 			            });
 			        	selfElement.prepend(labelTree);
-        			}, "LabelsList-Alias"));
+        			}, "LabelsList-Alias");
 
 		        	var newLabelButton: JQ = new JQ("<button class='newLabelButton'>New Label</button>");
 		        	selfElement.append(newLabelButton).append("<div class='clear'></div>");
