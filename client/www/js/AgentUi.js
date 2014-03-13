@@ -7261,7 +7261,7 @@ var defineWidget = function() {
 		selfElement.append(img);
 		self1._updateWidgets(new ui.model.Profile());
 		if(self1.options.connectionIid != null) {
-			self1.filteredSetConnection = new m3.observable.FilteredSet(ui.AppContext.CONNECTIONS,function(c) {
+			self1.filteredSetConnection = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONNECTIONS,function(c) {
 				return c.iid == self1.options.connectionIid;
 			});
 			self1._onUpdateConnection = function(c,evt) {
@@ -7269,7 +7269,7 @@ var defineWidget = function() {
 			};
 			self1.filteredSetConnection.listen(self1._onUpdateConnection);
 		} else if(self1.options.aliasIid != null) {
-			self1.filteredSetAlias = new m3.observable.FilteredSet(ui.AppContext.ALIASES,function(a) {
+			self1.filteredSetAlias = new m3.observable.FilteredSet(ui.AppContext.MASTER_ALIASES,function(a) {
 				return a.iid == self1.options.aliasIid;
 			});
 			self1._onUpdateAlias = function(a,evt) {
@@ -7752,7 +7752,7 @@ var defineWidget = function() {
 				selfElement.remove();
 			}
 		};
-		self1.filteredSet = new m3.observable.FilteredSet(ui.AppContext.LABELS,function(label) {
+		self1.filteredSet = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELS,function(label) {
 			return label.iid == self1.options.labelIid;
 		});
 		self1.filteredSet.listen(self1._onupdate);

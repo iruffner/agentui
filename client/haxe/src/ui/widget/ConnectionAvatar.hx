@@ -118,7 +118,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            self._updateWidgets(new Profile());
 
 		        	if (self.options.connectionIid != null) {
-		        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.CONNECTIONS,function(c:Connection):Bool{
+		        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.MASTER_CONNECTIONS,function(c:Connection):Bool{
 		        			return c.iid == self.options.connectionIid;
 		        		});
 		        		self._onUpdateConnection = function(c:Connection, evt:EventType) {
@@ -128,7 +128,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        		}
 		        		self.filteredSetConnection.listen(self._onUpdateConnection);
 		        	} else if (self.options.aliasIid != null){
-		        		self.filteredSetAlias = new FilteredSet<Alias>(AppContext.ALIASES,function(a:Alias):Bool{
+		        		self.filteredSetAlias = new FilteredSet<Alias>(AppContext.MASTER_ALIASES,function(a:Alias):Bool{
 		        			return a.iid == self.options.aliasIid;
 		        		});
 		        		self._onUpdateAlias = function(a:Alias, evt:EventType) {

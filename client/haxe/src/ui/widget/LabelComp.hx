@@ -118,7 +118,7 @@ extern class LabelComp extends FilterableComponent {
 				        }
 		        	};
 		        
-		        	self.filteredSet = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
+		        	self.filteredSet = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(label:Label):Bool {
 		        		return label.iid == self.options.labelIid;
 		        	});
 					self.filteredSet.listen(self._onupdate);
