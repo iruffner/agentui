@@ -34,11 +34,19 @@ class ResponseProcessor {
                 var context = new Context(data.context);
 
                 switch (context.oncomplete) {
+                    case "beginIntroduction":
+                        beginIntroduction();
+                    case "confirmIntroduction":
+                        confirmIntroduction();
+                    case "connectionProfile":
+                        processProfile(data);
+                    case "grantAccess":
+                        grantAccess();
                     case "initialDataLoad":
                         if (data.responseType == "query") {
                             Synchronizer.processResponse(data);
                         } else if (data.responseType == "squery") {
-                            updateModelObject(data.data.type, data.data);
+                            updateModelObject(data.type, data.results);
                         } else if (data.result && data.result.handle) {
                             AgentUi.PROTOCOL.addHandle(data.result.handle);
                         }
@@ -60,25 +68,41 @@ class ResponseProcessor {
         var type = type.toLowerCase();
         switch (type) {
             case "alias":
-                AppContext.MASTER_ALIASES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Alias));
+                for (alias_ in cast(data, Array<Dynamic>)) {
+                    AppContext.MASTER_ALIASES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
+                }
             case "connection":
-                AppContext.MASTER_CONNECTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Connection));
-            case "content":
-                AppContext.MASTER_CONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Content));
+                for (content_ in cast(data, Array<Dynamic>)) {
+                    AppContext.MASTER_CONNECTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(content_, Connection));
+                }
             case "introduction":
-                AppContext.INTRODUCTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Introduction));
+                for (content_ in cast(data, Array<Dynamic>)) {
+                    AppContext.INTRODUCTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(content_, Introduction));
+                }
             case "label":
-                AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Label));
+                for (label_ in cast(data, Array<Dynamic>)) {
+                    AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(label_, Label));
+                }
             case "labelacl":
-                AppContext.MASTER_LABELACLS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabelAcl));
-            case "labelchild":
-                AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabelChild));
-            case "labeledcontent":
-                AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, LabeledContent));
+                for (label_ in cast(data, Array<Dynamic>)) {
+                    AppContext.MASTER_LABELACLS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(label_, LabelAcl));
+                }
+            case "labelChild":
+                for (labelChild_ in cast(data, Array<Dynamic>)) {
+                    AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
+                }
+            case "labeledContent":
+                for (labeledContent_ in cast(data, Array<Dynamic>)) {
+                    AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(labeledContent_, LabeledContent));
+                }
             case "notification":
-                AppContext.MASTER_NOTIFICATIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Notification));
+                for (content_ in cast(data, Array<Dynamic>)) {
+                    AppContext.MASTER_NOTIFICATIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(content_, Notification));
+                }
             case "profile":
-                AppContext.PROFILES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Profile));
+                for (profile_ in cast(data, Array<Dynamic>)) {
+                    AppContext.PROFILES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(profile_, Profile));
+                }
             default:
                 AppContext.LOGGER.error("Unknown type: " + type);
         }
@@ -91,10 +115,19 @@ class ResponseProcessor {
         AppContext.MASTER_CONNECTIONS.addAll(data.connections);
         AppContext.INTRODUCTIONS.addAll(data.introductions);
         AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
-        AppContext.MASTER_CONTENT.addAll(data.content);
         AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
         AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
         AppContext.PROFILES.addAll(data.profiles);
+
+        // Update the alias with its profile
+        for (alias_ in AppContext.MASTER_ALIASES) {
+            for (profile_ in AppContext.PROFILES) {
+                if (profile_.aliasIid == alias_.iid) {
+                    alias_.profile = profile_;
+                    AppContext.MASTER_ALIASES.update(alias_);
+                }
+            }
+        }
 
         EM.change(EMEvent.InitialDataLoadComplete);
 	}
@@ -106,20 +139,24 @@ class ResponseProcessor {
     }
 
     public static function processProfile(rec:Dynamic) {
-        var connection = AppContext.MASTER_CONNECTIONS.getElement(rec.connectionIid);
-        connection.data = AppContext.SERIALIZER.fromJsonX(rec.profile, Profile);
-        AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+        if (rec.result && rec.result.handle) {
+            AgentUi.PROTOCOL.addHandle(rec.result.handle);
+        } else {
+            var connection = AppContext.MASTER_CONNECTIONS.getElement(rec.connectionIid);
+            connection.data = AppContext.SERIALIZER.fromJsonX(rec.results[0], Profile);
+            AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+        }
     }
 
-    public static function beginIntroduction(data:SynchronizationParms) {
+    public static function beginIntroduction() {
         EM.change(EMEvent.INTRODUCTION_RESPONSE);
     }
 
-    public static function confirmIntroduction(data:SynchronizationParms) {
+    public static function confirmIntroduction() {
         EM.change(RespondToIntroduction_RESPONSE);
     }
 
-    public static function grantAccess(data:SynchronizationParms) {
+    public static function grantAccess() {
         EM.change(AccessGranted);
     }
 

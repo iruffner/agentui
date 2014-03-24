@@ -129,7 +129,7 @@ extern class ConnectionsList extends JQ {
 
 		        	var connections:OSet<Connection> = null;
 		        	if (selfElement.attr("id") == "connections-all") {
-		        		connections = AppContext.CONNECTIONS;
+		        		connections = AppContext.MASTER_CONNECTIONS;
 		        	} else {
 		        		var aliasIid = selfElement.attr("id").split("-")[1];
 		        		connections = AppContext.GROUPED_CONNECTIONS.delegate().get(aliasIid);

@@ -464,6 +464,7 @@ class IntroductionRequestNotification extends Notification<IntroductionRequestDa
 		public var introductionIid: String;
 		public var message: String;
 		public var profile: Profile;
+		@:optional public var accepted:Bool;
 	}
 
 class IntroductionResponseNotification extends Notification<IntroductionResponseData> {

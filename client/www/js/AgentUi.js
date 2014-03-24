@@ -4496,13 +4496,6 @@ ui.AppContext.init = function() {
 	ui.AppContext.ALIASES = new m3.observable.FilteredSet(ui.AppContext.MASTER_ALIASES,function(a) {
 		return !a.deleted;
 	});
-	ui.AppContext.MASTER_CONTENT = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
-	ui.AppContext.CONTENT = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONTENT,function(c) {
-		return !c.deleted;
-	});
-	ui.AppContext.GROUPED_CONTENT = new m3.observable.GroupedSet(ui.AppContext.CONTENT,function(c) {
-		return c.aliasIid;
-	});
 	ui.AppContext.MASTER_LABELS = new m3.observable.ObservableSet(ui.model.Label.identifier);
 	ui.AppContext.LABELS = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELS,function(c) {
 		return !c.deleted;
@@ -4511,31 +4504,23 @@ ui.AppContext.init = function() {
 	ui.AppContext.MASTER_CONNECTIONS.listen(function(c,evt) {
 		if(evt.isAdd()) ui.AgentUi.PROTOCOL.getProfiles([c.iid]);
 	});
-	ui.AppContext.CONNECTIONS = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONNECTIONS,function(c) {
-		return !c.deleted;
-	});
-	ui.AppContext.GROUPED_CONNECTIONS = new m3.observable.GroupedSet(ui.AppContext.CONNECTIONS,function(c) {
+	ui.AppContext.GROUPED_CONNECTIONS = new m3.observable.GroupedSet(ui.AppContext.MASTER_CONNECTIONS,function(c) {
+		if(c.deleted) return "DELETED";
 		return c.aliasIid;
 	});
 	ui.AppContext.MASTER_LABELACLS = new m3.observable.ObservableSet(ui.model.LabelAcl.identifier);
-	ui.AppContext.LABELACLS = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELACLS,function(l) {
-		return !l.deleted;
-	});
-	ui.AppContext.GROUPED_LABELACLS = new m3.observable.GroupedSet(ui.AppContext.LABELACLS,function(l) {
+	ui.AppContext.GROUPED_LABELACLS = new m3.observable.GroupedSet(ui.AppContext.MASTER_LABELACLS,function(l) {
+		if(l.deleted) return "DELETED";
 		return l.connectionIid;
 	});
 	ui.AppContext.MASTER_LABELCHILDREN = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
-	ui.AppContext.LABELCHILDREN = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(c) {
-		return !c.deleted;
-	});
-	ui.AppContext.GROUPED_LABELCHILDREN = new m3.observable.GroupedSet(ui.AppContext.LABELCHILDREN,function(lc) {
+	ui.AppContext.GROUPED_LABELCHILDREN = new m3.observable.GroupedSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+		if(lc.deleted) return "DELETED";
 		return lc.parentIid;
 	});
 	ui.AppContext.MASTER_LABELEDCONTENT = new m3.observable.ObservableSet(ui.model.LabeledContent.identifier);
-	ui.AppContext.LABELEDCONTENT = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELEDCONTENT,function(c) {
-		return !c.deleted;
-	});
-	ui.AppContext.GROUPED_LABELEDCONTENT = new m3.observable.GroupedSet(ui.AppContext.LABELEDCONTENT,function(lc) {
+	ui.AppContext.GROUPED_LABELEDCONTENT = new m3.observable.GroupedSet(ui.AppContext.MASTER_LABELEDCONTENT,function(lc) {
+		if(lc.deleted) return "DELETED";
 		return lc.contentIid;
 	});
 	ui.AppContext.PROFILES = new m3.observable.ObservableSet(ui.model.Profile.identifier);
@@ -4571,8 +4556,8 @@ ui.AppContext.getDescendentLabelChildren = function(iid) {
 	var lcs = new Array();
 	var getDescendents;
 	getDescendents = function(iid1,lcList) {
-		var children = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == iid1;
+		var children = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+			return lc.parentIid == iid1 && !lc.deleted;
 		}).asArray();
 		var _g1 = 0, _g = children.length;
 		while(_g1 < _g) {
@@ -4589,8 +4574,8 @@ ui.AppContext.getLabelDescendents = function(iid) {
 	var getDescendentIids;
 	getDescendentIids = function(iid1,iidList) {
 		iidList.splice(0,0,iid1);
-		var children = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == iid1;
+		var children = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+			return lc.parentIid == iid1 && !lc.deleted;
 		}).asArray();
 		var _g1 = 0, _g = children.length;
 		while(_g1 < _g) {
@@ -4611,7 +4596,7 @@ ui.AppContext.getLabelDescendents = function(iid) {
 }
 ui.AppContext.connectionFromMetaLabel = function(metaLabelIid) {
 	var ret = null;
-	var $it0 = ui.AppContext.CONNECTIONS.iterator();
+	var $it0 = ui.AppContext.MASTER_CONNECTIONS.iterator();
 	while( $it0.hasNext() ) {
 		var connection = $it0.next();
 		if(connection.metaLabelIid == metaLabelIid) {
@@ -4671,11 +4656,11 @@ ui.api.BennuHandler.prototype = {
 		ui.AppContext.UBER_ALIAS_ID = data.aliasIid;
 		this._startPolling();
 		var context = ui.api.Synchronizer.createContext(9,"initialDataLoad");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "aliases",ui.api.QueryMessage.create("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "introductions",ui.api.QueryMessage.create("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "connections",ui.api.QueryMessage.create("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "notifications",ui.api.QueryMessage.create("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labels",ui.api.QueryMessage.create("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelacls",ui.api.QueryMessage.create("labelAcl")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labeledContents",ui.api.QueryMessage.create("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "labelChildren",ui.api.QueryMessage.create("labelChild")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context + "profiles",ui.api.QueryMessage.create("profile"))];
+		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labelAcl")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labelChild")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("profile"))];
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,deleteLabel: function(data) {
-		var labelChildren = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
+		var labelChildren = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
 			return lc.parentIid == data.parentIid && lc.childIid == data.label.iid;
 		}).asArray();
 		var context = ui.api.Synchronizer.createContext(labelChildren.length,"labelDeleted");
@@ -4685,7 +4670,7 @@ ui.api.BennuHandler.prototype = {
 			var lc = labelChildren[_g];
 			++_g;
 			lc.deleted = true;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labelChild",ui.api.DeleteMessage.create(lc)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lc)));
 		}
 		new ui.api.SubmitRequest(requests).start();
 	}
@@ -4693,18 +4678,18 @@ ui.api.BennuHandler.prototype = {
 		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.iid);
 		if(lcToAdd == null) lcToAdd = new ui.model.LabelChild(data.newParentId,data.label.iid); else lcToAdd.deleted = false;
 		var context = ui.api.Synchronizer.createContext(1,"labelCopied");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lcToAdd))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lcToAdd))]);
 		req.start();
 	}
 	,moveLabel: function(data) {
-		var lcs = new m3.observable.FilteredSet(ui.AppContext.LABELCHILDREN,function(lc) {
+		var lcs = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
 			return lc.parentIid == data.parentIid && lc.childIid == data.label.iid;
 		});
 		var lcToRemove = this.getExistingLabelChild(data.parentIid,data.label.iid);
 		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.iid);
 		if(lcToAdd == null) lcToAdd = new ui.model.LabelChild(data.newParentId,data.label.iid); else lcToAdd.deleted = false;
 		var context = ui.api.Synchronizer.createContext(2,"labelMoved");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labelChild",ui.api.DeleteMessage.create(lcToRemove)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lcToAdd))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lcToRemove)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lcToAdd))]);
 		req.start();
 	}
 	,getExistingLabelChild: function(parentIid,childIid) {
@@ -4715,25 +4700,25 @@ ui.api.BennuHandler.prototype = {
 	}
 	,updateLabel: function(data) {
 		var context = ui.api.Synchronizer.createContext(1,"labelUpdated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "label",ui.api.CrudMessage.create(data.label))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(data.label))]);
 		req.start();
 	}
 	,createLabel: function(data) {
 		var lc = new ui.model.LabelChild(data.parentIid,data.label.iid);
 		var context = ui.api.Synchronizer.createContext(2,"labelCreated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "label",ui.api.CrudMessage.create(data.label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lc))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(data.label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lc))]);
 		req.start();
 	}
 	,deleteContent: function(data) {
 		var context = ui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentDeleted");
 		var requests = new Array();
 		data.content.deleted = true;
-		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "content",ui.api.DeleteMessage.create(data.content)));
+		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(data.content)));
 		var $it0 = ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid).iterator();
 		while( $it0.hasNext() ) {
 			var lc = $it0.next();
 			lc.deleted = true;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labeledContent",ui.api.DeleteMessage.create(lc)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lc)));
 		}
 		new ui.api.SubmitRequest(requests).start();
 	}
@@ -4773,45 +4758,45 @@ ui.api.BennuHandler.prototype = {
 		}
 		var context = ui.api.Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length,"contentUpdated");
 		var requests = new Array();
-		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "content",ui.api.CrudMessage.create(data.content)));
+		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(data.content)));
 		var _g = 0;
 		while(_g < labelsToDelete.length) {
 			var lc = labelsToDelete[_g];
 			++_g;
 			lc.deleted = true;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labeledContent",ui.api.DeleteMessage.create(lc)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lc)));
 		}
 		var _g = 0;
 		while(_g < labelsToAdd.length) {
 			var lc = labelsToAdd[_g];
 			++_g;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labeledContent",ui.api.CrudMessage.create(lc)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lc)));
 		}
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,createContent: function(data) {
 		var context = ui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentCreated");
 		var requests = new Array();
-		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "content",ui.api.CrudMessage.create(data.content)));
+		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(data.content)));
 		var _g = 0, _g1 = data.labelIids;
 		while(_g < _g1.length) {
 			var iid = _g1[_g];
 			++_g;
 			var labeledContent = new ui.model.LabeledContent(data.content.iid,iid);
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labeledContent",ui.api.CrudMessage.create(labeledContent)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(labeledContent)));
 		}
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,deleteAlias: function(alias) {
 		alias.deleted = true;
 		var context = ui.api.Synchronizer.createContext(1,"aliasDeleted");
-		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "alias",ui.api.DeleteMessage.create(alias))]).start();
+		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(alias))]).start();
 		var data = new ui.model.EditLabelData(ui.AppContext.LABELS.delegate().get(alias.rootLabelIid),ui.AppContext.getUberLabelIid());
 		this.deleteLabel(data);
 	}
 	,updateAlias: function(alias) {
 		var context = ui.api.Synchronizer.createContext(1,"aliasUpdated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "alias",ui.api.CrudMessage.create(alias))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias))]);
 		req.start();
 	}
 	,createAlias: function(alias) {
@@ -4820,12 +4805,12 @@ ui.api.BennuHandler.prototype = {
 		var lc = new ui.model.LabelChild(ui.AppContext.getUberLabelIid(),label.iid);
 		alias.rootLabelIid = label.iid;
 		var context = ui.api.Synchronizer.createContext(3,"aliasCreated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "alias",ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "label",ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelChild",ui.api.CrudMessage.create(lc))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lc))]);
 		req.start();
 	}
 	,filter: function(filterData) {
 		var context = ui.api.Synchronizer.createContext(1,"filterContent");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DQUERY,context + "handle",new ui.api.QueryMessage(filterData))];
+		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DQUERY,context,new ui.api.QueryMessage(filterData))];
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,restores: function() {
@@ -4845,29 +4830,29 @@ ui.api.BennuHandler.prototype = {
 			var lacl = lacls[_g];
 			++_g;
 			lacl.deleted = true;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "labelAcl",ui.api.DeleteMessage.create(lacl)));
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lacl)));
 		}
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,grantAccess: function(connectionIid,labelIid) {
 		var acl = new ui.model.LabelAcl(connectionIid,labelIid);
 		var context = ui.api.Synchronizer.createContext(1,"grantAccess");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context + "labelacl",ui.api.CrudMessage.create(acl))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(acl))]);
 		req.start();
 	}
 	,deleteConnection: function(c) {
 		c.deleted = true;
 		var context = ui.api.Synchronizer.createContext(1,"connectionDeleted");
-		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context + "connection",ui.api.DeleteMessage.create(c))]).start();
+		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(c))]).start();
 	}
 	,confirmIntroduction: function(confirmation) {
 		var context = ui.api.Synchronizer.createContext(1,"confirmIntroduction");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRO_RESPONSE,context + "introduction",confirmation)]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRO_RESPONSE,context,confirmation)]);
 		req.start();
 	}
 	,beginIntroduction: function(intro) {
 		var context = ui.api.Synchronizer.createContext(1,"beginIntroduction");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRODUCE,context + "introduction",new ui.api.IntroMessage(intro))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRODUCE,context,new ui.api.IntroMessage(intro))]);
 		req.start();
 	}
 	,createAgent: function(newUser) {
@@ -4880,9 +4865,11 @@ ui.api.BennuHandler.prototype = {
 		this.createChannel(login.agentId,$bind(this,this.onCreateSubmitChannel));
 	}
 	,getProfiles: function(connectionIids) {
-		var context = ui.api.Synchronizer.createContext(1,"getProfiles");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.GET_PROFILE,context + "profiles",new ui.api.GetProfileMessage(connectionIids))]);
-		req.start();
+		var context = ui.api.Synchronizer.createContext(1,"connectionProfile");
+		var qm = ui.api.QueryMessage.create("profile");
+		qm.connectionIids = connectionIids;
+		qm.local = false;
+		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,qm)]).start();
 	}
 	,deregisterListeners: function() {
 	}
@@ -5272,8 +5259,20 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 			if(data.context == null) return;
 			var context = new ui.model.Context(data.context);
 			switch(context.oncomplete) {
+			case "beginIntroduction":
+				ui.api.ResponseProcessor.beginIntroduction();
+				break;
+			case "confirmIntroduction":
+				ui.api.ResponseProcessor.confirmIntroduction();
+				break;
+			case "connectionProfile":
+				ui.api.ResponseProcessor.processProfile(data);
+				break;
+			case "grantAccess":
+				ui.api.ResponseProcessor.grantAccess();
+				break;
 			case "initialDataLoad":
-				if(data.responseType == "query") ui.api.Synchronizer.processResponse(data); else if(data.responseType == "squery") ui.api.ResponseProcessor.updateModelObject(data.data.type,data.data); else if(data.result && data.result.handle) ui.AgentUi.PROTOCOL.addHandle(data.result.handle);
+				if(data.responseType == "query") ui.api.Synchronizer.processResponse(data); else if(data.responseType == "squery") ui.api.ResponseProcessor.updateModelObject(data.type,data.results); else if(data.result && data.result.handle) ui.AgentUi.PROTOCOL.addHandle(data.result.handle);
 				break;
 			case "filterContent":
 				if(data.responseType == "query") {
@@ -5292,34 +5291,76 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 	var type1 = type.toLowerCase();
 	switch(type1) {
 	case "alias":
-		ui.AppContext.MASTER_ALIASES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Alias));
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var alias_ = _g1[_g];
+			++_g;
+			ui.AppContext.MASTER_ALIASES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(alias_,ui.model.Alias));
+		}
 		break;
 	case "connection":
-		ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Connection));
-		break;
-	case "content":
-		ui.AppContext.MASTER_CONTENT.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Content));
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var content_ = _g1[_g];
+			++_g;
+			ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Connection));
+		}
 		break;
 	case "introduction":
-		ui.AppContext.INTRODUCTIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Introduction));
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var content_ = _g1[_g];
+			++_g;
+			ui.AppContext.INTRODUCTIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Introduction));
+		}
 		break;
 	case "label":
-		ui.AppContext.MASTER_LABELS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Label));
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var label_ = _g1[_g];
+			++_g;
+			ui.AppContext.MASTER_LABELS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.Label));
+		}
 		break;
 	case "labelacl":
-		ui.AppContext.MASTER_LABELACLS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.LabelAcl));
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var label_ = _g1[_g];
+			++_g;
+			ui.AppContext.MASTER_LABELACLS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.LabelAcl));
+		}
 		break;
-	case "labelchild":
-		ui.AppContext.MASTER_LABELCHILDREN.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.LabelChild));
+	case "labelChild":
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var labelChild_ = _g1[_g];
+			++_g;
+			ui.AppContext.MASTER_LABELCHILDREN.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(labelChild_,ui.model.LabelChild));
+		}
 		break;
-	case "labeledcontent":
-		ui.AppContext.MASTER_LABELEDCONTENT.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.LabeledContent));
+	case "labeledContent":
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var labeledContent_ = _g1[_g];
+			++_g;
+			ui.AppContext.MASTER_LABELEDCONTENT.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(labeledContent_,ui.model.LabeledContent));
+		}
 		break;
 	case "notification":
-		ui.AppContext.MASTER_NOTIFICATIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Notification));
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var content_ = _g1[_g];
+			++_g;
+			ui.AppContext.MASTER_NOTIFICATIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Notification));
+		}
 		break;
 	case "profile":
-		ui.AppContext.PROFILES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(data.instance,ui.model.Profile));
+		var _g = 0, _g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var profile_ = _g1[_g];
+			++_g;
+			ui.AppContext.PROFILES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(profile_,ui.model.Profile));
+		}
 		break;
 	default:
 		ui.AppContext.LOGGER.error("Unknown type: " + type1);
@@ -5332,10 +5373,21 @@ ui.api.ResponseProcessor.initialDataLoad = function(data) {
 	ui.AppContext.MASTER_CONNECTIONS.addAll(data.connections);
 	ui.AppContext.INTRODUCTIONS.addAll(data.introductions);
 	ui.AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
-	ui.AppContext.MASTER_CONTENT.addAll(data.content);
 	ui.AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
 	ui.AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
 	ui.AppContext.PROFILES.addAll(data.profiles);
+	var $it0 = ui.AppContext.MASTER_ALIASES.iterator();
+	while( $it0.hasNext() ) {
+		var alias_ = $it0.next();
+		var $it1 = ui.AppContext.PROFILES.iterator();
+		while( $it1.hasNext() ) {
+			var profile_ = $it1.next();
+			if(profile_.aliasIid == alias_.iid) {
+				alias_.profile = profile_;
+				ui.AppContext.MASTER_ALIASES.update(alias_);
+			}
+		}
+	}
 	ui.model.EM.change(ui.model.EMEvent.InitialDataLoadComplete);
 }
 ui.api.ResponseProcessor.aliasCreated = function(data) {
@@ -5344,17 +5396,19 @@ ui.api.ResponseProcessor.aliasCreated = function(data) {
 	ui.AppContext.MASTER_LABELS.addAll(data.labels);
 }
 ui.api.ResponseProcessor.processProfile = function(rec) {
-	var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,rec.connectionIid);
-	connection.data = ui.AppContext.SERIALIZER.fromJsonX(rec.profile,ui.model.Profile);
-	ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+	if(rec.result && rec.result.handle) ui.AgentUi.PROTOCOL.addHandle(rec.result.handle); else {
+		var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,rec.connectionIid);
+		connection.data = ui.AppContext.SERIALIZER.fromJsonX(rec.results[0],ui.model.Profile);
+		ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+	}
 }
-ui.api.ResponseProcessor.beginIntroduction = function(data) {
+ui.api.ResponseProcessor.beginIntroduction = function() {
 	ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_RESPONSE);
 }
-ui.api.ResponseProcessor.confirmIntroduction = function(data) {
+ui.api.ResponseProcessor.confirmIntroduction = function() {
 	ui.model.EM.change(ui.model.EMEvent.RespondToIntroduction_RESPONSE);
 }
-ui.api.ResponseProcessor.grantAccess = function(data) {
+ui.api.ResponseProcessor.grantAccess = function() {
 	ui.model.EM.change(ui.model.EMEvent.AccessGranted);
 }
 ui.api.ResponseProcessor.filterContent = function(data,filterIid) {
@@ -5390,7 +5444,7 @@ ui.api.Synchronizer = function(iid,numResponsesExpected,oncomplete) {
 $hxClasses["ui.api.Synchronizer"] = ui.api.Synchronizer;
 ui.api.Synchronizer.__name__ = ["ui","api","Synchronizer"];
 ui.api.Synchronizer.createContext = function(numResponsesExpected,oncomplete) {
-	return m3.util.UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete + "-";
+	return m3.util.UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete;
 }
 ui.api.Synchronizer.processResponse = function(data) {
 	var context = new ui.model.Context(data.context);
@@ -5409,11 +5463,9 @@ ui.api.Synchronizer.remove = function(iid) {
 ui.api.Synchronizer.prototype = {
 	dataReceived: function(c,dataObj) {
 		var data = dataObj.results;
-		switch(c.responseType) {
+		if(data == null) return;
+		switch(dataObj.type) {
 		case "alias":
-			this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Alias));
-			break;
-		case "aliases":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var alias_ = _g1[_g];
@@ -5422,9 +5474,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "connection":
-			this.parms.connections.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Connection));
-			break;
-		case "connections":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var content_ = _g1[_g];
@@ -5433,9 +5482,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "content":
-			this.parms.content.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Content));
-			break;
-		case "contents":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var content_ = _g1[_g];
@@ -5444,9 +5490,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "introduction":
-			this.parms.introductions.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Introduction));
-			break;
-		case "introductions":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var content_ = _g1[_g];
@@ -5455,9 +5498,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "label":
-			this.parms.labels.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Label));
-			break;
-		case "labels":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var label_ = _g1[_g];
@@ -5466,9 +5506,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "labelacl":
-			this.parms.labelAcls.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.LabelAcl));
-			break;
-		case "labelacls":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var label_ = _g1[_g];
@@ -5477,9 +5514,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "labelChild":
-			this.parms.labelChildren.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.LabelChild));
-			break;
-		case "labelChildren":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var labelChild_ = _g1[_g];
@@ -5488,9 +5522,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "labeledContent":
-			this.parms.labeledContent.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.LabeledContent));
-			break;
-		case "labeledContents":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var labeledContent_ = _g1[_g];
@@ -5499,9 +5530,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "notification":
-			this.parms.notifications.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Notification));
-			break;
-		case "notifications":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var content_ = _g1[_g];
@@ -5510,9 +5538,6 @@ ui.api.Synchronizer.prototype = {
 			}
 			break;
 		case "profile":
-			this.parms.profiles.push(ui.AppContext.SERIALIZER.fromJsonX(data,ui.model.Profile));
-			break;
-		case "profiles":
 			var _g = 0, _g1 = js.Boot.__cast(data , Array);
 			while(_g < _g1.length) {
 				var profile_ = _g1[_g];
@@ -5576,11 +5601,10 @@ ui.model.ContentSource.prototype = {
 }
 ui.model.Context = function(context) {
 	var c = context.split("-");
-	if(c.length != 4) throw new m3.exception.Exception("invalid context");
+	if(c.length != 3) throw new m3.exception.Exception("invalid context");
 	this.iid = c[0];
 	this.numResponsesExpected = Std.parseInt(c[1]);
 	this.oncomplete = c[2];
-	this.responseType = c[3];
 };
 $hxClasses["ui.model.Context"] = ui.model.Context;
 ui.model.Context.__name__ = ["ui","model","Context"];
@@ -7229,7 +7253,7 @@ var defineWidget = function() {
 		return clone.children("img").addClass("connectionDraggingImg");
 	}}, getConnection : function() {
 		var self = this;
-		return m3.helper.OSetHelper.getElement(ui.AppContext.CONNECTIONS,self.options.connectionIid);
+		return m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,self.options.connectionIid);
 	}, getAlias : function() {
 		var self = this;
 		return m3.helper.OSetHelper.getElement(ui.AppContext.ALIASES,self.options.aliasIid);
@@ -7283,7 +7307,7 @@ var defineWidget = function() {
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 				if(_ui.draggable["is"](".labelComp")) {
 					var labelComp = js.Boot.__cast(_ui.draggable , $);
-					var connection = m3.helper.OSetHelper.getElement(ui.AppContext.CONNECTIONS,self1.options.connectionIid);
+					var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,self1.options.connectionIid);
 					ui.widget.DialogManager.allowAccess(labelComp.labelComp("getLabel"),connection);
 				} else {
 					var filterCombiner = new $("<div></div>");
@@ -8011,7 +8035,7 @@ var defineWidget = function() {
 			ui.model.EM.change(ui.model.EMEvent.FitWindow);
 		};
 		var connections = null;
-		if(selfElement.attr("id") == "connections-all") connections = ui.AppContext.CONNECTIONS; else {
+		if(selfElement.attr("id") == "connections-all") connections = ui.AppContext.MASTER_CONNECTIONS; else {
 			var aliasIid = selfElement.attr("id").split("-")[1];
 			connections = ui.AppContext.GROUPED_CONNECTIONS.delegate().get(aliasIid);
 			if(connections == null) connections = ui.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(aliasIid);
@@ -8304,7 +8328,7 @@ var defineWidget = function() {
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
 		var aliasIid = null;
 		var connectionIid = null;
-		if(ui.AppContext.ALIASES.delegate().get(self.options.content.aliasIid) != null) aliasIid = self.options.content.aliasIid; else if(ui.AppContext.CONNECTIONS.delegate().get(self.options.content.connectionIid) != null) connectionIid = self.options.content.connectionIid;
+		if(ui.AppContext.ALIASES.delegate().get(self.options.content.aliasIid) != null) aliasIid = self.options.content.aliasIid; else if(ui.AppContext.MASTER_CONNECTIONS.delegate().get(self.options.content.connectionIid) != null) connectionIid = self.options.content.connectionIid;
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, aliasIid : aliasIid, connectionIid : connectionIid}).appendTo(postCreator);
 		var postLabels = new $("<aside class='postLabels'></div>").appendTo(postWr);
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
@@ -9265,7 +9289,7 @@ var defineWidget = function() {
 			var cb = new $(ele);
 			if(cb.prop("checked") == true) {
 				var id = cb.attr("id").split("-")[1];
-				se.push(m3.helper.OSetHelper.getElement(ui.AppContext.LABELACLS,id));
+				se.push(m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_LABELACLS,id));
 			}
 		});
 		if(se.length > 0) ui.model.EM.change(ui.model.EMEvent.RevokeAccess,se);
@@ -9289,7 +9313,7 @@ var defineWidget = function() {
 	}, _getProfile : function(content) {
 		var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,content.aliasIid);
 		if(alias != null) return alias.profile;
-		var connection = m3.helper.OSetHelper.getElement(ui.AppContext.CONNECTIONS,content.connectionIid);
+		var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,content.connectionIid);
 		if(connection != null) return connection.data;
 		return new ui.model.Profile();
 	}, _addContent : function(content) {
@@ -9444,7 +9468,6 @@ ui.api.BennuHandler.DELETE = "/api/delete";
 ui.api.BennuHandler.REGISTER = "/api/squery/register";
 ui.api.BennuHandler.INTRODUCE = "/api/introduction/initiate";
 ui.api.BennuHandler.DEREGISTER = "/api/squery/deregister";
-ui.api.BennuHandler.GET_PROFILE = "/api/profile/get";
 ui.api.BennuHandler.INTRO_RESPONSE = "/api/introduction/respond";
 ui.api.ChannelMessage.__rtti = "<class path=\"ui.api.ChannelMessage\" params=\"\" module=\"ui.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
 ui.api.DeregisterMessage.__rtti = "<class path=\"ui.api.DeregisterMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<handle public=\"1\"><c path=\"String\"/></handle>\n\t<new public=\"1\" set=\"method\" line=\"49\"><f a=\"handle\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
@@ -9480,11 +9503,11 @@ ui.model.Notification.__rtti = "<class path=\"ui.model.Notification\" params=\"T
 ui.model.IntroductionRequest.__rtti = "<class path=\"ui.model.IntroductionRequest\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"442\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.Introduction.__rtti = "<class path=\"ui.model.Introduction\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"ui.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"ui.model.IntroductionState\"/></bState>\n\t<new public=\"1\" set=\"method\" line=\"449\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.model.IntroductionRequestNotification.__rtti = "<class path=\"ui.model.IntroductionRequestNotification\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Notification\"><c path=\"ui.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"458\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.IntroductionRequestData.__rtti = "<class path=\"ui.model.IntroductionRequestData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"ui.model.Profile\"/></profile>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.model.IntroductionResponseNotification.__rtti = "<class path=\"ui.model.IntroductionResponseNotification\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Notification\"><c path=\"ui.model.IntroductionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"470\"><f a=\"introductionIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+ui.model.IntroductionRequestData.__rtti = "<class path=\"ui.model.IntroductionRequestData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"ui.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ui.model.IntroductionResponseNotification.__rtti = "<class path=\"ui.model.IntroductionResponseNotification\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Notification\"><c path=\"ui.model.IntroductionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"471\"><f a=\"introductionIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 ui.model.IntroductionResponseData.__rtti = "<class path=\"ui.model.IntroductionResponseData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"486\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"499\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"487\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"500\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ui.widget.score.ContentTimeLine.initial_y_pos = 60;
 ui.widget.score.ContentTimeLine.next_y_pos = ui.widget.score.ContentTimeLine.initial_y_pos;
 ui.widget.score.ContentTimeLine.next_x_pos = 10;

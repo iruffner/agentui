@@ -26,7 +26,6 @@ class BennuHandler implements ProtocolHandler {
 	private static var REGISTER = "/api/squery/register" ;
 	private static var INTRODUCE = "/api/introduction/initiate";
 	private static var DEREGISTER = "/api/squery/deregister" ;
-	private static var GET_PROFILE = "/api/profile/get";
 	private static var INTRO_RESPONSE = "/api/introduction/respond";
 
 	private var eventDelegate:EventDelegate;
@@ -58,10 +57,11 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function getProfiles(connectionIids:Array<String>) {
-		var context = Synchronizer.createContext(1, "getProfiles");
-		var req = new SubmitRequest([
-			new ChannelRequestMessage(GET_PROFILE, context + "profiles", new GetProfileMessage(connectionIids))]);
-		req.start();
+		var context = Synchronizer.createContext(1, "connectionProfile");
+		var qm = QueryMessage.create("profile");
+		qm.connectionIids = connectionIids;
+		qm.local = false;
+		new SubmitRequest([new ChannelRequestMessage(QUERY, context, qm)]).start();
 	}
 
 	public function login(login: Login): Void {
@@ -80,14 +80,14 @@ class BennuHandler implements ProtocolHandler {
 	public function beginIntroduction(intro: IntroductionRequest): Void {
 		var context = Synchronizer.createContext(1, "beginIntroduction");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(INTRODUCE, context + "introduction", new IntroMessage(intro))]);
+			new ChannelRequestMessage(INTRODUCE, context, new IntroMessage(intro))]);
 		req.start();
 	}
 
 	public function confirmIntroduction(confirmation: IntroResponseMessage): Void {
 		var context = Synchronizer.createContext(1, "confirmIntroduction");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(INTRO_RESPONSE, context + "introduction", confirmation)]);
+			new ChannelRequestMessage(INTRO_RESPONSE, context, confirmation)]);
 		req.start();
 	}
 
@@ -95,7 +95,7 @@ class BennuHandler implements ProtocolHandler {
 		c.deleted = true;
 		var context = Synchronizer.createContext(1, "connectionDeleted");
 		new SubmitRequest(
-			[new ChannelRequestMessage(DELETE, context + "connection", DeleteMessage.create(c))]
+			[new ChannelRequestMessage(DELETE, context, DeleteMessage.create(c))]
 		).start();
 	}
 
@@ -103,7 +103,7 @@ class BennuHandler implements ProtocolHandler {
 		var acl = new LabelAcl(connectionIid, labelIid);
 		var context = Synchronizer.createContext(1, "grantAccess");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context + "labelacl", CrudMessage.create(acl))
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(acl))
 		]);
 		req.start();
 	}
@@ -113,7 +113,7 @@ class BennuHandler implements ProtocolHandler {
 		var requests = new Array<ChannelRequestMessage>();
 		for (lacl in lacls) {
 			lacl.deleted = true;
-			requests.push(new ChannelRequestMessage(DELETE, context + "labelAcl", DeleteMessage.create(lacl)));
+			requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lacl)));
 		}
 		new SubmitRequest(requests).start();
 	}
@@ -131,7 +131,7 @@ class BennuHandler implements ProtocolHandler {
 	public function filter(filterData: FilterData): Void {
 		var context = Synchronizer.createContext(1, "filterContent");
 		var requests = [
-			new ChannelRequestMessage(DQUERY, context + "handle", new QueryMessage(filterData)),
+			new ChannelRequestMessage(DQUERY, context, new QueryMessage(filterData)),
 		];
 		new SubmitRequest(requests).start();
 	}
@@ -145,16 +145,16 @@ class BennuHandler implements ProtocolHandler {
 
 		var context = Synchronizer.createContext(3, "aliasCreated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context + "alias", CrudMessage.create(alias)),
-			new ChannelRequestMessage(UPSERT, context + "label", CrudMessage.create(label)),
-			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias)),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(label)),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(lc))]);
 		req.start();
 	}
 	
 	public function updateAlias(alias: Alias): Void {
 		var context = Synchronizer.createContext(1, "aliasUpdated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context + "alias", CrudMessage.create(alias))]);
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias))]);
 		req.start();
 	}
 
@@ -162,7 +162,7 @@ class BennuHandler implements ProtocolHandler {
 		alias.deleted = true;
 		var context = Synchronizer.createContext(1, "aliasDeleted");
 		new SubmitRequest(
-			[new ChannelRequestMessage(DELETE, context + "alias", DeleteMessage.create(alias))]
+			[new ChannelRequestMessage(DELETE, context, DeleteMessage.create(alias))]
 		).start();
 
 		// TODO: the parentLabelIid might not be blank...
@@ -174,10 +174,10 @@ class BennuHandler implements ProtocolHandler {
 	public function createContent(data:EditContentData):Void {
 		var context = Synchronizer.createContext(1 + data.labelIids.length, "contentCreated");
 		var requests = new Array<ChannelRequestMessage>();
-		requests.push(new ChannelRequestMessage(UPSERT, context + "content", CrudMessage.create(data.content)));
+		requests.push(new ChannelRequestMessage(UPSERT, context, CrudMessage.create(data.content)));
 		for (iid in data.labelIids) {
 			var labeledContent = new LabeledContent(data.content.iid, iid);
-			requests.push(new ChannelRequestMessage(UPSERT, context + "labeledContent", CrudMessage.create(labeledContent)));
+			requests.push(new ChannelRequestMessage(UPSERT, context, CrudMessage.create(labeledContent)));
 		}
 		new SubmitRequest(requests).start();
 	}
@@ -216,15 +216,15 @@ class BennuHandler implements ProtocolHandler {
 		var context = Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length, "contentUpdated");		
 	
 		var requests = new Array<ChannelRequestMessage>();
-		requests.push(new ChannelRequestMessage(UPSERT, context + "content", CrudMessage.create(data.content)));
+		requests.push(new ChannelRequestMessage(UPSERT, context, CrudMessage.create(data.content)));
 
 		for (lc in labelsToDelete) {
 			lc.deleted = true;
-			requests.push(new ChannelRequestMessage(DELETE, context + "labeledContent", DeleteMessage.create(lc)));
+			requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lc)));
 		}
 
 		for (lc in labelsToAdd) {
-			requests.push(new ChannelRequestMessage(UPSERT, context + "labeledContent", CrudMessage.create(lc)));
+			requests.push(new ChannelRequestMessage(UPSERT, context, CrudMessage.create(lc)));
 		}
 
 		new SubmitRequest(requests).start();
@@ -234,11 +234,11 @@ class BennuHandler implements ProtocolHandler {
 		var context = Synchronizer.createContext(1 + data.labelIids.length, "contentDeleted");		
 		var requests = new Array<ChannelRequestMessage>();
 		data.content.deleted = true;
-		requests.push(new ChannelRequestMessage(DELETE, context + "content", DeleteMessage.create(data.content)));
+		requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(data.content)));
 
 		for (lc in AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid)) {
 			lc.deleted = true;
-			requests.push(new ChannelRequestMessage(DELETE, context + "labeledContent", DeleteMessage.create(lc)));
+			requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lc)));
 		}
 
 		new SubmitRequest(requests).start();
@@ -249,15 +249,15 @@ class BennuHandler implements ProtocolHandler {
 		var lc = new LabelChild(data.parentIid, data.label.iid);
 		var context = Synchronizer.createContext(2, "labelCreated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context + "label", CrudMessage.create(data.label)),
-			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(data.label)),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(lc))]);
 		req.start();
 	}
 
 	public function updateLabel(data:EditLabelData):Void {
 		var context = Synchronizer.createContext(1, "labelUpdated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context + "label", CrudMessage.create(data.label))]);
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(data.label))]);
 		req.start();
 	}
 
@@ -270,7 +270,7 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function moveLabel(data:EditLabelData):Void {
-		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+		var lcs = new FilteredSet<LabelChild>(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
 		});
 		var lcToRemove:LabelChild = getExistingLabelChild(data.parentIid, data.label.iid);
@@ -284,8 +284,8 @@ class BennuHandler implements ProtocolHandler {
 
 		var context = Synchronizer.createContext(2, "labelMoved");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(DELETE, context + "labelChild", DeleteMessage.create(lcToRemove)),
-			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lcToAdd))]);
+			new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lcToRemove)),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(lcToAdd))]);
 		req.start();
 	}
  
@@ -298,13 +298,13 @@ class BennuHandler implements ProtocolHandler {
 		}
 		var context = Synchronizer.createContext(1, "labelCopied");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context + "labelChild", CrudMessage.create(lcToAdd))]);
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(lcToAdd))]);
 		req.start();
 	}
 
 	public function deleteLabel(data:EditLabelData):Void {
 		// Delete the label child that is associated with this label
-		var labelChildren:Array<LabelChild> = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+		var labelChildren:Array<LabelChild> = new FilteredSet<LabelChild>(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
 		}).asArray();
 
@@ -314,7 +314,7 @@ class BennuHandler implements ProtocolHandler {
 
 		for (lc in labelChildren) {
 			lc.deleted = true;
-			requests.push(new ChannelRequestMessage(DELETE, context + "labelChild", DeleteMessage.create(lc)));
+			requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lc)));
 		}
 		new SubmitRequest(requests).start();
 	}
@@ -327,15 +327,15 @@ class BennuHandler implements ProtocolHandler {
 
 		var context = Synchronizer.createContext(9, "initialDataLoad");
 		var requests = [
-			new ChannelRequestMessage(QUERY, context + "aliases"        , QueryMessage.create("alias")),
-			new ChannelRequestMessage(QUERY, context + "introductions"  , QueryMessage.create("introduction")),
-			new ChannelRequestMessage(QUERY, context + "connections"    , QueryMessage.create("connection")),
-			new ChannelRequestMessage(QUERY, context + "notifications"  , QueryMessage.create("notification")),
-			new ChannelRequestMessage(QUERY, context + "labels"         , QueryMessage.create("label")),
-			new ChannelRequestMessage(QUERY, context + "labelacls"      , QueryMessage.create("labelAcl")),
-			new ChannelRequestMessage(QUERY, context + "labeledContents", QueryMessage.create("labeledContent")),
-			new ChannelRequestMessage(QUERY, context + "labelChildren"  , QueryMessage.create("labelChild")),
-			new ChannelRequestMessage(QUERY, context + "profiles"        , QueryMessage.create("profile"))
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("alias")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("introduction")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("connection")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("notification")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("label")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("labelAcl")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("labeledContent")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("labelChild")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("profile"))
 		];
 		new SubmitRequest(requests).start();
 	}

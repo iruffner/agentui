@@ -56,7 +56,7 @@ extern class ScoreComp extends JQ {
 		            if (alias != null) {
 		            	return alias.profile;
 		            }
-		            var connection = AppContext.CONNECTIONS.getElement(content.connectionIid);
+		            var connection = AppContext.MASTER_CONNECTIONS.getElement(content.connectionIid);
 		            if (connection != null) {
 		            	return connection.data;
 		            }

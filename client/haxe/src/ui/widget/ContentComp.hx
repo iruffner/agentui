@@ -110,7 +110,7 @@ extern class ContentComp extends JQ {
 		        	if (AppContext.ALIASES.delegate().get(self.options.content.aliasIid) != null) {
 		        		aliasIid = self.options.content.aliasIid;
 		        	} else {
-		        		if (AppContext.CONNECTIONS.delegate().get(self.options.content.connectionIid) != null) {
+		        		if (AppContext.MASTER_CONNECTIONS.delegate().get(self.options.content.connectionIid) != null) {
 		        			connectionIid = self.options.content.connectionIid;
 		        		}
 		        	}

@@ -37,7 +37,7 @@ class Synchronizer {
 	public static var synchronizers = new StringMap<Synchronizer>();
 
 	public static function createContext(numResponsesExpected: Int, oncomplete:String):String {
-		return UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete + "-";
+		return UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete;
 	}
 
     public static function processResponse(data:Dynamic):Void {
@@ -74,65 +74,46 @@ class Synchronizer {
 
     public function dataReceived(c:Context, dataObj:Dynamic) {
         var data = dataObj.results;
+        if (data == null) {return;}
 
-    	switch (c.responseType) {
+    	switch (dataObj.type) {
     		case "alias":
-    			parms.aliases.push(AppContext.SERIALIZER.fromJsonX(data, Alias));
-    		case "aliases":
     			for (alias_ in cast(data, Array<Dynamic>)) {
     				parms.aliases.push(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
     			}
             case "connection":
-                parms.connections.push(AppContext.SERIALIZER.fromJsonX(data, Connection));
-            case "connections":
                 for (content_ in cast(data, Array<Dynamic>)) {
                     parms.connections.push(AppContext.SERIALIZER.fromJsonX(content_, Connection));
                 }
             case "content":
-                parms.content.push(AppContext.SERIALIZER.fromJsonX(data, Content));
-            case "contents":
                 for (content_ in cast(data, Array<Dynamic>)) {
                     parms.content.push(AppContext.SERIALIZER.fromJsonX(content_, Content));
                 }
             case "introduction":
-                parms.introductions.push(AppContext.SERIALIZER.fromJsonX(data, Introduction));
-            case "introductions":
                 for (content_ in cast(data, Array<Dynamic>)) {
                     parms.introductions.push(AppContext.SERIALIZER.fromJsonX(content_, Introduction));
                 }
     		case "label":
-    			parms.labels.push(AppContext.SERIALIZER.fromJsonX(data, Label));
-    		case "labels":
     			for (label_ in cast(data, Array<Dynamic>)) {
     				parms.labels.push(AppContext.SERIALIZER.fromJsonX(label_, Label));
     			}
             case "labelacl":
-                parms.labelAcls.push(AppContext.SERIALIZER.fromJsonX(data, LabelAcl));
-            case "labelacls":
                 for (label_ in cast(data, Array<Dynamic>)) {
                     parms.labelAcls.push(AppContext.SERIALIZER.fromJsonX(label_, LabelAcl));
                 }
     		case "labelChild":
-    			parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(data, LabelChild));
-    		case "labelChildren":
     			for (labelChild_ in cast(data, Array<Dynamic>)) {
     				parms.labelChildren.push(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
     			}
             case "labeledContent":
-                parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(data, LabeledContent));
-            case "labeledContents":
                 for (labeledContent_ in cast(data, Array<Dynamic>)) {
                     parms.labeledContent.push(AppContext.SERIALIZER.fromJsonX(labeledContent_, LabeledContent));
                 }
             case "notification":
-                parms.notifications.push(AppContext.SERIALIZER.fromJsonX(data, Notification));
-            case "notifications":
                 for (content_ in cast(data, Array<Dynamic>)) {
                     parms.notifications.push(AppContext.SERIALIZER.fromJsonX(content_, Notification));
                 }
             case "profile":
-                parms.profiles.push(AppContext.SERIALIZER.fromJsonX(data, Profile));
-            case "profiles":
                 for (profile_ in cast(data, Array<Dynamic>)) {
                     parms.profiles.push(AppContext.SERIALIZER.fromJsonX(profile_, Profile));
                 }

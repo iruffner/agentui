@@ -93,7 +93,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		        getConnection: function():Connection {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
-		        	return AppContext.CONNECTIONS.getElement(self.options.connectionIid);
+		        	return AppContext.MASTER_CONNECTIONS.getElement(self.options.connectionIid);
 		        },
 		        
 		        getAlias: function():Alias {
@@ -198,7 +198,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 					      	drop: function(event: JQEvent, _ui: UIDroppable ) {
 					      		if (_ui.draggable.is(".labelComp")) {
 									var labelComp: LabelComp = cast(_ui.draggable, LabelComp);
-									var connection = AppContext.CONNECTIONS.getElement(self.options.connectionIid);
+									var connection = AppContext.MASTER_CONNECTIONS.getElement(self.options.connectionIid);
 									DialogManager.allowAccess(labelComp.labelComp("getLabel"), connection);
 					      		} else {
 						      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");

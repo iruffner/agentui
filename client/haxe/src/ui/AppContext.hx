@@ -30,26 +30,18 @@ class AppContext {
 
     public static var INTRODUCTIONS: ObservableSet<Introduction>;
 
-    public static var CONNECTIONS:FilteredSet<Connection>;
     public static var MASTER_CONNECTIONS: ObservableSet<Connection>;
     public static var GROUPED_CONNECTIONS: GroupedSet<Connection>;
-
-    public static var CONTENT: FilteredSet<Content<Dynamic>>;
-    public static var MASTER_CONTENT: ObservableSet<Content<Dynamic>>;
-    public static var GROUPED_CONTENT: GroupedSet<Content<Dynamic>>;
 
     public static var LABELS:FilteredSet<Label>;
     public static var MASTER_LABELS:ObservableSet<Label>;
 
-    public static var LABELACLS:FilteredSet<LabelAcl>;
     public static var MASTER_LABELACLS:ObservableSet<LabelAcl>;
     public static var GROUPED_LABELACLS: GroupedSet<LabelAcl>;
     
-    public static var LABELCHILDREN:FilteredSet<LabelChild>;
     public static var MASTER_LABELCHILDREN:ObservableSet<LabelChild>;
     public static var GROUPED_LABELCHILDREN: GroupedSet<LabelChild>;
 
-    public static var LABELEDCONTENT:FilteredSet<LabeledContent>;
     public static var MASTER_LABELEDCONTENT:ObservableSet<LabeledContent>;
     public static var GROUPED_LABELEDCONTENT: GroupedSet<LabeledContent>;
 
@@ -74,14 +66,6 @@ class AppContext {
             return !a.deleted;
         });
 
-        MASTER_CONTENT = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
-        CONTENT = new FilteredSet<Content<Dynamic>>(MASTER_CONTENT, function(c:Content<Dynamic>):Bool {
-            return !c.deleted;
-        });
-        GROUPED_CONTENT = new GroupedSet<Content<Dynamic>>(CONTENT, function(c:Content<Dynamic>):String{
-            return c.aliasIid;
-        });
-
         MASTER_LABELS = new ObservableSet<Label>(Label.identifier);
         LABELS = new FilteredSet<Label>(MASTER_LABELS, function(c:Label):Bool {
             return !c.deleted;
@@ -93,34 +77,34 @@ class AppContext {
                 AgentUi.PROTOCOL.getProfiles([c.iid]);
             }
         });
-        CONNECTIONS = new FilteredSet<Connection>(MASTER_CONNECTIONS, function(c:Connection):Bool {
-            return !c.deleted;
-        });
-        GROUPED_CONNECTIONS = new GroupedSet<Connection>(CONNECTIONS, function(c:Connection):String {
+        GROUPED_CONNECTIONS = new GroupedSet<Connection>(MASTER_CONNECTIONS, function(c:Connection):String {
+            if (c.deleted) {
+                return "DELETED";
+            }
             return c.aliasIid;
         });
 
         MASTER_LABELACLS = new ObservableSet<LabelAcl>(LabelAcl.identifier);
-        LABELACLS = new FilteredSet<LabelAcl>(MASTER_LABELACLS, function(l:LabelAcl):Bool {
-            return !l.deleted;
-        });
-        GROUPED_LABELACLS = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
+        GROUPED_LABELACLS = new GroupedSet<LabelAcl>(MASTER_LABELACLS, function(l:LabelAcl):String {
+            if (l.deleted) {
+                return "DELETED";
+            }
             return l.connectionIid;
         });
 
         MASTER_LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
-        LABELCHILDREN = new FilteredSet<LabelChild>(MASTER_LABELCHILDREN, function(c:LabelChild):Bool {
-            return !c.deleted;
-        });
-        GROUPED_LABELCHILDREN = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
+        GROUPED_LABELCHILDREN = new GroupedSet<LabelChild>(MASTER_LABELCHILDREN, function(lc:LabelChild):String {
+            if (lc.deleted) {
+                return "DELETED";
+            }
             return lc.parentIid;
         });
 
         MASTER_LABELEDCONTENT = new ObservableSet<LabeledContent>(LabeledContent.identifier);
-        LABELEDCONTENT = new FilteredSet<LabeledContent>(MASTER_LABELEDCONTENT, function(c:LabeledContent):Bool {
-            return !c.deleted;
-        });
-        GROUPED_LABELEDCONTENT = new GroupedSet<LabeledContent>(LABELEDCONTENT, function(lc:LabeledContent):String {
+        GROUPED_LABELEDCONTENT = new GroupedSet<LabeledContent>(MASTER_LABELEDCONTENT, function(lc:LabeledContent):String {
+            if (lc.deleted) {
+                return "DELETED";
+            }
             return lc.contentIid;
         });
         
@@ -168,8 +152,8 @@ class AppContext {
 
         var getDescendents:String->Array<LabelChild>->Void;
         getDescendents = function(iid:String, lcList:Array<LabelChild>):Void {
-            var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
-                return lc.parentIid == iid;
+            var children: Array<LabelChild> = new FilteredSet(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
+                return lc.parentIid == iid && !lc.deleted;
             }).asArray();
 
             for (i in 0...children.length) {
@@ -189,8 +173,8 @@ class AppContext {
         var getDescendentIids:String->Array<String>->Void;
         getDescendentIids = function(iid:String, iidList:Array<String>):Void {
             iidList.insert(0, iid);
-            var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
-                return lc.parentIid == iid;
+            var children: Array<LabelChild> = new FilteredSet(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
+                return lc.parentIid == iid && !lc.deleted;
             }).asArray();
 
             for (i in 0...children.length) {
@@ -213,7 +197,7 @@ class AppContext {
 
     public static function connectionFromMetaLabel(metaLabelIid:String):Connection {
         var ret:Connection = null;
-        for (connection in CONNECTIONS) {
+        for (connection in MASTER_CONNECTIONS) {
             if (connection.metaLabelIid == metaLabelIid) {
                 ret = connection;
                 break;
