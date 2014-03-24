@@ -49,10 +49,12 @@ class FilterData {
 	public var type:String;
 	public var filter:Filter;
 	public var connectionIids:Array<String>;
-	public var aliasIids:Array<String>;
+	public var aliasIid:String;
 
 	public function new(type:String) {
 		this.type = type;
+		this.aliasIid = "";
+		this.connectionIids = new Array<String>();
 	}
 }
 

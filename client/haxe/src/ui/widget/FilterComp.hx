@@ -163,7 +163,7 @@ extern class FilterComp extends JQ {
 		        		});
 
 			        	var connectionIids = new Array<String>();
-		        		var aliasIids = new Array<String>();
+		        		var aliasIid = "";
 
 		        		var connComps:JQ = selfElement.children(".connectionAvatar");
 			        	connComps.each(function (idx: Int, el: Element): Void {
@@ -173,14 +173,14 @@ extern class FilterComp extends JQ {
 			        			connectionIids.push(conn.iid);
 			        		} else {
 			        			var alias = avatar.getAlias();
-			        			aliasIids.push(alias.iid);
+			        			aliasIid = alias.iid;
 			        		}
 		        		});
 
 						var filterData = new FilterData("content");
 						filterData.filter = new Filter(root);
 						filterData.connectionIids = connectionIids;
-						filterData.aliasIids      = aliasIids;
+						filterData.aliasIid       = aliasIid;
 
 						if(!liveToggle.isLive()) {
 							EM.change(EMEvent.FILTER_CHANGE, filterData);

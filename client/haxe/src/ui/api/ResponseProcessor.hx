@@ -7,6 +7,7 @@ import m3.jq.JQ;
 import m3.util.JqueryUtil;
 import m3.observable.OSet;
 import ui.api.Synchronizer;
+import ui.model.Context;
 import ui.model.EM;
 import ui.model.Filter;
 import ui.model.ModelObj;
@@ -27,33 +28,33 @@ class ResponseProcessor {
 				JqueryUtil.alert("ERROR:  " + data.error.message + "     Context: " + data.context);
 	            AppContext.LOGGER.error(data.error.stacktrace);
             } else {
-                if (data.responseType == "profile") {
-                    Timer.delay(function() {processProfile(data.data);}, 50);
-                } else if (data.responseType == "squery") {
-                    updateModelObject(data.data.type, data.data);
-                } else if (data.responseType == "query") {
-                    var context:Array<String> = data.context.split("-");
-                    if (context[2] == "filterContent") {
-                        var params = new SynchronizationParms();
-                        for (result in cast(data.data.results, Array<Dynamic>)) {
-                            var content:Content<Dynamic> = AppContext.SERIALIZER.fromJsonX(result, Content);
-                            if (data.data.aliasIid != null) {
-                                content.aliasIid = data.data.aliasIid;
-                                content.connectionIid = null;
-                            } else if (data.data.connectionIid != null) {
-                                content.aliasIid = null;
-                                content.connectionIid = data.data.connectionIid;                                
-                            }
-                            params.content.push(content);
+                if (data.context == null) {
+                    return;
+                }
+                var context = new Context(data.context);
+
+                switch (context.oncomplete) {
+                    case "initialDataLoad":
+                        if (data.responseType == "query") {
+                            Synchronizer.processResponse(data);
+                        } else if (data.responseType == "squery") {
+                            updateModelObject(data.data.type, data.data);
+                        } else if (data.result && data.result.handle) {
+                            AgentUi.PROTOCOL.addHandle(data.result.handle);
                         }
-                        filterContent(params, context[0]);
-                    }
-                } else {
-                    Synchronizer.processResponse(data);
+                    case "filterContent":
+                        if (data.responseType == "query") {
+                        } else if (data.responseType == "squery") {
+                        }
+                    default:
+                        Synchronizer.processResponse(data);
                 }
 			}
 		});
 	}
+
+    public static function processContent(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
+    }
 
     private static function updateModelObject(type:String, data:Dynamic) {
         var type = type.toLowerCase();
@@ -77,7 +78,7 @@ class ResponseProcessor {
             case "notification":
                 AppContext.MASTER_NOTIFICATIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Notification));
             case "profile":
-                processProfile(data.instance);
+                AppContext.PROFILES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(data.instance, Profile));
             default:
                 AppContext.LOGGER.error("Unknown type: " + type);
         }
@@ -93,13 +94,10 @@ class ResponseProcessor {
         AppContext.MASTER_CONTENT.addAll(data.content);
         AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
         AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
+        AppContext.PROFILES.addAll(data.profiles);
 
         EM.change(EMEvent.InitialDataLoadComplete);
 	}
-
-    public static function registerModelUpdates(data:SynchronizationParms) {
-        AgentUi.PROTOCOL.addHandle(data.result.handle);
-    }
 
     public static function aliasCreated(data:SynchronizationParms) {
         AppContext.MASTER_ALIASES.addAll(data.aliases);
@@ -126,7 +124,6 @@ class ResponseProcessor {
     }
 
     public static function filterContent(data:SynchronizationParms, filterIid:String) {
-        if (data.content.length == 0 && !data.handle.isBlank()) {return;}
         var displayedContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
         displayedContent.addAll(data.content);
 

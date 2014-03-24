@@ -4,10 +4,10 @@ import ui.model.Filter;
 import ui.model.ModelObj;
 using m3.serialization.TypeTools;
 
+@:rtti
 interface ChannelMessage {
 }
 
-@:rtti
 class BennuMessage implements ChannelMessage {
 	public var type:String;
 
@@ -41,23 +41,6 @@ class CrudMessage extends BennuMessage {
 		var instance = AppContext.SERIALIZER.toJson(object);
 		return new CrudMessage(object.objectType(), instance);
 	}
-}
-
-class QueryMessage extends BennuMessage {
-	private var q:String;
-
-	public function new(type:String, q:String="1=1") {
-		super(type);
-		this.q = q;		
-	}
-}
-
-@:rtti
-class RegisterMessage implements ChannelMessage {
-	public var types: Array<String>;
-	public function new (types:Array<String>) {
-		this.types = types;
-	}	
 }
 
 @:rtti
@@ -104,21 +87,34 @@ class GetProfileMessage implements ChannelMessage {
 }
 
 @:rtti
-class DistributedQueryMessage implements ChannelMessage{
+class QueryMessage implements ChannelMessage{
 	public var type: String;
 	public var q: String;
-	public var aliasIids: Array<String>;
+	public var aliasIid: String;
 	public var connectionIids: Array<String>;
-	public var leaveStanding: Bool;
+	public var standing: Bool;
 	public var historical: Bool;
+	public var local: Bool;
 
-	public function new(fd:FilterData) {
-		type           = fd.type;
-		q              = fd.filter.q;
-		aliasIids      = fd.aliasIids;
-		connectionIids = fd.connectionIids;
-		historical     = true;
-		leaveStanding  = true;
+	public function new(fd:FilterData, ?type:String, ?q:String) {
+		if (fd == null) {
+			this.type = type;
+			this.q = q;
+			this.aliasIid  = null;
+			connectionIids = new Array<String>();
+		} else {
+			type           = fd.type;
+			q              = fd.filter.q;
+			aliasIid       = fd.aliasIid;
+			connectionIids = fd.connectionIids;
+		}
+		local      = true;
+		historical = true;
+		standing   = true;
+	}
+
+	public static function create(type:String):QueryMessage {
+		return new QueryMessage(null, type, "1=1");
 	}
 }
 

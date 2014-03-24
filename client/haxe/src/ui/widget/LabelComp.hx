@@ -91,7 +91,7 @@ extern class LabelComp extends FilterableComponent {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 		        	var ret = new Array<String>();
 		        	for (iid in self.options.labelPath) {
-		        		var label = AppContext.LABELS.getElement(iid);
+		        		var label = AppContext.MASTER_LABELS.getElement(iid);
 		        		ret.push(label.name);
 		        	}
 		        	return ret;
@@ -131,7 +131,7 @@ extern class LabelComp extends FilterableComponent {
 		        		throw new Exception("Root of LabelComp must be a div element");
 		        	}
 
-		        	self.label = AppContext.LABELS.getElement(self.options.labelIid);
+		        	self.label = AppContext.MASTER_LABELS.getElement(self.options.labelIid);
 		        	if (self.label == null) {
 		        		self.label = new Label("-->*<--");
 		        		self.label.iid = self.options.labelIid;

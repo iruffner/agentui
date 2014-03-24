@@ -53,6 +53,8 @@ class AppContext {
     public static var MASTER_LABELEDCONTENT:ObservableSet<LabeledContent>;
     public static var GROUPED_LABELEDCONTENT: GroupedSet<LabeledContent>;
 
+    public static var PROFILES:ObservableSet<Profile>;
+
     public static var currentAlias: Alias;
 
     public static function init() {
@@ -122,6 +124,8 @@ class AppContext {
             return lc.contentIid;
         });
         
+        PROFILES = new ObservableSet<Profile>(Profile.identifier);
+
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());
         SERIALIZER.addHandler(Notification, new NotificationHandler());

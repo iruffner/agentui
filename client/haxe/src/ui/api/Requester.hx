@@ -33,9 +33,16 @@ class BaseRequest {
 	        type: "POST",
 			success: function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR) {
 				SystemStatus.instance().onMessage();
+   				if (jqXHR.getResponseHeader("Content-Length") == "0") {
+   					return;
+   				}
 				onSuccess(data, textStatus, jqXHR);
 			},
    			error: function(jqXHR:JQXHR, textStatus:String, errorThrown:Dynamic) {
+   				if (jqXHR.getResponseHeader("Content-Length") == "0") {
+   					return;
+   				}
+
 				var error_message:String = "";
 
 				if (errorThrown == null || Std.is(errorThrown, String)) {
@@ -125,19 +132,6 @@ class DeleteRequest extends CrudRequest {
 	public function new(object:ModelObjWithIid, successFcn: Dynamic->String->JQXHR->Void):Void {
 		super(object, "/api/delete", successFcn);
 	}	
-}
-
-class QueryRequest extends BaseRequest {
-	private var queryMessage:QueryMessage;
-
-	public function new(type:String, where:String, successFcn: Dynamic->String->JQXHR->Void):Void {
-		var queryMessage = new QueryMessage(type, where);
-		baseOpts = {
-			async: true,
-			url: AgentUi.URL + "/api/query"
-		};
-		super(AppContext.SERIALIZER.toJsonString(queryMessage), successFcn);
-	}
 }
 
 class LongPollingRequest extends BaseRequest {

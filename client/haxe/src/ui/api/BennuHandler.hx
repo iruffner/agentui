@@ -46,6 +46,7 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function deregisterListeners():Void {
+		/*
 		if (this.registeredHandles.length > 0) {
 			var requests = new Array<ChannelRequestMessage>();
 			for (handle in this.registeredHandles) {
@@ -53,6 +54,7 @@ class BennuHandler implements ProtocolHandler {
 			}
 			new SubmitRequest(requests).start({async: false});
 		}
+		*/
 	}
 
 	public function getProfiles(connectionIids:Array<String>) {
@@ -129,7 +131,7 @@ class BennuHandler implements ProtocolHandler {
 	public function filter(filterData: FilterData): Void {
 		var context = Synchronizer.createContext(1, "filterContent");
 		var requests = [
-			new ChannelRequestMessage(DQUERY, context + "handle", new DistributedQueryMessage(filterData)),
+			new ChannelRequestMessage(DQUERY, context + "handle", new QueryMessage(filterData)),
 		];
 		new SubmitRequest(requests).start();
 	}
@@ -301,7 +303,6 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function deleteLabel(data:EditLabelData):Void {
-
 		// Delete the label child that is associated with this label
 		var labelChildren:Array<LabelChild> = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
@@ -315,7 +316,6 @@ class BennuHandler implements ProtocolHandler {
 			lc.deleted = true;
 			requests.push(new ChannelRequestMessage(DELETE, context + "labelChild", DeleteMessage.create(lc)));
 		}
-
 		new SubmitRequest(requests).start();
 	}
 
@@ -327,22 +327,16 @@ class BennuHandler implements ProtocolHandler {
 
 		var context = Synchronizer.createContext(9, "initialDataLoad");
 		var requests = [
-			new ChannelRequestMessage(QUERY, context + "aliases"        , new QueryMessage("alias")),
-			new ChannelRequestMessage(QUERY, context + "introductions"  , new QueryMessage("introduction")),
-			new ChannelRequestMessage(QUERY, context + "connections"    , new QueryMessage("connection")),
-			new ChannelRequestMessage(QUERY, context + "notifications"  , new QueryMessage("notification")),
-			new ChannelRequestMessage(QUERY, context + "labels"         , new QueryMessage("label")),
-			new ChannelRequestMessage(QUERY, context + "labelacls"      , new QueryMessage("labelAcl")),
-			new ChannelRequestMessage(QUERY, context + "contents"       , new QueryMessage("content")),
-			new ChannelRequestMessage(QUERY, context + "labeledContents", new QueryMessage("labeledContent")),
-			new ChannelRequestMessage(QUERY, context + "labelChildren"  , new QueryMessage("labelChild"))
+			new ChannelRequestMessage(QUERY, context + "aliases"        , QueryMessage.create("alias")),
+			new ChannelRequestMessage(QUERY, context + "introductions"  , QueryMessage.create("introduction")),
+			new ChannelRequestMessage(QUERY, context + "connections"    , QueryMessage.create("connection")),
+			new ChannelRequestMessage(QUERY, context + "notifications"  , QueryMessage.create("notification")),
+			new ChannelRequestMessage(QUERY, context + "labels"         , QueryMessage.create("label")),
+			new ChannelRequestMessage(QUERY, context + "labelacls"      , QueryMessage.create("labelAcl")),
+			new ChannelRequestMessage(QUERY, context + "labeledContents", QueryMessage.create("labeledContent")),
+			new ChannelRequestMessage(QUERY, context + "labelChildren"  , QueryMessage.create("labelChild")),
+			new ChannelRequestMessage(QUERY, context + "profiles"        , QueryMessage.create("profile"))
 		];
-		new SubmitRequest(requests).start();
-
-		context = Synchronizer.createContext(1, "registerModelUpdates") + "handle";
-		var types = ["alias", "connection", "content", "introduction", "label", "labelacl",
-		             "labelchild", "labeledcontent", "notification", "profile"];
-		requests = [new ChannelRequestMessage(REGISTER, context, new RegisterMessage(types))];
 		new SubmitRequest(requests).start();
 	}
 

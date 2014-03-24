@@ -45,7 +45,8 @@ class ModelObjWithIid extends ModelObj {
 	}
 }
 
-class Profile extends ModelObj {
+class Profile extends ModelObjWithIid {
+	public var aliasIid:String;
 	public var name: String;
 	@:optional public var imgSrc: String;
 
@@ -53,6 +54,9 @@ class Profile extends ModelObj {
 		super();
 		this.name   = (name == null)   ? "Unknown"       : name;
 		this.imgSrc = (imgSrc == null) ? "media/koi.jpg" : imgSrc;
+	}
+	public static function identifier(profile: Profile): String {
+		return profile.iid;
 	}
 }
 
@@ -66,7 +70,8 @@ class AliasData extends ModelObj {
 
 class Alias extends ModelObjWithIid {
 	public var rootLabelIid:String;
-	public var profile: Profile;
+	public var name:String;
+	@:optional public var profile: Profile;
 	@:optional public var data: AliasData;
 
 	public function new() {
