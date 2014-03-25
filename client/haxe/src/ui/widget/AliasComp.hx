@@ -16,6 +16,7 @@ import m3.util.M;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 
+using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 using ui.widget.UploadComp;
 using ui.widget.ConnectionAvatar;
@@ -40,6 +41,8 @@ typedef AliasCompWidgetDef = {
 
 	@:optional var aliasSet:FilteredSet<Alias>;
 	@:optional var _onupdate: Alias->EventType->Void;
+	@:optional var profileSet:FilteredSet<Profile>;
+	@:optional var _onupdateProfile: Profile->EventType->Void;
 }
 
 @:native("$")
@@ -96,33 +99,52 @@ extern class AliasComp extends JQ {
 		        	);
 
 		        	cast(self.container, JQDroppable).droppable({
-							accept: function(d) {
-				    			return d.is(".connectionAvatar");
-				    		},
-							activeClass: "ui-state-hover",
-					      	hoverClass: "ui-state-active",
-					      	drop: function( event: JQEvent, _ui: UIDroppable ) {
-					      		// Check to see if the element being dropped is already in the container
-					      		var dragstop = function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-				                	if(!self.container.intersects(dragstopUi.helper)) {
-				                		dragstopUi.helper.remove();
-				                		selfElement.removeClass("targetChange");
-				                		JqueryUtil.deleteEffects(dragstopEvt);
-				                		AppContext.TARGET = null;
-				                		self._setAlias(AppContext.currentAlias);
-				                	}
-				                };
+						accept: function(d) {
+			    			return d.is(".connectionAvatar");
+			    		},
+						activeClass: "ui-state-hover",
+				      	hoverClass: "ui-state-active",
+				      	drop: function( event: JQEvent, _ui: UIDroppable ) {
+				      		// Check to see if the element being dropped is already in the container
+				      		var dragstop = function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
+			                	if(!self.container.intersects(dragstopUi.helper)) {
+			                		dragstopUi.helper.remove();
+			                		selfElement.removeClass("targetChange");
+			                		JqueryUtil.deleteEffects(dragstopEvt);
+			                		AppContext.TARGET = null;
+			                		self._setAlias(AppContext.currentAlias);
+			                	}
+			                };
 
-				                selfElement.addClass("targetChange");
+			                selfElement.addClass("targetChange");
 
-				                var clone: ConnectionAvatar = _ui.draggable.data("clone")(_ui.draggable, false, false, dragstop);
-				                clone.addClass("small");
-				                
-			                	clone.insertBefore(new JQ(".ui-helper-clearfix", self.container));
+			                var clone: ConnectionAvatar = _ui.draggable.data("clone")(_ui.draggable, false, false, dragstop);
+			                clone.addClass("small");
+			                
+		                	clone.insertBefore(new JQ(".ui-helper-clearfix", self.container));
 
-			                	self._setTarget(clone.getConnection());
-					      	}
-						});
+		                	self._setTarget(clone.getConnection());
+				      	}
+					});
+
+			       	self._onupdate = function(alias:Alias, t:EventType): Void {
+						if (t.isAddOrUpdate()) {
+							if (alias.deleted) {
+					        	self.destroy();
+					        	selfElement.remove();								
+							} else {
+								self._updateAliasWidgets(alias);
+					        }
+				        } else if (t.isDelete()) {
+				        	self.destroy();
+				        	selfElement.remove();
+				        }
+		        	};
+
+			       	self._onupdateProfile = function(p:Profile, t:EventType): Void {
+			       		var alias = AppContext.MASTER_ALIASES.getElement(p.aliasIid);
+						self._updateAliasWidgets(alias);
+			       	};
 		        },
 
 		       	_createAliasMenu: function() : M3Menu {
@@ -194,25 +216,21 @@ extern class AliasComp extends JQ {
 	        		if (self.aliasSet != null) {
 	        			self.aliasSet.removeListener(self._onupdate);
 	        		}
-
-			        self._onupdate = function(alias:Alias, t:EventType): Void {
-						if (t.isAddOrUpdate()) {
-							if (alias.deleted) {
-					        	self.destroy();
-					        	selfElement.remove();								
-							} else {
-								self._updateAliasWidgets(alias);
-					        }
-				        } else if (t.isDelete()) {
-				        	self.destroy();
-				        	selfElement.remove();
-				        }
-		        	};
 		        
-		        	self.aliasSet = new FilteredSet<Alias>(AppContext.ALIASES, function(a:Alias):Bool {
+		        	self.aliasSet = new FilteredSet<Alias>(AppContext.MASTER_ALIASES, function(a:Alias):Bool {
 		        		return a.iid == alias.iid;
 		        	});
 					self.aliasSet.listen(self._onupdate);
+
+					// Update the listener on the profile
+	        		if (self.profileSet != null) {
+	        			self.profileSet.removeListener(self._onupdateProfile);
+	        		}
+
+		        	self.profileSet = new FilteredSet<Profile>(AppContext.PROFILES, function(p:Profile):Bool {
+		        		return p.aliasIid == alias.iid;
+		        	});
+					self.profileSet.listen(self._onupdateProfile);
 	        	},
 
 	        	_setTarget: function(conn: Connection): Void {

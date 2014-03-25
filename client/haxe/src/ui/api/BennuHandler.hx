@@ -140,21 +140,28 @@ class BennuHandler implements ProtocolHandler {
 		// Create a label child, which will connect the parent and the child
 		var label = new Label(alias.profile.name);
 		label.data.color = "#000000";
+		var profile = new Profile(alias.profile.name, alias.profile.imgSrc, alias.iid);
+
 		var lc = new LabelChild(AppContext.getUberLabelIid(), label.iid);
 		alias.rootLabelIid = label.iid;
+		alias.name = alias.profile.name;
 
 		var context = Synchronizer.createContext(3, "aliasCreated");
 		var req = new SubmitRequest([
 			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias)),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(profile)),
 			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(label)),
 			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(lc))]);
 		req.start();
 	}
 	
 	public function updateAlias(alias: Alias): Void {
+		alias.name = alias.profile.name;
 		var context = Synchronizer.createContext(1, "aliasUpdated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias))]);
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias)),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias.profile))
+		]);
 		req.start();
 	}
 

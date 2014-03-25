@@ -62,6 +62,15 @@ class AppContext {
         });
 
         MASTER_ALIASES = new ObservableSet<Alias>(ModelObjWithIid.identifier);
+        MASTER_ALIASES.listen(function(a:Alias, evt:EventType):Void {
+            if (evt.isAddOrUpdate()) {
+                var p = PROFILES.getElementComplex(a.iid, "aliasIid");
+                if (p != null) {
+                    a.profile = p;
+                }
+            }
+        });
+
         ALIASES = new FilteredSet<Alias>(MASTER_ALIASES, function(a:Alias):Bool {
             return !a.deleted;
         });
@@ -109,6 +118,13 @@ class AppContext {
         });
         
         PROFILES = new ObservableSet<Profile>(Profile.identifier);
+        PROFILES.listen( function(p:Profile, evt:EventType): Void{
+            if (evt.isAddOrUpdate()) {
+                var alias = MASTER_ALIASES.getElement(p.aliasIid);
+                alias.profile = p;
+                MASTER_ALIASES.addOrUpdate(alias);
+            }
+        });
 
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());

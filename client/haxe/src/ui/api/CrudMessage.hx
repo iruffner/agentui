@@ -8,6 +8,7 @@ using m3.serialization.TypeTools;
 interface ChannelMessage {
 }
 
+@:rtti
 class BennuMessage implements ChannelMessage {
 	public var type:String;
 
