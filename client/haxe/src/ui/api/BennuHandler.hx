@@ -20,7 +20,6 @@ class BennuHandler implements ProtocolHandler {
 
 	// Message Paths
 	private static var QUERY = "/api/query";
-	private static var DQUERY = "/api/query/distributed";
 	private static var UPSERT = "/api/upsert";
 	private static var DELETE = "/api/delete";
 	private static var REGISTER = "/api/squery/register" ;
@@ -131,7 +130,7 @@ class BennuHandler implements ProtocolHandler {
 	public function filter(filterData: FilterData): Void {
 		var context = Synchronizer.createContext(1, "filterContent");
 		var requests = [
-			new ChannelRequestMessage(DQUERY, context, new QueryMessage(filterData)),
+			new ChannelRequestMessage(QUERY, context, new QueryMessage(filterData)),
 		];
 		new SubmitRequest(requests).start();
 	}

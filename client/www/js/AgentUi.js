@@ -4826,7 +4826,7 @@ ui.api.BennuHandler.prototype = {
 	}
 	,filter: function(filterData) {
 		var context = ui.api.Synchronizer.createContext(1,"filterContent");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DQUERY,context,new ui.api.QueryMessage(filterData))];
+		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,new ui.api.QueryMessage(filterData))];
 		new ui.api.SubmitRequest(requests).start();
 	}
 	,restores: function() {
@@ -4983,8 +4983,8 @@ ui.api.QueryMessage = function(fd,type,q) {
 		this.aliasIid = null;
 		this.connectionIids = new Array();
 	} else {
-		type = fd.type;
-		q = fd.filter.q;
+		this.type = fd.type;
+		this.q = fd.filter.q;
 		this.aliasIid = fd.aliasIid;
 		this.connectionIids = fd.connectionIids;
 	}
@@ -5291,9 +5291,7 @@ ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 				if(data.responseType == "query") ui.api.Synchronizer.processResponse(data); else if(data.responseType == "squery") ui.api.ResponseProcessor.updateModelObject(data.type,data.results); else if(data.result && data.result.handle) ui.AgentUi.PROTOCOL.addHandle(data.result.handle);
 				break;
 			case "filterContent":
-				if(data.responseType == "query") {
-				} else if(data.responseType == "squery") {
-				}
+				if(data.responseType == "query") ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,data); else if(data.responseType == "squery") ui.model.EM.change(ui.model.EMEvent.AppendFilteredContent,data); else if(data.result && data.result.handle) ui.AgentUi.PROTOCOL.addHandle(data.result.handle);
 				break;
 			default:
 				ui.api.Synchronizer.processResponse(data);
@@ -5346,7 +5344,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 			ui.AppContext.MASTER_LABELACLS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.LabelAcl));
 		}
 		break;
-	case "labelChild":
+	case "labelchild":
 		var _g = 0, _g1 = js.Boot.__cast(data , Array);
 		while(_g < _g1.length) {
 			var labelChild_ = _g1[_g];
@@ -5354,7 +5352,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 			ui.AppContext.MASTER_LABELCHILDREN.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(labelChild_,ui.model.LabelChild));
 		}
 		break;
-	case "labeledContent":
+	case "labeledcontent":
 		var _g = 0, _g1 = js.Boot.__cast(data , Array);
 		while(_g < _g1.length) {
 			var labeledContent_ = _g1[_g];
@@ -5583,9 +5581,10 @@ ui.model.ContentSource = function(mapListener,onBeforeSetContent,widgetCreator) 
 	this.mapListener = mapListener;
 	this.onBeforeSetContent = onBeforeSetContent;
 	this.widgetCreator = widgetCreator;
-	this.filterIid = null;
+	this.handle = null;
 	ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,$bind(this,this.onAliasLoaded),"ContentSource-AliasLoaded");
 	ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,$bind(this,this.onLoadFilteredContent),"ContentSource-LoadFilteredContent");
+	ui.model.EM.addListener(ui.model.EMEvent.AppendFilteredContent,$bind(this,this.onAppendFilteredContent),"ContentSource-AppendFilteredContent");
 };
 $hxClasses["ui.model.ContentSource"] = ui.model.ContentSource;
 ui.model.ContentSource.__name__ = ["ui","model","ContentSource"];
@@ -5603,14 +5602,25 @@ ui.model.ContentSource.prototype = {
 		this.contentMap.mapListen(this.mapListener);
 	}
 	,onAliasLoaded: function(alias) {
-		this.filterIid = null;
+		this.handle = null;
 		this.setContent(new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier));
 	}
-	,onLoadFilteredContent: function(fr) {
-		if(this.filterIid == fr.filterIid) this.filteredContent.addAll(fr.content.asArray()); else {
-			this.filterIid = fr.filterIid;
-			this.filteredContent = fr.content;
-			this.setContent(fr.content);
+	,onAppendFilteredContent: function(data) {
+		this.addContent(data.results);
+	}
+	,onLoadFilteredContent: function(data) {
+		this.handle = data.handle;
+		this.filteredContent = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
+		this.setContent(this.filteredContent);
+		this.addContent(data.results);
+	}
+	,addContent: function(results) {
+		var _g = 0;
+		while(_g < results.length) {
+			var result = results[_g];
+			++_g;
+			var c = ui.AppContext.SERIALIZER.fromJsonX(result,ui.model.Content);
+			this.filteredContent.addOrUpdate(c);
 		}
 	}
 	,__class__: ui.model.ContentSource
@@ -5650,7 +5660,7 @@ ui.model.EM.change = function(id,t) {
 ui.model.Nothing = function() { }
 $hxClasses["ui.model.Nothing"] = ui.model.Nothing;
 ui.model.Nothing.__name__ = ["ui","model","Nothing"];
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
 ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
@@ -5660,100 +5670,103 @@ ui.model.EMEvent.FILTER_CHANGE.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.LoadFilteredContent = ["LoadFilteredContent",2];
 ui.model.EMEvent.LoadFilteredContent.toString = $estr;
 ui.model.EMEvent.LoadFilteredContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.EditContentClosed = ["EditContentClosed",3];
+ui.model.EMEvent.AppendFilteredContent = ["AppendFilteredContent",3];
+ui.model.EMEvent.AppendFilteredContent.toString = $estr;
+ui.model.EMEvent.AppendFilteredContent.__enum__ = ui.model.EMEvent;
+ui.model.EMEvent.EditContentClosed = ["EditContentClosed",4];
 ui.model.EMEvent.EditContentClosed.toString = $estr;
 ui.model.EMEvent.EditContentClosed.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateAgent = ["CreateAgent",4];
+ui.model.EMEvent.CreateAgent = ["CreateAgent",5];
 ui.model.EMEvent.CreateAgent.toString = $estr;
 ui.model.EMEvent.CreateAgent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AgentCreated = ["AgentCreated",5];
+ui.model.EMEvent.AgentCreated = ["AgentCreated",6];
 ui.model.EMEvent.AgentCreated.toString = $estr;
 ui.model.EMEvent.AgentCreated.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.InitialDataLoadComplete = ["InitialDataLoadComplete",6];
+ui.model.EMEvent.InitialDataLoadComplete = ["InitialDataLoadComplete",7];
 ui.model.EMEvent.InitialDataLoadComplete.toString = $estr;
 ui.model.EMEvent.InitialDataLoadComplete.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FitWindow = ["FitWindow",7];
+ui.model.EMEvent.FitWindow = ["FitWindow",8];
 ui.model.EMEvent.FitWindow.toString = $estr;
 ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UserLogin = ["UserLogin",8];
+ui.model.EMEvent.UserLogin = ["UserLogin",9];
 ui.model.EMEvent.UserLogin.toString = $estr;
 ui.model.EMEvent.UserLogin.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UserLogout = ["UserLogout",9];
+ui.model.EMEvent.UserLogout = ["UserLogout",10];
 ui.model.EMEvent.UserLogout.toString = $estr;
 ui.model.EMEvent.UserLogout.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AliasLoaded = ["AliasLoaded",10];
+ui.model.EMEvent.AliasLoaded = ["AliasLoaded",11];
 ui.model.EMEvent.AliasLoaded.toString = $estr;
 ui.model.EMEvent.AliasLoaded.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateAlias = ["CreateAlias",11];
+ui.model.EMEvent.CreateAlias = ["CreateAlias",12];
 ui.model.EMEvent.CreateAlias.toString = $estr;
 ui.model.EMEvent.CreateAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateAlias = ["UpdateAlias",12];
+ui.model.EMEvent.UpdateAlias = ["UpdateAlias",13];
 ui.model.EMEvent.UpdateAlias.toString = $estr;
 ui.model.EMEvent.UpdateAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteAlias = ["DeleteAlias",13];
+ui.model.EMEvent.DeleteAlias = ["DeleteAlias",14];
 ui.model.EMEvent.DeleteAlias.toString = $estr;
 ui.model.EMEvent.DeleteAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateContent = ["CreateContent",14];
+ui.model.EMEvent.CreateContent = ["CreateContent",15];
 ui.model.EMEvent.CreateContent.toString = $estr;
 ui.model.EMEvent.CreateContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteContent = ["DeleteContent",15];
+ui.model.EMEvent.DeleteContent = ["DeleteContent",16];
 ui.model.EMEvent.DeleteContent.toString = $estr;
 ui.model.EMEvent.DeleteContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateContent = ["UpdateContent",16];
+ui.model.EMEvent.UpdateContent = ["UpdateContent",17];
 ui.model.EMEvent.UpdateContent.toString = $estr;
 ui.model.EMEvent.UpdateContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateLabel = ["CreateLabel",17];
+ui.model.EMEvent.CreateLabel = ["CreateLabel",18];
 ui.model.EMEvent.CreateLabel.toString = $estr;
 ui.model.EMEvent.CreateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateLabel = ["UpdateLabel",18];
+ui.model.EMEvent.UpdateLabel = ["UpdateLabel",19];
 ui.model.EMEvent.UpdateLabel.toString = $estr;
 ui.model.EMEvent.UpdateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.MoveLabel = ["MoveLabel",19];
+ui.model.EMEvent.MoveLabel = ["MoveLabel",20];
 ui.model.EMEvent.MoveLabel.toString = $estr;
 ui.model.EMEvent.MoveLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CopyLabel = ["CopyLabel",20];
+ui.model.EMEvent.CopyLabel = ["CopyLabel",21];
 ui.model.EMEvent.CopyLabel.toString = $estr;
 ui.model.EMEvent.CopyLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteLabel = ["DeleteLabel",21];
+ui.model.EMEvent.DeleteLabel = ["DeleteLabel",22];
 ui.model.EMEvent.DeleteLabel.toString = $estr;
 ui.model.EMEvent.DeleteLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.GrantAccess = ["GrantAccess",22];
+ui.model.EMEvent.GrantAccess = ["GrantAccess",23];
 ui.model.EMEvent.GrantAccess.toString = $estr;
 ui.model.EMEvent.GrantAccess.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AccessGranted = ["AccessGranted",23];
+ui.model.EMEvent.AccessGranted = ["AccessGranted",24];
 ui.model.EMEvent.AccessGranted.toString = $estr;
 ui.model.EMEvent.AccessGranted.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RevokeAccess = ["RevokeAccess",24];
+ui.model.EMEvent.RevokeAccess = ["RevokeAccess",25];
 ui.model.EMEvent.RevokeAccess.toString = $estr;
 ui.model.EMEvent.RevokeAccess.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteConnection = ["DeleteConnection",25];
+ui.model.EMEvent.DeleteConnection = ["DeleteConnection",26];
 ui.model.EMEvent.DeleteConnection.toString = $estr;
 ui.model.EMEvent.DeleteConnection.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",26];
+ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",27];
 ui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",27];
+ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",28];
 ui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
 ui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",28];
+ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",29];
 ui.model.EMEvent.RespondToIntroduction.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",29];
+ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",30];
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
 ui.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TargetChange = ["TargetChange",30];
+ui.model.EMEvent.TargetChange = ["TargetChange",31];
 ui.model.EMEvent.TargetChange.toString = $estr;
 ui.model.EMEvent.TargetChange.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.BACKUP = ["BACKUP",31];
+ui.model.EMEvent.BACKUP = ["BACKUP",32];
 ui.model.EMEvent.BACKUP.toString = $estr;
 ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORE = ["RESTORE",32];
+ui.model.EMEvent.RESTORE = ["RESTORE",33];
 ui.model.EMEvent.RESTORE.toString = $estr;
 ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",33];
+ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",34];
 ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
 ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",34];
+ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",35];
 ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
 ui.model.Filter = function(node) {
@@ -5795,7 +5808,7 @@ ui.model.Filter.prototype = {
 }
 ui.model.FilterData = function(type) {
 	this.type = type;
-	this.aliasIid = "";
+	this.aliasIid = null;
 	this.connectionIids = new Array();
 };
 $hxClasses["ui.model.FilterData"] = ui.model.FilterData;
@@ -8654,7 +8667,7 @@ var defineWidget = function() {
 				}
 			});
 			var connectionIids = new Array();
-			var aliasIid = "";
+			var aliasIid = null;
 			var connComps = selfElement.children(".connectionAvatar");
 			connComps.each(function(idx,el) {
 				var avatar = new $(el);
@@ -9488,7 +9501,6 @@ ui.AgentUi.URL = "";
 ui.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
 ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
 ui.api.BennuHandler.QUERY = "/api/query";
-ui.api.BennuHandler.DQUERY = "/api/query/distributed";
 ui.api.BennuHandler.UPSERT = "/api/upsert";
 ui.api.BennuHandler.DELETE = "/api/delete";
 ui.api.BennuHandler.REGISTER = "/api/squery/register";

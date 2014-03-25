@@ -40,6 +40,7 @@ enum EMEvent {
 	FILTER_RUN;
 	FILTER_CHANGE;
 	LoadFilteredContent;
+	AppendFilteredContent;
 
 	EditContentClosed;
 

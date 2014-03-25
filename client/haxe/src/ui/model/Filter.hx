@@ -20,7 +20,7 @@ class Filter {
 				nodes.push(childNode);
 			}
 		}
-		q = getQuery();
+		this.q = getQuery();
 	}
 
 	private function getQuery(): String {
@@ -53,7 +53,7 @@ class FilterData {
 
 	public function new(type:String) {
 		this.type = type;
-		this.aliasIid = "";
+		this.aliasIid = null;
 		this.connectionIids = new Array<String>();
 	}
 }

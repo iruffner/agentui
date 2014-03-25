@@ -163,7 +163,7 @@ extern class FilterComp extends JQ {
 		        		});
 
 			        	var connectionIids = new Array<String>();
-		        		var aliasIid = "";
+		        		var aliasIid = null;
 
 		        		var connComps:JQ = selfElement.children(".connectionAvatar");
 			        	connComps.each(function (idx: Int, el: Element): Void {

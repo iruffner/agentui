@@ -104,10 +104,10 @@ class QueryMessage implements ChannelMessage{
 			this.aliasIid  = null;
 			connectionIids = new Array<String>();
 		} else {
-			type           = fd.type;
-			q              = fd.filter.q;
-			aliasIid       = fd.aliasIid;
-			connectionIids = fd.connectionIids;
+			this.type           = fd.type;
+			this.q              = fd.filter.q;
+			this.aliasIid       = fd.aliasIid;
+			this.connectionIids = fd.connectionIids;
 		}
 		local      = true;
 		historical = true;

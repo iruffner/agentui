@@ -52,7 +52,11 @@ class ResponseProcessor {
                         }
                     case "filterContent":
                         if (data.responseType == "query") {
+                            EM.change(EMEvent.LoadFilteredContent, data);
                         } else if (data.responseType == "squery") {
+                            EM.change(EMEvent.AppendFilteredContent, data);
+                        } else if (data.result && data.result.handle) {
+                            AgentUi.PROTOCOL.addHandle(data.result.handle);
                         }
                     default:
                         Synchronizer.processResponse(data);
@@ -87,11 +91,11 @@ class ResponseProcessor {
                 for (label_ in cast(data, Array<Dynamic>)) {
                     AppContext.MASTER_LABELACLS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(label_, LabelAcl));
                 }
-            case "labelChild":
+            case "labelchild":
                 for (labelChild_ in cast(data, Array<Dynamic>)) {
                     AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
                 }
-            case "labeledContent":
+            case "labeledcontent":
                 for (labeledContent_ in cast(data, Array<Dynamic>)) {
                     AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(labeledContent_, LabeledContent));
                 }

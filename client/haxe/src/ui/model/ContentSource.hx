@@ -13,7 +13,7 @@ class ContentSource<T> {
 	var widgetCreator:Content<Dynamic>->T;
 	var onBeforeSetContent:OSet<Content<Dynamic>>->Void;
 
-	var filterIid:String;
+	var handle:String;
 
 	public function new(mapListener:Content<Dynamic>->T->EventType->Void, 
 		               onBeforeSetContent:OSet<Content<Dynamic>>->Void,
@@ -22,7 +22,7 @@ class ContentSource<T> {
 		this.mapListener = mapListener;
 		this.onBeforeSetContent = onBeforeSetContent;
 		this.widgetCreator = widgetCreator;
-		this.filterIid = null;
+		this.handle = null;
 
     	EM.addListener(EMEvent.AliasLoaded, this.onAliasLoaded, 
     		                                "ContentSource-AliasLoaded"
@@ -31,20 +31,32 @@ class ContentSource<T> {
     	EM.addListener(EMEvent.LoadFilteredContent, this.onLoadFilteredContent, 
     		                                        "ContentSource-LoadFilteredContent"
     	);
+
+    	EM.addListener(EMEvent.AppendFilteredContent, this.onAppendFilteredContent, 
+    		                                        "ContentSource-AppendFilteredContent"
+    	);
 	}
 
-	private function onLoadFilteredContent(fr: FilterResponse): Void {
-		if (this.filterIid == fr.filterIid) {
-			this.filteredContent.addAll(fr.content.asArray());
-    	} else {
-    		this.filterIid = fr.filterIid;
-    		this.filteredContent = fr.content;
-    		this.setContent(fr.content);
-    	}
+	private function addContent(results:Array<Dynamic>) {
+		for (result in results) {
+			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
+			this.filteredContent.addOrUpdate(c);
+		}
+	}
+
+	private function onLoadFilteredContent(data:Dynamic): Void {
+		this.handle = data.handle;
+		this.filteredContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
+		this.setContent(this.filteredContent);
+		this.addContent(data.results);
+    }
+
+    private function onAppendFilteredContent(data:Dynamic) {
+		this.addContent(data.results);
     }
 
 	private function onAliasLoaded(alias:Alias) {
-		this.filterIid = null;
+		this.handle = null;
         setContent(new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier));
 	}
 
