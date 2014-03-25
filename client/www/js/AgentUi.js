@@ -4533,8 +4533,10 @@ ui.AppContext.init = function() {
 	ui.AppContext.PROFILES.listen(function(p,evt) {
 		if(evt.isAddOrUpdate()) {
 			var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,p.aliasIid);
-			alias.profile = p;
-			ui.AppContext.MASTER_ALIASES.addOrUpdate(alias);
+			if(alias != null) {
+				alias.profile = p;
+				ui.AppContext.MASTER_ALIASES.addOrUpdate(alias);
+			}
 		}
 	});
 	ui.AppContext.SERIALIZER = new m3.serialization.Serializer();
@@ -4809,8 +4811,10 @@ ui.api.BennuHandler.prototype = {
 	}
 	,updateAlias: function(alias) {
 		alias.name = alias.profile.name;
+		var rootLabel = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_LABELS,alias.rootLabelIid);
+		rootLabel.name = alias.profile.name;
 		var context = ui.api.Synchronizer.createContext(1,"aliasUpdated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias.profile))]);
+		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(rootLabel)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias.profile))]);
 		req.start();
 	}
 	,createAlias: function(alias) {

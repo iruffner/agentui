@@ -13,6 +13,7 @@ import ui.model.Filter;
 import ui.model.EM;
 
 using Lambda;
+using m3.helper.OSetHelper;
 
 class BennuHandler implements ProtocolHandler {
 
@@ -156,9 +157,13 @@ class BennuHandler implements ProtocolHandler {
 	
 	public function updateAlias(alias: Alias): Void {
 		alias.name = alias.profile.name;
+		var rootLabel = AppContext.MASTER_LABELS.getElement(alias.rootLabelIid);
+		rootLabel.name = alias.profile.name;
+
 		var context = Synchronizer.createContext(1, "aliasUpdated");
 		var req = new SubmitRequest([
 			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias)),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(rootLabel)),
 			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias.profile))
 		]);
 		req.start();

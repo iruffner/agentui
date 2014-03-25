@@ -121,8 +121,10 @@ class AppContext {
         PROFILES.listen( function(p:Profile, evt:EventType): Void{
             if (evt.isAddOrUpdate()) {
                 var alias = MASTER_ALIASES.getElement(p.aliasIid);
-                alias.profile = p;
-                MASTER_ALIASES.addOrUpdate(alias);
+                if (alias != null) {
+                    alias.profile = p;
+                    MASTER_ALIASES.addOrUpdate(alias);
+                }
             }
         });
 
