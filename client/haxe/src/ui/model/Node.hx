@@ -77,7 +77,7 @@ class LabelNode extends ContentNode<Label> {
 
 	override public function getQuery(): String {
 		var ret = "hasLabelPath(";
-		for (i in 0...labelPath.length) {
+		for (i in 1...labelPath.length) {
 			ret += "'" + labelPath[i].replace("'", "\\'") + "'";
 			if (i < labelPath.length - 1) {
 				ret += ",";

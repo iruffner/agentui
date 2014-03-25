@@ -6392,7 +6392,7 @@ ui.model.LabelNode.__super__ = ui.model.ContentNode;
 ui.model.LabelNode.prototype = $extend(ui.model.ContentNode.prototype,{
 	getQuery: function() {
 		var ret = "hasLabelPath(";
-		var _g1 = 0, _g = this.labelPath.length;
+		var _g1 = 1, _g = this.labelPath.length;
 		while(_g1 < _g) {
 			var i = _g1++;
 			ret += "'" + StringTools.replace(this.labelPath[i],"'","\\'") + "'";
