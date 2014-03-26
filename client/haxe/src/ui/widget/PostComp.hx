@@ -164,7 +164,7 @@ extern class PostComp extends JQ {
 					tags.appendTo(section);
 					tags.droppable({
 							accept: function(d) {
-				    			return d.is(".filterable");
+				    			return d.is(".filterable") && !d.is(".aliasAvatar");
 				    		},
 							activeClass: "ui-state-hover",
 					      	hoverClass: "ui-state-active",

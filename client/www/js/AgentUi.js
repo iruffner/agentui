@@ -7327,6 +7327,7 @@ var defineWidget = function() {
 		var id = "connavatar_" + (self1.options.aliasIid == null?self1.options.connectionIid:self1.options.aliasIid);
 		selfElement.attr("id",id);
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionAvatar filterable");
+		if(self1.options.aliasIid != null) selfElement.addClass("aliasAvatar");
 		var img = new $("<img class='shadow'/>");
 		selfElement.append(img);
 		self1._updateWidgets(new ui.model.Profile());
@@ -8334,7 +8335,7 @@ var defineWidget = function() {
 		var tags = new $("<aside id='edit_post_comps_tags' class='tags container boxsizingBorder'></aside>");
 		tags.appendTo(section);
 		tags.droppable({ accept : function(d) {
-			return d["is"](".filterable");
+			return d["is"](".filterable") && !d["is"](".aliasAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
 			if(isDuplicate(".connectionAvatar",_ui.draggable,tags,function(ele) {
 				return ui.widget.ConnectionAvatarHelper.getConnection(new $(ele)).iid;
@@ -9155,7 +9156,7 @@ var defineWidget = function() {
 		var tags = new $("<aside id='post_comps_tags' class='tags container boxsizingBorder'></aside>");
 		tags.appendTo(section);
 		tags.droppable({ accept : function(d) {
-			return d["is"](".filterable");
+			return d["is"](".filterable") && !d["is"](".aliasAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
 			if(isDuplicate(".connectionAvatar",_ui.draggable,tags,function(ele) {
 				return ui.widget.ConnectionAvatarHelper.getConnection(new $(ele)).iid;

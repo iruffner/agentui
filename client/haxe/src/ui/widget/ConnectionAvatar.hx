@@ -108,10 +108,13 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        		throw new Exception("Root of ConnectionAvatar must be a div element");
 		        	}
 
+
 		        	var id = "connavatar_" + ((self.options.aliasIid == null) ? self.options.connectionIid : self.options.aliasIid);
 		        	selfElement.attr("id", id);
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionAvatar filterable");
-
+		        	if (self.options.aliasIid != null) {
+		        		selfElement.addClass("aliasAvatar");
+		        	}
 		            var img: JQ = new JQ("<img class='shadow'/>");
 		            selfElement.append(img);
 
