@@ -29,5 +29,6 @@ interface ProtocolHandler {
 	public function revokeAccess(lacls:Array<LabelAcl>): Void;
 	public function deleteConnection(c:Connection): Void;
 	public function addHandle(handle:String): Void;
-	public function deregisterListeners():Void;
+	public function deregisterAllSqueries():Void;
+	public function deregisterSqueries(handles:Array<String>):Void;
 }

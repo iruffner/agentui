@@ -20,7 +20,6 @@ typedef ContentFeedOptions = {
 
 typedef ContentFeedWidgetDef = {
 	@:optional var options: ContentFeedOptions;
-	@:optional var contentSource:ContentSource<ContentComp>;
 	var _create: Void->Void;
 	var destroy: Void->Void;
 }
@@ -77,7 +76,7 @@ extern class ContentFeed extends JQ {
 	            		}
 	            	};
 
-	            	var beforeSetContent = function(content:OSet<Content<Dynamic>>) {
+	            	var beforeSetContent = function() {
 			        	selfElement.find(".contentComp").remove();
 	            	};
 	            	var widgetCreator = function(content:Content<Dynamic>):ContentComp {
@@ -85,12 +84,11 @@ extern class ContentFeed extends JQ {
 	        				content: content
 	        			});
 	            	}
-	            	self.contentSource = new ContentSource<ContentComp>(mapListener, beforeSetContent, widgetCreator);
+	            	ContentSource.addListener(mapListener, beforeSetContent, widgetCreator);
 		        },
 		        
 		        destroy: function() {
 		        	var self: ContentFeedWidgetDef = Widgets.getSelf();
-		        	self.contentSource.cleanup();
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

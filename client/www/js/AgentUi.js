@@ -4891,7 +4891,20 @@ ui.api.BennuHandler.prototype = {
 		qm.local = false;
 		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,qm)]).start();
 	}
-	,deregisterListeners: function() {
+	,deregisterSqueries: function(handles) {
+		var context = ui.api.Synchronizer.createContext(handles.length,"deregisterSqueriesResponse");
+		var requests = new Array();
+		var _g = 0;
+		while(_g < handles.length) {
+			var handle = handles[_g];
+			++_g;
+			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DEREGISTER,context,new ui.api.DeregisterMessage(handle)));
+			HxOverrides.remove(this.registeredHandles,handle);
+		}
+		new ui.api.SubmitRequest(requests).start({ async : false});
+	}
+	,deregisterAllSqueries: function() {
+		if(this.registeredHandles.length > 0) this.deregisterSqueries(this.registeredHandles.slice());
 	}
 	,addHandle: function(handle) {
 		this.registeredHandles.push(handle);
@@ -5099,7 +5112,7 @@ ui.api.EventDelegate.prototype = {
 			_g.protocolHandler.deleteConnection(c);
 		});
 		ui.model.EM.addListener(ui.model.EMEvent.UserLogout,function(c) {
-			_g.protocolHandler.deregisterListeners();
+			_g.protocolHandler.deregisterAllSqueries();
 		});
 		ui.model.EM.addListener(ui.model.EMEvent.TargetChange,function(conn) {
 		});
@@ -5581,66 +5594,46 @@ ui.api.Synchronizer.prototype = {
 	,__class__: ui.api.Synchronizer
 }
 ui.model = {}
-ui.model.ContentSource = function(mapListener,onBeforeSetContent,widgetCreator) {
+ui.model.ContentSourceListener = function(mapListener,onBeforeSetContent,widgetCreator,content) {
 	this.mapListener = mapListener;
 	this.onBeforeSetContent = onBeforeSetContent;
 	this.widgetCreator = widgetCreator;
-	this.handle = null;
-	ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,$bind(this,this.onAliasLoaded),"ContentSource-AliasLoaded");
-	ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,$bind(this,this.onLoadFilteredContent),"ContentSource-LoadFilteredContent");
-	ui.model.EM.addListener(ui.model.EMEvent.AppendFilteredContent,$bind(this,this.onAppendFilteredContent),"ContentSource-AppendFilteredContent");
+	this.contentMap = new m3.observable.MappedSet(content,function(content1) {
+		return widgetCreator(content1);
+	});
+	this.contentMap.mapListen(this.mapListener);
 };
-$hxClasses["ui.model.ContentSource"] = ui.model.ContentSource;
-ui.model.ContentSource.__name__ = ["ui","model","ContentSource"];
-ui.model.ContentSource.prototype = {
-	cleanup: function() {
-		if(this.contentMap != null) this.contentMap.removeListeners(this.mapListener);
-	}
-	,setContent: function(content) {
-		var _g = this;
-		this.onBeforeSetContent(content);
-		this.cleanup();
-		this.contentMap = new m3.observable.MappedSet(content,function(content1) {
-			return _g.widgetCreator(content1);
-		});
-		this.contentMap.mapListen(this.mapListener);
-	}
-	,onAliasLoaded: function(alias) {
-		this.handle = null;
-		this.setContent(new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier));
-	}
-	,onAppendFilteredContent: function(data) {
-		this.addContent(data.results);
-	}
-	,onLoadFilteredContent: function(data) {
-		this.handle = data.handle;
-		this.filteredContent = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
-		this.setContent(this.filteredContent);
-		this.addContent(data.results);
-	}
-	,addContent: function(results) {
-		var _g = 0;
-		while(_g < results.length) {
-			var result = results[_g];
-			++_g;
-			var c = ui.AppContext.SERIALIZER.fromJsonX(result,ui.model.Content);
-			this.filteredContent.addOrUpdate(c);
-		}
-	}
-	,__class__: ui.model.ContentSource
+$hxClasses["ui.model.ContentSourceListener"] = ui.model.ContentSourceListener;
+ui.model.ContentSourceListener.__name__ = ["ui","model","ContentSourceListener"];
+ui.model.ContentSourceListener.prototype = {
+	__class__: ui.model.ContentSourceListener
 }
-ui.model.Context = function(context) {
-	var c = context.split("-");
-	if(c.length != 3) throw new m3.exception.Exception("invalid context");
-	this.iid = c[0];
-	this.numResponsesExpected = Std.parseInt(c[1]);
-	this.oncomplete = c[2];
+ui.model.ModelObj = function() {
 };
-$hxClasses["ui.model.Context"] = ui.model.Context;
-ui.model.Context.__name__ = ["ui","model","Context"];
-ui.model.Context.prototype = {
-	__class__: ui.model.Context
+$hxClasses["ui.model.ModelObj"] = ui.model.ModelObj;
+ui.model.ModelObj.__name__ = ["ui","model","ModelObj"];
+ui.model.ModelObj.prototype = {
+	objectType: function() {
+		var className = m3.serialization.TypeTools.classname(m3.serialization.TypeTools.clazz(this)).toLowerCase();
+		var parts = className.split(".");
+		return parts[parts.length - 1];
+	}
+	,__class__: ui.model.ModelObj
 }
+ui.model.ModelObjWithIid = function() {
+	ui.model.ModelObj.call(this);
+	this.iid = m3.util.UidGenerator.create(32);
+	this.deleted = false;
+};
+$hxClasses["ui.model.ModelObjWithIid"] = ui.model.ModelObjWithIid;
+ui.model.ModelObjWithIid.__name__ = ["ui","model","ModelObjWithIid"];
+ui.model.ModelObjWithIid.identifier = function(t) {
+	return t.iid;
+}
+ui.model.ModelObjWithIid.__super__ = ui.model.ModelObj;
+ui.model.ModelObjWithIid.prototype = $extend(ui.model.ModelObj.prototype,{
+	__class__: ui.model.ModelObjWithIid
+});
 ui.model.EM = function() { }
 $hxClasses["ui.model.EM"] = ui.model.EM;
 ui.model.EM.__name__ = ["ui","model","EM"];
@@ -5661,9 +5654,6 @@ ui.model.EM.removeListener = function(id,listenerUid) {
 ui.model.EM.change = function(id,t) {
 	ui.model.EM.delegate.change(id,t);
 }
-ui.model.Nothing = function() { }
-$hxClasses["ui.model.Nothing"] = ui.model.Nothing;
-ui.model.Nothing.__name__ = ["ui","model","Nothing"];
 ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 ui.model.EMEvent.FILTER_RUN.toString = $estr;
@@ -5773,6 +5763,64 @@ ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
 ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",35];
 ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
+ui.model.ContentSource = function() { }
+$hxClasses["ui.model.ContentSource"] = ui.model.ContentSource;
+ui.model.ContentSource.__name__ = ["ui","model","ContentSource"];
+ui.model.ContentSource.addListener = function(ml,obsc,wc) {
+	var l = new ui.model.ContentSourceListener(ml,obsc,wc,ui.model.ContentSource.filteredContent);
+	ui.model.ContentSource.listeners.push(l);
+}
+ui.model.ContentSource.addContent = function(results) {
+	var _g = 0;
+	while(_g < results.length) {
+		var result = results[_g];
+		++_g;
+		var c = ui.AppContext.SERIALIZER.fromJsonX(result,ui.model.Content);
+		ui.model.ContentSource.filteredContent.addOrUpdate(c);
+	}
+}
+ui.model.ContentSource.onLoadFilteredContent = function(data) {
+	ui.model.ContentSource.clearQuery();
+	ui.model.ContentSource.handle = data.handle;
+	ui.model.ContentSource.beforeSetContent();
+	ui.model.ContentSource.addContent(data.results);
+}
+ui.model.ContentSource.clearQuery = function() {
+	if(ui.model.ContentSource.handle != null) {
+		ui.AgentUi.PROTOCOL.deregisterSqueries([ui.model.ContentSource.handle]);
+		ui.model.ContentSource.filteredContent.clear();
+		ui.model.ContentSource.handle = null;
+	}
+}
+ui.model.ContentSource.onAppendFilteredContent = function(data) {
+	ui.model.ContentSource.addContent(data.results);
+}
+ui.model.ContentSource.onAliasLoaded = function(alias) {
+	ui.model.ContentSource.clearQuery();
+}
+ui.model.ContentSource.beforeSetContent = function() {
+	var _g = 0, _g1 = ui.model.ContentSource.listeners;
+	while(_g < _g1.length) {
+		var l = _g1[_g];
+		++_g;
+		l.onBeforeSetContent();
+	}
+}
+ui.model.Context = function(context) {
+	var c = context.split("-");
+	if(c.length != 3) throw new m3.exception.Exception("invalid context");
+	this.iid = c[0];
+	this.numResponsesExpected = Std.parseInt(c[1]);
+	this.oncomplete = c[2];
+};
+$hxClasses["ui.model.Context"] = ui.model.Context;
+ui.model.Context.__name__ = ["ui","model","Context"];
+ui.model.Context.prototype = {
+	__class__: ui.model.Context
+}
+ui.model.Nothing = function() { }
+$hxClasses["ui.model.Nothing"] = ui.model.Nothing;
+ui.model.Nothing.__name__ = ["ui","model","Nothing"];
 ui.model.Filter = function(node) {
 	this.rootNode = node;
 	this.nodes = new Array();
@@ -5829,32 +5877,6 @@ ui.model.FilterResponse.__name__ = ["ui","model","FilterResponse"];
 ui.model.FilterResponse.prototype = {
 	__class__: ui.model.FilterResponse
 }
-ui.model.ModelObj = function() {
-};
-$hxClasses["ui.model.ModelObj"] = ui.model.ModelObj;
-ui.model.ModelObj.__name__ = ["ui","model","ModelObj"];
-ui.model.ModelObj.prototype = {
-	objectType: function() {
-		var className = m3.serialization.TypeTools.classname(m3.serialization.TypeTools.clazz(this)).toLowerCase();
-		var parts = className.split(".");
-		return parts[parts.length - 1];
-	}
-	,__class__: ui.model.ModelObj
-}
-ui.model.ModelObjWithIid = function() {
-	ui.model.ModelObj.call(this);
-	this.iid = m3.util.UidGenerator.create(32);
-	this.deleted = false;
-};
-$hxClasses["ui.model.ModelObjWithIid"] = ui.model.ModelObjWithIid;
-ui.model.ModelObjWithIid.__name__ = ["ui","model","ModelObjWithIid"];
-ui.model.ModelObjWithIid.identifier = function(t) {
-	return t.iid;
-}
-ui.model.ModelObjWithIid.__super__ = ui.model.ModelObj;
-ui.model.ModelObjWithIid.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.ModelObjWithIid
-});
 ui.model.Profile = function(name,imgSrc,aliasIid) {
 	ui.model.ModelObjWithIid.call(this);
 	this.name = name == null?"Unknown":name;
@@ -7112,6 +7134,11 @@ m3.util.ColorProvider._COLORS.push("#CCC45C");
 m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
 ui.model.EM.delegate = new m3.event.EventManager(ui.AppContext.LOGGER);
+ui.model.ContentSource.filteredContent = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
+ui.model.ContentSource.listeners = new Array();
+ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,ui.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
+ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,ui.model.ContentSource.onLoadFilteredContent,"ContentSource-LoadFilteredContent");
+ui.model.EM.addListener(ui.model.EMEvent.AppendFilteredContent,ui.model.ContentSource.onAppendFilteredContent,"ContentSource-AppendFilteredContent");
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -8449,16 +8476,15 @@ var defineWidget = function() {
 				ui.model.EM.change(ui.model.EMEvent.FitWindow);
 			} else if(evt.isUpdate()) ui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
 		};
-		var beforeSetContent = function(content) {
+		var beforeSetContent = function() {
 			selfElement.find(".contentComp").remove();
 		};
 		var widgetCreator = function(content) {
 			return new $("<div></div>").contentComp({ content : content});
 		};
-		self.contentSource = new ui.model.ContentSource(mapListener,beforeSetContent,widgetCreator);
+		ui.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
 	}, destroy : function() {
 		var self = this;
-		self.contentSource.cleanup();
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -9398,7 +9424,7 @@ var defineWidget = function() {
 		var mapListener = function(content,ele,evt) {
 			if(evt.isAdd()) self1._addContent(content); else if(evt.isUpdate()) self1._updateContent(content); else if(evt.isDelete()) self1._deleteContent(content);
 		};
-		var beforeSetContent = function(content) {
+		var beforeSetContent = function() {
 			new $("#score-comp-svg").empty();
 			self1.contentTimeLines = new haxe.ds.StringMap();
 			self1.viewBoxWidth = 1000;
@@ -9412,23 +9438,6 @@ var defineWidget = function() {
 			}(this))).attr("id","uber-group").attr("transform","matrix(1 0 0 1 0 0)");
 			self1.startTime = null;
 			self1.endTime = null;
-			var it = content.iterator();
-			while(it.hasNext()) {
-				var el = it.next();
-				if(self1.startTime == null) {
-					self1.startTime = el.get_created();
-					self1.endTime = (function($this) {
-						var $r;
-						var d = new Date();
-						d.setTime(self1.startTime.getTime() + 86400000.);
-						$r = d;
-						return $r;
-					}(this));
-				} else {
-					if(el.get_created().getTime() < self1.startTime.getTime()) self1.startTime = el.get_created();
-					if(el.get_created().getTime() > self1.endTime.getTime()) self1.endTime = el.get_created();
-				}
-			}
 			if(self1.startTime == null) {
 				self1.startTime = (function($this) {
 					var $r;
@@ -9465,10 +9474,9 @@ var defineWidget = function() {
 		var widgetCreator = function(content) {
 			return null;
 		};
-		self1.contentSource = new ui.model.ContentSource(mapListener,beforeSetContent,widgetCreator);
+		ui.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
 	}, destroy : function() {
 		var self = this;
-		self.contentSource.cleanup();
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -9507,9 +9515,8 @@ ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.s
 ui.api.BennuHandler.QUERY = "/api/query";
 ui.api.BennuHandler.UPSERT = "/api/upsert";
 ui.api.BennuHandler.DELETE = "/api/delete";
-ui.api.BennuHandler.REGISTER = "/api/squery/register";
 ui.api.BennuHandler.INTRODUCE = "/api/introduction/initiate";
-ui.api.BennuHandler.DEREGISTER = "/api/squery/deregister";
+ui.api.BennuHandler.DEREGISTER = "/api/query/deregister";
 ui.api.BennuHandler.INTRO_RESPONSE = "/api/introduction/respond";
 ui.api.ChannelMessage.__rtti = "<class path=\"ui.api.ChannelMessage\" params=\"\" module=\"ui.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
 ui.api.BennuMessage.__rtti = "<class path=\"ui.api.BennuMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";

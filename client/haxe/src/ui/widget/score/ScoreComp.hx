@@ -25,7 +25,6 @@ typedef ScoreCompWidgetDef = {
 	@:optional var startTime:Date;
 	@:optional var endTime:Date;
 	@:optional var viewBoxWidth:Float;
-	@:optional var contentSource:ContentSource<SnapElement>;
 
 	var _getProfile:Content<Dynamic>->Profile;
 	var _addContent:Content<Dynamic>->Void;
@@ -129,7 +128,7 @@ extern class ScoreComp extends JQ {
 	            		}
 	            	};
 
-	            	var beforeSetContent = function(content:OSet<Content<Dynamic>>) {
+	            	var beforeSetContent = function():Void {
 	            		new JQ("#score-comp-svg").empty();
 
 		        		self.contentTimeLines = new StringMap<ContentTimeLine>();
@@ -143,22 +142,7 @@ extern class ScoreComp extends JQ {
 
 						self.startTime = null;
 						self.endTime = null;
-						var it = content.iterator();
-						while (it.hasNext()) {
-							var el = it.next();
-							if (self.startTime == null) {
-								self.startTime = el.created;
-								self.endTime   = Date.fromTime(self.startTime.getTime() + DateTools.days(1));
-							} else {
-								if (el.created.getTime() < self.startTime.getTime()) {
-									self.startTime = el.created;
-								}
-								if (el.created.getTime() > self.endTime.getTime()) {
-									self.endTime = el.created;
-								}
-							}
-						}
-
+				
 						if (self.startTime == null) {
 							self.startTime = Date.fromTime(Date.now().getTime() - DateTools.hours(2));
 							self.endTime   = Date.fromTime(self.startTime.getTime() + DateTools.hours(24));
@@ -172,12 +156,11 @@ extern class ScoreComp extends JQ {
 	            	var widgetCreator = function(content:Content<Dynamic>):SnapElement {
 	            		return null;
 	            	}
-	            	self.contentSource = new ContentSource<SnapElement>(mapListener, beforeSetContent, widgetCreator);
+	            	ContentSource.addListener(mapListener, beforeSetContent, widgetCreator);
 		        },
 
 		        destroy: function() {
 		        	var self: ScoreCompWidgetDef = Widgets.getSelf();
-		        	self.contentSource.cleanup();
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

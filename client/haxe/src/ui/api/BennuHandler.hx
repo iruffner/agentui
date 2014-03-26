@@ -23,9 +23,8 @@ class BennuHandler implements ProtocolHandler {
 	private static var QUERY = "/api/query";
 	private static var UPSERT = "/api/upsert";
 	private static var DELETE = "/api/delete";
-	private static var REGISTER = "/api/squery/register" ;
 	private static var INTRODUCE = "/api/introduction/initiate";
-	private static var DEREGISTER = "/api/squery/deregister" ;
+	private static var DEREGISTER = "/api/query/deregister" ;
 	private static var INTRO_RESPONSE = "/api/introduction/respond";
 
 	private var eventDelegate:EventDelegate;
@@ -44,16 +43,20 @@ class BennuHandler implements ProtocolHandler {
 		this.registeredHandles.push(handle);
 	}
 
-	public function deregisterListeners():Void {
-		/*
+	public function deregisterAllSqueries():Void {
 		if (this.registeredHandles.length > 0) {
-			var requests = new Array<ChannelRequestMessage>();
-			for (handle in this.registeredHandles) {
-				requests.push(new ChannelRequestMessage(DEREGISTER, "deregister_listeners", new DeregisterMessage(handle)));
-			}
-			new SubmitRequest(requests).start({async: false});
+			deregisterSqueries(this.registeredHandles.copy());
 		}
-		*/
+	}
+
+	public function deregisterSqueries(handles:Array<String>) {
+		var context = Synchronizer.createContext(handles.length, "deregisterSqueriesResponse");
+		var requests = new Array<ChannelRequestMessage>();
+		for (handle in handles) {
+			requests.push(new ChannelRequestMessage(DEREGISTER, context, new DeregisterMessage(handle)));
+			this.registeredHandles.remove(handle);
+		}
+		new SubmitRequest(requests).start({async: false});
 	}
 
 	public function getProfiles(connectionIids:Array<String>) {

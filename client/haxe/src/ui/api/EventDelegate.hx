@@ -97,7 +97,7 @@ class EventDelegate {
         });
 
         EM.addListener(EMEvent.UserLogout, function(c:Nothing):Void{
-            protocolHandler.deregisterListeners();
+            protocolHandler.deregisterAllSqueries();
         });
 
         EM.addListener(EMEvent.TargetChange, function(conn:Connection):Void{
