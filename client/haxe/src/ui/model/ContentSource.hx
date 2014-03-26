@@ -63,10 +63,14 @@ class ContentSource {
 	}
 
 	private static function onLoadFilteredContent(data:Dynamic): Void {
-		clearQuery();
-		handle = data.handle;
-		beforeSetContent();
-		addContent(data.results);
+		if (handle == data.handle) {
+			addContent(data.results);
+		} else {
+			clearQuery();
+			handle = data.handle;
+			beforeSetContent();
+			addContent(data.results);
+		}
     }
 
     public static function clearQuery() {

@@ -5780,10 +5780,12 @@ ui.model.ContentSource.addContent = function(results) {
 	}
 }
 ui.model.ContentSource.onLoadFilteredContent = function(data) {
-	ui.model.ContentSource.clearQuery();
-	ui.model.ContentSource.handle = data.handle;
-	ui.model.ContentSource.beforeSetContent();
-	ui.model.ContentSource.addContent(data.results);
+	if(ui.model.ContentSource.handle == data.handle) ui.model.ContentSource.addContent(data.results); else {
+		ui.model.ContentSource.clearQuery();
+		ui.model.ContentSource.handle = data.handle;
+		ui.model.ContentSource.beforeSetContent();
+		ui.model.ContentSource.addContent(data.results);
+	}
 }
 ui.model.ContentSource.clearQuery = function() {
 	if(ui.model.ContentSource.handle != null) {
