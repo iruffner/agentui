@@ -36,7 +36,7 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	private function createChannel(aliasName:String, successFunc:Dynamic->String->JQXHR->Void) {
-		new BennuRequest("/api/channel/create/" + aliasName, "", successFunc).start();		
+		new SimpleRequest("/api/channel/create/" + aliasName, "", successFunc).start();		
 	}
 
 	public function addHandle(handle:String):Void {
@@ -72,7 +72,7 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function createAgent(newUser: NewUser): Void {
-		var req = new BennuRequest("/api/agent/create/" + newUser.name, "", 
+		var req = new SimpleRequest("/api/agent/create/" + newUser.name, "", 
 			function (data: Dynamic, textStatus: String, jqXHR: JQXHR) {
 				EM.change(EMEvent.AgentCreated);
 			}
@@ -337,7 +337,7 @@ class BennuHandler implements ProtocolHandler {
 		AppContext.SUBMIT_CHANNEL = data.channelId;
 		AppContext.UBER_ALIAS_ID = data.aliasIid;
 
-		_startPolling();
+		_startPolling(data.channelId);
 
 		var context = Synchronizer.createContext(9, "initialDataLoad");
 		var requests = [
@@ -354,7 +354,7 @@ class BennuHandler implements ProtocolHandler {
 		new SubmitRequest(requests).start();
 	}
 
-	private function _startPolling(): Void {
+	private function _startPolling(channelId:String): Void {
 		// TODO:  add the ability to set the timeout value
 		var timeout = 10000;
 		var ajaxOptions:AjaxOptions = {
@@ -362,7 +362,7 @@ class BennuHandler implements ProtocolHandler {
 	        type: "GET"
 		};
 
-		listeningChannel = new LongPollingRequest("", ResponseProcessor.processResponse, ajaxOptions);
+		listeningChannel = new LongPollingRequest(channelId, "", ResponseProcessor.processResponse, ajaxOptions);
 		listeningChannel.timeout = timeout;
 		listeningChannel.start();
 	}

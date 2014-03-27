@@ -21,7 +21,6 @@ using Lambda;
 class AgentUi {
     
     public static var PROTOCOL: ProtocolHandler;
-    public static var URL: String = "";
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
 
 	public static function main() {

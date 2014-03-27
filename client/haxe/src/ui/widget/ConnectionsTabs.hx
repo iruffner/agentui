@@ -71,6 +71,10 @@ extern class ConnectionsTabs extends JQ {
 
 				        self.aliases.listen(self._listener);
 				    });
+
+				    EM.addListener(EMEvent.AliasLoaded, function(alias: Alias): Void {
+				    	new JQ("#tab-" + alias.iid).click();
+				    });
 			    },
 
 			    _addTab: function(iid:String, name:String) {

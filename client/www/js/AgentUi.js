@@ -4659,17 +4659,17 @@ $hxClasses["ui.api.BennuHandler"] = ui.api.BennuHandler;
 ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
 ui.api.BennuHandler.__interfaces__ = [ui.api.ProtocolHandler];
 ui.api.BennuHandler.prototype = {
-	_startPolling: function() {
+	_startPolling: function(channelId) {
 		var timeout = 10000;
 		var ajaxOptions = { contentType : "", type : "GET"};
-		this.listeningChannel = new ui.api.LongPollingRequest("",ui.api.ResponseProcessor.processResponse,ajaxOptions);
+		this.listeningChannel = new ui.api.LongPollingRequest(channelId,"",ui.api.ResponseProcessor.processResponse,ajaxOptions);
 		this.listeningChannel.timeout = timeout;
 		this.listeningChannel.start();
 	}
 	,onCreateSubmitChannel: function(data,textStatus,jqXHR) {
 		ui.AppContext.SUBMIT_CHANNEL = data.channelId;
 		ui.AppContext.UBER_ALIAS_ID = data.aliasIid;
-		this._startPolling();
+		this._startPolling(data.channelId);
 		var context = ui.api.Synchronizer.createContext(9,"initialDataLoad");
 		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labelAcl")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labelChild")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("profile"))];
 		new ui.api.SubmitRequest(requests).start();
@@ -4876,7 +4876,7 @@ ui.api.BennuHandler.prototype = {
 		req.start();
 	}
 	,createAgent: function(newUser) {
-		var req = new ui.api.BennuRequest("/api/agent/create/" + newUser.name,"",function(data,textStatus,jqXHR) {
+		var req = new ui.api.SimpleRequest("/api/agent/create/" + newUser.name,"",function(data,textStatus,jqXHR) {
 			ui.model.EM.change(ui.model.EMEvent.AgentCreated);
 		});
 		req.start();
@@ -4910,7 +4910,7 @@ ui.api.BennuHandler.prototype = {
 		this.registeredHandles.push(handle);
 	}
 	,createChannel: function(aliasName,successFunc) {
-		new ui.api.BennuRequest("/api/channel/create/" + aliasName,"",successFunc).start();
+		new ui.api.SimpleRequest("/api/channel/create/" + aliasName,"",successFunc).start();
 	}
 	,__class__: ui.api.BennuHandler
 }
@@ -5159,18 +5159,18 @@ ui.api.BaseRequest.prototype = {
 	}
 	,__class__: ui.api.BaseRequest
 }
-ui.api.BennuRequest = function(path,data,successFcn) {
-	this.baseOpts = { async : true, url : ui.AgentUi.URL + path};
+ui.api.SimpleRequest = function(path,data,successFcn) {
+	this.baseOpts = { async : true, url : path};
 	ui.api.BaseRequest.call(this,data,successFcn);
 };
-$hxClasses["ui.api.BennuRequest"] = ui.api.BennuRequest;
-ui.api.BennuRequest.__name__ = ["ui","api","BennuRequest"];
-ui.api.BennuRequest.__super__ = ui.api.BaseRequest;
-ui.api.BennuRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
-	__class__: ui.api.BennuRequest
+$hxClasses["ui.api.SimpleRequest"] = ui.api.SimpleRequest;
+ui.api.SimpleRequest.__name__ = ["ui","api","SimpleRequest"];
+ui.api.SimpleRequest.__super__ = ui.api.BaseRequest;
+ui.api.SimpleRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
+	__class__: ui.api.SimpleRequest
 });
 ui.api.SubmitRequest = function(msgs,successFcn) {
-	this.baseOpts = { dataType : "text", async : true, url : ui.AgentUi.URL + "/api/channel/submit"};
+	this.baseOpts = { dataType : "text", async : true, url : "/api/channel/submit"};
 	if(successFcn == null) successFcn = function(data,textStatus,jqXHR) {
 	};
 	var bundle = new ui.api.ChannelRequestMessageBundle(msgs);
@@ -5183,40 +5183,12 @@ ui.api.SubmitRequest.__super__ = ui.api.BaseRequest;
 ui.api.SubmitRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	__class__: ui.api.SubmitRequest
 });
-ui.api.CrudRequest = function(object,path,successFcn) {
-	var crudMessage = ui.api.CrudMessage.create(object);
-	this.baseOpts = { async : true, url : ui.AgentUi.URL + path};
-	ui.api.BaseRequest.call(this,ui.AppContext.SERIALIZER.toJsonString(crudMessage),successFcn);
-};
-$hxClasses["ui.api.CrudRequest"] = ui.api.CrudRequest;
-ui.api.CrudRequest.__name__ = ["ui","api","CrudRequest"];
-ui.api.CrudRequest.__super__ = ui.api.BaseRequest;
-ui.api.CrudRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
-	__class__: ui.api.CrudRequest
-});
-ui.api.UpsertRequest = function(object,successFcn) {
-	ui.api.CrudRequest.call(this,object,"/api/upsert",successFcn);
-};
-$hxClasses["ui.api.UpsertRequest"] = ui.api.UpsertRequest;
-ui.api.UpsertRequest.__name__ = ["ui","api","UpsertRequest"];
-ui.api.UpsertRequest.__super__ = ui.api.CrudRequest;
-ui.api.UpsertRequest.prototype = $extend(ui.api.CrudRequest.prototype,{
-	__class__: ui.api.UpsertRequest
-});
-ui.api.DeleteRequest = function(object,successFcn) {
-	ui.api.CrudRequest.call(this,object,"/api/delete",successFcn);
-};
-$hxClasses["ui.api.DeleteRequest"] = ui.api.DeleteRequest;
-ui.api.DeleteRequest.__name__ = ["ui","api","DeleteRequest"];
-ui.api.DeleteRequest.__super__ = ui.api.CrudRequest;
-ui.api.DeleteRequest.prototype = $extend(ui.api.CrudRequest.prototype,{
-	__class__: ui.api.DeleteRequest
-});
-ui.api.LongPollingRequest = function(requestToRepeat,successFcn,ajaxOpts) {
+ui.api.LongPollingRequest = function(channel,requestToRepeat,successFcn,ajaxOpts) {
 	this.timeout = 30000;
 	this.delayNextPoll = false;
 	this.running = true;
 	var _g = this;
+	this.channel = channel;
 	this.baseOpts = { complete : function(jqXHR,textStatus) {
 		_g.poll();
 	}};
@@ -5236,7 +5208,6 @@ ui.api.LongPollingRequest = function(requestToRepeat,successFcn,ajaxOpts) {
 		ui.AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 	};
 	ui.api.BaseRequest.call(this,requestToRepeat,wrappedSuccessFcn,errorFcn);
-	this.setupHotKey();
 };
 $hxClasses["ui.api.LongPollingRequest"] = ui.api.LongPollingRequest;
 ui.api.LongPollingRequest.__name__ = ["ui","api","LongPollingRequest"];
@@ -5248,7 +5219,7 @@ ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 				this.delayNextPoll = false;
 				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
 			} else {
-				this.baseOpts.url = ui.AgentUi.URL + "/api/channel/poll?channel=" + ui.AppContext.SUBMIT_CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
+				this.baseOpts.url = "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
 				this.baseOpts.timeout = this.timeout + 1000;
 				this.jqXHR = ui.api.BaseRequest.prototype.start.call(this);
 			}
@@ -5267,15 +5238,18 @@ ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 		this.poll();
 		return this.jqXHR;
 	}
-	,setupHotKey: function() {
-		var _g = this;
-		ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
-			if(evt.altKey && evt.shiftKey && evt.keyCode == 80) {
-				_g.running = !_g.running;
-				ui.AppContext.LOGGER.debug("Long Polling is running? " + Std.string(_g.running));
-				_g.poll();
-			}
-		});
+	,toggle: function() {
+		this.running = !this.running;
+		ui.AppContext.LOGGER.debug("Long Polling is running? " + Std.string(this.running));
+		this.poll();
+	}
+	,resume: function() {
+		this.running = false;
+		this.poll();
+	}
+	,pause: function() {
+		this.running = false;
+		this.poll();
 	}
 	,__class__: ui.api.LongPollingRequest
 });
@@ -8161,6 +8135,9 @@ var defineWidget = function() {
 			new $("#tab-all").click();
 			self.aliases.listen(self._listener);
 		});
+		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,function(alias) {
+			new $("#tab-" + alias.iid).click();
+		});
 	}, _addTab : function(iid,name) {
 		var self = this;
 		var tabs = new $("#connectionsTabs");
@@ -9516,7 +9493,6 @@ m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" pa
 m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"423\"><f a=\"t:?deleteEmptySet\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"446\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"465\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"474\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"478\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"489\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"493\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"403\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"545\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"553\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"558\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"576\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"580\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"586\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"590\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"594\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"506\"><f a=\"source:?sortByFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
-ui.AgentUi.URL = "";
 ui.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
 ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
 ui.api.BennuHandler.QUERY = "/api/query";

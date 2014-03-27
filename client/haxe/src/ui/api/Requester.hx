@@ -77,11 +77,11 @@ class BaseRequest {
 	}
 }
 
-class BennuRequest extends BaseRequest {
+class SimpleRequest extends BaseRequest {
 	public function new(path:String, data:String, successFcn: Dynamic->String->JQXHR->Void) {
 		baseOpts = {
 			async: true,
-			url: AgentUi.URL + path 
+			url: path 
 		};
 
 		super(data, successFcn);
@@ -94,7 +94,7 @@ class SubmitRequest extends BaseRequest {
 		this.baseOpts = {
 			dataType: "text",
 			async: true,
-			url: AgentUi.URL + "/api/channel/submit" 
+			url: "/api/channel/submit" 
 		};
 
 		if (successFcn == null) {
@@ -109,40 +109,17 @@ class SubmitRequest extends BaseRequest {
 	}
 }
 
-class CrudRequest extends BaseRequest {
-
-	public function new(object:ModelObjWithIid, path:String, successFcn: Dynamic->String->JQXHR->Void):Void {
-		var crudMessage = CrudMessage.create(object);
-
-		baseOpts = {
-			async: true,
-			url: AgentUi.URL + path
-		};
-		super(AppContext.SERIALIZER.toJsonString(crudMessage), successFcn);
-	}
-}
-
-class UpsertRequest extends CrudRequest {
-	public function new(object:ModelObjWithIid, successFcn: Dynamic->String->JQXHR->Void):Void {
-		super(object, "/api/upsert", successFcn);
-	}	
-}
-
-class DeleteRequest extends CrudRequest {
-	public function new(object:ModelObjWithIid, successFcn: Dynamic->String->JQXHR->Void):Void {
-		super(object, "/api/delete", successFcn);
-	}	
-}
-
 class LongPollingRequest extends BaseRequest {
 
 	private var jqXHR: Dynamic;
 	private var running: Bool = true;
 	private var delayNextPoll: Bool = false;
+	private var channel:String;
 
 	public var timeout:Int = 30000;
 
-	public function new(requestToRepeat: String, successFcn: Dynamic->String->JQXHR->Void, ?ajaxOpts:AjaxOptions) {
+	public function new(channel:String, requestToRepeat: String, successFcn: Dynamic->String->JQXHR->Void, ?ajaxOpts:AjaxOptions) {
+		this.channel = channel;
 		baseOpts = {
 	        complete: function(jqXHR:JQXHR, textStatus:String): Void {
 	        	this.poll();
@@ -169,18 +146,22 @@ class LongPollingRequest extends BaseRequest {
 		};
 
 		super(requestToRepeat, wrappedSuccessFcn, errorFcn);
-
-		setupHotKey();
 	}
 
-	private function setupHotKey():Void {
-		AgentUi.HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
-            if(evt.altKey && evt.shiftKey && evt.keyCode == 80 /* ALT+SHIFT+P */) {
-                running = !running;
-                AppContext.LOGGER.debug("Long Polling is running? " + running);
-                poll();
-            }
-        });		
+	public function pause():Void {
+		running = false;
+		poll();
+	}
+
+	public function resume():Void {
+		running = false;
+		poll();
+	}
+
+	public function toggle():Void {
+        running = !running;
+        AppContext.LOGGER.debug("Long Polling is running? " + running);
+        poll();
 	}
 
 	override public function start(?opts: AjaxOptions): Dynamic {
@@ -208,8 +189,8 @@ class LongPollingRequest extends BaseRequest {
 				Timer.delay(poll, Std.int(timeout/2));
 			} else {
 				// Set the url here in case the polling frequency has changed
-				baseOpts.url = AgentUi.URL + "/api/channel/poll?channel=" + 
-				               AppContext.SUBMIT_CHANNEL + "&timeoutMillis=" + Std.string(this.timeout);
+				baseOpts.url = "/api/channel/poll?channel=" + 
+				               this.channel + "&timeoutMillis=" + Std.string(this.timeout);
 				baseOpts.timeout = this.timeout + 1000;
 
 				jqXHR = super.start();
