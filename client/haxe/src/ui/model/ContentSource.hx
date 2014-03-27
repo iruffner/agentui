@@ -55,21 +55,25 @@ class ContentSource {
 		listeners.push(l);
 	}
 
-	private static function addContent(results:Array<Dynamic>) {
+	private static function addContent(results:Array<Dynamic>, connectionIid:String) {
 		for (result in results) {
 			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
+			if (connectionIid != null) {
+				c.aliasIid = null;
+				c.connectionIid = connectionIid;
+			}
 			filteredContent.addOrUpdate(c);
 		}
 	}
 
 	private static function onLoadFilteredContent(data:Dynamic): Void {
 		if (handle == data.handle) {
-			addContent(data.results);
+			addContent(data.results, data.connectionIid);
 		} else {
 			clearQuery();
 			handle = data.handle;
 			beforeSetContent();
-			addContent(data.results);
+			addContent(data.results, data.connectionIid);
 		}
     }
 
@@ -82,7 +86,7 @@ class ContentSource {
     }
 
     private static function onAppendFilteredContent(data:Dynamic) {
-		addContent(data.results);
+		addContent(data.results, data.connectionIid);
     }
 
 	private static function onAliasLoaded(alias:Alias) {

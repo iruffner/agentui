@@ -5770,21 +5770,25 @@ ui.model.ContentSource.addListener = function(ml,obsc,wc) {
 	var l = new ui.model.ContentSourceListener(ml,obsc,wc,ui.model.ContentSource.filteredContent);
 	ui.model.ContentSource.listeners.push(l);
 }
-ui.model.ContentSource.addContent = function(results) {
+ui.model.ContentSource.addContent = function(results,connectionIid) {
 	var _g = 0;
 	while(_g < results.length) {
 		var result = results[_g];
 		++_g;
 		var c = ui.AppContext.SERIALIZER.fromJsonX(result,ui.model.Content);
+		if(connectionIid != null) {
+			c.aliasIid = null;
+			c.connectionIid = connectionIid;
+		}
 		ui.model.ContentSource.filteredContent.addOrUpdate(c);
 	}
 }
 ui.model.ContentSource.onLoadFilteredContent = function(data) {
-	if(ui.model.ContentSource.handle == data.handle) ui.model.ContentSource.addContent(data.results); else {
+	if(ui.model.ContentSource.handle == data.handle) ui.model.ContentSource.addContent(data.results,data.connectionIid); else {
 		ui.model.ContentSource.clearQuery();
 		ui.model.ContentSource.handle = data.handle;
 		ui.model.ContentSource.beforeSetContent();
-		ui.model.ContentSource.addContent(data.results);
+		ui.model.ContentSource.addContent(data.results,data.connectionIid);
 	}
 }
 ui.model.ContentSource.clearQuery = function() {
@@ -5795,7 +5799,7 @@ ui.model.ContentSource.clearQuery = function() {
 	}
 }
 ui.model.ContentSource.onAppendFilteredContent = function(data) {
-	ui.model.ContentSource.addContent(data.results);
+	ui.model.ContentSource.addContent(data.results,data.connectionIid);
 }
 ui.model.ContentSource.onAliasLoaded = function(alias) {
 	ui.model.ContentSource.clearQuery();
