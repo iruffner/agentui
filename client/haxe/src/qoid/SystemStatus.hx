@@ -1,4 +1,4 @@
-package ui;
+package qoid;
 
 import m3.jq.JQ;
 

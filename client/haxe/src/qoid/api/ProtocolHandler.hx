@@ -1,8 +1,8 @@
-package ui.api;
+package qoid.api;
 
-import ui.api.CrudMessage;
-import ui.model.ModelObj;
-import ui.model.Filter;
+import qoid.api.CrudMessage;
+import qoid.model.ModelObj;
+import qoid.model.Filter;
 
 interface ProtocolHandler {
 	public function getProfiles(connectionIids:Array<String>):Void;

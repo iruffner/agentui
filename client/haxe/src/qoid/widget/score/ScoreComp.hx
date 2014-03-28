@@ -1,10 +1,10 @@
-package ui.widget.score;
+package qoid.widget.score;
 
 import haxe.ds.StringMap;
 import m3.jq.JQ;
 import m3.widget.Widgets;
-import ui.model.ContentSource;
-import ui.model.ModelObj;
+import qoid.model.ContentSource;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
 import m3.exception.Exception;
 import snap.Snap;

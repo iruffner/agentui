@@ -1,11 +1,11 @@
-package ui.widget;
+package qoid.widget;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
-import ui.model.Node;
+import qoid.model.Node;
 import m3.exception.Exception;
 
-using ui.widget.FilterComp;
+using qoid.widget.FilterComp;
 
 typedef LiveBuildToggleOptions = {
 }

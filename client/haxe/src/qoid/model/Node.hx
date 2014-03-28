@@ -1,6 +1,6 @@
-package ui.model;
+package qoid.model;
 
-import ui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.exception.Exception;
 
 import m3.observable.OSet.ObservableSet;

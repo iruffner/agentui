@@ -1,4 +1,4 @@
-package ui.widget.score;
+package qoid.widget.score;
 
 import snap.Snap;
 

@@ -1,4 +1,4 @@
-package ui.widget;
+package qoid.widget;
 
 import m3.util.M;
 import m3.jq.JQ;
@@ -7,17 +7,17 @@ import m3.jq.JQDraggable;
 import m3.jq.JQTooltip;
 import m3.observable.OSet;
 import m3.widget.Widgets;
-import ui.widget.DialogManager;
-import ui.model.ModelObj;
-import ui.model.Node;
+import qoid.widget.DialogManager;
+import qoid.model.ModelObj;
+import qoid.model.Node;
 import m3.observable.OSet.ObservableSet;
-import ui.widget.FilterableComponent;
+import qoid.widget.FilterableComponent;
 import m3.exception.Exception;
 
 using StringTools;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using ui.widget.LabelComp;
+using qoid.widget.LabelComp;
 
 typedef ConnectionAvatarOptions = {
 	>FilterableCompOptions,

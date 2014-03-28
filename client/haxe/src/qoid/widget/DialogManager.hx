@@ -1,13 +1,13 @@
-package ui.widget;
+package qoid.widget;
 
-import ui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.jq.JQ;
-import ui.widget.AliasManagerDialog;
-import ui.widget.LoginDialog;
-import ui.widget.CreateAgentDialog;
-import ui.widget.RequestIntroductionDialog;
-import ui.widget.AllowAccessDialog;
-import ui.widget.RevokeAccessDialog;
+import qoid.widget.AliasManagerDialog;
+import qoid.widget.LoginDialog;
+import qoid.widget.CreateAgentDialog;
+import qoid.widget.RequestIntroductionDialog;
+import qoid.widget.AllowAccessDialog;
+import qoid.widget.RevokeAccessDialog;
 
 @:expose
 class DialogManager {

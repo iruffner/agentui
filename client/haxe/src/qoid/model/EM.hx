@@ -1,4 +1,4 @@
-package ui.model;
+package qoid.model;
 
 import m3.log.Logga;
 import m3.event.EventManager;

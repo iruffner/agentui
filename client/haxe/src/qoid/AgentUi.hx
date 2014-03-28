@@ -1,4 +1,4 @@
-package ui;
+package qoid;
 
 import js.JQuery;
 
@@ -7,14 +7,14 @@ import m3.log.Logga;
 import m3.log.LogLevel;
 import m3.serialization.Serialization;
 
-import ui.api.BennuHandler;
-import ui.api.ProtocolHandler;
-import ui.widget.*;
-import ui.widget.ConnectionsTabs;
-import ui.widget.score.ScoreComp;
+import qoid.api.BennuHandler;
+import qoid.api.ProtocolHandler;
+import qoid.widget.*;
+import qoid.widget.ConnectionsTabs;
+import qoid.widget.score.ScoreComp;
 
 using m3.helper.ArrayHelper;
-using ui.widget.ConnectionsList;
+using qoid.widget.ConnectionsList;
 using Lambda;
 
 @:expose

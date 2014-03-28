@@ -1,4 +1,4 @@
-package ui.widget;
+package qoid.widget;
 
 import m3.jq.JQ;
 import m3.jq.JQDraggable;

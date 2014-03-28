@@ -1,4 +1,4 @@
-package ui.widget;
+package qoid.widget;
 
 import js.html.Element;
 
@@ -11,14 +11,14 @@ import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
-import ui.api.CrudMessage;
-import ui.model.ModelObj;
-import ui.model.Node;
-import ui.model.Filter;
-import ui.model.EM;
-import ui.widget.LabelComp;
+import qoid.api.CrudMessage;
+import qoid.model.ModelObj;
+import qoid.model.Node;
+import qoid.model.Filter;
+import qoid.model.EM;
+import qoid.widget.LabelComp;
 
-using ui.widget.ConnectionAvatar;
+using qoid.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
 
 typedef IntroductionNotificationCompOptions = {

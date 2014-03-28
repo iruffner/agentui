@@ -1,15 +1,15 @@
-package ui.widget;
+package qoid.widget;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
-import ui.model.ModelObj;
-import ui.model.EM;
+import qoid.model.ModelObj;
+import qoid.model.EM;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
-import ui.widget.LabelComp;
-using ui.widget.LabelComp;
-using ui.widget.LabelsList;
+import qoid.widget.LabelComp;
+using qoid.widget.LabelComp;
+using qoid.widget.LabelsList;
 using m3.helper.OSetHelper;
 
 typedef LabelTreeBranchOptions = {

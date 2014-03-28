@@ -1,4 +1,4 @@
-package ui.model;
+package qoid.model;
 
 import m3.util.ColorProvider;
 import m3.util.UidGenerator;
@@ -6,7 +6,7 @@ import m3.observable.OSet;
 import m3.serialization.Serialization;
 import m3.exception.Exception;
 
-import ui.model.EM;
+import qoid.model.EM;
 
 using m3.serialization.TypeTools;
 using m3.helper.ArrayHelper;

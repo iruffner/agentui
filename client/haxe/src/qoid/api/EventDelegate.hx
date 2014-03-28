@@ -1,12 +1,12 @@
-package ui.api;
+package qoid.api;
 
 import m3.jq.JQ;
 
-import ui.api.CrudMessage;
-import ui.api.ProtocolHandler;
-import ui.model.ModelObj;
-import ui.model.EM;
-import ui.model.Filter;
+import qoid.api.CrudMessage;
+import qoid.api.ProtocolHandler;
+import qoid.model.ModelObj;
+import qoid.model.EM;
+import qoid.model.Filter;
 
 class EventDelegate {
 	

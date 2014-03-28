@@ -1,9 +1,9 @@
-package ui.model;
+package qoid.model;
 
 import m3.observable.OSet;
-import ui.model.EM;
-import ui.model.ModelObj;
-import ui.model.Filter;
+import qoid.model.EM;
+import qoid.model.ModelObj;
+import qoid.model.Filter;
 
 class ContentSourceListener<T> {
 	var contentMap: MappedSet<Content<Dynamic>, T>;

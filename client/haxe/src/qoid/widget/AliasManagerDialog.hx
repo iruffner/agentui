@@ -1,14 +1,14 @@
-package ui.widget;
+package qoid.widget;
 
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import m3.util.M;
-import ui.model.ModelObj;
-import ui.model.EM;
+import qoid.model.ModelObj;
+import qoid.model.EM;
 
 using m3.jq.M3Dialog;
-using ui.widget.UploadComp;
+using qoid.widget.UploadComp;
 using m3.helper.StringHelper;
 using m3.jq.JQDialog;
 using Lambda;

@@ -1,11 +1,11 @@
-package ui.widget;
+package qoid.widget;
 
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.jq.M3Dialog;
 import m3.widget.Widgets;
-import ui.model.ModelObj;
-import ui.model.EM;
+import qoid.model.ModelObj;
+import qoid.model.EM;
 
 using m3.helper.StringHelper;
 using m3.helper.ArrayHelper;

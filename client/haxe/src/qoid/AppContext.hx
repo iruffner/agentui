@@ -1,4 +1,4 @@
-package ui;
+package qoid;
 
 import haxe.ds.StringMap;
 
@@ -8,8 +8,8 @@ import m3.log.LogLevel;
 import m3.observable.OSet;
 import m3.serialization.Serialization;
 
-import ui.model.EM;
-import ui.model.ModelObj;
+import qoid.model.EM;
+import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;

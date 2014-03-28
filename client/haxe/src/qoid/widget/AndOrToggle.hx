@@ -1,9 +1,9 @@
-package ui.widget;
+package qoid.widget;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import m3.exception.Exception;
-import ui.model.Node;
+import qoid.model.Node;
 
 typedef AndOrToggleOptions = {
 }

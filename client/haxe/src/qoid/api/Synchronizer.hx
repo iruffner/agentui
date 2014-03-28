@@ -1,8 +1,8 @@
-package ui.api;
+package qoid.api;
 import haxe.ds.StringMap;
 import m3.util.UidGenerator;
-import ui.model.Context;
-import ui.model.ModelObj;
+import qoid.model.Context;
+import qoid.model.ModelObj;
 
 using m3.helper.OSetHelper;
 

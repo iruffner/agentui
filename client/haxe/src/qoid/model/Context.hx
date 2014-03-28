@@ -1,4 +1,4 @@
-package ui.model;
+package qoid.model;
 import m3.exception.Exception;
 
 

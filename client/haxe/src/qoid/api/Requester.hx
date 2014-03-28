@@ -1,4 +1,4 @@
-package ui.api;
+package qoid.api;
 
 import haxe.Timer;
 
@@ -6,8 +6,8 @@ import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.util.JqueryUtil;
 
-import ui.model.ModelObj;
-import ui.api.CrudMessage;
+import qoid.model.ModelObj;
+import qoid.api.CrudMessage;
 
 /**
  * Base class for making http requests.

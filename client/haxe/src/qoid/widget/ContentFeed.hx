@@ -1,19 +1,19 @@
-package ui.widget;
+package qoid.widget;
 
 import js.html.Element;
 
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
-import ui.model.EM;
-import ui.model.ContentSource;
-import ui.model.ModelObj;
+import qoid.model.EM;
+import qoid.model.ContentSource;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
-import ui.widget.LabelComp;
+import qoid.widget.LabelComp;
 import m3.exception.Exception;
 import m3.widget.Widgets;
 import m3.helper.StringHelper;
 
-using ui.widget.ContentComp;
+using qoid.widget.ContentComp;
 
 typedef ContentFeedOptions = {
 }

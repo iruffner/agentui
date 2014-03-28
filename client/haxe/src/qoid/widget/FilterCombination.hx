@@ -1,4 +1,4 @@
-package ui.widget;
+package qoid.widget;
 
 import js.html.Element;
 
@@ -7,8 +7,8 @@ import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
 import m3.util.UidGenerator;
-import ui.model.ModelObj;
-import ui.model.Node;
+import qoid.model.ModelObj;
+import qoid.model.Node;
 import m3.observable.OSet;
 import m3.exception.Exception;
 

@@ -2197,12 +2197,16 @@ m3.event.EventManager.prototype = {
 		var map = this.hash.get(id);
 		if(map != null) map.remove(listenerUid);
 	}
-	,listenOnce: function(id,listener) {
+	,listenOnceInternal: function(id,listener) {
 		var map = this.hash.get(id);
 		this.oneTimers.push(listener.get_uid());
-		return this.addListener(id,listener);
+		return this.addListenerInternal(id,listener);
 	}
-	,addListener: function(id,listener) {
+	,listenOnce: function(id,func,listenerName) {
+		var listener = new m3.event.EMListener(func,listenerName);
+		return this.listenOnceInternal(id,listener);
+	}
+	,addListenerInternal: function(id,listener) {
 		var map = this.hash.get(id);
 		if(map == null) {
 			map = new haxe.ds.StringMap();
@@ -2210,6 +2214,10 @@ m3.event.EventManager.prototype = {
 		}
 		map.set(listener.get_uid(),listener);
 		return listener.get_uid();
+	}
+	,addListener: function(id,func,listenerName) {
+		var listener = new m3.event.EMListener(func,listenerName);
+		return this.addListenerInternal(id,listener);
 	}
 	,setLogger: function(l) {
 		this.logger = l;
@@ -2235,9 +2243,6 @@ m3.event.EMListener.prototype = {
 	}
 	,__class__: m3.event.EMListener
 }
-m3.event.EMNothing = function() { }
-$hxClasses["m3.event.EMNothing"] = m3.event.EMNothing;
-m3.event.EMNothing.__name__ = ["m3","event","EMNothing"];
 m3.exception = {}
 m3.exception.Exception = function(message,cause) {
 	this.message = message;
@@ -4433,37 +4438,37 @@ m3.widget.Widgets.getSelfElement = function() {
 m3.widget.Widgets.getWidgetClasses = function() {
 	return " ui-widget";
 }
-var ui = {}
-ui.AgentUi = function() { }
-$hxClasses["ui.AgentUi"] = ui.AgentUi;
-$hxExpose(ui.AgentUi, "ui.AgentUi");
-ui.AgentUi.__name__ = ["ui","AgentUi"];
-ui.AgentUi.main = function() {
-	ui.AppContext.init();
-	ui.AgentUi.PROTOCOL = new ui.api.BennuHandler();
-	ui.AgentUi.HOT_KEY_ACTIONS = new Array();
+var qoid = {}
+qoid.AgentUi = function() { }
+$hxClasses["qoid.AgentUi"] = qoid.AgentUi;
+$hxExpose(qoid.AgentUi, "qoid.AgentUi");
+qoid.AgentUi.__name__ = ["qoid","AgentUi"];
+qoid.AgentUi.main = function() {
+	qoid.AppContext.init();
+	qoid.AgentUi.PROTOCOL = new qoid.api.BennuHandler();
+	qoid.AgentUi.HOT_KEY_ACTIONS = new Array();
 }
-ui.AgentUi.start = function() {
+qoid.AgentUi.start = function() {
 	var r = new $("<div></div>");
-	ui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
+	qoid.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 82) {
-			ui.AppContext.LOGGER.debug("ALT + SHIFT + R");
+			qoid.AppContext.LOGGER.debug("ALT + SHIFT + R");
 			r.restoreWidget("open");
 		}
 	});
 	new $("body").keyup(function(evt1) {
-		if(m3.helper.ArrayHelper.hasValues(ui.AgentUi.HOT_KEY_ACTIONS)) Lambda.iter(ui.AgentUi.HOT_KEY_ACTIONS,function(act) {
+		if(m3.helper.ArrayHelper.hasValues(qoid.AgentUi.HOT_KEY_ACTIONS)) Lambda.iter(qoid.AgentUi.HOT_KEY_ACTIONS,function(act) {
 			act(evt1);
 		});
 	});
 	new $("#sideRightSearchInput").keyup(function(evt) {
 		var search = new $(evt.target);
 		var cl = new $("#connections");
-		ui.widget.ConnectionListHelper.filterConnections(cl,search.val());
+		qoid.widget.ConnectionListHelper.filterConnections(cl,search.val());
 	});
-	new $("#middleContainer #content #tabs").tabs({ beforeActivate : function(evt,ui1) {
+	new $("#middleContainer #content #tabs").tabs({ beforeActivate : function(evt,ui) {
 		var max_height = Math.max(new $("#tabs-feed").height(),new $("#tabs-score").height());
-		ui1.newPanel.height(max_height);
+		ui.newPanel.height(max_height);
 	}});
 	new $("#sideRight #chat").messagingComp();
 	new $("#connectionsTabsDiv").connectionsTabs();
@@ -4479,99 +4484,99 @@ ui.AgentUi.start = function() {
 	});
 	r.appendTo(new $(js.Browser.document.body));
 	r.restoreWidget();
-	ui.widget.DialogManager.showLogin();
+	qoid.widget.DialogManager.showLogin();
 }
-ui.AppContext = function() { }
-$hxClasses["ui.AppContext"] = ui.AppContext;
-ui.AppContext.__name__ = ["ui","AppContext"];
-ui.AppContext.init = function() {
-	ui.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
-	ui.model.EM.setLogger(ui.AppContext.LOGGER);
-	ui.AppContext.INTRODUCTIONS = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
-	ui.AppContext.MASTER_NOTIFICATIONS = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
-	ui.AppContext.NOTIFICATIONS = new m3.observable.FilteredSet(ui.AppContext.MASTER_NOTIFICATIONS,function(a) {
+qoid.AppContext = function() { }
+$hxClasses["qoid.AppContext"] = qoid.AppContext;
+qoid.AppContext.__name__ = ["qoid","AppContext"];
+qoid.AppContext.init = function() {
+	qoid.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
+	qoid.model.EM.setLogger(qoid.AppContext.LOGGER);
+	qoid.AppContext.INTRODUCTIONS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+	qoid.AppContext.MASTER_NOTIFICATIONS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+	qoid.AppContext.NOTIFICATIONS = new m3.observable.FilteredSet(qoid.AppContext.MASTER_NOTIFICATIONS,function(a) {
 		return !a.deleted && !a.consumed;
 	});
-	ui.AppContext.MASTER_ALIASES = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
-	ui.AppContext.MASTER_ALIASES.listen(function(a,evt) {
+	qoid.AppContext.MASTER_ALIASES = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+	qoid.AppContext.MASTER_ALIASES.listen(function(a,evt) {
 		if(evt.isAddOrUpdate()) {
-			var p = m3.helper.OSetHelper.getElementComplex(ui.AppContext.PROFILES,a.iid,"aliasIid");
+			var p = m3.helper.OSetHelper.getElementComplex(qoid.AppContext.PROFILES,a.iid,"aliasIid");
 			if(p != null) a.profile = p;
 		}
 	});
-	ui.AppContext.ALIASES = new m3.observable.FilteredSet(ui.AppContext.MASTER_ALIASES,function(a) {
+	qoid.AppContext.ALIASES = new m3.observable.FilteredSet(qoid.AppContext.MASTER_ALIASES,function(a) {
 		return !a.deleted;
 	});
-	ui.AppContext.MASTER_LABELS = new m3.observable.ObservableSet(ui.model.Label.identifier);
-	ui.AppContext.LABELS = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELS,function(c) {
+	qoid.AppContext.MASTER_LABELS = new m3.observable.ObservableSet(qoid.model.Label.identifier);
+	qoid.AppContext.LABELS = new m3.observable.FilteredSet(qoid.AppContext.MASTER_LABELS,function(c) {
 		return !c.deleted;
 	});
-	ui.AppContext.MASTER_CONNECTIONS = new m3.observable.ObservableSet(ui.model.Connection.identifier);
-	ui.AppContext.MASTER_CONNECTIONS.listen(function(c,evt) {
-		if(evt.isAdd()) ui.AgentUi.PROTOCOL.getProfiles([c.iid]);
+	qoid.AppContext.MASTER_CONNECTIONS = new m3.observable.ObservableSet(qoid.model.Connection.identifier);
+	qoid.AppContext.MASTER_CONNECTIONS.listen(function(c,evt) {
+		if(evt.isAdd()) qoid.AgentUi.PROTOCOL.getProfiles([c.iid]);
 	});
-	ui.AppContext.GROUPED_CONNECTIONS = new m3.observable.GroupedSet(ui.AppContext.MASTER_CONNECTIONS,function(c) {
+	qoid.AppContext.GROUPED_CONNECTIONS = new m3.observable.GroupedSet(qoid.AppContext.MASTER_CONNECTIONS,function(c) {
 		if(c.deleted) return "DELETED";
 		return c.aliasIid;
 	});
-	ui.AppContext.MASTER_LABELACLS = new m3.observable.ObservableSet(ui.model.LabelAcl.identifier);
-	ui.AppContext.GROUPED_LABELACLS = new m3.observable.GroupedSet(ui.AppContext.MASTER_LABELACLS,function(l) {
+	qoid.AppContext.MASTER_LABELACLS = new m3.observable.ObservableSet(qoid.model.LabelAcl.identifier);
+	qoid.AppContext.GROUPED_LABELACLS = new m3.observable.GroupedSet(qoid.AppContext.MASTER_LABELACLS,function(l) {
 		if(l.deleted) return "DELETED";
 		return l.connectionIid;
 	});
-	ui.AppContext.MASTER_LABELCHILDREN = new m3.observable.ObservableSet(ui.model.LabelChild.identifier);
-	ui.AppContext.GROUPED_LABELCHILDREN = new m3.observable.GroupedSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+	qoid.AppContext.MASTER_LABELCHILDREN = new m3.observable.ObservableSet(qoid.model.LabelChild.identifier);
+	qoid.AppContext.GROUPED_LABELCHILDREN = new m3.observable.GroupedSet(qoid.AppContext.MASTER_LABELCHILDREN,function(lc) {
 		if(lc.deleted) return "DELETED";
 		return lc.parentIid;
 	});
-	ui.AppContext.MASTER_LABELEDCONTENT = new m3.observable.ObservableSet(ui.model.LabeledContent.identifier);
-	ui.AppContext.GROUPED_LABELEDCONTENT = new m3.observable.GroupedSet(ui.AppContext.MASTER_LABELEDCONTENT,function(lc) {
+	qoid.AppContext.MASTER_LABELEDCONTENT = new m3.observable.ObservableSet(qoid.model.LabeledContent.identifier);
+	qoid.AppContext.GROUPED_LABELEDCONTENT = new m3.observable.GroupedSet(qoid.AppContext.MASTER_LABELEDCONTENT,function(lc) {
 		if(lc.deleted) return "DELETED";
 		return lc.contentIid;
 	});
-	ui.AppContext.PROFILES = new m3.observable.ObservableSet(ui.model.Profile.identifier);
-	ui.AppContext.PROFILES.listen(function(p,evt) {
+	qoid.AppContext.PROFILES = new m3.observable.ObservableSet(qoid.model.Profile.identifier);
+	qoid.AppContext.PROFILES.listen(function(p,evt) {
 		if(evt.isAddOrUpdate()) {
-			var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,p.aliasIid);
+			var alias = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_ALIASES,p.aliasIid);
 			if(alias != null) {
 				alias.profile = p;
-				ui.AppContext.MASTER_ALIASES.addOrUpdate(alias);
+				qoid.AppContext.MASTER_ALIASES.addOrUpdate(alias);
 			}
 		}
 	});
-	ui.AppContext.SERIALIZER = new m3.serialization.Serializer();
-	ui.AppContext.SERIALIZER.addHandler(ui.model.Content,new ui.model.ContentHandler());
-	ui.AppContext.SERIALIZER.addHandler(ui.model.Notification,new ui.model.NotificationHandler());
-	ui.AppContext.registerGlobalListeners();
+	qoid.AppContext.SERIALIZER = new m3.serialization.Serializer();
+	qoid.AppContext.SERIALIZER.addHandler(qoid.model.Content,new qoid.model.ContentHandler());
+	qoid.AppContext.SERIALIZER.addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
+	qoid.AppContext.registerGlobalListeners();
 }
-ui.AppContext.isAliasRootLabel = function(iid) {
-	var $it0 = ui.AppContext.ALIASES.iterator();
+qoid.AppContext.isAliasRootLabel = function(iid) {
+	var $it0 = qoid.AppContext.ALIASES.iterator();
 	while( $it0.hasNext() ) {
 		var alias = $it0.next();
 		if(alias.rootLabelIid == iid) return true;
 	}
 	return false;
 }
-ui.AppContext.getUberLabelIid = function() {
-	return m3.helper.OSetHelper.getElement(ui.AppContext.ALIASES,ui.AppContext.UBER_ALIAS_ID).rootLabelIid;
+qoid.AppContext.getUberLabelIid = function() {
+	return m3.helper.OSetHelper.getElement(qoid.AppContext.ALIASES,qoid.AppContext.UBER_ALIAS_ID).rootLabelIid;
 }
-ui.AppContext.registerGlobalListeners = function() {
+qoid.AppContext.registerGlobalListeners = function() {
 	new $(js.Browser.window).on("unload",function(evt) {
-		ui.model.EM.change(ui.model.EMEvent.UserLogout);
+		qoid.model.EM.change(qoid.model.EMEvent.UserLogout);
 	});
-	ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,function(nada) {
-		ui.AppContext.currentAlias = m3.helper.OSetHelper.getElement(ui.AppContext.ALIASES,ui.AppContext.UBER_ALIAS_ID);
-		ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias);
+	qoid.model.EM.addListener(qoid.model.EMEvent.InitialDataLoadComplete,function(nada) {
+		qoid.AppContext.currentAlias = m3.helper.OSetHelper.getElement(qoid.AppContext.ALIASES,qoid.AppContext.UBER_ALIAS_ID);
+		qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,qoid.AppContext.currentAlias);
 	},"AppContext-InitialDataLoadComplete");
-	ui.model.EM.addListener(ui.model.EMEvent.FitWindow,function(n) {
+	qoid.model.EM.addListener(qoid.model.EMEvent.FitWindow,function(n) {
 		fitWindow();
 	},"AppContext-FitWindow");
 }
-ui.AppContext.getDescendentLabelChildren = function(iid) {
+qoid.AppContext.getDescendentLabelChildren = function(iid) {
 	var lcs = new Array();
 	var getDescendents;
 	getDescendents = function(iid1,lcList) {
-		var children = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+		var children = new m3.observable.FilteredSet(qoid.AppContext.MASTER_LABELCHILDREN,function(lc) {
 			return lc.parentIid == iid1 && !lc.deleted;
 		}).asArray();
 		var _g1 = 0, _g = children.length;
@@ -4584,12 +4589,12 @@ ui.AppContext.getDescendentLabelChildren = function(iid) {
 	getDescendents(iid,lcs);
 	return lcs;
 }
-ui.AppContext.getLabelDescendents = function(iid) {
-	var labelDescendents = new m3.observable.ObservableSet(ui.model.Label.identifier);
+qoid.AppContext.getLabelDescendents = function(iid) {
+	var labelDescendents = new m3.observable.ObservableSet(qoid.model.Label.identifier);
 	var getDescendentIids;
 	getDescendentIids = function(iid1,iidList) {
 		iidList.splice(0,0,iid1);
-		var children = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+		var children = new m3.observable.FilteredSet(qoid.AppContext.MASTER_LABELCHILDREN,function(lc) {
 			return lc.parentIid == iid1 && !lc.deleted;
 		}).asArray();
 		var _g1 = 0, _g = children.length;
@@ -4604,14 +4609,14 @@ ui.AppContext.getLabelDescendents = function(iid) {
 	while(_g < iid_list.length) {
 		var iid_ = iid_list[_g];
 		++_g;
-		var label = m3.helper.OSetHelper.getElement(ui.AppContext.LABELS,iid_);
-		if(label == null) ui.AppContext.LOGGER.error("LabelChild references missing label: " + iid_); else if(!label.deleted) labelDescendents.add(label);
+		var label = m3.helper.OSetHelper.getElement(qoid.AppContext.LABELS,iid_);
+		if(label == null) qoid.AppContext.LOGGER.error("LabelChild references missing label: " + iid_); else if(!label.deleted) labelDescendents.add(label);
 	}
 	return labelDescendents;
 }
-ui.AppContext.connectionFromMetaLabel = function(metaLabelIid) {
+qoid.AppContext.connectionFromMetaLabel = function(metaLabelIid) {
 	var ret = null;
-	var $it0 = ui.AppContext.MASTER_CONNECTIONS.iterator();
+	var $it0 = qoid.AppContext.MASTER_CONNECTIONS.iterator();
 	while( $it0.hasNext() ) {
 		var connection = $it0.next();
 		if(connection.metaLabelIid == metaLabelIid) {
@@ -4621,18 +4626,18 @@ ui.AppContext.connectionFromMetaLabel = function(metaLabelIid) {
 	}
 	return ret;
 }
-ui.SystemStatus = function() {
+qoid.SystemStatus = function() {
 	this.lastPong = new Date();
 	this.timer = new haxe.Timer(7000);
 	this.timer.run = $bind(this,this.onTimer);
 };
-$hxClasses["ui.SystemStatus"] = ui.SystemStatus;
-ui.SystemStatus.__name__ = ["ui","SystemStatus"];
-ui.SystemStatus.instance = function() {
-	if(ui.SystemStatus._instance == null) ui.SystemStatus._instance = new ui.SystemStatus();
-	return ui.SystemStatus._instance;
+$hxClasses["qoid.SystemStatus"] = qoid.SystemStatus;
+qoid.SystemStatus.__name__ = ["qoid","SystemStatus"];
+qoid.SystemStatus.instance = function() {
+	if(qoid.SystemStatus._instance == null) qoid.SystemStatus._instance = new qoid.SystemStatus();
+	return qoid.SystemStatus._instance;
 }
-ui.SystemStatus.prototype = {
+qoid.SystemStatus.prototype = {
 	onMessage: function() {
 		this.lastPong = new Date();
 		new $("#disconnected-indicator").attr("src","svg/notification-network-ethernet-connected.svg");
@@ -4642,103 +4647,103 @@ ui.SystemStatus.prototype = {
 		if(new Date().getTime() - this.lastPong.getTime() > 7000) src = "svg/notification-network-ethernet-disconnected.svg";
 		new $("#disconnected-indicator").attr("src",src);
 	}
-	,__class__: ui.SystemStatus
+	,__class__: qoid.SystemStatus
 }
-ui.api = {}
-ui.api.ProtocolHandler = function() { }
-$hxClasses["ui.api.ProtocolHandler"] = ui.api.ProtocolHandler;
-ui.api.ProtocolHandler.__name__ = ["ui","api","ProtocolHandler"];
-ui.api.ProtocolHandler.prototype = {
-	__class__: ui.api.ProtocolHandler
+qoid.api = {}
+qoid.api.ProtocolHandler = function() { }
+$hxClasses["qoid.api.ProtocolHandler"] = qoid.api.ProtocolHandler;
+qoid.api.ProtocolHandler.__name__ = ["qoid","api","ProtocolHandler"];
+qoid.api.ProtocolHandler.prototype = {
+	__class__: qoid.api.ProtocolHandler
 }
-ui.api.BennuHandler = function() {
-	this.eventDelegate = new ui.api.EventDelegate(this);
+qoid.api.BennuHandler = function() {
+	this.eventDelegate = new qoid.api.EventDelegate(this);
 	this.registeredHandles = new Array();
 };
-$hxClasses["ui.api.BennuHandler"] = ui.api.BennuHandler;
-ui.api.BennuHandler.__name__ = ["ui","api","BennuHandler"];
-ui.api.BennuHandler.__interfaces__ = [ui.api.ProtocolHandler];
-ui.api.BennuHandler.prototype = {
+$hxClasses["qoid.api.BennuHandler"] = qoid.api.BennuHandler;
+qoid.api.BennuHandler.__name__ = ["qoid","api","BennuHandler"];
+qoid.api.BennuHandler.__interfaces__ = [qoid.api.ProtocolHandler];
+qoid.api.BennuHandler.prototype = {
 	_startPolling: function(channelId) {
 		var timeout = 10000;
 		var ajaxOptions = { contentType : "", type : "GET"};
-		this.listeningChannel = new ui.api.LongPollingRequest(channelId,"",ui.api.ResponseProcessor.processResponse,ajaxOptions);
+		this.listeningChannel = new qoid.api.LongPollingRequest(channelId,"",qoid.api.ResponseProcessor.processResponse,ajaxOptions);
 		this.listeningChannel.timeout = timeout;
 		this.listeningChannel.start();
 	}
 	,onCreateSubmitChannel: function(data,textStatus,jqXHR) {
-		ui.AppContext.SUBMIT_CHANNEL = data.channelId;
-		ui.AppContext.UBER_ALIAS_ID = data.aliasIid;
+		qoid.AppContext.SUBMIT_CHANNEL = data.channelId;
+		qoid.AppContext.UBER_ALIAS_ID = data.aliasIid;
 		this._startPolling(data.channelId);
-		var context = ui.api.Synchronizer.createContext(9,"initialDataLoad");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("alias")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("introduction")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("connection")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("notification")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("label")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labelAcl")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labeledContent")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("labelChild")),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,ui.api.QueryMessage.create("profile"))];
-		new ui.api.SubmitRequest(requests).start();
+		var context = qoid.api.Synchronizer.createContext(9,"initialDataLoad");
+		var requests = [new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("alias")),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("introduction")),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("connection")),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("notification")),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("label")),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("labelAcl")),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("labeledContent")),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("labelChild")),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qoid.api.QueryMessage.create("profile"))];
+		new qoid.api.SubmitRequest(requests).start();
 	}
 	,deleteLabel: function(data) {
-		var labelChildren = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+		var labelChildren = new m3.observable.FilteredSet(qoid.AppContext.MASTER_LABELCHILDREN,function(lc) {
 			return lc.parentIid == data.parentIid && lc.childIid == data.label.iid;
 		}).asArray();
-		var context = ui.api.Synchronizer.createContext(labelChildren.length,"labelDeleted");
+		var context = qoid.api.Synchronizer.createContext(labelChildren.length,"labelDeleted");
 		var requests = new Array();
 		var _g = 0;
 		while(_g < labelChildren.length) {
 			var lc = labelChildren[_g];
 			++_g;
 			lc.deleted = true;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lc)));
+			requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(lc)));
 		}
-		new ui.api.SubmitRequest(requests).start();
+		new qoid.api.SubmitRequest(requests).start();
 	}
 	,copyLabel: function(data) {
 		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.iid);
-		if(lcToAdd == null) lcToAdd = new ui.model.LabelChild(data.newParentId,data.label.iid); else lcToAdd.deleted = false;
-		var context = ui.api.Synchronizer.createContext(1,"labelCopied");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lcToAdd))]);
+		if(lcToAdd == null) lcToAdd = new qoid.model.LabelChild(data.newParentId,data.label.iid); else lcToAdd.deleted = false;
+		var context = qoid.api.Synchronizer.createContext(1,"labelCopied");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(lcToAdd))]);
 		req.start();
 	}
 	,moveLabel: function(data) {
-		var lcs = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+		var lcs = new m3.observable.FilteredSet(qoid.AppContext.MASTER_LABELCHILDREN,function(lc) {
 			return lc.parentIid == data.parentIid && lc.childIid == data.label.iid;
 		});
 		var lcToRemove = this.getExistingLabelChild(data.parentIid,data.label.iid);
 		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.iid);
-		if(lcToAdd == null) lcToAdd = new ui.model.LabelChild(data.newParentId,data.label.iid); else lcToAdd.deleted = false;
-		var context = ui.api.Synchronizer.createContext(2,"labelMoved");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lcToRemove)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lcToAdd))]);
+		if(lcToAdd == null) lcToAdd = new qoid.model.LabelChild(data.newParentId,data.label.iid); else lcToAdd.deleted = false;
+		var context = qoid.api.Synchronizer.createContext(2,"labelMoved");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(lcToRemove)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(lcToAdd))]);
 		req.start();
 	}
 	,getExistingLabelChild: function(parentIid,childIid) {
-		var lcs = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELCHILDREN,function(lc) {
+		var lcs = new m3.observable.FilteredSet(qoid.AppContext.MASTER_LABELCHILDREN,function(lc) {
 			return lc.parentIid == parentIid && lc.childIid == childIid;
 		});
 		return lcs.iterator().next();
 	}
 	,updateLabel: function(data) {
-		var context = ui.api.Synchronizer.createContext(1,"labelUpdated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(data.label))]);
+		var context = qoid.api.Synchronizer.createContext(1,"labelUpdated");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(data.label))]);
 		req.start();
 	}
 	,createLabel: function(data) {
-		var lc = new ui.model.LabelChild(data.parentIid,data.label.iid);
-		var context = ui.api.Synchronizer.createContext(2,"labelCreated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(data.label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lc))]);
+		var lc = new qoid.model.LabelChild(data.parentIid,data.label.iid);
+		var context = qoid.api.Synchronizer.createContext(2,"labelCreated");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(data.label)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(lc))]);
 		req.start();
 	}
 	,deleteContent: function(data) {
-		var context = ui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentDeleted");
+		var context = qoid.api.Synchronizer.createContext(1 + data.labelIids.length,"contentDeleted");
 		var requests = new Array();
 		data.content.deleted = true;
-		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(data.content)));
-		var $it0 = ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid).iterator();
+		requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(data.content)));
+		var $it0 = qoid.AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid).iterator();
 		while( $it0.hasNext() ) {
 			var lc = $it0.next();
 			lc.deleted = true;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lc)));
+			requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(lc)));
 		}
-		new ui.api.SubmitRequest(requests).start();
+		new qoid.api.SubmitRequest(requests).start();
 	}
 	,updateContent: function(data) {
-		var currentLabels = ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid);
+		var currentLabels = qoid.AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid);
 		var labelsToDelete = new Array();
 		var $it0 = currentLabels.iterator();
 		while( $it0.hasNext() ) {
@@ -4769,69 +4774,69 @@ ui.api.BennuHandler.prototype = {
 					break;
 				}
 			}
-			if(!found) labelsToAdd.push(new ui.model.LabeledContent(data.content.iid,iid));
+			if(!found) labelsToAdd.push(new qoid.model.LabeledContent(data.content.iid,iid));
 		}
-		var context = ui.api.Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length,"contentUpdated");
+		var context = qoid.api.Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length,"contentUpdated");
 		var requests = new Array();
-		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(data.content)));
+		requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(data.content)));
 		var _g = 0;
 		while(_g < labelsToDelete.length) {
 			var lc = labelsToDelete[_g];
 			++_g;
 			lc.deleted = true;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lc)));
+			requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(lc)));
 		}
 		var _g = 0;
 		while(_g < labelsToAdd.length) {
 			var lc = labelsToAdd[_g];
 			++_g;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lc)));
+			requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(lc)));
 		}
-		new ui.api.SubmitRequest(requests).start();
+		new qoid.api.SubmitRequest(requests).start();
 	}
 	,createContent: function(data) {
-		var context = ui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentCreated");
+		var context = qoid.api.Synchronizer.createContext(1 + data.labelIids.length,"contentCreated");
 		var requests = new Array();
-		requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(data.content)));
+		requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(data.content)));
 		var _g = 0, _g1 = data.labelIids;
 		while(_g < _g1.length) {
 			var iid = _g1[_g];
 			++_g;
-			var labeledContent = new ui.model.LabeledContent(data.content.iid,iid);
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(labeledContent)));
+			var labeledContent = new qoid.model.LabeledContent(data.content.iid,iid);
+			requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(labeledContent)));
 		}
-		new ui.api.SubmitRequest(requests).start();
+		new qoid.api.SubmitRequest(requests).start();
 	}
 	,deleteAlias: function(alias) {
 		alias.deleted = true;
-		var context = ui.api.Synchronizer.createContext(1,"aliasDeleted");
-		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(alias))]).start();
-		var data = new ui.model.EditLabelData(ui.AppContext.LABELS.delegate().get(alias.rootLabelIid),ui.AppContext.getUberLabelIid());
+		var context = qoid.api.Synchronizer.createContext(1,"aliasDeleted");
+		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(alias))]).start();
+		var data = new qoid.model.EditLabelData(qoid.AppContext.LABELS.delegate().get(alias.rootLabelIid),qoid.AppContext.getUberLabelIid());
 		this.deleteLabel(data);
 	}
 	,updateAlias: function(alias) {
 		alias.name = alias.profile.name;
-		var rootLabel = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_LABELS,alias.rootLabelIid);
+		var rootLabel = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_LABELS,alias.rootLabelIid);
 		rootLabel.name = alias.profile.name;
-		var context = ui.api.Synchronizer.createContext(1,"aliasUpdated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(rootLabel)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias.profile))]);
+		var context = qoid.api.Synchronizer.createContext(1,"aliasUpdated");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(rootLabel)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias.profile))]);
 		req.start();
 	}
 	,createAlias: function(alias) {
-		var label = new ui.model.Label(alias.profile.name);
+		var label = new qoid.model.Label(alias.profile.name);
 		label.data.color = "#000000";
-		var profile = new ui.model.Profile(alias.profile.name,alias.profile.imgSrc,alias.iid);
-		var lc = new ui.model.LabelChild(ui.AppContext.getUberLabelIid(),label.iid);
+		var profile = new qoid.model.Profile(alias.profile.name,alias.profile.imgSrc,alias.iid);
+		var lc = new qoid.model.LabelChild(qoid.AppContext.getUberLabelIid(),label.iid);
 		alias.rootLabelIid = label.iid;
 		alias.name = alias.profile.name;
-		var context = ui.api.Synchronizer.createContext(3,"aliasCreated");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(alias)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(profile)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(label)),new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(lc))]);
+		var context = qoid.api.Synchronizer.createContext(3,"aliasCreated");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(profile)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(label)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(lc))]);
 		req.start();
 	}
 	,filter: function(filterData) {
-		var context = ui.api.Synchronizer.createContext(1,"filterContent");
-		var requests = [new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,new ui.api.QueryMessage(filterData))];
-		new ui.api.SubmitRequest(requests).start();
+		var context = qoid.api.Synchronizer.createContext(1,"filterContent");
+		var requests = [new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,new qoid.api.QueryMessage(filterData))];
+		new qoid.api.SubmitRequest(requests).start();
 	}
 	,restores: function() {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
@@ -4843,41 +4848,41 @@ ui.api.BennuHandler.prototype = {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
 	}
 	,revokeAccess: function(lacls) {
-		var context = ui.api.Synchronizer.createContext(1,"accessRevoked");
+		var context = qoid.api.Synchronizer.createContext(1,"accessRevoked");
 		var requests = new Array();
 		var _g = 0;
 		while(_g < lacls.length) {
 			var lacl = lacls[_g];
 			++_g;
 			lacl.deleted = true;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(lacl)));
+			requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(lacl)));
 		}
-		new ui.api.SubmitRequest(requests).start();
+		new qoid.api.SubmitRequest(requests).start();
 	}
 	,grantAccess: function(connectionIid,labelIid) {
-		var acl = new ui.model.LabelAcl(connectionIid,labelIid);
-		var context = ui.api.Synchronizer.createContext(1,"grantAccess");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.UPSERT,context,ui.api.CrudMessage.create(acl))]);
+		var acl = new qoid.model.LabelAcl(connectionIid,labelIid);
+		var context = qoid.api.Synchronizer.createContext(1,"grantAccess");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(acl))]);
 		req.start();
 	}
 	,deleteConnection: function(c) {
 		c.deleted = true;
-		var context = ui.api.Synchronizer.createContext(1,"connectionDeleted");
-		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DELETE,context,ui.api.DeleteMessage.create(c))]).start();
+		var context = qoid.api.Synchronizer.createContext(1,"connectionDeleted");
+		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(c))]).start();
 	}
 	,confirmIntroduction: function(confirmation) {
-		var context = ui.api.Synchronizer.createContext(1,"confirmIntroduction");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRO_RESPONSE,context,confirmation)]);
+		var context = qoid.api.Synchronizer.createContext(1,"confirmIntroduction");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.INTRO_RESPONSE,context,confirmation)]);
 		req.start();
 	}
 	,beginIntroduction: function(intro) {
-		var context = ui.api.Synchronizer.createContext(1,"beginIntroduction");
-		var req = new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.INTRODUCE,context,new ui.api.IntroMessage(intro))]);
+		var context = qoid.api.Synchronizer.createContext(1,"beginIntroduction");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.INTRODUCE,context,new qoid.api.IntroMessage(intro))]);
 		req.start();
 	}
 	,createAgent: function(newUser) {
-		var req = new ui.api.SimpleRequest("/api/agent/create/" + newUser.name,"",function(data,textStatus,jqXHR) {
-			ui.model.EM.change(ui.model.EMEvent.AgentCreated);
+		var req = new qoid.api.SimpleRequest("/api/agent/create/" + newUser.name,"",function(data,textStatus,jqXHR) {
+			qoid.model.EM.change(qoid.model.EMEvent.AgentCreated);
 		});
 		req.start();
 	}
@@ -4885,23 +4890,23 @@ ui.api.BennuHandler.prototype = {
 		this.createChannel(login.agentId,$bind(this,this.onCreateSubmitChannel));
 	}
 	,getProfiles: function(connectionIids) {
-		var context = ui.api.Synchronizer.createContext(1,"connectionProfile");
-		var qm = ui.api.QueryMessage.create("profile");
+		var context = qoid.api.Synchronizer.createContext(1,"connectionProfile");
+		var qm = qoid.api.QueryMessage.create("profile");
 		qm.connectionIids = connectionIids;
 		qm.local = false;
-		new ui.api.SubmitRequest([new ui.api.ChannelRequestMessage(ui.api.BennuHandler.QUERY,context,qm)]).start();
+		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,qm)]).start();
 	}
 	,deregisterSqueries: function(handles) {
-		var context = ui.api.Synchronizer.createContext(handles.length,"deregisterSqueriesResponse");
+		var context = qoid.api.Synchronizer.createContext(handles.length,"deregisterSqueriesResponse");
 		var requests = new Array();
 		var _g = 0;
 		while(_g < handles.length) {
 			var handle = handles[_g];
 			++_g;
-			requests.push(new ui.api.ChannelRequestMessage(ui.api.BennuHandler.DEREGISTER,context,new ui.api.DeregisterMessage(handle)));
+			requests.push(new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DEREGISTER,context,new qoid.api.DeregisterMessage(handle)));
 			HxOverrides.remove(this.registeredHandles,handle);
 		}
-		new ui.api.SubmitRequest(requests).start({ async : false});
+		new qoid.api.SubmitRequest(requests).start({ async : false});
 	}
 	,deregisterAllSqueries: function() {
 		if(this.registeredHandles.length > 0) this.deregisterSqueries(this.registeredHandles.slice());
@@ -4910,90 +4915,90 @@ ui.api.BennuHandler.prototype = {
 		this.registeredHandles.push(handle);
 	}
 	,createChannel: function(aliasName,successFunc) {
-		new ui.api.SimpleRequest("/api/channel/create/" + aliasName,"",successFunc).start();
+		new qoid.api.SimpleRequest("/api/channel/create/" + aliasName,"",successFunc).start();
 	}
-	,__class__: ui.api.BennuHandler
+	,__class__: qoid.api.BennuHandler
 }
-ui.api.ChannelMessage = function() { }
-$hxClasses["ui.api.ChannelMessage"] = ui.api.ChannelMessage;
-ui.api.ChannelMessage.__name__ = ["ui","api","ChannelMessage"];
-ui.api.BennuMessage = function(type) {
+qoid.api.ChannelMessage = function() { }
+$hxClasses["qoid.api.ChannelMessage"] = qoid.api.ChannelMessage;
+qoid.api.ChannelMessage.__name__ = ["qoid","api","ChannelMessage"];
+qoid.api.BennuMessage = function(type) {
 	this.type = type;
 };
-$hxClasses["ui.api.BennuMessage"] = ui.api.BennuMessage;
-ui.api.BennuMessage.__name__ = ["ui","api","BennuMessage"];
-ui.api.BennuMessage.__interfaces__ = [ui.api.ChannelMessage];
-ui.api.BennuMessage.prototype = {
-	__class__: ui.api.BennuMessage
+$hxClasses["qoid.api.BennuMessage"] = qoid.api.BennuMessage;
+qoid.api.BennuMessage.__name__ = ["qoid","api","BennuMessage"];
+qoid.api.BennuMessage.__interfaces__ = [qoid.api.ChannelMessage];
+qoid.api.BennuMessage.prototype = {
+	__class__: qoid.api.BennuMessage
 }
-ui.api.DeleteMessage = function(type,primaryKey) {
-	ui.api.BennuMessage.call(this,type);
+qoid.api.DeleteMessage = function(type,primaryKey) {
+	qoid.api.BennuMessage.call(this,type);
 	this.primaryKey = primaryKey;
 };
-$hxClasses["ui.api.DeleteMessage"] = ui.api.DeleteMessage;
-ui.api.DeleteMessage.__name__ = ["ui","api","DeleteMessage"];
-ui.api.DeleteMessage.create = function(object) {
-	return new ui.api.DeleteMessage(object.objectType(),object.iid);
+$hxClasses["qoid.api.DeleteMessage"] = qoid.api.DeleteMessage;
+qoid.api.DeleteMessage.__name__ = ["qoid","api","DeleteMessage"];
+qoid.api.DeleteMessage.create = function(object) {
+	return new qoid.api.DeleteMessage(object.objectType(),object.iid);
 }
-ui.api.DeleteMessage.__super__ = ui.api.BennuMessage;
-ui.api.DeleteMessage.prototype = $extend(ui.api.BennuMessage.prototype,{
-	__class__: ui.api.DeleteMessage
+qoid.api.DeleteMessage.__super__ = qoid.api.BennuMessage;
+qoid.api.DeleteMessage.prototype = $extend(qoid.api.BennuMessage.prototype,{
+	__class__: qoid.api.DeleteMessage
 });
-ui.api.CrudMessage = function(type,instance) {
-	ui.api.BennuMessage.call(this,type);
+qoid.api.CrudMessage = function(type,instance) {
+	qoid.api.BennuMessage.call(this,type);
 	this.instance = instance;
 };
-$hxClasses["ui.api.CrudMessage"] = ui.api.CrudMessage;
-ui.api.CrudMessage.__name__ = ["ui","api","CrudMessage"];
-ui.api.CrudMessage.create = function(object) {
-	var instance = ui.AppContext.SERIALIZER.toJson(object);
-	return new ui.api.CrudMessage(object.objectType(),instance);
+$hxClasses["qoid.api.CrudMessage"] = qoid.api.CrudMessage;
+qoid.api.CrudMessage.__name__ = ["qoid","api","CrudMessage"];
+qoid.api.CrudMessage.create = function(object) {
+	var instance = qoid.AppContext.SERIALIZER.toJson(object);
+	return new qoid.api.CrudMessage(object.objectType(),instance);
 }
-ui.api.CrudMessage.__super__ = ui.api.BennuMessage;
-ui.api.CrudMessage.prototype = $extend(ui.api.BennuMessage.prototype,{
-	__class__: ui.api.CrudMessage
+qoid.api.CrudMessage.__super__ = qoid.api.BennuMessage;
+qoid.api.CrudMessage.prototype = $extend(qoid.api.BennuMessage.prototype,{
+	__class__: qoid.api.CrudMessage
 });
-ui.api.DeregisterMessage = function(handle) {
+qoid.api.DeregisterMessage = function(handle) {
 	this.handle = handle;
 };
-$hxClasses["ui.api.DeregisterMessage"] = ui.api.DeregisterMessage;
-ui.api.DeregisterMessage.__name__ = ["ui","api","DeregisterMessage"];
-ui.api.DeregisterMessage.__interfaces__ = [ui.api.ChannelMessage];
-ui.api.DeregisterMessage.prototype = {
-	__class__: ui.api.DeregisterMessage
+$hxClasses["qoid.api.DeregisterMessage"] = qoid.api.DeregisterMessage;
+qoid.api.DeregisterMessage.__name__ = ["qoid","api","DeregisterMessage"];
+qoid.api.DeregisterMessage.__interfaces__ = [qoid.api.ChannelMessage];
+qoid.api.DeregisterMessage.prototype = {
+	__class__: qoid.api.DeregisterMessage
 }
-ui.api.IntroMessage = function(i) {
+qoid.api.IntroMessage = function(i) {
 	this.aConnectionIid = i.aConnectionIid;
 	this.aMessage = i.aMessage;
 	this.bConnectionIid = i.bConnectionIid;
 	this.bMessage = i.bMessage;
 };
-$hxClasses["ui.api.IntroMessage"] = ui.api.IntroMessage;
-ui.api.IntroMessage.__name__ = ["ui","api","IntroMessage"];
-ui.api.IntroMessage.__interfaces__ = [ui.api.ChannelMessage];
-ui.api.IntroMessage.prototype = {
-	__class__: ui.api.IntroMessage
+$hxClasses["qoid.api.IntroMessage"] = qoid.api.IntroMessage;
+qoid.api.IntroMessage.__name__ = ["qoid","api","IntroMessage"];
+qoid.api.IntroMessage.__interfaces__ = [qoid.api.ChannelMessage];
+qoid.api.IntroMessage.prototype = {
+	__class__: qoid.api.IntroMessage
 }
-ui.api.IntroResponseMessage = function(notificationIid,accepted) {
+qoid.api.IntroResponseMessage = function(notificationIid,accepted) {
 	this.notificationIid = notificationIid;
 	this.accepted = accepted;
 };
-$hxClasses["ui.api.IntroResponseMessage"] = ui.api.IntroResponseMessage;
-ui.api.IntroResponseMessage.__name__ = ["ui","api","IntroResponseMessage"];
-ui.api.IntroResponseMessage.__interfaces__ = [ui.api.ChannelMessage];
-ui.api.IntroResponseMessage.prototype = {
-	__class__: ui.api.IntroResponseMessage
+$hxClasses["qoid.api.IntroResponseMessage"] = qoid.api.IntroResponseMessage;
+qoid.api.IntroResponseMessage.__name__ = ["qoid","api","IntroResponseMessage"];
+qoid.api.IntroResponseMessage.__interfaces__ = [qoid.api.ChannelMessage];
+qoid.api.IntroResponseMessage.prototype = {
+	__class__: qoid.api.IntroResponseMessage
 }
-ui.api.GetProfileMessage = function(connectionIids) {
+qoid.api.GetProfileMessage = function(connectionIids) {
 	this.connectionIids = connectionIids == null?new Array():connectionIids;
 };
-$hxClasses["ui.api.GetProfileMessage"] = ui.api.GetProfileMessage;
-ui.api.GetProfileMessage.__name__ = ["ui","api","GetProfileMessage"];
-ui.api.GetProfileMessage.__interfaces__ = [ui.api.ChannelMessage];
-ui.api.GetProfileMessage.prototype = {
-	__class__: ui.api.GetProfileMessage
+$hxClasses["qoid.api.GetProfileMessage"] = qoid.api.GetProfileMessage;
+qoid.api.GetProfileMessage.__name__ = ["qoid","api","GetProfileMessage"];
+qoid.api.GetProfileMessage.__interfaces__ = [qoid.api.ChannelMessage];
+qoid.api.GetProfileMessage.prototype = {
+	__class__: qoid.api.GetProfileMessage
 }
-ui.api.QueryMessage = function(fd,type,q) {
+qoid.api.QueryMessage = function(fd,type,q) {
 	if(fd == null) {
 		this.type = type;
 		this.q = q;
@@ -5009,136 +5014,136 @@ ui.api.QueryMessage = function(fd,type,q) {
 	this.historical = true;
 	this.standing = true;
 };
-$hxClasses["ui.api.QueryMessage"] = ui.api.QueryMessage;
-ui.api.QueryMessage.__name__ = ["ui","api","QueryMessage"];
-ui.api.QueryMessage.__interfaces__ = [ui.api.ChannelMessage];
-ui.api.QueryMessage.create = function(type) {
-	return new ui.api.QueryMessage(null,type,"1=1");
+$hxClasses["qoid.api.QueryMessage"] = qoid.api.QueryMessage;
+qoid.api.QueryMessage.__name__ = ["qoid","api","QueryMessage"];
+qoid.api.QueryMessage.__interfaces__ = [qoid.api.ChannelMessage];
+qoid.api.QueryMessage.create = function(type) {
+	return new qoid.api.QueryMessage(null,type,"1=1");
 }
-ui.api.QueryMessage.prototype = {
-	__class__: ui.api.QueryMessage
+qoid.api.QueryMessage.prototype = {
+	__class__: qoid.api.QueryMessage
 }
-ui.api.ChannelRequestMessage = function(path,context,msg) {
+qoid.api.ChannelRequestMessage = function(path,context,msg) {
 	this.path = path;
 	this.context = context;
-	this.parms = ui.AppContext.SERIALIZER.toJson(msg);
+	this.parms = qoid.AppContext.SERIALIZER.toJson(msg);
 };
-$hxClasses["ui.api.ChannelRequestMessage"] = ui.api.ChannelRequestMessage;
-ui.api.ChannelRequestMessage.__name__ = ["ui","api","ChannelRequestMessage"];
-ui.api.ChannelRequestMessage.prototype = {
-	__class__: ui.api.ChannelRequestMessage
+$hxClasses["qoid.api.ChannelRequestMessage"] = qoid.api.ChannelRequestMessage;
+qoid.api.ChannelRequestMessage.__name__ = ["qoid","api","ChannelRequestMessage"];
+qoid.api.ChannelRequestMessage.prototype = {
+	__class__: qoid.api.ChannelRequestMessage
 }
-ui.api.ChannelRequestMessageBundle = function(requests_) {
-	this.channel = ui.AppContext.SUBMIT_CHANNEL;
+qoid.api.ChannelRequestMessageBundle = function(requests_) {
+	this.channel = qoid.AppContext.SUBMIT_CHANNEL;
 	if(requests_ == null) this.requests = new Array(); else this.requests = requests_;
 };
-$hxClasses["ui.api.ChannelRequestMessageBundle"] = ui.api.ChannelRequestMessageBundle;
-ui.api.ChannelRequestMessageBundle.__name__ = ["ui","api","ChannelRequestMessageBundle"];
-ui.api.ChannelRequestMessageBundle.prototype = {
+$hxClasses["qoid.api.ChannelRequestMessageBundle"] = qoid.api.ChannelRequestMessageBundle;
+qoid.api.ChannelRequestMessageBundle.__name__ = ["qoid","api","ChannelRequestMessageBundle"];
+qoid.api.ChannelRequestMessageBundle.prototype = {
 	addRequest: function(path,context,parms) {
-		var request = new ui.api.ChannelRequestMessage(path,context,parms);
+		var request = new qoid.api.ChannelRequestMessage(path,context,parms);
 		this.addChannelRequest(request);
 	}
 	,addChannelRequest: function(request) {
 		this.requests.push(request);
 	}
-	,__class__: ui.api.ChannelRequestMessageBundle
+	,__class__: qoid.api.ChannelRequestMessageBundle
 }
-ui.api.EventDelegate = function(protocolHandler) {
+qoid.api.EventDelegate = function(protocolHandler) {
 	this.filterIsRunning = false;
 	this.protocolHandler = protocolHandler;
 	this._setUpEventListeners();
 };
-$hxClasses["ui.api.EventDelegate"] = ui.api.EventDelegate;
-ui.api.EventDelegate.__name__ = ["ui","api","EventDelegate"];
-ui.api.EventDelegate.prototype = {
+$hxClasses["qoid.api.EventDelegate"] = qoid.api.EventDelegate;
+qoid.api.EventDelegate.__name__ = ["qoid","api","EventDelegate"];
+qoid.api.EventDelegate.prototype = {
 	_setUpEventListeners: function() {
 		var _g = this;
-		ui.model.EM.addListener(ui.model.EMEvent.FILTER_RUN,function(filterData) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.FILTER_RUN,function(filterData) {
 			_g.protocolHandler.filter(filterData);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.CreateAlias,function(alias) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.CreateAlias,function(alias) {
 			_g.protocolHandler.createAlias(alias);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteAlias,function(alias) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.DeleteAlias,function(alias) {
 			_g.protocolHandler.deleteAlias(alias);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.UpdateAlias,function(alias) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.UpdateAlias,function(alias) {
 			_g.protocolHandler.updateAlias(alias);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.UserLogin,function(login) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.UserLogin,function(login) {
 			_g.protocolHandler.login(login);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.CreateAgent,function(user) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.CreateAgent,function(user) {
 			_g.protocolHandler.createAgent(user);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.CreateContent,function(data) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.CreateContent,function(data) {
 			_g.protocolHandler.createContent(data);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.UpdateContent,function(data) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.UpdateContent,function(data) {
 			_g.protocolHandler.updateContent(data);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteContent,function(data) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.DeleteContent,function(data) {
 			_g.protocolHandler.deleteContent(data);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.CreateLabel,function(data) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.CreateLabel,function(data) {
 			_g.protocolHandler.createLabel(data);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.UpdateLabel,function(data) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.UpdateLabel,function(data) {
 			_g.protocolHandler.updateLabel(data);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.MoveLabel,function(data) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.MoveLabel,function(data) {
 			_g.protocolHandler.moveLabel(data);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.CopyLabel,function(data) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.CopyLabel,function(data) {
 			_g.protocolHandler.copyLabel(data);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteLabel,function(data) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.DeleteLabel,function(data) {
 			_g.protocolHandler.deleteLabel(data);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.RespondToIntroduction,function(intro) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.RespondToIntroduction,function(intro) {
 			_g.protocolHandler.confirmIntroduction(intro);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_REQUEST,function(intro) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.INTRODUCTION_REQUEST,function(intro) {
 			_g.protocolHandler.beginIntroduction(intro);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.GrantAccess,function(parms) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.GrantAccess,function(parms) {
 			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.RevokeAccess,function(lacls) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.RevokeAccess,function(lacls) {
 			_g.protocolHandler.revokeAccess(lacls);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.DeleteConnection,function(c) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.DeleteConnection,function(c) {
 			_g.protocolHandler.deleteConnection(c);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.UserLogout,function(c) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.UserLogout,function(c) {
 			_g.protocolHandler.deregisterAllSqueries();
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.TargetChange,function(conn) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.TargetChange,function(conn) {
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.BACKUP,function(n) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.BACKUP,function(n) {
 			_g.protocolHandler.backup();
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.RESTORE,function(n) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.RESTORE,function(n) {
 			_g.protocolHandler.restore();
 		});
 	}
-	,__class__: ui.api.EventDelegate
+	,__class__: qoid.api.EventDelegate
 }
-ui.api.BaseRequest = function(requestData,successFcn,errorFcn) {
+qoid.api.BaseRequest = function(requestData,successFcn,errorFcn) {
 	this.requestData = requestData;
 	this.onSuccess = successFcn;
 	this.onError = errorFcn;
 };
-$hxClasses["ui.api.BaseRequest"] = ui.api.BaseRequest;
-ui.api.BaseRequest.__name__ = ["ui","api","BaseRequest"];
-ui.api.BaseRequest.prototype = {
+$hxClasses["qoid.api.BaseRequest"] = qoid.api.BaseRequest;
+qoid.api.BaseRequest.__name__ = ["qoid","api","BaseRequest"];
+qoid.api.BaseRequest.prototype = {
 	abort: function() {
 	}
 	,start: function(opts) {
 		var _g = this;
 		var ajaxOpts = { dataType : "json", contentType : "application/json", data : this.requestData, type : "POST", success : function(data,textStatus,jqXHR) {
-			ui.SystemStatus.instance().onMessage();
+			qoid.SystemStatus.instance().onMessage();
 			if(jqXHR.getResponseHeader("Content-Length") == "0") return;
 			_g.onSuccess(data,textStatus,jqXHR);
 		}, error : function(jqXHR,textStatus,errorThrown) {
@@ -5157,33 +5162,33 @@ ui.api.BaseRequest.prototype = {
 		if(opts != null) $.extend(ajaxOpts,opts);
 		return $.ajax(ajaxOpts);
 	}
-	,__class__: ui.api.BaseRequest
+	,__class__: qoid.api.BaseRequest
 }
-ui.api.SimpleRequest = function(path,data,successFcn) {
+qoid.api.SimpleRequest = function(path,data,successFcn) {
 	this.baseOpts = { async : true, url : path};
-	ui.api.BaseRequest.call(this,data,successFcn);
+	qoid.api.BaseRequest.call(this,data,successFcn);
 };
-$hxClasses["ui.api.SimpleRequest"] = ui.api.SimpleRequest;
-ui.api.SimpleRequest.__name__ = ["ui","api","SimpleRequest"];
-ui.api.SimpleRequest.__super__ = ui.api.BaseRequest;
-ui.api.SimpleRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
-	__class__: ui.api.SimpleRequest
+$hxClasses["qoid.api.SimpleRequest"] = qoid.api.SimpleRequest;
+qoid.api.SimpleRequest.__name__ = ["qoid","api","SimpleRequest"];
+qoid.api.SimpleRequest.__super__ = qoid.api.BaseRequest;
+qoid.api.SimpleRequest.prototype = $extend(qoid.api.BaseRequest.prototype,{
+	__class__: qoid.api.SimpleRequest
 });
-ui.api.SubmitRequest = function(msgs,successFcn) {
+qoid.api.SubmitRequest = function(msgs,successFcn) {
 	this.baseOpts = { dataType : "text", async : true, url : "/api/channel/submit"};
 	if(successFcn == null) successFcn = function(data,textStatus,jqXHR) {
 	};
-	var bundle = new ui.api.ChannelRequestMessageBundle(msgs);
-	var data = ui.AppContext.SERIALIZER.toJsonString(bundle);
-	ui.api.BaseRequest.call(this,data,successFcn);
+	var bundle = new qoid.api.ChannelRequestMessageBundle(msgs);
+	var data = qoid.AppContext.SERIALIZER.toJsonString(bundle);
+	qoid.api.BaseRequest.call(this,data,successFcn);
 };
-$hxClasses["ui.api.SubmitRequest"] = ui.api.SubmitRequest;
-ui.api.SubmitRequest.__name__ = ["ui","api","SubmitRequest"];
-ui.api.SubmitRequest.__super__ = ui.api.BaseRequest;
-ui.api.SubmitRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
-	__class__: ui.api.SubmitRequest
+$hxClasses["qoid.api.SubmitRequest"] = qoid.api.SubmitRequest;
+qoid.api.SubmitRequest.__name__ = ["qoid","api","SubmitRequest"];
+qoid.api.SubmitRequest.__super__ = qoid.api.BaseRequest;
+qoid.api.SubmitRequest.prototype = $extend(qoid.api.BaseRequest.prototype,{
+	__class__: qoid.api.SubmitRequest
 });
-ui.api.LongPollingRequest = function(channel,requestToRepeat,successFcn,ajaxOpts) {
+qoid.api.LongPollingRequest = function(channel,requestToRepeat,successFcn,ajaxOpts) {
 	this.timeout = 30000;
 	this.delayNextPoll = false;
 	this.running = true;
@@ -5194,25 +5199,25 @@ ui.api.LongPollingRequest = function(channel,requestToRepeat,successFcn,ajaxOpts
 	}};
 	if(ajaxOpts != null) $.extend(this.baseOpts,ajaxOpts);
 	var wrappedSuccessFcn = function(data,textStatus,jqXHR) {
-		ui.SystemStatus.instance().onMessage();
+		qoid.SystemStatus.instance().onMessage();
 		if(_g.running) try {
 			successFcn(data,textStatus,jqXHR);
 		} catch( e ) {
 			if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
-				ui.AppContext.LOGGER.error("Error while polling",e);
+				qoid.AppContext.LOGGER.error("Error while polling",e);
 			} else throw(e);
 		}
 	};
 	var errorFcn = function(jqXHR,textStatus,errorThrown) {
 		_g.delayNextPoll = true;
-		ui.AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
+		qoid.AppContext.LOGGER.error("Error executing ajax call | Response Code: " + jqXHR.status + " | " + jqXHR.message);
 	};
-	ui.api.BaseRequest.call(this,requestToRepeat,wrappedSuccessFcn,errorFcn);
+	qoid.api.BaseRequest.call(this,requestToRepeat,wrappedSuccessFcn,errorFcn);
 };
-$hxClasses["ui.api.LongPollingRequest"] = ui.api.LongPollingRequest;
-ui.api.LongPollingRequest.__name__ = ["ui","api","LongPollingRequest"];
-ui.api.LongPollingRequest.__super__ = ui.api.BaseRequest;
-ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
+$hxClasses["qoid.api.LongPollingRequest"] = qoid.api.LongPollingRequest;
+qoid.api.LongPollingRequest.__name__ = ["qoid","api","LongPollingRequest"];
+qoid.api.LongPollingRequest.__super__ = qoid.api.BaseRequest;
+qoid.api.LongPollingRequest.prototype = $extend(qoid.api.BaseRequest.prototype,{
 	poll: function() {
 		if(this.running) {
 			if(this.delayNextPoll == true) {
@@ -5221,7 +5226,7 @@ ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 			} else {
 				this.baseOpts.url = "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
 				this.baseOpts.timeout = this.timeout + 1000;
-				this.jqXHR = ui.api.BaseRequest.prototype.start.call(this);
+				this.jqXHR = qoid.api.BaseRequest.prototype.start.call(this);
 			}
 		}
 	}
@@ -5231,7 +5236,7 @@ ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 			this.jqXHR.abort();
 			this.jqXHR = null;
 		} catch( err ) {
-			ui.AppContext.LOGGER.error("error on poll abort | " + Std.string(err));
+			qoid.AppContext.LOGGER.error("error on poll abort | " + Std.string(err));
 		}
 	}
 	,start: function(opts) {
@@ -5240,7 +5245,7 @@ ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 	}
 	,toggle: function() {
 		this.running = !this.running;
-		ui.AppContext.LOGGER.debug("Long Polling is running? " + Std.string(this.running));
+		qoid.AppContext.LOGGER.debug("Long Polling is running? " + Std.string(this.running));
 		this.poll();
 	}
 	,resume: function() {
@@ -5251,48 +5256,48 @@ ui.api.LongPollingRequest.prototype = $extend(ui.api.BaseRequest.prototype,{
 		this.running = false;
 		this.poll();
 	}
-	,__class__: ui.api.LongPollingRequest
+	,__class__: qoid.api.LongPollingRequest
 });
-ui.api.ResponseProcessor = function() { }
-$hxClasses["ui.api.ResponseProcessor"] = ui.api.ResponseProcessor;
-ui.api.ResponseProcessor.__name__ = ["ui","api","ResponseProcessor"];
-ui.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
+qoid.api.ResponseProcessor = function() { }
+$hxClasses["qoid.api.ResponseProcessor"] = qoid.api.ResponseProcessor;
+qoid.api.ResponseProcessor.__name__ = ["qoid","api","ResponseProcessor"];
+qoid.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) {
 	if(dataArr == null || dataArr.length == 0) return;
 	Lambda.iter(dataArr,function(data) {
 		if(data.success == false) {
 			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
-			ui.AppContext.LOGGER.error(data.error.stacktrace);
+			qoid.AppContext.LOGGER.error(data.error.stacktrace);
 		} else {
 			if(data.context == null) return;
-			var context = new ui.model.Context(data.context);
+			var context = new qoid.model.Context(data.context);
 			switch(context.oncomplete) {
 			case "beginIntroduction":
-				ui.api.ResponseProcessor.beginIntroduction();
+				qoid.api.ResponseProcessor.beginIntroduction();
 				break;
 			case "confirmIntroduction":
-				ui.api.ResponseProcessor.confirmIntroduction();
+				qoid.api.ResponseProcessor.confirmIntroduction();
 				break;
 			case "connectionProfile":
-				ui.api.ResponseProcessor.processProfile(data);
+				qoid.api.ResponseProcessor.processProfile(data);
 				break;
 			case "grantAccess":
-				ui.api.ResponseProcessor.grantAccess();
+				qoid.api.ResponseProcessor.grantAccess();
 				break;
 			case "initialDataLoad":
-				if(data.responseType == "query") ui.api.Synchronizer.processResponse(data); else if(data.responseType == "squery") ui.api.ResponseProcessor.updateModelObject(data.type,data.results); else if(data.result && data.result.handle) ui.AgentUi.PROTOCOL.addHandle(data.result.handle);
+				if(data.responseType == "query") qoid.api.Synchronizer.processResponse(data); else if(data.responseType == "squery") qoid.api.ResponseProcessor.updateModelObject(data.type,data.results); else if(data.result && data.result.handle) qoid.AgentUi.PROTOCOL.addHandle(data.result.handle);
 				break;
 			case "filterContent":
-				if(data.responseType == "query") ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,data); else if(data.responseType == "squery") ui.model.EM.change(ui.model.EMEvent.AppendFilteredContent,data); else if(data.result && data.result.handle) ui.AgentUi.PROTOCOL.addHandle(data.result.handle);
+				if(data.responseType == "query") qoid.model.EM.change(qoid.model.EMEvent.LoadFilteredContent,data); else if(data.responseType == "squery") qoid.model.EM.change(qoid.model.EMEvent.AppendFilteredContent,data); else if(data.result && data.result.handle) qoid.AgentUi.PROTOCOL.addHandle(data.result.handle);
 				break;
 			default:
-				ui.api.Synchronizer.processResponse(data);
+				qoid.api.Synchronizer.processResponse(data);
 			}
 		}
 	});
 }
-ui.api.ResponseProcessor.processContent = function(dataArr,textStatus,jqXHR) {
+qoid.api.ResponseProcessor.processContent = function(dataArr,textStatus,jqXHR) {
 }
-ui.api.ResponseProcessor.updateModelObject = function(type,data) {
+qoid.api.ResponseProcessor.updateModelObject = function(type,data) {
 	var type1 = type.toLowerCase();
 	switch(type1) {
 	case "alias":
@@ -5300,7 +5305,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var alias_ = _g1[_g];
 			++_g;
-			ui.AppContext.MASTER_ALIASES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(alias_,ui.model.Alias));
+			qoid.AppContext.MASTER_ALIASES.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(alias_,qoid.model.Alias));
 		}
 		break;
 	case "connection":
@@ -5308,7 +5313,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var content_ = _g1[_g];
 			++_g;
-			ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Connection));
+			qoid.AppContext.MASTER_CONNECTIONS.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(content_,qoid.model.Connection));
 		}
 		break;
 	case "introduction":
@@ -5316,7 +5321,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var content_ = _g1[_g];
 			++_g;
-			ui.AppContext.INTRODUCTIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Introduction));
+			qoid.AppContext.INTRODUCTIONS.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(content_,qoid.model.Introduction));
 		}
 		break;
 	case "label":
@@ -5324,7 +5329,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var label_ = _g1[_g];
 			++_g;
-			ui.AppContext.MASTER_LABELS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.Label));
+			qoid.AppContext.MASTER_LABELS.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(label_,qoid.model.Label));
 		}
 		break;
 	case "labelacl":
@@ -5332,7 +5337,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var label_ = _g1[_g];
 			++_g;
-			ui.AppContext.MASTER_LABELACLS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.LabelAcl));
+			qoid.AppContext.MASTER_LABELACLS.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(label_,qoid.model.LabelAcl));
 		}
 		break;
 	case "labelchild":
@@ -5340,7 +5345,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var labelChild_ = _g1[_g];
 			++_g;
-			ui.AppContext.MASTER_LABELCHILDREN.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(labelChild_,ui.model.LabelChild));
+			qoid.AppContext.MASTER_LABELCHILDREN.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(labelChild_,qoid.model.LabelChild));
 		}
 		break;
 	case "labeledcontent":
@@ -5348,7 +5353,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var labeledContent_ = _g1[_g];
 			++_g;
-			ui.AppContext.MASTER_LABELEDCONTENT.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(labeledContent_,ui.model.LabeledContent));
+			qoid.AppContext.MASTER_LABELEDCONTENT.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(labeledContent_,qoid.model.LabeledContent));
 		}
 		break;
 	case "notification":
@@ -5356,7 +5361,7 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var content_ = _g1[_g];
 			++_g;
-			ui.AppContext.MASTER_NOTIFICATIONS.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Notification));
+			qoid.AppContext.MASTER_NOTIFICATIONS.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(content_,qoid.model.Notification));
 		}
 		break;
 	case "profile":
@@ -5364,66 +5369,66 @@ ui.api.ResponseProcessor.updateModelObject = function(type,data) {
 		while(_g < _g1.length) {
 			var profile_ = _g1[_g];
 			++_g;
-			ui.AppContext.PROFILES.addOrUpdate(ui.AppContext.SERIALIZER.fromJsonX(profile_,ui.model.Profile));
+			qoid.AppContext.PROFILES.addOrUpdate(qoid.AppContext.SERIALIZER.fromJsonX(profile_,qoid.model.Profile));
 		}
 		break;
 	default:
-		ui.AppContext.LOGGER.error("Unknown type: " + type1);
+		qoid.AppContext.LOGGER.error("Unknown type: " + type1);
 	}
 }
-ui.api.ResponseProcessor.initialDataLoad = function(data) {
-	ui.AppContext.MASTER_ALIASES.addAll(data.aliases);
-	ui.AppContext.MASTER_LABELS.addAll(data.labels);
-	ui.AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
-	ui.AppContext.MASTER_CONNECTIONS.addAll(data.connections);
-	ui.AppContext.INTRODUCTIONS.addAll(data.introductions);
-	ui.AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
-	ui.AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
-	ui.AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
-	ui.AppContext.PROFILES.addAll(data.profiles);
-	var $it0 = ui.AppContext.MASTER_ALIASES.iterator();
+qoid.api.ResponseProcessor.initialDataLoad = function(data) {
+	qoid.AppContext.MASTER_ALIASES.addAll(data.aliases);
+	qoid.AppContext.MASTER_LABELS.addAll(data.labels);
+	qoid.AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
+	qoid.AppContext.MASTER_CONNECTIONS.addAll(data.connections);
+	qoid.AppContext.INTRODUCTIONS.addAll(data.introductions);
+	qoid.AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
+	qoid.AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
+	qoid.AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
+	qoid.AppContext.PROFILES.addAll(data.profiles);
+	var $it0 = qoid.AppContext.MASTER_ALIASES.iterator();
 	while( $it0.hasNext() ) {
 		var alias_ = $it0.next();
-		var $it1 = ui.AppContext.PROFILES.iterator();
+		var $it1 = qoid.AppContext.PROFILES.iterator();
 		while( $it1.hasNext() ) {
 			var profile_ = $it1.next();
 			if(profile_.aliasIid == alias_.iid) {
 				alias_.profile = profile_;
-				ui.AppContext.MASTER_ALIASES.update(alias_);
+				qoid.AppContext.MASTER_ALIASES.update(alias_);
 			}
 		}
 	}
-	ui.model.EM.change(ui.model.EMEvent.InitialDataLoadComplete);
+	qoid.model.EM.change(qoid.model.EMEvent.InitialDataLoadComplete);
 }
-ui.api.ResponseProcessor.aliasCreated = function(data) {
-	ui.AppContext.MASTER_ALIASES.addAll(data.aliases);
-	ui.AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
-	ui.AppContext.MASTER_LABELS.addAll(data.labels);
+qoid.api.ResponseProcessor.aliasCreated = function(data) {
+	qoid.AppContext.MASTER_ALIASES.addAll(data.aliases);
+	qoid.AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
+	qoid.AppContext.MASTER_LABELS.addAll(data.labels);
 }
-ui.api.ResponseProcessor.processProfile = function(rec) {
-	if(rec.result && rec.result.handle) ui.AgentUi.PROTOCOL.addHandle(rec.result.handle); else {
-		var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,rec.connectionIid);
-		connection.data = ui.AppContext.SERIALIZER.fromJsonX(rec.results[0],ui.model.Profile);
-		ui.AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+qoid.api.ResponseProcessor.processProfile = function(rec) {
+	if(rec.result && rec.result.handle) qoid.AgentUi.PROTOCOL.addHandle(rec.result.handle); else {
+		var connection = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_CONNECTIONS,rec.connectionIid);
+		connection.data = qoid.AppContext.SERIALIZER.fromJsonX(rec.results[0],qoid.model.Profile);
+		qoid.AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
 	}
 }
-ui.api.ResponseProcessor.beginIntroduction = function() {
-	ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_RESPONSE);
+qoid.api.ResponseProcessor.beginIntroduction = function() {
+	qoid.model.EM.change(qoid.model.EMEvent.INTRODUCTION_RESPONSE);
 }
-ui.api.ResponseProcessor.confirmIntroduction = function() {
-	ui.model.EM.change(ui.model.EMEvent.RespondToIntroduction_RESPONSE);
+qoid.api.ResponseProcessor.confirmIntroduction = function() {
+	qoid.model.EM.change(qoid.model.EMEvent.RespondToIntroduction_RESPONSE);
 }
-ui.api.ResponseProcessor.grantAccess = function() {
-	ui.model.EM.change(ui.model.EMEvent.AccessGranted);
+qoid.api.ResponseProcessor.grantAccess = function() {
+	qoid.model.EM.change(qoid.model.EMEvent.AccessGranted);
 }
-ui.api.ResponseProcessor.filterContent = function(data,filterIid) {
-	var displayedContent = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
+qoid.api.ResponseProcessor.filterContent = function(data,filterIid) {
+	var displayedContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 	displayedContent.addAll(data.content);
-	var fr = new ui.model.FilterResponse(filterIid,displayedContent);
-	ui.model.EM.change(ui.model.EMEvent.LoadFilteredContent,fr);
-	ui.model.EM.change(ui.model.EMEvent.FitWindow);
+	var fr = new qoid.model.FilterResponse(filterIid,displayedContent);
+	qoid.model.EM.change(qoid.model.EMEvent.LoadFilteredContent,fr);
+	qoid.model.EM.change(qoid.model.EMEvent.FitWindow);
 }
-ui.api.SynchronizationParms = function() {
+qoid.api.SynchronizationParms = function() {
 	this.aliases = new Array();
 	this.content = new Array();
 	this.connections = new Array();
@@ -5435,37 +5440,37 @@ ui.api.SynchronizationParms = function() {
 	this.notifications = new Array();
 	this.profiles = new Array();
 };
-$hxClasses["ui.api.SynchronizationParms"] = ui.api.SynchronizationParms;
-ui.api.SynchronizationParms.__name__ = ["ui","api","SynchronizationParms"];
-ui.api.SynchronizationParms.prototype = {
-	__class__: ui.api.SynchronizationParms
+$hxClasses["qoid.api.SynchronizationParms"] = qoid.api.SynchronizationParms;
+qoid.api.SynchronizationParms.__name__ = ["qoid","api","SynchronizationParms"];
+qoid.api.SynchronizationParms.prototype = {
+	__class__: qoid.api.SynchronizationParms
 }
-ui.api.Synchronizer = function(iid,numResponsesExpected,oncomplete) {
+qoid.api.Synchronizer = function(iid,numResponsesExpected,oncomplete) {
 	this.iid = iid;
 	this.numResponsesExpected = numResponsesExpected;
 	this.oncomplete = oncomplete;
-	this.parms = new ui.api.SynchronizationParms();
+	this.parms = new qoid.api.SynchronizationParms();
 };
-$hxClasses["ui.api.Synchronizer"] = ui.api.Synchronizer;
-ui.api.Synchronizer.__name__ = ["ui","api","Synchronizer"];
-ui.api.Synchronizer.createContext = function(numResponsesExpected,oncomplete) {
+$hxClasses["qoid.api.Synchronizer"] = qoid.api.Synchronizer;
+qoid.api.Synchronizer.__name__ = ["qoid","api","Synchronizer"];
+qoid.api.Synchronizer.createContext = function(numResponsesExpected,oncomplete) {
 	return m3.util.UidGenerator.create(32) + "-" + Std.string(numResponsesExpected) + "-" + oncomplete;
 }
-ui.api.Synchronizer.processResponse = function(data) {
-	var context = new ui.model.Context(data.context);
-	var synchronizer = ui.api.Synchronizer.synchronizers.get(context.iid);
-	if(synchronizer == null) synchronizer = ui.api.Synchronizer.add(context);
+qoid.api.Synchronizer.processResponse = function(data) {
+	var context = new qoid.model.Context(data.context);
+	var synchronizer = qoid.api.Synchronizer.synchronizers.get(context.iid);
+	if(synchronizer == null) synchronizer = qoid.api.Synchronizer.add(context);
 	synchronizer.dataReceived(context,data);
 }
-ui.api.Synchronizer.add = function(c) {
-	var synchronizer = new ui.api.Synchronizer(c.iid,c.numResponsesExpected,c.oncomplete);
-	ui.api.Synchronizer.synchronizers.set(c.iid,synchronizer);
+qoid.api.Synchronizer.add = function(c) {
+	var synchronizer = new qoid.api.Synchronizer(c.iid,c.numResponsesExpected,c.oncomplete);
+	qoid.api.Synchronizer.synchronizers.set(c.iid,synchronizer);
 	return synchronizer;
 }
-ui.api.Synchronizer.remove = function(iid) {
-	ui.api.Synchronizer.synchronizers.remove(iid);
+qoid.api.Synchronizer.remove = function(iid) {
+	qoid.api.Synchronizer.synchronizers.remove(iid);
 }
-ui.api.Synchronizer.prototype = {
+qoid.api.Synchronizer.prototype = {
 	dataReceived: function(c,dataObj) {
 		var data = dataObj.results;
 		if(data == null) return;
@@ -5475,7 +5480,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var alias_ = _g1[_g];
 				++_g;
-				this.parms.aliases.push(ui.AppContext.SERIALIZER.fromJsonX(alias_,ui.model.Alias));
+				this.parms.aliases.push(qoid.AppContext.SERIALIZER.fromJsonX(alias_,qoid.model.Alias));
 			}
 			break;
 		case "connection":
@@ -5483,7 +5488,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var content_ = _g1[_g];
 				++_g;
-				this.parms.connections.push(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Connection));
+				this.parms.connections.push(qoid.AppContext.SERIALIZER.fromJsonX(content_,qoid.model.Connection));
 			}
 			break;
 		case "content":
@@ -5491,7 +5496,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var content_ = _g1[_g];
 				++_g;
-				this.parms.content.push(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Content));
+				this.parms.content.push(qoid.AppContext.SERIALIZER.fromJsonX(content_,qoid.model.Content));
 			}
 			break;
 		case "introduction":
@@ -5499,7 +5504,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var content_ = _g1[_g];
 				++_g;
-				this.parms.introductions.push(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Introduction));
+				this.parms.introductions.push(qoid.AppContext.SERIALIZER.fromJsonX(content_,qoid.model.Introduction));
 			}
 			break;
 		case "label":
@@ -5507,7 +5512,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var label_ = _g1[_g];
 				++_g;
-				this.parms.labels.push(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.Label));
+				this.parms.labels.push(qoid.AppContext.SERIALIZER.fromJsonX(label_,qoid.model.Label));
 			}
 			break;
 		case "labelacl":
@@ -5515,7 +5520,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var label_ = _g1[_g];
 				++_g;
-				this.parms.labelAcls.push(ui.AppContext.SERIALIZER.fromJsonX(label_,ui.model.LabelAcl));
+				this.parms.labelAcls.push(qoid.AppContext.SERIALIZER.fromJsonX(label_,qoid.model.LabelAcl));
 			}
 			break;
 		case "labelChild":
@@ -5523,7 +5528,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var labelChild_ = _g1[_g];
 				++_g;
-				this.parms.labelChildren.push(ui.AppContext.SERIALIZER.fromJsonX(labelChild_,ui.model.LabelChild));
+				this.parms.labelChildren.push(qoid.AppContext.SERIALIZER.fromJsonX(labelChild_,qoid.model.LabelChild));
 			}
 			break;
 		case "labeledContent":
@@ -5531,7 +5536,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var labeledContent_ = _g1[_g];
 				++_g;
-				this.parms.labeledContent.push(ui.AppContext.SERIALIZER.fromJsonX(labeledContent_,ui.model.LabeledContent));
+				this.parms.labeledContent.push(qoid.AppContext.SERIALIZER.fromJsonX(labeledContent_,qoid.model.LabeledContent));
 			}
 			break;
 		case "notification":
@@ -5539,7 +5544,7 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var content_ = _g1[_g];
 				++_g;
-				this.parms.notifications.push(ui.AppContext.SERIALIZER.fromJsonX(content_,ui.model.Notification));
+				this.parms.notifications.push(qoid.AppContext.SERIALIZER.fromJsonX(content_,qoid.model.Notification));
 			}
 			break;
 		case "profile":
@@ -5547,28 +5552,28 @@ ui.api.Synchronizer.prototype = {
 			while(_g < _g1.length) {
 				var profile_ = _g1[_g];
 				++_g;
-				this.parms.profiles.push(ui.AppContext.SERIALIZER.fromJsonX(profile_,ui.model.Profile));
+				this.parms.profiles.push(qoid.AppContext.SERIALIZER.fromJsonX(profile_,qoid.model.Profile));
 			}
 			break;
 		}
 		this.numResponsesExpected -= 1;
 		if(this.numResponsesExpected == 0) {
-			var func = Reflect.field(ui.api.ResponseProcessor,this.oncomplete);
-			if(func == null) ui.AppContext.LOGGER.info("Missing oncomplete function: " + this.oncomplete); else func.apply(ui.api.ResponseProcessor,[this.parms]);
-			ui.api.Synchronizer.remove(this.iid);
+			var func = Reflect.field(qoid.api.ResponseProcessor,this.oncomplete);
+			if(func == null) qoid.AppContext.LOGGER.info("Missing oncomplete function: " + this.oncomplete); else func.apply(qoid.api.ResponseProcessor,[this.parms]);
+			qoid.api.Synchronizer.remove(this.iid);
 			var length = 0;
-			var $it0 = ui.api.Synchronizer.synchronizers.keys();
+			var $it0 = qoid.api.Synchronizer.synchronizers.keys();
 			while( $it0.hasNext() ) {
 				var key = $it0.next();
 				length += 1;
 			}
-			ui.AppContext.LOGGER.info("Number Synchronizers: " + length);
+			qoid.AppContext.LOGGER.info("Number Synchronizers: " + length);
 		}
 	}
-	,__class__: ui.api.Synchronizer
+	,__class__: qoid.api.Synchronizer
 }
-ui.model = {}
-ui.model.ContentSourceListener = function(mapListener,onBeforeSetContent,widgetCreator,content) {
+qoid.model = {}
+qoid.model.ContentSourceListener = function(mapListener,onBeforeSetContent,widgetCreator,content) {
 	this.mapListener = mapListener;
 	this.onBeforeSetContent = onBeforeSetContent;
 	this.widgetCreator = widgetCreator;
@@ -5577,231 +5582,226 @@ ui.model.ContentSourceListener = function(mapListener,onBeforeSetContent,widgetC
 	});
 	this.contentMap.mapListen(this.mapListener);
 };
-$hxClasses["ui.model.ContentSourceListener"] = ui.model.ContentSourceListener;
-ui.model.ContentSourceListener.__name__ = ["ui","model","ContentSourceListener"];
-ui.model.ContentSourceListener.prototype = {
-	__class__: ui.model.ContentSourceListener
+$hxClasses["qoid.model.ContentSourceListener"] = qoid.model.ContentSourceListener;
+qoid.model.ContentSourceListener.__name__ = ["qoid","model","ContentSourceListener"];
+qoid.model.ContentSourceListener.prototype = {
+	__class__: qoid.model.ContentSourceListener
 }
-ui.model.ModelObj = function() {
+qoid.model.ModelObj = function() {
 };
-$hxClasses["ui.model.ModelObj"] = ui.model.ModelObj;
-ui.model.ModelObj.__name__ = ["ui","model","ModelObj"];
-ui.model.ModelObj.prototype = {
+$hxClasses["qoid.model.ModelObj"] = qoid.model.ModelObj;
+qoid.model.ModelObj.__name__ = ["qoid","model","ModelObj"];
+qoid.model.ModelObj.prototype = {
 	objectType: function() {
 		var className = m3.serialization.TypeTools.classname(m3.serialization.TypeTools.clazz(this)).toLowerCase();
 		var parts = className.split(".");
 		return parts[parts.length - 1];
 	}
-	,__class__: ui.model.ModelObj
+	,__class__: qoid.model.ModelObj
 }
-ui.model.ModelObjWithIid = function() {
-	ui.model.ModelObj.call(this);
+qoid.model.ModelObjWithIid = function() {
+	qoid.model.ModelObj.call(this);
 	this.iid = m3.util.UidGenerator.create(32);
 	this.deleted = false;
 };
-$hxClasses["ui.model.ModelObjWithIid"] = ui.model.ModelObjWithIid;
-ui.model.ModelObjWithIid.__name__ = ["ui","model","ModelObjWithIid"];
-ui.model.ModelObjWithIid.identifier = function(t) {
+$hxClasses["qoid.model.ModelObjWithIid"] = qoid.model.ModelObjWithIid;
+qoid.model.ModelObjWithIid.__name__ = ["qoid","model","ModelObjWithIid"];
+qoid.model.ModelObjWithIid.identifier = function(t) {
 	return t.iid;
 }
-ui.model.ModelObjWithIid.__super__ = ui.model.ModelObj;
-ui.model.ModelObjWithIid.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.ModelObjWithIid
+qoid.model.ModelObjWithIid.__super__ = qoid.model.ModelObj;
+qoid.model.ModelObjWithIid.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.ModelObjWithIid
 });
-ui.model.EM = function() { }
-$hxClasses["ui.model.EM"] = ui.model.EM;
-ui.model.EM.__name__ = ["ui","model","EM"];
-ui.model.EM.setLogger = function(l) {
-	ui.model.EM.delegate.setLogger(l);
+qoid.model.EM = function() { }
+$hxClasses["qoid.model.EM"] = qoid.model.EM;
+qoid.model.EM.__name__ = ["qoid","model","EM"];
+qoid.model.EM.setLogger = function(l) {
+	qoid.model.EM.delegate.setLogger(l);
 }
-ui.model.EM.addListener = function(id,func,listenerName) {
-	var listener = new m3.event.EMListener(func,listenerName);
-	return ui.model.EM.delegate.addListener(id,listener);
+qoid.model.EM.addListener = function(id,func,listenerName) {
+	return qoid.model.EM.delegate.addListener(id,func,listenerName);
 }
-ui.model.EM.listenOnce = function(id,func,listenerName) {
-	var listener = new m3.event.EMListener(func,listenerName);
-	return ui.model.EM.delegate.listenOnce(id,listener);
+qoid.model.EM.listenOnce = function(id,func,listenerName) {
+	return qoid.model.EM.delegate.listenOnce(id,func,listenerName);
 }
-ui.model.EM.removeListener = function(id,listenerUid) {
-	ui.model.EM.delegate.removeListener(id,listenerUid);
+qoid.model.EM.removeListener = function(id,listenerUid) {
+	qoid.model.EM.delegate.removeListener(id,listenerUid);
 }
-ui.model.EM.change = function(id,t) {
-	ui.model.EM.delegate.change(id,t);
+qoid.model.EM.change = function(id,t) {
+	qoid.model.EM.delegate.change(id,t);
 }
-ui.model.EMEvent = $hxClasses["ui.model.EMEvent"] = { __ename__ : ["ui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
-ui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
-ui.model.EMEvent.FILTER_RUN.toString = $estr;
-ui.model.EMEvent.FILTER_RUN.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FILTER_CHANGE = ["FILTER_CHANGE",1];
-ui.model.EMEvent.FILTER_CHANGE.toString = $estr;
-ui.model.EMEvent.FILTER_CHANGE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.LoadFilteredContent = ["LoadFilteredContent",2];
-ui.model.EMEvent.LoadFilteredContent.toString = $estr;
-ui.model.EMEvent.LoadFilteredContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AppendFilteredContent = ["AppendFilteredContent",3];
-ui.model.EMEvent.AppendFilteredContent.toString = $estr;
-ui.model.EMEvent.AppendFilteredContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.EditContentClosed = ["EditContentClosed",4];
-ui.model.EMEvent.EditContentClosed.toString = $estr;
-ui.model.EMEvent.EditContentClosed.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateAgent = ["CreateAgent",5];
-ui.model.EMEvent.CreateAgent.toString = $estr;
-ui.model.EMEvent.CreateAgent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AgentCreated = ["AgentCreated",6];
-ui.model.EMEvent.AgentCreated.toString = $estr;
-ui.model.EMEvent.AgentCreated.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.InitialDataLoadComplete = ["InitialDataLoadComplete",7];
-ui.model.EMEvent.InitialDataLoadComplete.toString = $estr;
-ui.model.EMEvent.InitialDataLoadComplete.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.FitWindow = ["FitWindow",8];
-ui.model.EMEvent.FitWindow.toString = $estr;
-ui.model.EMEvent.FitWindow.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UserLogin = ["UserLogin",9];
-ui.model.EMEvent.UserLogin.toString = $estr;
-ui.model.EMEvent.UserLogin.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UserLogout = ["UserLogout",10];
-ui.model.EMEvent.UserLogout.toString = $estr;
-ui.model.EMEvent.UserLogout.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AliasLoaded = ["AliasLoaded",11];
-ui.model.EMEvent.AliasLoaded.toString = $estr;
-ui.model.EMEvent.AliasLoaded.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateAlias = ["CreateAlias",12];
-ui.model.EMEvent.CreateAlias.toString = $estr;
-ui.model.EMEvent.CreateAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateAlias = ["UpdateAlias",13];
-ui.model.EMEvent.UpdateAlias.toString = $estr;
-ui.model.EMEvent.UpdateAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteAlias = ["DeleteAlias",14];
-ui.model.EMEvent.DeleteAlias.toString = $estr;
-ui.model.EMEvent.DeleteAlias.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateContent = ["CreateContent",15];
-ui.model.EMEvent.CreateContent.toString = $estr;
-ui.model.EMEvent.CreateContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteContent = ["DeleteContent",16];
-ui.model.EMEvent.DeleteContent.toString = $estr;
-ui.model.EMEvent.DeleteContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateContent = ["UpdateContent",17];
-ui.model.EMEvent.UpdateContent.toString = $estr;
-ui.model.EMEvent.UpdateContent.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CreateLabel = ["CreateLabel",18];
-ui.model.EMEvent.CreateLabel.toString = $estr;
-ui.model.EMEvent.CreateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.UpdateLabel = ["UpdateLabel",19];
-ui.model.EMEvent.UpdateLabel.toString = $estr;
-ui.model.EMEvent.UpdateLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.MoveLabel = ["MoveLabel",20];
-ui.model.EMEvent.MoveLabel.toString = $estr;
-ui.model.EMEvent.MoveLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.CopyLabel = ["CopyLabel",21];
-ui.model.EMEvent.CopyLabel.toString = $estr;
-ui.model.EMEvent.CopyLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteLabel = ["DeleteLabel",22];
-ui.model.EMEvent.DeleteLabel.toString = $estr;
-ui.model.EMEvent.DeleteLabel.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.GrantAccess = ["GrantAccess",23];
-ui.model.EMEvent.GrantAccess.toString = $estr;
-ui.model.EMEvent.GrantAccess.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AccessGranted = ["AccessGranted",24];
-ui.model.EMEvent.AccessGranted.toString = $estr;
-ui.model.EMEvent.AccessGranted.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RevokeAccess = ["RevokeAccess",25];
-ui.model.EMEvent.RevokeAccess.toString = $estr;
-ui.model.EMEvent.RevokeAccess.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.DeleteConnection = ["DeleteConnection",26];
-ui.model.EMEvent.DeleteConnection.toString = $estr;
-ui.model.EMEvent.DeleteConnection.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",27];
-ui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
-ui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",28];
-ui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
-ui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",29];
-ui.model.EMEvent.RespondToIntroduction.toString = $estr;
-ui.model.EMEvent.RespondToIntroduction.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",30];
-ui.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
-ui.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.TargetChange = ["TargetChange",31];
-ui.model.EMEvent.TargetChange.toString = $estr;
-ui.model.EMEvent.TargetChange.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.BACKUP = ["BACKUP",32];
-ui.model.EMEvent.BACKUP.toString = $estr;
-ui.model.EMEvent.BACKUP.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORE = ["RESTORE",33];
-ui.model.EMEvent.RESTORE.toString = $estr;
-ui.model.EMEvent.RESTORE.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",34];
-ui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
-ui.model.EMEvent.RESTORES_REQUEST.__enum__ = ui.model.EMEvent;
-ui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",35];
-ui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
-ui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = ui.model.EMEvent;
-ui.model.ContentSource = function() { }
-$hxClasses["ui.model.ContentSource"] = ui.model.ContentSource;
-ui.model.ContentSource.__name__ = ["ui","model","ContentSource"];
-ui.model.ContentSource.addListener = function(ml,obsc,wc) {
-	var l = new ui.model.ContentSourceListener(ml,obsc,wc,ui.model.ContentSource.filteredContent);
-	ui.model.ContentSource.listeners.push(l);
+qoid.model.EMEvent = $hxClasses["qoid.model.EMEvent"] = { __ename__ : ["qoid","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+qoid.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
+qoid.model.EMEvent.FILTER_RUN.toString = $estr;
+qoid.model.EMEvent.FILTER_RUN.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.FILTER_CHANGE = ["FILTER_CHANGE",1];
+qoid.model.EMEvent.FILTER_CHANGE.toString = $estr;
+qoid.model.EMEvent.FILTER_CHANGE.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.LoadFilteredContent = ["LoadFilteredContent",2];
+qoid.model.EMEvent.LoadFilteredContent.toString = $estr;
+qoid.model.EMEvent.LoadFilteredContent.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.AppendFilteredContent = ["AppendFilteredContent",3];
+qoid.model.EMEvent.AppendFilteredContent.toString = $estr;
+qoid.model.EMEvent.AppendFilteredContent.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.EditContentClosed = ["EditContentClosed",4];
+qoid.model.EMEvent.EditContentClosed.toString = $estr;
+qoid.model.EMEvent.EditContentClosed.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.CreateAgent = ["CreateAgent",5];
+qoid.model.EMEvent.CreateAgent.toString = $estr;
+qoid.model.EMEvent.CreateAgent.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.AgentCreated = ["AgentCreated",6];
+qoid.model.EMEvent.AgentCreated.toString = $estr;
+qoid.model.EMEvent.AgentCreated.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.InitialDataLoadComplete = ["InitialDataLoadComplete",7];
+qoid.model.EMEvent.InitialDataLoadComplete.toString = $estr;
+qoid.model.EMEvent.InitialDataLoadComplete.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.FitWindow = ["FitWindow",8];
+qoid.model.EMEvent.FitWindow.toString = $estr;
+qoid.model.EMEvent.FitWindow.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.UserLogin = ["UserLogin",9];
+qoid.model.EMEvent.UserLogin.toString = $estr;
+qoid.model.EMEvent.UserLogin.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.UserLogout = ["UserLogout",10];
+qoid.model.EMEvent.UserLogout.toString = $estr;
+qoid.model.EMEvent.UserLogout.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.AliasLoaded = ["AliasLoaded",11];
+qoid.model.EMEvent.AliasLoaded.toString = $estr;
+qoid.model.EMEvent.AliasLoaded.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.CreateAlias = ["CreateAlias",12];
+qoid.model.EMEvent.CreateAlias.toString = $estr;
+qoid.model.EMEvent.CreateAlias.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.UpdateAlias = ["UpdateAlias",13];
+qoid.model.EMEvent.UpdateAlias.toString = $estr;
+qoid.model.EMEvent.UpdateAlias.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.DeleteAlias = ["DeleteAlias",14];
+qoid.model.EMEvent.DeleteAlias.toString = $estr;
+qoid.model.EMEvent.DeleteAlias.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.CreateContent = ["CreateContent",15];
+qoid.model.EMEvent.CreateContent.toString = $estr;
+qoid.model.EMEvent.CreateContent.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.DeleteContent = ["DeleteContent",16];
+qoid.model.EMEvent.DeleteContent.toString = $estr;
+qoid.model.EMEvent.DeleteContent.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.UpdateContent = ["UpdateContent",17];
+qoid.model.EMEvent.UpdateContent.toString = $estr;
+qoid.model.EMEvent.UpdateContent.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.CreateLabel = ["CreateLabel",18];
+qoid.model.EMEvent.CreateLabel.toString = $estr;
+qoid.model.EMEvent.CreateLabel.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.UpdateLabel = ["UpdateLabel",19];
+qoid.model.EMEvent.UpdateLabel.toString = $estr;
+qoid.model.EMEvent.UpdateLabel.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.MoveLabel = ["MoveLabel",20];
+qoid.model.EMEvent.MoveLabel.toString = $estr;
+qoid.model.EMEvent.MoveLabel.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.CopyLabel = ["CopyLabel",21];
+qoid.model.EMEvent.CopyLabel.toString = $estr;
+qoid.model.EMEvent.CopyLabel.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.DeleteLabel = ["DeleteLabel",22];
+qoid.model.EMEvent.DeleteLabel.toString = $estr;
+qoid.model.EMEvent.DeleteLabel.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.GrantAccess = ["GrantAccess",23];
+qoid.model.EMEvent.GrantAccess.toString = $estr;
+qoid.model.EMEvent.GrantAccess.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.AccessGranted = ["AccessGranted",24];
+qoid.model.EMEvent.AccessGranted.toString = $estr;
+qoid.model.EMEvent.AccessGranted.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.RevokeAccess = ["RevokeAccess",25];
+qoid.model.EMEvent.RevokeAccess.toString = $estr;
+qoid.model.EMEvent.RevokeAccess.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.DeleteConnection = ["DeleteConnection",26];
+qoid.model.EMEvent.DeleteConnection.toString = $estr;
+qoid.model.EMEvent.DeleteConnection.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",27];
+qoid.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
+qoid.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",28];
+qoid.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
+qoid.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",29];
+qoid.model.EMEvent.RespondToIntroduction.toString = $estr;
+qoid.model.EMEvent.RespondToIntroduction.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",30];
+qoid.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
+qoid.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.TargetChange = ["TargetChange",31];
+qoid.model.EMEvent.TargetChange.toString = $estr;
+qoid.model.EMEvent.TargetChange.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.BACKUP = ["BACKUP",32];
+qoid.model.EMEvent.BACKUP.toString = $estr;
+qoid.model.EMEvent.BACKUP.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.RESTORE = ["RESTORE",33];
+qoid.model.EMEvent.RESTORE.toString = $estr;
+qoid.model.EMEvent.RESTORE.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",34];
+qoid.model.EMEvent.RESTORES_REQUEST.toString = $estr;
+qoid.model.EMEvent.RESTORES_REQUEST.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",35];
+qoid.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
+qoid.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = qoid.model.EMEvent;
+qoid.model.ContentSource = function() { }
+$hxClasses["qoid.model.ContentSource"] = qoid.model.ContentSource;
+qoid.model.ContentSource.__name__ = ["qoid","model","ContentSource"];
+qoid.model.ContentSource.addListener = function(ml,obsc,wc) {
+	var l = new qoid.model.ContentSourceListener(ml,obsc,wc,qoid.model.ContentSource.filteredContent);
+	qoid.model.ContentSource.listeners.push(l);
 }
-ui.model.ContentSource.addContent = function(results,connectionIid) {
+qoid.model.ContentSource.addContent = function(results,connectionIid) {
 	var _g = 0;
 	while(_g < results.length) {
 		var result = results[_g];
 		++_g;
-		var c = ui.AppContext.SERIALIZER.fromJsonX(result,ui.model.Content);
+		var c = qoid.AppContext.SERIALIZER.fromJsonX(result,qoid.model.Content);
 		if(connectionIid != null) {
 			c.aliasIid = null;
 			c.connectionIid = connectionIid;
 		}
-		ui.model.ContentSource.filteredContent.addOrUpdate(c);
+		qoid.model.ContentSource.filteredContent.addOrUpdate(c);
 	}
 }
-ui.model.ContentSource.onLoadFilteredContent = function(data) {
-	if(ui.model.ContentSource.handle == data.handle) ui.model.ContentSource.addContent(data.results,data.connectionIid); else {
-		ui.model.ContentSource.clearQuery();
-		ui.model.ContentSource.handle = data.handle;
-		ui.model.ContentSource.beforeSetContent();
-		ui.model.ContentSource.addContent(data.results,data.connectionIid);
+qoid.model.ContentSource.onLoadFilteredContent = function(data) {
+	if(qoid.model.ContentSource.handle == data.handle) qoid.model.ContentSource.addContent(data.results,data.connectionIid); else {
+		qoid.model.ContentSource.clearQuery();
+		qoid.model.ContentSource.handle = data.handle;
+		qoid.model.ContentSource.beforeSetContent();
+		qoid.model.ContentSource.addContent(data.results,data.connectionIid);
 	}
 }
-ui.model.ContentSource.clearQuery = function() {
-	if(ui.model.ContentSource.handle != null) {
-		ui.AgentUi.PROTOCOL.deregisterSqueries([ui.model.ContentSource.handle]);
-		ui.model.ContentSource.filteredContent.clear();
-		ui.model.ContentSource.handle = null;
+qoid.model.ContentSource.clearQuery = function() {
+	if(qoid.model.ContentSource.handle != null) {
+		qoid.AgentUi.PROTOCOL.deregisterSqueries([qoid.model.ContentSource.handle]);
+		qoid.model.ContentSource.filteredContent.clear();
+		qoid.model.ContentSource.handle = null;
 	}
 }
-ui.model.ContentSource.onAppendFilteredContent = function(data) {
-	ui.model.ContentSource.addContent(data.results,data.connectionIid);
+qoid.model.ContentSource.onAppendFilteredContent = function(data) {
+	qoid.model.ContentSource.addContent(data.results,data.connectionIid);
 }
-ui.model.ContentSource.onAliasLoaded = function(alias) {
-	ui.model.ContentSource.clearQuery();
+qoid.model.ContentSource.onAliasLoaded = function(alias) {
+	qoid.model.ContentSource.clearQuery();
 }
-ui.model.ContentSource.beforeSetContent = function() {
-	var _g = 0, _g1 = ui.model.ContentSource.listeners;
+qoid.model.ContentSource.beforeSetContent = function() {
+	var _g = 0, _g1 = qoid.model.ContentSource.listeners;
 	while(_g < _g1.length) {
 		var l = _g1[_g];
 		++_g;
 		l.onBeforeSetContent();
 	}
 }
-ui.model.Context = function(context) {
+qoid.model.Context = function(context) {
 	var c = context.split("-");
 	if(c.length != 3) throw new m3.exception.Exception("invalid context");
 	this.iid = c[0];
 	this.numResponsesExpected = Std.parseInt(c[1]);
 	this.oncomplete = c[2];
 };
-$hxClasses["ui.model.Context"] = ui.model.Context;
-ui.model.Context.__name__ = ["ui","model","Context"];
-ui.model.Context.prototype = {
-	__class__: ui.model.Context
+$hxClasses["qoid.model.Context"] = qoid.model.Context;
+qoid.model.Context.__name__ = ["qoid","model","Context"];
+qoid.model.Context.prototype = {
+	__class__: qoid.model.Context
 }
-ui.model.{} = function() { }
-$hxClasses["ui.model.{}"] = ui.model.{};
-ui.model.{}.__name__ = ["ui","model","{}"];
-ui.model.Filter = function(node) {
+qoid.model.Filter = function(node) {
 	this.rootNode = node;
 	this.nodes = new Array();
 	if(node.hasChildren()) {
@@ -5814,9 +5814,9 @@ ui.model.Filter = function(node) {
 	}
 	this.q = this.getQuery();
 };
-$hxClasses["ui.model.Filter"] = ui.model.Filter;
-ui.model.Filter.__name__ = ["ui","model","Filter"];
-ui.model.Filter.prototype = {
+$hxClasses["qoid.model.Filter"] = qoid.model.Filter;
+qoid.model.Filter.__name__ = ["qoid","model","Filter"];
+qoid.model.Filter.prototype = {
 	_queryify: function(nodes,joinWith) {
 		var str = "";
 		if(m3.helper.ArrayHelper.hasValues(nodes)) {
@@ -5836,242 +5836,242 @@ ui.model.Filter.prototype = {
 	,getQuery: function() {
 		return this._queryify(this.nodes,this.rootNode.getQuery());
 	}
-	,__class__: ui.model.Filter
+	,__class__: qoid.model.Filter
 }
-ui.model.FilterData = function(type) {
+qoid.model.FilterData = function(type) {
 	this.type = type;
 	this.aliasIid = null;
 	this.connectionIids = new Array();
 };
-$hxClasses["ui.model.FilterData"] = ui.model.FilterData;
-ui.model.FilterData.__name__ = ["ui","model","FilterData"];
-ui.model.FilterData.prototype = {
-	__class__: ui.model.FilterData
+$hxClasses["qoid.model.FilterData"] = qoid.model.FilterData;
+qoid.model.FilterData.__name__ = ["qoid","model","FilterData"];
+qoid.model.FilterData.prototype = {
+	__class__: qoid.model.FilterData
 }
-ui.model.FilterResponse = function(filterIid,content) {
+qoid.model.FilterResponse = function(filterIid,content) {
 	this.filterIid = filterIid;
 	this.content = content;
 };
-$hxClasses["ui.model.FilterResponse"] = ui.model.FilterResponse;
-ui.model.FilterResponse.__name__ = ["ui","model","FilterResponse"];
-ui.model.FilterResponse.prototype = {
-	__class__: ui.model.FilterResponse
+$hxClasses["qoid.model.FilterResponse"] = qoid.model.FilterResponse;
+qoid.model.FilterResponse.__name__ = ["qoid","model","FilterResponse"];
+qoid.model.FilterResponse.prototype = {
+	__class__: qoid.model.FilterResponse
 }
-ui.model.Profile = function(name,imgSrc,aliasIid) {
-	ui.model.ModelObjWithIid.call(this);
+qoid.model.Profile = function(name,imgSrc,aliasIid) {
+	qoid.model.ModelObjWithIid.call(this);
 	this.name = name == null?"Unknown":name;
 	this.imgSrc = imgSrc == null?"media/koi.jpg":imgSrc;
 	this.aliasIid = aliasIid;
 };
-$hxClasses["ui.model.Profile"] = ui.model.Profile;
-ui.model.Profile.__name__ = ["ui","model","Profile"];
-ui.model.Profile.identifier = function(profile) {
+$hxClasses["qoid.model.Profile"] = qoid.model.Profile;
+qoid.model.Profile.__name__ = ["qoid","model","Profile"];
+qoid.model.Profile.identifier = function(profile) {
 	return profile.iid;
 }
-ui.model.Profile.__super__ = ui.model.ModelObjWithIid;
-ui.model.Profile.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
-	__class__: ui.model.Profile
+qoid.model.Profile.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Profile.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Profile
 });
-ui.model.AliasData = function() {
-	ui.model.ModelObj.call(this);
+qoid.model.AliasData = function() {
+	qoid.model.ModelObj.call(this);
 	this.isDefault = false;
 };
-$hxClasses["ui.model.AliasData"] = ui.model.AliasData;
-ui.model.AliasData.__name__ = ["ui","model","AliasData"];
-ui.model.AliasData.__super__ = ui.model.ModelObj;
-ui.model.AliasData.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.AliasData
+$hxClasses["qoid.model.AliasData"] = qoid.model.AliasData;
+qoid.model.AliasData.__name__ = ["qoid","model","AliasData"];
+qoid.model.AliasData.__super__ = qoid.model.ModelObj;
+qoid.model.AliasData.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.AliasData
 });
-ui.model.Alias = function() {
-	ui.model.ModelObjWithIid.call(this);
-	this.profile = new ui.model.Profile();
-	this.data = new ui.model.AliasData();
+qoid.model.Alias = function() {
+	qoid.model.ModelObjWithIid.call(this);
+	this.profile = new qoid.model.Profile();
+	this.data = new qoid.model.AliasData();
 };
-$hxClasses["ui.model.Alias"] = ui.model.Alias;
-ui.model.Alias.__name__ = ["ui","model","Alias"];
-ui.model.Alias.identifier = function(alias) {
+$hxClasses["qoid.model.Alias"] = qoid.model.Alias;
+qoid.model.Alias.__name__ = ["qoid","model","Alias"];
+qoid.model.Alias.identifier = function(alias) {
 	return alias.iid;
 }
-ui.model.Alias.__super__ = ui.model.ModelObjWithIid;
-ui.model.Alias.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
-	__class__: ui.model.Alias
+qoid.model.Alias.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Alias.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Alias
 });
-ui.model.LabelData = function() {
-	ui.model.ModelObj.call(this);
+qoid.model.LabelData = function() {
+	qoid.model.ModelObj.call(this);
 	this.color = m3.util.ColorProvider.getNextColor();
 };
-$hxClasses["ui.model.LabelData"] = ui.model.LabelData;
-ui.model.LabelData.__name__ = ["ui","model","LabelData"];
-ui.model.LabelData.__super__ = ui.model.ModelObj;
-ui.model.LabelData.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.LabelData
+$hxClasses["qoid.model.LabelData"] = qoid.model.LabelData;
+qoid.model.LabelData.__name__ = ["qoid","model","LabelData"];
+qoid.model.LabelData.__super__ = qoid.model.ModelObj;
+qoid.model.LabelData.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.LabelData
 });
-ui.model.Label = function(name) {
-	ui.model.ModelObjWithIid.call(this);
+qoid.model.Label = function(name) {
+	qoid.model.ModelObjWithIid.call(this);
 	this.name = name;
-	this.data = new ui.model.LabelData();
+	this.data = new qoid.model.LabelData();
 };
-$hxClasses["ui.model.Label"] = ui.model.Label;
-ui.model.Label.__name__ = ["ui","model","Label"];
-ui.model.Label.identifier = function(l) {
+$hxClasses["qoid.model.Label"] = qoid.model.Label;
+qoid.model.Label.__name__ = ["qoid","model","Label"];
+qoid.model.Label.identifier = function(l) {
 	return l.iid;
 }
-ui.model.Label.__super__ = ui.model.ModelObjWithIid;
-ui.model.Label.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
-	__class__: ui.model.Label
+qoid.model.Label.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Label.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Label
 });
-ui.model.LabelChild = function(parentIid,childIid) {
+qoid.model.LabelChild = function(parentIid,childIid) {
 	if(parentIid != null && childIid != null && parentIid == childIid) throw new m3.exception.Exception("parentIid and childIid of LabelChild must be different");
-	ui.model.ModelObjWithIid.call(this);
+	qoid.model.ModelObjWithIid.call(this);
 	this.parentIid = parentIid;
 	this.childIid = childIid;
 };
-$hxClasses["ui.model.LabelChild"] = ui.model.LabelChild;
-ui.model.LabelChild.__name__ = ["ui","model","LabelChild"];
-ui.model.LabelChild.identifier = function(l) {
+$hxClasses["qoid.model.LabelChild"] = qoid.model.LabelChild;
+qoid.model.LabelChild.__name__ = ["qoid","model","LabelChild"];
+qoid.model.LabelChild.identifier = function(l) {
 	return l.iid;
 }
-ui.model.LabelChild.__super__ = ui.model.ModelObjWithIid;
-ui.model.LabelChild.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
-	__class__: ui.model.LabelChild
+qoid.model.LabelChild.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabelChild.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabelChild
 });
-ui.model.LabelAcl = function(connectionIid,labelIid) {
-	ui.model.ModelObjWithIid.call(this);
+qoid.model.LabelAcl = function(connectionIid,labelIid) {
+	qoid.model.ModelObjWithIid.call(this);
 	this.connectionIid = connectionIid;
 	this.labelIid = labelIid;
 };
-$hxClasses["ui.model.LabelAcl"] = ui.model.LabelAcl;
-ui.model.LabelAcl.__name__ = ["ui","model","LabelAcl"];
-ui.model.LabelAcl.identifier = function(l) {
+$hxClasses["qoid.model.LabelAcl"] = qoid.model.LabelAcl;
+qoid.model.LabelAcl.__name__ = ["qoid","model","LabelAcl"];
+qoid.model.LabelAcl.identifier = function(l) {
 	return l.iid;
 }
-ui.model.LabelAcl.__super__ = ui.model.ModelObjWithIid;
-ui.model.LabelAcl.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
-	__class__: ui.model.LabelAcl
+qoid.model.LabelAcl.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabelAcl.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabelAcl
 });
-ui.model.Connection = function() {
-	ui.model.ModelObjWithIid.call(this);
-	this.data = new ui.model.Profile("-->*<--","");
+qoid.model.Connection = function() {
+	qoid.model.ModelObjWithIid.call(this);
+	this.data = new qoid.model.Profile("-->*<--","");
 };
-$hxClasses["ui.model.Connection"] = ui.model.Connection;
-ui.model.Connection.__name__ = ["ui","model","Connection"];
-ui.model.Connection.identifier = function(c) {
+$hxClasses["qoid.model.Connection"] = qoid.model.Connection;
+qoid.model.Connection.__name__ = ["qoid","model","Connection"];
+qoid.model.Connection.identifier = function(c) {
 	return c.iid;
 }
-ui.model.Connection.__super__ = ui.model.ModelObjWithIid;
-ui.model.Connection.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
+qoid.model.Connection.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Connection.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	equals: function(c) {
 		return this.iid == c.iid;
 	}
-	,__class__: ui.model.Connection
+	,__class__: qoid.model.Connection
 });
-ui.model.ContentType = $hxClasses["ui.model.ContentType"] = { __ename__ : ["ui","model","ContentType"], __constructs__ : ["AUDIO","IMAGE","URL","TEXT"] }
-ui.model.ContentType.AUDIO = ["AUDIO",0];
-ui.model.ContentType.AUDIO.toString = $estr;
-ui.model.ContentType.AUDIO.__enum__ = ui.model.ContentType;
-ui.model.ContentType.IMAGE = ["IMAGE",1];
-ui.model.ContentType.IMAGE.toString = $estr;
-ui.model.ContentType.IMAGE.__enum__ = ui.model.ContentType;
-ui.model.ContentType.URL = ["URL",2];
-ui.model.ContentType.URL.toString = $estr;
-ui.model.ContentType.URL.__enum__ = ui.model.ContentType;
-ui.model.ContentType.TEXT = ["TEXT",3];
-ui.model.ContentType.TEXT.toString = $estr;
-ui.model.ContentType.TEXT.__enum__ = ui.model.ContentType;
-ui.model.ContentHandler = function() {
+qoid.model.ContentType = $hxClasses["qoid.model.ContentType"] = { __ename__ : ["qoid","model","ContentType"], __constructs__ : ["AUDIO","IMAGE","URL","TEXT"] }
+qoid.model.ContentType.AUDIO = ["AUDIO",0];
+qoid.model.ContentType.AUDIO.toString = $estr;
+qoid.model.ContentType.AUDIO.__enum__ = qoid.model.ContentType;
+qoid.model.ContentType.IMAGE = ["IMAGE",1];
+qoid.model.ContentType.IMAGE.toString = $estr;
+qoid.model.ContentType.IMAGE.__enum__ = qoid.model.ContentType;
+qoid.model.ContentType.URL = ["URL",2];
+qoid.model.ContentType.URL.toString = $estr;
+qoid.model.ContentType.URL.__enum__ = qoid.model.ContentType;
+qoid.model.ContentType.TEXT = ["TEXT",3];
+qoid.model.ContentType.TEXT.toString = $estr;
+qoid.model.ContentType.TEXT.__enum__ = qoid.model.ContentType;
+qoid.model.ContentHandler = function() {
 };
-$hxClasses["ui.model.ContentHandler"] = ui.model.ContentHandler;
-ui.model.ContentHandler.__name__ = ["ui","model","ContentHandler"];
-ui.model.ContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
-ui.model.ContentHandler.prototype = {
+$hxClasses["qoid.model.ContentHandler"] = qoid.model.ContentHandler;
+qoid.model.ContentHandler.__name__ = ["qoid","model","ContentHandler"];
+qoid.model.ContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
+qoid.model.ContentHandler.prototype = {
 	write: function(value,writer) {
-		return ui.AppContext.SERIALIZER.toJson(value);
+		return qoid.AppContext.SERIALIZER.toJson(value);
 	}
 	,read: function(fromJson,reader,instance) {
 		var obj = null;
-		var _g = Type.createEnum(ui.model.ContentType,fromJson.contentType,null);
+		var _g = Type.createEnum(qoid.model.ContentType,fromJson.contentType,null);
 		switch( (_g)[1] ) {
 		case 0:
-			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.AudioContent);
+			obj = qoid.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.AudioContent);
 			break;
 		case 1:
-			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.ImageContent);
+			obj = qoid.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.ImageContent);
 			break;
 		case 3:
-			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.MessageContent);
+			obj = qoid.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.MessageContent);
 			break;
 		case 2:
-			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.UrlContent);
+			obj = qoid.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.UrlContent);
 			break;
 		}
 		return obj;
 	}
-	,__class__: ui.model.ContentHandler
+	,__class__: qoid.model.ContentHandler
 }
-ui.model.ContentFactory = function() { }
-$hxClasses["ui.model.ContentFactory"] = ui.model.ContentFactory;
-ui.model.ContentFactory.__name__ = ["ui","model","ContentFactory"];
-ui.model.ContentFactory.create = function(contentType,data) {
+qoid.model.ContentFactory = function() { }
+$hxClasses["qoid.model.ContentFactory"] = qoid.model.ContentFactory;
+qoid.model.ContentFactory.__name__ = ["qoid","model","ContentFactory"];
+qoid.model.ContentFactory.create = function(contentType,data) {
 	var ret = null;
 	switch( (contentType)[1] ) {
 	case 0:
-		var ac = new ui.model.AudioContent();
+		var ac = new qoid.model.AudioContent();
 		ac.props.audioSrc = js.Boot.__cast(data , String);
 		ret = ac;
 		break;
 	case 1:
-		var ic = new ui.model.ImageContent();
+		var ic = new qoid.model.ImageContent();
 		ic.props.imgSrc = js.Boot.__cast(data , String);
 		ret = ic;
 		break;
 	case 3:
-		var mc = new ui.model.MessageContent();
+		var mc = new qoid.model.MessageContent();
 		mc.props.text = js.Boot.__cast(data , String);
 		ret = mc;
 		break;
 	case 2:
-		var uc = new ui.model.UrlContent();
+		var uc = new qoid.model.UrlContent();
 		uc.props.url = js.Boot.__cast(data , String);
 		ret = uc;
 		break;
 	}
 	return ret;
 }
-ui.model.LabeledContent = function(contentIid,labelIid) {
-	ui.model.ModelObjWithIid.call(this);
+qoid.model.LabeledContent = function(contentIid,labelIid) {
+	qoid.model.ModelObjWithIid.call(this);
 	this.contentIid = contentIid;
 	this.labelIid = labelIid;
 };
-$hxClasses["ui.model.LabeledContent"] = ui.model.LabeledContent;
-ui.model.LabeledContent.__name__ = ["ui","model","LabeledContent"];
-ui.model.LabeledContent.identifier = function(l) {
+$hxClasses["qoid.model.LabeledContent"] = qoid.model.LabeledContent;
+qoid.model.LabeledContent.__name__ = ["qoid","model","LabeledContent"];
+qoid.model.LabeledContent.identifier = function(l) {
 	return l.iid;
 }
-ui.model.LabeledContent.__super__ = ui.model.ModelObjWithIid;
-ui.model.LabeledContent.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
-	__class__: ui.model.LabeledContent
+qoid.model.LabeledContent.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabeledContent.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabeledContent
 });
-ui.model.ContentData = function() {
+qoid.model.ContentData = function() {
 	this.created = new Date();
 	this.modified = new Date();
 };
-$hxClasses["ui.model.ContentData"] = ui.model.ContentData;
-ui.model.ContentData.__name__ = ["ui","model","ContentData"];
-ui.model.ContentData.prototype = {
-	__class__: ui.model.ContentData
+$hxClasses["qoid.model.ContentData"] = qoid.model.ContentData;
+qoid.model.ContentData.__name__ = ["qoid","model","ContentData"];
+qoid.model.ContentData.prototype = {
+	__class__: qoid.model.ContentData
 }
-ui.model.Content = function(contentType,type) {
-	ui.model.ModelObjWithIid.call(this);
+qoid.model.Content = function(contentType,type) {
+	qoid.model.ModelObjWithIid.call(this);
 	this.contentType = contentType;
-	this.aliasIid = ui.AppContext.currentAlias == null?null:ui.AppContext.currentAlias.iid;
+	this.aliasIid = qoid.AppContext.currentAlias == null?null:qoid.AppContext.currentAlias.iid;
 	this.data = { };
 	this.type = type;
 	this.props = Type.createInstance(type,[]);
 };
-$hxClasses["ui.model.Content"] = ui.model.Content;
-ui.model.Content.__name__ = ["ui","model","Content"];
-ui.model.Content.__super__ = ui.model.ModelObjWithIid;
-ui.model.Content.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
+$hxClasses["qoid.model.Content"] = qoid.model.Content;
+qoid.model.Content.__name__ = ["qoid","model","Content"];
+qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	objectType: function() {
 		return "content";
 	}
@@ -6079,10 +6079,10 @@ ui.model.Content.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
 		return DateTools.format(this.get_created(),"%Y-%m-%d %T");
 	}
 	,writeResolve: function() {
-		this.data = ui.AppContext.SERIALIZER.toJson(this.props);
+		this.data = qoid.AppContext.SERIALIZER.toJson(this.props);
 	}
 	,readResolve: function() {
-		this.props = ui.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
+		this.props = qoid.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
 	}
 	,setData: function(data) {
 		this.data = data;
@@ -6093,92 +6093,92 @@ ui.model.Content.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
 	,get_created: function() {
 		return this.props.created;
 	}
-	,__class__: ui.model.Content
+	,__class__: qoid.model.Content
 });
-ui.model.ImageContentData = function() {
-	ui.model.ContentData.call(this);
+qoid.model.ImageContentData = function() {
+	qoid.model.ContentData.call(this);
 };
-$hxClasses["ui.model.ImageContentData"] = ui.model.ImageContentData;
-ui.model.ImageContentData.__name__ = ["ui","model","ImageContentData"];
-ui.model.ImageContentData.__super__ = ui.model.ContentData;
-ui.model.ImageContentData.prototype = $extend(ui.model.ContentData.prototype,{
-	__class__: ui.model.ImageContentData
+$hxClasses["qoid.model.ImageContentData"] = qoid.model.ImageContentData;
+qoid.model.ImageContentData.__name__ = ["qoid","model","ImageContentData"];
+qoid.model.ImageContentData.__super__ = qoid.model.ContentData;
+qoid.model.ImageContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.ImageContentData
 });
-ui.model.ImageContent = function() {
-	ui.model.Content.call(this,ui.model.ContentType.IMAGE,ui.model.ImageContentData);
+qoid.model.ImageContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.IMAGE,qoid.model.ImageContentData);
 };
-$hxClasses["ui.model.ImageContent"] = ui.model.ImageContent;
-ui.model.ImageContent.__name__ = ["ui","model","ImageContent"];
-ui.model.ImageContent.__super__ = ui.model.Content;
-ui.model.ImageContent.prototype = $extend(ui.model.Content.prototype,{
-	__class__: ui.model.ImageContent
+$hxClasses["qoid.model.ImageContent"] = qoid.model.ImageContent;
+qoid.model.ImageContent.__name__ = ["qoid","model","ImageContent"];
+qoid.model.ImageContent.__super__ = qoid.model.Content;
+qoid.model.ImageContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.ImageContent
 });
-ui.model.AudioContentData = function() {
-	ui.model.ContentData.call(this);
+qoid.model.AudioContentData = function() {
+	qoid.model.ContentData.call(this);
 };
-$hxClasses["ui.model.AudioContentData"] = ui.model.AudioContentData;
-ui.model.AudioContentData.__name__ = ["ui","model","AudioContentData"];
-ui.model.AudioContentData.__super__ = ui.model.ContentData;
-ui.model.AudioContentData.prototype = $extend(ui.model.ContentData.prototype,{
-	__class__: ui.model.AudioContentData
+$hxClasses["qoid.model.AudioContentData"] = qoid.model.AudioContentData;
+qoid.model.AudioContentData.__name__ = ["qoid","model","AudioContentData"];
+qoid.model.AudioContentData.__super__ = qoid.model.ContentData;
+qoid.model.AudioContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.AudioContentData
 });
-ui.model.AudioContent = function() {
-	ui.model.Content.call(this,ui.model.ContentType.AUDIO,ui.model.AudioContentData);
+qoid.model.AudioContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.AUDIO,qoid.model.AudioContentData);
 };
-$hxClasses["ui.model.AudioContent"] = ui.model.AudioContent;
-ui.model.AudioContent.__name__ = ["ui","model","AudioContent"];
-ui.model.AudioContent.__super__ = ui.model.Content;
-ui.model.AudioContent.prototype = $extend(ui.model.Content.prototype,{
-	__class__: ui.model.AudioContent
+$hxClasses["qoid.model.AudioContent"] = qoid.model.AudioContent;
+qoid.model.AudioContent.__name__ = ["qoid","model","AudioContent"];
+qoid.model.AudioContent.__super__ = qoid.model.Content;
+qoid.model.AudioContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.AudioContent
 });
-ui.model.MessageContentData = function() {
-	ui.model.ContentData.call(this);
+qoid.model.MessageContentData = function() {
+	qoid.model.ContentData.call(this);
 };
-$hxClasses["ui.model.MessageContentData"] = ui.model.MessageContentData;
-ui.model.MessageContentData.__name__ = ["ui","model","MessageContentData"];
-ui.model.MessageContentData.__super__ = ui.model.ContentData;
-ui.model.MessageContentData.prototype = $extend(ui.model.ContentData.prototype,{
-	__class__: ui.model.MessageContentData
+$hxClasses["qoid.model.MessageContentData"] = qoid.model.MessageContentData;
+qoid.model.MessageContentData.__name__ = ["qoid","model","MessageContentData"];
+qoid.model.MessageContentData.__super__ = qoid.model.ContentData;
+qoid.model.MessageContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.MessageContentData
 });
-ui.model.MessageContent = function() {
-	ui.model.Content.call(this,ui.model.ContentType.TEXT,ui.model.MessageContentData);
+qoid.model.MessageContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.TEXT,qoid.model.MessageContentData);
 };
-$hxClasses["ui.model.MessageContent"] = ui.model.MessageContent;
-ui.model.MessageContent.__name__ = ["ui","model","MessageContent"];
-ui.model.MessageContent.__super__ = ui.model.Content;
-ui.model.MessageContent.prototype = $extend(ui.model.Content.prototype,{
-	__class__: ui.model.MessageContent
+$hxClasses["qoid.model.MessageContent"] = qoid.model.MessageContent;
+qoid.model.MessageContent.__name__ = ["qoid","model","MessageContent"];
+qoid.model.MessageContent.__super__ = qoid.model.Content;
+qoid.model.MessageContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.MessageContent
 });
-ui.model.UrlContentData = function() {
-	ui.model.ContentData.call(this);
+qoid.model.UrlContentData = function() {
+	qoid.model.ContentData.call(this);
 };
-$hxClasses["ui.model.UrlContentData"] = ui.model.UrlContentData;
-ui.model.UrlContentData.__name__ = ["ui","model","UrlContentData"];
-ui.model.UrlContentData.__super__ = ui.model.ContentData;
-ui.model.UrlContentData.prototype = $extend(ui.model.ContentData.prototype,{
-	__class__: ui.model.UrlContentData
+$hxClasses["qoid.model.UrlContentData"] = qoid.model.UrlContentData;
+qoid.model.UrlContentData.__name__ = ["qoid","model","UrlContentData"];
+qoid.model.UrlContentData.__super__ = qoid.model.ContentData;
+qoid.model.UrlContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.UrlContentData
 });
-ui.model.UrlContent = function() {
-	ui.model.Content.call(this,ui.model.ContentType.URL,ui.model.UrlContentData);
+qoid.model.UrlContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.URL,qoid.model.UrlContentData);
 };
-$hxClasses["ui.model.UrlContent"] = ui.model.UrlContent;
-ui.model.UrlContent.__name__ = ["ui","model","UrlContent"];
-ui.model.UrlContent.__super__ = ui.model.Content;
-ui.model.UrlContent.prototype = $extend(ui.model.Content.prototype,{
-	__class__: ui.model.UrlContent
+$hxClasses["qoid.model.UrlContent"] = qoid.model.UrlContent;
+qoid.model.UrlContent.__name__ = ["qoid","model","UrlContent"];
+qoid.model.UrlContent.__super__ = qoid.model.Content;
+qoid.model.UrlContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.UrlContent
 });
-ui.model.NotificationHandler = function() {
+qoid.model.NotificationHandler = function() {
 };
-$hxClasses["ui.model.NotificationHandler"] = ui.model.NotificationHandler;
-ui.model.NotificationHandler.__name__ = ["ui","model","NotificationHandler"];
-ui.model.NotificationHandler.__interfaces__ = [m3.serialization.TypeHandler];
-ui.model.NotificationHandler.prototype = {
+$hxClasses["qoid.model.NotificationHandler"] = qoid.model.NotificationHandler;
+qoid.model.NotificationHandler.__name__ = ["qoid","model","NotificationHandler"];
+qoid.model.NotificationHandler.__interfaces__ = [m3.serialization.TypeHandler];
+qoid.model.NotificationHandler.prototype = {
 	write: function(value,writer) {
-		return ui.AppContext.SERIALIZER.toJson(value);
+		return qoid.AppContext.SERIALIZER.toJson(value);
 	}
 	,read: function(fromJson,reader,instance) {
 		var obj = null;
-		var _g = Type.createEnum(ui.model.NotificationKind,fromJson.kind,null);
+		var _g = Type.createEnum(qoid.model.NotificationKind,fromJson.kind,null);
 		switch( (_g)[1] ) {
 		case 0:
 			obj = null;
@@ -6187,153 +6187,153 @@ ui.model.NotificationHandler.prototype = {
 			obj = null;
 			break;
 		case 2:
-			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.IntroductionRequestNotification);
+			obj = qoid.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.IntroductionRequestNotification);
 			break;
 		case 3:
-			obj = ui.AppContext.SERIALIZER.fromJsonX(fromJson,ui.model.IntroductionResponseNotification);
+			obj = qoid.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.IntroductionResponseNotification);
 			break;
 		}
 		return obj;
 	}
-	,__class__: ui.model.NotificationHandler
+	,__class__: qoid.model.NotificationHandler
 }
-ui.model.NotificationKind = $hxClasses["ui.model.NotificationKind"] = { __ename__ : ["ui","model","NotificationKind"], __constructs__ : ["Ping","Pong","IntroductionRequest","IntroductionResponse"] }
-ui.model.NotificationKind.Ping = ["Ping",0];
-ui.model.NotificationKind.Ping.toString = $estr;
-ui.model.NotificationKind.Ping.__enum__ = ui.model.NotificationKind;
-ui.model.NotificationKind.Pong = ["Pong",1];
-ui.model.NotificationKind.Pong.toString = $estr;
-ui.model.NotificationKind.Pong.__enum__ = ui.model.NotificationKind;
-ui.model.NotificationKind.IntroductionRequest = ["IntroductionRequest",2];
-ui.model.NotificationKind.IntroductionRequest.toString = $estr;
-ui.model.NotificationKind.IntroductionRequest.__enum__ = ui.model.NotificationKind;
-ui.model.NotificationKind.IntroductionResponse = ["IntroductionResponse",3];
-ui.model.NotificationKind.IntroductionResponse.toString = $estr;
-ui.model.NotificationKind.IntroductionResponse.__enum__ = ui.model.NotificationKind;
-ui.model.Notification = function(kind,type) {
-	ui.model.ModelObjWithIid.call(this);
+qoid.model.NotificationKind = $hxClasses["qoid.model.NotificationKind"] = { __ename__ : ["qoid","model","NotificationKind"], __constructs__ : ["Ping","Pong","IntroductionRequest","IntroductionResponse"] }
+qoid.model.NotificationKind.Ping = ["Ping",0];
+qoid.model.NotificationKind.Ping.toString = $estr;
+qoid.model.NotificationKind.Ping.__enum__ = qoid.model.NotificationKind;
+qoid.model.NotificationKind.Pong = ["Pong",1];
+qoid.model.NotificationKind.Pong.toString = $estr;
+qoid.model.NotificationKind.Pong.__enum__ = qoid.model.NotificationKind;
+qoid.model.NotificationKind.IntroductionRequest = ["IntroductionRequest",2];
+qoid.model.NotificationKind.IntroductionRequest.toString = $estr;
+qoid.model.NotificationKind.IntroductionRequest.__enum__ = qoid.model.NotificationKind;
+qoid.model.NotificationKind.IntroductionResponse = ["IntroductionResponse",3];
+qoid.model.NotificationKind.IntroductionResponse.toString = $estr;
+qoid.model.NotificationKind.IntroductionResponse.__enum__ = qoid.model.NotificationKind;
+qoid.model.Notification = function(kind,type) {
+	qoid.model.ModelObjWithIid.call(this);
 	this.kind = kind;
 	this.data = { };
 	this.type = type;
 	this.props = Type.createInstance(type,[]);
 };
-$hxClasses["ui.model.Notification"] = ui.model.Notification;
-ui.model.Notification.__name__ = ["ui","model","Notification"];
-ui.model.Notification.__super__ = ui.model.ModelObjWithIid;
-ui.model.Notification.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
+$hxClasses["qoid.model.Notification"] = qoid.model.Notification;
+qoid.model.Notification.__name__ = ["qoid","model","Notification"];
+qoid.model.Notification.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Notification.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	writeResolve: function() {
-		this.data = ui.AppContext.SERIALIZER.toJson(this.props);
+		this.data = qoid.AppContext.SERIALIZER.toJson(this.props);
 	}
 	,readResolve: function() {
-		this.props = ui.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
+		this.props = qoid.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
 	}
-	,__class__: ui.model.Notification
+	,__class__: qoid.model.Notification
 });
-ui.model.IntroductionState = $hxClasses["ui.model.IntroductionState"] = { __ename__ : ["ui","model","IntroductionState"], __constructs__ : ["NotResponded","Accepted","Rejected"] }
-ui.model.IntroductionState.NotResponded = ["NotResponded",0];
-ui.model.IntroductionState.NotResponded.toString = $estr;
-ui.model.IntroductionState.NotResponded.__enum__ = ui.model.IntroductionState;
-ui.model.IntroductionState.Accepted = ["Accepted",1];
-ui.model.IntroductionState.Accepted.toString = $estr;
-ui.model.IntroductionState.Accepted.__enum__ = ui.model.IntroductionState;
-ui.model.IntroductionState.Rejected = ["Rejected",2];
-ui.model.IntroductionState.Rejected.toString = $estr;
-ui.model.IntroductionState.Rejected.__enum__ = ui.model.IntroductionState;
-ui.model.IntroductionRequest = function() {
-	ui.model.ModelObjWithIid.call(this);
+qoid.model.IntroductionState = $hxClasses["qoid.model.IntroductionState"] = { __ename__ : ["qoid","model","IntroductionState"], __constructs__ : ["NotResponded","Accepted","Rejected"] }
+qoid.model.IntroductionState.NotResponded = ["NotResponded",0];
+qoid.model.IntroductionState.NotResponded.toString = $estr;
+qoid.model.IntroductionState.NotResponded.__enum__ = qoid.model.IntroductionState;
+qoid.model.IntroductionState.Accepted = ["Accepted",1];
+qoid.model.IntroductionState.Accepted.toString = $estr;
+qoid.model.IntroductionState.Accepted.__enum__ = qoid.model.IntroductionState;
+qoid.model.IntroductionState.Rejected = ["Rejected",2];
+qoid.model.IntroductionState.Rejected.toString = $estr;
+qoid.model.IntroductionState.Rejected.__enum__ = qoid.model.IntroductionState;
+qoid.model.IntroductionRequest = function() {
+	qoid.model.ModelObjWithIid.call(this);
 };
-$hxClasses["ui.model.IntroductionRequest"] = ui.model.IntroductionRequest;
-ui.model.IntroductionRequest.__name__ = ["ui","model","IntroductionRequest"];
-ui.model.IntroductionRequest.__super__ = ui.model.ModelObjWithIid;
-ui.model.IntroductionRequest.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
-	__class__: ui.model.IntroductionRequest
+$hxClasses["qoid.model.IntroductionRequest"] = qoid.model.IntroductionRequest;
+qoid.model.IntroductionRequest.__name__ = ["qoid","model","IntroductionRequest"];
+qoid.model.IntroductionRequest.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.IntroductionRequest.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.IntroductionRequest
 });
-ui.model.Introduction = function() {
-	ui.model.ModelObjWithIid.call(this);
+qoid.model.Introduction = function() {
+	qoid.model.ModelObjWithIid.call(this);
 };
-$hxClasses["ui.model.Introduction"] = ui.model.Introduction;
-ui.model.Introduction.__name__ = ["ui","model","Introduction"];
-ui.model.Introduction.__super__ = ui.model.ModelObjWithIid;
-ui.model.Introduction.prototype = $extend(ui.model.ModelObjWithIid.prototype,{
-	__class__: ui.model.Introduction
+$hxClasses["qoid.model.Introduction"] = qoid.model.Introduction;
+qoid.model.Introduction.__name__ = ["qoid","model","Introduction"];
+qoid.model.Introduction.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Introduction.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Introduction
 });
-ui.model.IntroductionRequestNotification = function() {
-	ui.model.Notification.call(this,ui.model.NotificationKind.IntroductionRequest,ui.model.IntroductionRequestData);
+qoid.model.IntroductionRequestNotification = function() {
+	qoid.model.Notification.call(this,qoid.model.NotificationKind.IntroductionRequest,qoid.model.IntroductionRequestData);
 };
-$hxClasses["ui.model.IntroductionRequestNotification"] = ui.model.IntroductionRequestNotification;
-ui.model.IntroductionRequestNotification.__name__ = ["ui","model","IntroductionRequestNotification"];
-ui.model.IntroductionRequestNotification.__super__ = ui.model.Notification;
-ui.model.IntroductionRequestNotification.prototype = $extend(ui.model.Notification.prototype,{
-	__class__: ui.model.IntroductionRequestNotification
+$hxClasses["qoid.model.IntroductionRequestNotification"] = qoid.model.IntroductionRequestNotification;
+qoid.model.IntroductionRequestNotification.__name__ = ["qoid","model","IntroductionRequestNotification"];
+qoid.model.IntroductionRequestNotification.__super__ = qoid.model.Notification;
+qoid.model.IntroductionRequestNotification.prototype = $extend(qoid.model.Notification.prototype,{
+	__class__: qoid.model.IntroductionRequestNotification
 });
-ui.model.IntroductionRequestData = function() { }
-$hxClasses["ui.model.IntroductionRequestData"] = ui.model.IntroductionRequestData;
-ui.model.IntroductionRequestData.__name__ = ["ui","model","IntroductionRequestData"];
-ui.model.IntroductionRequestData.prototype = {
-	__class__: ui.model.IntroductionRequestData
+qoid.model.IntroductionRequestData = function() { }
+$hxClasses["qoid.model.IntroductionRequestData"] = qoid.model.IntroductionRequestData;
+qoid.model.IntroductionRequestData.__name__ = ["qoid","model","IntroductionRequestData"];
+qoid.model.IntroductionRequestData.prototype = {
+	__class__: qoid.model.IntroductionRequestData
 }
-ui.model.IntroductionResponseNotification = function(introductionIid,accepted) {
-	ui.model.Notification.call(this,ui.model.NotificationKind.IntroductionResponse,ui.model.IntroductionResponseData);
+qoid.model.IntroductionResponseNotification = function(introductionIid,accepted) {
+	qoid.model.Notification.call(this,qoid.model.NotificationKind.IntroductionResponse,qoid.model.IntroductionResponseData);
 	this.props.introductionIid = introductionIid;
 	this.props.accepted = accepted;
 };
-$hxClasses["ui.model.IntroductionResponseNotification"] = ui.model.IntroductionResponseNotification;
-ui.model.IntroductionResponseNotification.__name__ = ["ui","model","IntroductionResponseNotification"];
-ui.model.IntroductionResponseNotification.__super__ = ui.model.Notification;
-ui.model.IntroductionResponseNotification.prototype = $extend(ui.model.Notification.prototype,{
-	__class__: ui.model.IntroductionResponseNotification
+$hxClasses["qoid.model.IntroductionResponseNotification"] = qoid.model.IntroductionResponseNotification;
+qoid.model.IntroductionResponseNotification.__name__ = ["qoid","model","IntroductionResponseNotification"];
+qoid.model.IntroductionResponseNotification.__super__ = qoid.model.Notification;
+qoid.model.IntroductionResponseNotification.prototype = $extend(qoid.model.Notification.prototype,{
+	__class__: qoid.model.IntroductionResponseNotification
 });
-ui.model.IntroductionResponseData = function() { }
-$hxClasses["ui.model.IntroductionResponseData"] = ui.model.IntroductionResponseData;
-ui.model.IntroductionResponseData.__name__ = ["ui","model","IntroductionResponseData"];
-ui.model.IntroductionResponseData.prototype = {
-	__class__: ui.model.IntroductionResponseData
+qoid.model.IntroductionResponseData = function() { }
+$hxClasses["qoid.model.IntroductionResponseData"] = qoid.model.IntroductionResponseData;
+qoid.model.IntroductionResponseData.__name__ = ["qoid","model","IntroductionResponseData"];
+qoid.model.IntroductionResponseData.prototype = {
+	__class__: qoid.model.IntroductionResponseData
 }
-ui.model.Login = function() {
-	ui.model.ModelObj.call(this);
+qoid.model.Login = function() {
+	qoid.model.ModelObj.call(this);
 };
-$hxClasses["ui.model.Login"] = ui.model.Login;
-ui.model.Login.__name__ = ["ui","model","Login"];
-ui.model.Login.__super__ = ui.model.ModelObj;
-ui.model.Login.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.Login
+$hxClasses["qoid.model.Login"] = qoid.model.Login;
+qoid.model.Login.__name__ = ["qoid","model","Login"];
+qoid.model.Login.__super__ = qoid.model.ModelObj;
+qoid.model.Login.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.Login
 });
-ui.model.NewUser = function() {
-	ui.model.ModelObj.call(this);
+qoid.model.NewUser = function() {
+	qoid.model.ModelObj.call(this);
 };
-$hxClasses["ui.model.NewUser"] = ui.model.NewUser;
-ui.model.NewUser.__name__ = ["ui","model","NewUser"];
-ui.model.NewUser.__super__ = ui.model.ModelObj;
-ui.model.NewUser.prototype = $extend(ui.model.ModelObj.prototype,{
-	__class__: ui.model.NewUser
+$hxClasses["qoid.model.NewUser"] = qoid.model.NewUser;
+qoid.model.NewUser.__name__ = ["qoid","model","NewUser"];
+qoid.model.NewUser.__super__ = qoid.model.ModelObj;
+qoid.model.NewUser.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.NewUser
 });
-ui.model.EditLabelData = function(label,parentIid,newParentId) {
+qoid.model.EditLabelData = function(label,parentIid,newParentId) {
 	this.label = label;
 	this.parentIid = parentIid;
 	this.newParentId = newParentId;
 };
-$hxClasses["ui.model.EditLabelData"] = ui.model.EditLabelData;
-ui.model.EditLabelData.__name__ = ["ui","model","EditLabelData"];
-ui.model.EditLabelData.prototype = {
-	__class__: ui.model.EditLabelData
+$hxClasses["qoid.model.EditLabelData"] = qoid.model.EditLabelData;
+qoid.model.EditLabelData.__name__ = ["qoid","model","EditLabelData"];
+qoid.model.EditLabelData.prototype = {
+	__class__: qoid.model.EditLabelData
 }
-ui.model.EditContentData = function(content,labelIids) {
+qoid.model.EditContentData = function(content,labelIids) {
 	this.content = content;
 	if(labelIids == null) labelIids = new Array();
 	this.labelIids = labelIids;
 };
-$hxClasses["ui.model.EditContentData"] = ui.model.EditContentData;
-ui.model.EditContentData.__name__ = ["ui","model","EditContentData"];
-ui.model.EditContentData.prototype = {
-	__class__: ui.model.EditContentData
+$hxClasses["qoid.model.EditContentData"] = qoid.model.EditContentData;
+qoid.model.EditContentData.__name__ = ["qoid","model","EditContentData"];
+qoid.model.EditContentData.prototype = {
+	__class__: qoid.model.EditContentData
 }
-ui.model.Node = function(type) {
+qoid.model.Node = function(type) {
 	this.type = "ROOT";
 	if(type != null) this.type = type;
 };
-$hxClasses["ui.model.Node"] = ui.model.Node;
-ui.model.Node.__name__ = ["ui","model","Node"];
-ui.model.Node.prototype = {
+$hxClasses["qoid.model.Node"] = qoid.model.Node;
+qoid.model.Node.__name__ = ["qoid","model","Node"];
+qoid.model.Node.prototype = {
 	getQuery: function() {
 		return "";
 	}
@@ -6343,55 +6343,55 @@ ui.model.Node.prototype = {
 	,addNode: function(n) {
 		this.nodes.push(n);
 	}
-	,__class__: ui.model.Node
+	,__class__: qoid.model.Node
 }
-ui.model.And = function() {
-	ui.model.Node.call(this,"AND");
+qoid.model.And = function() {
+	qoid.model.Node.call(this,"AND");
 	this.nodes = new Array();
 };
-$hxClasses["ui.model.And"] = ui.model.And;
-ui.model.And.__name__ = ["ui","model","And"];
-ui.model.And.__super__ = ui.model.Node;
-ui.model.And.prototype = $extend(ui.model.Node.prototype,{
+$hxClasses["qoid.model.And"] = qoid.model.And;
+qoid.model.And.__name__ = ["qoid","model","And"];
+qoid.model.And.__super__ = qoid.model.Node;
+qoid.model.And.prototype = $extend(qoid.model.Node.prototype,{
 	getQuery: function() {
 		return " AND ";
 	}
-	,__class__: ui.model.And
+	,__class__: qoid.model.And
 });
-ui.model.Or = function() {
-	ui.model.Node.call(this,"OR");
+qoid.model.Or = function() {
+	qoid.model.Node.call(this,"OR");
 	this.nodes = new Array();
 };
-$hxClasses["ui.model.Or"] = ui.model.Or;
-ui.model.Or.__name__ = ["ui","model","Or"];
-ui.model.Or.__super__ = ui.model.Node;
-ui.model.Or.prototype = $extend(ui.model.Node.prototype,{
+$hxClasses["qoid.model.Or"] = qoid.model.Or;
+qoid.model.Or.__name__ = ["qoid","model","Or"];
+qoid.model.Or.__super__ = qoid.model.Node;
+qoid.model.Or.prototype = $extend(qoid.model.Node.prototype,{
 	getQuery: function() {
 		return " OR ";
 	}
-	,__class__: ui.model.Or
+	,__class__: qoid.model.Or
 });
-ui.model.ContentNode = function(type,content) {
-	ui.model.Node.call(this,type);
+qoid.model.ContentNode = function(type,content) {
+	qoid.model.Node.call(this,type);
 	this.content = content;
 };
-$hxClasses["ui.model.ContentNode"] = ui.model.ContentNode;
-ui.model.ContentNode.__name__ = ["ui","model","ContentNode"];
-ui.model.ContentNode.__super__ = ui.model.Node;
-ui.model.ContentNode.prototype = $extend(ui.model.Node.prototype,{
+$hxClasses["qoid.model.ContentNode"] = qoid.model.ContentNode;
+qoid.model.ContentNode.__name__ = ["qoid","model","ContentNode"];
+qoid.model.ContentNode.__super__ = qoid.model.Node;
+qoid.model.ContentNode.prototype = $extend(qoid.model.Node.prototype,{
 	hasChildren: function() {
 		return false;
 	}
-	,__class__: ui.model.ContentNode
+	,__class__: qoid.model.ContentNode
 });
-ui.model.LabelNode = function(label,labelPath) {
-	ui.model.ContentNode.call(this,"LABEL",label);
+qoid.model.LabelNode = function(label,labelPath) {
+	qoid.model.ContentNode.call(this,"LABEL",label);
 	this.labelPath = labelPath;
 };
-$hxClasses["ui.model.LabelNode"] = ui.model.LabelNode;
-ui.model.LabelNode.__name__ = ["ui","model","LabelNode"];
-ui.model.LabelNode.__super__ = ui.model.ContentNode;
-ui.model.LabelNode.prototype = $extend(ui.model.ContentNode.prototype,{
+$hxClasses["qoid.model.LabelNode"] = qoid.model.LabelNode;
+qoid.model.LabelNode.__name__ = ["qoid","model","LabelNode"];
+qoid.model.LabelNode.__super__ = qoid.model.ContentNode;
+qoid.model.LabelNode.prototype = $extend(qoid.model.ContentNode.prototype,{
 	getQuery: function() {
 		var ret = "hasLabelPath(";
 		var _g1 = 1, _g = this.labelPath.length;
@@ -6403,35 +6403,35 @@ ui.model.LabelNode.prototype = $extend(ui.model.ContentNode.prototype,{
 		ret += ")";
 		return ret;
 	}
-	,__class__: ui.model.LabelNode
+	,__class__: qoid.model.LabelNode
 });
-ui.model.ConnectionNode = function(connection) {
-	ui.model.ContentNode.call(this,"CONNECTION",connection);
+qoid.model.ConnectionNode = function(connection) {
+	qoid.model.ContentNode.call(this,"CONNECTION",connection);
 };
-$hxClasses["ui.model.ConnectionNode"] = ui.model.ConnectionNode;
-ui.model.ConnectionNode.__name__ = ["ui","model","ConnectionNode"];
-ui.model.ConnectionNode.__super__ = ui.model.ContentNode;
-ui.model.ConnectionNode.prototype = $extend(ui.model.ContentNode.prototype,{
+$hxClasses["qoid.model.ConnectionNode"] = qoid.model.ConnectionNode;
+qoid.model.ConnectionNode.__name__ = ["qoid","model","ConnectionNode"];
+qoid.model.ConnectionNode.__super__ = qoid.model.ContentNode;
+qoid.model.ConnectionNode.prototype = $extend(qoid.model.ContentNode.prototype,{
 	getQuery: function() {
 		return "";
 	}
-	,__class__: ui.model.ConnectionNode
+	,__class__: qoid.model.ConnectionNode
 });
-ui.widget = {}
-ui.widget.ConnectionAvatarHelper = function() { }
-$hxClasses["ui.widget.ConnectionAvatarHelper"] = ui.widget.ConnectionAvatarHelper;
-ui.widget.ConnectionAvatarHelper.__name__ = ["ui","widget","ConnectionAvatarHelper"];
-ui.widget.ConnectionAvatarHelper.getConnection = function(c) {
+qoid.widget = {}
+qoid.widget.ConnectionAvatarHelper = function() { }
+$hxClasses["qoid.widget.ConnectionAvatarHelper"] = qoid.widget.ConnectionAvatarHelper;
+qoid.widget.ConnectionAvatarHelper.__name__ = ["qoid","widget","ConnectionAvatarHelper"];
+qoid.widget.ConnectionAvatarHelper.getConnection = function(c) {
 	return c.connectionAvatar("getConnection");
 }
-ui.widget.ConnectionAvatarHelper.getAlias = function(c) {
+qoid.widget.ConnectionAvatarHelper.getAlias = function(c) {
 	return c.connectionAvatar("getAlias");
 }
-ui.widget.DialogManager = function() { }
-$hxClasses["ui.widget.DialogManager"] = ui.widget.DialogManager;
-$hxExpose(ui.widget.DialogManager, "ui.widget.DialogManager");
-ui.widget.DialogManager.__name__ = ["ui","widget","DialogManager"];
-ui.widget.DialogManager.showDialog = function(dialogFcnName,options) {
+qoid.widget.DialogManager = function() { }
+$hxClasses["qoid.widget.DialogManager"] = qoid.widget.DialogManager;
+$hxExpose(qoid.widget.DialogManager, "qoid.widget.DialogManager");
+qoid.widget.DialogManager.__name__ = ["qoid","widget","DialogManager"];
+qoid.widget.DialogManager.showDialog = function(dialogFcnName,options) {
 	if(options == null) options = { };
 	var selector = "." + dialogFcnName;
 	var dialog = new $(selector);
@@ -6452,119 +6452,119 @@ ui.widget.DialogManager.showDialog = function(dialogFcnName,options) {
 		field.apply(dialog,["open"]);
 	}
 }
-ui.widget.DialogManager.showLogin = function() {
-	ui.widget.DialogManager.showDialog("loginDialog");
+qoid.widget.DialogManager.showLogin = function() {
+	qoid.widget.DialogManager.showDialog("loginDialog");
 }
-ui.widget.DialogManager.showCreateAgent = function() {
-	ui.widget.DialogManager.showDialog("createAgentDialog");
+qoid.widget.DialogManager.showCreateAgent = function() {
+	qoid.widget.DialogManager.showDialog("createAgentDialog");
 }
-ui.widget.DialogManager.requestIntroduction = function(from,to) {
+qoid.widget.DialogManager.requestIntroduction = function(from,to) {
 	var options = { };
 	options.from = from;
 	options.to = to;
-	ui.widget.DialogManager.showDialog("requestIntroductionDialog",options);
+	qoid.widget.DialogManager.showDialog("requestIntroductionDialog",options);
 }
-ui.widget.DialogManager.showAliasManager = function() {
-	ui.widget.DialogManager.showDialog("aliasManagerDialog");
+qoid.widget.DialogManager.showAliasManager = function() {
+	qoid.widget.DialogManager.showDialog("aliasManagerDialog");
 }
-ui.widget.DialogManager.allowAccess = function(label,connection) {
+qoid.widget.DialogManager.allowAccess = function(label,connection) {
 	var options = { };
 	options.label = label;
 	options.connection = connection;
-	ui.widget.DialogManager.showDialog("allowAccessDialog",options);
+	qoid.widget.DialogManager.showDialog("allowAccessDialog",options);
 }
-ui.widget.DialogManager.revokeAccess = function(connection) {
+qoid.widget.DialogManager.revokeAccess = function(connection) {
 	var options = { };
 	options.connection = connection;
-	ui.widget.DialogManager.showDialog("revokeAccessDialog",options);
+	qoid.widget.DialogManager.showDialog("revokeAccessDialog",options);
 }
-ui.widget.LabelCompHelper = function() { }
-$hxClasses["ui.widget.LabelCompHelper"] = ui.widget.LabelCompHelper;
-ui.widget.LabelCompHelper.__name__ = ["ui","widget","LabelCompHelper"];
-ui.widget.LabelCompHelper.getLabel = function(l) {
+qoid.widget.LabelCompHelper = function() { }
+$hxClasses["qoid.widget.LabelCompHelper"] = qoid.widget.LabelCompHelper;
+qoid.widget.LabelCompHelper.__name__ = ["qoid","widget","LabelCompHelper"];
+qoid.widget.LabelCompHelper.getLabel = function(l) {
 	return l.labelComp("getLabel");
 }
-ui.widget.LabelCompHelper.parentIid = function(l) {
+qoid.widget.LabelCompHelper.parentIid = function(l) {
 	return l.labelComp("option","parentIid");
 }
-ui.widget.ChatOrientation = $hxClasses["ui.widget.ChatOrientation"] = { __ename__ : ["ui","widget","ChatOrientation"], __constructs__ : ["chatRight","chatLeft"] }
-ui.widget.ChatOrientation.chatRight = ["chatRight",0];
-ui.widget.ChatOrientation.chatRight.toString = $estr;
-ui.widget.ChatOrientation.chatRight.__enum__ = ui.widget.ChatOrientation;
-ui.widget.ChatOrientation.chatLeft = ["chatLeft",1];
-ui.widget.ChatOrientation.chatLeft.toString = $estr;
-ui.widget.ChatOrientation.chatLeft.__enum__ = ui.widget.ChatOrientation;
-ui.widget.ConnectionCompHelper = function() { }
-$hxClasses["ui.widget.ConnectionCompHelper"] = ui.widget.ConnectionCompHelper;
-ui.widget.ConnectionCompHelper.__name__ = ["ui","widget","ConnectionCompHelper"];
-ui.widget.ConnectionCompHelper.connection = function(c) {
+qoid.widget.ChatOrientation = $hxClasses["qoid.widget.ChatOrientation"] = { __ename__ : ["qoid","widget","ChatOrientation"], __constructs__ : ["chatRight","chatLeft"] }
+qoid.widget.ChatOrientation.chatRight = ["chatRight",0];
+qoid.widget.ChatOrientation.chatRight.toString = $estr;
+qoid.widget.ChatOrientation.chatRight.__enum__ = qoid.widget.ChatOrientation;
+qoid.widget.ChatOrientation.chatLeft = ["chatLeft",1];
+qoid.widget.ChatOrientation.chatLeft.toString = $estr;
+qoid.widget.ChatOrientation.chatLeft.__enum__ = qoid.widget.ChatOrientation;
+qoid.widget.ConnectionCompHelper = function() { }
+$hxClasses["qoid.widget.ConnectionCompHelper"] = qoid.widget.ConnectionCompHelper;
+qoid.widget.ConnectionCompHelper.__name__ = ["qoid","widget","ConnectionCompHelper"];
+qoid.widget.ConnectionCompHelper.connection = function(c) {
 	return c.connectionComp("option","connection");
 }
-ui.widget.ConnectionCompHelper.update = function(c,connection) {
+qoid.widget.ConnectionCompHelper.update = function(c,connection) {
 	return c.connectionComp("update",connection);
 }
-ui.widget.ConnectionCompHelper.addNotification = function(c) {
+qoid.widget.ConnectionCompHelper.addNotification = function(c) {
 	return c.connectionComp("addNotification");
 }
-ui.widget.ConnectionCompHelper.deleteNotification = function(c) {
+qoid.widget.ConnectionCompHelper.deleteNotification = function(c) {
 	return c.connectionComp("deleteNotification");
 }
-ui.widget.ConnectionListHelper = function() { }
-$hxClasses["ui.widget.ConnectionListHelper"] = ui.widget.ConnectionListHelper;
-ui.widget.ConnectionListHelper.__name__ = ["ui","widget","ConnectionListHelper"];
-ui.widget.ConnectionListHelper.filterConnections = function(c,term) {
+qoid.widget.ConnectionListHelper = function() { }
+$hxClasses["qoid.widget.ConnectionListHelper"] = qoid.widget.ConnectionListHelper;
+qoid.widget.ConnectionListHelper.__name__ = ["qoid","widget","ConnectionListHelper"];
+qoid.widget.ConnectionListHelper.filterConnections = function(c,term) {
 	c.connectionsList("filterConnections",term);
 }
-ui.widget.ContentCompHelper = function() { }
-$hxClasses["ui.widget.ContentCompHelper"] = ui.widget.ContentCompHelper;
-ui.widget.ContentCompHelper.__name__ = ["ui","widget","ContentCompHelper"];
-ui.widget.ContentCompHelper.content = function(cc) {
+qoid.widget.ContentCompHelper = function() { }
+$hxClasses["qoid.widget.ContentCompHelper"] = qoid.widget.ContentCompHelper;
+qoid.widget.ContentCompHelper.__name__ = ["qoid","widget","ContentCompHelper"];
+qoid.widget.ContentCompHelper.content = function(cc) {
 	return cc.contentComp("option","content");
 }
-ui.widget.ContentCompHelper.update = function(cc,c) {
+qoid.widget.ContentCompHelper.update = function(cc,c) {
 	return cc.contentComp("update",c);
 }
-ui.widget.UploadCompHelper = function() { }
-$hxClasses["ui.widget.UploadCompHelper"] = ui.widget.UploadCompHelper;
-ui.widget.UploadCompHelper.__name__ = ["ui","widget","UploadCompHelper"];
-ui.widget.UploadCompHelper.value = function(m) {
+qoid.widget.UploadCompHelper = function() { }
+$hxClasses["qoid.widget.UploadCompHelper"] = qoid.widget.UploadCompHelper;
+qoid.widget.UploadCompHelper.__name__ = ["qoid","widget","UploadCompHelper"];
+qoid.widget.UploadCompHelper.value = function(m) {
 	return m.uploadComp("value");
 }
-ui.widget.UploadCompHelper.clear = function(m) {
+qoid.widget.UploadCompHelper.clear = function(m) {
 	m.uploadComp("clear");
 }
-ui.widget.UploadCompHelper.setPreviewImage = function(m,src) {
+qoid.widget.UploadCompHelper.setPreviewImage = function(m,src) {
 	m.uploadComp("setPreviewImage",src);
 }
-ui.widget.UrlCompHelper = function() { }
-$hxClasses["ui.widget.UrlCompHelper"] = ui.widget.UrlCompHelper;
-ui.widget.UrlCompHelper.__name__ = ["ui","widget","UrlCompHelper"];
-ui.widget.UrlCompHelper.urlInput = function(m) {
+qoid.widget.UrlCompHelper = function() { }
+$hxClasses["qoid.widget.UrlCompHelper"] = qoid.widget.UrlCompHelper;
+qoid.widget.UrlCompHelper.__name__ = ["qoid","widget","UrlCompHelper"];
+qoid.widget.UrlCompHelper.urlInput = function(m) {
 	return m.urlComp("valEle");
 }
-ui.widget.FilterCompHelper = function() { }
-$hxClasses["ui.widget.FilterCompHelper"] = ui.widget.FilterCompHelper;
-ui.widget.FilterCompHelper.__name__ = ["ui","widget","FilterCompHelper"];
-ui.widget.FilterCompHelper.fireFilter = function(f) {
+qoid.widget.FilterCompHelper = function() { }
+$hxClasses["qoid.widget.FilterCompHelper"] = qoid.widget.FilterCompHelper;
+qoid.widget.FilterCompHelper.__name__ = ["qoid","widget","FilterCompHelper"];
+qoid.widget.FilterCompHelper.fireFilter = function(f) {
 	f.filterComp("fireFilter");
 }
-ui.widget.LiveBuildToggleHelper = function() { }
-$hxClasses["ui.widget.LiveBuildToggleHelper"] = ui.widget.LiveBuildToggleHelper;
-ui.widget.LiveBuildToggleHelper.__name__ = ["ui","widget","LiveBuildToggleHelper"];
-ui.widget.LiveBuildToggleHelper.isLive = function(l) {
+qoid.widget.LiveBuildToggleHelper = function() { }
+$hxClasses["qoid.widget.LiveBuildToggleHelper"] = qoid.widget.LiveBuildToggleHelper;
+qoid.widget.LiveBuildToggleHelper.__name__ = ["qoid","widget","LiveBuildToggleHelper"];
+qoid.widget.LiveBuildToggleHelper.isLive = function(l) {
 	return l.liveBuildToggle("isLive");
 }
-ui.widget.IntroductionNotificationCompHelper = function() { }
-$hxClasses["ui.widget.IntroductionNotificationCompHelper"] = ui.widget.IntroductionNotificationCompHelper;
-ui.widget.IntroductionNotificationCompHelper.__name__ = ["ui","widget","IntroductionNotificationCompHelper"];
-ui.widget.LabelsListHelper = function() { }
-$hxClasses["ui.widget.LabelsListHelper"] = ui.widget.LabelsListHelper;
-ui.widget.LabelsListHelper.__name__ = ["ui","widget","LabelsListHelper"];
-ui.widget.LabelsListHelper.getSelected = function(l) {
+qoid.widget.IntroductionNotificationCompHelper = function() { }
+$hxClasses["qoid.widget.IntroductionNotificationCompHelper"] = qoid.widget.IntroductionNotificationCompHelper;
+qoid.widget.IntroductionNotificationCompHelper.__name__ = ["qoid","widget","IntroductionNotificationCompHelper"];
+qoid.widget.LabelsListHelper = function() { }
+$hxClasses["qoid.widget.LabelsListHelper"] = qoid.widget.LabelsListHelper;
+qoid.widget.LabelsListHelper.__name__ = ["qoid","widget","LabelsListHelper"];
+qoid.widget.LabelsListHelper.getSelected = function(l) {
 	return l.labelsList("getSelected");
 }
-ui.widget.score = {}
-ui.widget.score.ContentTimeLine = function(paper,profile,startTime,endTime,initialWidth) {
+qoid.widget.score = {}
+qoid.widget.score.ContentTimeLine = function(paper,profile,startTime,endTime,initialWidth) {
 	this.paper = paper;
 	this.profile = profile;
 	this.startTime = startTime;
@@ -6572,10 +6572,10 @@ ui.widget.score.ContentTimeLine = function(paper,profile,startTime,endTime,initi
 	this.initialWidth = initialWidth;
 	this.contents = new Array();
 	this.contentElements = new Array();
-	if(ui.widget.score.ContentTimeLine.next_y_pos > ui.widget.score.ContentTimeLine.initial_y_pos) ui.widget.score.ContentTimeLine.next_y_pos += ui.widget.score.ContentTimeLine.height + 20;
-	ui.widget.score.ContentTimeLine.next_y_pos += 10;
-	this.time_line_x = ui.widget.score.ContentTimeLine.next_x_pos;
-	this.time_line_y = ui.widget.score.ContentTimeLine.next_y_pos;
+	if(qoid.widget.score.ContentTimeLine.next_y_pos > qoid.widget.score.ContentTimeLine.initial_y_pos) qoid.widget.score.ContentTimeLine.next_y_pos += qoid.widget.score.ContentTimeLine.height + 20;
+	qoid.widget.score.ContentTimeLine.next_y_pos += 10;
+	this.time_line_x = qoid.widget.score.ContentTimeLine.next_x_pos;
+	this.time_line_y = qoid.widget.score.ContentTimeLine.next_y_pos;
 	this.connectionElement = this.createConnectionElement();
 	this.timeLineElement = (function($this) {
 		var $r;
@@ -6585,16 +6585,16 @@ ui.widget.score.ContentTimeLine = function(paper,profile,startTime,endTime,initi
 		return $r;
 	}(this));
 };
-$hxClasses["ui.widget.score.ContentTimeLine"] = ui.widget.score.ContentTimeLine;
-ui.widget.score.ContentTimeLine.__name__ = ["ui","widget","score","ContentTimeLine"];
-ui.widget.score.ContentTimeLine.resetPositions = function() {
-	ui.widget.score.ContentTimeLine.next_y_pos = ui.widget.score.ContentTimeLine.initial_y_pos;
-	ui.widget.score.ContentTimeLine.next_x_pos = 10;
+$hxClasses["qoid.widget.score.ContentTimeLine"] = qoid.widget.score.ContentTimeLine;
+qoid.widget.score.ContentTimeLine.__name__ = ["qoid","widget","score","ContentTimeLine"];
+qoid.widget.score.ContentTimeLine.resetPositions = function() {
+	qoid.widget.score.ContentTimeLine.next_y_pos = qoid.widget.score.ContentTimeLine.initial_y_pos;
+	qoid.widget.score.ContentTimeLine.next_x_pos = 10;
 }
-ui.widget.score.ContentTimeLine.prototype = {
+qoid.widget.score.ContentTimeLine.prototype = {
 	createAudioElement: function(content,x,y,rx,ry) {
 		var ellipse = this.paper.ellipse(x,y,rx,ry).attr({ 'class' : "audioEllipse"});
-		var icon = ui.widget.score.Icons.audioIcon(ellipse.getBBox());
+		var icon = qoid.widget.score.Icons.audioIcon(ellipse.getBBox());
 		var g = (function($this) {
 			var $r;
 			var e123 = [ellipse,icon];
@@ -6606,8 +6606,8 @@ ui.widget.score.ContentTimeLine.prototype = {
 		return g;
 	}
 	,createLinkElement: function(content,x,y,radius) {
-		var hex = ui.widget.score.Shapes.createHexagon(this.paper,x,y,radius).attr({ 'class' : "urlContent"});
-		var icon = ui.widget.score.Icons.linkIcon(hex.getBBox());
+		var hex = qoid.widget.score.Shapes.createHexagon(this.paper,x,y,radius).attr({ 'class' : "urlContent"});
+		var icon = qoid.widget.score.Icons.linkIcon(hex.getBBox());
 		var g = (function($this) {
 			var $r;
 			var e123 = [hex,icon];
@@ -6621,7 +6621,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 	,createImageElement: function(content,x,y,ele_width,ele_height) {
 		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "imageContent"});
 		var bbox = { cx : x, cy : y, width : ele_height, height : ele_height};
-		var icon = ui.widget.score.Icons.imageIcon(bbox);
+		var icon = qoid.widget.score.Icons.imageIcon(bbox);
 		var g = (function($this) {
 			var $r;
 			var e123 = [rect,icon];
@@ -6635,7 +6635,7 @@ ui.widget.score.ContentTimeLine.prototype = {
 	,createTextElement: function(content,x,y,ele_width,ele_height) {
 		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "messageContent"});
 		var bbox = { cx : x, cy : y, width : ele_height, height : ele_height};
-		var icon = ui.widget.score.Icons.messageIcon(bbox);
+		var icon = qoid.widget.score.Icons.messageIcon(bbox);
 		var g = (function($this) {
 			var $r;
 			var e123 = [rect,icon];
@@ -6681,16 +6681,16 @@ ui.widget.score.ContentTimeLine.prototype = {
 					ele1 = _g.paper.ellipse(cx,cy,bbox.width / 2,bbox.height / 2).attr({ 'class' : "audioEllipse"});
 					break;
 				case "IMAGE":
-					ele1 = _g.paper.image((js.Boot.__cast(content , ui.model.ImageContent)).props.imgSrc,bbox.x,bbox.y,bbox.width,bbox.height).attr({ preserveAspectRatio : "true"});
+					ele1 = _g.paper.image((js.Boot.__cast(content , qoid.model.ImageContent)).props.imgSrc,bbox.x,bbox.y,bbox.width,bbox.height).attr({ preserveAspectRatio : "true"});
 					break;
 				case "URL":
-					ele1 = ui.widget.score.Shapes.createHexagon(_g.paper,cx,cy,bbox.width / 2).attr({ 'class' : "urlContent"});
+					ele1 = qoid.widget.score.Shapes.createHexagon(_g.paper,cx,cy,bbox.width / 2).attr({ 'class' : "urlContent"});
 					break;
 				case "TEXT":
 					ele1 = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,5,5).attr({ 'class' : "messageContentLarge"});
 					break;
 				default:
-					ui.AppContext.LOGGER.warn("Unknown Content Type: " + g_type);
+					qoid.AppContext.LOGGER.warn("Unknown Content Type: " + g_type);
 				}
 				var g = (function($this) {
 					var $r;
@@ -6707,13 +6707,13 @@ ui.widget.score.ContentTimeLine.prototype = {
 				});
 				switch(g_type) {
 				case "AUDIO":
-					ui.widget.score.ForeignObject.appendAudioContent(g_id,bbox,(js.Boot.__cast(content , ui.model.AudioContent)).props);
+					qoid.widget.score.ForeignObject.appendAudioContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.AudioContent)).props);
 					break;
 				case "URL":
-					ui.widget.score.ForeignObject.appendUrlContent(g_id,bbox,(js.Boot.__cast(content , ui.model.UrlContent)).props);
+					qoid.widget.score.ForeignObject.appendUrlContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.UrlContent)).props);
 					break;
 				case "TEXT":
-					ui.widget.score.ForeignObject.appendMessageContent(g_id,bbox,(js.Boot.__cast(content , ui.model.MessageContent)).props);
+					qoid.widget.score.ForeignObject.appendMessageContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.MessageContent)).props);
 					break;
 				}
 			};
@@ -6734,18 +6734,18 @@ ui.widget.score.ContentTimeLine.prototype = {
 	,createContentElement: function(content) {
 		var radius = 10;
 		var gap = 10;
-		var x = (this.endTime - content.get_created().getTime()) / (this.endTime - this.startTime) * this.initialWidth + this.time_line_x + ui.widget.score.ContentTimeLine.width;
-		var y = this.time_line_y + ui.widget.score.ContentTimeLine.height / 2;
+		var x = (this.endTime - content.get_created().getTime()) / (this.endTime - this.startTime) * this.initialWidth + this.time_line_x + qoid.widget.score.ContentTimeLine.width;
+		var y = this.time_line_y + qoid.widget.score.ContentTimeLine.height / 2;
 		var ele;
-		if(content.contentType == ui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , ui.model.MessageContent),x,y,40,40)); else if(content.contentType == ui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , ui.model.ImageContent),x,y,40,40)); else if(content.contentType == ui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , ui.model.UrlContent),x,y,20)); else if(content.contentType == ui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , ui.model.AudioContent),x,y,20,20));
+		if(content.contentType == qoid.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , qoid.model.MessageContent),x,y,40,40)); else if(content.contentType == qoid.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , qoid.model.ImageContent),x,y,40,40)); else if(content.contentType == qoid.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , qoid.model.UrlContent),x,y,20)); else if(content.contentType == qoid.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , qoid.model.AudioContent),x,y,20,20));
 	}
 	,addContent: function(content) {
 		this.contents.push(content);
 		this.createContentElement(content);
 	}
 	,createConnectionElement: function() {
-		var line = this.paper.line(this.time_line_x,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,this.initialWidth,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2).attr({ 'class' : "contentLine"});
-		var ellipse = this.paper.ellipse(this.time_line_x + ui.widget.score.ContentTimeLine.width / 2,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,ui.widget.score.ContentTimeLine.width / 2,ui.widget.score.ContentTimeLine.height / 2);
+		var line = this.paper.line(this.time_line_x,this.time_line_y + qoid.widget.score.ContentTimeLine.height / 2,this.initialWidth,this.time_line_y + qoid.widget.score.ContentTimeLine.height / 2).attr({ 'class' : "contentLine"});
+		var ellipse = this.paper.ellipse(this.time_line_x + qoid.widget.score.ContentTimeLine.width / 2,this.time_line_y + qoid.widget.score.ContentTimeLine.height / 2,qoid.widget.score.ContentTimeLine.width / 2,qoid.widget.score.ContentTimeLine.height / 2);
 		ellipse.attr({ fill : "#fff", stroke : "#000", strokeWidth : "1px"});
 		var imgSrc = (function($this) {
 			var $r;
@@ -6756,9 +6756,9 @@ ui.widget.score.ContentTimeLine.prototype = {
 			}
 			return $r;
 		}(this));
-		var img = this.paper.image(imgSrc,this.time_line_x,this.time_line_y,ui.widget.score.ContentTimeLine.width,ui.widget.score.ContentTimeLine.height).attr({ preserveAspectRatio : "true"});
+		var img = this.paper.image(imgSrc,this.time_line_x,this.time_line_y,qoid.widget.score.ContentTimeLine.width,qoid.widget.score.ContentTimeLine.height).attr({ preserveAspectRatio : "true"});
 		img.attr({ mask : ellipse});
-		var border_ellipse = this.paper.ellipse(this.time_line_x + ui.widget.score.ContentTimeLine.width / 2,this.time_line_y + ui.widget.score.ContentTimeLine.height / 2,ui.widget.score.ContentTimeLine.width / 2,ui.widget.score.ContentTimeLine.height / 2);
+		var border_ellipse = this.paper.ellipse(this.time_line_x + qoid.widget.score.ContentTimeLine.width / 2,this.time_line_y + qoid.widget.score.ContentTimeLine.height / 2,qoid.widget.score.ContentTimeLine.width / 2,qoid.widget.score.ContentTimeLine.height / 2);
 		var filter = this.paper.filter((function($this) {
 			var $r;
 			var dx1 = 4;
@@ -6782,40 +6782,40 @@ ui.widget.score.ContentTimeLine.prototype = {
 		var iter = HxOverrides.iter(this.contentElements);
 		while(iter.hasNext()) iter.next().remove();
 	}
-	,__class__: ui.widget.score.ContentTimeLine
+	,__class__: qoid.widget.score.ContentTimeLine
 }
-ui.widget.score.ForeignObject = function() { }
-$hxClasses["ui.widget.score.ForeignObject"] = ui.widget.score.ForeignObject;
-ui.widget.score.ForeignObject.__name__ = ["ui","widget","score","ForeignObject"];
-ui.widget.score.ForeignObject.createForeignObject = function(ele_id,bbox) {
+qoid.widget.score.ForeignObject = function() { }
+$hxClasses["qoid.widget.score.ForeignObject"] = qoid.widget.score.ForeignObject;
+qoid.widget.score.ForeignObject.__name__ = ["qoid","widget","score","ForeignObject"];
+qoid.widget.score.ForeignObject.createForeignObject = function(ele_id,bbox) {
 	var klone = d3.select("#" + ele_id);
 	var fo = klone.append("foreignObject").attr("width",Std.string(bbox.width - 21)).attr("height",bbox.height).attr("x",Std.string(bbox.x)).attr("y",Std.string(bbox.y)).append("xhtml:body");
 	return fo;
 }
-ui.widget.score.ForeignObject.appendMessageContent = function(ele_id,bbox,content) {
-	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+qoid.widget.score.ForeignObject.appendMessageContent = function(ele_id,bbox,content) {
+	var fo = qoid.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
 	fo.append("div").attr("class","messageContent-large-text").style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height) + "px").html(content.text);
 }
-ui.widget.score.ForeignObject.appendUrlContent = function(ele_id,bbox,content) {
+qoid.widget.score.ForeignObject.appendUrlContent = function(ele_id,bbox,content) {
 	bbox.y = bbox.y + bbox.height / 2 - 12;
 	bbox.x += 12;
-	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var fo = qoid.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
 	var div = fo.append("div").style("width",Std.string(bbox.width - 49) + "px").style("font-size","12px");
 	div.append("a").attr("href",content.url).attr("target","_blank").html(content.text).on("click",function() {
 		d3.event.stopPropagation();
 	});
 }
-ui.widget.score.ForeignObject.appendImageContent = function(ele_id,bbox,content) {
+qoid.widget.score.ForeignObject.appendImageContent = function(ele_id,bbox,content) {
 	bbox.y = bbox.y + bbox.height / 2;
-	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var fo = qoid.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
 	var div = fo.append("div");
 	div.append("div").attr("class","imageCaption").html(content.caption);
 	div.append("img").attr("src",content.imgSrc).style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height) + "px");
 }
-ui.widget.score.ForeignObject.appendAudioContent = function(ele_id,bbox,content) {
+qoid.widget.score.ForeignObject.appendAudioContent = function(ele_id,bbox,content) {
 	bbox.y = bbox.y + bbox.height / 2 - 12;
 	bbox.x = bbox.x + bbox.width / 3;
-	var fo = ui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
+	var fo = qoid.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
 	var div = fo.append("div");
 	div.append("div").attr("class","audioTitle").style("width",Std.string(bbox.width - 49) + "px").style("font-size","12px").html(content.title);
 	var audioDiv = div.append("div").style("width",Std.string(bbox.width - 49) + "px");
@@ -6823,10 +6823,10 @@ ui.widget.score.ForeignObject.appendAudioContent = function(ele_id,bbox,content)
 		d3.event.stopPropagation();
 	});
 }
-ui.widget.score.Icons = function() { }
-$hxClasses["ui.widget.score.Icons"] = ui.widget.score.Icons;
-ui.widget.score.Icons.__name__ = ["ui","widget","score","Icons"];
-ui.widget.score.Icons.createIcon = function(iconPath,className,bbox) {
+qoid.widget.score.Icons = function() { }
+$hxClasses["qoid.widget.score.Icons"] = qoid.widget.score.Icons;
+qoid.widget.score.Icons.__name__ = ["qoid","widget","score","Icons"];
+qoid.widget.score.Icons.createIcon = function(iconPath,className,bbox) {
 	var paper = new Snap("#score-comp-svg");
 	var ret = paper.path(iconPath);
 	ret.attr("class",className);
@@ -6836,23 +6836,23 @@ ui.widget.score.Icons.createIcon = function(iconPath,className,bbox) {
 	}
 	return ret;
 }
-ui.widget.score.Icons.audioIcon = function(bbox) {
+qoid.widget.score.Icons.audioIcon = function(bbox) {
 	var audioPath = "M4.998,12.127v7.896h4.495l6.729,5.526l0.004-18.948l-6.73,5.526H4.998z M18.806,11.219c-0.393-0.389-1.024-0.389-1.415,0.002c-0.39,0.391-0.39,1.024,0.002,1.416v-0.002c0.863,0.864,1.395,2.049,1.395,3.366c0,1.316-0.531,2.497-1.393,3.361c-0.394,0.389-0.394,1.022-0.002,1.415c0.195,0.195,0.451,0.293,0.707,0.293c0.257,0,0.513-0.098,0.708-0.293c1.222-1.22,1.98-2.915,1.979-4.776C20.788,14.136,20.027,12.439,18.806,11.219z M21.101,8.925c-0.393-0.391-1.024-0.391-1.413,0c-0.392,0.391-0.392,1.025,0,1.414c1.45,1.451,2.344,3.447,2.344,5.661c0,2.212-0.894,4.207-2.342,5.659c-0.392,0.39-0.392,1.023,0,1.414c0.195,0.195,0.451,0.293,0.708,0.293c0.256,0,0.512-0.098,0.707-0.293c1.808-1.809,2.929-4.315,2.927-7.073C24.033,13.24,22.912,10.732,21.101,8.925z M23.28,6.746c-0.393-0.391-1.025-0.389-1.414,0.002c-0.391,0.389-0.391,1.023,0.002,1.413h-0.002c2.009,2.009,3.248,4.773,3.248,7.839c0,3.063-1.239,5.828-3.246,7.838c-0.391,0.39-0.391,1.023,0.002,1.415c0.194,0.194,0.45,0.291,0.706,0.291s0.513-0.098,0.708-0.293c2.363-2.366,3.831-5.643,3.829-9.251C27.115,12.389,25.647,9.111,23.28,6.746z";
-	return ui.widget.score.Icons.createIcon(audioPath,"audioIcon",bbox);
+	return qoid.widget.score.Icons.createIcon(audioPath,"audioIcon",bbox);
 }
-ui.widget.score.Icons.messageIcon = function(bbox) {
+qoid.widget.score.Icons.messageIcon = function(bbox) {
 	var messagePath = "M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z";
-	return ui.widget.score.Icons.createIcon(messagePath,"messageIcon",bbox);
+	return qoid.widget.score.Icons.createIcon(messagePath,"messageIcon",bbox);
 }
-ui.widget.score.Icons.linkIcon = function(bbox) {
+qoid.widget.score.Icons.linkIcon = function(bbox) {
 	var linkPath = "M16.45,18.085l-2.47,2.471c0.054,1.023-0.297,2.062-1.078,2.846c-1.465,1.459-3.837,1.459-5.302-0.002c-1.461-1.465-1.46-3.836-0.001-5.301c0.783-0.781,1.824-1.131,2.847-1.078l2.469-2.469c-2.463-1.057-5.425-0.586-7.438,1.426c-2.634,2.637-2.636,6.907,0,9.545c2.638,2.637,6.909,2.635,9.545,0l0.001,0.002C17.033,23.511,17.506,20.548,16.45,18.085zM14.552,12.915l2.467-2.469c-0.053-1.023,0.297-2.062,1.078-2.848C19.564,6.139,21.934,6.137,23.4,7.6c1.462,1.465,1.462,3.837,0,5.301c-0.783,0.783-1.822,1.132-2.846,1.079l-2.469,2.468c2.463,1.057,5.424,0.584,7.438-1.424c2.634-2.639,2.633-6.91,0-9.546c-2.639-2.636-6.91-2.637-9.545-0.001C13.967,7.489,13.495,10.451,14.552,12.915zM18.152,10.727l-7.424,7.426c-0.585,0.584-0.587,1.535,0,2.121c0.585,0.584,1.536,0.584,2.121-0.002l7.425-7.424c0.584-0.586,0.584-1.535,0-2.121C19.687,10.141,18.736,10.142,18.152,10.727z";
-	return ui.widget.score.Icons.createIcon(linkPath,"linkIcon",bbox);
+	return qoid.widget.score.Icons.createIcon(linkPath,"linkIcon",bbox);
 }
-ui.widget.score.Icons.imageIcon = function(bbox) {
+qoid.widget.score.Icons.imageIcon = function(bbox) {
 	var imagePath = "M2.5,4.833v22.334h27V4.833H2.5zM25.25,25.25H6.75V6.75h18.5V25.25zM11.25,14c1.426,0,2.583-1.157,2.583-2.583c0-1.427-1.157-2.583-2.583-2.583c-1.427,0-2.583,1.157-2.583,2.583C8.667,12.843,9.823,14,11.25,14zM24.251,16.25l-4.917-4.917l-6.917,6.917L10.5,16.333l-2.752,2.752v5.165h16.503V16.25z";
-	return ui.widget.score.Icons.createIcon(imagePath,"imageIcon",bbox);
+	return qoid.widget.score.Icons.createIcon(imagePath,"imageIcon",bbox);
 }
-ui.widget.score.TimeMarker = function(uberGroup,paper,width,start,end) {
+qoid.widget.score.TimeMarker = function(uberGroup,paper,width,start,end) {
 	this.paper = paper;
 	this.width = width;
 	this.group = ((function($this) {
@@ -6867,9 +6867,9 @@ ui.widget.score.TimeMarker = function(uberGroup,paper,width,start,end) {
 	this.end = end.getTime();
 	this.drawTimeLine();
 };
-$hxClasses["ui.widget.score.TimeMarker"] = ui.widget.score.TimeMarker;
-ui.widget.score.TimeMarker.__name__ = ["ui","widget","score","TimeMarker"];
-ui.widget.score.TimeMarker.prototype = {
+$hxClasses["qoid.widget.score.TimeMarker"] = qoid.widget.score.TimeMarker;
+qoid.widget.score.TimeMarker.__name__ = ["qoid","widget","score","TimeMarker"];
+qoid.widget.score.TimeMarker.prototype = {
 	drawTimeLine: function() {
 		var margin = 7;
 		var y = 3 * margin;
@@ -6917,12 +6917,12 @@ ui.widget.score.TimeMarker.prototype = {
 		this.start = date.getTime();
 		this.drawTimeLine();
 	}
-	,__class__: ui.widget.score.TimeMarker
+	,__class__: qoid.widget.score.TimeMarker
 }
-ui.widget.score.Shapes = function() { }
-$hxClasses["ui.widget.score.Shapes"] = ui.widget.score.Shapes;
-ui.widget.score.Shapes.__name__ = ["ui","widget","score","Shapes"];
-ui.widget.score.Shapes.createHexagon = function(paper,cx,cy,r) {
+qoid.widget.score.Shapes = function() { }
+$hxClasses["qoid.widget.score.Shapes"] = qoid.widget.score.Shapes;
+qoid.widget.score.Shapes.__name__ = ["qoid","widget","score","Shapes"];
+qoid.widget.score.Shapes.createHexagon = function(paper,cx,cy,r) {
 	var theta = 0.523598775;
 	var hexagon = paper.polygon([cx - r * Math.sin(theta),cy - r * Math.cos(theta),cx - r,cy,cx - r * Math.sin(theta),cy + r * Math.cos(theta),cx + r * Math.sin(theta),cy + r * Math.cos(theta),cx + r,cy,cx + r * Math.sin(theta),cy - r * Math.cos(theta)]);
 	hexagon.attr("cx",cx);
@@ -7113,12 +7113,12 @@ m3.util.ColorProvider._COLORS.push("#9BCC5C");
 m3.util.ColorProvider._COLORS.push("#CCC45C");
 m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
-ui.model.EM.delegate = new m3.event.EventManager(ui.AppContext.LOGGER);
-ui.model.ContentSource.filteredContent = new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier);
-ui.model.ContentSource.listeners = new Array();
-ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,ui.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
-ui.model.EM.addListener(ui.model.EMEvent.LoadFilteredContent,ui.model.ContentSource.onLoadFilteredContent,"ContentSource-LoadFilteredContent");
-ui.model.EM.addListener(ui.model.EMEvent.AppendFilteredContent,ui.model.ContentSource.onAppendFilteredContent,"ContentSource-AppendFilteredContent");
+qoid.model.EM.delegate = new m3.event.EventManager(qoid.AppContext.LOGGER);
+qoid.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+qoid.model.ContentSource.listeners = new Array();
+qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,qoid.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
+qoid.model.EM.addListener(qoid.model.EMEvent.LoadFilteredContent,qoid.model.ContentSource.onLoadFilteredContent,"ContentSource-LoadFilteredContent");
+qoid.model.EM.addListener(qoid.model.EMEvent.AppendFilteredContent,qoid.model.ContentSource.onAppendFilteredContent,"ContentSource-AppendFilteredContent");
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -7139,7 +7139,7 @@ var defineWidget = function() {
 		});
 		selfElement.data("getNode",function() {
 			var root;
-			if(or.hasClass("ui-state-active")) root = new ui.model.Or(); else root = new ui.model.And();
+			if(or.hasClass("ui-state-active")) root = new qoid.model.Or(); else root = new qoid.model.And();
 			return root;
 		});
 	}, _fireFilter : function() {
@@ -7176,7 +7176,7 @@ var defineWidget = function() {
 			} else if(evt.isDelete()) self._remove(fc);
 		});
 		selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
-			ui.AppContext.LOGGER.debug("dragstop on filtercombo");
+			qoid.AppContext.LOGGER.debug("dragstop on filtercombo");
 			if(self.options.dragstop != null) self.options.dragstop(dragstopEvt,dragstopUi);
 		});
 		selfElement.addClass("ui-state-highlight connectionDT labelDT filterable dropCombiner filterCombination filterTrashable container shadow" + m3.widget.Widgets.getWidgetClasses());
@@ -7294,10 +7294,10 @@ var defineWidget = function() {
 		return clone.children("img").addClass("connectionDraggingImg");
 	}}, getConnection : function() {
 		var self = this;
-		return m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,self.options.connectionIid);
+		return m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_CONNECTIONS,self.options.connectionIid);
 	}, getAlias : function() {
 		var self = this;
-		return m3.helper.OSetHelper.getElement(ui.AppContext.ALIASES,self.options.aliasIid);
+		return m3.helper.OSetHelper.getElement(qoid.AppContext.ALIASES,self.options.aliasIid);
 	}, _create : function() {
 		var self1 = this;
 		var selfElement = this.element;
@@ -7308,9 +7308,9 @@ var defineWidget = function() {
 		if(self1.options.aliasIid != null) selfElement.addClass("aliasAvatar");
 		var img = new $("<img class='shadow'/>");
 		selfElement.append(img);
-		self1._updateWidgets(new ui.model.Profile());
+		self1._updateWidgets(new qoid.model.Profile());
 		if(self1.options.connectionIid != null) {
-			self1.filteredSetConnection = new m3.observable.FilteredSet(ui.AppContext.MASTER_CONNECTIONS,function(c) {
+			self1.filteredSetConnection = new m3.observable.FilteredSet(qoid.AppContext.MASTER_CONNECTIONS,function(c) {
 				return c.iid == self1.options.connectionIid;
 			});
 			self1._onUpdateConnection = function(c,evt) {
@@ -7318,14 +7318,14 @@ var defineWidget = function() {
 			};
 			self1.filteredSetConnection.listen(self1._onUpdateConnection);
 		} else if(self1.options.aliasIid != null) {
-			self1.filteredSetAlias = new m3.observable.FilteredSet(ui.AppContext.MASTER_ALIASES,function(a) {
+			self1.filteredSetAlias = new m3.observable.FilteredSet(qoid.AppContext.MASTER_ALIASES,function(a) {
 				return a.iid == self1.options.aliasIid;
 			});
 			self1._onUpdateAlias = function(a,evt) {
 				if(evt.isAddOrUpdate()) self1._updateWidgets(a.profile);
 			};
 			self1.filteredSetAlias.listen(self1._onUpdateAlias);
-		} else ui.AppContext.LOGGER.warn("Both connectionIid and aliasIid are not set for Avatar");
+		} else qoid.AppContext.LOGGER.warn("Both connectionIid and aliasIid are not set for Avatar");
 		(js.Boot.__cast(selfElement , $)).tooltip();
 		if(!self1.options.dndEnabled) img.mousedown(function(evt) {
 			return false;;
@@ -7334,7 +7334,7 @@ var defineWidget = function() {
 			selfElement.data("clone",self1.options.cloneFcn);
 			selfElement.data("dropTargetClass",self1.options.dropTargetClass);
 			selfElement.data("getNode",function() {
-				if(self1.options.connectionIid != null) return new ui.model.ConnectionNode(self1.getConnection()); else return null;
+				if(self1.options.connectionIid != null) return new qoid.model.ConnectionNode(self1.getConnection()); else return null;
 			});
 			selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
 				if(self1.options.dragstop != null) self1.options.dragstop(dragstopEvt,dragstopUi);
@@ -7349,8 +7349,8 @@ var defineWidget = function() {
 			}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
 				if(_ui.draggable["is"](".labelComp")) {
 					var labelComp = js.Boot.__cast(_ui.draggable , $);
-					var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,self1.options.connectionIid);
-					ui.widget.DialogManager.allowAccess(labelComp.labelComp("getLabel"),connection);
+					var connection = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_CONNECTIONS,self1.options.connectionIid);
+					qoid.widget.DialogManager.allowAccess(labelComp.labelComp("getLabel"),connection);
 				} else {
 					var filterCombiner = new $("<div></div>");
 					filterCombiner.appendTo($(this).parent());
@@ -7405,7 +7405,7 @@ var defineWidget = function() {
 		self.userIdTxt = new $("<div class='userIdTxt'></div>");
 		self.container.append(self.userIdTxt);
 		self.userIdTxt.html("...");
-		self._setAlias(new ui.model.Alias());
+		self._setAlias(new qoid.model.Alias());
 		var changeDiv = new $("<div class='ui-helper-clearfix'></div>");
 		self.container.append(changeDiv);
 		self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
@@ -7418,7 +7418,7 @@ var defineWidget = function() {
 			evt.stopPropagation();
 			return false;
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,function(alias) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,function(alias) {
 			self._setAlias(alias);
 		},"AliasComp-Alias");
 		(js.Boot.__cast(self.container , $)).droppable({ accept : function(d) {
@@ -7429,15 +7429,15 @@ var defineWidget = function() {
 					dragstopUi.helper.remove();
 					selfElement.removeClass("targetChange");
 					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
-					ui.AppContext.TARGET = null;
-					self._setAlias(ui.AppContext.currentAlias);
+					qoid.AppContext.TARGET = null;
+					self._setAlias(qoid.AppContext.currentAlias);
 				}
 			};
 			selfElement.addClass("targetChange");
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
 			clone.addClass("small");
 			clone.insertBefore(new $(".ui-helper-clearfix",self.container));
-			self._setTarget(ui.widget.ConnectionAvatarHelper.getConnection(clone));
+			self._setTarget(qoid.widget.ConnectionAvatarHelper.getConnection(clone));
 		}});
 		self._onupdate = function(alias,t) {
 			if(t.isAddOrUpdate()) {
@@ -7451,7 +7451,7 @@ var defineWidget = function() {
 			}
 		};
 		self._onupdateProfile = function(p,t) {
-			var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,p.aliasIid);
+			var alias = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_ALIASES,p.aliasIid);
 			self._updateAliasWidgets(alias);
 		};
 	}, _createAliasMenu : function() {
@@ -7461,7 +7461,7 @@ var defineWidget = function() {
 		menu.appendTo(self.container);
 		var menuOptions = [];
 		var menuOption;
-		var aliases = new m3.observable.SortedSet(ui.AppContext.ALIASES,function(a) {
+		var aliases = new m3.observable.SortedSet(qoid.AppContext.ALIASES,function(a) {
 			return a.profile.name.toLowerCase();
 		});
 		var $it0 = aliases.iterator();
@@ -7470,16 +7470,16 @@ var defineWidget = function() {
 			var alias1 = [alias];
 			menuOption = { label : alias1[0].profile.name, icon : "ui-icon-person", action : (function(alias1) {
 				return function(evt,m) {
-					if(ui.model.Alias.identifier(ui.AppContext.currentAlias) == ui.model.Alias.identifier(alias1[0])) menu.hide(); else {
-						ui.AppContext.currentAlias = alias1[0];
-						ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias1[0]);
+					if(qoid.model.Alias.identifier(qoid.AppContext.currentAlias) == qoid.model.Alias.identifier(alias1[0])) menu.hide(); else {
+						qoid.AppContext.currentAlias = alias1[0];
+						qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,alias1[0]);
 					}
 				};
 			})(alias1)};
 			menuOptions.push(menuOption);
 		}
 		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt,m) {
-			ui.widget.DialogManager.showAliasManager();
+			qoid.widget.DialogManager.showAliasManager();
 		}};
 		menuOptions.push(menuOption);
 		menu.m3menu({ menuOptions : menuOptions}).hide();
@@ -7495,12 +7495,12 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		self._updateAliasWidgets(alias2);
 		if(self.aliasSet != null) self.aliasSet.removeListener(self._onupdate);
-		self.aliasSet = new m3.observable.FilteredSet(ui.AppContext.MASTER_ALIASES,function(a) {
+		self.aliasSet = new m3.observable.FilteredSet(qoid.AppContext.MASTER_ALIASES,function(a) {
 			return a.iid == alias2.iid;
 		});
 		self.aliasSet.listen(self._onupdate);
 		if(self.profileSet != null) self.profileSet.removeListener(self._onupdateProfile);
-		self.profileSet = new m3.observable.FilteredSet(ui.AppContext.PROFILES,function(p) {
+		self.profileSet = new m3.observable.FilteredSet(qoid.AppContext.PROFILES,function(p) {
 			return p.aliasIid == alias2.iid;
 		});
 		self.profileSet.listen(self._onupdateProfile);
@@ -7508,8 +7508,8 @@ var defineWidget = function() {
 		var self = this;
 		self.switchAliasLink.hide();
 		self.userIdTxt.html(conn.data.name);
-		ui.AppContext.TARGET = conn;
-		ui.model.EM.change(ui.model.EMEvent.TargetChange,conn);
+		qoid.AppContext.TARGET = conn;
+		qoid.model.EM.change(qoid.model.EMEvent.TargetChange,conn);
 	}, destroy : function() {
 		var self = this;
 		if(self.aliasSet != null) self.aliasSet.removeListener(self._onupdate);
@@ -7525,25 +7525,25 @@ var defineWidget = function() {
 		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
 		self._createFileUploadComponent();
 		selfElement.on("dragleave",function(evt,d) {
-			ui.AppContext.LOGGER.debug("dragleave");
+			qoid.AppContext.LOGGER.debug("dragleave");
 			var target = evt.target;
 			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
 		selfElement.on("dragenter",function(evt,d) {
-			ui.AppContext.LOGGER.debug("dragenter");
+			qoid.AppContext.LOGGER.debug("dragenter");
 			$(this).addClass("over");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
 		selfElement.on("dragover",function(evt,d) {
-			ui.AppContext.LOGGER.debug("dragover");
+			qoid.AppContext.LOGGER.debug("dragover");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
 		selfElement.on("drop",function(evt,d) {
-			ui.AppContext.LOGGER.debug("drop");
+			qoid.AppContext.LOGGER.debug("drop");
 			self._traverseFiles(evt.originalEvent.dataTransfer.files);
 			$(this).removeClass("drop");
 			evt.preventDefault();
@@ -7565,15 +7565,15 @@ var defineWidget = function() {
 			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
 			return;
 		}
-		if(self2.options.contentType == ui.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
+		if(self2.options.contentType == qoid.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
 			m3.util.JqueryUtil.alert("Please select an image file.");
 			return;
 		}
-		if(self2.options.contentType == ui.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
+		if(self2.options.contentType == qoid.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
 			m3.util.JqueryUtil.alert("Please select an audio file.");
 			return;
 		}
-		ui.AppContext.LOGGER.debug("upload " + Std.string(file.name));
+		qoid.AppContext.LOGGER.debug("upload " + Std.string(file.name));
 		var reader = new FileReader();
 		reader.onload = function(evt) {
 			self2.setPreviewImage(evt.target.result);
@@ -7588,7 +7588,7 @@ var defineWidget = function() {
 		}
 		self.previewImg.attr("src",src);
 	}, _traverseFiles : function(files) {
-		ui.AppContext.LOGGER.debug("traverse the files");
+		qoid.AppContext.LOGGER.debug("traverse the files");
 		var self = this;
 		if(m3.helper.ArrayHelper.hasValues(files)) {
 			var _g = 0;
@@ -7627,8 +7627,8 @@ var defineWidget = function() {
 		var imgSrc = "media/default_avatar.jpg";
 		if(alias != null) {
 			var loadAliasBtn = new $("<button class='fleft'>Use This Alias</button>").appendTo(leftDiv).button().click(function(evt) {
-				ui.AppContext.currentAlias = alias;
-				ui.model.EM.change(ui.model.EMEvent.AliasLoaded,alias);
+				qoid.AppContext.currentAlias = alias;
+				qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,alias);
 				m3.jq.JQDialogHelper.close(selfElement1);
 			});
 			leftDiv.append("<br class='clear'/><br/>");
@@ -7646,18 +7646,18 @@ var defineWidget = function() {
 			var btnDiv = new $("<div></div>").appendTo(leftDiv);
 			var setDefaultBtn = new $("<button>Set Default</button>").appendTo(btnDiv).button().click(function(evt) {
 				alias.data.isDefault = true;
-				ui.model.EM.change(ui.model.EMEvent.UpdateAlias,alias);
+				qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias);
 			});
 			var editBtn = new $("<button>Edit</button>").appendTo(btnDiv).button().click(function(evt) {
 				self1._showAliasEditor(alias);
 			});
 			var deleteBtn = new $("<button>Delete</button>").appendTo(btnDiv).button().click(function(evt) {
-				ui.model.EM.change(ui.model.EMEvent.DeleteAlias,alias);
+				qoid.model.EM.change(qoid.model.EMEvent.DeleteAlias,alias);
 			});
 		}
 		rightDiv.append("<h2>Aliases</h2>");
 		var idx = 0;
-		Lambda.iter(ui.AppContext.ALIASES,function(a) {
+		Lambda.iter(qoid.AppContext.ALIASES,function(a) {
 			var span = new $("<span class='clickable' id='alias_" + Std.string(idx) + "'></span>").appendTo(rightDiv).click(function(evt) {
 				self1._showAliasDetail(a);
 			}).append(a.profile.name);
@@ -7715,13 +7715,13 @@ var defineWidget = function() {
 			if(m3.helper.StringHelper.startsWithAny(profilePic,["media"])) profilePic = "";
 			var applyDlg = alias1 == null?(function($this) {
 				var $r;
-				alias1 = new ui.model.Alias();
+				alias1 = new qoid.model.Alias();
 				$r = function() {
-					ui.model.EM.change(ui.model.EMEvent.CreateAlias,alias1);
+					qoid.model.EM.change(qoid.model.EMEvent.CreateAlias,alias1);
 				};
 				return $r;
 			}(this)):function() {
-				ui.model.EM.change(ui.model.EMEvent.UpdateAlias,alias1);
+				qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias1);
 			};
 			alias1.profile.name = name;
 			alias1.profile.imgSrc = profilePic;
@@ -7732,7 +7732,7 @@ var defineWidget = function() {
 			self2._showAliasDetail(alias1);
 		});
 		rightDiv1.append("<h2>Aliases</h2>");
-		Lambda.iter(ui.AppContext.ALIASES,function(a1) {
+		Lambda.iter(qoid.AppContext.ALIASES,function(a1) {
 			var span = new $("<span class='clickable'></span>").appendTo(rightDiv1).click(function(evt) {
 				self2._showAliasDetail(a1);
 			}).append(a1.profile.name);
@@ -7743,12 +7743,12 @@ var defineWidget = function() {
 	}, _createAliasManager : function() {
 		var self = this;
 		var selfElement = this.element;
-		var alias = new ui.model.Alias();
+		var alias = new qoid.model.Alias();
 		alias.profile.name = self.aliasName.val();
 		alias.profile.name = self.username.val();
 		if(m3.helper.StringHelper.isBlank(alias.profile.name) || m3.helper.StringHelper.isBlank(alias.profile.name)) return;
 		selfElement.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.CreateAlias,alias);
+		qoid.model.EM.change(qoid.model.EMEvent.CreateAlias,alias);
 	}, _buildDialog : function() {
 		var self = this;
 		var selfElement3 = this.element;
@@ -7787,7 +7787,7 @@ var defineWidget = function() {
 		while(_g < _g1.length) {
 			var iid = _g1[_g];
 			++_g;
-			var label = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_LABELS,iid);
+			var label = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_LABELS,iid);
 			ret.push(label.name);
 		}
 		return ret;
@@ -7810,7 +7810,7 @@ var defineWidget = function() {
 				selfElement.remove();
 			}
 		};
-		self1.filteredSet = new m3.observable.FilteredSet(ui.AppContext.MASTER_LABELS,function(label) {
+		self1.filteredSet = new m3.observable.FilteredSet(qoid.AppContext.MASTER_LABELS,function(label) {
 			return label.iid == self1.options.labelIid;
 		});
 		self1.filteredSet.listen(self1._onupdate);
@@ -7818,11 +7818,11 @@ var defineWidget = function() {
 		var self2 = this;
 		var selfElement1 = this.element;
 		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelComp must be a div element");
-		self2.label = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_LABELS,self2.options.labelIid);
+		self2.label = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_LABELS,self2.options.labelIid);
 		if(self2.label == null) {
-			self2.label = new ui.model.Label("-->*<--");
+			self2.label = new qoid.model.Label("-->*<--");
 			self2.label.iid = self2.options.labelIid;
-			ui.AppContext.MASTER_LABELS.add(self2.label);
+			qoid.AppContext.MASTER_LABELS.add(self2.label);
 		}
 		selfElement1.addClass("label labelComp ").attr("id",StringTools.htmlEscape(self2.label.name) + "_" + m3.util.UidGenerator.create(8));
 		var labelTail = new $("<div class='labelTail'></div>");
@@ -7841,12 +7841,12 @@ var defineWidget = function() {
 			selfElement1.data("clone",self2.options.cloneFcn);
 			selfElement1.data("dropTargetClass",self2.options.dropTargetClass);
 			selfElement1.data("getNode",function() {
-				return new ui.model.LabelNode(self2.label,self2.getLabelPathNames());
+				return new qoid.model.LabelNode(self2.label,self2.getLabelPathNames());
 			});
 			var helper = "clone";
 			if(!self2.options.isDragByHelper) helper = "original"; else if(self2.options.helperFcn != null && Reflect.isFunction(self2.options.helperFcn)) helper = self2.options.helperFcn;
 			selfElement1.on("dragstop",function(dragstopEvt,_ui) {
-				ui.AppContext.LOGGER.debug("dragstop on label | " + self2.label.name);
+				qoid.AppContext.LOGGER.debug("dragstop on label | " + self2.label.name);
 				if(self2.options.dragstop != null) self2.options.dragstop(dragstopEvt,_ui);
 				new $(js.Browser.document).off("keydown keyup");
 				_ui.helper.find("#copyIndicator").remove();
@@ -7870,8 +7870,8 @@ var defineWidget = function() {
 			}});
 			var copyOrMoveLabel = function(event,_ui) {
 				var labelComp = js.Boot.__cast(_ui.draggable , $);
-				var eld = new ui.model.EditLabelData(ui.widget.LabelCompHelper.getLabel(labelComp),ui.widget.LabelCompHelper.parentIid(labelComp),self2.getLabel().iid);
-				if(event.ctrlKey) ui.model.EM.change(ui.model.EMEvent.CopyLabel,eld); else ui.model.EM.change(ui.model.EMEvent.MoveLabel,eld);
+				var eld = new qoid.model.EditLabelData(qoid.widget.LabelCompHelper.getLabel(labelComp),qoid.widget.LabelCompHelper.parentIid(labelComp),self2.getLabel().iid);
+				if(event.ctrlKey) qoid.model.EM.change(qoid.model.EMEvent.CopyLabel,eld); else qoid.model.EM.change(qoid.model.EMEvent.MoveLabel,eld);
 			};
 			(js.Boot.__cast(selfElement1 , $)).droppable({ accept : function(d) {
 				return !$(this).parent()["is"](".filterCombination") && d["is"](".label") && ($(this).parent()["is"](".dropCombiner") || $(this).parent()["is"](".labelTreeBranch"));
@@ -7920,11 +7920,11 @@ var defineWidget = function() {
 	}, _allowAccess : function() {
 		var self = this;
 		var selfElement1 = this.element;
-		ui.model.EM.listenOnce(ui.model.EMEvent.AccessGranted,function(n) {
+		qoid.model.EM.listenOnce(qoid.model.EMEvent.AccessGranted,function(n) {
 			m3.jq.JQDialogHelper.close(selfElement1);
 		});
 		var parms = { connectionIid : self.options.connection.iid, labelIid : self.options.label.iid};
-		ui.model.EM.change(ui.model.EMEvent.GrantAccess,parms);
+		qoid.model.EM.change(qoid.model.EMEvent.GrantAccess,parms);
 	}, open : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -7961,7 +7961,7 @@ var defineWidget = function() {
 		var chatInput = new $("<div class='chatInput'></div>").appendTo(selfElement);
 		var input = new $("<input class='ui-corner-all ui-widget-content boxsizingBorder' />").appendTo(chatInput);
 		self.chatMessages = new m3.observable.MappedSet(self.options.messages,function(msg) {
-			return new $("<div></div>").chatMessageComp({ message : msg, orientation : ui.widget.ChatOrientation.chatRight});
+			return new $("<div></div>").chatMessageComp({ message : msg, orientation : qoid.widget.ChatOrientation.chatRight});
 		});
 		self.chatMessages.listen(function(chatMessageComp,evt) {
 			if(evt.isAdd()) {
@@ -7990,11 +7990,11 @@ var defineWidget = function() {
 		(js.Boot.__cast(selfElement , $)).droppable({ accept : function(d) {
 			return d["is"](".connectionAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", greedy : true, drop : function(event,_ui) {
-			var dropper = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
+			var dropper = qoid.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
 			var droppee = self.options.connection;
 			if(!dropper.equals(droppee)) {
 				var intro = null;
-				var $it1 = ui.AppContext.INTRODUCTIONS.iterator();
+				var $it1 = qoid.AppContext.INTRODUCTIONS.iterator();
 				while( $it1.hasNext() ) {
 					var i = $it1.next();
 					if(i.aConnectionIid == dropper.iid && i.bConnectionIid == droppee.iid || i.bConnectionIid == dropper.iid && i.aConnectionIid == droppee.iid) {
@@ -8003,12 +8003,12 @@ var defineWidget = function() {
 					}
 				}
 				if(intro != null) {
-					if(intro.bState == ui.model.IntroductionState.NotResponded || intro.aState == ui.model.IntroductionState.NotResponded) m3.util.JqueryUtil.alert("There is already a pending introduction between these two aliases"); else if(intro.bState == ui.model.IntroductionState.Accepted && intro.aState == ui.model.IntroductionState.Accepted) m3.util.JqueryUtil.alert("These two aliases are already connected");
-				} else ui.widget.DialogManager.requestIntroduction(dropper,droppee);
+					if(intro.bState == qoid.model.IntroductionState.NotResponded || intro.aState == qoid.model.IntroductionState.NotResponded) m3.util.JqueryUtil.alert("There is already a pending introduction between these two aliases"); else if(intro.bState == qoid.model.IntroductionState.Accepted && intro.aState == qoid.model.IntroductionState.Accepted) m3.util.JqueryUtil.alert("These two aliases are already connected");
+				} else qoid.widget.DialogManager.requestIntroduction(dropper,droppee);
 			}
 		}, tolerance : "pointer"});
-		var set = new m3.observable.FilteredSet(ui.AppContext.NOTIFICATIONS,function(n) {
-			return n.fromConnectionIid == self.options.connection.iid && n.kind == ui.model.NotificationKind.IntroductionRequest;
+		var set = new m3.observable.FilteredSet(qoid.AppContext.NOTIFICATIONS,function(n) {
+			return n.fromConnectionIid == self.options.connection.iid && n.kind == qoid.model.NotificationKind.IntroductionRequest;
 		});
 		set.listen(function(i,evt) {
 			if(evt.isAdd()) self.addNotification(); else if(evt.isDelete()) self.deleteNotification();
@@ -8062,10 +8062,10 @@ var defineWidget = function() {
 		var menu = new $("<ul id='label-action-menu'></ul>");
 		menu.appendTo(selfElement);
 		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "Revoke Access...", icon : "ui-icon-circle-plus", action : function(evt,m) {
-			ui.widget.DialogManager.revokeAccess(ui.widget.ConnectionCompHelper.connection(self.selectedConnectionComp));
+			qoid.widget.DialogManager.revokeAccess(qoid.widget.ConnectionCompHelper.connection(self.selectedConnectionComp));
 		}},{ label : "Delete Connection", icon : "ui-icon-circle-minus", action : function(evt,m) {
 			if(self.selectedConnectionComp != null) m3.util.JqueryUtil.confirm("Delete Connection","Are you sure you want to delete this connection?",function() {
-				ui.model.EM.change(ui.model.EMEvent.DeleteConnection,ui.widget.ConnectionCompHelper.connection(self.selectedConnectionComp));
+				qoid.model.EM.change(qoid.model.EMEvent.DeleteConnection,qoid.widget.ConnectionCompHelper.connection(self.selectedConnectionComp));
 			});
 		}}], width : 225}).hide();
 		selfElement.bind("contextmenu",function(evt) {
@@ -8082,14 +8082,14 @@ var defineWidget = function() {
 			return false;
 		});
 		self._mapListener = function(conn,connComp,evt) {
-			if(evt.isAdd()) spacer.before(connComp); else if(evt.isUpdate()) ui.widget.ConnectionCompHelper.update(connComp,conn); else if(evt.isDelete()) connComp.remove();
-			ui.model.EM.change(ui.model.EMEvent.FitWindow);
+			if(evt.isAdd()) spacer.before(connComp); else if(evt.isUpdate()) qoid.widget.ConnectionCompHelper.update(connComp,conn); else if(evt.isDelete()) connComp.remove();
+			qoid.model.EM.change(qoid.model.EMEvent.FitWindow);
 		};
 		var connections = null;
-		if(selfElement.attr("id") == "connections-all") connections = ui.AppContext.MASTER_CONNECTIONS; else {
+		if(selfElement.attr("id") == "connections-all") connections = qoid.AppContext.MASTER_CONNECTIONS; else {
 			var aliasIid = selfElement.attr("id").split("-")[1];
-			connections = ui.AppContext.GROUPED_CONNECTIONS.delegate().get(aliasIid);
-			if(connections == null) connections = ui.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(aliasIid);
+			connections = qoid.AppContext.GROUPED_CONNECTIONS.delegate().get(aliasIid);
+			if(connections == null) connections = qoid.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(aliasIid);
 		}
 		self._setConnections(connections);
 	}, _setConnections : function(connections) {
@@ -8109,7 +8109,7 @@ var defineWidget = function() {
 		var iter = self.connectionsMap.iterator();
 		while(iter.hasNext()) {
 			var c = iter.next();
-			if(term == "" || ui.widget.ConnectionCompHelper.connection(c).data.name.toLowerCase().indexOf(term) != -1) c.show(); else c.hide();
+			if(term == "" || qoid.widget.ConnectionCompHelper.connection(c).data.name.toLowerCase().indexOf(term) != -1) c.show(); else c.hide();
 		}
 	}};
 };
@@ -8127,15 +8127,15 @@ var defineWidget = function() {
 				new $("#connections-" + a.iid).remove();
 			}
 		};
-		self.aliases = new m3.observable.SortedSet(ui.AppContext.ALIASES,function(a) {
+		self.aliases = new m3.observable.SortedSet(qoid.AppContext.ALIASES,function(a) {
 			return a.profile.name.toLowerCase();
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,function(n) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.InitialDataLoadComplete,function(n) {
 			self._addTab("all","All");
 			new $("#tab-all").click();
 			self.aliases.listen(self._listener);
 		});
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,function(alias) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,function(alias) {
 			new $("#tab-" + alias.iid).click();
 		});
 	}, _addTab : function(iid,name) {
@@ -8163,7 +8163,7 @@ var defineWidget = function() {
 	}, _post : function() {
 		var self = this;
 		var selfElement = this.element;
-		ui.AppContext.LOGGER.debug("post " + self.urlInput.val());
+		qoid.AppContext.LOGGER.debug("post " + self.urlInput.val());
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}, valEle : function() {
@@ -8194,12 +8194,12 @@ var defineWidget = function() {
 		var self1 = this;
 		var selfElement = this.element;
 		var edit_post_comps_tags = new $("#edit_post_comps_tags",selfElement);
-		if(ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self1.options.content.iid) == null) ui.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self1.options.content.iid);
+		if(qoid.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self1.options.content.iid) == null) qoid.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self1.options.content.iid);
 		self1.onchangeLabelChildren = function(jq,evt) {
 			if(evt.isAdd()) edit_post_comps_tags.append(jq); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) jq.remove();
 		};
-		self1.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self1.options.content.iid),function(lc) {
-			var connection = ui.AppContext.connectionFromMetaLabel(lc.labelIid);
+		self1.mappedLabels = new m3.observable.MappedSet(qoid.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self1.options.content.iid),function(lc) {
+			var connection = qoid.AppContext.connectionFromMetaLabel(lc.labelIid);
 			if(connection != null) {
 				var ca = new $("<div></div>").connectionAvatar({ connectionIid : connection.iid, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self1._getDragStop()}).appendTo(edit_post_comps_tags).css("position","absolute");
 				ca.position({ my : "left", at : "right", of : of, collision : "flipfit", within : self1.tags});
@@ -8218,7 +8218,7 @@ var defineWidget = function() {
 		var close = function() {
 			selfElement1.remove();
 			self2.destroy();
-			ui.model.EM.change(ui.model.EMEvent.FitWindow);
+			qoid.model.EM.change(qoid.model.EMEvent.FitWindow);
 		};
 		var buttonBlock = new $("<div></div>").css("text-align","right").appendTo(selfElement1);
 		new $("<button title='Remove Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-circle-close"}}).css("width","23px").click(function(evt) {
@@ -8226,16 +8226,16 @@ var defineWidget = function() {
 			m3.util.JqueryUtil.confirm("Delete Post","Are you sure you want to remove this post?",function() {
 				var ecd = self2._updateContent();
 				close();
-				ui.model.EM.change(ui.model.EMEvent.DeleteContent,ecd);
+				qoid.model.EM.change(qoid.model.EMEvent.DeleteContent,ecd);
 			});
 		});
 		new $("<button title='Update Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-disk"}}).css("width","23px").click(function(evt) {
 			var ecd = self2._updateContent();
-			ui.model.EM.change(ui.model.EMEvent.UpdateContent,ecd);
+			qoid.model.EM.change(qoid.model.EMEvent.UpdateContent,ecd);
 			close();
 		});
 		new $("<button title='Close'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-closethick"}}).css("width","23px").click(function(evt) {
-			ui.model.EM.change(ui.model.EMEvent.EditContentClosed,self2.options.content);
+			qoid.model.EM.change(qoid.model.EMEvent.EditContentClosed,self2.options.content);
 			close();
 		});
 	}, _updateContent : function() {
@@ -8243,26 +8243,26 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		switch( (self.options.content.contentType)[1] ) {
 		case 3:
-			(js.Boot.__cast(self.options.content , ui.model.MessageContent)).props.text = self.valueElement.val();
+			(js.Boot.__cast(self.options.content , qoid.model.MessageContent)).props.text = self.valueElement.val();
 			break;
 		case 2:
-			(js.Boot.__cast(self.options.content , ui.model.UrlContent)).props.url = self.valueElement.val();
+			(js.Boot.__cast(self.options.content , qoid.model.UrlContent)).props.url = self.valueElement.val();
 			break;
 		case 1:
-			(js.Boot.__cast(self.options.content , ui.model.ImageContent)).props.imgSrc = ui.widget.UploadCompHelper.value(self.uploadComp);
+			(js.Boot.__cast(self.options.content , qoid.model.ImageContent)).props.imgSrc = qoid.widget.UploadCompHelper.value(self.uploadComp);
 			break;
 		case 0:
-			(js.Boot.__cast(self.options.content , ui.model.AudioContent)).props.audioSrc = ui.widget.UploadCompHelper.value(self.uploadComp);
+			(js.Boot.__cast(self.options.content , qoid.model.AudioContent)).props.audioSrc = qoid.widget.UploadCompHelper.value(self.uploadComp);
 			break;
 		}
-		var ecd1 = new ui.model.EditContentData(self.options.content);
+		var ecd1 = new qoid.model.EditContentData(self.options.content);
 		self.tags.children(".label").each(function(i,dom) {
 			var labelComp = new $(dom);
-			ecd1.labelIids.push(ui.widget.LabelCompHelper.getLabel(labelComp).iid);
+			ecd1.labelIids.push(qoid.widget.LabelCompHelper.getLabel(labelComp).iid);
 		});
 		self.tags.children(".connectionAvatar").each(function(i,dom) {
 			var conn = new $(dom);
-			ecd1.labelIids.push(ui.widget.ConnectionAvatarHelper.getConnection(conn).metaLabelIid);
+			ecd1.labelIids.push(qoid.widget.ConnectionAvatarHelper.getConnection(conn).metaLabelIid);
 		});
 		return ecd1;
 	}, _create : function() {
@@ -8273,31 +8273,31 @@ var defineWidget = function() {
 		self3._createButtonBlock(self3,selfElement);
 		var section = new $("<section id='postSection'></section>").appendTo(selfElement);
 		var tab_class = "";
-		if(self3.options.content.contentType == ui.model.ContentType.TEXT) {
+		if(self3.options.content.contentType == qoid.model.ContentType.TEXT) {
 			var textInput = new $("<div class='postContainer boxsizingBorder'></div>");
 			textInput.appendTo(section);
 			self3.valueElement = new $("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput).attr("id","textInput_ta");
-			self3.valueElement.val((js.Boot.__cast(self3.options.content , ui.model.MessageContent)).props.text);
+			self3.valueElement.val((js.Boot.__cast(self3.options.content , qoid.model.MessageContent)).props.text);
 			tab_class = "ui-icon-document";
-		} else if(self3.options.content.contentType == ui.model.ContentType.URL) {
+		} else if(self3.options.content.contentType == qoid.model.ContentType.URL) {
 			var urlComp = new $("<div class='postContainer boxsizingBorder'></div>").urlComp();
-			self3.valueElement = ui.widget.UrlCompHelper.urlInput(urlComp);
+			self3.valueElement = qoid.widget.UrlCompHelper.urlInput(urlComp);
 			urlComp.appendTo(section);
-			ui.widget.UrlCompHelper.urlInput(urlComp).val((js.Boot.__cast(self3.options.content , ui.model.UrlContent)).props.url);
+			qoid.widget.UrlCompHelper.urlInput(urlComp).val((js.Boot.__cast(self3.options.content , qoid.model.UrlContent)).props.url);
 			tab_class = "ui-icon-link";
-		} else if(self3.options.content.contentType == ui.model.ContentType.IMAGE) {
-			var options = { contentType : ui.model.ContentType.IMAGE};
+		} else if(self3.options.content.contentType == qoid.model.ContentType.IMAGE) {
+			var options = { contentType : qoid.model.ContentType.IMAGE};
 			var imageInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 			self3.uploadComp = imageInput;
 			imageInput.appendTo(section);
-			ui.widget.UploadCompHelper.setPreviewImage(imageInput,(js.Boot.__cast(self3.options.content , ui.model.ImageContent)).props.imgSrc);
+			qoid.widget.UploadCompHelper.setPreviewImage(imageInput,(js.Boot.__cast(self3.options.content , qoid.model.ImageContent)).props.imgSrc);
 			tab_class = "ui-icon-image";
-		} else if(self3.options.content.contentType == ui.model.ContentType.AUDIO) {
-			var options = { contentType : ui.model.ContentType.AUDIO};
+		} else if(self3.options.content.contentType == qoid.model.ContentType.AUDIO) {
+			var options = { contentType : qoid.model.ContentType.AUDIO};
 			var audioInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 			self3.uploadComp = audioInput;
 			audioInput.appendTo(section);
-			ui.widget.UploadCompHelper.setPreviewImage(audioInput,(js.Boot.__cast(self3.options.content , ui.model.AudioContent)).props.audioSrc);
+			qoid.widget.UploadCompHelper.setPreviewImage(audioInput,(js.Boot.__cast(self3.options.content , qoid.model.AudioContent)).props.audioSrc);
 			tab_class = "ui-icon-volume-on";
 		}
 		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
@@ -8319,9 +8319,9 @@ var defineWidget = function() {
 			return d["is"](".filterable") && !d["is"](".aliasAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
 			if(isDuplicate(".connectionAvatar",_ui.draggable,tags,function(ele) {
-				return ui.widget.ConnectionAvatarHelper.getConnection(new $(ele)).iid;
+				return qoid.widget.ConnectionAvatarHelper.getConnection(new $(ele)).iid;
 			}) || isDuplicate(".labelComp",_ui.draggable,tags,function(ele) {
-				return ui.widget.LabelCompHelper.getLabel(new $(ele)).iid;
+				return qoid.widget.LabelCompHelper.getLabel(new $(ele)).iid;
 			})) {
 				if(_ui.draggable.parent().attr("id") != "edit_post_comps_tags") _ui.draggable.draggable("option","revert",true);
 				return;
@@ -8350,22 +8350,22 @@ var defineWidget = function() {
 		postContent.append("<div class='content-timestamp'>" + Std.string(content.get_created()) + "</div>");
 		switch( (content.contentType)[1] ) {
 		case 0:
-			var audio = js.Boot.__cast(content , ui.model.AudioContent);
+			var audio = js.Boot.__cast(content , qoid.model.AudioContent);
 			postContent.append(audio.props.title + "<br/>");
 			var audioControls = new $("<audio controls></audio>");
 			postContent.append(audioControls);
 			audioControls.append("<source src='" + audio.props.audioSrc + "' type='" + audio.props.audioType + "'>Your browser does not support the audio element.");
 			break;
 		case 1:
-			var img = js.Boot.__cast(content , ui.model.ImageContent);
+			var img = js.Boot.__cast(content , qoid.model.ImageContent);
 			postContent.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
 			break;
 		case 2:
-			var urlContent = js.Boot.__cast(content , ui.model.UrlContent);
+			var urlContent = js.Boot.__cast(content , qoid.model.UrlContent);
 			postContent.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
 			break;
 		case 3:
-			var textContent = js.Boot.__cast(content , ui.model.MessageContent);
+			var textContent = js.Boot.__cast(content , qoid.model.MessageContent);
 			postContent.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
 			break;
 		}
@@ -8382,18 +8382,18 @@ var defineWidget = function() {
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
 		var aliasIid = null;
 		var connectionIid = null;
-		if(ui.AppContext.ALIASES.delegate().get(self.options.content.aliasIid) != null) aliasIid = self.options.content.aliasIid; else if(ui.AppContext.MASTER_CONNECTIONS.delegate().get(self.options.content.connectionIid) != null) connectionIid = self.options.content.connectionIid;
+		if(qoid.AppContext.ALIASES.delegate().get(self.options.content.aliasIid) != null) aliasIid = self.options.content.aliasIid; else if(qoid.AppContext.MASTER_CONNECTIONS.delegate().get(self.options.content.connectionIid) != null) connectionIid = self.options.content.connectionIid;
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, aliasIid : aliasIid, connectionIid : connectionIid}).appendTo(postCreator);
 		var postLabels = new $("<aside class='postLabels'></div>").appendTo(postWr);
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
-		if(ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) ui.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
+		if(qoid.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) qoid.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
 		self.onchangeLabelChildren = function(ele,evt) {
 			if(evt.isAdd()) {
 				if(ele["is"](".connectionAvatar")) postConnections.append(ele); else postLabels.append(ele);
 			} else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) ele.remove();
 		};
-		self.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),function(lc) {
-			var connection = ui.AppContext.connectionFromMetaLabel(lc.labelIid);
+		self.mappedLabels = new m3.observable.MappedSet(qoid.AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid),function(lc) {
+			var connection = qoid.AppContext.connectionFromMetaLabel(lc.labelIid);
 			if(connection != null) return new $("<div></div>").connectionAvatar({ dndEnabled : false, connectionIid : connection.iid}); else return new $("<div class='small'></div>").labelComp({ dndEnabled : false, labelIid : lc.labelIid});
 		});
 		self.mappedLabels.listen(self.onchangeLabelChildren);
@@ -8410,7 +8410,7 @@ var defineWidget = function() {
 			self1.toggleActive();
 		});
 		self1._createWidgets(selfElement1,self1);
-		ui.model.EM.addListener(ui.model.EMEvent.EditContentClosed,function(content) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.EditContentClosed,function(content) {
 			if(content.iid == self1.options.content.iid) selfElement1.show();
 		});
 	}, update : function(content) {
@@ -8448,7 +8448,7 @@ var defineWidget = function() {
 					var inserted = false;
 					comps.each(function(i,dom) {
 						var cc = new $(dom);
-						var cmp = m3.helper.StringHelper.compare(ui.widget.ContentCompHelper.content(contentComp).getTimestamp(),ui.widget.ContentCompHelper.content(cc).getTimestamp());
+						var cmp = m3.helper.StringHelper.compare(qoid.widget.ContentCompHelper.content(contentComp).getTimestamp(),qoid.widget.ContentCompHelper.content(cc).getTimestamp());
 						if(cmp > 0) {
 							cc.before(contentComp);
 							inserted = true;
@@ -8457,8 +8457,8 @@ var defineWidget = function() {
 					});
 					if(!inserted) comps.last().after(contentComp);
 				}
-				ui.model.EM.change(ui.model.EMEvent.FitWindow);
-			} else if(evt.isUpdate()) ui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
+				qoid.model.EM.change(qoid.model.EMEvent.FitWindow);
+			} else if(evt.isUpdate()) qoid.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
 		};
 		var beforeSetContent = function() {
 			selfElement.find(".contentComp").remove();
@@ -8466,7 +8466,7 @@ var defineWidget = function() {
 		var widgetCreator = function(content) {
 			return new $("<div></div>").contentComp({ content : content});
 		};
-		ui.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
+		qoid.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
 	}, destroy : function() {
 		var self = this;
 		$.Widget.prototype.destroy.call(this);
@@ -8504,7 +8504,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement1 = this.element;
 		var valid = true;
-		var newUser = new ui.model.NewUser();
+		var newUser = new qoid.model.NewUser();
 		newUser.name = self.input_n.val();
 		if(m3.helper.StringHelper.isBlank(newUser.name)) {
 			self.placeholder_n.addClass("ui-state-error");
@@ -8512,8 +8512,8 @@ var defineWidget = function() {
 		}
 		if(!valid) return;
 		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.CreateAgent,newUser);
-		ui.model.EM.listenOnce(ui.model.EMEvent.AgentCreated,function(n) {
+		qoid.model.EM.change(qoid.model.EMEvent.CreateAgent,newUser);
+		qoid.model.EM.listenOnce(qoid.model.EMEvent.AgentCreated,function(n) {
 			selfElement1.dialog("close");
 		},"CreateAgentDialog-UserSignup");
 	}, _buildDialog : function() {
@@ -8526,9 +8526,9 @@ var defineWidget = function() {
 		}, Cancel : function() {
 			self1._cancelled = true;
 			$(this).dialog("close");
-		}}, close : function(evt,ui1) {
+		}}, close : function(evt,ui) {
 			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			ui.widget.DialogManager.showLogin();
+			qoid.widget.DialogManager.showLogin();
 		}};
 		selfElement2.dialog(dlgOptions);
 	}, open : function() {
@@ -8568,7 +8568,7 @@ var defineWidget = function() {
 	}, _fireFilter : function() {
 		var selfElement = this.element;
 		var filter = js.Boot.__cast(selfElement.closest("#filter") , $);
-		ui.widget.FilterCompHelper.fireFilter(filter);
+		qoid.widget.FilterCompHelper.fireFilter(filter);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -8580,8 +8580,8 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
 		selfElement.addClass("introductionNotificationComp container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,self.options.notification.fromConnectionIid);
-		self.listenerUid = ui.model.EM.addListener(ui.model.EMEvent.RespondToIntroduction_RESPONSE,function(e) {
+		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_CONNECTIONS,self.options.notification.fromConnectionIid);
+		self.listenerUid = qoid.model.EM.addListener(qoid.model.EMEvent.RespondToIntroduction_RESPONSE,function(e) {
 			m3.util.JqueryUtil.alert("Your response has been received.","Introduction",function() {
 				self.destroy();
 				selfElement.remove();
@@ -8590,8 +8590,8 @@ var defineWidget = function() {
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationConfirmation = function(accepted) {
-			var confirmation = new ui.api.IntroResponseMessage(self.options.notification.iid,accepted);
-			ui.model.EM.change(ui.model.EMEvent.RespondToIntroduction,confirmation);
+			var confirmation = new qoid.api.IntroResponseMessage(self.options.notification.iid,accepted);
+			qoid.model.EM.change(qoid.model.EMEvent.RespondToIntroduction,confirmation);
 		};
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
@@ -8607,7 +8607,7 @@ var defineWidget = function() {
 		intro_table.find("td:nth-child(3)").append("<div>" + self.options.notification.props.profile.name + "</div><div><img class='intro-profile-img container' src='" + self.options.notification.props.profile.imgSrc + "'/></div>");
 	}, destroy : function() {
 		var self = this;
-		ui.model.EM.removeListener(ui.model.EMEvent.RespondToIntroduction_RESPONSE,self.listenerUid);
+		qoid.model.EM.removeListener(qoid.model.EMEvent.RespondToIntroduction_RESPONSE,self.listenerUid);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -8634,13 +8634,13 @@ var defineWidget = function() {
 			};
 			if($(this).children(".connectionAvatar").length == 0) {
 				if(_ui.draggable.hasClass("connectionAvatar")) {
-					var connection = ui.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
-					var set = new m3.observable.FilteredSet(ui.AppContext.NOTIFICATIONS,function(n) {
-						return n.kind == ui.model.NotificationKind.IntroductionRequest;
+					var connection = qoid.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
+					var set = new m3.observable.FilteredSet(qoid.AppContext.NOTIFICATIONS,function(n) {
+						return n.kind == qoid.model.NotificationKind.IntroductionRequest;
 					});
 					if(m3.helper.OSetHelper.hasValues(set)) {
 						var iter = set.iterator();
-						var introComp = new $("<div></div>").introductionNotificationComp({ notification : js.Boot.__cast(iter.next() , ui.model.IntroductionRequestNotification)});
+						var introComp = new $("<div></div>").introductionNotificationComp({ notification : js.Boot.__cast(iter.next() , qoid.model.IntroductionRequestNotification)});
 						introComp.insertAfter(new $("#filter"));
 						return;
 					}
@@ -8654,7 +8654,7 @@ var defineWidget = function() {
 			if(cloneOffset.top != 0) clone.offset(cloneOffset); else clone.position({ my : "left top", at : "left top", of : _ui.helper, collision : "flipfit", within : "#filter"});
 			self.fireFilter();
 		}});
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,function(alias) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,function(alias) {
 			self.clearFilter();
 		},"FilterComp-AliasLoaded");
 	}, clearFilter : function() {
@@ -8671,7 +8671,7 @@ var defineWidget = function() {
 		var root = (selfElement.children(".rootToggle").data("getNode"))();
 		root.type = "ROOT";
 		var filterables = selfElement.children(".filterable");
-		if(filterables.length == 0) ui.model.EM.change(ui.model.EMEvent.AliasLoaded,ui.AppContext.currentAlias); else {
+		if(filterables.length == 0) qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,qoid.AppContext.currentAlias); else {
 			filterables.each(function(idx,el) {
 				var jqEle = new $(el);
 				if(!jqEle["is"](".connectionAvatar")) {
@@ -8685,17 +8685,17 @@ var defineWidget = function() {
 			var connComps = selfElement.children(".connectionAvatar");
 			connComps.each(function(idx,el) {
 				var avatar = new $(el);
-				var conn = ui.widget.ConnectionAvatarHelper.getConnection(avatar);
+				var conn = qoid.widget.ConnectionAvatarHelper.getConnection(avatar);
 				if(conn != null) connectionIids.push(conn.iid); else {
-					var alias = ui.widget.ConnectionAvatarHelper.getAlias(avatar);
+					var alias = qoid.widget.ConnectionAvatarHelper.getAlias(avatar);
 					aliasIid = alias.iid;
 				}
 			});
-			var filterData = new ui.model.FilterData("content");
-			filterData.filter = new ui.model.Filter(root);
+			var filterData = new qoid.model.FilterData("content");
+			filterData.filter = new qoid.model.Filter(root);
 			filterData.connectionIids = connectionIids;
 			filterData.aliasIid = aliasIid;
-			if(!ui.widget.LiveBuildToggleHelper.isLive(liveToggle)) ui.model.EM.change(ui.model.EMEvent.FILTER_CHANGE,filterData); else ui.model.EM.change(ui.model.EMEvent.FILTER_RUN,filterData);
+			if(!qoid.widget.LiveBuildToggleHelper.isLive(liveToggle)) qoid.model.EM.change(qoid.model.EMEvent.FILTER_CHANGE,filterData); else qoid.model.EM.change(qoid.model.EMEvent.FILTER_RUN,filterData);
 		}
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
@@ -8769,15 +8769,15 @@ var defineWidget = function() {
 			var parent = null;
 			if(!isUpdate) {
 				container.append("<label for='labelParent'>Parent: </label> ");
-				parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + ui.AppContext.currentAlias.rootLabelIid + "'>No Parent</option></select>").appendTo(container);
+				parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + qoid.AppContext.currentAlias.rootLabelIid + "'>No Parent</option></select>").appendTo(container);
 				parent.click(stopFcn);
-				var aliasLabels = ui.AppContext.getLabelDescendents(ui.AppContext.currentAlias.rootLabelIid);
+				var aliasLabels = qoid.AppContext.getLabelDescendents(qoid.AppContext.currentAlias.rootLabelIid);
 				var iter = aliasLabels.iterator();
 				while(iter.hasNext()) {
 					var label = iter.next();
-					if(label.iid != ui.AppContext.currentAlias.rootLabelIid) {
+					if(label.iid != qoid.AppContext.currentAlias.rootLabelIid) {
 						var option = "<option value='" + label.iid + "'";
-						if(self1.selectedLabelComp != null && ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp).iid == label.iid) option += " SELECTED";
+						if(self1.selectedLabelComp != null && qoid.widget.LabelCompHelper.getLabel(self1.selectedLabelComp).iid == label.iid) option += " SELECTED";
 						option += ">" + label.name + "</option>";
 						parent.append(option);
 					}
@@ -8792,7 +8792,7 @@ var defineWidget = function() {
 			var buttonText = "Add Label";
 			if(isUpdate) {
 				buttonText = "Update Label";
-				input.val(ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp).name);
+				input.val(qoid.widget.LabelCompHelper.getLabel(self1.selectedLabelComp).name);
 			}
 			container.append("<br/>");
 			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt) {
@@ -8800,20 +8800,20 @@ var defineWidget = function() {
 			});
 			createLabel = function() {
 				if(input.val().length == 0) return;
-				ui.AppContext.LOGGER.info("Create new label | " + input.val());
-				var label = new ui.model.Label();
+				qoid.AppContext.LOGGER.info("Create new label | " + input.val());
+				var label = new qoid.model.Label();
 				label.name = input.val();
-				var eventData = new ui.model.EditLabelData(label,parent.val());
-				ui.model.EM.change(ui.model.EMEvent.CreateLabel,eventData);
+				var eventData = new qoid.model.EditLabelData(label,parent.val());
+				qoid.model.EM.change(qoid.model.EMEvent.CreateLabel,eventData);
 				new $("body").click();
 			};
 			updateLabel = function() {
 				if(input.val().length == 0) return;
-				var label = ui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp);
-				ui.AppContext.LOGGER.info("Update label | " + label.iid);
+				var label = qoid.widget.LabelCompHelper.getLabel(self1.selectedLabelComp);
+				qoid.AppContext.LOGGER.info("Update label | " + label.iid);
 				label.name = input.val();
-				var eventData = new ui.model.EditLabelData(label);
-				ui.model.EM.change(ui.model.EMEvent.UpdateLabel,eventData);
+				var eventData = new qoid.model.EditLabelData(label);
+				qoid.model.EM.change(qoid.model.EMEvent.UpdateLabel,eventData);
 				new $("body").click();
 			};
 		}, positionalElement : reference});
@@ -8823,7 +8823,7 @@ var defineWidget = function() {
 		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelsList must be a div element");
 		selfElement1.addClass("icontainer labelsList " + m3.widget.Widgets.getWidgetClasses());
 		self2.selectedLabelComp = null;
-		ui.model.EM.addListener(ui.model.EMEvent.AliasLoaded,function(alias) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,function(alias) {
 			self2.selectedLabelComp = null;
 			selfElement1.children(".labelTree").remove();
 			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid, labelPath : [alias.rootLabelIid]});
@@ -8854,7 +8854,7 @@ var defineWidget = function() {
 			return false;
 		}},{ label : "Delete Label", icon : "ui-icon-circle-minus", action : function(evt,m) {
 			if(self2.selectedLabelComp != null) m3.util.JqueryUtil.confirm("Delete Label","Are you sure you want to delete this label?",function() {
-				ui.model.EM.change(ui.model.EMEvent.DeleteLabel,new ui.model.EditLabelData(ui.widget.LabelCompHelper.getLabel(self2.selectedLabelComp),ui.widget.LabelCompHelper.parentIid(self2.selectedLabelComp)));
+				qoid.model.EM.change(qoid.model.EMEvent.DeleteLabel,new qoid.model.EditLabelData(qoid.widget.LabelCompHelper.getLabel(self2.selectedLabelComp),qoid.widget.LabelCompHelper.parentIid(self2.selectedLabelComp)));
 			});
 		}}], width : 225}).hide();
 		selfElement1.bind("contextmenu",function(evt) {
@@ -8890,8 +8890,8 @@ var defineWidget = function() {
 		},function() {
 			expander.css("visibility","hidden");
 		});
-		if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.labelIid);
-		self.children = ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid);
+		if(qoid.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid) == null) qoid.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.labelIid);
+		self.children = qoid.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
@@ -8913,7 +8913,7 @@ var defineWidget = function() {
 				labelChildren.toggleClass("labelTreeFullWidth");
 			} else labelChildren.hide();
 			if(labelChildren.css("display") == "none") expander.html("<b>+</b>"); else expander.html("<b>-</b>");
-			ui.model.EM.change(ui.model.EMEvent.FitWindow);
+			qoid.model.EM.change(qoid.model.EMEvent.FitWindow);
 		});
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
@@ -8926,11 +8926,11 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LabelTree must be a div element");
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
-		if(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid) == null) ui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
+		if(qoid.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid) == null) qoid.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
 		self.onchangeLabelChildren = function(labelTreeBranch,evt) {
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) labelTreeBranch.remove();
 		};
-		self.mappedLabels = new m3.observable.MappedSet(ui.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid),function(labelChild) {
+		self.mappedLabels = new m3.observable.MappedSet(qoid.AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid),function(labelChild) {
 			var labelPath = self.options.labelPath.slice();
 			labelPath.push(labelChild.childIid);
 			return new $("<div></div>").labelTreeBranch({ parentIid : self.options.parentIid, labelIid : labelChild.childIid, labelPath : labelPath});
@@ -8966,14 +8966,14 @@ var defineWidget = function() {
 		});
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_un,self.placeholder_un);
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
-		ui.model.EM.addListener(ui.model.EMEvent.InitialDataLoadComplete,function(n) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.InitialDataLoadComplete,function(n) {
 			selfElement.dialog("close");
 		},"Login-InitialDataLoadComplete");
 	}, initialized : false, _login : function() {
 		var self = this;
 		var selfElement = this.element;
 		var valid = true;
-		var login = new ui.model.Login();
+		var login = new qoid.model.Login();
 		login.agentId = self.input_un.val();
 		if(m3.helper.StringHelper.isBlank(login.agentId)) {
 			self.placeholder_un.addClass("ui-state-error");
@@ -8986,7 +8986,7 @@ var defineWidget = function() {
 		}
 		if(!valid) return;
 		selfElement.find(".ui-state-error").removeClass("ui-state-error");
-		ui.model.EM.change(ui.model.EMEvent.UserLogin,login);
+		qoid.model.EM.change(qoid.model.EMEvent.UserLogin,login);
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement = this.element;
@@ -8994,9 +8994,9 @@ var defineWidget = function() {
 		var dlgOptions = { autoOpen : false, title : "Login", height : 280, width : 400, modal : true, buttons : { Login : function() {
 			self1._login();
 		}, 'I\'m New...' : function() {
-			ui.widget.DialogManager.showCreateAgent();
-		}}, beforeClose : function(evt,ui1) {
-			if(ui.AppContext.UBER_ALIAS_ID == null) {
+			qoid.widget.DialogManager.showCreateAgent();
+		}}, beforeClose : function(evt,ui) {
+			if(qoid.AppContext.UBER_ALIAS_ID == null) {
 				m3.util.JqueryUtil.alert("A valid login is required to use the app");
 				return false;
 			}
@@ -9026,7 +9026,7 @@ var defineWidget = function() {
 				$(this).scrollTop($(this).height());
 			});
 		}}).find(".ui-tabs-nav");
-		(js.Boot.__cast(tabs , $)).sortable({ axis : "x", stop : function(evt,ui1) {
+		(js.Boot.__cast(tabs , $)).sortable({ axis : "x", stop : function(evt,ui) {
 			selfElement.tabs("refresh");
 		}});
 		selfElement.addClass("messagingComp icontainer " + m3.widget.Widgets.getWidgetClasses());
@@ -9045,7 +9045,7 @@ var defineWidget = function() {
 				}
 				return $r;
 			}(this)) + "'></a></li>").appendTo(ul);
-			var chatComp = new $("<div id='" + id + "'></div>").chatComp({ connection : connection, messages : new m3.observable.ObservableSet(ui.model.ModelObjWithIid.identifier)});
+			var chatComp = new $("<div id='" + id + "'></div>").chatComp({ connection : connection, messages : new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier)});
 			chatComp.appendTo(selfElement);
 			selfElement.tabs("refresh");
 		}, tolerance : "pointer"});
@@ -9063,11 +9063,11 @@ var defineWidget = function() {
 		var section = new $("<section id='postSection'></section>").appendTo(selfElement);
 		var addConnectionsAndLabels = null;
 		var doTextPost = function(evt,contentType,value) {
-			ui.AppContext.LOGGER.debug("Post new text content");
+			qoid.AppContext.LOGGER.debug("Post new text content");
 			evt.preventDefault();
-			var ccd = new ui.model.EditContentData(ui.model.ContentFactory.create(contentType,value));
+			var ccd = new qoid.model.EditContentData(qoid.model.ContentFactory.create(contentType,value));
 			addConnectionsAndLabels(ccd);
-			ui.model.EM.change(ui.model.EMEvent.CreateContent,ccd);
+			qoid.model.EM.change(qoid.model.EMEvent.CreateContent,ccd);
 		};
 		var doTextPostForElement = function(evt,contentType,ele) {
 			doTextPost(evt,contentType,ele.val());
@@ -9075,16 +9075,16 @@ var defineWidget = function() {
 		};
 		var textInput = new $("<div class='postContainer'></div>").appendTo(section);
 		var ta = new $("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput).attr("id","textInput_ta").keypress(function(evt) {
-			if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) doTextPostForElement(evt,ui.model.ContentType.TEXT,new $(evt.target));
+			if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) doTextPostForElement(evt,qoid.model.ContentType.TEXT,new $(evt.target));
 		});
 		var urlComp = new $("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		urlComp.appendTo(section).keypress(function(evt) {
-			if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) doTextPostForElement(evt,ui.model.ContentType.URL,new $(evt.target));
+			if(!(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13) doTextPostForElement(evt,qoid.model.ContentType.URL,new $(evt.target));
 		});
-		var options = { contentType : ui.model.ContentType.IMAGE};
+		var options = { contentType : qoid.model.ContentType.IMAGE};
 		var imageInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		imageInput.appendTo(section);
-		options.contentType = ui.model.ContentType.AUDIO;
+		options.contentType = qoid.model.ContentType.AUDIO;
 		var audioInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		audioInput.appendTo(section);
 		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
@@ -9140,9 +9140,9 @@ var defineWidget = function() {
 			return d["is"](".filterable") && !d["is"](".aliasAvatar");
 		}, activeClass : "ui-state-hover", hoverClass : "ui-state-active", drop : function(event,_ui) {
 			if(isDuplicate(".connectionAvatar",_ui.draggable,tags,function(ele) {
-				return ui.widget.ConnectionAvatarHelper.getConnection(new $(ele)).iid;
+				return qoid.widget.ConnectionAvatarHelper.getConnection(new $(ele)).iid;
 			}) || isDuplicate(".labelComp",_ui.draggable,tags,function(ele) {
-				return ui.widget.LabelCompHelper.getLabel(new $(ele)).iid;
+				return qoid.widget.LabelCompHelper.getLabel(new $(ele)).iid;
 			})) {
 				if(_ui.draggable.parent().attr("id") != "post_comps_tags") _ui.draggable.draggable("option","revert",true);
 				return;
@@ -9163,11 +9163,11 @@ var defineWidget = function() {
 		addConnectionsAndLabels = function(ccd1) {
 			tags.children(".label").each(function(i,dom) {
 				var labelComp = new $(dom);
-				ccd1.labelIids.push(ui.widget.LabelCompHelper.getLabel(labelComp).iid);
+				ccd1.labelIids.push(qoid.widget.LabelCompHelper.getLabel(labelComp).iid);
 			});
 			tags.children(".connectionAvatar").each(function(i,dom) {
 				var avatar = new $(dom);
-				var connection = ui.widget.ConnectionAvatarHelper.getConnection(avatar);
+				var connection = qoid.widget.ConnectionAvatarHelper.getConnection(avatar);
 				ccd1.labelIids.push(connection.metaLabelIid);
 			});
 		};
@@ -9178,10 +9178,10 @@ var defineWidget = function() {
 			}
 			if(textInput.isVisible()) {
 				var ta1 = new $("#textInput_ta");
-				doTextPostForElement(evt,ui.model.ContentType.TEXT,ta1);
-			} else if(urlComp.isVisible()) doTextPostForElement(evt,ui.model.ContentType.URL,ui.widget.UrlCompHelper.urlInput(urlComp)); else {
-				doTextPost(evt,ui.model.ContentType.IMAGE,ui.widget.UploadCompHelper.value(imageInput));
-				ui.widget.UploadCompHelper.clear(imageInput);
+				doTextPostForElement(evt,qoid.model.ContentType.TEXT,ta1);
+			} else if(urlComp.isVisible()) doTextPostForElement(evt,qoid.model.ContentType.URL,qoid.widget.UrlCompHelper.urlInput(urlComp)); else {
+				doTextPost(evt,qoid.model.ContentType.IMAGE,qoid.widget.UploadCompHelper.value(imageInput));
+				qoid.widget.UploadCompHelper.clear(imageInput);
 			}
 			tags.children(".label").remove();
 			tags.children(".connectionAvatar").remove();
@@ -9226,7 +9226,7 @@ var defineWidget = function() {
 			}
 		};
 		var divTa1 = new $("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
-		var from_text = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + ui.AppContext.currentAlias.profile.name);
+		var from_text = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + qoid.AppContext.currentAlias.profile.name);
 		var divTa2 = new $("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
 		var to_text = new $("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","to_text").val(from_text.val());
 	}, _appendConnectionAvatar : function(connection,parent) {
@@ -9235,16 +9235,16 @@ var defineWidget = function() {
 	}, initialized : false, _sendRequest : function() {
 		var self = this;
 		var selfElement1 = this.element;
-		var alias = ui.AppContext.currentAlias.profile.name;
-		var intro = new ui.model.IntroductionRequest();
+		var alias = qoid.AppContext.currentAlias.profile.name;
+		var intro = new qoid.model.IntroductionRequest();
 		intro.aConnectionIid = self.options.to.iid;
 		intro.bConnectionIid = self.options.from.iid;
 		intro.aMessage = new $("#to_text").val();
 		intro.bMessage = new $("#from_text").val();
-		ui.model.EM.addListener(ui.model.EMEvent.INTRODUCTION_RESPONSE,function(n) {
+		qoid.model.EM.addListener(qoid.model.EMEvent.INTRODUCTION_RESPONSE,function(n) {
 			selfElement1.dialog("close");
 		},"RequestIntroductionDialog-Introduction-Response");
-		ui.model.EM.change(ui.model.EMEvent.INTRODUCTION_REQUEST,intro);
+		qoid.model.EM.change(qoid.model.EMEvent.INTRODUCTION_REQUEST,intro);
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement2 = this.element;
@@ -9289,14 +9289,14 @@ var defineWidget = function() {
 			var submit = new $("<button>Submit Backup</button>").appendTo(self.inputContainer).click(function(evt1) {
 				if(confirm("Perform Backup?")) {
 					(js.Boot.__cast(selfElement , $)).m3dialog("close");
-					ui.model.EM.change(ui.model.EMEvent.BACKUP);
+					qoid.model.EM.change(qoid.model.EMEvent.BACKUP);
 				}
 			});
 		}).appendTo(self.container);
 		new $("<button>Restore</button>").button().click(function(evt) {
 			if(confirm("Restore from backup?")) {
 				(js.Boot.__cast(selfElement , $)).m3dialog("close");
-				ui.model.EM.change(ui.model.EMEvent.RESTORE);
+				qoid.model.EM.change(qoid.model.EMEvent.RESTORE);
 			}
 		}).appendTo(self.container);
 		(js.Boot.__cast(selfElement , $)).m3dialog({ autoOpen : false, title : "Data Backup & Restore"});
@@ -9317,8 +9317,8 @@ var defineWidget = function() {
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement = this.element;
-		var lacls = ui.AppContext.GROUPED_LABELACLS.delegate().get(self1.options.connection.iid);
-		if(lacls == null) lacls = ui.AppContext.GROUPED_LABELACLS.addEmptyGroup(self1.options.connection.iid);
+		var lacls = qoid.AppContext.GROUPED_LABELACLS.delegate().get(self1.options.connection.iid);
+		if(lacls == null) lacls = qoid.AppContext.GROUPED_LABELACLS.addEmptyGroup(self1.options.connection.iid);
 		selfElement.append("<div style='margin-bottom:4px;'>To revoke access, check the label.</div>");
 		var $it2 = lacls.iterator();
 		while( $it2.hasNext() ) {
@@ -9342,10 +9342,10 @@ var defineWidget = function() {
 			var cb = new $(ele);
 			if(cb.prop("checked") == true) {
 				var id = cb.attr("id").split("-")[1];
-				se.push(m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_LABELACLS,id));
+				se.push(m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_LABELACLS,id));
 			}
 		});
-		if(se.length > 0) ui.model.EM.change(ui.model.EMEvent.RevokeAccess,se);
+		if(se.length > 0) qoid.model.EM.change(qoid.model.EMEvent.RevokeAccess,se);
 	}, open : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -9364,11 +9364,11 @@ $.widget("ui.revokeAccessDialog",defineWidget());
 var defineWidget = function() {
 	return { _updateTimeLines : function() {
 	}, _getProfile : function(content) {
-		var alias = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_ALIASES,content.aliasIid);
+		var alias = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_ALIASES,content.aliasIid);
 		if(alias != null) return alias.profile;
-		var connection = m3.helper.OSetHelper.getElement(ui.AppContext.MASTER_CONNECTIONS,content.connectionIid);
+		var connection = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_CONNECTIONS,content.connectionIid);
 		if(connection != null) return connection.data;
-		return new ui.model.Profile();
+		return new qoid.model.Profile();
 	}, _addContent : function(content) {
 		try {
 			var self = this;
@@ -9383,13 +9383,13 @@ var defineWidget = function() {
 			}
 			if(updateTimelines) self._updateTimeLines();
 			if(self.contentTimeLines.get(content.aliasIid) == null) {
-				var timeLine = new ui.widget.score.ContentTimeLine(self.paper,self._getProfile(content),self.startTime.getTime(),self.endTime.getTime(),self.viewBoxWidth);
+				var timeLine = new qoid.widget.score.ContentTimeLine(self.paper,self._getProfile(content),self.startTime.getTime(),self.endTime.getTime(),self.viewBoxWidth);
 				self.contentTimeLines.set(content.aliasIid,timeLine);
 			}
 			self.contentTimeLines.get(content.aliasIid).addContent(content);
 			self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
 		} catch( e ) {
-			ui.AppContext.LOGGER.error("error calling _addContent",e);
+			qoid.AppContext.LOGGER.error("error calling _addContent",e);
 		}
 	}, _deleteContent : function(content) {
 		var self = this;
@@ -9397,7 +9397,7 @@ var defineWidget = function() {
 		if(ctl != null) {
 			ctl.removeElements();
 			self.contentTimeLines.remove(content.aliasIid);
-			if(!self.contentTimeLines.iterator().hasNext()) ui.widget.score.ContentTimeLine.resetPositions();
+			if(!self.contentTimeLines.iterator().hasNext()) qoid.widget.score.ContentTimeLine.resetPositions();
 		}
 	}, _updateContent : function(content) {
 	}, _create : function() {
@@ -9453,12 +9453,12 @@ var defineWidget = function() {
 					return $r;
 				}(this));
 			}
-			self1.timeMarker = new ui.widget.score.TimeMarker(self1.uberGroup,self1.paper,self1.viewBoxWidth,self1.startTime,self1.endTime);
+			self1.timeMarker = new qoid.widget.score.TimeMarker(self1.uberGroup,self1.paper,self1.viewBoxWidth,self1.startTime,self1.endTime);
 		};
 		var widgetCreator = function(content) {
 			return null;
 		};
-		ui.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
+		qoid.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
 	}, destroy : function() {
 		var self = this;
 		$.Widget.prototype.destroy.call(this);
@@ -9493,62 +9493,62 @@ m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" pa
 m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"423\"><f a=\"t:?deleteEmptySet\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"446\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"465\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"474\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"478\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"489\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"493\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"403\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"545\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"553\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"558\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"576\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"580\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"586\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"590\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"594\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"506\"><f a=\"source:?sortByFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
-ui.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
-ui.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
-ui.api.BennuHandler.QUERY = "/api/query";
-ui.api.BennuHandler.UPSERT = "/api/upsert";
-ui.api.BennuHandler.DELETE = "/api/delete";
-ui.api.BennuHandler.INTRODUCE = "/api/introduction/initiate";
-ui.api.BennuHandler.DEREGISTER = "/api/query/deregister";
-ui.api.BennuHandler.INTRO_RESPONSE = "/api/introduction/respond";
-ui.api.ChannelMessage.__rtti = "<class path=\"ui.api.ChannelMessage\" params=\"\" module=\"ui.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
-ui.api.BennuMessage.__rtti = "<class path=\"ui.api.BennuMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.DeleteMessage.__rtti = "<class path=\"ui.api.DeleteMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"28\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.api.CrudMessage.__rtti = "<class path=\"ui.api.CrudMessage\" params=\"\">\n\t<extends path=\"ui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"41\" static=\"1\"><f a=\"object\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"ui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"36\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.api.DeregisterMessage.__rtti = "<class path=\"ui.api.DeregisterMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<handle public=\"1\"><c path=\"String\"/></handle>\n\t<new public=\"1\" set=\"method\" line=\"50\"><f a=\"handle\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.IntroMessage.__rtti = "<class path=\"ui.api.IntroMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"62\"><f a=\"i\">\n\t<c path=\"ui.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.IntroResponseMessage.__rtti = "<class path=\"ui.api.IntroResponseMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"75\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.GetProfileMessage.__rtti = "<class path=\"ui.api.GetProfileMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<new public=\"1\" set=\"method\" line=\"85\"><f a=\"?connectionIids\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.QueryMessage.__rtti = "<class path=\"ui.api.QueryMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<implements path=\"ui.api.ChannelMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"117\" static=\"1\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.QueryMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<standing public=\"1\"><x path=\"Bool\"/></standing>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<local public=\"1\"><x path=\"Bool\"/></local>\n\t<new public=\"1\" set=\"method\" line=\"100\"><f a=\"fd:?type:?q\">\n\t<c path=\"ui.model.FilterData\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessage.__rtti = "<class path=\"ui.api.ChannelRequestMessage\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"128\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"ui.api.ChannelRequestMessageBundle\" params=\"\" module=\"ui.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"150\"><f a=\"request\">\n\t<c path=\"ui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"154\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"ui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"141\"><f a=\"?requests_\">\n\t<c path=\"Array\"><c path=\"ui.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
-ui.model.ModelObj.__rtti = "<class path=\"ui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"25\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.model.ModelObjWithIid.__rtti = "<class path=\"ui.model.ModelObjWithIid\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"43\" static=\"1\"><f a=\"t\">\n\t<c path=\"ui.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<new public=\"1\" set=\"method\" line=\"37\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Profile.__rtti = "<class path=\"ui.model.Profile\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"59\" static=\"1\"><f a=\"profile\">\n\t<c path=\"ui.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"53\"><f a=\"?name:?imgSrc:?aliasIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.AliasData.__rtti = "<class path=\"ui.model.AliasData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"66\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Alias.__rtti = "<class path=\"ui.model.Alias\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"84\" static=\"1\"><f a=\"alias\">\n\t<c path=\"ui.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<profile public=\"1\">\n\t\t<c path=\"ui.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"ui.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"78\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.LabelData.__rtti = "<class path=\"ui.model.LabelData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"91\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Label.__rtti = "<class path=\"ui.model.Label\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"108\" static=\"1\"><f a=\"l\">\n\t<c path=\"ui.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"ui.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"ui.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"?name\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.LabelChild.__rtti = "<class path=\"ui.model.LabelChild\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"127\" static=\"1\"><f a=\"l\">\n\t<c path=\"ui.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"118\"><f a=\"?parentIid:?childIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.LabelAcl.__rtti = "<class path=\"ui.model.LabelAcl\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"142\" static=\"1\"><f a=\"l\">\n\t<c path=\"ui.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<new public=\"1\" set=\"method\" line=\"136\"><f a=\"?connectionIid:?labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.Connection.__rtti = "<class path=\"ui.model.Connection\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"154\" static=\"1\"><f a=\"c\">\n\t<c path=\"ui.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<metaLabelIid public=\"1\"><c path=\"String\"/></metaLabelIid>\n\t<data public=\"1\">\n\t\t<c path=\"ui.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"163\"><f a=\"c\">\n\t<c path=\"ui.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"158\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.LabeledContent.__rtti = "<class path=\"ui.model.LabeledContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"238\" static=\"1\"><f a=\"l\">\n\t<c path=\"ui.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"242\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.ContentData.__rtti = "<class path=\"ui.model.ContentData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"254\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.model.Content.__rtti = "<class path=\"ui.model.Content\" params=\"T\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><e path=\"ui.model.ContentType\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"ui.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<created public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"Date\"/>\n\t\t<meta>\n\t\t\t<m n=\":transient\"/>\n\t\t\t<m n=\":isVar\"/>\n\t\t</meta>\n\t</created>\n\t<modified public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"Date\"/>\n\t\t<meta>\n\t\t\t<m n=\":transient\"/>\n\t\t\t<m n=\":isVar\"/>\n\t\t</meta>\n\t</modified>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<get_created public=\"1\" set=\"method\" line=\"281\"><f a=\"\"><c path=\"Date\"/></f></get_created>\n\t<get_modified public=\"1\" set=\"method\" line=\"285\"><f a=\"\"><c path=\"Date\"/></f></get_modified>\n\t<setData public=\"1\" set=\"method\" line=\"290\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"294\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"298\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"302\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"306\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"272\"><f a=\"contentType:type\">\n\t<e path=\"ui.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"ui.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.ImageContentData.__rtti = "<class path=\"ui.model.ImageContentData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"315\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.ImageContent.__rtti = "<class path=\"ui.model.ImageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"><c path=\"ui.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"321\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContentData.__rtti = "<class path=\"ui.model.AudioContentData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"331\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.AudioContent.__rtti = "<class path=\"ui.model.AudioContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"><c path=\"ui.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"337\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.MessageContentData.__rtti = "<class path=\"ui.model.MessageContentData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.MessageContent.__rtti = "<class path=\"ui.model.MessageContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"><c path=\"ui.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"351\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UrlContentData.__rtti = "<class path=\"ui.model.UrlContentData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"360\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.UrlContent.__rtti = "<class path=\"ui.model.UrlContent\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Content\"><c path=\"ui.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"366\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Notification.__rtti = "<class path=\"ui.model.Notification\" params=\"T\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"ui.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"ui.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"ui.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"426\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"430\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"418\"><f a=\"kind:type\">\n\t<e path=\"ui.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"ui.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.IntroductionRequest.__rtti = "<class path=\"ui.model.IntroductionRequest\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"443\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.Introduction.__rtti = "<class path=\"ui.model.Introduction\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"ui.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"ui.model.IntroductionState\"/></bState>\n\t<new public=\"1\" set=\"method\" line=\"450\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.IntroductionRequestNotification.__rtti = "<class path=\"ui.model.IntroductionRequestNotification\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Notification\"><c path=\"ui.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"459\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.IntroductionRequestData.__rtti = "<class path=\"ui.model.IntroductionRequestData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"ui.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.model.IntroductionResponseNotification.__rtti = "<class path=\"ui.model.IntroductionResponseNotification\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.Notification\"><c path=\"ui.model.IntroductionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"472\"><f a=\"introductionIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-ui.model.IntroductionResponseData.__rtti = "<class path=\"ui.model.IntroductionResponseData\" params=\"\" module=\"ui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-ui.model.Login.__rtti = "<class path=\"ui.model.Login\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"488\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.model.NewUser.__rtti = "<class path=\"ui.model.NewUser\" params=\"\" module=\"ui.model.ModelObj\">\n\t<extends path=\"ui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"501\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-ui.widget.score.ContentTimeLine.initial_y_pos = 60;
-ui.widget.score.ContentTimeLine.next_y_pos = ui.widget.score.ContentTimeLine.initial_y_pos;
-ui.widget.score.ContentTimeLine.next_x_pos = 10;
-ui.widget.score.ContentTimeLine.width = 60;
-ui.widget.score.ContentTimeLine.height = 70;
-ui.AgentUi.main();
+qoid.SystemStatus.CONNECTED = "svg/notification-network-ethernet-connected.svg";
+qoid.SystemStatus.DISCONNECTED = "svg/notification-network-ethernet-disconnected.svg";
+qoid.api.BennuHandler.QUERY = "/api/query";
+qoid.api.BennuHandler.UPSERT = "/api/upsert";
+qoid.api.BennuHandler.DELETE = "/api/delete";
+qoid.api.BennuHandler.INTRODUCE = "/api/introduction/initiate";
+qoid.api.BennuHandler.DEREGISTER = "/api/query/deregister";
+qoid.api.BennuHandler.INTRO_RESPONSE = "/api/introduction/respond";
+qoid.api.ChannelMessage.__rtti = "<class path=\"qoid.api.ChannelMessage\" params=\"\" module=\"qoid.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
+qoid.api.BennuMessage.__rtti = "<class path=\"qoid.api.BennuMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.api.DeleteMessage.__rtti = "<class path=\"qoid.api.DeleteMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<extends path=\"qoid.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"28\" static=\"1\"><f a=\"object\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"qoid.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.api.CrudMessage.__rtti = "<class path=\"qoid.api.CrudMessage\" params=\"\">\n\t<extends path=\"qoid.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"41\" static=\"1\"><f a=\"object\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"qoid.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<new public=\"1\" set=\"method\" line=\"36\"><f a=\"type:instance\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.api.DeregisterMessage.__rtti = "<class path=\"qoid.api.DeregisterMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<handle public=\"1\"><c path=\"String\"/></handle>\n\t<new public=\"1\" set=\"method\" line=\"50\"><f a=\"handle\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.api.IntroMessage.__rtti = "<class path=\"qoid.api.IntroMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"62\"><f a=\"i\">\n\t<c path=\"qoid.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.api.IntroResponseMessage.__rtti = "<class path=\"qoid.api.IntroResponseMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"75\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.api.GetProfileMessage.__rtti = "<class path=\"qoid.api.GetProfileMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<new public=\"1\" set=\"method\" line=\"85\"><f a=\"?connectionIids\">\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.api.QueryMessage.__rtti = "<class path=\"qoid.api.QueryMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"117\" static=\"1\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.QueryMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<standing public=\"1\"><x path=\"Bool\"/></standing>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<local public=\"1\"><x path=\"Bool\"/></local>\n\t<new public=\"1\" set=\"method\" line=\"100\"><f a=\"fd:?type:?q\">\n\t<c path=\"qoid.model.FilterData\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.api.ChannelRequestMessage.__rtti = "<class path=\"qoid.api.ChannelRequestMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"128\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.api.ChannelRequestMessageBundle.__rtti = "<class path=\"qoid.api.ChannelRequestMessageBundle\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"qoid.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"150\"><f a=\"request\">\n\t<c path=\"qoid.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"154\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"141\"><f a=\"?requests_\">\n\t<c path=\"Array\"><c path=\"qoid.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
+qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"25\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"43\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<deleted public=\"1\"><x path=\"Bool\"/></deleted>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<new public=\"1\" set=\"method\" line=\"37\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"59\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<new public=\"1\" set=\"method\" line=\"53\"><f a=\"?name:?imgSrc:?aliasIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"66\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"84\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"78\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"91\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"108\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"102\"><f a=\"?name\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"127\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"118\"><f a=\"?parentIid:?childIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"142\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<new public=\"1\" set=\"method\" line=\"136\"><f a=\"?connectionIid:?labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"154\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<metaLabelIid public=\"1\"><c path=\"String\"/></metaLabelIid>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"163\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"158\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"238\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"242\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"254\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><e path=\"qoid.model.ContentType\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<created public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"Date\"/>\n\t\t<meta>\n\t\t\t<m n=\":transient\"/>\n\t\t\t<m n=\":isVar\"/>\n\t\t</meta>\n\t</created>\n\t<modified public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"Date\"/>\n\t\t<meta>\n\t\t\t<m n=\":transient\"/>\n\t\t\t<m n=\":isVar\"/>\n\t\t</meta>\n\t</modified>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<get_created public=\"1\" set=\"method\" line=\"281\"><f a=\"\"><c path=\"Date\"/></f></get_created>\n\t<get_modified public=\"1\" set=\"method\" line=\"285\"><f a=\"\"><c path=\"Date\"/></f></get_modified>\n\t<setData public=\"1\" set=\"method\" line=\"290\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"294\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"298\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"302\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"306\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"272\"><f a=\"contentType:type\">\n\t<e path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"315\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"321\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"331\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"337\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"351\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"360\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"366\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"qoid.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"426\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"430\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"418\"><f a=\"kind:type\">\n\t<e path=\"qoid.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"443\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<new public=\"1\" set=\"method\" line=\"450\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"459\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"qoid.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.IntroductionResponseNotification.__rtti = "<class path=\"qoid.model.IntroductionResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"472\"><f a=\"introductionIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.IntroductionResponseData.__rtti = "<class path=\"qoid.model.IntroductionResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"488\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"501\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.widget.score.ContentTimeLine.initial_y_pos = 60;
+qoid.widget.score.ContentTimeLine.next_y_pos = qoid.widget.score.ContentTimeLine.initial_y_pos;
+qoid.widget.score.ContentTimeLine.next_x_pos = 10;
+qoid.widget.score.ContentTimeLine.width = 60;
+qoid.widget.score.ContentTimeLine.height = 70;
+qoid.AgentUi.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
 	var parts = path.split(".");
