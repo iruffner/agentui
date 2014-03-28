@@ -96,7 +96,7 @@ class EventDelegate {
             protocolHandler.deleteConnection(c);
         });
 
-        EM.addListener(EMEvent.UserLogout, function(c:Nothing):Void{
+        EM.addListener(EMEvent.UserLogout, function(c:{}):Void{
             protocolHandler.deregisterAllSqueries();
         });
 
@@ -112,15 +112,15 @@ class EventDelegate {
         // 	protocolHandler.restore(nameOfBackup);
         // });
 
-        // EM.addListener(EMEvent.RESTORES_REQUEST, function(n: Nothing): Void{
+        // EM.addListener(EMEvent.RESTORES_REQUEST, function(n: {}): Void{
         // 	protocolHandler.restores();
         // });
 
-		EM.addListener(EMEvent.BACKUP, function(n: Nothing): Void{
+		EM.addListener(EMEvent.BACKUP, function(n: {}): Void{
         	protocolHandler.backup();
         });
 
-        EM.addListener(EMEvent.RESTORE, function(n: Nothing): Void{
+        EM.addListener(EMEvent.RESTORE, function(n: {}): Void{
         	protocolHandler.restore();
         });
 	}

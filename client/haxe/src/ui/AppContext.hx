@@ -153,13 +153,13 @@ class AppContext {
             EM.change(EMEvent.UserLogout);
         });
 
-        EM.addListener(EMEvent.InitialDataLoadComplete, function(nada: Nothing) {
+        EM.addListener(EMEvent.InitialDataLoadComplete, function(nada: {}) {
             currentAlias = ALIASES.getElement(UBER_ALIAS_ID);
             EM.change(EMEvent.AliasLoaded, currentAlias);
             }, "AppContext-InitialDataLoadComplete"
         );
 
-        EM.addListener(EMEvent.FitWindow, function(n: Nothing) {
+        EM.addListener(EMEvent.FitWindow, function(n: {}) {
                 untyped __js__("fitWindow()");
             }, "AppContext-FitWindow"
         );

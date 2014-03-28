@@ -5798,9 +5798,9 @@ ui.model.Context.__name__ = ["ui","model","Context"];
 ui.model.Context.prototype = {
 	__class__: ui.model.Context
 }
-ui.model.Nothing = function() { }
-$hxClasses["ui.model.Nothing"] = ui.model.Nothing;
-ui.model.Nothing.__name__ = ["ui","model","Nothing"];
+ui.model.{} = function() { }
+$hxClasses["ui.model.{}"] = ui.model.{};
+ui.model.{}.__name__ = ["ui","model","{}"];
 ui.model.Filter = function(node) {
 	this.rootNode = node;
 	this.nodes = new Array();

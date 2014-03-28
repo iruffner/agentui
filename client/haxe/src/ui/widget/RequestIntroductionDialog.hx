@@ -128,7 +128,7 @@ extern class RequestIntroductionDialog extends JQ {
 					intro.aMessage = new JQ("#to_text").val();
 					intro.bMessage = new JQ("#from_text").val();
 
-    				EM.addListener(EMEvent.INTRODUCTION_RESPONSE, function(n: Nothing): Void {
+    				EM.addListener(EMEvent.INTRODUCTION_RESPONSE, function(n: {}): Void {
     					selfElement.dialog("close");
     				}, "RequestIntroductionDialog-Introduction-Response");
 

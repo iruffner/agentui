@@ -15,13 +15,11 @@ class EM {
 	}
 
 	public static function addListener<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
-		var listener = new EMListener(func, listenerName);
-		return delegate.addListener(id, listener);
+		return delegate.addListener(id, func, listenerName);
 	}
 
 	public static function listenOnce<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
-		var listener = new EMListener(func, listenerName);
-		return delegate.listenOnce(id, listener);
+		return delegate.listenOnce(id, func, listenerName);
 	}
 	
 	public static function removeListener<T>(id: EMEvent, listenerUid: String):Void {
@@ -33,10 +31,7 @@ class EM {
 	}
 }
 
-class Nothing {}
-
-enum EMEvent {
-	
+enum EMEvent {	
 	FILTER_RUN;
 	FILTER_CHANGE;
 	LoadFilteredContent;
