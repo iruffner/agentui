@@ -32,15 +32,25 @@ class DeleteMessage extends BennuMessage {
 
 class CrudMessage extends BennuMessage {
 	private var instance: Dynamic;
+	@:optional private var parentIid: String;
+	@:optional private var profileName: String;
+	@:optional private var profileImgSrc: String;
+	@:optional private var labelIids: Array<String>;
 
-	public function new(type:String, instance: Dynamic) {
+	public function new(type:String, instance: Dynamic, ?optionals:Dynamic) {
 		super(type);
-		this.instance = instance;		
+		this.instance = instance;
+		if (optionals != null) {
+			parentIid = optionals.parentIid;
+			profileName = optionals.profileName;
+			profileImgSrc = optionals.profileImgSrc;
+			labelIids = optionals.labelIids;
+		}
 	}
 
-	public static function create(object:ModelObjWithIid):CrudMessage {
+	public static function create(object:ModelObjWithIid, ?optionals:Dynamic):CrudMessage {
 		var instance = AppContext.SERIALIZER.toJson(object);
-		return new CrudMessage(object.objectType(), instance);
+		return new CrudMessage(object.objectType(), instance, optionals);
 	}
 }
 

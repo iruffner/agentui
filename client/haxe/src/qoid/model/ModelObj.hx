@@ -46,6 +46,7 @@ class ModelObjWithIid extends ModelObj {
 }
 
 class Profile extends ModelObjWithIid {
+	public var sharedId:String;
 	public var aliasIid:String;
 	public var name: String;
 	@:optional public var imgSrc: String;

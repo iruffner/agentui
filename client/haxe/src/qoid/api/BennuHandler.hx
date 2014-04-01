@@ -1,6 +1,7 @@
 package qoid.api;
 
 import haxe.Json;
+import m3.comm.LongPollingRequest;
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.observable.OSet;
@@ -140,21 +141,12 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function createAlias(alias: Alias): Void {
-		// Create a label child, which will connect the parent and the child
-		var label = new Label(alias.profile.name);
-		label.data.color = "#000000";
-		var profile = new Profile(alias.profile.name, alias.profile.imgSrc, alias.iid);
-
-		var lc = new LabelChild(AppContext.getUberLabelIid(), label.iid);
-		alias.rootLabelIid = label.iid;
 		alias.name = alias.profile.name;
 
-		var context = Synchronizer.createContext(3, "aliasCreated");
+		var context = Synchronizer.createContext(1, "aliasCreated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias)),
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(profile)),
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(label)),
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias, 
+				{profileName:alias.profile.name, profileImgSrc:alias.profile.imgSrc}))]);
 		req.start();
 	}
 	
@@ -259,12 +251,10 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function createLabel(data:EditLabelData): Void {
-		// Create a label child, which will connect the parent and the child
-		var lc = new LabelChild(data.parentIid, data.label.iid);
-		var context = Synchronizer.createContext(2, "labelCreated");
+		var context = Synchronizer.createContext(1, "labelCreated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(data.label)),
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(lc))]);
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(data.label,
+				{parentIid:data.parentIid}))]);
 		req.start();
 	}
 
@@ -362,7 +352,7 @@ class BennuHandler implements ProtocolHandler {
 	        type: "GET"
 		};
 
-		listeningChannel = new LongPollingRequest(channelId, "", ResponseProcessor.processResponse, ajaxOptions);
+		listeningChannel = new LongPollingRequest(channelId, "", AppContext.LOGGER, ResponseProcessor.processResponse, ajaxOptions);
 		listeningChannel.timeout = timeout;
 		listeningChannel.start();
 	}
