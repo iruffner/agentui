@@ -141,24 +141,22 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function createAlias(alias: Alias): Void {
-		alias.name = alias.profile.name;
-
-		var context = Synchronizer.createContext(1, "aliasCreated");
-		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias, 
-				{profileName:alias.profile.name, profileImgSrc:alias.profile.imgSrc}))]);
-		req.start();
+		upsertAlias(alias);
 	}
 	
 	public function updateAlias(alias: Alias): Void {
-		alias.name = alias.profile.name;
-		var rootLabel = AppContext.MASTER_LABELS.getElement(alias.rootLabelIid);
-		rootLabel.name = alias.profile.name;
+		upsertAlias(alias);
+	}
 
-		var context = Synchronizer.createContext(1, "aliasUpdated");
+	private function upsertAlias(alias: Alias): Void {
+		alias.name = alias.profile.name;
+
+		var context = Synchronizer.createContext(1, "aliasUpserted");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias)),
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(rootLabel)),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias,
+				{profileName:alias.profile.name, 
+				 profileImgSrc:alias.profile.imgSrc,
+				 parentIid: alias.rootLabelIid})),
 			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias.profile))
 		]);
 		req.start();

@@ -205,21 +205,28 @@ extern class AliasManagerDialog extends JQ {
 		        				var applyDlg = {
 		        					if(alias == null) {
 		        						alias = new Alias();
+				        				alias.profile.name = name;
+				        				alias.profile.imgSrc = profilePic;
+				        				alias.rootLabelIid = AppContext.ROOT_LABEL_ID;
 		        						function() {
+					        				EM.listenOnce(EMEvent.AliasCreated, function(alias:Alias) {
+						        				self._showAliasDetail(alias);
+					        				});
 		        							EM.change(EMEvent.CreateAlias, alias);
 		        						};
 		        					} else {
+				        				alias.profile.name   = name;
+				        				alias.profile.imgSrc = profilePic;
 		        						function() {
+					        				EM.listenOnce(EMEvent.AliasUpdated, function(alias:Alias) {
+						        				self._showAliasDetail(alias);
+					        				});
 		        							EM.change(EMEvent.UpdateAlias, alias);
 		        						};
 		        					}
 		        				}
-		        				alias.profile.name = name;
-		        				alias.profile.imgSrc = profilePic;
 		        				applyDlg();
-		        				self._showAliasDetail(alias);
-		        				// EM.change(EMEvent.UpdateAlias, alias);
-		        			} );
+		        	});
 
 		        	var cancelBtn: JQ = new JQ("<button>Cancel</button>")
 		        		.appendTo(btnDiv)

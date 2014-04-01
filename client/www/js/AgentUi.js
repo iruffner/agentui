@@ -4612,6 +4612,7 @@ qoid.AppContext.init = function() {
 		if(evt.isAddOrUpdate()) {
 			var p = m3.helper.OSetHelper.getElementComplex(qoid.AppContext.PROFILES,a.iid,"aliasIid");
 			if(p != null) a.profile = p;
+			if(evt.isAdd()) qoid.model.EM.change(qoid.model.EMEvent.AliasCreated,a); else qoid.model.EM.change(qoid.model.EMEvent.AliasUpdated,a);
 		}
 	});
 	qoid.AppContext.ALIASES = new m3.observable.FilteredSet(qoid.AppContext.MASTER_ALIASES,function(a) {
@@ -4675,29 +4676,22 @@ qoid.AppContext.registerGlobalListeners = function() {
 		qoid.model.EM.change(qoid.model.EMEvent.UserLogout);
 	});
 	qoid.model.EM.addListener(qoid.model.EMEvent.InitialDataLoadComplete,function(nada) {
+		var uberAlias = m3.helper.OSetHelper.getElement(qoid.AppContext.ALIASES,qoid.AppContext.UBER_ALIAS_ID);
+		qoid.AppContext.ROOT_LABEL_ID = uberAlias.rootLabelIid;
 		qoid.AppContext.currentAlias = m3.helper.OSetHelper.getElement(qoid.AppContext.ALIASES,qoid.AppContext.UBER_ALIAS_ID);
+		var $it0 = qoid.AppContext.ALIASES.iterator();
+		while( $it0.hasNext() ) {
+			var alias = $it0.next();
+			if(alias.data.isDefault == true) {
+				qoid.AppContext.currentAlias = alias;
+				break;
+			}
+		}
 		qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,qoid.AppContext.currentAlias);
 	},"AppContext-InitialDataLoadComplete");
 	qoid.model.EM.addListener(qoid.model.EMEvent.FitWindow,function(n) {
 		fitWindow();
 	},"AppContext-FitWindow");
-}
-qoid.AppContext.getDescendentLabelChildren = function(iid) {
-	var lcs = new Array();
-	var getDescendents;
-	getDescendents = function(iid1,lcList) {
-		var children = new m3.observable.FilteredSet(qoid.AppContext.MASTER_LABELCHILDREN,function(lc) {
-			return lc.parentIid == iid1 && !lc.deleted;
-		}).asArray();
-		var _g1 = 0, _g = children.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			lcList.push(children[i]);
-			getDescendents(children[i].childIid,lcList);
-		}
-	};
-	getDescendents(iid,lcs);
-	return lcs;
 }
 qoid.AppContext.getLabelDescendents = function(iid) {
 	var labelDescendents = new m3.observable.ObservableSet(qoid.model.Label.identifier);
@@ -4900,19 +4894,17 @@ qoid.api.BennuHandler.prototype = {
 		var data = new qoid.model.EditLabelData(qoid.AppContext.LABELS.delegate().get(alias.rootLabelIid),qoid.AppContext.getUberLabelIid());
 		this.deleteLabel(data);
 	}
-	,updateAlias: function(alias) {
+	,upsertAlias: function(alias) {
 		alias.name = alias.profile.name;
-		var rootLabel = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_LABELS,alias.rootLabelIid);
-		rootLabel.name = alias.profile.name;
-		var context = qoid.api.Synchronizer.createContext(1,"aliasUpdated");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(rootLabel)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias.profile))]);
+		var context = qoid.api.Synchronizer.createContext(1,"aliasUpserted");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias,{ profileName : alias.profile.name, profileImgSrc : alias.profile.imgSrc, parentIid : alias.rootLabelIid})),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias.profile))]);
 		req.start();
 	}
+	,updateAlias: function(alias) {
+		this.upsertAlias(alias);
+	}
 	,createAlias: function(alias) {
-		alias.name = alias.profile.name;
-		var context = qoid.api.Synchronizer.createContext(1,"aliasCreated");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias,{ profileName : alias.profile.name, profileImgSrc : alias.profile.imgSrc}))]);
-		req.start();
+		this.upsertAlias(alias);
 	}
 	,filter: function(filterData) {
 		var context = qoid.api.Synchronizer.createContext(1,"filterContent");
@@ -5278,8 +5270,6 @@ qoid.api.ResponseProcessor.processResponse = function(dataArr,textStatus,jqXHR) 
 		}
 	});
 }
-qoid.api.ResponseProcessor.processContent = function(dataArr,textStatus,jqXHR) {
-}
 qoid.api.ResponseProcessor.updateModelObject = function(type,data) {
 	var type1 = type.toLowerCase();
 	switch(type1) {
@@ -5382,11 +5372,6 @@ qoid.api.ResponseProcessor.initialDataLoad = function(data) {
 		}
 	}
 	qoid.model.EM.change(qoid.model.EMEvent.InitialDataLoadComplete);
-}
-qoid.api.ResponseProcessor.aliasCreated = function(data) {
-	qoid.AppContext.MASTER_ALIASES.addAll(data.aliases);
-	qoid.AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
-	qoid.AppContext.MASTER_LABELS.addAll(data.labels);
 }
 qoid.api.ResponseProcessor.processProfile = function(rec) {
 	if(rec.result && rec.result.handle) qoid.AgentUi.PROTOCOL.addHandle(rec.result.handle); else {
@@ -5614,7 +5599,7 @@ qoid.model.EM.removeListener = function(id,listenerUid) {
 qoid.model.EM.change = function(id,t) {
 	qoid.model.EM.delegate.change(id,t);
 }
-qoid.model.EMEvent = $hxClasses["qoid.model.EMEvent"] = { __ename__ : ["qoid","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
+qoid.model.EMEvent = $hxClasses["qoid.model.EMEvent"] = { __ename__ : ["qoid","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] }
 qoid.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 qoid.model.EMEvent.FILTER_RUN.toString = $estr;
 qoid.model.EMEvent.FILTER_RUN.__enum__ = qoid.model.EMEvent;
@@ -5651,76 +5636,82 @@ qoid.model.EMEvent.UserLogout.__enum__ = qoid.model.EMEvent;
 qoid.model.EMEvent.AliasLoaded = ["AliasLoaded",11];
 qoid.model.EMEvent.AliasLoaded.toString = $estr;
 qoid.model.EMEvent.AliasLoaded.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.CreateAlias = ["CreateAlias",12];
+qoid.model.EMEvent.AliasCreated = ["AliasCreated",12];
+qoid.model.EMEvent.AliasCreated.toString = $estr;
+qoid.model.EMEvent.AliasCreated.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.AliasUpdated = ["AliasUpdated",13];
+qoid.model.EMEvent.AliasUpdated.toString = $estr;
+qoid.model.EMEvent.AliasUpdated.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.CreateAlias = ["CreateAlias",14];
 qoid.model.EMEvent.CreateAlias.toString = $estr;
 qoid.model.EMEvent.CreateAlias.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.UpdateAlias = ["UpdateAlias",13];
+qoid.model.EMEvent.UpdateAlias = ["UpdateAlias",15];
 qoid.model.EMEvent.UpdateAlias.toString = $estr;
 qoid.model.EMEvent.UpdateAlias.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.DeleteAlias = ["DeleteAlias",14];
+qoid.model.EMEvent.DeleteAlias = ["DeleteAlias",16];
 qoid.model.EMEvent.DeleteAlias.toString = $estr;
 qoid.model.EMEvent.DeleteAlias.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.CreateContent = ["CreateContent",15];
+qoid.model.EMEvent.CreateContent = ["CreateContent",17];
 qoid.model.EMEvent.CreateContent.toString = $estr;
 qoid.model.EMEvent.CreateContent.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.DeleteContent = ["DeleteContent",16];
+qoid.model.EMEvent.DeleteContent = ["DeleteContent",18];
 qoid.model.EMEvent.DeleteContent.toString = $estr;
 qoid.model.EMEvent.DeleteContent.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.UpdateContent = ["UpdateContent",17];
+qoid.model.EMEvent.UpdateContent = ["UpdateContent",19];
 qoid.model.EMEvent.UpdateContent.toString = $estr;
 qoid.model.EMEvent.UpdateContent.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.CreateLabel = ["CreateLabel",18];
+qoid.model.EMEvent.CreateLabel = ["CreateLabel",20];
 qoid.model.EMEvent.CreateLabel.toString = $estr;
 qoid.model.EMEvent.CreateLabel.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.UpdateLabel = ["UpdateLabel",19];
+qoid.model.EMEvent.UpdateLabel = ["UpdateLabel",21];
 qoid.model.EMEvent.UpdateLabel.toString = $estr;
 qoid.model.EMEvent.UpdateLabel.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.MoveLabel = ["MoveLabel",20];
+qoid.model.EMEvent.MoveLabel = ["MoveLabel",22];
 qoid.model.EMEvent.MoveLabel.toString = $estr;
 qoid.model.EMEvent.MoveLabel.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.CopyLabel = ["CopyLabel",21];
+qoid.model.EMEvent.CopyLabel = ["CopyLabel",23];
 qoid.model.EMEvent.CopyLabel.toString = $estr;
 qoid.model.EMEvent.CopyLabel.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.DeleteLabel = ["DeleteLabel",22];
+qoid.model.EMEvent.DeleteLabel = ["DeleteLabel",24];
 qoid.model.EMEvent.DeleteLabel.toString = $estr;
 qoid.model.EMEvent.DeleteLabel.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.GrantAccess = ["GrantAccess",23];
+qoid.model.EMEvent.GrantAccess = ["GrantAccess",25];
 qoid.model.EMEvent.GrantAccess.toString = $estr;
 qoid.model.EMEvent.GrantAccess.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.AccessGranted = ["AccessGranted",24];
+qoid.model.EMEvent.AccessGranted = ["AccessGranted",26];
 qoid.model.EMEvent.AccessGranted.toString = $estr;
 qoid.model.EMEvent.AccessGranted.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.RevokeAccess = ["RevokeAccess",25];
+qoid.model.EMEvent.RevokeAccess = ["RevokeAccess",27];
 qoid.model.EMEvent.RevokeAccess.toString = $estr;
 qoid.model.EMEvent.RevokeAccess.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.DeleteConnection = ["DeleteConnection",26];
+qoid.model.EMEvent.DeleteConnection = ["DeleteConnection",28];
 qoid.model.EMEvent.DeleteConnection.toString = $estr;
 qoid.model.EMEvent.DeleteConnection.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",27];
+qoid.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",29];
 qoid.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
 qoid.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",28];
+qoid.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",30];
 qoid.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
 qoid.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",29];
+qoid.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",31];
 qoid.model.EMEvent.RespondToIntroduction.toString = $estr;
 qoid.model.EMEvent.RespondToIntroduction.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",30];
+qoid.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",32];
 qoid.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
 qoid.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.TargetChange = ["TargetChange",31];
+qoid.model.EMEvent.TargetChange = ["TargetChange",33];
 qoid.model.EMEvent.TargetChange.toString = $estr;
 qoid.model.EMEvent.TargetChange.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.BACKUP = ["BACKUP",32];
+qoid.model.EMEvent.BACKUP = ["BACKUP",34];
 qoid.model.EMEvent.BACKUP.toString = $estr;
 qoid.model.EMEvent.BACKUP.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.RESTORE = ["RESTORE",33];
+qoid.model.EMEvent.RESTORE = ["RESTORE",35];
 qoid.model.EMEvent.RESTORE.toString = $estr;
 qoid.model.EMEvent.RESTORE.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",34];
+qoid.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",36];
 qoid.model.EMEvent.RESTORES_REQUEST.toString = $estr;
 qoid.model.EMEvent.RESTORES_REQUEST.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",35];
+qoid.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",37];
 qoid.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 qoid.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = qoid.model.EMEvent;
 qoid.model.ContentSource = function() { }
@@ -7697,17 +7688,29 @@ var defineWidget = function() {
 			var applyDlg = alias1 == null?(function($this) {
 				var $r;
 				alias1 = new qoid.model.Alias();
+				alias1.profile.name = name;
+				alias1.profile.imgSrc = profilePic;
+				alias1.rootLabelIid = qoid.AppContext.ROOT_LABEL_ID;
 				$r = function() {
+					qoid.model.EM.listenOnce(qoid.model.EMEvent.AliasCreated,function(alias) {
+						self2._showAliasDetail(alias);
+					});
 					qoid.model.EM.change(qoid.model.EMEvent.CreateAlias,alias1);
 				};
 				return $r;
-			}(this)):function() {
-				qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias1);
-			};
-			alias1.profile.name = name;
-			alias1.profile.imgSrc = profilePic;
+			}(this)):(function($this) {
+				var $r;
+				alias1.profile.name = name;
+				alias1.profile.imgSrc = profilePic;
+				$r = function() {
+					qoid.model.EM.listenOnce(qoid.model.EMEvent.AliasUpdated,function(alias) {
+						self2._showAliasDetail(alias);
+					});
+					qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias1);
+				};
+				return $r;
+			}(this));
 			applyDlg();
-			self2._showAliasDetail(alias1);
 		});
 		var cancelBtn = new $("<button>Cancel</button>").appendTo(btnDiv).button().click(function(evt) {
 			self2._showAliasDetail(alias1);

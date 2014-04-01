@@ -18,6 +18,7 @@ using m3.helper.OSetHelper;
 class AppContext {
     public static var SUBMIT_CHANNEL:String;
     public static var UBER_ALIAS_ID:String;
+    public static var ROOT_LABEL_ID:String;
 
     public static var LOGGER: Logga;
     public static var MASTER_ALIASES:ObservableSet<Alias>;
@@ -67,6 +68,11 @@ class AppContext {
                 var p = PROFILES.getElementComplex(a.iid, "aliasIid");
                 if (p != null) {
                     a.profile = p;
+                }
+                if (evt.isAdd()) {
+                    EM.change(EMEvent.AliasCreated, a);
+                } else {
+                    EM.change(EMEvent.AliasUpdated, a);
                 }
             }
         });
@@ -154,7 +160,16 @@ class AppContext {
         });
 
         EM.addListener(EMEvent.InitialDataLoadComplete, function(nada: {}) {
+            var uberAlias = ALIASES.getElement(UBER_ALIAS_ID);
+            ROOT_LABEL_ID = uberAlias.rootLabelIid;
+
             currentAlias = ALIASES.getElement(UBER_ALIAS_ID);
+            for (alias in ALIASES) {
+                if (alias.data.isDefault == true) {
+                    currentAlias = alias;
+                    break;
+                }
+            }
             EM.change(EMEvent.AliasLoaded, currentAlias);
             }, "AppContext-InitialDataLoadComplete"
         );
@@ -164,26 +179,6 @@ class AppContext {
             }, "AppContext-FitWindow"
         );
 	}
-
-    public static function getDescendentLabelChildren(iid:String):Array<LabelChild> {
-        var lcs = new Array<LabelChild>();
-
-        var getDescendents:String->Array<LabelChild>->Void;
-        getDescendents = function(iid:String, lcList:Array<LabelChild>):Void {
-            var children: Array<LabelChild> = new FilteredSet(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
-                return lc.parentIid == iid && !lc.deleted;
-            }).asArray();
-
-            for (i in 0...children.length) {
-                lcList.push(children[i]);
-                getDescendents(children[i].childIid, lcList);
-            }
-        };
-
-        getDescendents(iid, lcs);
-
-        return lcs;
-    }
 
     public static function getLabelDescendents(iid:String):ObservableSet<Label> {
         var labelDescendents = new ObservableSet<Label>(Label.identifier);

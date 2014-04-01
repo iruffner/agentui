@@ -48,6 +48,8 @@ enum EMEvent {
 	UserLogout;
 
 	AliasLoaded;
+	AliasCreated;
+	AliasUpdated;
 
 	CreateAlias;
 	UpdateAlias;

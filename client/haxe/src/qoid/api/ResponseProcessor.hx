@@ -65,9 +65,6 @@ class ResponseProcessor {
 		});
 	}
 
-    public static function processContent(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
-    }
-
     private static function updateModelObject(type:String, data:Dynamic) {
         var type = type.toLowerCase();
         switch (type) {
@@ -123,7 +120,7 @@ class ResponseProcessor {
         AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
         AppContext.PROFILES.addAll(data.profiles);
 
-        // Update the alias with its profile
+        // Update the aliases with their profile
         for (alias_ in AppContext.MASTER_ALIASES) {
             for (profile_ in AppContext.PROFILES) {
                 if (profile_.aliasIid == alias_.iid) {
@@ -135,12 +132,6 @@ class ResponseProcessor {
 
         EM.change(EMEvent.InitialDataLoadComplete);
 	}
-
-    public static function aliasCreated(data:SynchronizationParms) {
-        AppContext.MASTER_ALIASES.addAll(data.aliases);
-        AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
-        AppContext.MASTER_LABELS.addAll(data.labels);
-    }
 
     public static function processProfile(rec:Dynamic) {
         if (rec.result && rec.result.handle) {
