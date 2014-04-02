@@ -27,6 +27,10 @@ class BennuHandler implements ProtocolHandler {
 	private static var INTRODUCE = "/api/introduction/initiate";
 	private static var DEREGISTER = "/api/query/deregister" ;
 	private static var INTRO_RESPONSE = "/api/introduction/respond";
+	private static var VERIFY = "/api/verification/verify";
+	private static var VERIFICATION_ACCEPT = "/api/verification/accept";
+	private static var VERIFICATION_REQUEST = "/api/verification/request";
+	private static var VERIFICATION_RESPONSE = "/api/verification/respond";
 
 	private var eventDelegate:EventDelegate;
 	private var listeningChannel: LongPollingRequest;
@@ -122,16 +126,6 @@ class BennuHandler implements ProtocolHandler {
 		new SubmitRequest(requests).start();
 	}
 
-	public function backup(/*backupName: String*/): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	}
-	public function restore(/*backupName: String*/): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	}
-	public function restores(): Void {
-		throw new Exception("E_NOTIMPLEMENTED"); 
-	}
-
 	public function filter(filterData: FilterData): Void {
 		var context = Synchronizer.createContext(1, "filterContent");
 		var requests = [
@@ -141,22 +135,27 @@ class BennuHandler implements ProtocolHandler {
 	}
 
 	public function createAlias(alias: Alias): Void {
-		upsertAlias(alias);
+		alias.name = alias.profile.name;
+
+		var options:Dynamic = {
+			profileName:   alias.profile.name, 
+			profileImgSrc: alias.profile.imgSrc,
+			parentIid: AppContext.ROOT_LABEL_ID
+		};
+
+		var context = Synchronizer.createContext(1, "aliasCreated");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias, options))
+		]);
+		req.start();
 	}
 	
 	public function updateAlias(alias: Alias): Void {
-		upsertAlias(alias);
-	}
-
-	private function upsertAlias(alias: Alias): Void {
 		alias.name = alias.profile.name;
 
-		var context = Synchronizer.createContext(1, "aliasUpserted");
+		var context = Synchronizer.createContext(1, "aliasUpdated");
 		var req = new SubmitRequest([
-			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias,
-				{profileName:alias.profile.name, 
-				 profileImgSrc:alias.profile.imgSrc,
-				 parentIid: alias.rootLabelIid})),
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias)),
 			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(alias.profile))
 		]);
 		req.start();
@@ -168,11 +167,6 @@ class BennuHandler implements ProtocolHandler {
 		new SubmitRequest(
 			[new ChannelRequestMessage(DELETE, context, DeleteMessage.create(alias))]
 		).start();
-
-		// TODO: the parentLabelIid might not be blank...
-		var data = new EditLabelData(AppContext.LABELS.delegate().get(alias.rootLabelIid),
-			                         AppContext.getUberLabelIid());
-		deleteLabel(data);
 	}
 
 	public function createContent(data:EditContentData):Void {
@@ -353,5 +347,15 @@ class BennuHandler implements ProtocolHandler {
 		listeningChannel = new LongPollingRequest(channelId, "", AppContext.LOGGER, ResponseProcessor.processResponse, ajaxOptions);
 		listeningChannel.timeout = timeout;
 		listeningChannel.start();
+	}
+
+	public function backup(/*backupName: String*/): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function restore(/*backupName: String*/): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+	public function restores(): Void {
+		throw new Exception("E_NOTIMPLEMENTED"); 
 	}
 }

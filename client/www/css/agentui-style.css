@@ -1042,6 +1042,51 @@ body {
 	max-height: 200px;
 }
 
+.alii {
+	text-align: left;
+}
+
+.alias_link {
+	width: 100%;
+	padding-left: 4px;
+}
+
+#leftDiv {
+	min-width: 70%; 
+	min-height: 100%; 
+	padding-top: 15px;
+}
+
+#rightDiv {
+	min-width: 25%; 
+	background-color: lightblue; 
+	min-height: 100%;
+}
+
+#alias_name_label {
+	text-align: left;
+	font-weight: bold;
+	font-size: 1.2em;
+}
+#alias_name_input {
+	width: 80%;
+	padding: .2em .4em;
+}
+#profile_picture_label {
+	text-align: left;
+	font-weight: bold;
+	font-size: 1.2em;
+}
+#change_profile_picture {
+	font-weight: 1em;
+	font-weight: normal; 
+	cursor: pointer;
+	padding-bottom: 4px;
+}
+#new_alias_button {
+	margin-top: 30px;
+}
+
 /* Other
 -----------------------------------------------------------------------------*/
 .clear {

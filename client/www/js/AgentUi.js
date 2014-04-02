@@ -4745,7 +4745,16 @@ $hxClasses["qoid.api.BennuHandler"] = qoid.api.BennuHandler;
 qoid.api.BennuHandler.__name__ = ["qoid","api","BennuHandler"];
 qoid.api.BennuHandler.__interfaces__ = [qoid.api.ProtocolHandler];
 qoid.api.BennuHandler.prototype = {
-	_startPolling: function(channelId) {
+	restores: function() {
+		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
+	}
+	,restore: function() {
+		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
+	}
+	,backup: function() {
+		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
+	}
+	,_startPolling: function(channelId) {
 		var timeout = 10000;
 		var ajaxOptions = { contentType : "", type : "GET"};
 		this.listeningChannel = new m3.comm.LongPollingRequest(channelId,"",qoid.AppContext.LOGGER,qoid.api.ResponseProcessor.processResponse,ajaxOptions);
@@ -4891,34 +4900,24 @@ qoid.api.BennuHandler.prototype = {
 		alias.deleted = true;
 		var context = qoid.api.Synchronizer.createContext(1,"aliasDeleted");
 		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.DELETE,context,qoid.api.DeleteMessage.create(alias))]).start();
-		var data = new qoid.model.EditLabelData(qoid.AppContext.LABELS.delegate().get(alias.rootLabelIid),qoid.AppContext.getUberLabelIid());
-		this.deleteLabel(data);
-	}
-	,upsertAlias: function(alias) {
-		alias.name = alias.profile.name;
-		var context = qoid.api.Synchronizer.createContext(1,"aliasUpserted");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias,{ profileName : alias.profile.name, profileImgSrc : alias.profile.imgSrc, parentIid : alias.rootLabelIid})),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias.profile))]);
-		req.start();
 	}
 	,updateAlias: function(alias) {
-		this.upsertAlias(alias);
+		alias.name = alias.profile.name;
+		var context = qoid.api.Synchronizer.createContext(1,"aliasUpdated");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias)),new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias.profile))]);
+		req.start();
 	}
 	,createAlias: function(alias) {
-		this.upsertAlias(alias);
+		alias.name = alias.profile.name;
+		var options = { profileName : alias.profile.name, profileImgSrc : alias.profile.imgSrc, parentIid : qoid.AppContext.ROOT_LABEL_ID};
+		var context = qoid.api.Synchronizer.createContext(1,"aliasCreated");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.UPSERT,context,qoid.api.CrudMessage.create(alias,options))]);
+		req.start();
 	}
 	,filter: function(filterData) {
 		var context = qoid.api.Synchronizer.createContext(1,"filterContent");
 		var requests = [new qoid.api.ChannelRequestMessage(qoid.api.BennuHandler.QUERY,context,new qoid.api.QueryMessage(filterData))];
 		new qoid.api.SubmitRequest(requests).start();
-	}
-	,restores: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,restore: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,backup: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
 	}
 	,revokeAccess: function(lacls) {
 		var context = qoid.api.Synchronizer.createContext(1,"accessRevoked");
@@ -6166,12 +6165,15 @@ qoid.model.NotificationHandler.prototype = {
 		case 3:
 			obj = qoid.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.IntroductionResponseNotification);
 			break;
+		case 4:
+			obj = qoid.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.VerificationRequestNotification);
+			break;
 		}
 		return obj;
 	}
 	,__class__: qoid.model.NotificationHandler
 }
-qoid.model.NotificationKind = $hxClasses["qoid.model.NotificationKind"] = { __ename__ : ["qoid","model","NotificationKind"], __constructs__ : ["Ping","Pong","IntroductionRequest","IntroductionResponse"] }
+qoid.model.NotificationKind = $hxClasses["qoid.model.NotificationKind"] = { __ename__ : ["qoid","model","NotificationKind"], __constructs__ : ["Ping","Pong","IntroductionRequest","IntroductionResponse","VerificationRequest"] }
 qoid.model.NotificationKind.Ping = ["Ping",0];
 qoid.model.NotificationKind.Ping.toString = $estr;
 qoid.model.NotificationKind.Ping.__enum__ = qoid.model.NotificationKind;
@@ -6184,6 +6186,9 @@ qoid.model.NotificationKind.IntroductionRequest.__enum__ = qoid.model.Notificati
 qoid.model.NotificationKind.IntroductionResponse = ["IntroductionResponse",3];
 qoid.model.NotificationKind.IntroductionResponse.toString = $estr;
 qoid.model.NotificationKind.IntroductionResponse.__enum__ = qoid.model.NotificationKind;
+qoid.model.NotificationKind.VerificationRequest = ["VerificationRequest",4];
+qoid.model.NotificationKind.VerificationRequest.toString = $estr;
+qoid.model.NotificationKind.VerificationRequest.__enum__ = qoid.model.NotificationKind;
 qoid.model.Notification = function(kind,type) {
 	qoid.model.ModelObjWithIid.call(this);
 	this.kind = kind;
@@ -6263,6 +6268,21 @@ qoid.model.IntroductionResponseData.__name__ = ["qoid","model","IntroductionResp
 qoid.model.IntroductionResponseData.prototype = {
 	__class__: qoid.model.IntroductionResponseData
 }
+qoid.model.VerificationRequestNotification = function() {
+	qoid.model.Notification.call(this,qoid.model.NotificationKind.VerificationRequest,qoid.model.VerificationRequestData);
+};
+$hxClasses["qoid.model.VerificationRequestNotification"] = qoid.model.VerificationRequestNotification;
+qoid.model.VerificationRequestNotification.__name__ = ["qoid","model","VerificationRequestNotification"];
+qoid.model.VerificationRequestNotification.__super__ = qoid.model.Notification;
+qoid.model.VerificationRequestNotification.prototype = $extend(qoid.model.Notification.prototype,{
+	__class__: qoid.model.VerificationRequestNotification
+});
+qoid.model.VerificationRequestData = function() { }
+$hxClasses["qoid.model.VerificationRequestData"] = qoid.model.VerificationRequestData;
+qoid.model.VerificationRequestData.__name__ = ["qoid","model","VerificationRequestData"];
+qoid.model.VerificationRequestData.prototype = {
+	__class__: qoid.model.VerificationRequestData
+}
 qoid.model.Login = function() {
 	qoid.model.ModelObj.call(this);
 };
@@ -6300,6 +6320,31 @@ $hxClasses["qoid.model.EditContentData"] = qoid.model.EditContentData;
 qoid.model.EditContentData.__name__ = ["qoid","model","EditContentData"];
 qoid.model.EditContentData.prototype = {
 	__class__: qoid.model.EditContentData
+}
+qoid.model.VerificationRequest = function(contentIid,connectionIids,message) {
+	this.message = message;
+	this.contentIid = contentIid;
+	this.connectionIids = connectionIids;
+};
+$hxClasses["qoid.model.VerificationRequest"] = qoid.model.VerificationRequest;
+qoid.model.VerificationRequest.__name__ = ["qoid","model","VerificationRequest"];
+qoid.model.VerificationRequest.prototype = {
+	__class__: qoid.model.VerificationRequest
+}
+qoid.model.VerificationResponse = function(notificationIid,verificationContent) {
+	this.notificationIid = notificationIid;
+	this.verificationContent = verificationContent;
+};
+$hxClasses["qoid.model.VerificationResponse"] = qoid.model.VerificationResponse;
+qoid.model.VerificationResponse.__name__ = ["qoid","model","VerificationResponse"];
+qoid.model.VerificationResponse.prototype = {
+	__class__: qoid.model.VerificationResponse
+}
+qoid.model.Verification = function() { }
+$hxClasses["qoid.model.Verification"] = qoid.model.Verification;
+qoid.model.Verification.__name__ = ["qoid","model","Verification"];
+qoid.model.Verification.prototype = {
+	__class__: qoid.model.Verification
 }
 qoid.model.Node = function(type) {
 	this.type = "ROOT";
@@ -7589,69 +7634,72 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasManagerDialog must be a div element");
 		selfElement.addClass("_aliasManagerDialog").hide();
-		self._showAliasDetail(null);
+		self.leftDiv = new $("<div class='fleft boxsizingBorder' id='leftDiv'></div>").appendTo(selfElement);
+		self.rightDiv = new $("<div class='fright ui-corner-all'  id='rightDiv'></div>").appendTo(selfElement);
+		self.rightDiv.append("<h2>Aliases</h2>");
+		var alii_div = new $("<div class='alii'><div>").appendTo(self.rightDiv);
+		self.aliases = new m3.observable.SortedSet(qoid.AppContext.ALIASES,function(a) {
+			return a.profile.name.toLowerCase();
+		});
+		self.aliasMap = new m3.observable.MappedSet(qoid.AppContext.ALIASES,function(a1) {
+			return new $("<div class='clickable alias_link' id='a_" + a1.iid + "'></div>").appendTo(alii_div).click(function(evt) {
+				self._showAliasDetail(a1);
+			}).append(a1.profile.name);
+		});
+		self.aliasMap.mapListen(function(a,w,evt) {
+			if(evt.isAddOrUpdate()) {
+				if(a.deleted) w.remove(); else w.html(a.profile.name);
+			}
+		});
+		self.newAliasButton = new $("<button id='new_alias_button'>New Alias</button>").button().click(function(evt) {
+			self._showAliasEditor(null);
+		}).appendTo(self.rightDiv);
+		self._showAliasDetail(qoid.AppContext.currentAlias);
 	}, initialized : false, _showAliasDetail : function(alias) {
 		var self1 = this;
 		var selfElement1 = this.element;
-		selfElement1.empty();
-		var leftDiv = new $("<div class='fleft boxsizingBorder' style='min-width: 70%; min-height: 100%; padding-top: 15px;'></div>").appendTo(selfElement1);
-		var rightDiv = new $("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement1);
+		self1.leftDiv.empty();
 		var imgSrc = "media/default_avatar.jpg";
-		if(alias != null) {
-			var loadAliasBtn = new $("<button class='fleft'>Use This Alias</button>").appendTo(leftDiv).button().click(function(evt) {
-				qoid.AppContext.currentAlias = alias;
-				qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,alias);
-				m3.jq.JQDialogHelper.close(selfElement1);
-			});
-			leftDiv.append("<br class='clear'/><br/>");
-			if(m3.helper.StringHelper.isNotBlank((function($this) {
-				var $r;
-				try {
-					$r = alias.profile.imgSrc;
-				} catch( __e ) {
-					$r = "";
-				}
-				return $r;
-			}(this)))) imgSrc = alias.profile.imgSrc;
-			leftDiv.append(new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
-			leftDiv.append(new $("<h2>" + alias.profile.name + "</h2>"));
-			var btnDiv = new $("<div></div>").appendTo(leftDiv);
-			var setDefaultBtn = new $("<button>Set Default</button>").appendTo(btnDiv).button().click(function(evt) {
-				alias.data.isDefault = true;
-				qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias);
-			});
-			var editBtn = new $("<button>Edit</button>").appendTo(btnDiv).button().click(function(evt) {
-				self1._showAliasEditor(alias);
-			});
-			var deleteBtn = new $("<button>Delete</button>").appendTo(btnDiv).button().click(function(evt) {
-				qoid.model.EM.change(qoid.model.EMEvent.DeleteAlias,alias);
-			});
-		}
-		rightDiv.append("<h2>Aliases</h2>");
-		var idx = 0;
-		Lambda.iter(qoid.AppContext.ALIASES,function(a) {
-			var span = new $("<span class='clickable' id='alias_" + Std.string(idx) + "'></span>").appendTo(rightDiv).click(function(evt) {
-				self1._showAliasDetail(a);
-			}).append(a.profile.name);
-			rightDiv.append("<br/>");
-			idx += 1;
+		var loadAliasBtn = new $("<button class='fleft'>Use This Alias</button>").appendTo(self1.leftDiv).button().click(function(evt) {
+			qoid.AppContext.currentAlias = alias;
+			qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,alias);
+			m3.jq.JQDialogHelper.close(selfElement1);
 		});
-		new $("<button style='margin-top: 30px;'>New Alias</button>").button().click(function(evt) {
-			self1._showAliasEditor(null);
-		}).appendTo(rightDiv);
+		self1.leftDiv.append("<br class='clear'/><br/>");
+		if(m3.helper.StringHelper.isNotBlank((function($this) {
+			var $r;
+			try {
+				$r = alias.profile.imgSrc;
+			} catch( __e ) {
+				$r = "";
+			}
+			return $r;
+		}(this)))) imgSrc = alias.profile.imgSrc;
+		self1.leftDiv.append(new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
+		self1.leftDiv.append(new $("<h2>" + alias.profile.name + "</h2>"));
+		var btnDiv = new $("<div></div>").appendTo(self1.leftDiv);
+		var setDefaultBtn = new $("<button>Set Default</button>").appendTo(btnDiv).button().click(function(evt) {
+			alias.data.isDefault = true;
+			qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias);
+		});
+		var editBtn = new $("<button>Edit</button>").appendTo(btnDiv).button().click(function(evt) {
+			self1._showAliasEditor(alias);
+		});
+		var deleteBtn = new $("<button>Delete</button>").appendTo(btnDiv).button().click(function(evt) {
+			qoid.model.EM.change(qoid.model.EMEvent.DeleteAlias,alias);
+		});
+		self1.newAliasButton.show();
 	}, _showAliasEditor : function(alias1) {
 		var self2 = this;
 		var selfElement2 = this.element;
-		selfElement2.empty();
-		var leftDiv = new $("<div class='fleft boxsizingBorder' style='min-width: 70%; min-height: 100%; padding-top: 15px;'></div>").appendTo(selfElement2);
-		var rightDiv1 = new $("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement2);
+		self2.leftDiv.empty();
 		var imgSrc = "media/default_avatar.jpg";
-		leftDiv.append("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Alias Name:</div>");
-		var aliasName = new $("<input class='ui-corner-all ui-state-active ui-widget-content' style='width: 80%;padding: .2em .4em;'/>").appendTo(leftDiv);
+		self2.leftDiv.append("<div id='alias_name_label'>Alias Name:</div>");
+		var aliasName = new $("<input class='ui-corner-all ui-state-active ui-widget-content' id='alias_name_input'/>").appendTo(self2.leftDiv);
 		if(alias1 != null) aliasName.val(alias1.profile.name);
-		leftDiv.append("<br/><br/>");
+		self2.leftDiv.append("<br/><br/>");
 		var aliasImg = null;
-		leftDiv.append(new $("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Profile Picture: </div>").append(new $("<a style='font-weight: 1em;font-weight: normal; cursor: pointer;'>Change</a>").click(function(evt) {
+		self2.leftDiv.append(new $("<div id='profile_picture_label'>Profile Picture: </div>").append(new $("<a id='change_profile_picture'>Change</a>").click(function(evt) {
 			var dlg = new $("<div id='profilePictureUploader'></div>");
 			dlg.appendTo(selfElement2);
 			var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
@@ -7674,9 +7722,9 @@ var defineWidget = function() {
 			return $r;
 		}(this)))) imgSrc = alias1.profile.imgSrc;
 		aliasImg = new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>");
-		leftDiv.append(aliasImg);
-		leftDiv.append("<br/><br/>");
-		var btnDiv = new $("<div></div>").appendTo(leftDiv);
+		self2.leftDiv.append(aliasImg);
+		self2.leftDiv.append("<br/><br/>");
+		var btnDiv = new $("<div></div>").appendTo(self2.leftDiv);
 		var updateBtn = new $("<button>" + (alias1 != null?"Update":"Create") + "</button>").appendTo(btnDiv).button().click(function(evt) {
 			var name = aliasName.val();
 			if(m3.helper.StringHelper.isBlank(name)) {
@@ -7715,15 +7763,7 @@ var defineWidget = function() {
 		var cancelBtn = new $("<button>Cancel</button>").appendTo(btnDiv).button().click(function(evt) {
 			self2._showAliasDetail(alias1);
 		});
-		rightDiv1.append("<h2>Aliases</h2>");
-		Lambda.iter(qoid.AppContext.ALIASES,function(a1) {
-			var span = new $("<span class='clickable'></span>").appendTo(rightDiv1).click(function(evt) {
-				self2._showAliasDetail(a1);
-			}).append(a1.profile.name);
-			rightDiv1.append("<br/>");
-		});
-		new $("<button style='margin-top: 30px;'>New Alias</button>").button().click(function(evt) {
-		}).appendTo(rightDiv1);
+		self2.newAliasButton.hide();
 	}, _createAliasManager : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -7746,7 +7786,6 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!self.initialized) self._buildDialog();
 		m3.jq.JQDialogHelper.open(selfElement);
-		new $("#alias_0").click();
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -9483,6 +9522,10 @@ qoid.api.BennuHandler.DELETE = "/api/delete";
 qoid.api.BennuHandler.INTRODUCE = "/api/introduction/initiate";
 qoid.api.BennuHandler.DEREGISTER = "/api/query/deregister";
 qoid.api.BennuHandler.INTRO_RESPONSE = "/api/introduction/respond";
+qoid.api.BennuHandler.VERIFY = "/api/verification/verify";
+qoid.api.BennuHandler.VERIFICATION_ACCEPT = "/api/verification/accept";
+qoid.api.BennuHandler.VERIFICATION_REQUEST = "/api/verification/request";
+qoid.api.BennuHandler.VERIFICATION_RESPONSE = "/api/verification/respond";
 qoid.api.ChannelMessage.__rtti = "<class path=\"qoid.api.ChannelMessage\" params=\"\" module=\"qoid.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
 qoid.api.BennuMessage.__rtti = "<class path=\"qoid.api.BennuMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.api.DeleteMessage.__rtti = "<class path=\"qoid.api.DeleteMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<extends path=\"qoid.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"28\" static=\"1\"><f a=\"object\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"qoid.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
@@ -9516,15 +9559,17 @@ qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentD
 qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"352\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"361\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"367\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"qoid.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"427\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"431\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"419\"><f a=\"kind:type\">\n\t<e path=\"qoid.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"444\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<new public=\"1\" set=\"method\" line=\"451\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"460\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"qoid.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<readResolve set=\"method\" line=\"430\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"434\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"422\"><f a=\"kind:type\">\n\t<e path=\"qoid.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"447\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<new public=\"1\" set=\"method\" line=\"454\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"463\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"qoid.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.IntroductionResponseNotification.__rtti = "<class path=\"qoid.model.IntroductionResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"473\"><f a=\"introductionIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.IntroductionResponseNotification.__rtti = "<class path=\"qoid.model.IntroductionResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"476\"><f a=\"introductionIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.IntroductionResponseData.__rtti = "<class path=\"qoid.model.IntroductionResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"489\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"502\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"489\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><c path=\"qoid.model.Content\"><d/></c></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"507\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.widget.score.ContentTimeLine.initial_y_pos = 60;
 qoid.widget.score.ContentTimeLine.next_y_pos = qoid.widget.score.ContentTimeLine.initial_y_pos;
 qoid.widget.score.ContentTimeLine.next_x_pos = 10;

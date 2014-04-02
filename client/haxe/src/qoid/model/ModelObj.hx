@@ -390,6 +390,8 @@ class NotificationHandler implements TypeHandler {
         		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionRequestNotification);
         	case NotificationKind.IntroductionResponse:
         		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionResponseNotification);
+        	case NotificationKind.VerificationRequest:
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationRequestNotification);
         }
 
         return obj;
@@ -405,6 +407,7 @@ enum NotificationKind {
     Pong;
     IntroductionRequest;
     IntroductionResponse;
+    VerificationRequest;
 }
 
 class Notification<T> extends ModelObjWithIid {
@@ -482,6 +485,21 @@ class IntroductionResponseNotification extends Notification<IntroductionResponse
 		public var accepted: Bool;
 	}
 
+class VerificationRequestNotification extends Notification<VerificationRequestData> {
+	public function new () {
+		super(NotificationKind.VerificationRequest, VerificationRequestData);
+	}
+}
+
+	@:rtti
+	class VerificationRequestData {
+		public var contentIid:String;
+    	public var contentType:String;
+    	public var contentData:Content<Dynamic>;
+    	public var message:String;
+	}
+
+
 //-------------------------------------------------------------------
 // Classes used to copy data around
 
@@ -527,4 +545,34 @@ class EditContentData {
 		}
 		this.labelIids = labelIids;
 	}
+}
+
+class VerificationRequest {
+    public var contentIid:String;
+    public var connectionIids:Array<String>;
+    public var message:String;
+
+    public function new(contentIid:String, connectionIids:Array<String>, message:String) {
+    	this.message        = message; 
+    	this.contentIid     = contentIid;
+    	this.connectionIids = connectionIids;
+    }
+}
+
+class VerificationResponse {
+	public var notificationIid:String;
+    public var verificationContent:String;
+    public function new(notificationIid:String, verificationContent:String) {
+    	this.notificationIid     = notificationIid; 
+    	this.verificationContent = verificationContent;
+    }
+}
+
+
+
+class Verification {
+	public var connectionIid:String;
+    public var contentIid:String;
+    public var contentData:Content<Dynamic>;
+    public var verificationContent:String;
 }

@@ -3,6 +3,7 @@ package qoid.widget;
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.widget.Widgets;
+import m3.observable.OSet;
 import m3.util.M;
 import qoid.model.ModelObj;
 import qoid.model.EM;
@@ -21,6 +22,12 @@ typedef AliasManagerDialogWidgetDef = {
 
 	@:optional var aliasName: JQ;
 	@:optional var username: JQ;
+
+	@:optional var leftDiv: JQ;
+	@:optional var rightDiv: JQ;
+	@:optional var newAliasButton: JQ;
+	@:optional var aliases: OSet<Alias>;
+	@:optional var aliasMap: MappedSet<Alias, JQ>;
 	
 	var initialized: Bool;
 
@@ -53,7 +60,42 @@ extern class AliasManagerDialog extends JQ {
 
 		        	selfElement.addClass("_aliasManagerDialog").hide();
 
-		        	self._showAliasDetail(null);
+					self.leftDiv  = new JQ("<div class='fleft boxsizingBorder' id='leftDiv'></div>").appendTo(selfElement);
+					self.rightDiv = new JQ("<div class='fright ui-corner-all'  id='rightDiv'></div>").appendTo(selfElement);
+		        	self.rightDiv.append("<h2>Aliases</h2>");
+		        	var alii_div = new JQ("<div class='alii'><div>").appendTo(self.rightDiv);
+		        	
+		        	self.aliases = new SortedSet<Alias>(AppContext.ALIASES, function(a:Alias):String {
+    					return a.profile.name.toLowerCase();
+ 	  				});
+
+ 	  				self.aliasMap = new MappedSet<Alias, JQ>(AppContext.ALIASES, function(a: Alias):JQ {
+        				return new JQ("<div class='clickable alias_link' id='a_" + a.iid + "'></div>")
+        					.appendTo(alii_div)
+        					.click(function(evt: JQEvent) {
+        						self._showAliasDetail(a);
+        					})
+        					.append(a.profile.name);
+ 	  				});
+
+ 	  				self.aliasMap.mapListen( function(a:Alias, w:JQ, evt:EventType): Void{
+ 	  					if (evt.isAddOrUpdate()) {
+ 	  						if (a.deleted) {
+ 	  							w.remove();
+ 	  						} else {
+	 	  						w.html(a.profile.name);
+	 	  					}
+ 	  					}
+ 	  				});
+
+	        		self.newAliasButton = new JQ("<button id='new_alias_button'>New Alias</button>")
+		        		.button()
+		        		.click(function(evt: JQEvent) {
+		        				self._showAliasEditor(null);
+		        			})
+		        		.appendTo(self.rightDiv);
+
+		        	self._showAliasDetail(AppContext.currentAlias);
 		        },
 
 		        initialized: false,
@@ -61,101 +103,74 @@ extern class AliasManagerDialog extends JQ {
 		        _showAliasDetail: function(alias: Alias): Void {
 		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
-					selfElement.empty();
-					var leftDiv: JQ = new JQ("<div class='fleft boxsizingBorder' style='min-width: 70%; min-height: 100%; padding-top: 15px;'></div>").appendTo(selfElement);
-					var rightDiv: JQ = new JQ("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement);
+					self.leftDiv.empty();
+
 		        	var imgSrc: String = "media/default_avatar.jpg";
 
-		        	if (alias != null) {
-		        		var loadAliasBtn: JQ = new JQ("<button class='fleft'>Use This Alias</button>")
-			        		.appendTo(leftDiv)
-			        		.button()
-			        		.click( function(evt: JQEvent): Void {
-		        				AppContext.currentAlias = alias;
-								EM.change(EMEvent.AliasLoaded, alias);
-		        				selfElement.close();
-		        			});
-		        		leftDiv.append("<br class='clear'/><br/>");
-
-						if (M.getX(alias.profile.imgSrc, "").isNotBlank()) {
-							imgSrc = alias.profile.imgSrc;
-						}
-			        	leftDiv.append(new JQ("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
-
-			        	leftDiv.append(new JQ("<h2>" + alias.profile.name + "</h2>"));
-
-			        	var btnDiv: JQ = new JQ("<div></div>").appendTo(leftDiv);
-
-			        	var setDefaultBtn: JQ = new JQ("<button>Set Default</button>")
-			        		.appendTo(btnDiv)
-			        		.button()
-			        		.click( function(evt: JQEvent): Void {
-			        			alias.data.isDefault = true;
-			        			EM.change(EMEvent.UpdateAlias, alias);
-			        		});
-
-			        	var editBtn: JQ = new JQ("<button>Edit</button>")
-			        		.appendTo(btnDiv)
-			        		.button()
-			        		.click( function(evt: JQEvent): Void {
-			        				self._showAliasEditor(alias);
-			        			} );
-
-			        	var deleteBtn: JQ = new JQ("<button>Delete</button>")
-			        		.appendTo(btnDiv)
-			        		.button()
-			        		.click( function(evt: JQEvent): Void {
-		        				EM.change(EMEvent.DeleteAlias, alias);
-			        		});
-		        	}
-
-		        	rightDiv.append("<h2>Aliases</h2>");
-		        	var idx = 0;
-		        	AppContext.ALIASES.iter(
-	        			function(a: Alias): Void {
-	        				var span: JQ = new JQ("<span class='clickable' id='alias_" + Std.string(idx) + "'></span>")
-	        					.appendTo(rightDiv)
-	        					.click(function(evt: JQEvent) {
-	        							self._showAliasDetail(a);
-	        						})
-	        					.append(a.profile.name);
-	        				rightDiv.append("<br/>");
-	        				idx += 1;
-	        			}
-	        		);
-
-		        	new JQ("<button style='margin-top: 30px;'>New Alias</button>")
+	        		var loadAliasBtn: JQ = new JQ("<button class='fleft'>Use This Alias</button>")
+		        		.appendTo(self.leftDiv)
 		        		.button()
-		        		.click(function(evt: JQEvent) {
-		        				self._showAliasEditor(null);
-		        			})
-		        		.appendTo(rightDiv);
-		        		// .position({
-		        		// 		my: "center bottom",
-		        		// 		at: "center bottom",
-		        		// 		of: rightDiv
-		        		// 	});
+		        		.click( function(evt: JQEvent): Void {
+	        				AppContext.currentAlias = alias;
+							EM.change(EMEvent.AliasLoaded, alias);
+	        				selfElement.close();
+	        			});
+	        		self.leftDiv.append("<br class='clear'/><br/>");
+
+					if (M.getX(alias.profile.imgSrc, "").isNotBlank()) {
+						imgSrc = alias.profile.imgSrc;
+					}
+		        	self.leftDiv.append(new JQ("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
+
+		        	self.leftDiv.append(new JQ("<h2>" + alias.profile.name + "</h2>"));
+
+		        	var btnDiv: JQ = new JQ("<div></div>").appendTo(self.leftDiv);
+
+		        	var setDefaultBtn: JQ = new JQ("<button>Set Default</button>")
+		        		.appendTo(btnDiv)
+		        		.button()
+		        		.click( function(evt: JQEvent): Void {
+		        			alias.data.isDefault = true;
+		        			EM.change(EMEvent.UpdateAlias, alias);
+		        		});
+
+		        	var editBtn: JQ = new JQ("<button>Edit</button>")
+		        		.appendTo(btnDiv)
+		        		.button()
+		        		.click( function(evt: JQEvent): Void {
+		        				self._showAliasEditor(alias);
+		        			} );
+
+		        	var deleteBtn: JQ = new JQ("<button>Delete</button>")
+		        		.appendTo(btnDiv)
+		        		.button()
+		        		.click( function(evt: JQEvent): Void {
+	        				EM.change(EMEvent.DeleteAlias, alias);
+		        		});
+
+		        	self.newAliasButton.show();
 	        	},
 
 	        	_showAliasEditor: function(alias: Alias): Void {
 		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
-					selfElement.empty();
-					var leftDiv: JQ = new JQ("<div class='fleft boxsizingBorder' style='min-width: 70%; min-height: 100%; padding-top: 15px;'></div>").appendTo(selfElement);
-					var rightDiv: JQ = new JQ("<div class='fright ui-corner-all' style='min-width: 25%; background-color: lightblue; min-height: 100%;'></div>").appendTo(selfElement);
+					self.leftDiv.empty();
+
 		        	var imgSrc: String = "media/default_avatar.jpg";
 
-		        	leftDiv.append("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Alias Name:</div>");
-		        	var aliasName: JQ = new JQ("<input class='ui-corner-all ui-state-active ui-widget-content' style='width: 80%;padding: .2em .4em;'/>").appendTo(leftDiv);
-		        	if(alias != null) aliasName.val(alias.profile.name);
-		        	leftDiv.append("<br/><br/>");
+		        	self.leftDiv.append("<div id='alias_name_label'>Alias Name:</div>");
+		        	var aliasName = new JQ("<input class='ui-corner-all ui-state-active ui-widget-content' id='alias_name_input'/>").appendTo(self.leftDiv);
+		        	if (alias != null) {
+			        	aliasName.val(alias.profile.name);
+			        }
+		        	self.leftDiv.append("<br/><br/>");
 
 		        	var aliasImg: JQ = null;
 					
-		        	leftDiv.append(
-		        			new JQ("<div style='text-align: left;font-weight: bold;font-size: 1.2em;'>Profile Picture: </div>")
+		        	self.leftDiv.append(
+		        			new JQ("<div id='profile_picture_label'>Profile Picture: </div>")
 		        				.append(
-		        						new JQ("<a style='font-weight: 1em;font-weight: normal; cursor: pointer;'>Change</a>")
+		        						new JQ("<a id='change_profile_picture'>Change</a>")
 		        							.click(function(evt: JQEvent): Void {
 		        									var dlg: M3Dialog = new M3Dialog("<div id='profilePictureUploader'></div>");
 			        								dlg.appendTo(selfElement);
@@ -185,13 +200,13 @@ extern class AliasManagerDialog extends JQ {
 						imgSrc = alias.profile.imgSrc;
 					}
 					aliasImg = new JQ("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>");
-		        	leftDiv.append(aliasImg);
+		        	self.leftDiv.append(aliasImg);
 		        	
-		        	leftDiv.append("<br/><br/>");
+		        	self.leftDiv.append("<br/><br/>");
 
-		        	var btnDiv: JQ = new JQ("<div></div>").appendTo(leftDiv);
+		        	var btnDiv = new JQ("<div></div>").appendTo(self.leftDiv);
 
-		        	var updateBtn: JQ = new JQ("<button>" + (alias != null ? "Update":"Create") + "</button>")
+		        	var updateBtn = new JQ("<button>" + (alias != null ? "Update":"Create") + "</button>")
 		        		.appendTo(btnDiv)
 		        		.button()
 		        		.click( function(evt: JQEvent): Void {
@@ -234,31 +249,8 @@ extern class AliasManagerDialog extends JQ {
 		        		.click( function(evt: JQEvent): Void {
 		        				self._showAliasDetail(alias);
 		        			} );
-		        	
-		        	rightDiv.append("<h2>Aliases</h2>");
-		        	AppContext.ALIASES.iter(
-		        			function(a: Alias): Void {
-		        				var span: JQ = new JQ("<span class='clickable'></span>")
-		        					.appendTo(rightDiv)
-		        					.click(function(evt: JQEvent) {
-		        							self._showAliasDetail(a);
-		        						})
-		        					.append(a.profile.name);
-		        				rightDiv.append("<br/>");
-		        			}
-		        		);
 
-		        	new JQ("<button style='margin-top: 30px;'>New Alias</button>")
-		        		.button()
-		        		.click(function(evt: JQEvent) {
-
-		        			})
-		        		.appendTo(rightDiv);
-		        		// .position({
-		        		// 		my: "center bottom",
-		        		// 		at: "center bottom",
-		        		// 		of: rightDiv
-		        		// 	});
+					self.newAliasButton.hide();
 	        	},
 
 		        _createAliasManager: function(): Void {
@@ -309,10 +301,7 @@ extern class AliasManagerDialog extends JQ {
 		        	if(!self.initialized) {
 		        		self._buildDialog();
 		        	}
-		        	// selfElement.children("#n_label").focus();
-		        	// self.aliasName.blur();
 	        		selfElement.open();
-		        	new JQ("#alias_0").click();
         		},
 		        
 		        destroy: function() {
