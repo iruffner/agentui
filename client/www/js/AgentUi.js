@@ -2270,8 +2270,7 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 	,__class__: m3.comm.LongPollingRequest
 });
 m3.event = {}
-m3.event.EventManager = function(logger) {
-	this.logger = logger;
+m3.event.EventManager = function() {
 	this.hash = new haxe.ds.EnumValueMap();
 	this.oneTimers = new Array();
 };
@@ -2279,21 +2278,21 @@ $hxClasses["m3.event.EventManager"] = m3.event.EventManager;
 m3.event.EventManager.__name__ = ["m3","event","EventManager"];
 m3.event.EventManager.prototype = {
 	change: function(id,t) {
-		this.logger.debug("EVENTMODEL: Change to " + Std.string(id));
+		this.get_logger().debug("EVENTMODEL: Change to " + Std.string(id));
 		var map = this.hash.get(id);
 		if(map == null) {
-			this.logger.warn("No listeners for event " + Std.string(id));
+			this.get_logger().warn("No listeners for event " + Std.string(id));
 			return;
 		}
 		var iter = map.iterator();
 		while(iter.hasNext()) {
 			var listener = iter.next();
-			this.logger.debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
+			this.get_logger().debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
 			try {
 				listener.change(t);
 				if(HxOverrides.remove(this.oneTimers,listener.get_uid())) map.remove(listener.get_uid());
 			} catch( err ) {
-				this.logger.error("Error executing " + listener.get_name() + " of " + Std.string(id) + " event",m3.log.Logga.getExceptionInst(err));
+				this.get_logger().error("Error executing " + listener.get_name() + " of " + Std.string(id) + " event",m3.log.Logga.getExceptionInst(err));
 			}
 		}
 	}
@@ -2323,8 +2322,9 @@ m3.event.EventManager.prototype = {
 		var listener = new m3.event.EMListener(func,listenerName);
 		return this.addListenerInternal(id,listener);
 	}
-	,setLogger: function(l) {
-		this.logger = l;
+	,get_logger: function() {
+		if(this._logger == null) this._logger = m3.log.Logga.get_DEFAULT();
+		return this._logger;
 	}
 	,__class__: m3.event.EventManager
 }
@@ -3030,7 +3030,7 @@ m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
 	,log: function(statement,level,exception) {
 		if(level == null) level = m3.log.LogLevel.INFO;
 		m3.log.Logga.prototype.log.call(this,statement,level,exception);
-		if(this.remoteLogsAtLevel(level)) {
+		if(this.timer != null && this.remoteLogsAtLevel(level)) {
 			try {
 				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
 			} catch( err ) {
@@ -4601,7 +4601,6 @@ $hxClasses["qoid.AppContext"] = qoid.AppContext;
 qoid.AppContext.__name__ = ["qoid","AppContext"];
 qoid.AppContext.init = function() {
 	qoid.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
-	qoid.model.EM.setLogger(qoid.AppContext.LOGGER);
 	qoid.AppContext.INTRODUCTIONS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 	qoid.AppContext.MASTER_NOTIFICATIONS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 	qoid.AppContext.NOTIFICATIONS = new m3.observable.FilteredSet(qoid.AppContext.MASTER_NOTIFICATIONS,function(a) {
@@ -5583,9 +5582,6 @@ qoid.model.ModelObjWithIid.prototype = $extend(qoid.model.ModelObj.prototype,{
 qoid.model.EM = function() { }
 $hxClasses["qoid.model.EM"] = qoid.model.EM;
 qoid.model.EM.__name__ = ["qoid","model","EM"];
-qoid.model.EM.setLogger = function(l) {
-	qoid.model.EM.delegate.setLogger(l);
-}
 qoid.model.EM.addListener = function(id,func,listenerName) {
 	return qoid.model.EM.delegate.addListener(id,func,listenerName);
 }
@@ -7130,7 +7126,7 @@ m3.util.ColorProvider._COLORS.push("#9BCC5C");
 m3.util.ColorProvider._COLORS.push("#CCC45C");
 m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
-qoid.model.EM.delegate = new m3.event.EventManager(qoid.AppContext.LOGGER);
+qoid.model.EM.delegate = new m3.event.EventManager();
 qoid.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 qoid.model.ContentSource.listeners = new Array();
 qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,qoid.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");

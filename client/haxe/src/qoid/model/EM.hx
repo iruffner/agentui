@@ -7,11 +7,7 @@ class EM {
 	private static var delegate:EventManager<EMEvent>;
 
 	private static function __init__(): Void {
-		delegate = new EventManager<EMEvent>(AppContext.LOGGER);
-	}
-
-	public static function setLogger(l:Logga) {
-		delegate.setLogger(l);
+		delegate = new EventManager<EMEvent>(	);
 	}
 
 	public static function addListener<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {

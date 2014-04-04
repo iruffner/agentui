@@ -53,8 +53,6 @@ class AppContext {
     public static function init() {
     	LOGGER = new Logga(LogLevel.DEBUG);
 
-        EM.setLogger(LOGGER);
-
         INTRODUCTIONS = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
 
         MASTER_NOTIFICATIONS = new ObservableSet<Notification<Dynamic>>(ModelObjWithIid.identifier);
