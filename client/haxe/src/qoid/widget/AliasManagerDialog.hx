@@ -1,5 +1,6 @@
 package qoid.widget;
 
+import haxe.Timer;
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.widget.Widgets;
@@ -26,7 +27,6 @@ typedef AliasManagerDialogWidgetDef = {
 	@:optional var leftDiv: JQ;
 	@:optional var rightDiv: JQ;
 	@:optional var newAliasButton: JQ;
-	@:optional var aliases: OSet<Alias>;
 	@:optional var aliasMap: MappedSet<Alias, JQ>;
 	
 	var initialized: Bool;
@@ -36,6 +36,7 @@ typedef AliasManagerDialogWidgetDef = {
 	var _createAliasManager: Void->Void;
 	var _showAliasDetail: Alias->Void;
 	var _showAliasEditor: Alias->Void;
+	var _onAliasDeleted:  Alias->JQ->Void;
 
 	var _create: Void->Void;
 	var destroy: Void->Void;
@@ -51,6 +52,8 @@ extern class AliasManagerDialog extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->AliasManagerDialogWidgetDef = function(): AliasManagerDialogWidgetDef {
 			return {
+		        initialized: false,
+
 		        _create: function(): Void {
 		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
@@ -65,11 +68,7 @@ extern class AliasManagerDialog extends JQ {
 		        	self.rightDiv.append("<h2>Aliases</h2>");
 		        	var alii_div = new JQ("<div class='alii'><div>").appendTo(self.rightDiv);
 		        	
-		        	self.aliases = new SortedSet<Alias>(AppContext.ALIASES, function(a:Alias):String {
-    					return a.profile.name.toLowerCase();
- 	  				});
-
- 	  				self.aliasMap = new MappedSet<Alias, JQ>(AppContext.ALIASES, function(a: Alias):JQ {
+ 	  				self.aliasMap = new MappedSet<Alias, JQ>(AppContext.MASTER_ALIASES, function(a: Alias):JQ {
         				return new JQ("<div class='clickable alias_link' id='a_" + a.iid + "'></div>")
         					.appendTo(alii_div)
         					.click(function(evt: JQEvent) {
@@ -81,10 +80,12 @@ extern class AliasManagerDialog extends JQ {
  	  				self.aliasMap.mapListen( function(a:Alias, w:JQ, evt:EventType): Void{
  	  					if (evt.isAddOrUpdate()) {
  	  						if (a.deleted) {
- 	  							w.remove();
+ 	  							self._onAliasDeleted(a, w);
  	  						} else {
 	 	  						w.html(a.profile.name);
 	 	  					}
+ 	  					} else if (evt.isDelete()) {
+	  						self._onAliasDeleted(a, w);
  	  					}
  	  				});
 
@@ -98,7 +99,11 @@ extern class AliasManagerDialog extends JQ {
 		        	self._showAliasDetail(AppContext.currentAlias);
 		        },
 
-		        initialized: false,
+		        _onAliasDeleted: function(alias:Alias, w:JQ) {
+		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
+		        	w.remove();
+		        	new JQ(".alias_link")[0].click();
+		        },
 
 		        _showAliasDetail: function(alias: Alias): Void {
 		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
@@ -225,7 +230,9 @@ extern class AliasManagerDialog extends JQ {
 				        				alias.rootLabelIid = AppContext.ROOT_LABEL_ID;
 		        						function() {
 					        				EM.listenOnce(EMEvent.AliasCreated, function(alias:Alias) {
-						        				self._showAliasDetail(alias);
+						        				Timer.delay(function() {
+							        				self._showAliasDetail(alias);
+							        			}, 100); 
 					        				});
 		        							EM.change(EMEvent.CreateAlias, alias);
 		        						};

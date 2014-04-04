@@ -4669,16 +4669,16 @@ qoid.AppContext.isAliasRootLabel = function(iid) {
 	return false;
 }
 qoid.AppContext.getUberLabelIid = function() {
-	return m3.helper.OSetHelper.getElement(qoid.AppContext.ALIASES,qoid.AppContext.UBER_ALIAS_ID).rootLabelIid;
+	return m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_ALIASES,qoid.AppContext.UBER_ALIAS_ID).rootLabelIid;
 }
 qoid.AppContext.registerGlobalListeners = function() {
 	new $(js.Browser.window).on("unload",function(evt) {
 		qoid.model.EM.change(qoid.model.EMEvent.UserLogout);
 	});
 	qoid.model.EM.addListener(qoid.model.EMEvent.InitialDataLoadComplete,function(nada) {
-		var uberAlias = m3.helper.OSetHelper.getElement(qoid.AppContext.ALIASES,qoid.AppContext.UBER_ALIAS_ID);
+		var uberAlias = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_ALIASES,qoid.AppContext.UBER_ALIAS_ID);
 		qoid.AppContext.ROOT_LABEL_ID = uberAlias.rootLabelIid;
-		qoid.AppContext.currentAlias = m3.helper.OSetHelper.getElement(qoid.AppContext.ALIASES,qoid.AppContext.UBER_ALIAS_ID);
+		qoid.AppContext.currentAlias = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_ALIASES,qoid.AppContext.UBER_ALIAS_ID);
 		var $it0 = qoid.AppContext.ALIASES.iterator();
 		while( $it0.hasNext() ) {
 			var alias = $it0.next();
@@ -7637,7 +7637,7 @@ var defineWidget = function() {
 };
 $.widget("ui.uploadComp",defineWidget());
 var defineWidget = function() {
-	return { _create : function() {
+	return { initialized : false, _create : function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasManagerDialog must be a div element");
@@ -7646,65 +7646,66 @@ var defineWidget = function() {
 		self.rightDiv = new $("<div class='fright ui-corner-all'  id='rightDiv'></div>").appendTo(selfElement);
 		self.rightDiv.append("<h2>Aliases</h2>");
 		var alii_div = new $("<div class='alii'><div>").appendTo(self.rightDiv);
-		self.aliases = new m3.observable.SortedSet(qoid.AppContext.ALIASES,function(a) {
-			return a.profile.name.toLowerCase();
-		});
-		self.aliasMap = new m3.observable.MappedSet(qoid.AppContext.ALIASES,function(a1) {
-			return new $("<div class='clickable alias_link' id='a_" + a1.iid + "'></div>").appendTo(alii_div).click(function(evt) {
-				self._showAliasDetail(a1);
-			}).append(a1.profile.name);
+		self.aliasMap = new m3.observable.MappedSet(qoid.AppContext.MASTER_ALIASES,function(a) {
+			return new $("<div class='clickable alias_link' id='a_" + a.iid + "'></div>").appendTo(alii_div).click(function(evt) {
+				self._showAliasDetail(a);
+			}).append(a.profile.name);
 		});
 		self.aliasMap.mapListen(function(a,w,evt) {
 			if(evt.isAddOrUpdate()) {
-				if(a.deleted) w.remove(); else w.html(a.profile.name);
-			}
+				if(a.deleted) self._onAliasDeleted(a,w); else w.html(a.profile.name);
+			} else if(evt.isDelete()) self._onAliasDeleted(a,w);
 		});
 		self.newAliasButton = new $("<button id='new_alias_button'>New Alias</button>").button().click(function(evt) {
 			self._showAliasEditor(null);
 		}).appendTo(self.rightDiv);
 		self._showAliasDetail(qoid.AppContext.currentAlias);
-	}, initialized : false, _showAliasDetail : function(alias) {
+	}, _onAliasDeleted : function(alias,w) {
+		var self = this;
+		w.remove();
+		new $(".alias_link")[0].click();
+	}, _showAliasDetail : function(alias1) {
 		var self1 = this;
 		var selfElement1 = this.element;
 		self1.leftDiv.empty();
 		var imgSrc = "media/default_avatar.jpg";
 		var loadAliasBtn = new $("<button class='fleft'>Use This Alias</button>").appendTo(self1.leftDiv).button().click(function(evt) {
-			qoid.AppContext.currentAlias = alias;
-			qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,alias);
+			qoid.AppContext.currentAlias = alias1;
+			qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,alias1);
 			m3.jq.JQDialogHelper.close(selfElement1);
 		});
 		self1.leftDiv.append("<br class='clear'/><br/>");
 		if(m3.helper.StringHelper.isNotBlank((function($this) {
 			var $r;
 			try {
-				$r = alias.profile.imgSrc;
+				$r = alias1.profile.imgSrc;
 			} catch( __e ) {
 				$r = "";
 			}
 			return $r;
-		}(this)))) imgSrc = alias.profile.imgSrc;
+		}(this)))) imgSrc = alias1.profile.imgSrc;
 		self1.leftDiv.append(new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
-		self1.leftDiv.append(new $("<h2>" + alias.profile.name + "</h2>"));
+		self1.leftDiv.append(new $("<h2>" + alias1.profile.name + "</h2>"));
 		var btnDiv = new $("<div></div>").appendTo(self1.leftDiv);
 		var setDefaultBtn = new $("<button>Set Default</button>").appendTo(btnDiv).button().click(function(evt) {
-			alias.data.isDefault = true;
-			qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias);
+			alias1.data.isDefault = true;
+			qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias1);
 		});
 		var editBtn = new $("<button>Edit</button>").appendTo(btnDiv).button().click(function(evt) {
-			self1._showAliasEditor(alias);
+			self1._showAliasEditor(alias1);
 		});
 		var deleteBtn = new $("<button>Delete</button>").appendTo(btnDiv).button().click(function(evt) {
-			qoid.model.EM.change(qoid.model.EMEvent.DeleteAlias,alias);
+			qoid.model.EM.change(qoid.model.EMEvent.DeleteAlias,alias1);
 		});
 		self1.newAliasButton.show();
-	}, _showAliasEditor : function(alias1) {
+	}, _showAliasEditor : function(alias2) {
 		var self2 = this;
 		var selfElement2 = this.element;
 		self2.leftDiv.empty();
 		var imgSrc = "media/default_avatar.jpg";
 		self2.leftDiv.append("<div id='alias_name_label'>Alias Name:</div>");
 		var aliasName = new $("<input class='ui-corner-all ui-state-active ui-widget-content' id='alias_name_input'/>").appendTo(self2.leftDiv);
-		if(alias1 != null) aliasName.val(alias1.profile.name);
+		if(alias2 != null) aliasName.val(alias2.profile.name);
 		self2.leftDiv.append("<br/><br/>");
 		var aliasImg = null;
 		self2.leftDiv.append(new $("<div id='profile_picture_label'>Profile Picture: </div>").append(new $("<a id='change_profile_picture'>Change</a>").click(function(evt) {
@@ -7723,17 +7724,17 @@ var defineWidget = function() {
 		if(m3.helper.StringHelper.isNotBlank((function($this) {
 			var $r;
 			try {
-				$r = alias1.profile.imgSrc;
+				$r = alias2.profile.imgSrc;
 			} catch( __e ) {
 				$r = "";
 			}
 			return $r;
-		}(this)))) imgSrc = alias1.profile.imgSrc;
+		}(this)))) imgSrc = alias2.profile.imgSrc;
 		aliasImg = new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>");
 		self2.leftDiv.append(aliasImg);
 		self2.leftDiv.append("<br/><br/>");
 		var btnDiv = new $("<div></div>").appendTo(self2.leftDiv);
-		var updateBtn = new $("<button>" + (alias1 != null?"Update":"Create") + "</button>").appendTo(btnDiv).button().click(function(evt) {
+		var updateBtn = new $("<button>" + (alias2 != null?"Update":"Create") + "</button>").appendTo(btnDiv).button().click(function(evt) {
 			var name = aliasName.val();
 			if(m3.helper.StringHelper.isBlank(name)) {
 				m3.util.JqueryUtil.alert("Alias name cannot be blank.","Error");
@@ -7741,35 +7742,37 @@ var defineWidget = function() {
 			}
 			var profilePic = aliasImg.attr("src");
 			if(m3.helper.StringHelper.startsWithAny(profilePic,["media"])) profilePic = "";
-			var applyDlg = alias1 == null?(function($this) {
+			var applyDlg = alias2 == null?(function($this) {
 				var $r;
-				alias1 = new qoid.model.Alias();
-				alias1.profile.name = name;
-				alias1.profile.imgSrc = profilePic;
-				alias1.rootLabelIid = qoid.AppContext.ROOT_LABEL_ID;
+				alias2 = new qoid.model.Alias();
+				alias2.profile.name = name;
+				alias2.profile.imgSrc = profilePic;
+				alias2.rootLabelIid = qoid.AppContext.ROOT_LABEL_ID;
 				$r = function() {
-					qoid.model.EM.listenOnce(qoid.model.EMEvent.AliasCreated,function(alias) {
-						self2._showAliasDetail(alias);
+					qoid.model.EM.listenOnce(qoid.model.EMEvent.AliasCreated,function(alias3) {
+						haxe.Timer.delay(function() {
+							self2._showAliasDetail(alias3);
+						},100);
 					});
-					qoid.model.EM.change(qoid.model.EMEvent.CreateAlias,alias1);
+					qoid.model.EM.change(qoid.model.EMEvent.CreateAlias,alias2);
 				};
 				return $r;
 			}(this)):(function($this) {
 				var $r;
-				alias1.profile.name = name;
-				alias1.profile.imgSrc = profilePic;
+				alias2.profile.name = name;
+				alias2.profile.imgSrc = profilePic;
 				$r = function() {
 					qoid.model.EM.listenOnce(qoid.model.EMEvent.AliasUpdated,function(alias) {
 						self2._showAliasDetail(alias);
 					});
-					qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias1);
+					qoid.model.EM.change(qoid.model.EMEvent.UpdateAlias,alias2);
 				};
 				return $r;
 			}(this));
 			applyDlg();
 		});
 		var cancelBtn = new $("<button>Cancel</button>").appendTo(btnDiv).button().click(function(evt) {
-			self2._showAliasDetail(alias1);
+			self2._showAliasDetail(alias2);
 		});
 		self2.newAliasButton.hide();
 	}, _createAliasManager : function() {
@@ -8167,7 +8170,10 @@ var defineWidget = function() {
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionTabs");
 		new $("#connectionsTabs").tabs();
 		self._listener = function(a,evt) {
-			if(evt.isAdd()) self._addTab(a.iid,a.profile.name); else if(evt.isDelete()) {
+			if(a.deleted) {
+				new $("#tab-" + a.iid).remove();
+				new $("#connections-" + a.iid).remove();
+			} else if(evt.isAdd()) self._addTab(a.iid,a.profile.name); else if(evt.isDelete()) {
 				new $("#tab-" + a.iid).remove();
 				new $("#connections-" + a.iid).remove();
 			}

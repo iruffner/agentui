@@ -151,7 +151,7 @@ class AppContext {
     }
 
     public static function getUberLabelIid() {
-        return ALIASES.getElement(AppContext.UBER_ALIAS_ID).rootLabelIid;
+        return MASTER_ALIASES.getElement(AppContext.UBER_ALIAS_ID).rootLabelIid;
     }
 
 	static function registerGlobalListeners() {
@@ -160,10 +160,10 @@ class AppContext {
         });
 
         EM.addListener(EMEvent.InitialDataLoadComplete, function(nada: {}) {
-            var uberAlias = ALIASES.getElement(UBER_ALIAS_ID);
+            var uberAlias = MASTER_ALIASES.getElement(UBER_ALIAS_ID);
             ROOT_LABEL_ID = uberAlias.rootLabelIid;
 
-            currentAlias = ALIASES.getElement(UBER_ALIAS_ID);
+            currentAlias = MASTER_ALIASES.getElement(UBER_ALIAS_ID);
             for (alias in ALIASES) {
                 if (alias.data.isDefault == true) {
                     currentAlias = alias;

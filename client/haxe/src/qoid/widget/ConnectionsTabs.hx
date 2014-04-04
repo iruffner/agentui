@@ -52,12 +52,17 @@ extern class ConnectionsTabs extends JQ {
 
 		        	// Set up a listener for aliases and use it to create additional alias lists/tabs
 		        	self._listener = function(a:Alias, evt:EventType):Void {
-		        		if (evt.isAdd()) {
-		        			self._addTab(a.iid, a.profile.name);
-		        		} else if (evt.isDelete()) {
+		        		if (a.deleted) {
 		        			new JQ("#tab-" + a.iid).remove();
 		        			new JQ("#connections-" + a.iid).remove();
-		        		}
+		        		} else {
+			        		if (evt.isAdd()) {
+			        			self._addTab(a.iid, a.profile.name);
+			        		} else if (evt.isDelete()) {
+			        			new JQ("#tab-" + a.iid).remove();
+			        			new JQ("#connections-" + a.iid).remove();
+			        		}
+			        	}
 		        	}
 
 		        	self.aliases = new SortedSet<Alias>(AppContext.ALIASES, function(a:Alias):String {
