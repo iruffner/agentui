@@ -128,6 +128,11 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        			if (evt.isAddOrUpdate()) {
 		        				self._updateWidgets(c.data);
 		        			}
+
+		        			if (evt.isDelete() || c.deleted) {
+		        				self.destroy();
+		        				selfElement.remove();
+		        			}
 		        		}
 		        		self.filteredSetConnection.listen(self._onUpdateConnection);
 		        	} else if (self.options.aliasIid != null){
@@ -137,6 +142,10 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        		self._onUpdateAlias = function(a:Alias, evt:EventType) {
 		        			if (evt.isAddOrUpdate()) {
 		        				self._updateWidgets(a.profile);
+		        			}
+		        			if (evt.isDelete() || a.deleted) {
+		        				self.destroy();
+		        				selfElement.remove();
 		        			}
 		        		}
 		        		self.filteredSetAlias.listen(self._onUpdateAlias);

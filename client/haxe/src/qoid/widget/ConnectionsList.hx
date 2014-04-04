@@ -120,7 +120,11 @@ extern class ConnectionsList extends JQ {
 	            		if(evt.isAdd()) {
 	            			spacer.before(connComp);
 	            		} else if (evt.isUpdate()) {
-	            			connComp.update(conn);
+	            			if (conn.deleted) {
+	            				connComp.remove();
+	            			} else {
+		            			connComp.update(conn);
+		            		}
 	            		} else if (evt.isDelete()) {
 	            			connComp.remove();
 	            		}

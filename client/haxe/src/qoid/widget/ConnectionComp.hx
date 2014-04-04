@@ -26,6 +26,9 @@ typedef ConnectionCompWidgetDef = {
 	var destroy: Void->Void;
 	var addNotification: Void->Void;
 	var deleteNotification: Void->Void;
+
+	@:optional var filteredSetConnection:FilteredSet<Connection>;
+	@:optional var _onUpdateConnection: Connection->EventType->Void;
 }
 
 class ConnectionCompHelper {
@@ -68,6 +71,17 @@ extern class ConnectionComp extends JQ {
 					if(!selfElement.is("div")) {
 		        		throw new Exception("Root of ConnectionComp must be a div element");
 		        	}
+
+	        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.MASTER_CONNECTIONS,function(c:Connection):Bool{
+	        			return c.iid == self.options.connection.iid;
+	        		});
+	        		self._onUpdateConnection = function(c:Connection, evt:EventType) {
+	        			if (evt.isDelete() || c.deleted) {
+	        				self.destroy();
+	        				selfElement.remove();
+	        			}
+	        		}
+	        		self.filteredSetConnection.listen(self._onUpdateConnection);
 
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connection container boxsizingBorder");
 		        	self._avatar = new ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({
@@ -170,7 +184,11 @@ extern class ConnectionComp extends JQ {
         		},
 		        
 		        destroy: function() {
-		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
+	        		var self: ConnectionCompWidgetDef = Widgets.getSelf();
+		            untyped JQ.Widget.prototype.destroy.call(JQ.curNoWrap);
+		        	if (self.filteredSetConnection != null) {
+			        	self.filteredSetConnection.removeListener(self._onUpdateConnection);
+		        	}
 		        }
 		    };
 		}

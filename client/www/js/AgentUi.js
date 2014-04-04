@@ -7332,6 +7332,10 @@ var defineWidget = function() {
 			});
 			self1._onUpdateConnection = function(c,evt) {
 				if(evt.isAddOrUpdate()) self1._updateWidgets(c.data);
+				if(evt.isDelete() || c.deleted) {
+					self1.destroy();
+					selfElement.remove();
+				}
 			};
 			self1.filteredSetConnection.listen(self1._onUpdateConnection);
 		} else if(self1.options.aliasIid != null) {
@@ -7340,6 +7344,10 @@ var defineWidget = function() {
 			});
 			self1._onUpdateAlias = function(a,evt) {
 				if(evt.isAddOrUpdate()) self1._updateWidgets(a.profile);
+				if(evt.isDelete() || a.deleted) {
+					self1.destroy();
+					selfElement.remove();
+				}
 			};
 			self1.filteredSetAlias.listen(self1._onUpdateAlias);
 		} else qoid.AppContext.LOGGER.warn("Both connectionIid and aliasIid are not set for Avatar");
@@ -8002,6 +8010,16 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionComp must be a div element");
+		self.filteredSetConnection = new m3.observable.FilteredSet(qoid.AppContext.MASTER_CONNECTIONS,function(c) {
+			return c.iid == self.options.connection.iid;
+		});
+		self._onUpdateConnection = function(c,evt) {
+			if(evt.isDelete() || c.deleted) {
+				self.destroy();
+				selfElement.remove();
+			}
+		};
+		self.filteredSetConnection.listen(self._onUpdateConnection);
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connection container boxsizingBorder");
 		self._avatar = new $("<div class='avatar'></div>").connectionAvatar({ connectionIid : self.options.connection.iid, dndEnabled : true, isDragByHelper : true, containment : false});
 		var notificationDiv = new $(".notifications",selfElement);
@@ -8070,7 +8088,9 @@ var defineWidget = function() {
 			notificationDiv.html(Std.string(count));
 		}
 	}, destroy : function() {
+		var self = this;
 		$.Widget.prototype.destroy.call(this);
+		if(self.filteredSetConnection != null) self.filteredSetConnection.removeListener(self._onUpdateConnection);
 	}};
 };
 $.widget("ui.connectionComp",defineWidget());
@@ -8105,7 +8125,9 @@ var defineWidget = function() {
 			return false;
 		});
 		self._mapListener = function(conn,connComp,evt) {
-			if(evt.isAdd()) spacer.before(connComp); else if(evt.isUpdate()) qoid.widget.ConnectionCompHelper.update(connComp,conn); else if(evt.isDelete()) connComp.remove();
+			if(evt.isAdd()) spacer.before(connComp); else if(evt.isUpdate()) {
+				if(conn.deleted) connComp.remove(); else qoid.widget.ConnectionCompHelper.update(connComp,conn);
+			} else if(evt.isDelete()) connComp.remove();
 			qoid.model.EM.change(qoid.model.EMEvent.FitWindow);
 		};
 		var connections = null;
