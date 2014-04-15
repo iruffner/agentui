@@ -126,13 +126,6 @@ EReg.prototype = {
 		var d = "#__delim__#";
 		return s.replace(this.r,d).split(d);
 	}
-	,matched: function(n) {
-		return this.r.m != null && n >= 0 && n < this.r.m.length?this.r.m[n]:(function($this) {
-			var $r;
-			throw "EReg::matched";
-			return $r;
-		}(this));
-	}
 	,match: function(s) {
 		if(this.r.global) this.r.lastIndex = 0;
 		this.r.m = this.r.exec(s);
@@ -4484,16 +4477,6 @@ m3.util.JqueryUtil.getEmptyRow = function() {
 m3.util.JqueryUtil.getEmptyCell = function() {
 	return new $("<td></td>");
 }
-m3.util.Browser = function() { }
-$hxClasses["m3.util.Browser"] = m3.util.Browser;
-m3.util.Browser.__name__ = ["m3","util","Browser"];
-m3.util.Browser.get_msie = function() {
-	return new EReg("MSIE ([0-9]+)\\.","").match(js.Browser.navigator.userAgent);
-}
-m3.util.Browser.get_version = function() {
-	var ereg = new EReg("MSIE ([0-9]+)\\.","");
-	if(ereg.match(js.Browser.navigator.userAgent)) return ereg.matched(1); else return null;
-}
 m3.util.M = function() { }
 $hxClasses["m3.util.M"] = m3.util.M;
 m3.util.M.__name__ = ["m3","util","M"];
@@ -6797,6 +6780,19 @@ qoid.widget.score.ContentTimeLine.prototype = {
 		var iter = HxOverrides.iter(this.contentElements);
 		while(iter.hasNext()) iter.next().remove();
 	}
+	,reposition: function(startTime,endTime) {
+		if(this.startTime == startTime && this.endTime == endTime) return;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		var _g1 = 0, _g = this.contentElements.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var ele = this.contentElements[i];
+			var content = this.contents[i];
+			var x_start = ele.attr("x");
+			var x_end = (endTime - content.get_created().getTime()) / (endTime - startTime) * this.initialWidth + this.time_line_x + qoid.widget.score.ContentTimeLine.width;
+		}
+	}
 	,__class__: qoid.widget.score.ContentTimeLine
 }
 qoid.widget.score.ForeignObject = function() { }
@@ -8268,14 +8264,6 @@ var defineWidget = function() {
 			qoid.model.EM.change(qoid.model.EMEvent.FitWindow);
 		};
 		var buttonBlock = new $("<div></div>").css("text-align","right").appendTo(selfElement1);
-		new $("<button title='Remove Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-circle-close"}}).css("width","23px").click(function(evt) {
-			evt.stopPropagation();
-			m3.util.JqueryUtil.confirm("Delete Post","Are you sure you want to remove this post?",function() {
-				var ecd = self2._updateContent();
-				close();
-				qoid.model.EM.change(qoid.model.EMEvent.DeleteContent,ecd);
-			});
-		});
 		new $("<button title='Update Post'></button>").appendTo(buttonBlock).button({ text : false, icons : { primary : "ui-icon-disk"}}).css("width","23px").click(function(evt) {
 			var ecd = self2._updateContent();
 			qoid.model.EM.change(qoid.model.EMEvent.UpdateContent,ecd);
@@ -8417,14 +8405,14 @@ var defineWidget = function() {
 			break;
 		}
 		self.buttonBlock = new $("<div class='button-block' ></div>").css("text-align","left").hide().appendTo(postContent);
-		new $("<button title='Edit Post'></button>").appendTo(self.buttonBlock).button({ text : false, icons : { primary : "ui-icon-pencil"}}).css("width","23px").click(function(evt) {
+		var mb = new $("<button title='Options'></button>").appendTo(self.buttonBlock).button({ text : false, icons : { primary : "ui-icon-circle-triangle-s"}}).css("width","23px");
+		mb.click(function(evt) {
+			var menu = self._createContentMenu();
+			menu.show();
+			menu.position({ my : "left top", at : "right-6px center", of : mb});
+			evt.preventDefault();
 			evt.stopPropagation();
-			var comp = new $("<div id='edit-post-comp'></div>");
-			comp.insertBefore(selfElement);
-			comp.width(selfElement.width());
-			comp.height(selfElement.height());
-			selfElement.hide();
-			var editPostComp = new $(comp).editPostComp({ content : self.options.content});
+			return false;
 		});
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
 		var aliasIid = null;
@@ -8460,6 +8448,41 @@ var defineWidget = function() {
 		qoid.model.EM.addListener(qoid.model.EMEvent.EditContentClosed,function(content) {
 			if(content.iid == self1.options.content.iid) selfElement1.show();
 		});
+	}, _createContentMenu : function() {
+		var self2 = this;
+		var selfElement2 = this.element;
+		if(self2.menu == null) {
+			var menu = new $("<ul id='contentCompMenu-" + self2.options.content.iid + "'></ul>");
+			menu.appendTo(selfElement2);
+			var menuOptions = [];
+			var menuOption;
+			menuOption = { label : "Edit...", icon : "ui-icon-pencil", action : function(evt,m) {
+				evt.stopPropagation();
+				var comp = new $("<div id='edit-post-comp'></div>");
+				comp.insertBefore(selfElement2);
+				comp.width(selfElement2.width());
+				comp.height(selfElement2.height());
+				selfElement2.hide();
+				var editPostComp = new $(comp).editPostComp({ content : self2.options.content});
+			}};
+			menuOptions.push(menuOption);
+			menuOption = { label : "Delete...", icon : "ui-icon-circle-close", action : function(evt,m) {
+				evt.stopPropagation();
+				m3.util.JqueryUtil.confirm("Delete Post","Are you sure you want to delete this content?",function() {
+					var ecd = new qoid.model.EditContentData(self2.options.content);
+					qoid.model.EM.change(qoid.model.EMEvent.DeleteContent,ecd);
+				});
+			}};
+			menuOptions.push(menuOption);
+			menuOption = { label : "Request Verification...", icon : "ui-icon-circle-triangle-n", action : function(evt,m) {
+				evt.preventDefault();
+				evt.stopPropagation();
+			}};
+			menuOptions.push(menuOption);
+			menu.m3menu({ menuOptions : menuOptions}).hide();
+			self2.menu = menu;
+		}
+		return self2.menu;
 	}, update : function(content) {
 		var self = this;
 		var selfElement = this.element;
@@ -9410,6 +9433,12 @@ var defineWidget = function() {
 $.widget("ui.revokeAccessDialog",defineWidget());
 var defineWidget = function() {
 	return { _updateTimeLines : function() {
+		var self = this;
+		var $it3 = self.contentTimeLines.iterator();
+		while( $it3.hasNext() ) {
+			var timeline = $it3.next();
+			timeline.reposition(self.startTime.getTime(),self.endTime.getTime());
+		}
 	}, _getProfile : function(content) {
 		var alias = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_ALIASES,content.aliasIid);
 		if(alias != null) return alias.profile;
@@ -9480,7 +9509,7 @@ var defineWidget = function() {
 				self1.endTime = (function($this) {
 					var $r;
 					var d = new Date();
-					d.setTime(self1.startTime.getTime() + 86400000.);
+					d.setTime(self1.startTime.getTime() + 7200000.);
 					$r = d;
 					return $r;
 				}(this));
@@ -9526,7 +9555,6 @@ haxe.xml.Parser.escapes = (function($this) {
 }(this));
 js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
-js.Browser.navigator = typeof window != "undefined" ? window.navigator : null;
 js.d3._D3.InitPriority.important = "important";
 m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet.T\"/>\n</x></f></delegate>\n\t<getVisualId public=\"1\" set=\"method\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.EventManager.__rtti = "<class path=\"m3.observable.EventManager\" params=\"T\" module=\"m3.observable.OSet\">\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"47\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></add>\n\t<remove public=\"1\" set=\"method\" line=\"55\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></remove>\n\t<fire public=\"1\" set=\"method\" line=\"58\"><f a=\"t:type\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<listenerCount public=\"1\" set=\"method\" line=\"69\"><f a=\"\"><x path=\"Int\"/></f></listenerCount>\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";

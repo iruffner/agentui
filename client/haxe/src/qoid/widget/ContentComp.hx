@@ -2,6 +2,7 @@ package qoid.widget;
 
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
+import m3.jq.M3Menu;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import m3.observable.OSet;
@@ -19,8 +20,10 @@ typedef ContentCompOptions = {
 typedef ContentCompWidgetDef = {
 	@:optional var options: ContentCompOptions;
 	@:optional var buttonBlock: JQ;
+	@:optional var menu:M3Menu;
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
+	var _createContentMenu: Void->M3Menu;
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
 	var toggleActive:Void->Void;
@@ -87,21 +90,25 @@ extern class ContentComp extends JQ {
 
 					self.buttonBlock = new JQ("<div class='button-block' ></div>").css("text-align", "left").hide().appendTo(postContent);
 
-					new JQ("<button title='Edit Post'></button>")
+					var mb = new JQ("<button title='Options'></button>")
 						.appendTo(self.buttonBlock)
-						.button({text: false,  icons: { primary: "ui-icon-pencil"}})
-						.css("width", "23px")
-						.click(function(evt: JQEvent): Void {
-							evt.stopPropagation();
+						.button({text: false,  icons: { primary: "ui-icon-circle-triangle-s"}})
+						.css("width", "23px");
 
-			        		var comp = new JQ("<div id='edit-post-comp'></div>");
-	            			comp.insertBefore(selfElement);
-							comp.width(selfElement.width());
-							comp.height(selfElement.height());
+					mb.click(function(evt: JQEvent): Dynamic {
+		        		var menu = self._createContentMenu();
 
-							selfElement.hide();
-							var editPostComp = new EditPostComp(comp).editPostComp({content: self.options.content});
-						});
+	        			menu.show();
+	        			menu.position({
+		        			my: "left top",
+		        			at: "right-6px center",
+		        			of: mb
+		        		});
+
+						evt.preventDefault();
+	        			evt.stopPropagation();
+	        			return false;
+		        	});
 		        	
 		        	var postCreator: JQ = new JQ("<aside class='postCreator'></aside>").appendTo(postWr);
 
@@ -184,6 +191,68 @@ extern class ContentComp extends JQ {
 		        		}
 		        	});
 		        },
+
+		       	_createContentMenu: function() : M3Menu {
+		        	var self: ContentCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+		        	if (self.menu == null) {
+			        	var menu: M3Menu = new M3Menu("<ul id='contentCompMenu-" + self.options.content.iid + "'></ul>");
+			        	menu.appendTo(selfElement);
+
+			        	var menuOptions:Array<MenuOption> = [];
+
+						var menuOption: MenuOption;
+
+						menuOption = {
+							label: "Edit...",
+							icon: "ui-icon-pencil",
+							action: function(evt: JQEvent, m: M3Menu): Void {
+								evt.stopPropagation();
+
+				        		var comp = new JQ("<div id='edit-post-comp'></div>");
+		            			comp.insertBefore(selfElement);
+								comp.width(selfElement.width());
+								comp.height(selfElement.height());
+
+								selfElement.hide();
+								var editPostComp = new EditPostComp(comp).editPostComp({content: self.options.content});
+							}
+						};
+						menuOptions.push(menuOption);
+
+						menuOption = {
+							label: "Delete...",
+							icon: "ui-icon-circle-close",
+							action: function(evt: JQEvent, m: M3Menu): Void {
+								evt.stopPropagation();
+								JqueryUtil.confirm("Delete Post", "Are you sure you want to delete this content?", 
+									function(){
+										var ecd = new EditContentData(self.options.content);
+										EM.change(EMEvent.DeleteContent, ecd);
+									}
+								);
+							}
+						};
+						menuOptions.push(menuOption);
+
+						menuOption = {
+							label: "Request Verification...",
+							icon: "ui-icon-circle-triangle-n",
+							action: function(evt: JQEvent, m: M3Menu): Void {
+								evt.preventDefault();
+	        					evt.stopPropagation();
+
+							}
+						};
+						menuOptions.push(menuOption);
+
+	        			menu.m3menu({menuOptions:menuOptions}).hide();
+
+	        			self.menu = menu;
+					}
+					return self.menu;
+		       	},
 
 		        update: function(content:Content<Dynamic>) : Void {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();

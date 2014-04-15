@@ -43,7 +43,7 @@ class ContentTimeLine {
 		this.endTime      = endTime;
 		this.initialWidth = initialWidth;
 
-		this.contents = new Array<Content<Dynamic>>();
+		this.contents        = new Array<Content<Dynamic>>();
 		this.contentElements = new Array<SnapElement>();
 
 		if (ContentTimeLine.next_y_pos > initial_y_pos) {
@@ -57,6 +57,22 @@ class ContentTimeLine {
    		connectionElement = createConnectionElement();
 
    		this.timeLineElement = paper.group(paper, [connectionElement]);
+	}
+
+	public function reposition(startTime:Float, endTime:Float) {
+		if (this.startTime == startTime && this.endTime == endTime) { return; }
+
+		this.startTime = startTime;
+		this.endTime   = endTime;
+
+		for (i in 0...contentElements.length) {
+			var ele = contentElements[i];
+			var content = contents[i];
+			var x_start:Float = ele.attr("x");
+			var x_end:Float = (endTime - content.created.getTime()) / 
+				(endTime - startTime) * initialWidth + time_line_x + ContentTimeLine.width;
+
+		}
 	}
 
 	public function removeElements() {

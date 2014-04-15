@@ -167,22 +167,6 @@ extern class EditPostComp extends JQ {
 
 					var buttonBlock = new JQ("<div></div>").css("text-align", "right").appendTo(selfElement);
 
-					new JQ("<button title='Remove Post'></button>")
-						.appendTo(buttonBlock)
-						.button({text: false,  icons: { primary: "ui-icon-circle-close"}})
-						.css("width", "23px")
-						.click(function(evt: JQEvent): Void {
-							evt.stopPropagation();
-							JqueryUtil.confirm("Delete Post", "Are you sure you want to remove this post?", 
-								function(){
-									var ecd = self._updateContent();
-									close();
-									EM.change(EMEvent.DeleteContent, ecd);
-								}
-							);
-						}
-					);
-
 					new JQ("<button title='Update Post'></button>")
 						.appendTo(buttonBlock)
 						.button({text: false,   icons: { primary: "ui-icon-disk"}})
@@ -193,7 +177,6 @@ extern class EditPostComp extends JQ {
 							close();
 						}
 					);
-
 
 					new JQ("<button title='Close'></button>")
 						.appendTo(buttonBlock)

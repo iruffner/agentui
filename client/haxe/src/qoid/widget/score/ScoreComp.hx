@@ -47,7 +47,10 @@ extern class ScoreComp extends JQ {
 		var defineWidget: Void->ScoreCompWidgetDef = function(): ScoreCompWidgetDef {
 			return {
 				_updateTimeLines: function():Void {
-
+			        var self: ScoreCompWidgetDef = Widgets.getSelf();
+					for (timeline in self.contentTimeLines) {
+						timeline.reposition(self.startTime.getTime(), self.endTime.getTime());
+					}
 				},
 
 				_getProfile:function(content:Content<Dynamic>):Profile {
@@ -145,7 +148,7 @@ extern class ScoreComp extends JQ {
 				
 						if (self.startTime == null) {
 							self.startTime = Date.fromTime(Date.now().getTime() - DateTools.hours(2));
-							self.endTime   = Date.fromTime(self.startTime.getTime() + DateTools.hours(24));
+							self.endTime   = Date.fromTime(self.startTime.getTime() + DateTools.hours(2));
 		            	} else {
 							self.startTime = Date.fromTime(self.startTime.getTime() - DateTools.hours(2));
 							self.endTime   = Date.fromTime(self.endTime.getTime()   + DateTools.hours(2));
