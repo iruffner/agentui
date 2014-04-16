@@ -58,6 +58,10 @@ class ResponseProcessor {
                         } else if (data.result && data.result.handle) {
                             AgentUi.PROTOCOL.addHandle(data.result.handle);
                         }
+                    case "verificationRequest":
+                        if (data.result == "success") {
+                            EM.change(EMEvent.VerificationResponse);
+                        }
                     default:
                         Synchronizer.processResponse(data);
                 }

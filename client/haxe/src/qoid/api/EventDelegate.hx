@@ -104,24 +104,16 @@ class EventDelegate {
             // Do something
         });
 
-        // EM.addListener(EMEvent.BACKUP, function(nameOfBackup: String): Void{
-        // 	protocolHandler.backup(nameOfBackup);
-        // });
-
-        // EM.addListener(EMEvent.RESTORE, function(nameOfBackup: String): Void{
-        // 	protocolHandler.restore(nameOfBackup);
-        // });
-
-        // EM.addListener(EMEvent.RESTORES_REQUEST, function(n: {}): Void{
-        // 	protocolHandler.restores();
-        // });
-
 		EM.addListener(EMEvent.BACKUP, function(n: {}): Void{
         	protocolHandler.backup();
         });
 
         EM.addListener(EMEvent.RESTORE, function(n: {}): Void{
         	protocolHandler.restore();
+        });
+
+        EM.addListener(EMEvent.VerificationRequest, function(vr:VerificationRequest){
+            protocolHandler.verificationRequest(vr);
         });
 	}
 }

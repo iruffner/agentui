@@ -10,6 +10,7 @@ import qoid.widget.LabelComp;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import qoid.model.EM;
+import qoid.widget.DialogManager;
 
 using m3.helper.OSetHelper;
 
@@ -242,7 +243,7 @@ extern class ContentComp extends JQ {
 							action: function(evt: JQEvent, m: M3Menu): Void {
 								evt.preventDefault();
 	        					evt.stopPropagation();
-
+	        					DialogManager.requestVerification(self.options.content);
 							}
 						};
 						menuOptions.push(menuOption);

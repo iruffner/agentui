@@ -8,6 +8,7 @@ import qoid.widget.CreateAgentDialog;
 import qoid.widget.RequestIntroductionDialog;
 import qoid.widget.AllowAccessDialog;
 import qoid.widget.RevokeAccessDialog;
+import qoid.widget.VerificationRequestDialog;
 
 @:expose
 class DialogManager {
@@ -43,7 +44,7 @@ class DialogManager {
     }
 
     public static function requestIntroduction(from:Connection, to:Connection): Void {
-        var options:Dynamic = {}
+        var options:Dynamic = {};
         options.from = from;
         options.to   = to;
         showDialog("requestIntroductionDialog", options);
@@ -54,15 +55,21 @@ class DialogManager {
     }   
 
     public static function allowAccess(label:Label, connection:Connection): Void {
-        var options:Dynamic = {}
+        var options:Dynamic = {};
         options.label = label;
         options.connection = connection;
         showDialog("allowAccessDialog", options);
     }
 
     public static function revokeAccess(connection:Connection):Void {
-        var options:Dynamic = {}
+        var options:Dynamic = {};
         options.connection = connection;
         showDialog("revokeAccessDialog", options);
+    }
+
+    public static function requestVerification(content:Content<Dynamic>):Void {
+        var options:Dynamic = {};
+        options.content = content;
+        showDialog("verificationRequestDialog", options);
     }
 }

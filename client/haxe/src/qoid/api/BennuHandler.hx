@@ -315,6 +315,14 @@ class BennuHandler implements ProtocolHandler {
 		new SubmitRequest(requests).start();
 	}
 
+	public function verificationRequest(vr:VerificationRequest) {
+		var context = Synchronizer.createContext(1, "verificationRequest");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(VERIFICATION_REQUEST, context, new VerificationRequestMessage(vr))]);
+		req.start();
+
+	}
+
 	private function onCreateSubmitChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
 		AppContext.SUBMIT_CHANNEL = data.channelId;
 		AppContext.UBER_ALIAS_ID = data.aliasIid;
