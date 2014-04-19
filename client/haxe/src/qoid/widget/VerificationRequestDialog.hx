@@ -1,5 +1,7 @@
 package qoid.widget;
 
+import js.html.Element;
+
 import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.widget.Widgets;
@@ -14,7 +16,6 @@ typedef VerificationRequestDialogOptions = {
 
 typedef VerificationRequestDialogWidgetDef = {
 	@:optional var options: VerificationRequestDialogOptions;
-	@:optional var connectionIids: Array<String>;
 
 	var initialized: Bool;
 
@@ -46,8 +47,21 @@ extern class VerificationRequestDialog extends JQ {
 
 		        	selfElement.addClass("verificationRequestDialog").hide();
 
-		        	selfElement.append("<div>Message:</div>");
-		        	selfElement.append("<textarea id='vr_message'></textarea>");
+		        	var uberDiv = new JQ("<div style='text-align:left'></div>");
+		        	selfElement.append(uberDiv);
+		        	uberDiv.append("<h3>Message:</h3>");
+		        	uberDiv.append("<textarea id='vr_message' style='width:450px;'></textarea>");
+
+		        	uberDiv.append("<h3>Verifiers:</h3>");
+		        	var connectionContainer = new JQ("<div class='container' style='width:450px;height:135px;'></div>");
+		        	uberDiv.append(connectionContainer);
+
+		        	for (conn in AppContext.MASTER_CONNECTIONS) {
+		        		var div = new JQ("<div></div>");
+		        		div.append("<input type='checkbox' class='conn_cb' id='cb_" + conn.iid + "'/>");
+						self._appendConnectionAvatar(conn, div);
+						connectionContainer.append(div);
+					}
 		        },
 
 		        _appendConnectionAvatar: function(connection:Connection, parent:JQ): Void {
@@ -67,8 +81,18 @@ extern class VerificationRequestDialog extends JQ {
 		        	var self: VerificationRequestDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
+					var connectionIids = new Array<String>();
+
+					new JQ(".conn_cb").each(function(i: Int, dom: Element):Void {
+						var cb = new JQ(dom);
+						if (cb.prop("checked")) {
+							connectionIids.push(cb.attr("id").split("_")[1]);
+						}
+					});
+
+
 					var vr = new VerificationRequest(self.options.content.iid, 
-						self.connectionIids, new JQ("#vr_message").val());
+						connectionIids, new JQ("#vr_message").val());
 
 					EM.listenOnce(EMEvent.VerificationRequest_RESPONSE, function(n:{}):Void{
 						selfElement.dialog("close");
@@ -81,10 +105,6 @@ extern class VerificationRequestDialog extends JQ {
 		        	var self: VerificationRequestDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-					self.connectionIids = new Array<String>();
-					for (conn in AppContext.MASTER_CONNECTIONS) {
-						self.connectionIids.push(conn.iid);
-					}
 		        	if (self.initialized) {return;}
 
 		        	self.initialized = true;

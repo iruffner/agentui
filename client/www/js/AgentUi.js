@@ -9617,15 +9617,33 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of VerificationRequestDialog must be a div element");
 		selfElement.addClass("verificationRequestDialog").hide();
-		selfElement.append("<div>Message:</div>");
-		selfElement.append("<textarea id='vr_message'></textarea>");
+		var uberDiv = new $("<div style='text-align:left'></div>");
+		selfElement.append(uberDiv);
+		uberDiv.append("<h3>Message:</h3>");
+		uberDiv.append("<textarea id='vr_message' style='width:450px;'></textarea>");
+		uberDiv.append("<h3>Verifiers:</h3>");
+		var connectionContainer = new $("<div class='container' style='width:450px;height:135px;'></div>");
+		uberDiv.append(connectionContainer);
+		var $it3 = qoid.AppContext.MASTER_CONNECTIONS.iterator();
+		while( $it3.hasNext() ) {
+			var conn = $it3.next();
+			var div = new $("<div></div>");
+			div.append("<input type='checkbox' class='conn_cb' id='cb_" + conn.iid + "'/>");
+			self._appendConnectionAvatar(conn,div);
+			connectionContainer.append(div);
+		}
 	}, _appendConnectionAvatar : function(connection,parent) {
 		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connectionIid : connection.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(parent).css("display","inline");
 		parent.append("<div class='labelDiv' style='display:inline'>" + connection.data.name + "</div>");
 	}, initialized : false, _sendRequest : function() {
 		var self = this;
 		var selfElement1 = this.element;
-		var vr = new qoid.model.VerificationRequest(self.options.content.iid,self.connectionIids,new $("#vr_message").val());
+		var connectionIids = new Array();
+		new $(".conn_cb").each(function(i,dom) {
+			var cb = new $(dom);
+			if(cb.prop("checked")) connectionIids.push(cb.attr("id").split("_")[1]);
+		});
+		var vr = new qoid.model.VerificationRequest(self.options.content.iid,connectionIids,new $("#vr_message").val());
 		qoid.model.EM.listenOnce(qoid.model.EMEvent.VerificationRequest_RESPONSE,function(n) {
 			selfElement1.dialog("close");
 		});
@@ -9633,12 +9651,6 @@ var defineWidget = function() {
 	}, _buildDialog : function() {
 		var self1 = this;
 		var selfElement2 = this.element;
-		self1.connectionIids = new Array();
-		var $it3 = qoid.AppContext.MASTER_CONNECTIONS.iterator();
-		while( $it3.hasNext() ) {
-			var conn = $it3.next();
-			self1.connectionIids.push(conn.iid);
-		}
 		if(self1.initialized) return;
 		self1.initialized = true;
 		var dlgOptions = { autoOpen : false, title : "Verification Request", height : 400, width : 600, buttons : { Send : function() {
