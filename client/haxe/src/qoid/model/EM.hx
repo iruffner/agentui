@@ -75,7 +75,10 @@ enum EMEvent {
 	TargetChange;
 
 	VerificationRequest;
-	VerificationResponse;
+	VerificationRequest_RESPONSE;
+
+	RespondToVerification;
+	RespondToVerification_RESPONSE;
 
 	BACKUP;
 	RESTORE;

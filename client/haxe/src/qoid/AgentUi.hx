@@ -7,7 +7,6 @@ import m3.log.Logga;
 import m3.log.LogLevel;
 import m3.serialization.Serialization;
 
-import qoid.api.BennuHandler;
 import qoid.api.ProtocolHandler;
 import qoid.widget.*;
 import qoid.widget.ConnectionsTabs;
@@ -26,7 +25,7 @@ class AgentUi {
 	public static function main() {
         AppContext.init();
 
-        PROTOCOL = new BennuHandler();
+        PROTOCOL = new ProtocolHandler();
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
     }
 

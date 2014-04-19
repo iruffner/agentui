@@ -320,8 +320,16 @@ class BennuHandler implements ProtocolHandler {
 		var req = new SubmitRequest([
 			new ChannelRequestMessage(VERIFICATION_REQUEST, context, new VerificationRequestMessage(vr))]);
 		req.start();
+	}
+
+	public function respondToVerificationRequest(vr:VerificationResponse) {
+		var context = Synchronizer.createContext(1, "respondToVerificationRequest");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(VERIFICATION_RESPONSE, context, new VerificationResponseMessage(vr))]);
+		req.start();
 
 	}
+
 
 	private function onCreateSubmitChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
 		AppContext.SUBMIT_CHANNEL = data.channelId;

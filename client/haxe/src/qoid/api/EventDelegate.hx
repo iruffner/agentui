@@ -115,5 +115,10 @@ class EventDelegate {
         EM.addListener(EMEvent.VerificationRequest, function(vr:VerificationRequest){
             protocolHandler.verificationRequest(vr);
         });
+
+        EM.addListener(EMEvent.RespondToVerification, function(vr:VerificationResponse){
+            protocolHandler.respondToVerificationRequest(vr);
+        });
+        
 	}
 }

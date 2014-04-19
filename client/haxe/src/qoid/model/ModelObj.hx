@@ -382,16 +382,12 @@ class NotificationHandler implements TypeHandler {
         var obj: Notification<Dynamic> = null;
 
         switch (NotificationKind.createByName(fromJson.kind) ) {
-        	case NotificationKind.Ping:
-        		obj = null;
-        	case NotificationKind.Pong:
-        		obj = null;
         	case NotificationKind.IntroductionRequest:
         		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionRequestNotification);
-        	case NotificationKind.IntroductionResponse:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionResponseNotification);
         	case NotificationKind.VerificationRequest:
         		obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationRequestNotification);
+        	case NotificationKind.VerificationResponse:
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationResponseNotification);
         }
 
         return obj;
@@ -403,11 +399,9 @@ class NotificationHandler implements TypeHandler {
 }
 
 enum NotificationKind {
-	Ping;
-    Pong;
     IntroductionRequest;
-    IntroductionResponse;
     VerificationRequest;
+    VerificationResponse;
 }
 
 class Notification<T> extends ModelObjWithIid {
@@ -472,33 +466,32 @@ class IntroductionRequestNotification extends Notification<IntroductionRequestDa
 		@:optional public var accepted:Bool;
 	}
 
-class IntroductionResponseNotification extends Notification<IntroductionResponseData> {
-	public function new (introductionIid: String, accepted:Bool) {
-		super(NotificationKind.IntroductionResponse, IntroductionResponseData);
-		this.props.introductionIid = introductionIid;
-		this.props.accepted = accepted;
-	}
-}
-	@:rtti
-	class IntroductionResponseData {
-		public var introductionIid: String;
-		public var accepted: Bool;
-	}
-
 class VerificationRequestNotification extends Notification<VerificationRequestData> {
 	public function new () {
 		super(NotificationKind.VerificationRequest, VerificationRequestData);
 	}
 }
-
 	@:rtti
 	class VerificationRequestData {
 		public var contentIid:String;
-    	public var contentType:String;
-    	public var contentData:Content<Dynamic>;
+    	public var contentType:ContentType;
+    	public var contentData:Dynamic;
     	public var message:String;
 	}
 
+class VerificationResponseNotification extends Notification<VerificationResponseData> {
+	public function new () {
+		super(NotificationKind.VerificationRequest, VerificationResponseData);
+	}
+}
+
+	@:rtti
+	class VerificationResponseData {
+		public var contentIid:String;
+    	public var verificationContentIid:String;
+    	public var verificationContentData:Dynamic;
+    	public var verifierId:String;
+	}
 
 //-------------------------------------------------------------------
 // Classes used to copy data around

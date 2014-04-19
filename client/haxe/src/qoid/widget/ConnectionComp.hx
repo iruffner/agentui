@@ -137,8 +137,7 @@ extern class ConnectionComp extends JQ {
 
 			    	// Set up a listener to introduction changes
 			    	var set = new FilteredSet<Notification<Dynamic>>(AppContext.NOTIFICATIONS, function(n:Notification<Dynamic>):Bool {
-                		return (n.fromConnectionIid == self.options.connection.iid &&
-                		        n.kind == NotificationKind.IntroductionRequest);
+                		return (n.fromConnectionIid == self.options.connection.iid);
                 	});
                 	set.listen(function(i:Notification<Dynamic>, evt:EventType):Void{
                 		if (evt.isAdd()) {
