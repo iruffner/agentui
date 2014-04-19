@@ -90,8 +90,7 @@ class ContentTimeLine {
 		ellipse.attr({fill:"#fff", stroke:"#000", strokeWidth:"1px"});
 
 		var imgSrc = M.getX(profile.imgSrc,"media/default_avatar.jpg");
-		var img = paper.image(imgSrc, time_line_x, time_line_y, width, height)
-               				       .attr({"preserveAspectRatio":"true"});
+		var img = paper.image(imgSrc, time_line_x, time_line_y, width, height);
         img.attr({mask: ellipse});
 
 		var border_ellipse = paper.ellipse(time_line_x + width/2, time_line_y + height/2, width/2, height/2);
@@ -151,8 +150,7 @@ class ContentTimeLine {
 						ele = paper.ellipse(cx, cy, bbox.width/2, bbox.height/2)
 								   .attr({"class":"audioEllipse"});
 					case "IMAGE":
-						ele = paper.image(cast(content, ImageContent).props.imgSrc, bbox.x, bbox.y, bbox.width, bbox.height)
-               				       .attr({"preserveAspectRatio":"true"});
+						ele = paper.image(cast(content, ImageContent).props.imgSrc, bbox.x, bbox.y, bbox.width, bbox.height);
 					case "URL":
 						ele = Shapes.createHexagon(paper, cx, cy, bbox.width/2)
                                     .attr({"class":"urlContent"});

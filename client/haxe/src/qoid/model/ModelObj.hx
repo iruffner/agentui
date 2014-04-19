@@ -258,10 +258,24 @@ class ContentData {
 	}
 }
 
+@:rtti
+class ContentVerification {
+	public var verifierId:String;
+    public var verificationIid:String;
+    public var hash:Dynamic;
+    public var hashAlgorithm:String;
+}
+
+@:rtti
+class ContentMetaData {
+	@:optional var verifications:Array<ContentVerification>;
+}
+
 class Content<T:(ContentData)> extends ModelObjWithIid {
 	public var contentType: ContentType;
 	@:optional public var aliasIid: String;
 	@:optional public var connectionIid: String;
+	@:optional public var metaData:ContentMetaData;
 
 	private var data:Dynamic;
 	@:transient public var props: T;
