@@ -66,6 +66,10 @@ class ResponseProcessor {
                         if (data.result == "success") {
                             EM.change(EMEvent.RespondToVerification_RESPONSE);
                         }
+                    case "acceptVerification":
+                        if (data.result == "success") {
+                            EM.change(EMEvent.AcceptVerification_RESPONSE);
+                        }
                     default:
                         Synchronizer.processResponse(data);
                 }

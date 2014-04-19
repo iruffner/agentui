@@ -327,7 +327,13 @@ class ProtocolHandler {
 		var req = new SubmitRequest([
 			new ChannelRequestMessage(VERIFICATION_RESPONSE, context, new VerificationResponseMessage(vr))]);
 		req.start();
+	}
 
+	public function acceptVerification(notificationIid:String) {
+		var context = Synchronizer.createContext(1, "acceptVerification");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(VERIFICATION_ACCEPT, context, new AcceptVerificationMessage(notificationIid))]);
+		req.start();
 	}
 
 

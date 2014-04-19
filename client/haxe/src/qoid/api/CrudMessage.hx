@@ -102,6 +102,15 @@ class VerificationResponseMessage implements ChannelMessage {
 }
 
 @:rtti
+class AcceptVerificationMessage implements ChannelMessage {
+	public var notificationIid: String;
+
+	public function new(notificationIid: String) {
+		this.notificationIid = notificationIid;
+	}
+}
+
+@:rtti
 class IntroResponseMessage implements ChannelMessage {
 	public var notificationIid: String;
 	public var accepted: Bool;

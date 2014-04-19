@@ -91,14 +91,14 @@ extern class VerificationResponseNotificationComp extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	var msg = new VerificationResponse(self.options.notification.iid,"The claim is true");
-		        	EM.listenOnce(EMEvent.RespondToVerification_RESPONSE, function(e:Dynamic) {
-		        		JqueryUtil.alert("Your response has been received.", "Verification", function() {
+		        	EM.listenOnce(EMEvent.AcceptVerification_RESPONSE, function(e:Dynamic) {
+		        		JqueryUtil.alert("Your response has been received.", "Verification Accepted", function() {
 		        			self.destroy();
 		        			selfElement.remove();
 		        		});
 		        	});
 
-		        	EM.change(EMEvent.RespondToVerification,msg);
+		        	EM.change(EMEvent.AcceptVerification, self.options.notification.iid);
 		        },
 
 		        rejectVerification: function():Void {
