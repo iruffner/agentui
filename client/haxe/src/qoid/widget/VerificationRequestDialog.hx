@@ -81,8 +81,10 @@ extern class VerificationRequestDialog extends JQ {
 		        	var self: VerificationRequestDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-					var connectionIids = new Array<String>();
+					// TODO: validation
 
+					// Get the checked verifiers
+					var connectionIids = new Array<String>();
 					new JQ(".conn_cb").each(function(i: Int, dom: Element):Void {
 						var cb = new JQ(dom);
 						if (cb.prop("checked")) {
