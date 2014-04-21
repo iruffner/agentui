@@ -8784,25 +8784,26 @@ var defineWidget = function() {
 		var date = new $("<div class='content-timestamp'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
 		var message = new $("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
 		var content = self.options.notification.props.getContent();
+		var contentDiv = new $("<div class='container'></div>").appendTo(invitationText);
 		switch( (content.contentType)[1] ) {
 		case 0:
 			var audio = js.Boot.__cast(content , qoid.model.AudioContent);
-			invitationText.append(audio.props.title + "<br/>");
+			contentDiv.append(audio.props.title + "<br/>");
 			var audioControls = new $("<audio controls></audio>");
-			invitationText.append(audioControls);
+			contentDiv.append(audioControls);
 			audioControls.append("<source src='" + audio.props.audioSrc + "' type='" + audio.props.audioType + "'>Your browser does not support the audio element.");
 			break;
 		case 1:
 			var img = js.Boot.__cast(content , qoid.model.ImageContent);
-			invitationText.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
+			contentDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
 			break;
 		case 2:
 			var urlContent = js.Boot.__cast(content , qoid.model.UrlContent);
-			invitationText.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
+			contentDiv.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
 			break;
 		case 3:
 			var textContent = js.Boot.__cast(content , qoid.model.MessageContent);
-			invitationText.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
+			contentDiv.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
 			break;
 		}
 		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
