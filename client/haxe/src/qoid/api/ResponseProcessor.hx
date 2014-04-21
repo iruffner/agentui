@@ -59,17 +59,13 @@ class ResponseProcessor {
                             AgentUi.PROTOCOL.addHandle(data.result.handle);
                         }
                     case "verificationRequest":
-                        if (data.result == "success") {
-                            EM.change(EMEvent.VerificationRequest_RESPONSE);
-                        }
+                        EM.change(EMEvent.VerificationRequest_RESPONSE);
                     case "respondToVerificationRequest":
-                        if (data.result == "success") {
-                            EM.change(EMEvent.RespondToVerification_RESPONSE);
-                        }
+                        EM.change(EMEvent.RespondToVerification_RESPONSE);
                     case "acceptVerification":
-                        if (data.result == "success") {
-                            EM.change(EMEvent.AcceptVerification_RESPONSE);
-                        }
+                        EM.change(EMEvent.AcceptVerification_RESPONSE);
+                    case "verificationRequestRejected":
+                        EM.change(EMEvent.RejectVerificationRequest_RESPONSE);
                     default:
                         Synchronizer.processResponse(data);
                 }

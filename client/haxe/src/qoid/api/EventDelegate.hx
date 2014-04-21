@@ -123,5 +123,10 @@ class EventDelegate {
         EM.addListener(EMEvent.AcceptVerification, function(notificationIid:String){
             protocolHandler.acceptVerification(notificationIid);
         });
+
+        EM.addListener(EMEvent.RejectVerificationRequest, function(notificationIid:String){
+            protocolHandler.rejectVerificationRequest(notificationIid);
+        });
+
 	}
 }

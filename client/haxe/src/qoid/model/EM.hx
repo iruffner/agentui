@@ -80,6 +80,9 @@ enum EMEvent {
 	RespondToVerification;
 	RespondToVerification_RESPONSE;
 
+	RejectVerificationRequest;
+	RejectVerificationRequest_RESPONSE;
+	
 	AcceptVerification;
 	AcceptVerification_RESPONSE;
 

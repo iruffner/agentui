@@ -427,6 +427,10 @@ class Notification<T> extends ModelObjWithIid {
 
 	@:transient var type: Class<T>;
 
+	override public function objectType():String {
+		return "notification";
+	}
+
 	public function new (kind:NotificationKind, type: Class<T>) {
 		super();
 		this.kind = kind;

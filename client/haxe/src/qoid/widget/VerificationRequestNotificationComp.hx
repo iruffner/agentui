@@ -126,8 +126,12 @@ extern class VerificationRequestNotificationComp extends JQ {
 		        	var self: VerificationRequestNotificationCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-					self.destroy();
-		        	selfElement.remove();
+		        	EM.listenOnce(EMEvent.RejectVerificationRequest_RESPONSE, function(e:Dynamic) {
+	        			self.destroy();
+	        			selfElement.remove();
+		        	});
+
+		        	EM.change(EMEvent.RejectVerificationRequest, self.options.notification.iid);
 		        },
 
 		        destroy: function() {

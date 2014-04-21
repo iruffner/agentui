@@ -329,6 +329,16 @@ class ProtocolHandler {
 		req.start();
 	}
 
+	public function rejectVerificationRequest(notificationIid:String) {
+		var notification = AppContext.NOTIFICATIONS.getElement(notificationIid);
+		notification.consumed = true;
+
+		var context = Synchronizer.createContext(1, "verificationRequestRejected");
+		var req = new SubmitRequest([
+			new ChannelRequestMessage(UPSERT, context, CrudMessage.create(notification))]);
+		req.start();
+	}
+
 	public function acceptVerification(notificationIid:String) {
 		var context = Synchronizer.createContext(1, "acceptVerification");
 		var req = new SubmitRequest([
