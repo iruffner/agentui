@@ -491,6 +491,17 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
     	public var contentType:ContentType;
     	public var contentData:Dynamic;
     	public var message:String;
+
+
+    	@:transient public function getContent():Content<Dynamic> {
+    		var fromJson:Dynamic = {
+    			iid: contentIid,
+    			deleted: false,
+    			contentType: Std.string(this.contentType),
+    			data:this.contentData
+    		};
+    		return AppContext.SERIALIZER.fromJsonX(fromJson, Content);
+    	}
 	}
 
 class VerificationResponseNotification extends Notification<VerificationResponseData> {

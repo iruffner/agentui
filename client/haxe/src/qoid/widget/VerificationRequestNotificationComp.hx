@@ -70,6 +70,29 @@ extern class VerificationRequestNotificationComp extends JQ {
 		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
 		        	var date  =	new JQ("<div class='content-timestamp'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
+		        	var content = self.options.notification.props.getContent();
+
+		        	switch(content.contentType) {
+		        		case ContentType.AUDIO:
+			        		var audio: AudioContent = cast(content, AudioContent);
+			        		invitationText.append(audio.props.title + "<br/>");
+			        		var audioControls: JQ = new JQ("<audio controls></audio>");
+			        		invitationText.append(audioControls);
+			        		audioControls.append("<source src='" + audio.props.audioSrc + "' type='" + audio.props.audioType + "'>Your browser does not support the audio element.");
+
+		        		case ContentType.IMAGE:
+		        			var img: ImageContent = cast(content, ImageContent);
+		        			invitationText.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");// + img.caption);
+
+						case ContentType.URL:
+							var urlContent: UrlContent = cast(content, UrlContent);
+							invitationText.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
+							// postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
+
+	        			case ContentType.TEXT:
+	        				var textContent: MessageContent = cast(content, MessageContent);
+	        				invitationText.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>"); 
+		        	}
 					
 					var accept = new JQ("<button>Accept</button>")
 							        .appendTo(invitationText)
