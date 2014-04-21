@@ -49,10 +49,8 @@ extern class VerificationRequestDialog extends JQ {
 
 		        	var uberDiv = new JQ("<div style='text-align:left'></div>");
 		        	selfElement.append(uberDiv);
-		        	uberDiv.append("<h3>Message:</h3>");
-		        	uberDiv.append("<textarea id='vr_message' style='width:450px;'></textarea>");
 
-		        	uberDiv.append("<h3>Verifiers:</h3>");
+		        	uberDiv.append("<h3>Request Verification From:</h3>");
 		        	var connectionContainer = new JQ("<div class='container' style='width:450px;height:135px;'></div>");
 		        	uberDiv.append(connectionContainer);
 
@@ -62,6 +60,9 @@ extern class VerificationRequestDialog extends JQ {
 						self._appendConnectionAvatar(conn, div);
 						connectionContainer.append(div);
 					}
+
+		        	uberDiv.append("<h3>Message:</h3>");
+		        	uberDiv.append("<textarea id='vr_message' style='width:450px;'></textarea>");
 		        },
 
 		        _appendConnectionAvatar: function(connection:Connection, parent:JQ): Void {

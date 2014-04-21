@@ -243,6 +243,7 @@ extern class ContentComp extends JQ {
 							action: function(evt: JQEvent, m: M3Menu): Void {
 								evt.preventDefault();
 	        					evt.stopPropagation();
+	        					self.menu.hide();
 	        					DialogManager.requestVerification(self.options.content);
 							}
 						};

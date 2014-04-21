@@ -92,10 +92,8 @@ extern class VerificationRequestNotificationComp extends JQ {
 
 		        	var msg = new VerificationResponse(self.options.notification.iid,"The claim is true");
 		        	EM.listenOnce(EMEvent.RespondToVerification_RESPONSE, function(e:Dynamic) {
-		        		JqueryUtil.alert("Your response has been received.", "Verification", function() {
-		        			self.destroy();
-		        			selfElement.remove();
-		        		});
+	        			self.destroy();
+	        			selfElement.remove();
 		        	});
 
 		        	EM.change(EMEvent.RespondToVerification,msg);

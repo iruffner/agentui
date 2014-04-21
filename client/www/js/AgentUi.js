@@ -8560,6 +8560,7 @@ var defineWidget = function() {
 			menuOption = { label : "Request Verification...", icon : "ui-icon-circle-triangle-n", action : function(evt,m) {
 				evt.preventDefault();
 				evt.stopPropagation();
+				self2.menu.hide();
 				qoid.widget.DialogManager.requestVerification(self2.options.content);
 			}};
 			menuOptions.push(menuOption);
@@ -8736,10 +8737,8 @@ var defineWidget = function() {
 		selfElement.addClass("introductionNotificationComp container boxsizingBorder");
 		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.MASTER_CONNECTIONS,self.options.notification.fromConnectionIid);
 		self.listenerUid = qoid.model.EM.addListener(qoid.model.EMEvent.RespondToIntroduction_RESPONSE,function(e) {
-			m3.util.JqueryUtil.alert("Your response has been received.","Introduction",function() {
-				self.destroy();
-				selfElement.remove();
-			});
+			self.destroy();
+			selfElement.remove();
 		});
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
@@ -8791,10 +8790,8 @@ var defineWidget = function() {
 		var selfElement1 = this.element;
 		var msg = new qoid.model.VerificationResponse(self1.options.notification.iid,"The claim is true");
 		qoid.model.EM.listenOnce(qoid.model.EMEvent.RespondToVerification_RESPONSE,function(e) {
-			m3.util.JqueryUtil.alert("Your response has been received.","Verification",function() {
-				self1.destroy();
-				selfElement1.remove();
-			});
+			self1.destroy();
+			selfElement1.remove();
 		});
 		qoid.model.EM.change(qoid.model.EMEvent.RespondToVerification,msg);
 	}, rejectVerification : function() {
@@ -8833,10 +8830,8 @@ var defineWidget = function() {
 		var selfElement1 = this.element;
 		var msg = new qoid.model.VerificationResponse(self1.options.notification.iid,"The claim is true");
 		qoid.model.EM.listenOnce(qoid.model.EMEvent.AcceptVerification_RESPONSE,function(e) {
-			m3.util.JqueryUtil.alert("Your response has been received.","Verification Accepted",function() {
-				self1.destroy();
-				selfElement1.remove();
-			});
+			self1.destroy();
+			selfElement1.remove();
 		});
 		qoid.model.EM.change(qoid.model.EMEvent.AcceptVerification,self1.options.notification.iid);
 	}, rejectVerification : function() {
@@ -9619,9 +9614,7 @@ var defineWidget = function() {
 		selfElement.addClass("verificationRequestDialog").hide();
 		var uberDiv = new $("<div style='text-align:left'></div>");
 		selfElement.append(uberDiv);
-		uberDiv.append("<h3>Message:</h3>");
-		uberDiv.append("<textarea id='vr_message' style='width:450px;'></textarea>");
-		uberDiv.append("<h3>Verifiers:</h3>");
+		uberDiv.append("<h3>Request Verification From:</h3>");
 		var connectionContainer = new $("<div class='container' style='width:450px;height:135px;'></div>");
 		uberDiv.append(connectionContainer);
 		var $it3 = qoid.AppContext.MASTER_CONNECTIONS.iterator();
@@ -9632,6 +9625,8 @@ var defineWidget = function() {
 			self._appendConnectionAvatar(conn,div);
 			connectionContainer.append(div);
 		}
+		uberDiv.append("<h3>Message:</h3>");
+		uberDiv.append("<textarea id='vr_message' style='width:450px;'></textarea>");
 	}, _appendConnectionAvatar : function(connection,parent) {
 		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connectionIid : connection.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(parent).css("display","inline");
 		parent.append("<div class='labelDiv' style='display:inline'>" + connection.data.name + "</div>");

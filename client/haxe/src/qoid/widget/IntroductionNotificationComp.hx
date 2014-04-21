@@ -56,10 +56,8 @@ extern class IntroductionNotificationComp extends JQ {
 		        	var conn: Connection = AppContext.MASTER_CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
 		        	self.listenerUid = EM.addListener(EMEvent.RespondToIntroduction_RESPONSE, function(e:Dynamic) {
-		        		JqueryUtil.alert("Your response has been received.", "Introduction", function() {
-		        			self.destroy();
-		        			selfElement.remove();
-		        		});
+	        			self.destroy();
+	        			selfElement.remove();
 		        	});
 
 		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
