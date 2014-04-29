@@ -268,7 +268,11 @@ class ContentVerification {
 
 @:rtti
 class ContentMetaData {
-	@:optional var verifications:Array<ContentVerification>;
+	@:optional var verifications: Array<ContentVerification>;
+
+	public function new() {
+		this.verifications = new Array<ContentVerification>();
+	}
 }
 
 class Content<T:(ContentData)> extends ModelObjWithIid {
@@ -291,6 +295,7 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 		this.data = {};
 		this.type = type;
 		this.props = Type.createInstance(type, []);
+		this.metaData = new ContentMetaData();
 	}
 
 	public function get_created():Date {

@@ -85,7 +85,7 @@ extern class FilterComp extends JQ {
 				                	
 				                	// TODO:  These data need to be orered by time:  oldest first
 				                	var set: OSet<Notification<Dynamic>> = new FilteredSet(AppContext.NOTIFICATIONS, function(n:Notification<Dynamic>):Bool {
-				                		return (n.fromConnectionIid == connection.iid);
+				                		return (connection != null && n.fromConnectionIid == connection.iid);
 				                	});
 				                	if (set.hasValues()) {
 				                		var iter = set.iterator();
