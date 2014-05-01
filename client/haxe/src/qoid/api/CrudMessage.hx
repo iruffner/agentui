@@ -146,13 +146,14 @@ class QueryMessage implements ChannelMessage{
 			this.q = q;
 			this.aliasIid  = null;
 			connectionIids = new Array<String>();
+			local      = true;
 		} else {
 			this.type           = fd.type;
 			this.q              = fd.filter.q;
 			this.aliasIid       = fd.aliasIid;
 			this.connectionIids = fd.connectionIids;
+			local               = fd.aliasIid != null;
 		}
-		local      = true;
 		historical = true;
 		standing   = true;
 	}
