@@ -93,7 +93,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		        getConnection: function():Connection {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
-		        	return AppContext.MASTER_CONNECTIONS.getElement(self.options.connectionIid);
+		        	return AppContext.CONNECTIONS.getElement(self.options.connectionIid);
 		        },
 		        
 		        getAlias: function():Alias {
@@ -121,29 +121,26 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            self._updateWidgets(new Profile());
 
 		        	if (self.options.connectionIid != null) {
-		        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.MASTER_CONNECTIONS,function(c:Connection):Bool{
+		        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.CONNECTIONS,function(c:Connection):Bool{
 		        			return c.iid == self.options.connectionIid;
 		        		});
 		        		self._onUpdateConnection = function(c:Connection, evt:EventType) {
 		        			if (evt.isAddOrUpdate()) {
 		        				self._updateWidgets(c.data);
-		        			}
-
-		        			if (evt.isDelete() || c.deleted) {
+		        			} else if (evt.isDelete()) {
 		        				self.destroy();
 		        				selfElement.remove();
 		        			}
 		        		}
 		        		self.filteredSetConnection.listen(self._onUpdateConnection);
 		        	} else if (self.options.aliasIid != null){
-		        		self.filteredSetAlias = new FilteredSet<Alias>(AppContext.MASTER_ALIASES,function(a:Alias):Bool{
+		        		self.filteredSetAlias = new FilteredSet<Alias>(AppContext.ALIASES,function(a:Alias):Bool{
 		        			return a.iid == self.options.aliasIid;
 		        		});
 		        		self._onUpdateAlias = function(a:Alias, evt:EventType) {
 		        			if (evt.isAddOrUpdate()) {
 		        				self._updateWidgets(a.profile);
-		        			}
-		        			if (evt.isDelete() || a.deleted) {
+		        			} else if (evt.isDelete()) {
 		        				self.destroy();
 		        				selfElement.remove();
 		        			}
@@ -210,7 +207,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 					      	drop: function(event: JQEvent, _ui: UIDroppable ) {
 					      		if (_ui.draggable.is(".labelComp")) {
 									var labelComp: LabelComp = cast(_ui.draggable, LabelComp);
-									var connection = AppContext.MASTER_CONNECTIONS.getElement(self.options.connectionIid);
+									var connection = AppContext.CONNECTIONS.getElement(self.options.connectionIid);
 									DialogManager.allowAccess(labelComp.labelComp("getLabel"), connection);
 					      		} else {
 						      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");

@@ -21,8 +21,7 @@ class AppContext {
     public static var ROOT_LABEL_ID:String;
 
     public static var LOGGER: Logga;
-    public static var MASTER_ALIASES:ObservableSet<Alias>;
-    public static var ALIASES:OSet<Alias>;
+    public static var ALIASES:ObservableSet<Alias>;
     public static var TARGET: Connection;
     public static var SERIALIZER: Serializer;
 
@@ -31,19 +30,18 @@ class AppContext {
 
     public static var INTRODUCTIONS: ObservableSet<Introduction>;
 
-    public static var MASTER_CONNECTIONS: ObservableSet<Connection>;
+    public static var CONNECTIONS: ObservableSet<Connection>;
     public static var GROUPED_CONNECTIONS: GroupedSet<Connection>;
 
-    public static var LABELS:FilteredSet<Label>;
-    public static var MASTER_LABELS:ObservableSet<Label>;
+    public static var LABELS:ObservableSet<Label>;
 
-    public static var MASTER_LABELACLS:ObservableSet<LabelAcl>;
+    public static var LABELACLS:ObservableSet<LabelAcl>;
     public static var GROUPED_LABELACLS: GroupedSet<LabelAcl>;
     
-    public static var MASTER_LABELCHILDREN:ObservableSet<LabelChild>;
+    public static var LABELCHILDREN:ObservableSet<LabelChild>;
     public static var GROUPED_LABELCHILDREN: GroupedSet<LabelChild>;
 
-    public static var MASTER_LABELEDCONTENT:ObservableSet<LabeledContent>;
+    public static var LABELEDCONTENT:ObservableSet<LabeledContent>;
     public static var GROUPED_LABELEDCONTENT: GroupedSet<LabeledContent>;
 
     public static var PROFILES:ObservableSet<Profile>;
@@ -57,11 +55,11 @@ class AppContext {
 
         MASTER_NOTIFICATIONS = new ObservableSet<Notification<Dynamic>>(ModelObjWithIid.identifier);
         NOTIFICATIONS = new FilteredSet<Notification<Dynamic>>(MASTER_NOTIFICATIONS, function(a:Notification<Dynamic>):Bool {
-            return !a.deleted && !a.consumed;
+            return !a.consumed;
         });
 
-        MASTER_ALIASES = new ObservableSet<Alias>(ModelObjWithIid.identifier);
-        MASTER_ALIASES.listen(function(a:Alias, evt:EventType):Void {
+        ALIASES = new ObservableSet<Alias>(ModelObjWithIid.identifier);
+        ALIASES.listen(function(a:Alias, evt:EventType):Void {
             if (evt.isAddOrUpdate()) {
                 var p = PROFILES.getElementComplex(a.iid, "aliasIid");
                 if (p != null) {
@@ -75,59 +73,40 @@ class AppContext {
             }
         });
 
-        ALIASES = new FilteredSet<Alias>(MASTER_ALIASES, function(a:Alias):Bool {
-            return !a.deleted;
-        });
+        LABELS = new ObservableSet<Label>(Label.identifier);
 
-        MASTER_LABELS = new ObservableSet<Label>(Label.identifier);
-        LABELS = new FilteredSet<Label>(MASTER_LABELS, function(c:Label):Bool {
-            return !c.deleted;
-        });
-
-        MASTER_CONNECTIONS = new ObservableSet<Connection>(Connection.identifier);
-        MASTER_CONNECTIONS.listen(function(c:Connection, evt:EventType): Void {
+        CONNECTIONS = new ObservableSet<Connection>(Connection.identifier);
+        CONNECTIONS.listen(function(c:Connection, evt:EventType): Void {
             if (evt.isAdd()) {
                 AgentUi.PROTOCOL.getProfiles([c.iid]);
             }
         });
-        GROUPED_CONNECTIONS = new GroupedSet<Connection>(MASTER_CONNECTIONS, function(c:Connection):String {
-            if (c.deleted) {
-                return "DELETED";
-            }
+        GROUPED_CONNECTIONS = new GroupedSet<Connection>(CONNECTIONS, function(c:Connection):String {
             return c.aliasIid;
         });
 
-        MASTER_LABELACLS = new ObservableSet<LabelAcl>(LabelAcl.identifier);
-        GROUPED_LABELACLS = new GroupedSet<LabelAcl>(MASTER_LABELACLS, function(l:LabelAcl):String {
-            if (l.deleted) {
-                return "DELETED";
-            }
+        LABELACLS = new ObservableSet<LabelAcl>(LabelAcl.identifier);
+        GROUPED_LABELACLS = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
             return l.connectionIid;
         });
 
-        MASTER_LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
-        GROUPED_LABELCHILDREN = new GroupedSet<LabelChild>(MASTER_LABELCHILDREN, function(lc:LabelChild):String {
-            if (lc.deleted) {
-                return "DELETED";
-            }
+        LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);
+        GROUPED_LABELCHILDREN = new GroupedSet<LabelChild>(LABELCHILDREN, function(lc:LabelChild):String {
             return lc.parentIid;
         });
 
-        MASTER_LABELEDCONTENT = new ObservableSet<LabeledContent>(LabeledContent.identifier);
-        GROUPED_LABELEDCONTENT = new GroupedSet<LabeledContent>(MASTER_LABELEDCONTENT, function(lc:LabeledContent):String {
-            if (lc.deleted) {
-                return "DELETED";
-            }
+        LABELEDCONTENT = new ObservableSet<LabeledContent>(LabeledContent.identifier);
+        GROUPED_LABELEDCONTENT = new GroupedSet<LabeledContent>(LABELEDCONTENT, function(lc:LabeledContent):String {
             return lc.contentIid;
         });
         
         PROFILES = new ObservableSet<Profile>(Profile.identifier);
         PROFILES.listen( function(p:Profile, evt:EventType): Void{
             if (evt.isAddOrUpdate()) {
-                var alias = MASTER_ALIASES.getElement(p.aliasIid);
+                var alias = ALIASES.getElement(p.aliasIid);
                 if (alias != null) {
                     alias.profile = p;
-                    MASTER_ALIASES.addOrUpdate(alias);
+                    ALIASES.addOrUpdate(alias);
                 }
             }
         });
@@ -149,7 +128,7 @@ class AppContext {
     }
 
     public static function getUberLabelIid() {
-        return MASTER_ALIASES.getElement(AppContext.UBER_ALIAS_ID).rootLabelIid;
+        return ALIASES.getElement(AppContext.UBER_ALIAS_ID).rootLabelIid;
     }
 
 	static function registerGlobalListeners() {
@@ -158,10 +137,10 @@ class AppContext {
         });
 
         EM.addListener(EMEvent.InitialDataLoadComplete, function(nada: {}) {
-            var uberAlias = MASTER_ALIASES.getElement(UBER_ALIAS_ID);
+            var uberAlias = ALIASES.getElement(UBER_ALIAS_ID);
             ROOT_LABEL_ID = uberAlias.rootLabelIid;
 
-            currentAlias = MASTER_ALIASES.getElement(UBER_ALIAS_ID);
+            currentAlias = ALIASES.getElement(UBER_ALIAS_ID);
             for (alias in ALIASES) {
                 if (alias.data.isDefault == true) {
                     currentAlias = alias;
@@ -184,8 +163,8 @@ class AppContext {
         var getDescendentIids:String->Array<String>->Void;
         getDescendentIids = function(iid:String, iidList:Array<String>):Void {
             iidList.insert(0, iid);
-            var children: Array<LabelChild> = new FilteredSet(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
-                return lc.parentIid == iid && !lc.deleted;
+            var children: Array<LabelChild> = new FilteredSet(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
+                return lc.parentIid == iid;
             }).asArray();
 
             for (i in 0...children.length) {
@@ -199,7 +178,7 @@ class AppContext {
             var label = LABELS.getElement(iid_);
             if (label == null) {
                 AppContext.LOGGER.error("LabelChild references missing label: " + iid_);
-            } else if (!label.deleted) {
+            } else {
                 labelDescendents.add(label);
             }
         }
@@ -208,7 +187,7 @@ class AppContext {
 
     public static function connectionFromMetaLabel(metaLabelIid:String):Connection {
         var ret:Connection = null;
-        for (connection in MASTER_CONNECTIONS) {
+        for (connection in CONNECTIONS) {
             if (connection.metaLabelIid == metaLabelIid) {
                 ret = connection;
                 break;

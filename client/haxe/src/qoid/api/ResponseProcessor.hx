@@ -46,7 +46,7 @@ class ResponseProcessor {
                         if (data.responseType == "query") {
                             Synchronizer.processResponse(data);
                         } else if (data.responseType == "squery") {
-                            updateModelObject(data.type, data.results);
+                            updateModelObject(data.type, data.action, data.results);
                         } else if (data.result && data.result.handle) {
                             AgentUi.PROTOCOL.addHandle(data.result.handle);
                         }
@@ -73,67 +73,59 @@ class ResponseProcessor {
 		});
 	}
 
-    private static function updateModelObject(type:String, data:Dynamic) {
+    private static function processModelObject<T>(set:ObservableSet<T>, type: Class<T>, action:String, data:Dynamic):Void {
+        for (datum in cast(data, Array<Dynamic>)) {
+            var obj = AppContext.SERIALIZER.fromJsonX(datum, type);
+            if (action == "delete") {
+                set.delete(obj);
+            } else {
+                set.addOrUpdate(obj);
+            }
+        }
+    }
+
+    private static function updateModelObject(type:String, action:String, data:Dynamic) {
         var type = type.toLowerCase();
         switch (type) {
             case "alias":
-                for (alias_ in cast(data, Array<Dynamic>)) {
-                    AppContext.MASTER_ALIASES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
-                }
+                processModelObject(AppContext.ALIASES, Alias, action, data);
             case "connection":
-                for (content_ in cast(data, Array<Dynamic>)) {
-                    AppContext.MASTER_CONNECTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(content_, Connection));
-                }
+                processModelObject(AppContext.CONNECTIONS, Connection, action, data);
             case "introduction":
-                for (content_ in cast(data, Array<Dynamic>)) {
-                    AppContext.INTRODUCTIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(content_, Introduction));
-                }
+                processModelObject(AppContext.INTRODUCTIONS, Introduction, action, data);
             case "label":
-                for (label_ in cast(data, Array<Dynamic>)) {
-                    AppContext.MASTER_LABELS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(label_, Label));
-                }
+                processModelObject(AppContext.LABELS, Label, action, data);
             case "labelacl":
-                for (label_ in cast(data, Array<Dynamic>)) {
-                    AppContext.MASTER_LABELACLS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(label_, LabelAcl));
-                }
+                processModelObject(AppContext.LABELACLS, LabelAcl, action, data);
             case "labelchild":
-                for (labelChild_ in cast(data, Array<Dynamic>)) {
-                    AppContext.MASTER_LABELCHILDREN.addOrUpdate(AppContext.SERIALIZER.fromJsonX(labelChild_, LabelChild));
-                }
+                processModelObject(AppContext.LABELCHILDREN, LabelChild, action, data);
             case "labeledcontent":
-                for (labeledContent_ in cast(data, Array<Dynamic>)) {
-                    AppContext.MASTER_LABELEDCONTENT.addOrUpdate(AppContext.SERIALIZER.fromJsonX(labeledContent_, LabeledContent));
-                }
+                processModelObject(AppContext.LABELEDCONTENT, LabeledContent, action, data);
             case "notification":
-                for (content_ in cast(data, Array<Dynamic>)) {
-                    AppContext.MASTER_NOTIFICATIONS.addOrUpdate(AppContext.SERIALIZER.fromJsonX(content_, Notification));
-                }
+                processModelObject(AppContext.MASTER_NOTIFICATIONS, Notification, action, data);
             case "profile":
-                for (profile_ in cast(data, Array<Dynamic>)) {
-                    AppContext.PROFILES.addOrUpdate(AppContext.SERIALIZER.fromJsonX(profile_, Profile));
-                }
+                processModelObject(AppContext.PROFILES, Profile, action, data);
             default:
                 AppContext.LOGGER.error("Unknown type: " + type);
         }
     }
 
 	public static function initialDataLoad(data:SynchronizationParms) {
-		AppContext.MASTER_ALIASES.addAll(data.aliases);
-		AppContext.MASTER_LABELS.addAll(data.labels);
-		AppContext.MASTER_LABELCHILDREN.addAll(data.labelChildren);
-        AppContext.MASTER_CONNECTIONS.addAll(data.connections);
+		AppContext.ALIASES.addAll(data.aliases);
+		AppContext.LABELS.addAll(data.labels);
+		AppContext.LABELCHILDREN.addAll(data.labelChildren);
         AppContext.INTRODUCTIONS.addAll(data.introductions);
         AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
-        AppContext.MASTER_LABELEDCONTENT.addAll(data.labeledContent);
-        AppContext.MASTER_LABELACLS.addAll(data.labelAcls);
+        AppContext.LABELEDCONTENT.addAll(data.labeledContent);
+        AppContext.LABELACLS.addAll(data.labelAcls);
         AppContext.PROFILES.addAll(data.profiles);
 
         // Update the aliases with their profile
-        for (alias_ in AppContext.MASTER_ALIASES) {
+        for (alias_ in AppContext.ALIASES) {
             for (profile_ in AppContext.PROFILES) {
                 if (profile_.aliasIid == alias_.iid) {
                     alias_.profile = profile_;
-                    AppContext.MASTER_ALIASES.update(alias_);
+                    AppContext.ALIASES.update(alias_);
                 }
             }
         }
@@ -145,9 +137,9 @@ class ResponseProcessor {
         if (rec.result && rec.result.handle) {
             AgentUi.PROTOCOL.addHandle(rec.result.handle);
         } else {
-            var connection = AppContext.MASTER_CONNECTIONS.getElement(rec.connectionIid);
+            var connection = AppContext.CONNECTIONS.getElement(rec.connectionIid);
             connection.data = AppContext.SERIALIZER.fromJsonX(rec.results[0], Profile);
-            AppContext.MASTER_CONNECTIONS.addOrUpdate(connection);
+            AppContext.CONNECTIONS.addOrUpdate(connection);
         }
     }
 

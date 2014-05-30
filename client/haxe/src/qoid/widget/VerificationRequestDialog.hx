@@ -54,7 +54,7 @@ extern class VerificationRequestDialog extends JQ {
 		        	var connectionContainer = new JQ("<div class='container' style='width:450px;height:135px;'></div>");
 		        	uberDiv.append(connectionContainer);
 
-		        	for (conn in AppContext.MASTER_CONNECTIONS) {
+		        	for (conn in AppContext.CONNECTIONS) {
 		        		var div = new JQ("<div></div>");
 		        		div.append("<input type='checkbox' class='conn_cb' id='cb_" + conn.iid + "'/>");
 						self._appendConnectionAvatar(conn, div);

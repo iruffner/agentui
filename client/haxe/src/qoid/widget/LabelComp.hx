@@ -91,7 +91,7 @@ extern class LabelComp extends FilterableComponent {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 		        	var ret = new Array<String>();
 		        	for (iid in self.options.labelPath) {
-		        		var label = AppContext.MASTER_LABELS.getElement(iid);
+		        		var label = AppContext.LABELS.getElement(iid);
 		        		ret.push(label.name);
 		        	}
 		        	return ret;
@@ -103,22 +103,17 @@ extern class LabelComp extends FilterableComponent {
 
 			        self._onupdate = function(label:Label, t:EventType): Void {
 						if (t.isAddOrUpdate()) {
-							if (label.deleted) {
-					        	self.destroy();
-					        	selfElement.remove();								
-							} else {
-								self.label = label;
-					        	selfElement.find(".labelBody").text(label.name);
-					       		selfElement.find(".labelTail").css("border-right-color", label.data.color);
-					            selfElement.find(".labelBox").css("background", label.data.color);
-					        }
+							self.label = label;
+				        	selfElement.find(".labelBody").text(label.name);
+				       		selfElement.find(".labelTail").css("border-right-color", label.data.color);
+				            selfElement.find(".labelBox").css("background", label.data.color);
 				        } else if (t.isDelete()) {
 				        	self.destroy();
 				        	selfElement.remove();
 				        }
 		        	};
 		        
-		        	self.filteredSet = new FilteredSet<Label>(AppContext.MASTER_LABELS, function(label:Label):Bool {
+		        	self.filteredSet = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
 		        		return label.iid == self.options.labelIid;
 		        	});
 					self.filteredSet.listen(self._onupdate);
@@ -131,11 +126,11 @@ extern class LabelComp extends FilterableComponent {
 		        		throw new Exception("Root of LabelComp must be a div element");
 		        	}
 
-		        	self.label = AppContext.MASTER_LABELS.getElement(self.options.labelIid);
+		        	self.label = AppContext.LABELS.getElement(self.options.labelIid);
 		        	if (self.label == null) {
 		        		self.label = new Label("-->*<--");
 		        		self.label.iid = self.options.labelIid;
-		        		AppContext.MASTER_LABELS.add(self.label);
+		        		AppContext.LABELS.add(self.label);
 		        	}
 
 		        	selfElement.addClass("label labelComp ").attr("id", self.label.name.htmlEscape() + "_" + UidGenerator.create(8));

@@ -53,7 +53,7 @@ extern class IntroductionNotificationComp extends JQ {
 		        	}
 		        	selfElement.addClass("introductionNotificationComp container boxsizingBorder");
 
-		        	var conn: Connection = AppContext.MASTER_CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
+		        	var conn: Connection = AppContext.CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
 		        	self.listenerUid = EM.addListener(EMEvent.RespondToIntroduction_RESPONSE, function(e:Dynamic) {
 	        			self.destroy();

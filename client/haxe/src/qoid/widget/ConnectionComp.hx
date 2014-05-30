@@ -72,11 +72,11 @@ extern class ConnectionComp extends JQ {
 		        		throw new Exception("Root of ConnectionComp must be a div element");
 		        	}
 
-	        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.MASTER_CONNECTIONS,function(c:Connection):Bool{
+	        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.CONNECTIONS,function(c:Connection):Bool{
 	        			return c.iid == self.options.connection.iid;
 	        		});
 	        		self._onUpdateConnection = function(c:Connection, evt:EventType) {
-	        			if (evt.isDelete() || c.deleted) {
+	        			if (evt.isDelete()) {
 	        				self.destroy();
 	        				selfElement.remove();
 	        			}

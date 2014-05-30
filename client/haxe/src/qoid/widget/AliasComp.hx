@@ -129,12 +129,7 @@ extern class AliasComp extends JQ {
 
 			       	self._onupdate = function(alias:Alias, t:EventType): Void {
 						if (t.isAddOrUpdate()) {
-							if (alias.deleted) {
-					        	self.destroy();
-					        	selfElement.remove();								
-							} else {
-								self._updateAliasWidgets(alias);
-					        }
+							self._updateAliasWidgets(alias);
 				        } else if (t.isDelete()) {
 				        	self.destroy();
 				        	selfElement.remove();
@@ -142,7 +137,7 @@ extern class AliasComp extends JQ {
 		        	};
 
 			       	self._onupdateProfile = function(p:Profile, t:EventType): Void {
-			       		var alias = AppContext.MASTER_ALIASES.getElement(p.aliasIid);
+			       		var alias = AppContext.ALIASES.getElement(p.aliasIid);
 						self._updateAliasWidgets(alias);
 			       	};
 		        },
@@ -217,7 +212,7 @@ extern class AliasComp extends JQ {
 	        			self.aliasSet.removeListener(self._onupdate);
 	        		}
 		        
-		        	self.aliasSet = new FilteredSet<Alias>(AppContext.MASTER_ALIASES, function(a:Alias):Bool {
+		        	self.aliasSet = new FilteredSet<Alias>(AppContext.ALIASES, function(a:Alias):Bool {
 		        		return a.iid == alias.iid;
 		        	});
 					self.aliasSet.listen(self._onupdate);

@@ -100,7 +100,6 @@ class ProtocolHandler {
 	}
 
 	public function deleteConnection(c:Connection): Void {
-		c.deleted = true;
 		var context = Synchronizer.createContext(1, "connectionDeleted");
 		new SubmitRequest(
 			[new ChannelRequestMessage(DELETE, context, DeleteMessage.create(c))]
@@ -120,7 +119,6 @@ class ProtocolHandler {
 		var context = Synchronizer.createContext(1, "accessRevoked");
 		var requests = new Array<ChannelRequestMessage>();
 		for (lacl in lacls) {
-			lacl.deleted = true;
 			requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lacl)));
 		}
 		new SubmitRequest(requests).start();
@@ -162,7 +160,6 @@ class ProtocolHandler {
 	}
 
 	public function deleteAlias(alias: Alias): Void {
-		alias.deleted = true;
 		var context = Synchronizer.createContext(1, "aliasDeleted");
 		new SubmitRequest(
 			[new ChannelRequestMessage(DELETE, context, DeleteMessage.create(alias))]
@@ -217,7 +214,6 @@ class ProtocolHandler {
 		requests.push(new ChannelRequestMessage(UPSERT, context, CrudMessage.create(data.content)));
 
 		for (lc in labelsToDelete) {
-			lc.deleted = true;
 			requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lc)));
 		}
 
@@ -231,11 +227,9 @@ class ProtocolHandler {
 	public function deleteContent(data:EditContentData):Void {
 		var context = Synchronizer.createContext(1 + data.labelIids.length, "contentDeleted");		
 		var requests = new Array<ChannelRequestMessage>();
-		data.content.deleted = true;
 		requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(data.content)));
 
 		for (lc in AppContext.GROUPED_LABELEDCONTENT.delegate().get(data.content.iid)) {
-			lc.deleted = true;
 			requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lc)));
 		}
 
@@ -258,7 +252,7 @@ class ProtocolHandler {
 	}
 
 	private function getExistingLabelChild(parentIid:String, childIid:String):LabelChild {
-		var lcs = new FilteredSet<LabelChild>(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
+		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == parentIid && lc.childIid == childIid);
 		});
 
@@ -266,7 +260,7 @@ class ProtocolHandler {
 	}
 
 	public function moveLabel(data:EditLabelData):Void {
-		var lcs = new FilteredSet<LabelChild>(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
+		var lcs = new FilteredSet<LabelChild>(AppContext.LABELCHILDREN, function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
 		});
 		var lcToRemove:LabelChild = getExistingLabelChild(data.parentIid, data.label.iid);
@@ -274,8 +268,6 @@ class ProtocolHandler {
 		var lcToAdd:LabelChild = getExistingLabelChild(data.newParentId, data.label.iid);
 		if (lcToAdd == null) {
 			lcToAdd = new LabelChild(data.newParentId, data.label.iid);
-		} else {
-			lcToAdd.deleted = false;
 		}
 
 		var context = Synchronizer.createContext(2, "labelMoved");
@@ -289,8 +281,6 @@ class ProtocolHandler {
 		var lcToAdd:LabelChild = getExistingLabelChild(data.newParentId, data.label.iid);
 		if (lcToAdd == null) {
 			lcToAdd = new LabelChild(data.newParentId, data.label.iid);
-		} else {
-			lcToAdd.deleted = false;
 		}
 		var context = Synchronizer.createContext(1, "labelCopied");
 		var req = new SubmitRequest([
@@ -300,19 +290,15 @@ class ProtocolHandler {
 
 	public function deleteLabel(data:EditLabelData):Void {
 		// Delete the label child that is associated with this label
-		var labelChildren:Array<LabelChild> = new FilteredSet<LabelChild>(AppContext.MASTER_LABELCHILDREN, function(lc:LabelChild):Bool {
+		var lc = AppContext.LABELCHILDREN.getElementComplex2(function(lc:LabelChild):Bool {
 			return (lc.parentIid == data.parentIid && lc.childIid == data.label.iid);
-		}).asArray();
+		});
 
-		var context = Synchronizer.createContext(labelChildren.length, "labelDeleted");
+		var context = Synchronizer.createContext(1, "labelDeleted");
 
-		var requests = new Array<ChannelRequestMessage>();
-
-		for (lc in labelChildren) {
-			lc.deleted = true;
-			requests.push(new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lc)));
-		}
-		new SubmitRequest(requests).start();
+		new SubmitRequest([
+			new ChannelRequestMessage(DELETE, context, DeleteMessage.create(lc))
+		]).start();
 	}
 
 	public function verificationRequest(vr:VerificationRequest) {

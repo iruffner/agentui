@@ -252,6 +252,6 @@ extern class LabelsList extends JQ {
 	}
 }
 
-// TODO:  Add a listener to MASTER_LABELS.  On the add event, check to see if the 
+// TODO:  Add a listener to LABELS.  On the add event, check to see if the 
 // label that was added is a child of the selected label.  If it is, expand that
 // labelTreeBranch...

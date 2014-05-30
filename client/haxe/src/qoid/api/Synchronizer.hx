@@ -9,7 +9,6 @@ using m3.helper.OSetHelper;
 class SynchronizationParms {
     public var aliases:Array<Alias>;
     public var content:Array<Content<Dynamic>>;
-    public var connections:Array<Connection>;
     public var introductions:Array<Introduction>;
     public var labels:Array<Label>;
     public var labelChildren:Array<LabelChild>;
@@ -21,7 +20,6 @@ class SynchronizationParms {
     public function new() {
         aliases = new Array<Alias>();
         content = new Array<Content<Dynamic>>();
-        connections = new Array<Connection>();
         introductions = new Array<Introduction>();
         labels  = new Array<Label>();
         labelAcls = new Array<LabelAcl>();
@@ -81,10 +79,6 @@ class Synchronizer {
     			for (alias_ in cast(data, Array<Dynamic>)) {
     				parms.aliases.push(AppContext.SERIALIZER.fromJsonX(alias_, Alias));
     			}
-            case "connection":
-                for (content_ in cast(data, Array<Dynamic>)) {
-                    parms.connections.push(AppContext.SERIALIZER.fromJsonX(content_, Connection));
-                }
             case "content":
                 for (content_ in cast(data, Array<Dynamic>)) {
                     parms.content.push(AppContext.SERIALIZER.fromJsonX(content_, Content));

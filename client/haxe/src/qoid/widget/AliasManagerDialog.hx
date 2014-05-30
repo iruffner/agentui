@@ -68,7 +68,7 @@ extern class AliasManagerDialog extends JQ {
 		        	self.rightDiv.append("<h2>Aliases</h2>");
 		        	var alii_div = new JQ("<div class='alii'><div>").appendTo(self.rightDiv);
 		        	
- 	  				self.aliasMap = new MappedSet<Alias, JQ>(AppContext.MASTER_ALIASES, function(a: Alias):JQ {
+ 	  				self.aliasMap = new MappedSet<Alias, JQ>(AppContext.ALIASES, function(a: Alias):JQ {
         				return new JQ("<div class='clickable alias_link' id='a_" + a.iid + "'></div>")
         					.appendTo(alii_div)
         					.click(function(evt: JQEvent) {
@@ -79,11 +79,7 @@ extern class AliasManagerDialog extends JQ {
 
  	  				self.aliasMap.mapListen( function(a:Alias, w:JQ, evt:EventType): Void{
  	  					if (evt.isAddOrUpdate()) {
- 	  						if (a.deleted) {
- 	  							self._onAliasDeleted(a, w);
- 	  						} else {
-	 	  						w.html(a.profile.name);
-	 	  					}
+ 	  						w.html(a.profile.name);
  	  					} else if (evt.isDelete()) {
 	  						self._onAliasDeleted(a, w);
  	  					}

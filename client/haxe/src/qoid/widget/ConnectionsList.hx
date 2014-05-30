@@ -120,11 +120,7 @@ extern class ConnectionsList extends JQ {
 	            		if(evt.isAdd()) {
 	            			spacer.before(connComp);
 	            		} else if (evt.isUpdate()) {
-	            			if (conn.deleted) {
-	            				connComp.remove();
-	            			} else {
-		            			connComp.update(conn);
-		            		}
+	            			connComp.update(conn);
 	            		} else if (evt.isDelete()) {
 	            			connComp.remove();
 	            		}
@@ -133,7 +129,7 @@ extern class ConnectionsList extends JQ {
 
 		        	var connections:OSet<Connection> = null;
 		        	if (selfElement.attr("id") == "connections-all") {
-		        		connections = AppContext.MASTER_CONNECTIONS;
+		        		connections = AppContext.CONNECTIONS;
 		        	} else {
 		        		var aliasIid = selfElement.attr("id").split("-")[1];
 		        		connections = AppContext.GROUPED_CONNECTIONS.delegate().get(aliasIid);

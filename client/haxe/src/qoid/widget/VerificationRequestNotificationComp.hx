@@ -54,7 +54,7 @@ extern class VerificationRequestNotificationComp extends JQ {
 		        	}
 		        	selfElement.addClass("verificationRequestNotificationComp container boxsizingBorder");
 
-		        	var conn: Connection = AppContext.MASTER_CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
+		        	var conn: Connection = AppContext.CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
 		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 

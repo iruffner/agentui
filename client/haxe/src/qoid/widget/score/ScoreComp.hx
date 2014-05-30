@@ -54,11 +54,11 @@ extern class ScoreComp extends JQ {
 				},
 
 				_getProfile:function(content:Content<Dynamic>):Profile {
-		            var alias = AppContext.MASTER_ALIASES.getElement(content.aliasIid);
+		            var alias = AppContext.ALIASES.getElement(content.aliasIid);
 		            if (alias != null) {
 		            	return alias.profile;
 		            }
-		            var connection = AppContext.MASTER_CONNECTIONS.getElement(content.connectionIid);
+		            var connection = AppContext.CONNECTIONS.getElement(content.connectionIid);
 		            if (connection != null) {
 		            	return connection.data;
 		            }

@@ -97,7 +97,7 @@ extern class RevokeAccessDialog extends JQ {
 							var cb = new JQ(ele);
 							if (cb.prop("checked") == true) {
 								var id = cb.attr("id").split("-")[1]; 
-								se.push(AppContext.MASTER_LABELACLS.getElement(id));
+								se.push(AppContext.LABELACLS.getElement(id));
 							}
 						}
 					);

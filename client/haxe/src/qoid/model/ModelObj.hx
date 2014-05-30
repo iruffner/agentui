@@ -30,14 +30,17 @@ class ModelObj {
 }
 
 class ModelObjWithIid extends ModelObj {
-	// Added here for all models
-	public var deleted:Bool;
 	public var iid: String;
+	public var created:Date;
+	public var modified:Date;
+	public var createdByAliasIid:String;
+	public var modifiedByAliasIid:String;
 
 	public function new() {
 		super();
 		this.iid = UidGenerator.create(32);
-		this.deleted = false;
+		this.created = Date.now();
+		this.modified = Date.now();
 	}
 
 	public static function identifier(t: ModelObjWithIid): String {
@@ -249,12 +252,7 @@ class LabeledContent extends ModelObjWithIid {
 
 @:rtti
 class ContentData {
-	public var created: Date;
-	public var modified: Date;
-
 	public function new() {
-		this.created  = Date.now();
-		this.modified = Date.now();		
 	}
 }
 
@@ -284,8 +282,6 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	private var data:Dynamic;
 	@:transient public var props: T;
 
-	@:transient @:isVar public var created(get, null): Date;
-	@:transient @:isVar public var modified(get, null): Date;
 	@:transient var type: Class<T>;
 
 	public function new (contentType:ContentType, type: Class<T>) {
@@ -296,14 +292,6 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 		this.type = type;
 		this.props = Type.createInstance(type, []);
 		this.metaData = new ContentMetaData();
-	}
-
-	public function get_created():Date {
-		return props.created;
-	}
-
-	public function get_modified():Date {
-		return props.modified;
 	}
 
 	// For testing only	
