@@ -462,6 +462,7 @@ class Introduction extends ModelObjWithIid {
 	public var bConnectionIid: String;
 	public var aState: IntroductionState;
 	public var bState: IntroductionState;
+	public var recordVersion:Int;
 }
 
 
