@@ -5210,8 +5210,8 @@ qoid.api.Synchronizer.prototype = {
 	,dataReceived: function(c,dataObj) {
 		var data = dataObj.results;
 		if(data == null) return;
-		var _g = dataObj.type;
-		switch(_g) {
+		var type = dataObj.type.toLowerCase();
+		switch(type) {
 		case "alias":
 			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
 			break;
@@ -5230,10 +5230,10 @@ qoid.api.Synchronizer.prototype = {
 		case "labelacl":
 			this.processDataReceived(this.parms.labelAcls,qoid.model.LabelAcl,data);
 			break;
-		case "labelChild":
+		case "labelchild":
 			this.processDataReceived(this.parms.labelChildren,qoid.model.LabelChild,data);
 			break;
-		case "labeledContent":
+		case "labeledcontent":
 			this.processDataReceived(this.parms.labeledContent,qoid.model.LabeledContent,data);
 			break;
 		case "notification":

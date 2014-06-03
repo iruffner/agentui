@@ -82,7 +82,9 @@ class Synchronizer {
         var data = dataObj.results;
         if (data == null) {return;}
 
-    	switch (dataObj.type) {
+        var type = dataObj.type.toLowerCase();
+
+    	switch (type) {
     		case "alias":
                 processDataReceived(parms.aliases, Alias, data);
             case "connection":
@@ -95,9 +97,9 @@ class Synchronizer {
                 processDataReceived(parms.labels, Label, data);
             case "labelacl":
                 processDataReceived(parms.labelAcls, LabelAcl, data);
-    		case "labelChild":
+    		case "labelchild":
                 processDataReceived(parms.labelChildren, LabelChild, data);
-            case "labeledContent":
+            case "labeledcontent":
                 processDataReceived(parms.labeledContent, LabeledContent, data);
             case "notification":
                 processDataReceived(parms.notifications, Notification, data);
