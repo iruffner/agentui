@@ -5242,6 +5242,8 @@ qoid.api.Synchronizer.prototype = {
 		case "profile":
 			this.processDataReceived(this.parms.profiles,qoid.model.Profile,data);
 			break;
+		default:
+			qoid.AppContext.LOGGER.error("Unknown data type: " + Std.string(dataObj.type));
 		}
 		this.numResponsesExpected -= 1;
 		if(this.numResponsesExpected == 0) {
