@@ -112,6 +112,7 @@ class ResponseProcessor {
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		AppContext.ALIASES.addAll(data.aliases);
+        AppContext.CONNECTIONS.addAll(data.connections);
 		AppContext.LABELS.addAll(data.labels);
 		AppContext.LABELCHILDREN.addAll(data.labelChildren);
         AppContext.INTRODUCTIONS.addAll(data.introductions);

@@ -152,6 +152,7 @@ class Connection extends ModelObjWithIid {
 	public var aliasIid:String;
 	public var localPeerId: String;
   	public var remotePeerId: String;
+	public var allowedDegreesOfVisibility:Int;
   	public var metaLabelIid: String;
 	@:optional public var data:Profile;
 
