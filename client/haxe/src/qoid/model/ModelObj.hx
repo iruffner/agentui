@@ -267,7 +267,7 @@ class ContentVerification {
 
 @:rtti
 class ContentMetaData {
-	@:optional var verifications: Array<ContentVerification>;
+	@:optional public var verifications: Array<ContentVerification>;
 
 	public function new() {
 		this.verifications = new Array<ContentVerification>();
@@ -493,13 +493,21 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
 
 
     	@:transient public function getContent():Content<Dynamic> {
-    		var fromJson:Dynamic = {
-    			iid: contentIid,
-    			deleted: false,
-    			contentType: Std.string(this.contentType),
-    			data:this.contentData
-    		};
-    		return AppContext.SERIALIZER.fromJsonX(fromJson, Content);
+    		try {
+	    		var fromJson:Dynamic = {
+	    			iid: contentIid,
+	    			contentType: Std.string(this.contentType),
+	    			data:this.contentData,
+	    			created:Date.now().toString(),
+					modified:Date.now().toString(),
+					createdByAliasIid:"Chewbaca",
+					modifiedByAliasIid:"PizzaTheHut"
+	    		};
+	    		return AppContext.SERIALIZER.fromJsonX(fromJson, Content);
+	    	} catch (e:Dynamic) {
+	    		AppContext.LOGGER.error(e);
+	    		throw e;
+	    	}
     	}
 	}
 

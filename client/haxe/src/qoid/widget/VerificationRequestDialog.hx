@@ -51,7 +51,7 @@ extern class VerificationRequestDialog extends JQ {
 		        	selfElement.append(uberDiv);
 
 		        	uberDiv.append("<h3>Request Verification From:</h3>");
-		        	var connectionContainer = new JQ("<div class='container' style='width:450px;height:135px;'></div>");
+		        	var connectionContainer = new JQ("<div class='container' style='width:450px;height:135px;overflow:auto;'></div>");
 		        	uberDiv.append(connectionContainer);
 
 		        	for (conn in AppContext.CONNECTIONS) {
