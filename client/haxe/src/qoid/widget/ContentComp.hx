@@ -90,11 +90,12 @@ extern class ContentComp extends JQ {
     						new JQ("<h3>This content was verified by:</h3>").appendTo(container);
     						for (vd in vdata) {
     							var vcontainer = new JQ("<div class='cc_row'></div>").appendTo(container);
+    							var vcell = new JQ("<div class='cc_cell'></div>").appendTo(vcontainer);
 			   	        		new ConnectionAvatar("<div class='cc_cell'></div>").connectionAvatar({
 			        				dndEnabled: false,
 			        				connectionIid: vd.profile.connectionIid
-			        			}).css("display", "inline").appendTo(vcontainer);
-			        			new JQ("<div class='cc_cell'>" + vd.message + "</div>").css("display", "inline").appendTo(vcontainer);
+			        			}).appendTo(vcell);
+			        			new JQ("<div class='cc_cell'>" + vd.message + "</div>").appendTo(vcontainer);
 			        		}
         				},
         				positionalElement: ref

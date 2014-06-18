@@ -8216,9 +8216,10 @@ var defineWidget = function() {
 			while(_g1 < vdata.length) {
 				var vd = vdata[_g1];
 				++_g1;
-				var vcontainer = new $("<div></div>").appendTo(container);
-				new $("<div></div>").connectionAvatar({ dndEnabled : false, connectionIid : vd.profile.connectionIid}).css("display","inline").appendTo(vcontainer);
-				new $("<div>" + vd.message + "</div>").css("display","inline").appendTo(vcontainer);
+				var vcontainer = new $("<div class='cc_row'></div>").appendTo(container);
+				var vcell = new $("<div class='cc_cell'></div>").appendTo(vcontainer);
+				new $("<div class='cc_cell'></div>").connectionAvatar({ dndEnabled : false, connectionIid : vd.profile.connectionIid}).appendTo(vcell);
+				new $("<div class='cc_cell'>" + vd.message + "</div>").appendTo(vcontainer);
 			}
 		}, positionalElement : ref});
 	}, _createWidgets : function(selfElement1,self1) {
