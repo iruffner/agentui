@@ -25,11 +25,17 @@ typedef ContentCompWidgetDef = {
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
 	var _createContentMenu: Void->M3Menu;
+	var _showVerifications:JQ->Void;
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
 	var toggleActive:Void->Void;
 	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
 	@:optional var onchangeLabelChildren:JQ->EventType->Void;
+}
+
+typedef VerifierData = {
+	var profile:Profile;
+	var message:String;
 }
 
 class ContentCompHelper {
@@ -54,6 +60,47 @@ extern class ContentComp extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->ContentCompWidgetDef = function(): ContentCompWidgetDef {
 			return {
+				_showVerifications: function(ref:JQ) {
+		        	var self: ContentCompWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+					// Get the data required to display the information
+        			var vdata = new Array<VerifierData>();
+					var vs = self.options.content.metaData.verifications;
+					for (v in vs) {
+						var p = AppContext.PROFILES.getElementComplex(v.verifierId, "sharedId");
+						var msg = "I never approved this message.";
+						for (not in AppContext.MASTER_NOTIFICATIONS) {
+							if (not.kind == NotificationKind.VerificationResponse) {
+								var vrn:VerificationResponseNotification = cast(not);
+								if (vrn.props.verificationContentIid == v.verificationIid) {
+									msg = not.props.verificationContentData.text;
+								}
+							}
+						}
+						vdata.push({profile:p, message:msg});
+					}
+
+					// Create a popup to show the verification information
+        			var popup: Popup = new Popup("<div style='position: absolute;width:300px;'></div>");
+        			popup.appendTo(selfElement);
+        			popup = popup.popup({
+        				createFcn: function(el: JQ): Void {
+    						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
+    						new JQ("<h3>This content was verified by:</h3>").appendTo(container);
+    						for (vd in vdata) {
+    							var vcontainer = new JQ("<div></div>").appendTo(container);
+			   	        		new ConnectionAvatar("<div></div>").connectionAvatar({
+			        				dndEnabled: false,
+			        				connectionIid: vd.profile.connectionIid
+			        			}).css("display", "inline").appendTo(vcontainer);
+			        			new JQ("<div>" + vd.message + "</div>").css("display", "inline").appendTo(vcontainer);
+			        		}
+        				},
+        				positionalElement: ref
+        			});
+				},
+
 				_createWidgets: function(selfElement: JQ, self:ContentCompWidgetDef): Void {
 
 					selfElement.empty();
@@ -67,11 +114,20 @@ extern class ContentComp extends JQ {
 		        	var postContent: JQ = new JQ("<div class='postContent'></div>");
 		        	postContentWr.append(postContent);
 
-		        	var contentInfo = content.created.toString();
+		        	var contentInfo = new JQ("<div class='content-timestamp'></div>");
+		        	postContent.append(contentInfo);
+
+		        	contentInfo.append(content.created.toString() + "&nbsp;&nbsp;&nbsp;");
 		        	if (content.metaData.verifications.length > 0) {
-		        		contentInfo += "&nbsp;&nbsp;&nbsp;<img class='verified' title='V for Verified' src='media/verified-small.png'>";
-		        	} 
-		        	postContent.append("<div class='content-timestamp'>" +  contentInfo + "</div>");
+		        		var verified = new JQ("<img class='verified vimage' title='V for Verified' src='media/check.png'/>");
+		        		verified.click(function(evt:m3.jq.JQEvent){
+		        			self._showVerifications(verified);
+							evt.preventDefault();
+		        			evt.stopPropagation();
+		        			return false;
+		        		});
+		        		contentInfo.append(verified);
+		        	}
 		        	switch(content.contentType) {
 		        		case ContentType.AUDIO:
 			        		var audio: AudioContent = cast(content, AudioContent);

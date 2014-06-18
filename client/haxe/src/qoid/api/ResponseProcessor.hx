@@ -139,8 +139,11 @@ class ResponseProcessor {
             AgentUi.PROTOCOL.addHandle(rec.result.handle);
         } else {
             var connection = AppContext.CONNECTIONS.getElement(rec.connectionIid);
-            connection.data = AppContext.SERIALIZER.fromJsonX(rec.results[0], Profile);
+            var profile = AppContext.SERIALIZER.fromJsonX(rec.results[0], Profile);
+            profile.connectionIid = rec.connectionIid;
+            connection.data = profile;
             AppContext.CONNECTIONS.addOrUpdate(connection);
+            AppContext.PROFILES.addOrUpdate(profile);
         }
     }
 

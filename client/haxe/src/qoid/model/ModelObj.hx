@@ -53,6 +53,7 @@ class Profile extends ModelObjWithIid {
 	public var aliasIid:String;
 	public var name: String;
 	@:optional public var imgSrc: String;
+	@:transient public var connectionIid:String;
 
 	public function new(?name:String, ?imgSrc:String, ?aliasIid:String) {
 		super();
