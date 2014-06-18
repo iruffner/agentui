@@ -1264,3 +1264,13 @@ body {
 	position:relative;
 	top:-14px;
 }
+
+.cc_row {
+	display: table-row;
+}
+
+.cc_cell {
+	width: 50%
+	font-size: 12px;
+	display: table-cell;
+}
