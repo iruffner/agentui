@@ -86,8 +86,8 @@ extern class ContentComp extends JQ {
         			popup.appendTo(selfElement);
         			popup = popup.popup({
         				createFcn: function(el: JQ): Void {
-    						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
-    						new JQ("<h3>This content was verified by:</h3>").appendTo(container);
+    						new JQ("<div class='ccv_header'>This content was verified by:</div>").appendTo(el);
+    						var container: JQ = new JQ("<div class='icontainer cc_table'></div>").appendTo(el);
     						for (vd in vdata) {
     							var vcontainer = new JQ("<div class='cc_row'></div>").appendTo(container);
     							var vcell = new JQ("<div class='cc_cell'></div>").appendTo(vcontainer);
@@ -95,6 +95,7 @@ extern class ContentComp extends JQ {
 			        				dndEnabled: false,
 			        				connectionIid: vd.profile.connectionIid
 			        			}).appendTo(vcell);
+			        			new JQ("<div>" + vd.profile.name + "</div>").appendTo(vcell);
 			        			new JQ("<div class='cc_cell'>" + vd.message + "</div>").appendTo(vcontainer);
 			        		}
         				},

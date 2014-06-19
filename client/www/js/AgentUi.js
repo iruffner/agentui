@@ -8210,8 +8210,8 @@ var defineWidget = function() {
 		var popup = new $("<div style='position: absolute;width:300px;'></div>");
 		popup.appendTo(selfElement);
 		popup = popup.popup({ createFcn : function(el) {
-			var container = new $("<div class='icontainer'></div>").appendTo(el);
-			new $("<h3>This content was verified by:</h3>").appendTo(container);
+			new $("<div class='ccv_header'>This content was verified by:</div>").appendTo(el);
+			var container = new $("<div class='icontainer cc_table'></div>").appendTo(el);
 			var _g1 = 0;
 			while(_g1 < vdata.length) {
 				var vd = vdata[_g1];
@@ -8219,6 +8219,7 @@ var defineWidget = function() {
 				var vcontainer = new $("<div class='cc_row'></div>").appendTo(container);
 				var vcell = new $("<div class='cc_cell'></div>").appendTo(vcontainer);
 				new $("<div class='cc_cell'></div>").connectionAvatar({ dndEnabled : false, connectionIid : vd.profile.connectionIid}).appendTo(vcell);
+				new $("<div>" + vd.profile.name + "</div>").appendTo(vcell);
 				new $("<div class='cc_cell'>" + vd.message + "</div>").appendTo(vcontainer);
 			}
 		}, positionalElement : ref});

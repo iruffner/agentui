@@ -1265,12 +1265,24 @@ body {
 	top:-14px;
 }
 
+.cc_table {
+	display: table;
+	  width: 100% 	;
+}
 .cc_row {
 	display: table-row;
 }
-
 .cc_cell {
-	width: 50%
+	width: 50%;
 	font-size: 12px;
 	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	padding: 3px 0;
+}
+
+.ccv_header {
+	text-align: left;
+	padding-bottom: 3px;
+	padding-left: 3px;
 }
