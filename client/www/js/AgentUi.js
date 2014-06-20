@@ -9456,7 +9456,12 @@ var defineWidget = function() {
 		uberDiv.append("<h3>Request Verification From:</h3>");
 		var connectionContainer = new $("<div class='container' style='width:450px;height:135px;overflow:auto;'></div>");
 		uberDiv.append(connectionContainer);
-		var $it4 = qoid.AppContext.CONNECTIONS.iterator();
+		var $it4 = ((function($this) {
+			var $r;
+			var this1 = qoid.AppContext.GROUPED_CONNECTIONS.delegate();
+			$r = this1.get(qoid.AppContext.currentAlias.iid);
+			return $r;
+		}(this))).iterator();
 		while( $it4.hasNext() ) {
 			var conn = $it4.next();
 			var div = new $("<div></div>");
