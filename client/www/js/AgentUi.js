@@ -4414,6 +4414,9 @@ qoid.AppContext.registerGlobalListeners = function() {
 		}
 		qoid.model.EM.change(qoid.model.EMEvent.AliasLoaded,qoid.AppContext.currentAlias);
 	},"AppContext-InitialDataLoadComplete");
+	qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,function(a) {
+		window.document.title = a.profile.name + " << Qoid-Bennu";
+	});
 	qoid.model.EM.addListener(qoid.model.EMEvent.FitWindow,function(n) {
 		fitWindow();
 	},"AppContext-FitWindow");

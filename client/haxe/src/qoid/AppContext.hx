@@ -151,6 +151,10 @@ class AppContext {
             }, "AppContext-InitialDataLoadComplete"
         );
 
+        EM.addListener(EMEvent.AliasLoaded, function(a:Alias){
+            js.Browser.document.title = a.profile.name + " << Qoid-Bennu"; 
+        });
+
         EM.addListener(EMEvent.FitWindow, function(n: {}) {
                 untyped __js__("fitWindow()");
             }, "AppContext-FitWindow"
