@@ -51,7 +51,7 @@ extern class IntroductionNotificationComp extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of IntroductionNotificationComp must be a div element");
 		        	}
-		        	selfElement.addClass("introductionNotificationComp container boxsizingBorder");
+		        	selfElement.addClass("introductionNotificationComp notification-ui container boxsizingBorder");
 
 		        	var conn: Connection = AppContext.CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
@@ -76,8 +76,8 @@ extern class IntroductionNotificationComp extends JQ {
 
 		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		        	var title = new JQ("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
-		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		        	var date  =	new JQ("<div class='content-timestamp'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
+		        	var from  =	new JQ("<div><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		        	var date  =	new JQ("<div><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
 					var accept = new JQ("<button>Accept</button>")
 							        .appendTo(invitationText)

@@ -104,9 +104,18 @@ body {
 	/*min-width: 610px;*/
 }
 
-/* Introduction Response */
-
-.introductionNotificationComp {
+.content-div {
+	margin-bottom:7px;
+}
+.notification-line {
+	margin: 2px 0 2px 0;
+}
+#responseText {
+	width: 80%;
+border-radius: 5px;
+padding: 2px;
+}
+.notification-ui {
 	   min-height: 150px;
 	        width: 100%;
 	   margin-top: 7px;
@@ -121,21 +130,18 @@ body {
 	 width: 100%;
 }
 
-.introductionNotificationComp .invitationText {
-	     float:right;
+.invitationText {
 	text-align:left;
 }
 
-.introductionNotificationComp .intro-title {
+.intro-title {
 	    font-size: 1.2em;
 	  font-weight: bold;
 	margin-bottom: 5px;
 }
 
 .invitation-message {
-		/*width: 400px;*/
-	font-size: .7em;
-	  padding: 15px;
+	padding: 15px;
 }
 
 .introduction-avatar {

@@ -52,7 +52,7 @@ extern class VerificationResponseNotificationComp extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of VerificationResponseNotificationComp must be a div element");
 		        	}
-		        	selfElement.addClass("verificationResponseNotificationComp container boxsizingBorder");
+		        	selfElement.addClass("verificationResponseNotificationComp notification-ui container boxsizingBorder");
 
 		        	var conn: Connection = AppContext.CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
@@ -67,9 +67,9 @@ extern class VerificationResponseNotificationComp extends JQ {
 
 		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		        	var title = new JQ("<div class='intro-title'>Verification Response</div>").appendTo(invitationText);
-		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		        	var date  =	new JQ("<div class='content-timestamp'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
-		        	var message = new JQ("<div class='invitation-message'>" + self.options.notification.props.verificationContentData + "</div>").appendTo(invitationText);
+		        	var from  =	new JQ("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		        	var date  =	new JQ("<div class='notification-line'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
+		        	var message = new JQ("<div class='notification-line'><b>Comments:</b> " + self.options.notification.props.verificationContentData.text + "</div>").appendTo(invitationText);
 					
 					var accept = new JQ("<button>Accept</button>")
 							        .appendTo(invitationText)
@@ -90,7 +90,6 @@ extern class VerificationResponseNotificationComp extends JQ {
 		        	var self: VerificationResponseNotificationCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	var msg = new VerificationResponse(self.options.notification.iid,"The claim is true");
 		        	EM.listenOnce(EMEvent.AcceptVerification_RESPONSE, function(e:Dynamic) {
 	        			self.destroy();
 	        			selfElement.remove();

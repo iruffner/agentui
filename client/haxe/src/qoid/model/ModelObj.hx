@@ -514,7 +514,7 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
 
 class VerificationResponseNotification extends Notification<VerificationResponseData> {
 	public function new () {
-		super(NotificationKind.VerificationRequest, VerificationResponseData);
+		super(NotificationKind.VerificationResponse, VerificationResponseData);
 	}
 }
 

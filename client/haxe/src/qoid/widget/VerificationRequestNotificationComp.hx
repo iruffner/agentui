@@ -20,6 +20,8 @@ import qoid.widget.LabelComp;
 
 using qoid.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
+using StringTools;
+using m3.helper.StringHelper;
 
 typedef VerificationRequestNotificationCompOptions = {
 	var notification: VerificationRequestNotification;
@@ -52,7 +54,7 @@ extern class VerificationRequestNotificationComp extends JQ {
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of VerificationRequestNotificationComp must be a div element");
 		        	}
-		        	selfElement.addClass("verificationRequestNotificationComp container boxsizingBorder");
+		        	selfElement.addClass("verificationRequestNotificationComp notification-ui container boxsizingBorder");
 
 		        	var conn: Connection = AppContext.CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
@@ -67,12 +69,13 @@ extern class VerificationRequestNotificationComp extends JQ {
 
 		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		        	var title = new JQ("<div class='intro-title'>Verification Request</div>").appendTo(invitationText);
-		        	var from  =	new JQ("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		        	var date  =	new JQ("<div class='content-timestamp'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
-		        	var message = new JQ("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
+		        	var from  =	new JQ("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		        	var date  =	new JQ("<div class='notification-line'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
+		        	var message = new JQ("<div class='notification-line'><b>Message:</b> " + self.options.notification.props.message + "</div>").appendTo(invitationText);
+		        	new JQ("<div class='notification-line' style='margin-top:7px;'><b>Content:</b></div>").appendTo(invitationText);
 		        	var content = self.options.notification.props.getContent();
 
-		        	var contentDiv = new JQ("<div class='container'></div>").appendTo(invitationText);
+		        	var contentDiv = new JQ("<div class='container content-div'></div>").appendTo(invitationText);
 		        	switch(content.contentType) {
 		        		case ContentType.AUDIO:
 			        		var audio: AudioContent = cast(content, AudioContent);
@@ -93,6 +96,8 @@ extern class VerificationRequestNotificationComp extends JQ {
 	        				var textContent: MessageContent = cast(content, MessageContent);
 	        				contentDiv.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>"); 
 		        	}
+
+		        	new JQ("<div class='notification-line'><b>Comments:</b> <input type='text' id='responseText'/></div>").appendTo(invitationText);
 					
 					var accept = new JQ("<button>Accept</button>")
 							        .appendTo(invitationText)
@@ -113,7 +118,9 @@ extern class VerificationRequestNotificationComp extends JQ {
 		        	var self: VerificationRequestNotificationCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	var msg = new VerificationResponse(self.options.notification.iid,"The claim is true");
+					var text:String = new JQ("#responseText").val();
+					if (text.isBlank()) {text = "The claim is true";}
+		        	var msg = new VerificationResponse(self.options.notification.iid, text);
 		        	EM.listenOnce(EMEvent.RespondToVerification_RESPONSE, function(e:Dynamic) {
 	        			self.destroy();
 	        			selfElement.remove();

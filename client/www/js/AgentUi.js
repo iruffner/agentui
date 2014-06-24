@@ -6038,7 +6038,7 @@ qoid.model.VerificationRequestData.prototype = {
 	,__class__: qoid.model.VerificationRequestData
 };
 qoid.model.VerificationResponseNotification = function() {
-	qoid.model.Notification.call(this,qoid.model.NotificationKind.VerificationRequest,qoid.model.VerificationResponseData);
+	qoid.model.Notification.call(this,qoid.model.NotificationKind.VerificationResponse,qoid.model.VerificationResponseData);
 };
 $hxClasses["qoid.model.VerificationResponseNotification"] = qoid.model.VerificationResponseNotification;
 qoid.model.VerificationResponseNotification.__name__ = ["qoid","model","VerificationResponseNotification"];
@@ -6775,6 +6775,7 @@ Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
 var q = window.jQuery;
 js.JQuery = q;
+if(!Array.indexOf){Array.prototype.indexOf = function(obj){for(var i=0; i<this.length; i++){if(this[i]==obj){return i;}}return -1;}}
 $.fn.exists = function() {
 	return $(this).length > 0;
 };
@@ -8539,7 +8540,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
-		selfElement.addClass("introductionNotificationComp container boxsizingBorder");
+		selfElement.addClass("introductionNotificationComp notification-ui container boxsizingBorder");
 		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
 		self.listenerUid = qoid.model.EM.addListener(qoid.model.EMEvent.RespondToIntroduction_RESPONSE,function(e) {
 			self.destroy();
@@ -8553,8 +8554,8 @@ var defineWidget = function() {
 		};
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
-		var from = new $("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		var date = new $("<div class='content-timestamp'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
+		var from = new $("<div><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		var date = new $("<div><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
 		var message = new $("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
 		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
 			invitationConfirmation(true);
@@ -8575,17 +8576,18 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of VerificationRequestNotificationComp must be a div element");
-		selfElement.addClass("verificationRequestNotificationComp container boxsizingBorder");
+		selfElement.addClass("verificationRequestNotificationComp notification-ui container boxsizingBorder");
 		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Verification Request</div>").appendTo(invitationText);
-		var from = new $("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		var date = new $("<div class='content-timestamp'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var message = new $("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
+		var from = new $("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		var date = new $("<div class='notification-line'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
+		var message = new $("<div class='notification-line'><b>Message:</b> " + self.options.notification.props.message + "</div>").appendTo(invitationText);
+		new $("<div class='notification-line' style='margin-top:7px;'><b>Content:</b></div>").appendTo(invitationText);
 		var content = self.options.notification.props.getContent();
-		var contentDiv = new $("<div class='container'></div>").appendTo(invitationText);
+		var contentDiv = new $("<div class='container content-div'></div>").appendTo(invitationText);
 		var _g = content.contentType;
 		switch(_g[1]) {
 		case 0:
@@ -8612,6 +8614,7 @@ var defineWidget = function() {
 			contentDiv.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
 			break;
 		}
+		new $("<div class='notification-line'><b>Comments:</b> <input type='text' id='responseText'/></div>").appendTo(invitationText);
 		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
 			self.acceptVerification();
 		});
@@ -8621,7 +8624,9 @@ var defineWidget = function() {
 	}, acceptVerification : function() {
 		var self1 = this;
 		var selfElement1 = this.element;
-		var msg = new qoid.model.VerificationResponse(self1.options.notification.iid,"The claim is true");
+		var text = new $("#responseText").val();
+		if(m3.helper.StringHelper.isBlank(text)) text = "The claim is true";
+		var msg = new qoid.model.VerificationResponse(self1.options.notification.iid,text);
 		qoid.model.EM.listenOnce(qoid.model.EMEvent.RespondToVerification_RESPONSE,function(e) {
 			self1.destroy();
 			selfElement1.remove();
@@ -8646,15 +8651,15 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of VerificationResponseNotificationComp must be a div element");
-		selfElement.addClass("verificationResponseNotificationComp container boxsizingBorder");
+		selfElement.addClass("verificationResponseNotificationComp notification-ui container boxsizingBorder");
 		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Verification Response</div>").appendTo(invitationText);
-		var from = new $("<div class='content-timestamp'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		var date = new $("<div class='content-timestamp'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var message = new $("<div class='invitation-message'>" + Std.string(self.options.notification.props.verificationContentData) + "</div>").appendTo(invitationText);
+		var from = new $("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		var date = new $("<div class='notification-line'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
+		var message = new $("<div class='notification-line'><b>Comments:</b> " + Std.string(self.options.notification.props.verificationContentData.text) + "</div>").appendTo(invitationText);
 		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
 			self.acceptVerification();
 		});
@@ -8664,7 +8669,6 @@ var defineWidget = function() {
 	}, acceptVerification : function() {
 		var self1 = this;
 		var selfElement1 = this.element;
-		var msg = new qoid.model.VerificationResponse(self1.options.notification.iid,"The claim is true");
 		qoid.model.EM.listenOnce(qoid.model.EMEvent.AcceptVerification_RESPONSE,function(e) {
 			self1.destroy();
 			selfElement1.remove();
