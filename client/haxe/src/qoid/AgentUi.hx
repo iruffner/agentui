@@ -9,7 +9,6 @@ import m3.serialization.Serialization;
 
 import qoid.api.ProtocolHandler;
 import qoid.widget.*;
-import qoid.widget.ConnectionsTabs;
 import qoid.widget.score.ScoreComp;
 
 using m3.helper.ArrayHelper;
@@ -63,7 +62,7 @@ class AgentUi {
         });
         new MessagingComp("#sideRight #chat").messagingComp();
 
-        new ConnectionsTabs("#connectionsTabsDiv").connectionsTabs();
+        new ConnectionsList("#connections").connectionsList();
 
         new LabelsList("#labelsList").labelsList();
 

@@ -4317,7 +4317,7 @@ qoid.AgentUi.start = function() {
 		ui.newPanel.height(max_height);
 	}});
 	new $("#sideRight #chat").messagingComp();
-	new $("#connectionsTabsDiv").connectionsTabs();
+	new $("#connections").connectionsList();
 	new $("#labelsList").labelsList();
 	new $("#filter").filterComp();
 	new $("#feed").contentFeed();
@@ -7885,8 +7885,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsList must be a div element");
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionsList");
-		self.id = selfElement.attr("id");
-		var spacer = new $("<div id=\"" + self.id + "-spacer\" class=\"sideRightSpacer spacer clear\"></div>").appendTo(selfElement);
+		var spacer = new $("<div id=\"connectionsList-spacer\" class=\"sideRightSpacer spacer clear\"></div>").appendTo(selfElement);
 		var menu = new $("<ul id='label-action-menu'></ul>");
 		menu.appendTo(selfElement);
 		menu.m3menu({ classes : "container shadow", menuOptions : [{ label : "Revoke Access...", icon : "ui-icon-circle-plus", action : function(evt,m) {
@@ -7913,14 +7912,13 @@ var defineWidget = function() {
 			if(evt3.isAdd()) spacer.before(connComp); else if(evt3.isUpdate()) qoid.widget.ConnectionCompHelper.update(connComp,conn); else if(evt3.isDelete()) connComp.remove();
 			qoid.model.EM.change(qoid.model.EMEvent.FitWindow);
 		};
-		var connections = null;
-		if(selfElement.attr("id") == "connections-all") connections = qoid.AppContext.CONNECTIONS; else {
-			var aliasIid = selfElement.attr("id").split("-")[1];
+		qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,function(a) {
+			var connections;
 			var this1 = qoid.AppContext.GROUPED_CONNECTIONS.delegate();
-			connections = this1.get(aliasIid);
-			if(connections == null) connections = qoid.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(aliasIid);
-		}
-		self._setConnections(connections);
+			connections = this1.get(a.iid);
+			if(connections == null) connections = qoid.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(a.iid);
+			self._setConnections(connections);
+		});
 	}, _setConnections : function(connections1) {
 		var self1 = this;
 		var selfElement1 = this.element;
@@ -7943,43 +7941,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.connectionsList",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionsTabs must be a div element");
-		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connectionTabs");
-		new $("#connectionsTabs").tabs();
-		self._listener = function(a,evt) {
-			if(evt.isAdd()) self._addTab(a.iid,a.profile.name); else if(evt.isDelete()) {
-				new $("#tab-" + a.iid).remove();
-				new $("#connections-" + a.iid).remove();
-			}
-		};
-		self.aliases = new m3.observable.SortedSet(qoid.AppContext.ALIASES,function(a1) {
-			return a1.profile.name.toLowerCase();
-		});
-		qoid.model.EM.addListener(qoid.model.EMEvent.InitialDataLoadComplete,function(n) {
-			self._addTab("all","All");
-			new $("#tab-all").click();
-			self.aliases.listen(self._listener);
-		});
-		qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,function(alias) {
-			new $("#tab-" + alias.iid).click();
-		});
-	}, _addTab : function(iid,name) {
-		var self1 = this;
-		var tabs = new $("#connectionsTabs");
-		var ul = new $("#connectionsTabsHeader");
-		var tab = new $("<li><a id='tab-" + iid + "' href='#connections-" + iid + "'>" + name + "</a></li>").appendTo(ul);
-		var connectionDiv = new $("<div id='connections-" + iid + "'></div>").appendTo(tabs);
-		var cl = new $("#connections-" + iid).connectionsList();
-		tabs.tabs("refresh");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.connectionsTabs",defineWidget());
 var defineWidget = function() {
 	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
 		var self = this;

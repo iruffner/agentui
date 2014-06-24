@@ -16,14 +16,12 @@ using qoid.widget.ConnectionComp;
 using Lambda;
 
 typedef ConnectionsListOptions = {
-	@:optional var itemsClass: String;
 }
 
 typedef ConnectionsListWidgetDef = {
 	@:optional var options: ConnectionsListOptions;
 	@:optional var connectionsMap: MappedSet<Connection, ConnectionComp>;
 	@:optional var selectedConnectionComp:ConnectionComp;
-	@:optional var id:String;
 	var _create: Void->Void;
 	var _setConnections: OSet<Connection>->Void;
 	var destroy: Void->Void;
@@ -54,8 +52,7 @@ extern class ConnectionsList extends JQ {
 		        		throw new Exception("Root of ConnectionsList must be a div element");
 		        	}
 		        	selfElement.addClass(Widgets.getWidgetClasses() + " connectionsList");
-		        	self.id = selfElement.attr("id");
-		        	var spacer = new JQ('<div id="' + self.id + '-spacer" class="sideRightSpacer spacer clear"></div>')
+		        	var spacer = new JQ('<div id="connectionsList-spacer" class="sideRightSpacer spacer clear"></div>')
 		        		.appendTo(selfElement);
 
 		        	var menu: M3Menu = new M3Menu("<ul id='label-action-menu'></ul>");
@@ -127,17 +124,13 @@ extern class ConnectionsList extends JQ {
 						EM.change(EMEvent.FitWindow);
 	            	};
 
-		        	var connections:OSet<Connection> = null;
-		        	if (selfElement.attr("id") == "connections-all") {
-		        		connections = AppContext.CONNECTIONS;
-		        	} else {
-		        		var aliasIid = selfElement.attr("id").split("-")[1];
-		        		connections = AppContext.GROUPED_CONNECTIONS.delegate().get(aliasIid);
+	            	EM.addListener(EMEvent.AliasLoaded,function(a:Alias){
+			        	var connections = AppContext.GROUPED_CONNECTIONS.delegate().get(a.iid);
 	        			if (connections == null) {
-	        				connections = AppContext.GROUPED_CONNECTIONS.addEmptyGroup(aliasIid);
+	        				connections = AppContext.GROUPED_CONNECTIONS.addEmptyGroup(a.iid);
 	        			}
-		        	}
-		            self._setConnections(connections);
+			            self._setConnections(connections);
+	            	});
 		        },
 
 		        _setConnections: function(connections: OSet<Connection>): Void {
