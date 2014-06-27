@@ -4747,11 +4747,11 @@ qoid.api.ProtocolHandler.prototype = {
 		qm.local = false;
 		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.QUERY,context,qm)]).start();
 	}
-	,getVerificationContent: function(connectionIid,iid) {
+	,getVerificationContent: function(connectionIids,iids) {
 		var context = qoid.api.Synchronizer.createContext(1,"verificationContent");
 		var qm = qoid.api.QueryMessage.create("content");
-		qm.connectionIids = [connectionIid];
-		qm.q = "iid='" + iid + "'";
+		qm.connectionIids = connectionIids;
+		qm.q = "iid in (" + iids.join(",") + ")";
 		qm.local = false;
 		qm.standing = false;
 		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.QUERY,context,qm)]).start();
@@ -5502,6 +5502,8 @@ qoid.model.ContentSource.addListener = function(ml,obsc,wc) {
 	qoid.model.ContentSource.listeners.push(l);
 };
 qoid.model.ContentSource.addContent = function(results,connectionIid) {
+	var iids = new Array();
+	var connectionIids = new Array();
 	var _g = 0;
 	while(_g < results.length) {
 		var result = results[_g];
@@ -5518,9 +5520,11 @@ qoid.model.ContentSource.addContent = function(results,connectionIid) {
 			var v = _g2[_g1];
 			++_g1;
 			var p = m3.helper.OSetHelper.getElementComplex(qoid.AppContext.PROFILES,v.verifierId,"sharedId");
-			qoid.AgentUi.PROTOCOL.getVerificationContent(p.connectionIid,v.verificationIid);
+			if(HxOverrides.indexOf(connectionIids,p.connectionIid,0) == -1) connectionIids.push(p.connectionIid);
+			iids.push("'" + v.verificationIid + "'");
 		}
 	}
+	qoid.AgentUi.PROTOCOL.getVerificationContent(connectionIids,iids);
 };
 qoid.model.ContentSource.onLoadFilteredContent = function(data) {
 	if(qoid.model.ContentSource.handle == data.handle) qoid.model.ContentSource.addContent(data.results,data.connectionIid); else {
