@@ -48,6 +48,8 @@ class AppContext {
 
     public static var currentAlias: Alias;
 
+    public static var VERIFICATION_CONTENT: ObservableSet<Content<Dynamic>>;
+
     public static function init() {
     	LOGGER = new Logga(LogLevel.DEBUG);
 
@@ -111,6 +113,8 @@ class AppContext {
             }
         });
 
+        VERIFICATION_CONTENT = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
+
 		SERIALIZER = new Serializer();
         SERIALIZER.addHandler(Content, new ContentHandler());
         SERIALIZER.addHandler(Notification, new NotificationHandler());
@@ -131,28 +135,33 @@ class AppContext {
         return ALIASES.getElement(AppContext.UBER_ALIAS_ID).rootLabelIid;
     }
 
+    static function onInitialDataLoadComplete(nada:{}) {
+        ROOT_LABEL_ID = ALIASES.getElement(UBER_ALIAS_ID).rootLabelIid;
+
+        // Set the current alias
+        currentAlias = ALIASES.getElement(UBER_ALIAS_ID);
+        for (alias in ALIASES) {
+            if (alias.data.isDefault == true) {
+                currentAlias = alias;
+                break;
+            }
+        }
+
+        // Retrieve any verification content
+        EM.change(EMEvent.AliasLoaded, currentAlias);
+    }
+
 	static function registerGlobalListeners() {
         new JQ(js.Browser.window).on("unload", function(evt: JQEvent){
             EM.change(EMEvent.UserLogout);
         });
 
-        EM.addListener(EMEvent.InitialDataLoadComplete, function(nada: {}) {
-            var uberAlias = ALIASES.getElement(UBER_ALIAS_ID);
-            ROOT_LABEL_ID = uberAlias.rootLabelIid;
-
-            currentAlias = ALIASES.getElement(UBER_ALIAS_ID);
-            for (alias in ALIASES) {
-                if (alias.data.isDefault == true) {
-                    currentAlias = alias;
-                    break;
-                }
-            }
-            EM.change(EMEvent.AliasLoaded, currentAlias);
-            }, "AppContext-InitialDataLoadComplete"
-        );
+        EM.addListener(EMEvent.InitialDataLoadComplete, 
+                       onInitialDataLoadComplete,
+                       "AppContext-InitialDataLoadComplete");
 
         EM.addListener(EMEvent.AliasLoaded, function(a:Alias){
-            js.Browser.document.title = a.profile.name + " << Qoid-Bennu"; 
+            js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
         });
 
         EM.addListener(EMEvent.FitWindow, function(n: {}) {

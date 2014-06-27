@@ -122,15 +122,6 @@ class IntroResponseMessage implements ChannelMessage {
 }
 
 @:rtti
-class GetProfileMessage implements ChannelMessage {
-	public var connectionIids:Array<String>;
-
-	public function new(?connectionIids:Array<String>) {
-		this.connectionIids = (connectionIids == null) ? new Array<String>() : connectionIids;
-	}
-}
-
-@:rtti
 class QueryMessage implements ChannelMessage{
 	public var type: String;
 	public var q: String;

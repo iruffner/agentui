@@ -58,8 +58,6 @@ class ContentSource {
 	}
 
 	private static function addContent(results:Array<Dynamic>, connectionIid:String) {
-		var iids = new Array<String>();
-		var connectionIids = new Array<String>();
 
 		for (result in results) {
 			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
@@ -71,13 +69,9 @@ class ContentSource {
 
 			for (v in c.metaData.verifications) {
 				var p = AppContext.PROFILES.getElementComplex(v.verifierId, "sharedId");
-				connectionIids.push(p.connectionIid);
-
-				iids.push("'" + v.verificationIid + "'");
+				AgentUi.PROTOCOL.getVerificationContent(p.connectionIid, v.verificationIid);
 			}
 		}
-
-		AgentUi.PROTOCOL.getVerificationContent(connectionIids, iids);
 	}
 
 	private static function onLoadFilteredContent(data:Dynamic): Void {

@@ -58,6 +58,12 @@ class ResponseProcessor {
                         } else if (data.result && data.result.handle) {
                             AgentUi.PROTOCOL.addHandle(data.result.handle);
                         }
+                    case "verificationContent":
+                        if (data.result && data.result.handle) {
+                            AgentUi.PROTOCOL.addHandle(data.result.handle);
+                        } else {
+                            updateModelObject(data.type, data.action, data.results);
+                        }
                     case "verificationRequest":
                         EM.change(EMEvent.VerificationRequest_RESPONSE);
                     case "respondToVerificationRequest":
@@ -91,6 +97,8 @@ class ResponseProcessor {
                 processModelObject(AppContext.ALIASES, Alias, action, data);
             case "connection":
                 processModelObject(AppContext.CONNECTIONS, Connection, action, data);
+            case "content":
+                processModelObject(AppContext.VERIFICATION_CONTENT, Content, action, data);
             case "introduction":
                 processModelObject(AppContext.INTRODUCTIONS, Introduction, action, data);
             case "label":
@@ -157,15 +165,5 @@ class ResponseProcessor {
 
     public static function grantAccess() {
         EM.change(AccessGranted);
-    }
-
-    public static function filterContent(data:SynchronizationParms, filterIid:String) {
-        var displayedContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
-        displayedContent.addAll(data.content);
-
-        var fr = new FilterResponse(filterIid, displayedContent);
-
-        EM.change(LoadFilteredContent, fr);
-        EM.change(EMEvent.FitWindow);
     }
 }

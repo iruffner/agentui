@@ -69,17 +69,12 @@ extern class ContentComp extends JQ {
 					var vs = self.options.content.metaData.verifications;
 					for (v in vs) {
 						var p = AppContext.PROFILES.getElementComplex(v.verifierId, "sharedId");
-						var msg = "I never approved this message.";
-						for (not in AppContext.MASTER_NOTIFICATIONS) {
-							if (not.kind == NotificationKind.VerificationResponse) {
-								var vrn:VerificationResponseNotification = cast(not);
-								if (vrn.props.verificationContentIid == v.verificationIid) {
-									msg = not.props.verificationContentData.text;
-								}
-							}
-						}
-						vdata.push({profile:p, message:msg});
+						var msg:MessageContent = cast(AppContext.VERIFICATION_CONTENT.getElement(v.verificationIid));
+						var text = msg == null ? "Unable to retrieve verification content." : msg.props.text;
+						vdata.push({profile:p, message:text});
 					}
+
+					// TODO:  set up a listener for VERIFICATION_CONTENT
 
 					// Create a popup to show the verification information
         			var popup: Popup = new Popup("<div style='position: absolute;width:300px;'></div>");
@@ -150,6 +145,9 @@ extern class ContentComp extends JQ {
 	        			case ContentType.TEXT:
 	        				var textContent: MessageContent = cast(content, MessageContent);
 	        				postContent.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>"); 
+		        		
+		        		case ContentType.VERIFICATION:
+		        			throw new Exception("VerificationContent should not be displayed"); 
 		        	}
 
 					self.buttonBlock = new JQ("<div class='button-block' ></div>").css("text-align", "left").hide().appendTo(postContent);

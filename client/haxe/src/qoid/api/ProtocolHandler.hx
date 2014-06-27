@@ -72,11 +72,11 @@ class ProtocolHandler {
 		new SubmitRequest([new ChannelRequestMessage(QUERY, context, qm)]).start();
 	}
 
-	public function getVerificationContent(connectionIids:Array<String>, iids:Array<String>) {
+	public function getVerificationContent(connectionIid:String, iid:String) {
 		var context = Synchronizer.createContext(1, "verificationContent");
 		var qm = QueryMessage.create("content");
-		qm.connectionIids = connectionIids;
-		qm.q = "iid in (" + iids.join(",") + ")";
+		qm.connectionIids = [connectionIid];
+		qm.q = "iid='" + iid + "'";
 		qm.local = false;
 		qm.standing = false;
 		new SubmitRequest([new ChannelRequestMessage(QUERY, context, qm)]).start();

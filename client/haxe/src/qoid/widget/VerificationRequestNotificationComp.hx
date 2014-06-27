@@ -95,6 +95,9 @@ extern class VerificationRequestNotificationComp extends JQ {
 	        			case ContentType.TEXT:
 	        				var textContent: MessageContent = cast(content, MessageContent);
 	        				contentDiv.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>"); 
+	        			
+		        		case ContentType.VERIFICATION:
+		        			throw new Exception("VerificationContent should not be displayed"); 
 		        	}
 
 		        	new JQ("<div class='notification-line'><b>Comments:</b> <input type='text' id='responseText'/></div>").appendTo(invitationText);

@@ -180,6 +180,7 @@ enum ContentType {
 	IMAGE;
 	URL;
 	TEXT;
+	VERIFICATION;
 }
 
 
@@ -200,6 +201,8 @@ class ContentHandler implements TypeHandler {
         		obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
         	case ContentType.URL:
         		obj = AppContext.SERIALIZER.fromJsonX(fromJson, UrlContent);
+        	case ContentType.VERIFICATION:
+        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationContent);
         }
 
         return obj;
@@ -230,6 +233,10 @@ class ContentFactory {
         	case ContentType.URL:
         		var uc = new UrlContent();
         		uc.props.url = cast(data, String);
+        		ret = uc;
+        	case ContentType.VERIFICATION:
+        		var uc = new VerificationContent();
+        		uc.props.text = cast(data, String);
         		ret = uc;
         }
         return ret;
@@ -267,8 +274,15 @@ class ContentVerification {
 }
 
 @:rtti
+class VerifiedContentMetaData {
+    public var hash:Dynamic;
+    public var hashAlgorithm:String;
+}
+
+@:rtti
 class ContentMetaData {
 	@:optional public var verifications: Array<ContentVerification>;
+	@:optional public var verifiedContent: VerifiedContentMetaData;
 
 	public function new() {
 		this.verifications = new Array<ContentVerification>();
@@ -375,6 +389,21 @@ class UrlContentData extends ContentData {
 class UrlContent extends Content<UrlContentData> {
 	public function new () {
 		super(ContentType.URL, UrlContentData);
+	}
+}
+
+class VerificationContentData extends ContentData {
+	public var text: String;
+	public var created: Date;
+	public var modified: Date;
+	public function new () {
+		super();
+	}	
+}
+
+class VerificationContent extends Content<VerificationContentData> {
+	public function new () {
+		super(ContentType.VERIFICATION, VerificationContentData);
 	}
 }
 

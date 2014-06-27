@@ -203,6 +203,8 @@ extern class EditPostComp extends JQ {
 							cast(self.options.content, ImageContent).props.imgSrc = self.uploadComp.value();
 						case ContentType.AUDIO:
 							cast(self.options.content, AudioContent).props.audioSrc = self.uploadComp.value();
+						case ContentType.VERIFICATION:
+		        			throw new Exception("VerificationContent should not be displayed"); 
 					}
 
 					var ecd = new EditContentData(self.options.content);
