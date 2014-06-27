@@ -72,6 +72,16 @@ class ProtocolHandler {
 		new SubmitRequest([new ChannelRequestMessage(QUERY, context, qm)]).start();
 	}
 
+	public function getVerificationContent(connectionIids:Array<String>, iids:Array<String>) {
+		var context = Synchronizer.createContext(1, "verificationContent");
+		var qm = QueryMessage.create("content");
+		qm.connectionIids = connectionIids;
+		qm.q = "iid in (" + iids.join(",") + ")";
+		qm.local = false;
+		qm.standing = false;
+		new SubmitRequest([new ChannelRequestMessage(QUERY, context, qm)]).start();
+	}
+
 	public function login(login: Login): Void {
 		createChannel(login.agentId, onCreateSubmitChannel);
 	}
@@ -336,6 +346,8 @@ class ProtocolHandler {
 	private function onCreateSubmitChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
 		AppContext.SUBMIT_CHANNEL = data.channelId;
 		AppContext.UBER_ALIAS_ID = data.aliasIid;
+
+		// TODO: what happens if you login as an alias other than the uber alias?
 
 		_startPolling(data.channelId);
 

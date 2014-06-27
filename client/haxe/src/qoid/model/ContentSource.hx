@@ -5,6 +5,8 @@ import qoid.model.EM;
 import qoid.model.ModelObj;
 import qoid.model.Filter;
 
+using m3.helper.OSetHelper;
+
 class ContentSourceListener<T> {
 	var contentMap: MappedSet<Content<Dynamic>, T>;
 	var mapListener: Content<Dynamic>->T->EventType->Void;
@@ -56,6 +58,9 @@ class ContentSource {
 	}
 
 	private static function addContent(results:Array<Dynamic>, connectionIid:String) {
+		var iids = new Array<String>();
+		var connectionIids = new Array<String>();
+
 		for (result in results) {
 			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
 			if (connectionIid != null) {
@@ -63,7 +68,16 @@ class ContentSource {
 				c.connectionIid = connectionIid;
 			}
 			filteredContent.addOrUpdate(c);
+
+			for (v in c.metaData.verifications) {
+				var p = AppContext.PROFILES.getElementComplex(v.verifierId, "sharedId");
+				connectionIids.push(p.connectionIid);
+
+				iids.push("'" + v.verificationIid + "'");
+			}
 		}
+
+		AgentUi.PROTOCOL.getVerificationContent(connectionIids, iids);
 	}
 
 	private static function onLoadFilteredContent(data:Dynamic): Void {
