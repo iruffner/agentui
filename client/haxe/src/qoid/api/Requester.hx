@@ -14,7 +14,7 @@ import qoid.api.CrudMessage;
  * Base class for making http requests.
  */
 class SimpleRequest extends BaseRequest {
-	public function new(path:String, data:String, successFcn: Dynamic->String->JQXHR->Void) {
+	public function new(path:String, data:String, successFcn: Dynamic->Void) {
 		baseOpts = {
 			async: true,
 			url: path 
@@ -26,7 +26,7 @@ class SimpleRequest extends BaseRequest {
 
 class SubmitRequest extends BaseRequest {
 	public function new(msgs:Array<ChannelRequestMessage>,
-		                ?successFcn: Dynamic->String->JQXHR->Void) {
+		                ?successFcn: Dynamic->Void) {
 		this.baseOpts = {
 			dataType: "text",
 			async: true,
@@ -34,7 +34,7 @@ class SubmitRequest extends BaseRequest {
 		};
 
 		if (successFcn == null) {
-			successFcn = function(data: Dynamic, textStatus: Dynamic, jqXHR: JQXHR) {
+			successFcn = function(data: Dynamic):Void {
 			};
 		}
 

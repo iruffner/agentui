@@ -20,7 +20,7 @@ using Lambda;
 
 class ResponseProcessor {
 
-	public static function processResponse(dataArr: Array<Dynamic>, textStatus: String, jqXHR: JQXHR) {
+	public static function processResponse(dataArr: Array<Dynamic>):Void {
 		if (dataArr == null || dataArr.length == 0) { return; }
 
 		dataArr.iter(function(data:Dynamic): Void {

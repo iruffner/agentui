@@ -40,7 +40,7 @@ class ProtocolHandler {
 		this.registeredHandles = new Array<String>();
 	}
 
-	private function createChannel(aliasName:String, successFunc:Dynamic->String->JQXHR->Void) {
+	private function createChannel(aliasName:String, successFunc:Dynamic->Void) {
 		new SimpleRequest("/api/channel/create/" + aliasName, "", successFunc).start();		
 	}
 
@@ -88,7 +88,7 @@ class ProtocolHandler {
 
 	public function createAgent(newUser: NewUser): Void {
 		var req = new SimpleRequest("/api/agent/create/" + newUser.name, "", 
-			function (data: Dynamic, textStatus: String, jqXHR: JQXHR) {
+			function (data: Dynamic) {
 				EM.change(EMEvent.AgentCreated);
 			}
 		);
@@ -343,7 +343,7 @@ class ProtocolHandler {
 	}
 
 
-	private function onCreateSubmitChannel(data: Dynamic, textStatus: String, jqXHR: JQXHR):Void {
+	private function onCreateSubmitChannel(data: Dynamic):Void {
 		AppContext.SUBMIT_CHANNEL = data.channelId;
 		AppContext.UBER_ALIAS_ID = data.aliasIid;
 
