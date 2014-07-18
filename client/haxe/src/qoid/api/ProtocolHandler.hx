@@ -374,7 +374,7 @@ class ProtocolHandler {
 	        type: "GET"
 		};
 
-		listeningChannel = new LongPollingRequest(channelId, "", AppContext.LOGGER, ResponseProcessor.processResponse, ajaxOptions);
+		listeningChannel = new LongPollingRequest(channelId, "", AppContext.LOGGER, ResponseProcessor.processResponse, null, ajaxOptions);
 		listeningChannel.timeout = timeout;
 		listeningChannel.start();
 	}
