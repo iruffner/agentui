@@ -9,6 +9,9 @@ import qoid.widget.RequestIntroductionDialog;
 import qoid.widget.AllowAccessDialog;
 import qoid.widget.RevokeAccessDialog;
 import qoid.widget.VerificationRequestDialog;
+import qoid.widget.IntroductionNotificationDialog;
+import qoid.widget.AcceptVerificationResponseDialog;
+import qoid.widget.RespondToVerificationRequestDialog;
 
 @:expose
 class DialogManager {
@@ -71,5 +74,23 @@ class DialogManager {
         var options:Dynamic = {};
         options.content = content;
         showDialog("verificationRequestDialog", options);
+    }
+
+    public static function respondToIntroduction(notification: IntroductionRequestNotification):Void {
+        var options:Dynamic = {};
+        options.notification = notification;
+        showDialog("introductionNotificationDialog", options);
+    }
+
+    public static function respondToVerificationRequest(notification: VerificationRequestNotification):Void {
+        var options:Dynamic = {};
+        options.notification = notification;
+        showDialog("respondToVerificationRequestDialog", options);
+    }
+
+    public static function acceptVerificationResponse(notification: VerificationResponseNotification):Void {
+        var options:Dynamic = {};
+        options.notification = notification;
+        showDialog("acceptVerificationResponseDialog", options);
     }
 }

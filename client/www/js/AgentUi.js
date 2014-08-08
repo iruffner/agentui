@@ -1993,12 +1993,13 @@ m3.comm.BaseRequest.prototype = {
 		var _g = this;
 		var ajaxOpts = { dataType : "json", contentType : "application/json", data : this.requestData, type : "POST", success : function(data,textStatus,jqXHR) {
 			if(jqXHR.getResponseHeader("Content-Length") == "0") return;
-			_g.onSuccess(data);
+			if(_g.onSuccess != null) _g.onSuccess(data);
 		}, error : function(jqXHR1,textStatus1,errorThrown) {
 			if(jqXHR1.getResponseHeader("Content-Length") == "0") return;
 			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
-			var error_message = errorThrown;
-			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) error_message = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") error_message = jqXHR1.responseText; else if(m3.helper.StringHelper.isBlank(error_message)) error_message = "{no error msg from server}";
+			var error_message = null;
+			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) error_message = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") error_message = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") error_message = errorThrown; else error_message = errorThrown.message;
+			if(m3.helper.StringHelper.isBlank(error_message)) error_message = "Error, but no error msg from server";
 			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + error_message);
 			if(_g.onError != null) _g.onError(new m3.exception.AjaxException(error_message,null,jqXHR1.status)); else {
 				m3.util.JqueryUtil.alert("There was an error making your request:  " + error_message);
@@ -2055,6 +2056,9 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 		this.running = !this.running;
 		this.logger.debug("Long Polling is running? " + Std.string(this.running));
 		this.poll();
+	}
+	,getChannelId: function() {
+		return this.channel;
 	}
 	,start: function(opts) {
 		this.poll();
@@ -3048,10 +3052,11 @@ m3.observable.EventManager.prototype = {
 	}
 	,__class__: m3.observable.EventManager
 };
-m3.observable.EventType = function(name,add,update) {
+m3.observable.EventType = function(name,add,update,clear) {
 	this._name = name;
 	this._add = add;
 	this._update = update;
+	this._clear = clear;
 };
 $hxClasses["m3.observable.EventType"] = m3.observable.EventType;
 m3.observable.EventType.__name__ = ["m3","observable","EventType"];
@@ -3069,7 +3074,10 @@ m3.observable.EventType.prototype = {
 		return this._add || this._update;
 	}
 	,isDelete: function() {
-		return !(this._add || this._update);
+		return !(this._add || this._update || this._clear);
+	}
+	,isClear: function() {
+		return this._clear;
 	}
 	,__class__: m3.observable.EventType
 };
@@ -3163,8 +3171,8 @@ m3.observable.ObservableSet.prototype = $extend(m3.observable.AbstractSet.protot
 		return this._identifier;
 	}
 	,clear: function() {
-		var iter = this.iterator();
-		while(iter.hasNext()) this["delete"](iter.next());
+		this._delegate = new m3.util.SizedMap();
+		this.fire(null,m3.observable.EventType.Clear);
 	}
 	,size: function() {
 		return this._delegate.size;
@@ -3192,14 +3200,19 @@ m3.observable.MappedSet.__name__ = ["m3","observable","MappedSet"];
 m3.observable.MappedSet.__super__ = m3.observable.AbstractSet;
 m3.observable.MappedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
 	_sourceListener: function(t,type) {
-		var key = (this._source.identifier())(t);
 		var mappedValue;
-		if(type.isAdd() || this._remapOnUpdate && type.isUpdate()) {
-			mappedValue = this._mapper(t);
-			this._mappedSet.set(key,mappedValue);
-		} else if(type.isUpdate()) mappedValue = this._mappedSet.get(key); else {
-			mappedValue = this._mappedSet.get(key);
-			this._mappedSet.remove(key);
+		if(type.isClear()) {
+			this._mappedSet = new haxe.ds.StringMap();
+			mappedValue = null;
+		} else {
+			var key = (this._source.identifier())(t);
+			if(type.isAdd() || this._remapOnUpdate && type.isUpdate()) {
+				mappedValue = this._mapper(t);
+				this._mappedSet.set(key,mappedValue);
+			} else if(type.isUpdate()) mappedValue = this._mappedSet.get(key); else {
+				mappedValue = this._mappedSet.get(key);
+				this._mappedSet.remove(key);
+			}
 		}
 		this.fire(mappedValue,type);
 		Lambda.iter(this._mapListeners,function(it) {
@@ -3252,6 +3265,9 @@ m3.observable.FilteredSet = function(source,filter) {
 				_g._filteredSet.remove(key);
 				_g.fire(t,type);
 			}
+		} else if(type.isClear()) {
+			_g._filteredSet = new haxe.ds.StringMap();
+			_g.fire(t,type);
 		}
 	});
 };
@@ -3399,7 +3415,10 @@ m3.observable.SortedSet = function(source,sortByFn) {
 		if(type.isDelete()) _g["delete"](t); else if(type.isUpdate()) {
 			_g["delete"](t);
 			_g.add(t);
-		} else _g.add(t);
+		} else if(type.isAdd()) _g.add(t); else if(type.isClear()) {
+			_g._sorted = new Array();
+			_g.fire(t,type);
+		}
 	});
 };
 $hxClasses["m3.observable.SortedSet"] = m3.observable.SortedSet;
@@ -4739,6 +4758,9 @@ qoid.api.EventDelegate.prototype = {
 		qoid.model.EM.addListener(qoid.model.EMEvent.RejectVerificationRequest,function(notificationIid1) {
 			_g.protocolHandler.rejectVerificationRequest(notificationIid1);
 		});
+		qoid.model.EM.addListener(qoid.model.EMEvent.RejectVerification,function(notificationIid2) {
+			_g.protocolHandler.rejectVerificationResponse(notificationIid2);
+		});
 	}
 	,__class__: qoid.api.EventDelegate
 };
@@ -4991,6 +5013,13 @@ qoid.api.ProtocolHandler.prototype = {
 		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(notification))]);
 		req.start();
 	}
+	,rejectVerificationResponse: function(notificationIid) {
+		var notification = m3.helper.OSetHelper.getElement(qoid.AppContext.NOTIFICATIONS,notificationIid);
+		notification.consumed = true;
+		var context = qoid.api.Synchronizer.createContext(1,"verificationResponseRejected");
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(notification))]);
+		req.start();
+	}
 	,acceptVerification: function(notificationIid) {
 		var context = qoid.api.Synchronizer.createContext(1,"acceptVerification");
 		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.VERIFICATION_ACCEPT,context,new qoid.api.AcceptVerificationMessage(notificationIid))]);
@@ -5092,6 +5121,9 @@ qoid.api.ResponseProcessor.processResponse = function(dataArr) {
 				break;
 			case "verificationRequestRejected":
 				qoid.model.EM.change(qoid.model.EMEvent.RejectVerificationRequest_RESPONSE);
+				break;
+			case "verificationResponseRejected":
+				qoid.model.EM.change(qoid.model.EMEvent.RejectVerification_RESPONSE);
 				break;
 			default:
 				qoid.api.Synchronizer.processResponse(data);
@@ -5354,7 +5386,7 @@ qoid.model.EM.removeListener = function(id,listenerUid) {
 qoid.model.EM.change = function(id,t) {
 	qoid.model.EM.delegate.change(id,t);
 };
-qoid.model.EMEvent = $hxClasses["qoid.model.EMEvent"] = { __ename__ : ["qoid","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","VerificationRequest","VerificationRequest_RESPONSE","RespondToVerification","RespondToVerification_RESPONSE","RejectVerificationRequest","RejectVerificationRequest_RESPONSE","AcceptVerification","AcceptVerification_RESPONSE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] };
+qoid.model.EMEvent = $hxClasses["qoid.model.EMEvent"] = { __ename__ : ["qoid","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","VerificationRequest","VerificationRequest_RESPONSE","RespondToVerification","RespondToVerification_RESPONSE","RejectVerificationRequest","RejectVerificationRequest_RESPONSE","AcceptVerification","AcceptVerification_RESPONSE","RejectVerification","RejectVerification_RESPONSE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] };
 qoid.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
 qoid.model.EMEvent.FILTER_RUN.toString = $estr;
 qoid.model.EMEvent.FILTER_RUN.__enum__ = qoid.model.EMEvent;
@@ -5481,19 +5513,25 @@ qoid.model.EMEvent.AcceptVerification.__enum__ = qoid.model.EMEvent;
 qoid.model.EMEvent.AcceptVerification_RESPONSE = ["AcceptVerification_RESPONSE",41];
 qoid.model.EMEvent.AcceptVerification_RESPONSE.toString = $estr;
 qoid.model.EMEvent.AcceptVerification_RESPONSE.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.BACKUP = ["BACKUP",42];
+qoid.model.EMEvent.RejectVerification = ["RejectVerification",42];
+qoid.model.EMEvent.RejectVerification.toString = $estr;
+qoid.model.EMEvent.RejectVerification.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.RejectVerification_RESPONSE = ["RejectVerification_RESPONSE",43];
+qoid.model.EMEvent.RejectVerification_RESPONSE.toString = $estr;
+qoid.model.EMEvent.RejectVerification_RESPONSE.__enum__ = qoid.model.EMEvent;
+qoid.model.EMEvent.BACKUP = ["BACKUP",44];
 qoid.model.EMEvent.BACKUP.toString = $estr;
 qoid.model.EMEvent.BACKUP.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.RESTORE = ["RESTORE",43];
+qoid.model.EMEvent.RESTORE = ["RESTORE",45];
 qoid.model.EMEvent.RESTORE.toString = $estr;
 qoid.model.EMEvent.RESTORE.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",44];
+qoid.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",46];
 qoid.model.EMEvent.RESTORES_REQUEST.toString = $estr;
 qoid.model.EMEvent.RESTORES_REQUEST.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",45];
+qoid.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",47];
 qoid.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 qoid.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = qoid.model.EMEvent;
-qoid.model.EMEvent.__empty_constructs__ = [qoid.model.EMEvent.FILTER_RUN,qoid.model.EMEvent.FILTER_CHANGE,qoid.model.EMEvent.LoadFilteredContent,qoid.model.EMEvent.AppendFilteredContent,qoid.model.EMEvent.EditContentClosed,qoid.model.EMEvent.CreateAgent,qoid.model.EMEvent.AgentCreated,qoid.model.EMEvent.InitialDataLoadComplete,qoid.model.EMEvent.FitWindow,qoid.model.EMEvent.UserLogin,qoid.model.EMEvent.UserLogout,qoid.model.EMEvent.AliasLoaded,qoid.model.EMEvent.AliasCreated,qoid.model.EMEvent.AliasUpdated,qoid.model.EMEvent.CreateAlias,qoid.model.EMEvent.UpdateAlias,qoid.model.EMEvent.DeleteAlias,qoid.model.EMEvent.CreateContent,qoid.model.EMEvent.DeleteContent,qoid.model.EMEvent.UpdateContent,qoid.model.EMEvent.CreateLabel,qoid.model.EMEvent.UpdateLabel,qoid.model.EMEvent.MoveLabel,qoid.model.EMEvent.CopyLabel,qoid.model.EMEvent.DeleteLabel,qoid.model.EMEvent.GrantAccess,qoid.model.EMEvent.AccessGranted,qoid.model.EMEvent.RevokeAccess,qoid.model.EMEvent.DeleteConnection,qoid.model.EMEvent.INTRODUCTION_REQUEST,qoid.model.EMEvent.INTRODUCTION_RESPONSE,qoid.model.EMEvent.RespondToIntroduction,qoid.model.EMEvent.RespondToIntroduction_RESPONSE,qoid.model.EMEvent.TargetChange,qoid.model.EMEvent.VerificationRequest,qoid.model.EMEvent.VerificationRequest_RESPONSE,qoid.model.EMEvent.RespondToVerification,qoid.model.EMEvent.RespondToVerification_RESPONSE,qoid.model.EMEvent.RejectVerificationRequest,qoid.model.EMEvent.RejectVerificationRequest_RESPONSE,qoid.model.EMEvent.AcceptVerification,qoid.model.EMEvent.AcceptVerification_RESPONSE,qoid.model.EMEvent.BACKUP,qoid.model.EMEvent.RESTORE,qoid.model.EMEvent.RESTORES_REQUEST,qoid.model.EMEvent.AVAILABLE_BACKUPS];
+qoid.model.EMEvent.__empty_constructs__ = [qoid.model.EMEvent.FILTER_RUN,qoid.model.EMEvent.FILTER_CHANGE,qoid.model.EMEvent.LoadFilteredContent,qoid.model.EMEvent.AppendFilteredContent,qoid.model.EMEvent.EditContentClosed,qoid.model.EMEvent.CreateAgent,qoid.model.EMEvent.AgentCreated,qoid.model.EMEvent.InitialDataLoadComplete,qoid.model.EMEvent.FitWindow,qoid.model.EMEvent.UserLogin,qoid.model.EMEvent.UserLogout,qoid.model.EMEvent.AliasLoaded,qoid.model.EMEvent.AliasCreated,qoid.model.EMEvent.AliasUpdated,qoid.model.EMEvent.CreateAlias,qoid.model.EMEvent.UpdateAlias,qoid.model.EMEvent.DeleteAlias,qoid.model.EMEvent.CreateContent,qoid.model.EMEvent.DeleteContent,qoid.model.EMEvent.UpdateContent,qoid.model.EMEvent.CreateLabel,qoid.model.EMEvent.UpdateLabel,qoid.model.EMEvent.MoveLabel,qoid.model.EMEvent.CopyLabel,qoid.model.EMEvent.DeleteLabel,qoid.model.EMEvent.GrantAccess,qoid.model.EMEvent.AccessGranted,qoid.model.EMEvent.RevokeAccess,qoid.model.EMEvent.DeleteConnection,qoid.model.EMEvent.INTRODUCTION_REQUEST,qoid.model.EMEvent.INTRODUCTION_RESPONSE,qoid.model.EMEvent.RespondToIntroduction,qoid.model.EMEvent.RespondToIntroduction_RESPONSE,qoid.model.EMEvent.TargetChange,qoid.model.EMEvent.VerificationRequest,qoid.model.EMEvent.VerificationRequest_RESPONSE,qoid.model.EMEvent.RespondToVerification,qoid.model.EMEvent.RespondToVerification_RESPONSE,qoid.model.EMEvent.RejectVerificationRequest,qoid.model.EMEvent.RejectVerificationRequest_RESPONSE,qoid.model.EMEvent.AcceptVerification,qoid.model.EMEvent.AcceptVerification_RESPONSE,qoid.model.EMEvent.RejectVerification,qoid.model.EMEvent.RejectVerification_RESPONSE,qoid.model.EMEvent.BACKUP,qoid.model.EMEvent.RESTORE,qoid.model.EMEvent.RESTORES_REQUEST,qoid.model.EMEvent.AVAILABLE_BACKUPS];
 qoid.model.Content = function(contentType,type) {
 	qoid.model.ModelObjWithIid.call(this);
 	this.contentType = contentType;
@@ -6287,15 +6325,9 @@ qoid.model.ConnectionNode.prototype = $extend(qoid.model.ContentNode.prototype,{
 	,__class__: qoid.model.ConnectionNode
 });
 qoid.widget = {};
-qoid.widget.ConnectionAvatarHelper = function() { };
-$hxClasses["qoid.widget.ConnectionAvatarHelper"] = qoid.widget.ConnectionAvatarHelper;
-qoid.widget.ConnectionAvatarHelper.__name__ = ["qoid","widget","ConnectionAvatarHelper"];
-qoid.widget.ConnectionAvatarHelper.getConnection = function(c) {
-	return c.connectionAvatar("getConnection");
-};
-qoid.widget.ConnectionAvatarHelper.getAlias = function(c) {
-	return c.connectionAvatar("getAlias");
-};
+qoid.widget.AcceptVerificationResponseDialogHelper = function() { };
+$hxClasses["qoid.widget.AcceptVerificationResponseDialogHelper"] = qoid.widget.AcceptVerificationResponseDialogHelper;
+qoid.widget.AcceptVerificationResponseDialogHelper.__name__ = ["qoid","widget","AcceptVerificationResponseDialogHelper"];
 qoid.widget.DialogManager = $hx_exports.qoid.widget.DialogManager = function() { };
 $hxClasses["qoid.widget.DialogManager"] = qoid.widget.DialogManager;
 qoid.widget.DialogManager.__name__ = ["qoid","widget","DialogManager"];
@@ -6351,6 +6383,30 @@ qoid.widget.DialogManager.requestVerification = function(content) {
 	var options = { };
 	options.content = content;
 	qoid.widget.DialogManager.showDialog("verificationRequestDialog",options);
+};
+qoid.widget.DialogManager.respondToIntroduction = function(notification) {
+	var options = { };
+	options.notification = notification;
+	qoid.widget.DialogManager.showDialog("introductionNotificationDialog",options);
+};
+qoid.widget.DialogManager.respondToVerificationRequest = function(notification) {
+	var options = { };
+	options.notification = notification;
+	qoid.widget.DialogManager.showDialog("respondToVerificationRequestDialog",options);
+};
+qoid.widget.DialogManager.acceptVerificationResponse = function(notification) {
+	var options = { };
+	options.notification = notification;
+	qoid.widget.DialogManager.showDialog("acceptVerificationResponseDialog",options);
+};
+qoid.widget.ConnectionAvatarHelper = function() { };
+$hxClasses["qoid.widget.ConnectionAvatarHelper"] = qoid.widget.ConnectionAvatarHelper;
+qoid.widget.ConnectionAvatarHelper.__name__ = ["qoid","widget","ConnectionAvatarHelper"];
+qoid.widget.ConnectionAvatarHelper.getConnection = function(c) {
+	return c.connectionAvatar("getConnection");
+};
+qoid.widget.ConnectionAvatarHelper.getAlias = function(c) {
+	return c.connectionAvatar("getAlias");
 };
 qoid.widget.LabelCompHelper = function() { };
 $hxClasses["qoid.widget.LabelCompHelper"] = qoid.widget.LabelCompHelper;
@@ -6429,21 +6485,15 @@ qoid.widget.LiveBuildToggleHelper.__name__ = ["qoid","widget","LiveBuildToggleHe
 qoid.widget.LiveBuildToggleHelper.isLive = function(l) {
 	return l.liveBuildToggle("isLive");
 };
-qoid.widget.IntroductionNotificationCompHelper = function() { };
-$hxClasses["qoid.widget.IntroductionNotificationCompHelper"] = qoid.widget.IntroductionNotificationCompHelper;
-qoid.widget.IntroductionNotificationCompHelper.__name__ = ["qoid","widget","IntroductionNotificationCompHelper"];
 qoid.widget.LabelsListHelper = function() { };
 $hxClasses["qoid.widget.LabelsListHelper"] = qoid.widget.LabelsListHelper;
 qoid.widget.LabelsListHelper.__name__ = ["qoid","widget","LabelsListHelper"];
 qoid.widget.LabelsListHelper.getSelected = function(l) {
 	return l.labelsList("getSelected");
 };
-qoid.widget.VerificationRequestNotificationCompHelper = function() { };
-$hxClasses["qoid.widget.VerificationRequestNotificationCompHelper"] = qoid.widget.VerificationRequestNotificationCompHelper;
-qoid.widget.VerificationRequestNotificationCompHelper.__name__ = ["qoid","widget","VerificationRequestNotificationCompHelper"];
-qoid.widget.VerificationResponseNotificationCompHelper = function() { };
-$hxClasses["qoid.widget.VerificationResponseNotificationCompHelper"] = qoid.widget.VerificationResponseNotificationCompHelper;
-qoid.widget.VerificationResponseNotificationCompHelper.__name__ = ["qoid","widget","VerificationResponseNotificationCompHelper"];
+qoid.widget.RespondToVerificationRequestDialogHelper = function() { };
+$hxClasses["qoid.widget.RespondToVerificationRequestDialogHelper"] = qoid.widget.RespondToVerificationRequestDialogHelper;
+qoid.widget.RespondToVerificationRequestDialogHelper.__name__ = ["qoid","widget","RespondToVerificationRequestDialogHelper"];
 qoid.widget.score = {};
 qoid.widget.score.ContentTimeLine = function(paper,profile,startTime,endTime,initialWidth) {
 	this.paper = paper;
@@ -7293,6 +7343,58 @@ var defineWidget = function() {
 };
 $.widget("ui.connectionAvatar",defineWidget());
 var defineWidget = function() {
+	return { initialized : false, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AcceptVerificationResponseDialog must be a div element");
+		selfElement.addClass("acceptVerificationResponseDialog notification-ui container boxsizingBorder");
+		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
+		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
+		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
+		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
+		var title = new $("<div class='intro-title'>Verification Response</div>").appendTo(invitationText);
+		var from = new $("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		var date = new $("<div class='notification-line'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
+		var message = new $("<div class='notification-line'><b>Comments:</b> " + Std.string(self.options.notification.props.verificationContentData.text) + "</div>").appendTo(invitationText);
+	}, acceptVerification : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		qoid.model.EM.listenOnce(qoid.model.EMEvent.AcceptVerification_RESPONSE,function(e) {
+			self1.destroy();
+			selfElement1.remove();
+		});
+		qoid.model.EM.change(qoid.model.EMEvent.AcceptVerification,self1.options.notification.iid);
+	}, rejectVerification : function() {
+		var self2 = this;
+		var selfElement2 = this.element;
+		qoid.model.EM.listenOnce(qoid.model.EMEvent.RejectVerification_RESPONSE,function(e1) {
+			self2.destroy();
+			selfElement2.remove();
+		});
+		qoid.model.EM.change(qoid.model.EMEvent.RejectVerification,self2.options.notification.iid);
+	}, _buildDialog : function() {
+		var self3 = this;
+		var selfElement3 = this.element;
+		self3.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Accept Verification Response", height : 400, width : 600, modal : true, buttons : { Accept : function() {
+			self3.acceptVerification();
+		}, Reject : function() {
+			self3.rejectVerification();
+		}}, close : function(evt,ui) {
+			selfElement3.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement3.dialog(dlgOptions);
+	}, open : function() {
+		var self4 = this;
+		var selfElement4 = this.element;
+		if(!self4.initialized) self4._buildDialog();
+		selfElement4.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.acceptVerificationResponseDialog",defineWidget());
+var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -7875,11 +7977,29 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ConnectionComp must be a div element");
+		selfElement.dblclick(function(evt) {
+			var it = self.notifications.iterator();
+			if(it.hasNext()) {
+				var notification = it.next();
+				var _g = notification.kind;
+				switch(_g[1]) {
+				case 0:
+					qoid.widget.DialogManager.respondToIntroduction(js.Boot.__cast(notification , qoid.model.IntroductionRequestNotification));
+					break;
+				case 1:
+					qoid.widget.DialogManager.respondToVerificationRequest(js.Boot.__cast(notification , qoid.model.VerificationRequestNotification));
+					break;
+				case 2:
+					qoid.widget.DialogManager.acceptVerificationResponse(js.Boot.__cast(notification , qoid.model.VerificationResponseNotification));
+					break;
+				}
+			}
+		});
 		self.filteredSetConnection = new m3.observable.FilteredSet(qoid.AppContext.CONNECTIONS,function(c) {
 			return c.iid == self.options.connection.iid;
 		});
-		self._onUpdateConnection = function(c1,evt) {
-			if(evt.isDelete()) {
+		self._onUpdateConnection = function(c1,evt1) {
+			if(evt1.isDelete()) {
 				self.destroy();
 				selfElement.remove();
 			}
@@ -7887,9 +8007,9 @@ var defineWidget = function() {
 		self.filteredSetConnection.listen(self._onUpdateConnection);
 		selfElement.addClass(m3.widget.Widgets.getWidgetClasses() + " connection container boxsizingBorder");
 		self._avatar = new $("<div class='avatar'></div>").connectionAvatar({ connectionIid : self.options.connection.iid, dndEnabled : true, isDragByHelper : true, containment : false});
-		var notificationDiv = new $(".notifications",selfElement);
-		if(!notificationDiv.exists()) notificationDiv = new $("<div class='notifications'>0</div>");
-		notificationDiv.appendTo(selfElement);
+		self._notifications = new $(".notifications",selfElement);
+		if(!self._notifications.exists()) self._notifications = new $("<div class='notifications'>0</div>");
+		self._notifications.appendTo(selfElement);
 		selfElement.append(self._avatar);
 		selfElement.append("<div class='name'>" + self.options.connection.data.name + "</div>");
 		selfElement.append("<div class='clear'></div>");
@@ -7913,11 +8033,11 @@ var defineWidget = function() {
 				} else qoid.widget.DialogManager.requestIntroduction(dropper,droppee);
 			}
 		}, tolerance : "pointer"});
-		var set = new m3.observable.FilteredSet(qoid.AppContext.NOTIFICATIONS,function(n) {
+		self.notifications = new m3.observable.FilteredSet(qoid.AppContext.NOTIFICATIONS,function(n) {
 			return n.fromConnectionIid == self.options.connection.iid;
 		});
-		set.listen(function(i1,evt1) {
-			if(evt1.isAdd()) self.addNotification(); else if(evt1.isDelete()) self.deleteNotification();
+		self.notifications.listen(function(i1,evt2) {
+			if(evt2.isAdd()) self.addNotification(); else if(evt2.isDelete()) self.deleteNotification();
 		});
 	}, update : function(conn) {
 		var self1 = this;
@@ -7932,30 +8052,24 @@ var defineWidget = function() {
 			}
 			return $r;
 		}(this)));
-	}, addNotification : function() {
+	}, _updateNotificationCount : function(delta) {
 		var self2 = this;
-		var selfElement2 = this.element;
-		var notificationDiv1 = new $(".notifications",selfElement2);
-		var count = Std.parseInt(notificationDiv1.html());
-		count += 1;
-		notificationDiv1.html(count == null?"null":"" + count);
-		notificationDiv1.css("visibility","visible");
-	}, deleteNotification : function() {
+		var count = Std.parseInt(self2._notifications.html()) + delta;
+		if(count < 0) count = 0;
+		self2._notifications.html(count == null?"null":"" + count);
+		var visibility;
+		if(count == 0) visibility = "hidden"; else visibility = "visible";
+		self2._notifications.css("visibility",visibility);
+	}, addNotification : function() {
 		var self3 = this;
-		var selfElement3 = this.element;
-		var notificationDiv2 = new $(".notifications",selfElement3);
-		var count1 = Std.parseInt(notificationDiv2.html());
-		if(count1 <= 1) {
-			notificationDiv2.html("0");
-			notificationDiv2.css("visibility","hidden");
-		} else {
-			count1 -= 1;
-			notificationDiv2.html(count1 == null?"null":"" + count1);
-		}
-	}, destroy : function() {
+		self3._updateNotificationCount(1);
+	}, deleteNotification : function() {
 		var self4 = this;
+		self4._updateNotificationCount(-1);
+	}, destroy : function() {
+		var self5 = this;
 		$.Widget.prototype.destroy.call(this);
-		if(self4.filteredSetConnection != null) self4.filteredSetConnection.removeListener(self4._onUpdateConnection);
+		if(self5.filteredSetConnection != null) self5.filteredSetConnection.removeListener(self5._onUpdateConnection);
 	}};
 };
 $.widget("ui.connectionComp",defineWidget());
@@ -8580,159 +8694,6 @@ var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
-		selfElement.addClass("introductionNotificationComp notification-ui container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
-		self.listenerUid = qoid.model.EM.addListener(qoid.model.EMEvent.RespondToIntroduction_RESPONSE,function(e) {
-			self.destroy();
-			selfElement.remove();
-		});
-		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
-		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
-		var invitationConfirmation = function(accepted) {
-			var confirmation = new qoid.api.IntroResponseMessage(self.options.notification.iid,accepted);
-			qoid.model.EM.change(qoid.model.EMEvent.RespondToIntroduction,confirmation);
-		};
-		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
-		var title = new $("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
-		var from = new $("<div><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		var date = new $("<div><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var message = new $("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
-		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
-			invitationConfirmation(true);
-		});
-		var reject = new $("<button>Reject</button>").appendTo(invitationText).button().click(function(evt1) {
-			invitationConfirmation(false);
-		});
-		intro_table.find("td:nth-child(3)").append("<div>" + self.options.notification.props.profile.name + "</div><div><img class='intro-profile-img container' src='" + self.options.notification.props.profile.imgSrc + "'/></div>");
-	}, destroy : function() {
-		var self1 = this;
-		qoid.model.EM.removeListener(qoid.model.EMEvent.RespondToIntroduction_RESPONSE,self1.listenerUid);
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.introductionNotificationComp",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of VerificationRequestNotificationComp must be a div element");
-		selfElement.addClass("verificationRequestNotificationComp notification-ui container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
-		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
-		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
-		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
-		var title = new $("<div class='intro-title'>Verification Request</div>").appendTo(invitationText);
-		var from = new $("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		var date = new $("<div class='notification-line'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var message = new $("<div class='notification-line'><b>Message:</b> " + self.options.notification.props.message + "</div>").appendTo(invitationText);
-		new $("<div class='notification-line' style='margin-top:7px;'><b>Content:</b></div>").appendTo(invitationText);
-		var content = self.options.notification.props.getContent();
-		var contentDiv = new $("<div class='container content-div'></div>").appendTo(invitationText);
-		var _g = content.contentType;
-		switch(_g[1]) {
-		case 0:
-			var audio;
-			audio = js.Boot.__cast(content , qoid.model.AudioContent);
-			contentDiv.append(audio.props.title + "<br/>");
-			var audioControls = new $("<audio controls></audio>");
-			contentDiv.append(audioControls);
-			audioControls.append("<source src='" + audio.props.audioSrc + "' type='" + audio.props.audioType + "'>Your browser does not support the audio element.");
-			break;
-		case 1:
-			var img;
-			img = js.Boot.__cast(content , qoid.model.ImageContent);
-			contentDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
-			break;
-		case 2:
-			var urlContent;
-			urlContent = js.Boot.__cast(content , qoid.model.UrlContent);
-			contentDiv.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
-			break;
-		case 3:
-			var textContent;
-			textContent = js.Boot.__cast(content , qoid.model.MessageContent);
-			contentDiv.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
-			break;
-		case 4:
-			throw new m3.exception.Exception("VerificationContent should not be displayed");
-			break;
-		}
-		new $("<div class='notification-line'><b>Comments:</b> <input type='text' id='responseText'/></div>").appendTo(invitationText);
-		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
-			self.acceptVerification();
-		});
-		var reject = new $("<button>Reject</button>").appendTo(invitationText).button().click(function(evt1) {
-			self.rejectVerification();
-		});
-	}, acceptVerification : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		var text = new $("#responseText").val();
-		if(m3.helper.StringHelper.isBlank(text)) text = "The claim is true";
-		var msg = new qoid.model.VerificationResponse(self1.options.notification.iid,text);
-		qoid.model.EM.listenOnce(qoid.model.EMEvent.RespondToVerification_RESPONSE,function(e) {
-			self1.destroy();
-			selfElement1.remove();
-		});
-		qoid.model.EM.change(qoid.model.EMEvent.RespondToVerification,msg);
-	}, rejectVerification : function() {
-		var self2 = this;
-		var selfElement2 = this.element;
-		qoid.model.EM.listenOnce(qoid.model.EMEvent.RejectVerificationRequest_RESPONSE,function(e1) {
-			self2.destroy();
-			selfElement2.remove();
-		});
-		qoid.model.EM.change(qoid.model.EMEvent.RejectVerificationRequest,self2.options.notification.iid);
-	}, destroy : function() {
-		var self3 = this;
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.verificationRequestNotificationComp",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of VerificationResponseNotificationComp must be a div element");
-		selfElement.addClass("verificationResponseNotificationComp notification-ui container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
-		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
-		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
-		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
-		var title = new $("<div class='intro-title'>Verification Response</div>").appendTo(invitationText);
-		var from = new $("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		var date = new $("<div class='notification-line'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var message = new $("<div class='notification-line'><b>Comments:</b> " + Std.string(self.options.notification.props.verificationContentData.text) + "</div>").appendTo(invitationText);
-		var accept = new $("<button>Accept</button>").appendTo(invitationText).button().click(function(evt) {
-			self.acceptVerification();
-		});
-		var reject = new $("<button>Reject</button>").appendTo(invitationText).button().click(function(evt1) {
-			self.rejectVerification();
-		});
-	}, acceptVerification : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		qoid.model.EM.listenOnce(qoid.model.EMEvent.AcceptVerification_RESPONSE,function(e) {
-			self1.destroy();
-			selfElement1.remove();
-		});
-		qoid.model.EM.change(qoid.model.EMEvent.AcceptVerification,self1.options.notification.iid);
-	}, rejectVerification : function() {
-		var self2 = this;
-		var selfElement2 = this.element;
-		self2.destroy();
-		selfElement2.remove();
-	}, destroy : function() {
-		var self3 = this;
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.verificationResponseNotificationComp",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of FilterComp must be a div element");
 		selfElement.addClass("connectionDT labelDT dropCombiner " + m3.widget.Widgets.getWidgetClasses());
 		var toggle = new $("<div class='rootToggle andOrToggle'></div>").andOrToggle();
@@ -8749,33 +8710,6 @@ var defineWidget = function() {
 					self.fireFilter();
 				}
 			};
-			if($(this).children(".connectionAvatar").length == 0) {
-				if(_ui.draggable.hasClass("connectionAvatar")) {
-					var connection = qoid.widget.ConnectionAvatarHelper.getConnection(js.Boot.__cast(_ui.draggable , $));
-					var set = new m3.observable.FilteredSet(qoid.AppContext.NOTIFICATIONS,function(n) {
-						return connection != null && n.fromConnectionIid == connection.iid;
-					});
-					if(m3.helper.OSetHelper.hasValues(set)) {
-						var iter = set.iterator();
-						var notification = iter.next();
-						var comp;
-						var _g = notification.kind;
-						switch(_g[1]) {
-						case 0:
-							comp = new $("<div></div>").introductionNotificationComp({ notification : js.Boot.__cast(notification , qoid.model.IntroductionRequestNotification)});
-							break;
-						case 1:
-							comp = new $("<div></div>").verificationRequestNotificationComp({ notification : js.Boot.__cast(notification , qoid.model.VerificationRequestNotification)});
-							break;
-						case 2:
-							comp = new $("<div></div>").verificationResponseNotificationComp({ notification : js.Boot.__cast(notification , qoid.model.VerificationResponseNotification)});
-							break;
-						}
-						comp.insertAfter(new $("#filter"));
-						return;
-					}
-				}
-			}
 			var clone = (_ui.draggable.data("clone"))(_ui.draggable,false,false,dragstop);
 			clone.addClass("filterTrashable " + Std.string(_ui.draggable.data("dropTargetClass")));
 			var cloneOffset = clone.offset();
@@ -8833,6 +8767,52 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.filterComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
+		selfElement.addClass("introductionNotificationComp notification-ui container boxsizingBorder");
+		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
+		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
+		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
+		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
+		var title = new $("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
+		var from = new $("<div><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		var date = new $("<div><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
+		var message = new $("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
+		intro_table.find("td:nth-child(3)").append("<div>" + self.options.notification.props.profile.name + "</div><div><img class='intro-profile-img container' src='" + self.options.notification.props.profile.imgSrc + "'/></div>");
+	}, initialized : false, _respondToIntroduction : function(accepted) {
+		var self1 = this;
+		var selfElement1 = this.element;
+		qoid.model.EM.listenOnce(qoid.model.EMEvent.RespondToIntroduction_RESPONSE,function(e) {
+			self1.destroy();
+			selfElement1.remove();
+		});
+		var confirmation = new qoid.api.IntroResponseMessage(self1.options.notification.iid,accepted);
+		qoid.model.EM.change(qoid.model.EMEvent.RespondToIntroduction,confirmation);
+	}, _buildDialog : function() {
+		var self2 = this;
+		var selfElement2 = this.element;
+		self2.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Respond To Introduction", height : 400, width : 600, modal : true, buttons : { Accept : function() {
+			self2._respondToIntroduction(true);
+		}, Reject : function() {
+			self2._respondToIntroduction(false);
+		}}, close : function(evt,ui) {
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement2.dialog(dlgOptions);
+	}, open : function() {
+		var self3 = this;
+		var selfElement3 = this.element;
+		if(!self3.initialized) self3._buildDialog();
+		selfElement3.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.introductionNotificationDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -9403,6 +9383,94 @@ var defineWidget = function() {
 };
 $.widget("ui.requestIntroductionDialog",defineWidget());
 var defineWidget = function() {
+	return { initialized : false, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RespondToVerificationRequestDialog must be a div element");
+		selfElement.addClass("respondToVerificationRequestDialog notification-ui container boxsizingBorder");
+		var conn = m3.helper.OSetHelper.getElement(qoid.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
+		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
+		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
+		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
+		var title = new $("<div class='intro-title'>Verification Request</div>").appendTo(invitationText);
+		var from = new $("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
+		var date = new $("<div class='notification-line'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
+		var message = new $("<div class='notification-line'><b>Message:</b> " + self.options.notification.props.message + "</div>").appendTo(invitationText);
+		new $("<div class='notification-line' style='margin-top:7px;'><b>Content:</b></div>").appendTo(invitationText);
+		var content = self.options.notification.props.getContent();
+		var contentDiv = new $("<div class='container content-div'></div>").appendTo(invitationText);
+		var _g = content.contentType;
+		switch(_g[1]) {
+		case 0:
+			var audio;
+			audio = js.Boot.__cast(content , qoid.model.AudioContent);
+			contentDiv.append(audio.props.title + "<br/>");
+			var audioControls = new $("<audio controls></audio>");
+			contentDiv.append(audioControls);
+			audioControls.append("<source src='" + audio.props.audioSrc + "' type='" + audio.props.audioType + "'>Your browser does not support the audio element.");
+			break;
+		case 1:
+			var img;
+			img = js.Boot.__cast(content , qoid.model.ImageContent);
+			contentDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
+			break;
+		case 2:
+			var urlContent;
+			urlContent = js.Boot.__cast(content , qoid.model.UrlContent);
+			contentDiv.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
+			break;
+		case 3:
+			var textContent;
+			textContent = js.Boot.__cast(content , qoid.model.MessageContent);
+			contentDiv.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
+			break;
+		case 4:
+			throw new m3.exception.Exception("VerificationContent should not be displayed");
+			break;
+		}
+		new $("<div class='notification-line'><b>Comments:</b> <input type='text' id='responseText'/></div>").appendTo(invitationText);
+	}, acceptVerification : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		var text = new $("#responseText").val();
+		if(m3.helper.StringHelper.isBlank(text)) text = "The claim is true";
+		var msg = new qoid.model.VerificationResponse(self1.options.notification.iid,text);
+		qoid.model.EM.listenOnce(qoid.model.EMEvent.RespondToVerification_RESPONSE,function(e) {
+			self1.destroy();
+			selfElement1.remove();
+		});
+		qoid.model.EM.change(qoid.model.EMEvent.RespondToVerification,msg);
+	}, rejectVerification : function() {
+		var self2 = this;
+		var selfElement2 = this.element;
+		qoid.model.EM.listenOnce(qoid.model.EMEvent.RejectVerificationRequest_RESPONSE,function(e1) {
+			self2.destroy();
+			selfElement2.remove();
+		});
+		qoid.model.EM.change(qoid.model.EMEvent.RejectVerificationRequest,self2.options.notification.iid);
+	}, _buildDialog : function() {
+		var self3 = this;
+		var selfElement3 = this.element;
+		self3.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Respond To Verification Request", height : 400, width : 600, modal : true, buttons : { Accept : function() {
+			self3.acceptVerification();
+		}, Reject : function() {
+			self3.rejectVerification();
+		}}, close : function(evt,ui) {
+			selfElement3.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement3.dialog(dlgOptions);
+	}, open : function() {
+		var self4 = this;
+		var selfElement4 = this.element;
+		if(!self4.initialized) self4._buildDialog();
+		selfElement4.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.respondToVerificationRequestDialog",defineWidget());
+var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -9675,15 +9743,16 @@ haxe.xml.Parser.escapes = (function($this) {
 js.d3._D3.InitPriority.important = "important";
 m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l:?autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet.T\"/>\n</x></f></delegate>\n\t<getVisualId public=\"1\" set=\"method\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.EventManager.__rtti = "<class path=\"m3.observable.EventManager\" params=\"T\" module=\"m3.observable.OSet\">\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"47\"><f a=\"l:autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<remove public=\"1\" set=\"method\" line=\"56\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></remove>\n\t<fire public=\"1\" set=\"method\" line=\"59\"><f a=\"t:type\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<listenerCount public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Int\"/></f></listenerCount>\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false);
-m3.observable.EventType.Update = new m3.observable.EventType("Update",false,true);
-m3.observable.EventType.Delete = new m3.observable.EventType("Delete",false,false);
-m3.observable.AbstractSet.__rtti = "<class path=\"m3.observable.AbstractSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<implements path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></implements>\n\t<_eventManager public=\"1\"><c path=\"m3.observable.EventManager\"><c path=\"m3.observable.AbstractSet.T\"/></c></_eventManager>\n\t<visualId public=\"1\"><c path=\"String\"/></visualId>\n\t<listen public=\"1\" set=\"method\" line=\"122\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\" line=\"126\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<filter public=\"1\" set=\"method\" line=\"130\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"134\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"138\"><f a=\"t:type\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<getVisualId public=\"1\" set=\"method\" line=\"142\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<identifier public=\"1\" set=\"method\" line=\"146\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"150\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"154\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n</x></f></delegate>\n\t<new set=\"method\" line=\"118\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-m3.observable.ObservableSet.__rtti = "<class path=\"m3.observable.ObservableSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"m3.util.SizedMap\"><c path=\"m3.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"174\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"178\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"186\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"190\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"194\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"206\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"210\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"214\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"222\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"226\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"233\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"237\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"165\"><f a=\"identifier:?tArr\" v=\":null\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-m3.observable.MappedSet.__rtti = "<class path=\"m3.observable.MappedSet\" params=\"T:U\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<_remapOnUpdate><x path=\"Bool\"/></_remapOnUpdate>\n\t<_mapListeners><c path=\"Array\"><f a=\"::\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_mapListeners>\n\t<_sourceListener set=\"method\" line=\"265\"><f a=\"t:type\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></_sourceListener>\n\t<identifier public=\"1\" set=\"method\" line=\"286\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"290\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"294\"><f a=\"u\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"305\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.MappedSet.U\"/></t></f></iterator>\n\t<mapListen public=\"1\" set=\"method\" line=\"309\"><f a=\"f\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></mapListen>\n\t<removeListeners public=\"1\" set=\"method\" line=\"320\"><f a=\"mapListener\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListeners>\n\t<new public=\"1\" set=\"method\" line=\"255\"><f a=\"source:mapper:?remapOnUpdate\" v=\"::false\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<delegate public=\"1\" set=\"method\" line=\"353\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"357\"><f a=\"t\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"374\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"378\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"382\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.FilteredSet.T\"/></t></f></iterator>\n\t<asArray public=\"1\" set=\"method\" line=\"386\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.FilteredSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"332\"><f a=\"source:filter\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"424\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"447\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"466\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"475\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"479\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"490\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"494\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"404\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"546\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"554\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"559\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"577\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"581\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"587\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"591\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"595\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"507\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false,false);
+m3.observable.EventType.Update = new m3.observable.EventType("Update",false,true,false);
+m3.observable.EventType.Delete = new m3.observable.EventType("Delete",false,false,false);
+m3.observable.EventType.Clear = new m3.observable.EventType("Clear",false,false,true);
+m3.observable.AbstractSet.__rtti = "<class path=\"m3.observable.AbstractSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<implements path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></implements>\n\t<_eventManager public=\"1\"><c path=\"m3.observable.EventManager\"><c path=\"m3.observable.AbstractSet.T\"/></c></_eventManager>\n\t<visualId public=\"1\"><c path=\"String\"/></visualId>\n\t<listen public=\"1\" set=\"method\" line=\"129\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\" line=\"133\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<filter public=\"1\" set=\"method\" line=\"137\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"141\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"145\"><f a=\"t:type\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<getVisualId public=\"1\" set=\"method\" line=\"149\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<identifier public=\"1\" set=\"method\" line=\"153\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"157\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"161\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n</x></f></delegate>\n\t<new set=\"method\" line=\"125\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+m3.observable.ObservableSet.__rtti = "<class path=\"m3.observable.ObservableSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"m3.util.SizedMap\"><c path=\"m3.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"181\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"185\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"193\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"197\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"201\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"213\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"217\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"221\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"229\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"233\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"238\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"242\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"172\"><f a=\"identifier:?tArr\" v=\":null\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+m3.observable.MappedSet.__rtti = "<class path=\"m3.observable.MappedSet\" params=\"T:U\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<_remapOnUpdate><x path=\"Bool\"/></_remapOnUpdate>\n\t<_mapListeners><c path=\"Array\"><f a=\"::\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_mapListeners>\n\t<_sourceListener set=\"method\" line=\"270\"><f a=\"t:type\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></_sourceListener>\n\t<identifier public=\"1\" set=\"method\" line=\"296\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"300\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"304\"><f a=\"u\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"315\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.MappedSet.U\"/></t></f></iterator>\n\t<mapListen public=\"1\" set=\"method\" line=\"319\"><f a=\"f\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></mapListen>\n\t<removeListeners public=\"1\" set=\"method\" line=\"330\"><f a=\"mapListener\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListeners>\n\t<new public=\"1\" set=\"method\" line=\"260\"><f a=\"source:mapper:?remapOnUpdate\" v=\"::false\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<delegate public=\"1\" set=\"method\" line=\"366\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"370\"><f a=\"t\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"387\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"391\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"395\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.FilteredSet.T\"/></t></f></iterator>\n\t<asArray public=\"1\" set=\"method\" line=\"399\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.FilteredSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"342\"><f a=\"source:filter\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"437\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"460\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"479\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"488\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"492\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"503\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"417\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"570\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"575\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"593\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"597\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"603\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"607\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"611\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
 qoid.api.ChannelMessage.__rtti = "<class path=\"qoid.api.ChannelMessage\" params=\"\" module=\"qoid.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
 qoid.api.BennuMessage.__rtti = "<class path=\"qoid.api.BennuMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";

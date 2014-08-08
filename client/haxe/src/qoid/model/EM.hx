@@ -86,6 +86,9 @@ enum EMEvent {
 	AcceptVerification;
 	AcceptVerification_RESPONSE;
 
+	RejectVerification;
+	RejectVerification_RESPONSE;
+
 	BACKUP;
 	RESTORE;
 	RESTORES_REQUEST;

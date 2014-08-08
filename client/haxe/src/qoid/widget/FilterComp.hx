@@ -79,38 +79,6 @@ extern class FilterComp extends JQ {
 			                	}
 			                };
 
-			                if (JQ.cur.children(".connectionAvatar").length == 0) {
-				                if (_ui.draggable.hasClass("connectionAvatar")) {
-				                	var connection = cast(_ui.draggable, ConnectionAvatar).getConnection();
-				                	
-				                	// TODO:  These data need to be orered by time:  oldest first
-				                	var set: OSet<Notification<Dynamic>> = new FilteredSet(AppContext.NOTIFICATIONS, function(n:Notification<Dynamic>):Bool {
-				                		return (connection != null && n.fromConnectionIid == connection.iid);
-				                	});
-				                	if (set.hasValues()) {
-				                		var iter = set.iterator();
-				                		var notification = iter.next();
-				                		var comp:JQ;
-				                		switch (notification.kind) {
-				                			case NotificationKind.IntroductionRequest:
-						                		comp = new IntroductionNotificationComp("<div></div>").introductionNotificationComp({
-					  		        				notification: cast(notification, IntroductionRequestNotification)
-					 		        			});
-					 		        		case NotificationKind.VerificationRequest:
-						                		comp = new VerificationRequestNotificationComp("<div></div>").verificationRequestNotificationComp({
-					  		        				notification: cast(notification, VerificationRequestNotification)
-					 		        			});
-					 		        		case NotificationKind.VerificationResponse:
-						                		comp = new VerificationResponseNotificationComp("<div></div>").verificationResponseNotificationComp({
-					  		        				notification: cast(notification, VerificationResponseNotification)
-					 		        			});
-				                		}
-				                		comp.insertAfter(new JQ("#filter"));
-				                		return;
-				                	}
-				                }
-			                }
-
 			                var clone: JQ = _ui.draggable.data("clone")(_ui.draggable, false, false, dragstop);
 			                clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
 			                var cloneOffset: {top: Int, left: Int} = clone.offset();
