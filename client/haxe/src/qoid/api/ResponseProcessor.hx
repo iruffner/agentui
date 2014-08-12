@@ -72,6 +72,8 @@ class ResponseProcessor {
                         EM.change(EMEvent.AcceptVerification_RESPONSE);
                     case "verificationRequestRejected":
                         EM.change(EMEvent.RejectVerificationRequest_RESPONSE);
+                    case "verificationResponseRejected":
+                        EM.change(EMEvent.RejectVerification_RESPONSE);
                     default:
                         Synchronizer.processResponse(data);
                 }

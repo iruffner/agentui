@@ -4,55 +4,56 @@ import js.html.Element;
 
 import m3.exception.Exception;
 import m3.jq.JQ;
-import m3.jq.JQDraggable;
-import m3.jq.JQDroppable;
-import m3.jq.JQTooltip;
-import m3.observable.OSet;
-import m3.util.JqueryUtil;
+import m3.jq.JQDialog;
 import m3.widget.Widgets;
 
-import qoid.api.CrudMessage;
 import qoid.model.ModelObj;
-import qoid.model.Node;
-import qoid.model.Filter;
 import qoid.model.EM;
-import qoid.widget.LabelComp;
 
 using qoid.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
 
-typedef VerificationResponseNotificationCompOptions = {
+typedef AcceptVerificationResponseDialogOptions = {
 	var notification: VerificationResponseNotification;
 }
 
-typedef VerificationResponseNotificationCompWidgetDef = {
-	@:optional var options: VerificationResponseNotificationCompOptions;
+typedef AcceptVerificationResponseDialogWidgetDef = {
+	@:optional var options: AcceptVerificationResponseDialogOptions;
+
+	var initialized: Bool;
+
 	var _create: Void->Void;
 	var destroy: Void->Void;
+
+	var _buildDialog: Void->Void;
+	var open: Void->Void;
+
 	var acceptVerification: Void->Void;
 	var rejectVerification: Void->Void;
 }
 
-class VerificationResponseNotificationCompHelper {
+class AcceptVerificationResponseDialogHelper {
 }
 
 @:native("$")
-extern class VerificationResponseNotificationComp extends JQ {
+extern class AcceptVerificationResponseDialog extends JQ {
 
 	@:overload(function<T>(cmd : String):T{})
 	@:overload(function<T>(cmd:String, opt:String, newVal:Dynamic):T{})
-	function verificationResponseNotificationComp(?opts: VerificationResponseNotificationCompOptions): VerificationResponseNotificationComp;
+	function acceptVerificationResponseDialog(?opts: AcceptVerificationResponseDialogOptions): AcceptVerificationResponseDialog;
 
 	private static function __init__(): Void {
-		var defineWidget: Void->VerificationResponseNotificationCompWidgetDef = function(): VerificationResponseNotificationCompWidgetDef {
+		var defineWidget: Void->AcceptVerificationResponseDialogWidgetDef = function(): AcceptVerificationResponseDialogWidgetDef {
 			return {
+		        initialized: false,
+
 		        _create: function(): Void {
-		        	var self: VerificationResponseNotificationCompWidgetDef = Widgets.getSelf();
+		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
-		        		throw new Exception("Root of VerificationResponseNotificationComp must be a div element");
+		        		throw new Exception("Root of AcceptVerificationResponseDialog must be a div element");
 		        	}
-		        	selfElement.addClass("verificationResponseNotificationComp notification-ui container boxsizingBorder");
+		        	selfElement.addClass("acceptVerificationResponseDialog notification-ui container boxsizingBorder");
 
 		        	var conn: Connection = AppContext.CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
 
@@ -70,24 +71,10 @@ extern class VerificationResponseNotificationComp extends JQ {
 		        	var from  =	new JQ("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
 		        	var date  =	new JQ("<div class='notification-line'><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='notification-line'><b>Comments:</b> " + self.options.notification.props.verificationContentData.text + "</div>").appendTo(invitationText);
-					
-					var accept = new JQ("<button>Accept</button>")
-							        .appendTo(invitationText)
-							        .button()
-							        .click(function(evt: JQEvent): Void {
-							        	self.acceptVerification();
-							        });
-					var reject = new JQ("<button>Reject</button>")
-							        .appendTo(invitationText)
-							        .button()
-							        .click(function(evt: JQEvent): Void {
-							        	self.rejectVerification();
-							        });
-
 		        },
 
 		        acceptVerification: function():Void {
-		        	var self: VerificationResponseNotificationCompWidgetDef = Widgets.getSelf();
+		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
 		        	EM.listenOnce(EMEvent.AcceptVerification_RESPONSE, function(e:Dynamic) {
@@ -99,19 +86,58 @@ extern class VerificationResponseNotificationComp extends JQ {
 		        },
 
 		        rejectVerification: function():Void {
-		        	var self: VerificationResponseNotificationCompWidgetDef = Widgets.getSelf();
+		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
+		        	EM.listenOnce(EMEvent.RejectVerification_RESPONSE, function(e:Dynamic) {
+	        			self.destroy();
+	        			selfElement.remove();
+		        	});
 
-					self.destroy();
-		        	selfElement.remove();
+		        	EM.change(EMEvent.RejectVerification, self.options.notification.iid);
 		        },
 
+		        _buildDialog: function(): Void {
+		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
+					var selfElement: JQDialog = Widgets.getSelfElement();
+
+		        	self.initialized = true;
+
+		        	var dlgOptions: JQDialogOptions = {
+		        		autoOpen: false,
+		        		title: "Accept Verification Response",
+		        		height: 400,
+		        		width: 600,
+		        		modal: true,
+		        		buttons: {
+		        			"Accept": function() {
+							    self.acceptVerification();
+		        			},
+		        			"Reject": function() {
+							    self.rejectVerification();
+		        			}
+		        		},
+		        		close: function(evt: JQEvent, ui: UIJQDialog): Void {
+		        			selfElement.find(".placeholder").removeClass("ui-state-error");
+		        		}
+		        	};
+		        	selfElement.dialog(dlgOptions);
+		        },
+
+	        	open: function(): Void {
+		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
+					var selfElement: JQDialog = Widgets.getSelfElement();
+
+		        	if(!self.initialized) {
+		        		self._buildDialog();
+		        	}
+	        		selfElement.dialog("open");
+        		},
+
 		        destroy: function() {
-		        	var self: VerificationResponseNotificationCompWidgetDef = Widgets.getSelf();
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };
 		}
-		JQ.widget( "ui.verificationResponseNotificationComp", defineWidget());
+		JQ.widget( "ui.acceptVerificationResponseDialog", defineWidget());
 	}
 }
