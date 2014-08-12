@@ -1,0 +1,3 @@
+-main ap.APhoto
+-cp src
+-js ../www/js/aPhoto.js
