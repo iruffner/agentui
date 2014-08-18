@@ -1,0 +1,1199 @@
+
+body {
+	text-align: center;
+	margin-left: 5px;
+	margin-right: 5px;
+	min-width: 800px;
+	font-family: Helvetica,Lucida Grande,Lucida Sans,Arial,sans-serif;
+	font-size:12px;
+}
+
+#spacer {
+	min-height: 10px;
+}
+
+/* Header
+-----------------------------------------------------------------------------*/
+#header {
+	height: 60px;
+	margin-bottom: 25px;
+}
+
+/* Containers
+-----------------------------------------------------------------------------*/
+.ocontainer {
+	background: #5c9ccc;
+	border-radius: 9px;
+	padding: 5px;
+}
+
+.container {
+	background: white;
+	border-radius: 9px;
+	border: 1px solid #5c9ccc !important;
+	padding: 5px;
+}
+
+.icontainer {
+	background: #E6E6E6;
+	border-radius: 9px;
+	border: 1px solid #5c9ccc !important;
+}
+
+.popup {
+	z-index: 100;
+}
+
+.m3menu {
+	display: none;
+	position: absolute !important;	
+	z-index: 1000;
+	text-align: left;
+}
+
+/* Login
+-----------------------------------------------------------------------------*/
+.loginDialog, .createAgentDialog {
+	min-width: 400px;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+	.loginDialog .placeholder, .createAgentDialog .placeholder {
+		color: lightgray;
+	}
+
+	.loginDialog input, .createAgentDialog input {
+		min-width: 225px;
+		padding: 4px;
+	}
+
+	.loginDialog .labelDiv, .createAgentDialog .labelDiv {
+		line-height: 1.65em;
+		margin-right: 10px;
+		padding: 4px;
+	}
+
+
+/* Middle
+-----------------------------------------------------------------------------*/
+#content {
+	padding: 0 20px;
+	/*min-width: 610px;*/
+}
+
+.content-div {
+	margin-bottom:7px;
+}
+.notification-line {
+	margin: 2px 0 2px 0;
+}
+#responseText {
+	width: 80%;
+border-radius: 5px;
+padding: 2px;
+}
+.notification-ui {
+	   min-height: 150px;
+	        width: 100%;
+	   margin-top: 7px;
+	   margin-bottom: 9px;
+	padding-right: 0px;
+	 border-width: 5px !important;
+	 overflow: auto;
+}
+
+#intro-table {
+	height: 100%;
+	 width: 100%;
+}
+
+.invitationText {
+	text-align:left;
+}
+
+.intro-title {
+	    font-size: 1.2em;
+	  font-weight: bold;
+	margin-bottom: 5px;
+}
+
+.invitation-message {
+	padding: 15px;
+}
+
+.introduction-avatar {
+	 float:left;
+	 width:100px;
+	height:150px;
+}
+.intro-profile-img {
+	max-height: 125px;
+	border-radius: 70px;
+}
+
+	/* Feed
+	-----------------------------------------------------------------------------*/
+	#feed {
+		margin-top: 25px;
+	}
+
+		/* Post
+		-----------------------------------------------------------------------------*/
+		.text-content {
+			font-family: Helvetica,Lucida Grande,Lucida Sans,Arial,sans-serif;
+			font-size: 12px;
+		}
+
+		.urlComp {
+			padding-top: 18px;
+		}
+
+		.uploadComp {
+			padding-top: 9px;
+		}
+
+		.file_about_to_be_uploaded {
+			max-height: 90px;
+			max-width: 160px;
+			border-radius: 9px;
+			border: 1px solid #5c9ccc !important;
+			position: relative;
+			top: -2px;
+		}
+
+		.files-upload {
+			float: left;
+			margin-top: 25px;
+			margin-left: 12px;
+			font-size: 18px;
+			width:240px;
+		}
+
+		#feed #postInput {
+			margin-top: -25px !important; 
+			box-shadow: 0px 3px 10px 2px gray;
+			height: 140px;
+			text-align: right;
+			min-width: 500px;
+		}
+
+			#feed #postInput #post_comps_tags, #edit_post_comps_tags {
+				text-align: center;
+			}
+
+			#feed #postSection {
+				margin-left: 30px;
+				margin-right: 205px;
+				height: 100px;
+			}
+
+			#feed #postSection:after {
+				content: '';
+				clear: both;
+				display: table;
+			}
+
+				#feed #postSection .postContainer {
+					width: 100%;
+					height: 100%;
+					float: left;
+					overflow: hidden;
+					margin-right: -100%;
+					margin-left: -8px;
+				}
+
+					#feed #postSection .postContainer textarea {
+						 width: 100%; 
+						 height: 100%;
+						 padding-left: 7px;
+						 padding-top: 4px;
+						 font-size: .8em;
+					}
+
+				#feed #postSection aside {
+					float: left;
+					position: relative;
+				}
+
+				#feed #postSection aside.label {
+					text-align: left;
+					width: 50px;
+					left: -75px;
+				}
+
+				#feed #postSection aside.tabs {
+					width: 18px;
+					left: -25px;
+					margin-top: 7px;
+				}
+
+					#feed #postSection aside.tabs span {
+						margin-top: 1px;
+						background-color: #E6E6E6;
+						border: 1px solid #5c9ccc;
+					}
+
+					#feed #postSection aside.tabs .active {
+						border-right-color: white !important;
+						background-color: white !important;
+					}
+
+				#feed #postSection aside.tags {
+					float: right;
+					margin-right: -200px;
+					width: 200px;
+					height: 100%;
+					position: relative;
+				}
+					#feed #postSection aside.tags img {
+						max-height: 35px;
+						max-width: 35px;
+					}
+
+		#feed .post {
+			margin-top: 10px;
+			margin-left: 70px;
+			height: 100px;
+		}
+
+		#feed .postActive {
+			height:185px;
+			box-shadow: 0px 3px 10px 2px goldenrod;
+		}
+
+		#feed .postActive .postWr img {
+			max-height: 140px;
+		}
+
+		#feed .postActive .content-text {
+			height: 140px !important;
+		}
+
+		.content-timestamp {
+			font-size:.5em;
+			padding-bottom: 4px;
+		}
+
+			.content-timestamp .verified {
+				      color:red;
+				font-weight: bold;
+				  font-size: 1.5em;
+				  border:none !important;
+			}
+
+			.vimage {
+				width:20px;
+			}
+
+			#feed .postWr {
+				height: 100%;
+				max-height: 100%;
+				margin-left: 10px;
+				margin-right: 70px;
+				position: relative;
+			}
+
+				#feed .postWr img {
+					max-height: 80px;
+					border: 1px solid black;
+				}
+
+				#feed .postWr .content-text {
+					padding-right: 80px;
+					height: 80px;
+					overflow: auto;
+				}
+
+				#feed .postWr .postContentWr {
+					width: 100%;
+					float: left;
+					overflow: hidden;
+					margin-right: -100%;
+					text-align: left;
+				}
+
+				#feed .postWr .postCreator {
+					float: left;
+					width: 100px;
+					position: relative;
+					left: -100px;
+				}
+					#feed .postWr .postCreator div {
+						display: inline;
+					}
+
+					#feed .postWr .postCreator img {
+						max-height: 75px;
+						max-width: 75px;
+						margin-right: 5px;
+						border-radius: 50%;
+						border: 1px solid #5c9ccc;
+					}
+
+				#feed .postWr .postConnections {
+					float: right;
+					width: 100px;
+					position: relative;
+				}
+
+					#feed .postWr .postConnections div {
+						display: inline;
+					}
+
+					#feed .postWr .postConnections img {
+						max-height: 45px;
+						max-width: 45px;
+						margin-right: 5px;
+						border-radius: 50%;
+						border: 1px solid #5c9ccc;
+					}
+
+				#feed .postWr .postLabels {
+					float: right;
+					margin-right: -90px;
+					right: -20px;
+					width: 105px;
+					position: relative;
+				}
+
+					#feed .postWr .postLabels .label:not(:first-child) {
+						margin-top: 15px;
+					}
+
+#homeScreen {
+	white-space: nowrap;
+}
+
+	#homeScreen ._albumList,
+	#homeScreen .connectionsDiv {
+		display: inline-block;
+		vertical-align: top;
+	}
+
+/* Sidebar Left
+-----------------------------------------------------------------------------*/
+._albumList {
+	max-width: 300px;
+	overflow: auto;
+	text-align: left;
+}
+
+	/* UserId
+	-----------------------------------------------------------------------------*/
+	#userId {
+		position: relative;
+	}
+
+		#userId.targetChange .userImg {
+			width: 50px !important;
+		}
+
+		#userId .userImg {
+			float: left; 
+			margin-left: 5px; 
+			margin-top: -15px; 
+			border-radius: 50%;
+			width: 100px;
+			border: 1px solid #5c9ccc;
+		}
+
+		#userId .connectionAvatar {
+			float: left;
+			/*margin-left: 10px;*/
+			margin-left: -45px;
+		}
+
+			#userId .connectionAvatar img {
+				max-width: 80px;
+			}
+
+		#userId .userIdTxt {
+			font-weight: bold;
+			max-width: 100px;
+			text-align: right;
+			float: right;
+		}
+
+		#userId .aliasToggle {
+			color: blue;
+			text-decoration: underline;
+			position: absolute;
+			bottom: 0;
+			right: 5px;
+			width: 6em;
+			margin-bottom: 1em;
+			cursor: pointer;
+		}
+		#userId .aliasBtn {
+			padding: 2px 6px;
+			width: 100%;
+		}
+			#userId .aliasBtn:last-child {
+				border-bottom-left-radius: 9px;
+				border-bottom-right-radius: 9px;
+			}
+
+			#userId .aliasBtn:first-child {
+				border-top-left-radius: 9px;
+				border-top-right-radius: 9px;
+			}
+
+	/* Labels
+	-----------------------------------------------------------------------------*/
+	.labelTreeBranch {
+		text-align: left;
+	}
+
+	.labelsList {
+		overflow: auto;
+	}
+
+		.labelTreeFullWidth {
+			/*min-width: 100%;*/
+		}
+
+	#labelc {
+		margin-top: 15px;
+	}
+
+	#labels {
+		padding: 5px;
+	}
+
+	.label {
+		min-height: 40px;
+		max-height: 40px;
+		min-width: 100px; 
+		padding: 0;
+		display: inline-block;
+	}
+
+		.label.small {
+			min-height: 16px;
+			max-height: 16px;
+			min-width: 30px;
+			font-size: .5em;
+		}
+
+		.labelTreeExpander {
+			margin-top: 8px;
+			margin-right: 3px;
+			/*float: left;*/
+			cursor: default;
+			display: inline-block;
+			vertical-align: top;
+		}
+
+		.label .labelTail {
+			width: 0;
+			height: 0;
+			border-top: 15px solid transparent;
+			border-bottom: 15px solid transparent;
+			border-right-width: 25px;
+			border-right-style: solid;
+			background: none; 
+			display: table-cell;
+		}
+
+		.label.small .labelTail {
+			border-top: 9px solid transparent;
+			border-bottom: 9px solid transparent;
+			border-right-width: 14px;
+		}
+
+		.label .labelBox {
+			border-bottom-right-radius: 5px; 
+			border-top-right-radius: 5px; 
+			display: table-cell;
+			min-width: 75px; 
+			cursor: default;
+		}
+
+		.label.small .labelBox {
+			min-width: 50px; 
+		}
+
+		.label .labelBody {
+			margin: 3px;
+			border-radius: 4px;
+			background: white;
+			min-width: 70px;
+			border: 2px solid black;
+			padding: 3px 4px;
+			text-align: center;
+		}
+
+		.label.small .labelBody {
+			min-width: 50px; 
+		}
+
+		.labelBox.small .labelBody {
+			min-width: 45px;
+		}
+
+			.labelBody div {
+			}
+
+		.labelChildren {
+			margin-left: 25px;
+			margin-top: 3px;
+			white-space: nowrap;
+		}
+
+		.newLabelButton {
+			float: right;
+		}
+
+			.newLabelButton span {
+				padding: .2em .4em !important;
+				font-size: .8em !important;
+			}
+
+	.labelRed .labelBox {
+		background: #D06C72;
+	}
+	.labelRed .labelTail {
+		border-right-color: #D06C72;
+	}
+
+	.labelBlue .labelBox {
+		background: #3D88C2;
+	}
+	.labelBlue .labelTail {
+		border-right-color: #3D88C2;
+	}
+
+	.labelGreen .labelBox {
+		background: #72D06C;
+	}
+	.labelGreen .labelTail {
+		border-right-color: #72D06C;
+	}
+
+	.labelOrange .labelBox {
+		background: #D0976C;
+	}
+	.labelOrange .labelTail {
+		border-right-color: #D0976C;
+	}
+
+	.labelBrown .labelBox {
+		background: #935A2F;
+	}
+	.labelBrown .labelTail {
+		border-right-color: #935A2F;
+	}
+
+	.labelPurple .labelBox {
+		background: #976CD0;
+	}
+	.labelPurple .labelTail {
+		border-right-color: #976CD0;
+	}
+
+	#label-action-menu span.ui-icon {
+		top: .4em;
+	}
+
+/* Sidebar Right
+-----------------------------------------------------------------------------*/
+#sideRight {
+	float: right;
+	margin-right: -250px;
+	width: 250px;
+	position: relative;
+}
+
+	/* #sideRightInvite
+	-----------------------------------------------------------------------------*/
+	#sideRightInvite {	
+		margin-bottom: 15px;
+	}
+
+		#sideRightInviteInput, #sideRightInviteInput_PH {
+			float: left;
+			margin-top: 9px; 
+		}
+
+		#sideRightInviteInput_PH {
+			color: gray;
+		}
+
+		#sideRightInviteInput:focus {
+			outline: none;
+		}
+
+		#sideRightInvite button span {
+			padding: .1em 1em;
+		}
+
+	/* #sideRightSearch
+	-----------------------------------------------------------------------------*/
+	#sideRightSearch {
+		min-height: 50px;
+	}
+
+		#sideRightAddWrapper {
+			background: green; 
+			border: 4px solid #5c9ccc; 
+			min-height: 40px; 
+			max-width: 40px; 
+			min-width: 40px;
+			border-radius: 50%;
+			float: left;
+			margin-left: 5px;
+		}
+
+		#sideRightAdd {
+			font-size: 22px; 
+			font-weight: bolder; 
+			margin-top: 7px;
+		}
+
+		#sideRightSearchInput {
+			float: left;
+			margin-top: 9px; 
+			padding: 3px; 
+			background: black;
+			border: 2px solid #5c9ccc;
+			border-radius: 12px;
+			color:white;
+			width: 160px;
+		}
+
+	/* .connectionsList
+	-----------------------------------------------------------------------------*/
+
+	.connectionsList {
+		margin-top: 10px;
+		padding: 3px !important;
+		min-height: 250px;
+	}
+
+		.connectionsList .connection {
+			/*float: left;*/
+			margin: 3px auto;
+			width: 100%;
+			padding: 5px;
+			font-size: .9em !important;
+			position: relative;
+		}
+
+			.connectionsList .connection div.avatar {
+				/*border-radius: 50%; */
+				max-width: 60px;
+				margin-top: -10px;
+			}
+
+			.connectionsList .connection div.avatar img, .connectionDraggingImg, .connectionAvatar img {
+				max-width: 60px;
+				border-radius: 50%;
+				border: 1px solid #5c9ccc;
+			}
+
+			.connectionsList .connection .avatar, .connectionsList .connection .name {
+				margin-top: 20px;
+			}
+
+			.connectionsList .connection:nth-child(odd) div.avatar, .connectionsList .connection:nth-child(even) div.name {
+				float: left;
+			}
+
+			.connectionsList .connection:nth-child(even) div.avatar, .connectionsList .connection:nth-child(odd) div.name {
+				float: right;
+			}
+
+			.connectionsList .connection .notifications {
+				position: absolute;
+				border-radius: 50%;
+				background: red;
+				color: white;
+				min-width: 20px;
+				min-height: 20px;
+				padding: 4px 2px 2px 2px;
+				visibility: hidden;
+			}
+
+			.connectionsList .connection:nth-child(odd) div.notifications {
+				top: -6px;
+				left: 195px;
+			}
+
+			.connectionsList .connection:nth-child(even) div.notifications {
+				top: -6px;
+				left: 0px;
+			}
+
+	/* #chat
+	-----------------------------------------------------------------------------*/
+	#chat {
+		font-size: 1em;
+		min-height: 225px;
+		max-height: 225px;
+		margin-top: 15px;
+	}
+		/*#chat .chatContainer .chatMsg:nth-child(odd) div.avatar, #chat .chatContainer .chatMsg:nth-child(even) div.name {
+			float: left;
+		}
+
+		#chat .chatContainer .chatMsg:nth-child(even) div.avatar, #chat .chatContainer .chatMsg:nth-child(odd) div.name {
+			float: right;
+		}*/
+
+		#chat img {
+			/*-webkit-column-break-before: always;*/
+			max-width: 30px;
+			clear: both;
+		}
+
+			#chat li img {
+				max-height: 45px;
+				max-width: 45px;
+				margin-right: 5px;
+				border-radius: 50%;
+				/*border: 1px solid #5c9ccc;*/
+			}
+
+			#chat li a {
+				padding: .1em .2em;
+				font-size: .8em;
+			}
+
+		#chat .chatComp {
+			padding: 3px 0 0 0;
+			max-height: 192px;
+			min-height: 192px;
+			margin-top: 3px;
+			overflow: auto;
+		}
+
+			#chat .chatComp .chatMsgs {
+				max-height: 135px;
+				min-height: 135px;
+				overflow: auto;
+			}
+
+			#chat .chatComp .chatInput input {
+				min-width: 98%;
+			}
+
+		#chat .chatComp .chatMsg div.name {
+			z-index: 5;
+			position: relative;
+			margin-top: 5px;
+			margin-bottom: 5px;
+			max-width: 60%;
+			/*clear: both;*/
+		}
+
+		/*#chat .chatComp .chatMsg:nth-child(odd) div.name {*/
+		#chat .chatComp .chatMsg.chatLeft div.name {
+			float: left;
+			margin-right: auto;
+			text-align: left; 
+
+			/*margin-left: 36px;*/
+			padding: 4px 10px 4px 15px; /*position within the border*/
+		}
+
+		/*#chat .chatComp .chatMsg:nth-child(odd) div.name:before{*/
+		#chat .chatComp .chatMsg.chatLeft div.name:before{
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+			content: "";
+
+			border-width: 8px 10px 8px 17px; 
+			border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
+			-webkit-border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
+			-moz-border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
+			-o-border-image: url(../media/chat_left.png) 8 10 8 17 stretch stretch;
+		}
+
+		#chat .chatComp .chatMsg.chatRight div.name {
+		/*#chat .chatComp .chatMsg:nth-child(even) div.name {*/
+			float: right;
+			margin-left: auto;
+			text-align: right;
+
+			/*margin-right: 36px;*/
+			padding: 4px 15px 4px 10px; /*position within the border*/
+		}
+
+		/*#chat .chatComp .chatMsg:nth-child(even) div.name:before{*/
+		#chat .chatComp .chatMsg.chatRight div.name:before{
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+			content: "";
+
+			border-width: 8px 17px 8px 10px; 
+			border-image: url(../media/chat_right.png) 8 17 8 10 stretch stretch ;
+			-webkit-border-image: url(../media/chat_right.png) 8 17 8 10 stretch stretch ;
+			-moz-border-image: url(../media/chat_right.png) 8 17 8 10 stretch stretch ;
+			-o-border-image: url(../media/chat_right.png) 8 17 8 10 stretch stretch ;
+		}
+
+		.bubbledLeft,.bubbledRight{
+			position: relative;
+			margin-top: 5px;
+			margin-bottom: 5px;
+			max-width: 80%;
+			clear: both;
+		}
+
+		.bubbledLeft{
+			float: left;
+			margin-right: auto;
+			margin-left: 36px;
+			padding: 4px 10px 4px 15px; /*position within the border*/
+		}
+
+		.bubbledLeft:before{
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+			content: "";
+
+			border-width: 8px 10px 8px 17px; 
+			border-image: url(speech_bubble_left_2.png) 8 10 8 17 stretch stretch;
+			-webkit-border-image: url(speech_bubble_left_2.png) 8 10 8 17 stretch stretch;
+			-moz-border-image: url(speech_bubble_left_2.png) 8 10 8 17 stretch stretch;
+			-o-border-image: url(speech_bubble_left_2.png) 8 10 8 17 stretch stretch;
+		}
+
+		.bubbledLeft:after{
+			z-index: -1;
+			position: absolute;
+			left: -36px;
+			width: 32px;
+			bottom: 0px;
+			height: 32px;
+			content:"";
+
+			background-image: url(left_chatter.png);
+			background-size: 32px 32px;
+			background-position: bottom left;
+
+			border-radius: 3px;
+			-webkit-border-radius: 3px;	
+			-moz-border-radius: 3px;	
+			-o-border-radius: 3px;	
+			-ms-border-radius: 3px;	
+		}
+
+		.bubbledRight{
+			float: right;
+			margin-left: auto;
+			text-align: right;
+
+			margin-right: 36px;
+			padding: 4px 15px 4px 10px; /*position within the border*/	
+		}
+
+		.bubbledRight:before{
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+			content: "";
+
+			border-width: 8px 17px 8px 10px; 
+			border-image: url(speech_bubble_right_2.png) 8 17 8 10 stretch stretch ;
+			-webkit-border-image: url(speech_bubble_right_2.png) 8 17 8 10 stretch stretch ;
+			-moz-border-image: url(speech_bubble_right_2.png) 8 17 8 10 stretch stretch ;
+			-o-border-image: url(speech_bubble_right_2.png) 8 17 8 10 stretch stretch ;
+		}
+
+		.bubbledRight:after{
+			z-index: -1;
+			position: absolute;
+			right: -36px;
+			width: 32px;
+			bottom: 0px;
+			height: 32px;
+			content:"";
+
+			background-image: url(right_chatter.png);
+			background-size: 32px 32px;
+			background-position: bottom left;
+
+			border-radius: 3px;
+			-webkit-border-radius: 3px;	
+			-moz-border-radius: 3px;	
+			-o-border-radius: 3px;	
+			-ms-border-radius: 3px;	
+		}
+/* RequestIntroductionDialog
+-----------------------------------------------------------------------------*/
+
+.rid_row {
+	display: table-row;
+}
+
+.rid_cell {
+	width: 270px;
+	font-size: 12px;
+	display: table-cell;
+}
+
+.rid_ta {
+	resize: none;
+	font-size: 12px;
+	width: 100%;
+	height: 100%;
+}
+
+/* Alias Manager
+-----------------------------------------------------------------------------*/
+._aliasManagerDialog img {
+	max-width: 200px;
+	max-height: 200px;
+}
+
+.alii {
+	text-align: left;
+}
+
+.alias_link {
+	width: 100%;
+	padding-left: 4px;
+}
+
+#leftDiv {
+	min-width: 70%; 
+	min-height: 100%; 
+	padding-top: 15px;
+}
+
+#rightDiv {
+	min-width: 25%; 
+	background-color: lightblue; 
+	min-height: 100%;
+}
+
+#alias_name_label {
+	text-align: left;
+	font-weight: bold;
+	font-size: 1.2em;
+}
+#alias_name_input {
+	width: 80%;
+	padding: .2em .4em;
+}
+#profile_picture_label {
+	text-align: left;
+	font-weight: bold;
+	font-size: 1.2em;
+}
+#change_profile_picture {
+	font-weight: 1em;
+	font-weight: normal; 
+	cursor: pointer;
+	padding-bottom: 4px;
+}
+#new_alias_button {
+	margin-top: 30px;
+}
+
+/* Other
+-----------------------------------------------------------------------------*/
+.clear {
+	clear: both;
+}
+
+.fleft {
+	float: left;
+}
+
+.fright {
+	float: right;
+}
+
+.boxsizingBorder {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+.shadow {
+	box-shadow: 0px 3px 10px 2px gray;
+}
+
+.shadowRight {
+	box-shadow: 7px 5px 10px -2px gray	;
+}
+
+.textInput {
+	padding: 3px 3px 3px 5px !important; 
+	border: 2px solid #5c9ccc !important;
+	border-radius: 12px;
+	width: 100%;
+	font-size: .9em !important;
+}
+
+.textInput:focus {
+	outline: none;
+}
+
+.clickable {
+	cursor: pointer;
+}
+
+
+/* jquery ui overrides
+-----------------------------------------------------------------------------*/
+.ui-draggable-dragging {
+	z-index: 10000;
+}
+
+.ui-effects-transfer {
+    border: 1px dotted black;
+    border-radius: 9px;
+}
+
+.ui-tabs-vertical { width: 55em; }
+.ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }
+.ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
+.ui-tabs-vertical .ui-tabs-nav li a { display:block; }
+.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; border-right-width: 1px; }
+.ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}
+
+
+/* Score 
+-----------------------------------------------------------------------------*/
+
+#score-div {
+	 width: 100%;
+  overflow: auto;
+}
+
+#score-comp-svg {
+	 width: 1200px;
+	border: 1px solid #cccccc;
+}
+
+.urlContent {
+	stroke: #00FF00; 
+	stroke-width: 1px;
+	fill: cyan;
+}
+
+.audioEllipse {
+	/*
+	stroke: wheat;
+	stroke-width: 1px;
+*/
+	fill: tomato;
+}
+
+.audioIcon, .imageIcon, .linkIcon, .messageIcon {
+	fill: #000000;
+	stroke: "none";
+}
+
+.messageContent, .messageContentLarge {
+	/*stroke: #00FF00;*/
+	fill: orange;
+}
+
+.messageContent {
+	/*stroke-width: 1px;*/
+}
+
+.messageContentLarge {
+	/*stroke-width: 5px;*/
+}
+
+.messageContent-small-text {
+	color:#ff00ff;
+	font-size:6px;
+}
+
+.messageContent-large-text {
+	color: #000000;
+	font-size: 12px;
+	text-align: left;
+	padding: 7px;
+}
+
+.imageContent {
+	fill: dodgerblue;
+}
+
+.contentLine {
+	stroke-opacity: 0.6;
+	stroke: #cccccc;
+	stroke-width: 1;
+}
+
+.contentRect {
+	fill: none; 
+	stroke: #bada55; 
+	stroke-width: 1;
+}
+
+/* Pan/Zoom controller */
+
+.compass{
+	fill:  #fff;
+	stroke:  #000;
+	stroke-width:  1.5;
+}
+
+.button{
+	fill:  #225EA8;
+	stroke:  #0C2C84;
+	stroke-miterlimit:  6;
+	stroke-linecap:  round;
+}
+
+.button:hover{
+	stroke-width:  2;
+}
+
+.plus-minus{
+	fill:  #fff;
+	pointer-events: none;
+}
+
+/* label drag-drop */
+#copyIndicator {
+	position:relative;
+	top:-14px;
+}
+
+.cc_table {
+	display: table;
+	  width: 100% 	;
+}
+.cc_row {
+	display: table-row;
+}
+.cc_cell {
+	width: 50%;
+	font-size: 12px;
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	padding: 3px 0;
+}
+
+.ccv_header {
+	text-align: left;
+	padding-bottom: 3px;
+	padding-left: 3px;
+}
