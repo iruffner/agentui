@@ -1,26 +1,100 @@
 package qoidapi;
 
+import m3.comm.*;
+
+typedef ChannelId = String;
+
+// Events:
+// onChangeChannel
+// onCreateAgent
+// onAddChannel
+// onDeleteChannel
+
+/*
+enum Foo<T> {
+          A;
+          B;
+          C;
+          SUB_TYPE(value:T); // Use with custom values to extend.
+     }
+
+And then T can for ex
+*/
+
+
 @:expose
 class QoidAPI {
 	public static function main() {
     }
 
+    private static function __init__() {
+        channels = new Array<String>();
+        activeChannel = null;
+    }
+
+    @:isVar public static var activeChannel(get,set): ChannelId;
+    public static function set_activeChannel(c:ChannelId):ChannelId {
+        activeChannel = c;
+        return activeChannel;
+    }
+    public static function get_activeChannel():ChannelId {
+        return activeChannel;
+    }
+
+    private static var channels:Array<ChannelId>;
+    public static function addChannel(c:ChannelId):Void {
+        channels.push(c);
+    }
+    public static function removeChannel(c:ChannelId):Bool {
+        return channels.remove(c);
+    }
+
+
+    // Message Paths
+    private static var AGENT_CREATE = "/api/v1/agent/create";
+    private static var LOGIN = "/api/v1/login";
+    private static var LOGOUT = "/api/v1/logout";
+    private static var SPAWN = "/api/v1/session/spawn";
+
     // AGENT
     public static function createAgent(name:String, password:String):Void {
-    	// /api/v1/agent/create
+        var json:Dynamic = {name:name, password:password};
+        new JsonRequest(json, AGENT_CREATE).start();
     }
+    /*
+    {
+        "authenticationId":"TBD"
+    }
+    */
 
     // SESSION
     public static function login(authenticationId:String, password:String):Void {
-    	// /api/v1/login
+        var json:Dynamic = {authenticationId:name, password:password};
+        new JsonRequest(json, LOGIN).start();
+        /*
+        {
+          "channelId":"<channel id>",
+          "aliasIid":"<alias iid>"
+        }
+
+        403 http response code
+        {
+            
+        }
+        */
     }
 
     public static function logout():Void {
-    	// /api/v1/logout
+        new JsonRequest(json, LOGOUT).start();
     }
 
-    public static function spawnSession():Void {
-    	// /api/v1/session/spawn
+    public static function spawnSession(aliasIid:String):Void {
+        /*
+        {
+          "channelId":"<channel id>",
+          "aliasIid":"<alias iid>"
+        }
+        */
     }
 
     // ALIAS
