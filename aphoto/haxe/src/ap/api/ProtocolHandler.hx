@@ -12,9 +12,9 @@ import qoid.api.Requester;
 import ap.api.EventDelegate;
 import ap.api.ResponseProcessor;
 import ap.api.Synchronizer;
+import ap.model.EM;
 import qoid.model.ModelObj;
 import qoid.model.Filter;
-import qoid.model.EM;
 
 using Lambda;
 using m3.helper.OSetHelper;
@@ -145,6 +145,14 @@ class ProtocolHandler {
 		new SubmitRequest(requests).start();
 	}
 
+	public function albumConfigs(filterData: FilterData): Void {
+		var context = Synchronizer.createContext(1, "albumConfigs");
+		var requests = [
+			new ChannelRequestMessage(QUERY, context, new QueryMessage(filterData)),
+		];
+		new SubmitRequest(requests).start();
+	}
+
 	public function createAlias(alias: Alias): Void {
 		alias.name = alias.profile.name;
 
@@ -180,6 +188,10 @@ class ProtocolHandler {
 	}
 
 	public function createContent(data:EditContentData):Void {
+		if(data.content == null) {
+			AppContext.LOGGER.error("CONTENT IS NULL");
+			return;
+		}
 		var context = Synchronizer.createContext(1 + data.labelIids.length, "contentCreated");
 		var requests = new Array<ChannelRequestMessage>();
 		requests.push(new ChannelRequestMessage(UPSERT, context, CrudMessage.create(data.content)));

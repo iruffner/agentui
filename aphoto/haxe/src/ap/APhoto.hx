@@ -9,8 +9,9 @@ import m3.util.HotKeyManager;
 import ap.APhotoContext;
 import ap.api.ProtocolHandler;
 import ap.pages.APhotoPageMgr;
-import qoid.model.EM;
+import ap.model.EM;
 import ap.widget.DialogManager;
+import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using Lambda;
@@ -47,7 +48,6 @@ class APhoto {
         document.bind("pagehide", APhotoContext.PAGE_MGR.pageHide);
         
         APhotoContext.PAGE_MGR.CURRENT_PAGE = APhotoPageMgr.HOME_SCREEN;
-        EM.change(EMEvent.APP_INITIALIZED);
 
         new JQ("body").click(function(evt: JQEvent): Void {
             new JQ(".nonmodalPopup").hide();
@@ -113,4 +113,41 @@ class APhoto {
     // }
 
 
+}
+
+
+class AphotoContentHandler implements TypeHandler {
+    
+    public function new() {
+    }
+
+    public function read(fromJson: {contentType: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
+        var obj: Content<Dynamic> = null;
+
+        try {
+            switch ( fromJson.contentType ) {
+                case ContentType.AUDIO:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, AudioContent);
+                case ContentType.IMAGE:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, ImageContent);
+                case ContentType.URL:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, UrlContent);
+                case ContentType.VERIFICATION:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationContent);
+                case ContentType.TEXT:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
+                case ContentType.CONFIG:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, ConfigContent);
+            }
+        } catch (err: Dynamic) {
+            fromJson.contentType = ContentType.TEXT;
+            obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
+        }
+
+        return obj;
+    }
+
+    public function write(value: Dynamic, writer: JsonWriter): Dynamic {
+        return AppContext.SERIALIZER.toJson(value);
+    }
 }

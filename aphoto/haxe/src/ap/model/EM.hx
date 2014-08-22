@@ -1,10 +1,14 @@
-package qoid.model;
+package ap.model;
 
 import m3.log.Logga;
 import m3.event.EventManager;
 
 enum EMEvent {	
+	/* aphoto specific */
 	APP_INITIALIZED;
+	ALBUM_CONFIGS;
+	/* *************** */
+	
 
 	FILTER_RUN;
 	FILTER_CHANGE;
@@ -40,34 +44,34 @@ enum EMEvent {
 	DeleteLabel;
 
 	GrantAccess;
-	AccessGranted;
+	// AccessGranted;
 	RevokeAccess;
 
 	DeleteConnection;
 
 	INTRODUCTION_REQUEST;
-	INTRODUCTION_RESPONSE;
+	// INTRODUCTION_RESPONSE;
 	RespondToIntroduction;
-	RespondToIntroduction_RESPONSE;
+	// RespondToIntroduction_RESPONSE;
 
 	TargetChange;
 
 	VerificationRequest;
-	VerificationRequest_RESPONSE;
+	// VerificationRequest_RESPONSE;
 
 	RespondToVerification;
-	RespondToVerification_RESPONSE;
+	// RespondToVerification_RESPONSE;
 
 	RejectVerificationRequest;
-	RejectVerificationRequest_RESPONSE;
+	// RejectVerificationRequest_RESPONSE;
 	
 	AcceptVerification;
-	AcceptVerification_RESPONSE;
+	// AcceptVerification_RESPONSE;
 
 	BACKUP;
 	RESTORE;
-	RESTORES_REQUEST;
-	AVAILABLE_BACKUPS;
+	// RESTORES_REQUEST;
+	// AVAILABLE_BACKUPS;
 }
 
 class EM {

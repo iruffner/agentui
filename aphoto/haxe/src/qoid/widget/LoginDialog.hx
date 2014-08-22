@@ -2,12 +2,12 @@ package qoid.widget;
 
 import ap.AppContext;
 import ap.widget.DialogManager;
+import ap.model.EM;
 import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.jq.PlaceHolderUtil;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
-import qoid.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 

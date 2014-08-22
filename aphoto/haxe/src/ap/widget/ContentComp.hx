@@ -1,5 +1,11 @@
 package ap.widget;
 
+import ap.APhotoContext;
+import ap.AppContext;
+import ap.pages.APhotoPage;
+import ap.pages.APhotoPageMgr;
+import haxe.Json;
+import js.Browser;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.M3Menu;
@@ -7,12 +13,13 @@ import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import m3.observable.OSet;
 import ap.widget.LabelComp;
+import ap.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
-import qoid.model.EM;
 import ap.widget.DialogManager;
 
 using m3.helper.OSetHelper;
+using m3.helper.StringHelper;
 
 typedef ContentCompOptions = {
 	var content: Content<Dynamic>;
@@ -24,17 +31,8 @@ typedef ContentCompWidgetDef = {
 	@:optional var menu:M3Menu;
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
-	var _createContentMenu: Void->M3Menu;
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
-	var toggleActive:Void->Void;
-	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
-	@:optional var onchangeLabelChildren:JQ->EventType->Void;
-}
-
-typedef VerifierData = {
-	var profile:Profile;
-	var message:String;
 }
 
 class ContentCompHelper {
@@ -59,23 +57,6 @@ extern class ContentComp extends JQ {
 	private static function __init__(): Void {
 		var defineWidget: Void->ContentCompWidgetDef = function(): ContentCompWidgetDef {
 			return {
-
-				_createWidgets: function(selfElement: JQ, self:ContentCompWidgetDef): Void {
-
-					selfElement.empty();
-
-					var content:Content<Dynamic> = self.options.content;
-
-		        	switch(content.contentType) {
-		        		case ContentType.IMAGE:
-		        			var img: ImageContent = cast(content, ImageContent);
-		        			selfElement.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");// + img.caption);
-
-		        		case _:
-		        			throw new Exception("Only image content should be displayed"); 
-		        	}
-				},
-		        
 		        _create: function(): Void {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
@@ -86,6 +67,13 @@ extern class ContentComp extends JQ {
 		        	selfElement.addClass("contentComp " + Widgets.getWidgetClasses());
 		        	selfElement.click(function(evt:js.JQuery.JqEvent){
 		        		//go to post page
+		        		APhotoContext.CURRENT_MEDIA = self.options.content.iid;
+		        		APhotoContext.PAGE_MGR.CURRENT_PAGE = APhotoPageMgr.CONTENT_SCREEN;
+		        		// Browser.window.history.pushState(
+	           //  				{}, 
+	           //  				self.options.content.iid,
+	           //  				Browser.window.history.state. +"&media=" + self.options.content.iid
+            // 				);
 		        	});
 
 		        	self._createWidgets(selfElement, self);
@@ -97,57 +85,21 @@ extern class ContentComp extends JQ {
 		        	});
 		        },
 
-		       	_createContentMenu: function() : M3Menu {
-		        	var self: ContentCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+				_createWidgets: function(selfElement: JQ, self: ContentCompWidgetDef): Void {
 
-		        	if (self.menu == null) {
-			        	var menu: M3Menu = new M3Menu("<ul id='contentCompMenu-" + self.options.content.iid + "'></ul>");
-			        	menu.appendTo(selfElement);
+					selfElement.empty();
 
-			        	var menuOptions:Array<MenuOption> = [];
+					var content:Content<Dynamic> = self.options.content;
 
-						var menuOption: MenuOption;
-
-						menuOption = {
-							label: "Edit...",
-							icon: "ui-icon-pencil",
-							action: function(evt: JQEvent, m: M3Menu): Void {
-								evt.stopPropagation();
-
-				        		var comp = new JQ("<div id='edit-post-comp'></div>");
-		            			comp.insertBefore(selfElement);
-								comp.width(selfElement.width());
-								comp.height(selfElement.height());
-
-								selfElement.hide();
-								// var editPostComp = new EditPostComp(comp).editPostComp({content: self.options.content});
-							}
-						};
-						menuOptions.push(menuOption);
-
-						menuOption = {
-							label: "Delete...",
-							icon: "ui-icon-circle-close",
-							action: function(evt: JQEvent, m: M3Menu): Void {
-								evt.stopPropagation();
-								JqueryUtil.confirm("Delete Post", "Are you sure you want to delete this content?", 
-									function(){
-										var ecd = new EditContentData(self.options.content);
-										EM.change(EMEvent.DeleteContent, ecd);
-									}
-								);
-							}
-						};
-						menuOptions.push(menuOption);
-
-	        			menu.m3menu({menuOptions:menuOptions}).hide();
-
-	        			self.menu = menu;
-					}
-					return self.menu;
-		       	},
-
+		        	switch(content.contentType) {
+		        		case ContentType.IMAGE:
+		        			var img: ImageContent = cast(content, ImageContent);
+		        			selfElement.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");// + img.caption);
+		        		case _:
+		        			AppContext.LOGGER.debug("Only image content should be displayed"); 
+		        	}
+				},
+		        
 		        update: function(content:Content<Dynamic>) : Void {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
@@ -162,17 +114,7 @@ extern class ContentComp extends JQ {
         			selfElement.show();
 		        },
 
-		        toggleActive: function(): Void {
-		        	var self: ContentCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-	        		selfElement.toggleClass("postActive");
-	        		self.buttonBlock.toggle();
-		        },
-		        
 		        destroy: function() {
-		        	var self: ContentCompWidgetDef = Widgets.getSelf();
-		        	self.mappedLabels.removeListener(self.onchangeLabelChildren);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

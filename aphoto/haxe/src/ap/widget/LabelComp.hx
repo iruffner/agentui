@@ -1,6 +1,7 @@
 package ap.widget;
 
 import ap.AppContext;
+import ap.model.EM;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
@@ -11,7 +12,6 @@ import m3.util.UidGenerator;
 import qoid.model.ModelObj;
 import qoid.model.Node;
 import qoid.widget.FilterableComponent;
-import qoid.model.EM;
 
 using ap.widget.LabelComp;
 using m3.helper.OSetHelper;
@@ -136,9 +136,9 @@ extern class LabelComp extends FilterableComponent {
 
 		        	selfElement.addClass("label labelComp ").attr("id", self.label.name.htmlEscape() + "_" + UidGenerator.create(8));
 		        	
-		            var labelTail: JQ = new JQ("<div class='labelTail'></div>");
-		            labelTail.css("border-right-color", self.label.data.color);
-		            selfElement.append(labelTail);
+		            // var labelTail: JQ = new JQ("<div class='labelTail'></div>");
+		            // labelTail.css("border-right-color", self.label.data.color);
+		            // selfElement.append(labelTail);
 		            var labelBox: JQ = new JQ("<div class='labelBox shadowRight'></div>");
 		            labelBox.css("background", self.label.data.color);
 		            var labelBody: JQ = new JQ("<div class='labelBody'></div>");

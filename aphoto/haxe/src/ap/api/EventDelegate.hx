@@ -4,8 +4,8 @@ import m3.jq.JQ;
 
 import qoid.api.CrudMessage;
 import ap.api.ProtocolHandler;
+import ap.model.EM;
 import qoid.model.ModelObj;
-import qoid.model.EM;
 import qoid.model.Filter;
 
 class EventDelegate {
@@ -21,7 +21,11 @@ class EventDelegate {
 	private function _setUpEventListeners() {
 
 		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {
-        	protocolHandler.filter(filterData);
+            if(filterData.type == "albumConfig") {
+                filterData.type = "content";
+                protocolHandler.albumConfigs(filterData);
+        	} else 
+                protocolHandler.filter(filterData);
         });
 
         EM.addListener(EMEvent.CreateAlias, function(alias: Alias): Void {

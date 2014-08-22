@@ -6,10 +6,10 @@ import m3.jq.JQ;
 import ap.AppContext;
 import ap.widget.AlbumDetails;
 import ap.widget.ContentFeed;
+import ap.model.EM;
 import m3.jq.M3Dialog;
 import m3.observable.OSet.EventType;
 import m3.observable.OSet.FilteredSet;
-import qoid.model.EM.EMEvent;
 import qoid.model.Filter;
 import qoid.model.ModelObj.ContentFactory;
 import qoid.model.ModelObj.ContentType;
@@ -17,7 +17,6 @@ import qoid.model.ModelObj.EditContentData;
 import qoid.model.ModelObj.Label;
 import qoid.model.Node;
 import qoid.widget.UploadComp;
-import qoid.model.EM;
 
 using m3.helper.OSetHelper;
 using ap.widget.AlbumList;
@@ -32,6 +31,7 @@ class AlbumScreen extends APhotoPage {
 		super({
 			id: "#albumScreen",
 			pageBeforeShowFcn: pageBeforeShowFcn, 
+			pageHideFcn: pageHideFcn, 
 			reqUser: true,
 			showBackButton: false
 		});
@@ -65,7 +65,7 @@ class AlbumScreen extends APhotoPage {
 		albumDetails.appendTo(leftDiv);
 		albumDetails.albumDetails({
 			label: label,
-			parentIid: APhotoContext.CURRENT_ALBUM_PARENT
+			parentIid: APhotoContext.ROOT_ALBUM.iid
 		});
 
 		var uploadButton: JQ = new JQ("<button class='uploadButton'>Upload</button>")
@@ -106,10 +106,10 @@ class AlbumScreen extends APhotoPage {
 		var root: Node = new Or();
 		root.type = "ROOT";
 		var path = new Array<String>();
-    	for (iid in APhotoContext.CURRENT_ALBUM_PATH) {
-    		var label = AppContext.LABELS.getElement(iid);
-    		path.push(label.name);
-    	}
+		path.push(AppContext.LABELS.getElement(AppContext.currentAlias.rootLabelIid).name);
+		path.push(APhotoContext.ROOT_LABEL_OF_ALL_APPS.name);
+		path.push(APhotoContext.ROOT_ALBUM.name);
+		path.push(label.name);
 		root.addNode(new LabelNode(label, path));
 
 		var filterData = new FilterData("content");
@@ -117,7 +117,7 @@ class AlbumScreen extends APhotoPage {
 		filterData.connectionIids = [];
 		filterData.aliasIid       = AppContext.currentAlias.iid;
 
-		qoid.model.EM.change(EMEvent.FILTER_RUN, filterData);
+		EM.change(EMEvent.FILTER_RUN, filterData);
 
 		var contentFeed: ContentFeed = new ContentFeed("<div></div>");
 		contentFeed.appendTo(content);

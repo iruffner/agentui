@@ -1,5 +1,7 @@
 package ap.pages;
 
+import ap.APhotoContext;
+import ap.model.EM;
 import m3.jq.JQ;
 import m3.jq.pages.SinglePageManager;
 import m3.jq.pages.Page;
@@ -11,10 +13,16 @@ class APhotoPageMgr extends SinglePageManager {
 
     public static var HOME_SCREEN: APhotoPage = new HomeScreen();
     public static var ALBUM_SCREEN: APhotoPage = new AlbumScreen();
+    public static var CONTENT_SCREEN: APhotoPage = new ContentScreen();
     // public static var LOGIN_SCREEN: APhotoPage = new LoginScreen();
 
     private function new() {
-    	super();
+    	super(
+                function() { return APhotoContext.APP_INITIALIZED; },
+                function(fcn: Dynamic->Void): Void {
+                    EM.listenOnce(EMEvent.APP_INITIALIZED, fcn);
+                }
+            );
     }
 
     private static function get_get(): APhotoPageMgr {

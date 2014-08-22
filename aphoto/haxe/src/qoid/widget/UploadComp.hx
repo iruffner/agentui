@@ -10,7 +10,7 @@ import qoid.model.ModelObj;
 using m3.helper.ArrayHelper;
 
 typedef UploadCompOptions = {
-	 @:optional var contentType: ContentType;
+	 @:optional var contentType: String;
 	 @:optional var onload: String->Void;
 }
 
