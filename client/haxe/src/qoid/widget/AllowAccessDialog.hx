@@ -68,11 +68,13 @@ extern class AllowAccessDialog extends JQ {
 	        			labelIid: self.options.label.iid
 	        		}).appendTo(selfElement);
 
+	        		selfElement.append("<div>&nbsp;&nbsp;?&nbsp;&nbsp;</div>");
+
 		        	var dlgOptions: JQDialogOptions = {
 		        		autoOpen: false,
 		        		title: "Allow Access",
-		        		height: 290,
-		        		width: 400,
+		        		height: 340,
+		        		width: 300,
 		        		modal: true,
 		        		buttons: {
 		        			"Allow": function() {

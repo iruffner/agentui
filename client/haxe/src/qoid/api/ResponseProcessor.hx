@@ -1,17 +1,11 @@
 package qoid.api;
 
-import haxe.ds.StringMap;
-import haxe.Timer;
-
-import m3.jq.JQ;
 import m3.util.JqueryUtil;
 import m3.observable.OSet;
 import qoid.api.Synchronizer;
 import qoid.model.Context;
 import qoid.model.EM;
-import qoid.model.Filter;
 import qoid.model.ModelObj;
-import qoid.api.Requester;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
