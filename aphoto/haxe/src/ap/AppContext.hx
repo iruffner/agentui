@@ -149,7 +149,6 @@ class AppContext {
                             if(l.name == APhotoContext.APP_ROOT_LABEL_NAME) {
                                 LABELS.removeListener(listener);
                                 APhotoContext.ROOT_ALBUM = l;
-                                APhotoContext.ROOT_LABEL_OF_ALL_APPS = theRootLabelOfAllApps;
                                 EM.change(EMEvent.AliasLoaded, currentAlias);
                                 EM.change(EMEvent.APP_INITIALIZED);
                             }
@@ -159,7 +158,7 @@ class AppContext {
                 
                 var label: Label = new Label();
                 label.name = APhotoContext.APP_ROOT_LABEL_NAME;
-                var eventData = new EditLabelData(label, rootLabelOfAllApps.iid);
+                var eventData = new EditLabelData(label, APhotoContext.ROOT_LABEL_OF_ALL_APPS.iid);
                 EM.change(EMEvent.CreateLabel, eventData);
             }
 
@@ -170,6 +169,7 @@ class AppContext {
                         if(evtType.isAdd()) {
                             if(l.name == APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
                                 LABELS.removeListener(listener);
+                                APhotoContext.ROOT_LABEL_OF_ALL_APPS = l;
                                 createRootLabelOfThisApp(l);
                             }
                         }
@@ -180,7 +180,6 @@ class AppContext {
                 label.name = APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS;
                 var eventData = new EditLabelData(label, AppContext.currentAlias.rootLabelIid);
                 EM.change(EMEvent.CreateLabel, eventData);
-                createRootLabelOfThisApp(label);
             } else {
                 APhotoContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
                 createRootLabelOfThisApp(rootLabelOfAllApps);

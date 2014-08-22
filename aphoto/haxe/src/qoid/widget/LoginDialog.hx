@@ -66,7 +66,7 @@ extern class LoginDialog extends JQ {
 		        	self.input_pw = new JQ("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		        	self.placeholder_pw = new JQ("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 
-	        		self.input_un.val("Isaiah");
+	        		self.input_un.val("");
 	        		self.input_pw.val("ohyea");
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {

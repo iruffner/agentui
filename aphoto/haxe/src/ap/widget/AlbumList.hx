@@ -64,9 +64,9 @@ extern class AlbumList extends JQ {
 		        				evt.stopPropagation();
 			        			self._showNewLabelPopup(JQ.cur);
 		        			});
-					// if (AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid) == null) {
-	    //     			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
-    	// 			}
+					if (AppContext.GROUPED_LABELCHILDREN.delegate().get(APhotoContext.ROOT_ALBUM.iid) == null) {
+	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(APhotoContext.ROOT_ALBUM.iid);
+    				}
 
     				selfElement.append("<br/>");
 			        self.onchangeLabelChildren = function(albumComp: AlbumComp, evt: EventType): Void {

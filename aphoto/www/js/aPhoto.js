@@ -921,7 +921,6 @@ ap.AppContext.onInitialDataLoadComplete = function(nada) {
 					if(l2.name == ap.APhotoContext.APP_ROOT_LABEL_NAME) {
 						ap.AppContext.LABELS.removeListener(listener);
 						ap.APhotoContext.set_ROOT_ALBUM(l2);
-						ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(theRootLabelOfAllApps);
 						ap.model.EM.change(ap.model.EMEvent.AliasLoaded,ap.AppContext.currentAlias);
 						ap.model.EM.change(ap.model.EMEvent.APP_INITIALIZED);
 					}
@@ -930,7 +929,7 @@ ap.AppContext.onInitialDataLoadComplete = function(nada) {
 			ap.AppContext.LABELS.listen(listener,false);
 			var label = new qoid.model.Label();
 			label.name = ap.APhotoContext.APP_ROOT_LABEL_NAME;
-			var eventData = new qoid.model.EditLabelData(label,rootLabelOfAllApps.iid);
+			var eventData = new qoid.model.EditLabelData(label,ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS().iid);
 			ap.model.EM.change(ap.model.EMEvent.CreateLabel,eventData);
 		};
 		if(rootLabelOfAllApps == null) {
@@ -939,6 +938,7 @@ ap.AppContext.onInitialDataLoadComplete = function(nada) {
 				if(evtType1.isAdd()) {
 					if(l3.name == ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
 						ap.AppContext.LABELS.removeListener(listener1);
+						ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(l3);
 						createRootLabelOfThisApp(l3);
 					}
 				}
@@ -948,7 +948,6 @@ ap.AppContext.onInitialDataLoadComplete = function(nada) {
 			label1.name = ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS;
 			var eventData1 = new qoid.model.EditLabelData(label1,ap.AppContext.currentAlias.rootLabelIid);
 			ap.model.EM.change(ap.model.EMEvent.CreateLabel,eventData1);
-			createRootLabelOfThisApp(label1);
 		} else {
 			ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
 			createRootLabelOfThisApp(rootLabelOfAllApps);
@@ -7211,14 +7210,20 @@ var defineWidget = function() {
 			evt.stopPropagation();
 			self._showNewLabelPopup($(this));
 		});
+		if((function($this) {
+			var $r;
+			var this1 = ap.AppContext.GROUPED_LABELCHILDREN.delegate();
+			$r = this1.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
+			return $r;
+		}(this)) == null) ap.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(ap.APhotoContext.get_ROOT_ALBUM().iid);
 		selfElement.append("<br/>");
 		self.onchangeLabelChildren = function(albumComp,evt1) {
 			if(evt1.isAdd()) selfElement.append(albumComp); else if(evt1.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt1.isDelete()) albumComp.remove();
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this1 = ap.AppContext.GROUPED_LABELCHILDREN.delegate();
-			$r = this1.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
+			var this11 = ap.AppContext.GROUPED_LABELCHILDREN.delegate();
+			$r = this11.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
 			return $r;
 		}(this)),function(labelChild) {
 			return new $("<div></div>").albumComp({ album : m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELS,labelChild.childIid)});
@@ -8212,7 +8217,7 @@ var defineWidget = function() {
 		inputs.append("<br/>");
 		self.input_pw = new $("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		self.placeholder_pw = new $("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		self.input_un.val("Isaiah");
+		self.input_un.val("");
 		self.input_pw.val("ohyea");
 		inputs.children("input").keypress(function(evt) {
 			if(evt.keyCode == 13) self._login();
