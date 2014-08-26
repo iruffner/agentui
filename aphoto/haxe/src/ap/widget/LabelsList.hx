@@ -1,6 +1,7 @@
 package ap.widget;
 
 import ap.AppContext;
+import ap.model.EM;
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.jq.M3Menu;
@@ -10,7 +11,6 @@ import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
 import qoid.model.ModelObj;
-import qoid.model.EM;
 import qoid.widget.Popup;
 
 using ap.widget.LabelComp;

@@ -1,6 +1,7 @@
 package ap.widget;
 
 import ap.AppContext;
+import ap.model.EM;
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import m3.observable.OSet;
@@ -8,7 +9,6 @@ import m3.util.M;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import qoid.model.ModelObj;
-import qoid.model.EM;
 import qoid.widget.Popup;
 import qoid.widget.UploadComp;
 
@@ -27,12 +27,14 @@ typedef AlbumDetailsWidgetDef = {
 	@:optional var img: JQ;
 	@:optional var nameDiv: JQ;
 
-
 	var _create: Void->Void;
 	var destroy: Void->Void;
+	var _registerListeners: Void->Void;
+
+	@:optional var _onAlbumConfig: ConfigContent->EventType->Void;
+
 	
 	var _showNewLabelPopup: Void->Void;
-
 }
 
 @:native("$")
@@ -57,6 +59,8 @@ extern class AlbumDetails extends JQ {
 		        	selfElement.append("<br/>");
 		        	self.nameDiv = new JQ("<div class='labelNameWrapper'></div>").appendTo(selfElement);
 		        	self.nameDiv.append("<span class='albumLabel'>" + self.options.label.name + "</span>");
+
+		        	self._registerListeners();
 
 		        	new JQ("<button class='deleteButton'>Delete</button")
 		        		.button({
@@ -93,6 +97,39 @@ extern class AlbumDetails extends JQ {
 		        				evt.stopPropagation();
 		        			});
 			       	
+		        },
+
+		        _registerListeners: function():Void {
+		        	var self: AlbumDetailsWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+			   //      self._onupdate = function(label:Label, t:EventType): Void {
+						// if (t.isAddOrUpdate()) {
+						// 	self.options.label = label;
+				  //       } else if (t.isDelete()) {
+				  //       	self.destroy();
+				  //       	selfElement.remove();
+				  //       }
+		    //     	};
+		        
+		   //      	self.filteredSet = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
+		   //      		return label.iid == self.options.album.iid;
+		   //      	});
+					// self.filteredSet.listen(self._onupdate);
+
+					self._onAlbumConfig = function(mc: ConfigContent, evt: EventType) {
+						var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(mc.iid+"_"+self.options.label.iid, function(lc: LabeledContent): String {
+								return lc.contentIid+"_"+lc.labelIid;
+							});
+						if(match != null) {
+							try {
+								self.img.attr("src", mc.props.defaultImg);
+							} catch (err: Dynamic) {
+								AppContext.LOGGER.error("problem using the default img");
+							}
+						}
+					}
+					APhotoContext.ALBUM_CONFIGS.listen(self._onAlbumConfig);
 		        },
 
 		        _showNewLabelPopup: function(): Void {

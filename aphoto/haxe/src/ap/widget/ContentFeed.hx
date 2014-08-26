@@ -4,7 +4,7 @@ import js.html.Element;
 
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
-import qoid.model.EM;
+import ap.model.EM;
 import ap.model.ContentSource;
 import qoid.model.ModelObj;
 import m3.observable.OSet;
@@ -47,35 +47,38 @@ extern class ContentFeed extends JQ {
 		        	var div: JQ = new JQ("<div class='wrapper'></div>").appendTo(selfElement);
 
 		        	var mapListener = function(content: Content<Dynamic>, contentComp:ContentComp, evt: EventType): Void {
-	            		if(evt.isAdd()) {
-	            			var contentComps = new JQ(".contentComp");
-	            			if (contentComps.length == 0) {
-		            			contentComp.appendTo( div );
-	            			} else {
-	            				var comps = new JQ(".contentComp");
-	            				var inserted = false;
-	            				comps.each(function(i: Int, dom: Element):Dynamic{
-	            					var cc = new ContentComp(dom);
-	            					var cmp = StringHelper.compare(contentComp.content().getTimestamp(), cc.content().getTimestamp());
-	            					if (cmp > 0) {
-	            						cc.before(contentComp);
-	            						inserted = true;
-	            						return false;
-	            					} else {
-	            						return true;
-	            					}
-	            				});
+		        		if(content != null && ContentType.IMAGE == content.contentType) {
+		            		if(evt.isAdd()) {
+		            			var contentComps = new JQ(".contentComp");
+		            			if (contentComps.length == 0) {
+			            			contentComp.appendTo( div );
+		            			} else {
+		            				var comps = new JQ(".contentComp");
+		            				var inserted = false;
+		            				comps.each(function(i: Int, dom: Element):Dynamic{
+		            					var cc = new ContentComp(dom);
+		            					var cmp = StringHelper.compare(contentComp.content().getTimestamp(), cc.content().getTimestamp());
+		            					if (cmp > 0) {
+		            						cc.before(contentComp);
+		            						inserted = true;
+		            						return false;
+		            					} else {
+		            						return true;
+		            					}
+		            				});
 
-	            				if (!inserted) {
-	            					comps.last().after(contentComp);
-	            				}
-	            			}
-							EM.change(EMEvent.FitWindow);
-	            		} else if (evt.isUpdate()) {
-	            			contentComp.update(content);
-	            		} else if (evt.isDelete()) {
-	            			contentComp.remove();
-	            		}
+		            				if (!inserted) {
+		            					comps.last().after(contentComp);
+		            				}
+		            			}
+								EM.change(EMEvent.FitWindow);
+		            		} else if (evt.isUpdate()) {
+		            			contentComp.update(content);
+		            		} else if (evt.isDelete()) {
+		            			contentComp.remove();
+		            			//TODO go back to the album
+		            		}
+		            	}
 	            	};
 
 	            	var beforeSetContent = function() {

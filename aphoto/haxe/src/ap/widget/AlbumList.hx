@@ -2,6 +2,7 @@ package ap.widget;
 
 import ap.APhotoContext;
 import ap.AppContext;
+import ap.model.EM;
 import m3.jq.JQ;
 import m3.jq.M3Menu;
 import m3.jq.M3Dialog;
@@ -10,8 +11,6 @@ import m3.widget.Widgets;
 import m3.exception.Exception;
 
 import qoid.model.ModelObj;
-import qoid.model.EM;
-import ap.widget.LabelTree;
 import qoid.widget.Popup;
 
 using m3.helper.OSetHelper;
@@ -27,6 +26,9 @@ typedef AlbumListWidgetDef = {
 	@:optional var options: AlbumListOptions;
 	var _create: Void->Void;
 	var destroy: Void->Void;
+
+	@:optional var mappedLabels: MappedSet<LabelChild, AlbumComp>;
+	@:optional var onchangeLabelChildren: AlbumComp->EventType->Void;
 	
 	var _showNewLabelPopup: JQ->Void;
 
@@ -55,28 +57,37 @@ extern class AlbumList extends JQ {
 
 		        	var title: JQ = new JQ("<h2>" + self.options.title + "</h2>").appendTo(selfElement);
 
-		        	var processAliasFcn = function(alias: Alias) {
-	        			// Create the top-level label tree
-	        			selfElement.children(".labelTree").remove();
-						var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
-			                parentIid:APhotoContext.ROOT_ALBUM.iid,
-			                labelPath:[alias.rootLabelIid, APhotoContext.ROOT_LABEL_OF_ALL_APPS.iid, APhotoContext.ROOT_ALBUM.iid]
-			            });
-			        	labelTree.insertAfter(title);
-        			};
-
-		        	self.listenerId = EM.addListener(EMEvent.AliasLoaded, processAliasFcn, "LabelsList-Alias");
-
-		        	new JQ("<button>Add New Album</button>")
+		        	new JQ("<button class='newAlbumButton'>+</button>")
 		        		.appendTo(selfElement)
 		        		.button()
 		        		.click(function(evt: JQEvent) {
 		        				evt.stopPropagation();
 			        			self._showNewLabelPopup(JQ.cur);
 		        			});
+					if (AppContext.GROUPED_LABELCHILDREN.delegate().get(APhotoContext.ROOT_ALBUM.iid) == null) {
+	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(APhotoContext.ROOT_ALBUM.iid);
+    				}
 
-	        		if(AppContext.currentAlias != null) 
-	        			processAliasFcn(AppContext.currentAlias);
+    				selfElement.append("<br/>");
+			        self.onchangeLabelChildren = function(albumComp: AlbumComp, evt: EventType): Void {
+	            		if(evt.isAdd()) {
+	            			selfElement.append(albumComp);
+	            		} else if (evt.isUpdate()) {
+	            			throw new Exception("this should never happen");
+	            		} else if (evt.isDelete()) {
+	            			albumComp.remove();
+	            		}
+	            	};
+
+            		self.mappedLabels = new MappedSet<LabelChild, AlbumComp>(AppContext.GROUPED_LABELCHILDREN.delegate().get(APhotoContext.ROOT_ALBUM.iid), 
+		        		function(labelChild: LabelChild): AlbumComp {
+		        			return new AlbumComp("<div></div>").albumComp({
+		        				album: AppContext.LABELS.getElementComplex(labelChild.childIid)
+		        			});
+	        		});
+		        	self.mappedLabels.visualId = "root_map";
+
+		        	self.mappedLabels.listen(self.onchangeLabelChildren);
 		        },
 
 		       	_showNewLabelPopup: function(reference: JQ): Void {

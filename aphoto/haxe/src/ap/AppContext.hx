@@ -1,6 +1,9 @@
 package ap;
 
+import ap.APhoto;
 import ap.APhotoContext;
+import ap.model.EM;
+
 import haxe.ds.StringMap;
 
 import m3.jq.JQ;
@@ -9,7 +12,6 @@ import m3.log.LogLevel;
 import m3.observable.OSet;
 import m3.serialization.Serialization;
 
-import qoid.model.EM;
 import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
@@ -98,7 +100,7 @@ class AppContext {
         });
 
 		SERIALIZER = new Serializer();
-        SERIALIZER.addHandler(Content, new ContentHandler());
+        SERIALIZER.addHandler(Content, new AphotoContentHandler());
         SERIALIZER.addHandler(Notification, new NotificationHandler());
 
     	registerGlobalListeners();
@@ -147,8 +149,8 @@ class AppContext {
                             if(l.name == APhotoContext.APP_ROOT_LABEL_NAME) {
                                 LABELS.removeListener(listener);
                                 APhotoContext.ROOT_ALBUM = l;
-                                APhotoContext.ROOT_LABEL_OF_ALL_APPS = theRootLabelOfAllApps;
                                 EM.change(EMEvent.AliasLoaded, currentAlias);
+                                EM.change(EMEvent.APP_INITIALIZED);
                             }
                         }
                     };
@@ -156,7 +158,7 @@ class AppContext {
                 
                 var label: Label = new Label();
                 label.name = APhotoContext.APP_ROOT_LABEL_NAME;
-                var eventData = new EditLabelData(label, rootLabelOfAllApps.iid);
+                var eventData = new EditLabelData(label, APhotoContext.ROOT_LABEL_OF_ALL_APPS.iid);
                 EM.change(EMEvent.CreateLabel, eventData);
             }
 
@@ -167,6 +169,7 @@ class AppContext {
                         if(evtType.isAdd()) {
                             if(l.name == APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
                                 LABELS.removeListener(listener);
+                                APhotoContext.ROOT_LABEL_OF_ALL_APPS = l;
                                 createRootLabelOfThisApp(l);
                             }
                         }
@@ -177,15 +180,15 @@ class AppContext {
                 label.name = APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS;
                 var eventData = new EditLabelData(label, AppContext.currentAlias.rootLabelIid);
                 EM.change(EMEvent.CreateLabel, eventData);
-                createRootLabelOfThisApp(label);
             } else {
                 APhotoContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
                 createRootLabelOfThisApp(rootLabelOfAllApps);
             }
         } else {
-            APhotoContext.ROOT_ALBUM = rootLabelOfThisApp;
             APhotoContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
+            APhotoContext.ROOT_ALBUM = rootLabelOfThisApp;
             EM.change(EMEvent.AliasLoaded, currentAlias);
+            EM.change(EMEvent.APP_INITIALIZED);
         }
     }
 
@@ -199,7 +202,7 @@ class AppContext {
                        "AppContext-InitialDataLoadComplete");
 
         EM.addListener(EMEvent.AliasLoaded, function(a:Alias){
-            js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
+            js.Browser.document.title = a.profile.name + " | aPhoto"; 
         });
 
         EM.addListener(EMEvent.FitWindow, function(n: {}) {

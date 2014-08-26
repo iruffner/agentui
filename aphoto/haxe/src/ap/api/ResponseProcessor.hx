@@ -13,7 +13,7 @@ import m3.observable.OSet;
 
 import ap.api.Synchronizer;
 import qoid.model.Context;
-import qoid.model.EM;
+import ap.model.EM;
 import qoid.model.Filter;
 import qoid.model.ModelObj;
 import qoid.api.Requester;
@@ -55,6 +55,14 @@ class ResponseProcessor {
                         } else if (data.result && data.result.handle) {
                             APhoto.PROTOCOL.addHandle(data.result.handle);
                         }
+                    // case "albumConfigs":
+                    //     if (data.responseType == "query") {
+                    //         EM.change(EMEvent.LoadFilteredContent, data);
+                    //     } else if (data.responseType == "squery") {
+                    //         EM.change(EMEvent.AppendFilteredContent, data);
+                    //     } else if (data.result && data.result.handle) {
+                    //         APhoto.PROTOCOL.addHandle(data.result.handle);
+                    //     }
                     default:
                         Synchronizer.processResponse(data);
                 }
@@ -115,6 +123,10 @@ class ResponseProcessor {
 
         EM.change(EMEvent.InitialDataLoadComplete);
 	}
+
+    public static function albumConfigs(data:SynchronizationParms) {
+        APhotoContext.ALBUM_CONFIGS.addAll(cast data.content);
+    }
 
     // public static function processProfile(rec:Dynamic) {
     //     if (rec.result && rec.result.handle) {

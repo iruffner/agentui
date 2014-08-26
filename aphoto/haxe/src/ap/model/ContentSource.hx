@@ -1,9 +1,10 @@
 package ap.model;
 
 import ap.AppContext;
+import ap.model.EM;
+import m3.log.Logga;
 import m3.observable.OSet;
 import m3.util.UidGenerator;
-import qoid.model.EM;
 import qoid.model.ModelObj;
 import qoid.model.Filter;
 
@@ -84,15 +85,6 @@ class ContentSource {
 				c.connectionIid = connectionIid;
 			}
 			filteredContent.addOrUpdate(c);
-
-			// for (v in c.metaData.verifications) {
-			// 	var p = AppContext.PROFILES.getElementComplex(v.verifierId, "sharedId");
-			// 	if (connectionIids.indexOf(p.connectionIid) == -1) {
-			// 		connectionIids.push(p.connectionIid);
-			// 	}
-
-			// 	iids.push("'" + v.verificationIid + "'");
-			// }
 		}
 
 	}
@@ -110,6 +102,7 @@ class ContentSource {
 
     public static function clearQuery() {
 		if (handle != null) {
+			Logga.DEFAULT.warn("deregisterSqueries");
 			// AgentUi.PROTOCOL.deregisterSqueries([handle]);
 			filteredContent.clear();
 			handle = null;

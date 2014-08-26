@@ -268,7 +268,13 @@ body {
 	-----------------------------------------------------------------------------*/
 	._albumDetails {
 		text-align: center;
+		max-width: 300px;
+		min-width: 300px;
+		width: 300px;
 	}
+		._albumDetails img {
+			max-width: 100%;
+		}
 		._albumDetails .albumLabel {
 			font-size: 24px;
 		}
@@ -285,7 +291,7 @@ body {
 
 	/* ._contentFeed
 	-----------------------------------------------------------------------------*/
-	._contentFeed {
+	._contentFeed, ._albumList {
 		padding: 10px;
 		display: inline-block;
 		vertical-align: top;
@@ -361,7 +367,10 @@ body {
 	/* UserId
 	-----------------------------------------------------------------------------*/
 	._aliasComp {
-		/*position: relative;*/
+		text-align: center;
+		width: 300px;
+		max-width: 300px;
+		min-width: 300px;
 	}
 
 		._aliasComp.targetChange .userImg {
@@ -438,9 +447,34 @@ body {
 /* *************************************************
 	                  PAGES
    ************************************************ */
-#albumScreen .content {
+.content {
 	text-align: left;
 }
+
+	#homeScreen ._albumList h2 {
+		display: inline-block;
+		font-size: 28px;
+		vertical-align: top;
+	}
+
+	#homeScreen ._albumList .newAlbumButton {
+		display: inline-block;
+		margin-left: 20px;
+		vertical-align: top;
+	}
+
+	#homeScreen ._albumList ._albumComp {
+		width: 33.3%;
+		max-width: 33.3%;
+		min-width: 33.3%;
+		display: inline-block;
+		vertical-align: middle;
+		text-align: center;
+	}
+		#homeScreen ._albumComp img {
+			max-height: 210px;
+			min-height: 210px;
+		}
 
 	#albumScreen .leftDiv {
 		display: inline-block;
@@ -458,6 +492,7 @@ body {
 
 		#albumScreen .contentComp img {
 			max-height: 210px;
+			min-height: 210px;
 		}
 
 		#albumScreen .uploadButton {
@@ -465,6 +500,60 @@ body {
 			margin-top: 100px;
 			font-size: 20px;
 		}
+
+
+
+	#contentScreen .leftWrap {
+		display: inline-block;
+		vertical-align: top;
+	}
+
+	#contentScreen .setDefaultBtn {
+		margin-top: 40px;
+		width: 100%;
+	}
+
+	#contentScreen ._mediaComp {
+		width: 800px;
+		display: inline-block;
+		vertical-align: top;
+		text-align: center;
+	}
+		#contentScreen ._mediaComp .editButton,
+		#contentScreen ._mediaComp .addButton {
+				min-height: 24px;
+				width: 24px;
+			}
+
+		#contentScreen ._mediaComp .imgDiv {
+			margin-bottom: 30px;
+		}
+			#contentScreen ._mediaComp .imgDiv img {
+				max-width: 600px;
+			}
+
+		#contentScreen ._mediaComp .captionDiv {
+			white-space: nowrap;
+		}
+			#contentScreen ._mediaComp .captionDiv .caption {
+				display: inline-block;
+				vertical-align: top;
+				white-space: normal;
+			}
+			#contentScreen ._mediaComp .captionDiv .editCaption {
+				display: inline-block;
+				vertical-align: top;
+				margin-left: 40px;
+			}
+			
+		#contentScreen ._mediaComp .labelsDiv {
+			/*text-align: left;*/
+			margin-left: 30px;
+		}
+			#contentScreen ._mediaComp .addButton {
+				margin-left: 40px;
+				margin-top: -5px;
+			}
 
 /* Other
 -----------------------------------------------------------------------------*/

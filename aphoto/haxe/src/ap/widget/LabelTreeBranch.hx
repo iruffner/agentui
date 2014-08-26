@@ -2,11 +2,11 @@ package ap.widget;
 
 import ap.APhotoContext;
 import ap.AppContext;
+import ap.model.EM;
 import ap.pages.APhotoPageMgr;
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
-import qoid.model.EM;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
@@ -110,21 +110,13 @@ extern class LabelTreeBranch extends JQ {
 	            		.add(expander)
 	            		.click(function(evt: JQEvent): Void {
 	            			APhotoContext.CURRENT_ALBUM = self.options.labelIid;
-	            			APhotoContext.CURRENT_ALBUM_PATH = self.options.labelPath;
-	            			APhotoContext.CURRENT_ALBUM_PARENT = self.options.parentIid;
+	            			// APhotoContext.CURRENT_ALBUM_PATH = self.options.labelPath;
 	            			APhotoContext.PAGE_MGR.CURRENT_PAGE = APhotoPageMgr.ALBUM_SCREEN;
-	            			// if(self.children.hasValues()) {
-	            			// 	labelChildren.toggle();
-	            			// 	labelChildren.toggleClass("labelTreeFullWidth");
-            				// } else {
-            				// 	labelChildren.hide();
-            				// }
-            				// if (labelChildren.css('display') == 'none') {
-            				// 	expander.html("<b>+</b>");
-            				// } else {
-            				// 	expander.html("<b>-</b>");
-            				// }
-	            			// EM.change(EMEvent.FitWindow);
+	            			js.Browser.window.history.pushState(
+	            				{}, 
+	            				self.options.labelIid,
+	            				"index.html?album=" + self.options.labelIid
+            				);
 	            		}
             		);
 		        },

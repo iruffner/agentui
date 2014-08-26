@@ -8,7 +8,7 @@ import m3.widget.Widgets;
 import m3.observable.OSet;
 import m3.util.M;
 import qoid.model.ModelObj;
-import qoid.model.EM;
+import ap.model.EM;
 
 using m3.jq.M3Dialog;
 using m3.helper.StringHelper;

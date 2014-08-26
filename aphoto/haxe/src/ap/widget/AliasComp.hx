@@ -2,6 +2,7 @@ package ap.widget;
 
 import ap.AppContext;
 import ap.widget.DialogManager;
+import ap.model.EM;
 import m3.jq.JQ;
 import m3.jq.M3Menu;
 import m3.jq.M3Dialog;
@@ -10,7 +11,6 @@ import m3.jq.JQDraggable;
 import m3.observable.OSet;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
-import qoid.model.EM;
 import qoid.widget.UploadComp;
 import m3.util.M;
 import m3.exception.Exception;

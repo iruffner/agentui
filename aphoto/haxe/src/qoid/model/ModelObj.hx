@@ -7,7 +7,7 @@ import m3.observable.OSet;
 import m3.serialization.Serialization;
 import m3.exception.Exception;
 
-import qoid.model.EM;
+import ap.model.EM;
 
 using m3.serialization.TypeTools;
 using m3.helper.ArrayHelper;
@@ -176,12 +176,13 @@ class Connection extends ModelObjWithIid {
 // Content
 //-------------------------------------------------------------------------------------
 
-enum ContentType {
-	AUDIO;
-	IMAGE;
-	URL;
-	TEXT;
-	VERIFICATION;
+class ContentType {
+	public static var AUDIO = "AUDIO";
+	public static var IMAGE = "IMAGE";
+	public static var URL = "URL";
+	public static var TEXT = "TEXT";
+	public static var VERIFICATION = "VERIFICATION";
+	public static var CONFIG = "com.qoid.apps.aphoto.config";
 }
 
 
@@ -193,7 +194,7 @@ class ContentHandler implements TypeHandler {
     public function read(fromJson: {contentType: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
         var obj: Content<Dynamic> = null;
 
-        switch ( ContentType.createByName(fromJson.contentType) ) {
+        switch ( fromJson.contentType ) {
         	case ContentType.AUDIO:
         		obj = AppContext.SERIALIZER.fromJsonX(fromJson, AudioContent);
         	case ContentType.IMAGE:
@@ -215,7 +216,7 @@ class ContentHandler implements TypeHandler {
 }
 
 class ContentFactory {
-	public static function create(contentType:ContentType, data:Dynamic):Content<Dynamic> {
+	public static function create(contentType:String, data:Dynamic):Content<Dynamic> {
 		var ret:Content<Dynamic> = null;
 
 		switch (contentType) {
@@ -239,6 +240,10 @@ class ContentFactory {
         		var uc = new VerificationContent();
         		uc.props.text = cast(data, String);
         		ret = uc;
+    		case ContentType.CONFIG:
+        		var mc = new ConfigContent();
+        		mc.props.defaultImg = cast(data, String);
+        		ret = mc;
         }
         return ret;
 	}
@@ -291,7 +296,7 @@ class ContentMetaData {
 }
 
 class Content<T:(ContentData)> extends ModelObjWithIid {
-	public var contentType: ContentType;
+	public var contentType: String;
 	@:optional public var aliasIid: String;
 	@:optional public var connectionIid: String;
 	@:optional public var metaData:ContentMetaData;
@@ -301,7 +306,7 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 
 	@:transient var type: Class<T>;
 
-	public function new (contentType:ContentType, type: Class<T>) {
+	public function new (contentType:String, type: Class<T>) {
 		super();
 		this.contentType = contentType;
 		this.aliasIid = (AppContext.currentAlias == null) ? null : AppContext.currentAlias.iid;
@@ -375,6 +380,20 @@ class MessageContentData extends ContentData {
 class MessageContent extends Content<MessageContentData> {
 	public function new () {
 		super(ContentType.TEXT, MessageContentData);
+	}
+}
+
+class ConfigContentData extends ContentData {
+	public var defaultImg: String;
+
+	public function new () {
+		super();
+	}
+}
+
+class ConfigContent extends Content<ConfigContentData> {
+	public function new () {
+		super(ContentType.CONFIG, ConfigContentData);
 	}
 }
 
