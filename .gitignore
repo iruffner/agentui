@@ -11,3 +11,4 @@ proxy/src/main/webapp/client
 /agentui-proxy-dl-1.0.0.jar
 /agentui-proxy-1.0.0.jar
 Thumbs.db
+*.sublime-project
