@@ -1,0 +1,3 @@
+-main pagent.PinterAgent
+-cp src
+-js ../www/js/pinteragent.js

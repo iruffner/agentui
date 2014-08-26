@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        <title>PinterAgent</title>
+        <link rel="icon" type="image/jpeg" href="media/gfm.jpg" />
+        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+        <link rel="stylesheet" href="css/pinteragent.css" />
+        <link rel="stylesheet" href="css/jqui/jquery-ui.structure.min.css" />
+        <link rel="stylesheet" href="css/jqui/theem/jquery-ui.theme.min.css" />
+    </head>
+    <body>
+    	<div id="wrap">
+    		<header id="header" class="ui-widget-header ui-corner-top">
+    			<div style="margin-top: 10px;">
+                    <button id='navBackButton'>Back</button>
+    				<strong style='margin-left: -45px; font-size: xx-large;'>PinterAgent</strong>
+    			</div>
+    		</header>
+            <div id="home">
+            </div>
+    	</div>
+
+        <script src="js/jq/jquery.js"></script>
+        <script src="js/jqui/jquery-ui.js"></script>
+        <script src="js/pinteragent.js"></script>
+
+        <script>
+            $(document).ready(function() {
+                pagent.PinterAgent.start();
+            });
+        </script>
+    </body>
+</html>
