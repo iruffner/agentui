@@ -1,0 +1,3 @@
+-main qoid.QoidAPI
+-cp src
+-js js/qoid.js

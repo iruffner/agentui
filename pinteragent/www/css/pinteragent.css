@@ -1,0 +1,532 @@
+
+body {
+	text-align: center;
+	margin-left: 5px;
+	margin-right: 5px;
+	min-width: 800px;
+	font-family: Helvetica,Lucida Grande,Lucida Sans,Arial,sans-serif;
+	font-size:12px;
+}
+
+#spacer {
+	min-height: 10px;
+}
+
+/* Header
+-----------------------------------------------------------------------------*/
+#header {
+	height: 60px;
+	margin-bottom: 25px;
+}
+
+	#header #navBackButton {
+		float: left;
+		margin-left: 15px;
+	}
+
+/* Containers
+-----------------------------------------------------------------------------*/
+.ocontainer {
+	background: #333;
+	border-radius: 9px;
+	padding: 5px;
+}
+
+.container {
+	background: white;
+	border-radius: 9px;
+	border: 1px solid #333 !important;
+	padding: 5px;
+}
+
+.icontainer {
+	background: #E6E6E6;
+	border-radius: 9px;
+	border: 1px solid #333 !important;
+}
+
+.popup {
+	z-index: 100;
+}
+
+.m3menu {
+	display: none;
+	position: absolute !important;	
+	z-index: 1000;
+	text-align: left;
+}
+
+/* Login
+-----------------------------------------------------------------------------*/
+.loginDialog, .createAgentDialog {
+	min-width: 400px;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+	.loginDialog .placeholder, .createAgentDialog .placeholder {
+		color: lightgray;
+	}
+
+	.loginDialog input, .createAgentDialog input {
+		min-width: 225px;
+		padding: 4px;
+	}
+
+	.loginDialog .labelDiv, .createAgentDialog .labelDiv {
+		line-height: 1.65em;
+		margin-right: 10px;
+		padding: 4px;
+	}
+
+
+#homeScreen {
+	white-space: nowrap;
+}
+
+	#homeScreen ._albumList,
+	#homeScreen .connectionsDiv,
+	#homeScreen .notificationsDiv {
+		display: inline-block;
+		vertical-align: top;
+		min-width: 300px;
+	}
+
+/* Widgets
+-----------------------------------------------------------------------------*/
+
+	/* ._albumList
+	-----------------------------------------------------------------------------*/
+
+	._albumList {
+		/*max-width: 300px;*/
+		overflow: auto;
+		text-align: left;
+	}
+
+		._albumList>h2 {
+			margin-top: 0px;
+		}
+
+		.labelTreeBranch {
+			text-align: left;
+		}
+
+		.labelsList {
+			overflow: auto;
+		}
+
+			.labelTreeFullWidth {
+				/*min-width: 100%;*/
+			}
+
+		#labelc {
+			margin-top: 15px;
+		}
+
+		#labels {
+			padding: 5px;
+		}
+
+		.label {
+			min-height: 40px;
+			max-height: 40px;
+			min-width: 100px; 
+			padding: 0;
+			display: inline-block;
+		}
+
+			.label.small {
+				min-height: 16px;
+				max-height: 16px;
+				min-width: 30px;
+				font-size: .5em;
+			}
+
+			.labelTreeExpander {
+				margin-top: 8px;
+				margin-right: 3px;
+				/*float: left;*/
+				cursor: default;
+				display: inline-block;
+				vertical-align: top;
+			}
+
+			.label .labelTail {
+				width: 0;
+				height: 0;
+				border-top: 15px solid transparent;
+				border-bottom: 15px solid transparent;
+				border-right-width: 25px;
+				border-right-style: solid;
+				background: none; 
+				display: table-cell;
+			}
+
+			.label.small .labelTail {
+				border-top: 9px solid transparent;
+				border-bottom: 9px solid transparent;
+				border-right-width: 14px;
+			}
+
+			.label .labelBox {
+				border-bottom-right-radius: 5px; 
+				border-top-right-radius: 5px; 
+				display: table-cell;
+				min-width: 75px; 
+				cursor: default;
+			}
+
+			.label.small .labelBox {
+				min-width: 50px; 
+			}
+
+			.label .labelBody {
+				margin: 3px;
+				border-radius: 4px;
+				background: white;
+				min-width: 70px;
+				border: 2px solid black;
+				padding: 3px 4px;
+				text-align: center;
+			}
+
+			.label.small .labelBody {
+				min-width: 50px; 
+			}
+
+			.labelBox.small .labelBody {
+				min-width: 45px;
+			}
+
+				.labelBody div {
+				}
+
+			.labelChildren {
+				margin-left: 25px;
+				margin-top: 3px;
+				white-space: nowrap;
+			}
+
+			.newLabelButton {
+				float: right;
+			}
+
+				.newLabelButton span {
+					padding: .2em .4em !important;
+					font-size: .8em !important;
+				}
+
+		.labelRed .labelBox {
+			background: #D06C72;
+		}
+		.labelRed .labelTail {
+			border-right-color: #D06C72;
+		}
+
+		.labelBlue .labelBox {
+			background: #3D88C2;
+		}
+		.labelBlue .labelTail {
+			border-right-color: #3D88C2;
+		}
+
+		.labelGreen .labelBox {
+			background: #72D06C;
+		}
+		.labelGreen .labelTail {
+			border-right-color: #72D06C;
+		}
+
+		.labelOrange .labelBox {
+			background: #D0976C;
+		}
+		.labelOrange .labelTail {
+			border-right-color: #D0976C;
+		}
+
+		.labelBrown .labelBox {
+			background: #935A2F;
+		}
+		.labelBrown .labelTail {
+			border-right-color: #935A2F;
+		}
+
+		.labelPurple .labelBox {
+			background: #976CD0;
+		}
+		.labelPurple .labelTail {
+			border-right-color: #976CD0;
+		}
+
+		#label-action-menu span.ui-icon {
+			top: .4em;
+		}
+
+	/* ._albumDetails
+	-----------------------------------------------------------------------------*/
+	._albumDetails {
+		text-align: center;
+	}
+		._albumDetails .albumLabel {
+			font-size: 24px;
+		}
+
+		._albumDetails .editButton, ._albumDetails .deleteButton {
+			float: right;
+			min-height: 24px;
+			width: 24px;
+		}
+
+		._albumDetails .updateLabelPopup {
+			font-size: 18px
+		}
+
+	/* ._contentFeed
+	-----------------------------------------------------------------------------*/
+	._contentFeed {
+		padding: 10px;
+		display: inline-block;
+		vertical-align: top;
+		width: 800px;
+		margin-left: 15px;
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+
+	/* .connectionsList
+	-----------------------------------------------------------------------------*/
+
+	.connectionsList {
+		margin-top: 10px;
+		padding: 3px !important;
+		min-height: 250px;
+	}
+
+		.connectionsList .connection {
+			/*float: left;*/
+			margin: 3px auto;
+			width: 100%;
+			padding: 5px;
+			font-size: .9em !important;
+			position: relative;
+		}
+
+			.connectionsList .connection div.avatar {
+				/*border-radius: 50%; */
+				max-width: 60px;
+				margin-top: -10px;
+			}
+
+			.connectionsList .connection div.avatar img, .connectionDraggingImg, .connectionAvatar img {
+				max-width: 60px;
+				border-radius: 10%;
+				border: 1px solid #333;
+			}
+
+			.connectionsList .connection .avatar, .connectionsList .connection .name {
+				margin-top: 20px;
+			}
+
+			.connectionsList .connection:nth-child(odd) div.avatar, .connectionsList .connection:nth-child(even) div.name {
+				float: left;
+			}
+
+			.connectionsList .connection:nth-child(even) div.avatar, .connectionsList .connection:nth-child(odd) div.name {
+				float: right;
+			}
+
+			.connectionsList .connection .notifications {
+				position: absolute;
+				border-radius: 50%;
+				background: red;
+				color: white;
+				min-width: 20px;
+				min-height: 20px;
+				padding: 4px 2px 2px 2px;
+				visibility: hidden;
+			}
+
+			.connectionsList .connection:nth-child(odd) div.notifications {
+				top: -6px;
+				left: 195px;
+			}
+
+			.connectionsList .connection:nth-child(even) div.notifications {
+				top: -6px;
+				left: 0px;
+			}
+
+	/* UserId
+	-----------------------------------------------------------------------------*/
+	._aliasComp {
+		/*position: relative;*/
+	}
+
+		._aliasComp.targetChange .userImg {
+			width: 50px !important;
+		}
+
+		._aliasComp .userImg {
+			float: left; 
+			margin-left: 5px; 
+			margin-top: -15px; 
+			border-radius: 50%;
+			width: 100px;
+			border: 1px solid #5c9ccc;
+		}
+
+		._aliasComp .connectionAvatar {
+			/*float: left;*/
+			/*margin-left: 10px;*/
+			/*margin-left: -45px;*/
+		}
+
+			._aliasComp .connectionAvatar img {
+				max-width: 180px;
+			}
+
+		._aliasComp .userIdTxt {
+			font-weight: bold;
+			/*max-width: 100px;*/
+			/*text-align: right;*/
+			/*float: right;*/
+			font-size: 22px;
+		}
+
+		._aliasComp .aliasToggle {
+			color: blue;
+			text-decoration: underline;
+			/*position: absolute;*/
+			/*bottom: 0;
+			right: 5px;*/
+			/*width: 6em;*/
+			/*margin-bottom: 1em;*/
+			cursor: pointer;
+		}
+		._aliasComp .aliasBtn {
+			padding: 2px 6px;
+			width: 100%;
+		}
+			._aliasComp .aliasBtn:last-child {
+				border-bottom-left-radius: 9px;
+				border-bottom-right-radius: 9px;
+			}
+
+			._aliasComp .aliasBtn:first-child {
+				border-top-left-radius: 9px;
+				border-top-right-radius: 9px;
+			}
+
+/* *************************************************
+	                  DIALOGS
+   ************************************************ */
+/* ._aliasManagerDialog
+	-----------------------------------------------------------------------------*/
+._aliasManagerDialog #leftDiv {
+	max-width: 80%;
+}
+	._aliasManagerDialog #leftDiv .userImg {
+		max-width: 60%;
+	}
+
+._aliasManagerDialog #rightDiv {
+	max-width: 20%;
+}
+
+/* *************************************************
+	                  PAGES
+   ************************************************ */
+#albumScreen .content {
+	text-align: left;
+}
+
+	#albumScreen .leftDiv {
+		display: inline-block;
+		vertical-align: top;
+	}
+
+	#albumScreen .contentComp {
+		width: 33.3%;
+		max-width: 33.3%;
+		min-width: 33.3%;
+		display: inline-block;
+		vertical-align: middle;
+		text-align: center;
+	}
+
+		#albumScreen .contentComp img {
+			max-height: 210px;
+		}
+
+		#albumScreen .uploadButton {
+			width: 100%;
+			margin-top: 100px;
+			font-size: 20px;
+		}
+
+/* Other
+-----------------------------------------------------------------------------*/
+.clear {
+	clear: both;
+}
+
+.fleft {
+	float: left;
+}
+
+.fright {
+	float: right;
+}
+
+.boxsizingBorder {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+.shadow {
+	box-shadow: 0px 3px 10px 2px gray;
+}
+
+.shadowRight {
+	box-shadow: 7px 5px 10px -2px gray	;
+}
+
+.textInput {
+	padding: 3px 3px 3px 5px !important; 
+	border: 2px solid #5c9ccc !important;
+	border-radius: 12px;
+	width: 100%;
+	font-size: .9em !important;
+}
+
+.textInput:focus {
+	outline: none;
+}
+
+.clickable {
+	cursor: pointer;
+}
+
+
+/* jquery ui overrides
+-----------------------------------------------------------------------------*/
+.ui-draggable-dragging {
+	z-index: 10000;
+}
+
+.ui-effects-transfer {
+    border: 1px dotted black;
+    border-radius: 9px;
+}
+
+.ui-tabs-vertical { width: 55em; }
+.ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }
+.ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
+.ui-tabs-vertical .ui-tabs-nav li a { display:block; }
+.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; border-right-width: 1px; }
+.ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}
+
+

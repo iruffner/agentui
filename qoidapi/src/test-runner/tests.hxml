@@ -1,0 +1,6 @@
+
+-main qoid.test.TestRunner
+-js runner.js
+-debug
+-cp ..
+-D noEmbedJS
