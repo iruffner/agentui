@@ -1,9 +1,0 @@
-<svg width="130" height="50" xmlns="http://www.w3.org/2000/svg">
- <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
- <g>
-  <title>Label</title>
-  <path stroke="#000000" stroke-width="2" d="m0.375,20l39.5,-19.5l89.5,0l0.25,49l-89.5,0l-39.875,-19.375l0.125,-10.125z" id="label-outline" fill="black"/>
-  <rect id="label-rect" height="45.75" width="90.875" y="2.125" x="37.625" stroke="#ffffff" fill="#FF0000" rx="3" ry="3"/>
-  <text xml:space="preserve" text-anchor="middle" font-family="serif" font-size="12" id="label-text" y="28.92188" x="82.875" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="0" fill="#000000" stroke="#ffffff">Label Label Label</text>
- </g>
-</svg>
