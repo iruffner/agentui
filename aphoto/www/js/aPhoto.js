@@ -740,6 +740,9 @@ ap.APhoto.main = function() {
 	ap.APhoto.HOT_KEY_ACTIONS = m3.util.HotKeyManager.get_get();
 };
 ap.APhoto.start = function() {
+	new $("#navHomeButton").button({ icons : { primary : "ui-icon-home"}}).click(function() {
+		ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.HOME_SCREEN);
+	});
 	ap.APhotoContext.PAGE_MGR.setBackButton(new $("#navBackButton").button({ icons : { primary : "ui-icon-arrowthick-1-w"}}));
 	ap.APhotoContext.PAGE_MGR.initClientPages();
 	var document = new $(window.document);
@@ -748,7 +751,7 @@ ap.APhoto.start = function() {
 	document.bind("pageshow",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.pageShow)));
 	document.bind("pagehide",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.pageHide)));
 	ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.HOME_SCREEN);
-	new $("body").click(function(evt) {
+	new $("body").click(function() {
 		new $(".nonmodalPopup").hide();
 	});
 	ap.widget.DialogManager.showLogin();
@@ -967,17 +970,14 @@ ap.AppContext.registerGlobalListeners = function() {
 	ap.model.EM.addListener(ap.model.EMEvent.AliasLoaded,function(a) {
 		window.document.title = a.profile.name + " | aPhoto";
 	});
-	ap.model.EM.addListener(ap.model.EMEvent.FitWindow,function(n) {
-		fitWindow();
-	},"AppContext-FitWindow");
 };
-ap.AppContext.getLabelDescendents = function(iid) {
+ap.AppContext.getLabelDescendents = function(parentIid) {
 	var labelDescendents = new m3.observable.ObservableSet(qoid.model.Label.identifier);
 	var getDescendentIids;
-	getDescendentIids = function(iid1,iidList) {
-		iidList.splice(0,0,iid1);
+	getDescendentIids = function(iid,iidList) {
+		iidList.splice(0,0,iid);
 		var children = new m3.observable.FilteredSet(ap.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == iid1;
+			return lc.parentIid == iid;
 		}).asArray();
 		var _g1 = 0;
 		var _g = children.length;
@@ -987,7 +987,8 @@ ap.AppContext.getLabelDescendents = function(iid) {
 		}
 	};
 	var iid_list = new Array();
-	getDescendentIids(iid,iid_list);
+	getDescendentIids(parentIid,iid_list);
+	HxOverrides.remove(iid_list,parentIid);
 	var _g2 = 0;
 	while(_g2 < iid_list.length) {
 		var iid_ = iid_list[_g2];
@@ -2009,7 +2010,7 @@ ap.model.EM.removeListener = function(id,listenerUid) {
 ap.model.EM.change = function(id,t) {
 	ap.model.EM.delegate.change(id,t);
 };
-ap.model.EMEvent = $hxClasses["ap.model.EMEvent"] = { __ename__ : ["ap","model","EMEvent"], __constructs__ : ["APP_INITIALIZED","ALBUM_CONFIGS","FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","RespondToIntroduction","TargetChange","VerificationRequest","RespondToVerification","RejectVerificationRequest","AcceptVerification","BACKUP","RESTORE"] };
+ap.model.EMEvent = $hxClasses["ap.model.EMEvent"] = { __ename__ : ["ap","model","EMEvent"], __constructs__ : ["APP_INITIALIZED","ALBUM_CONFIGS","FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","RespondToIntroduction","TargetChange","VerificationRequest","RespondToVerification","RejectVerificationRequest","AcceptVerification","BACKUP","RESTORE"] };
 ap.model.EMEvent.APP_INITIALIZED = ["APP_INITIALIZED",0];
 ap.model.EMEvent.APP_INITIALIZED.__enum__ = ap.model.EMEvent;
 ap.model.EMEvent.ALBUM_CONFIGS = ["ALBUM_CONFIGS",1];
@@ -2030,65 +2031,63 @@ ap.model.EMEvent.AgentCreated = ["AgentCreated",8];
 ap.model.EMEvent.AgentCreated.__enum__ = ap.model.EMEvent;
 ap.model.EMEvent.InitialDataLoadComplete = ["InitialDataLoadComplete",9];
 ap.model.EMEvent.InitialDataLoadComplete.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.FitWindow = ["FitWindow",10];
-ap.model.EMEvent.FitWindow.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UserLogin = ["UserLogin",11];
+ap.model.EMEvent.UserLogin = ["UserLogin",10];
 ap.model.EMEvent.UserLogin.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UserLogout = ["UserLogout",12];
+ap.model.EMEvent.UserLogout = ["UserLogout",11];
 ap.model.EMEvent.UserLogout.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AliasLoaded = ["AliasLoaded",13];
+ap.model.EMEvent.AliasLoaded = ["AliasLoaded",12];
 ap.model.EMEvent.AliasLoaded.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AliasCreated = ["AliasCreated",14];
+ap.model.EMEvent.AliasCreated = ["AliasCreated",13];
 ap.model.EMEvent.AliasCreated.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AliasUpdated = ["AliasUpdated",15];
+ap.model.EMEvent.AliasUpdated = ["AliasUpdated",14];
 ap.model.EMEvent.AliasUpdated.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CreateAlias = ["CreateAlias",16];
+ap.model.EMEvent.CreateAlias = ["CreateAlias",15];
 ap.model.EMEvent.CreateAlias.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UpdateAlias = ["UpdateAlias",17];
+ap.model.EMEvent.UpdateAlias = ["UpdateAlias",16];
 ap.model.EMEvent.UpdateAlias.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.DeleteAlias = ["DeleteAlias",18];
+ap.model.EMEvent.DeleteAlias = ["DeleteAlias",17];
 ap.model.EMEvent.DeleteAlias.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CreateContent = ["CreateContent",19];
+ap.model.EMEvent.CreateContent = ["CreateContent",18];
 ap.model.EMEvent.CreateContent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.DeleteContent = ["DeleteContent",20];
+ap.model.EMEvent.DeleteContent = ["DeleteContent",19];
 ap.model.EMEvent.DeleteContent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UpdateContent = ["UpdateContent",21];
+ap.model.EMEvent.UpdateContent = ["UpdateContent",20];
 ap.model.EMEvent.UpdateContent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CreateLabel = ["CreateLabel",22];
+ap.model.EMEvent.CreateLabel = ["CreateLabel",21];
 ap.model.EMEvent.CreateLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UpdateLabel = ["UpdateLabel",23];
+ap.model.EMEvent.UpdateLabel = ["UpdateLabel",22];
 ap.model.EMEvent.UpdateLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.MoveLabel = ["MoveLabel",24];
+ap.model.EMEvent.MoveLabel = ["MoveLabel",23];
 ap.model.EMEvent.MoveLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CopyLabel = ["CopyLabel",25];
+ap.model.EMEvent.CopyLabel = ["CopyLabel",24];
 ap.model.EMEvent.CopyLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.DeleteLabel = ["DeleteLabel",26];
+ap.model.EMEvent.DeleteLabel = ["DeleteLabel",25];
 ap.model.EMEvent.DeleteLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.GrantAccess = ["GrantAccess",27];
+ap.model.EMEvent.GrantAccess = ["GrantAccess",26];
 ap.model.EMEvent.GrantAccess.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RevokeAccess = ["RevokeAccess",28];
+ap.model.EMEvent.RevokeAccess = ["RevokeAccess",27];
 ap.model.EMEvent.RevokeAccess.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.DeleteConnection = ["DeleteConnection",29];
+ap.model.EMEvent.DeleteConnection = ["DeleteConnection",28];
 ap.model.EMEvent.DeleteConnection.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",30];
+ap.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",29];
 ap.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",31];
+ap.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",30];
 ap.model.EMEvent.RespondToIntroduction.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.TargetChange = ["TargetChange",32];
+ap.model.EMEvent.TargetChange = ["TargetChange",31];
 ap.model.EMEvent.TargetChange.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.VerificationRequest = ["VerificationRequest",33];
+ap.model.EMEvent.VerificationRequest = ["VerificationRequest",32];
 ap.model.EMEvent.VerificationRequest.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RespondToVerification = ["RespondToVerification",34];
+ap.model.EMEvent.RespondToVerification = ["RespondToVerification",33];
 ap.model.EMEvent.RespondToVerification.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RejectVerificationRequest = ["RejectVerificationRequest",35];
+ap.model.EMEvent.RejectVerificationRequest = ["RejectVerificationRequest",34];
 ap.model.EMEvent.RejectVerificationRequest.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AcceptVerification = ["AcceptVerification",36];
+ap.model.EMEvent.AcceptVerification = ["AcceptVerification",35];
 ap.model.EMEvent.AcceptVerification.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.BACKUP = ["BACKUP",37];
+ap.model.EMEvent.BACKUP = ["BACKUP",36];
 ap.model.EMEvent.BACKUP.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RESTORE = ["RESTORE",38];
+ap.model.EMEvent.RESTORE = ["RESTORE",37];
 ap.model.EMEvent.RESTORE.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.__empty_constructs__ = [ap.model.EMEvent.APP_INITIALIZED,ap.model.EMEvent.ALBUM_CONFIGS,ap.model.EMEvent.FILTER_RUN,ap.model.EMEvent.FILTER_CHANGE,ap.model.EMEvent.LoadFilteredContent,ap.model.EMEvent.AppendFilteredContent,ap.model.EMEvent.EditContentClosed,ap.model.EMEvent.CreateAgent,ap.model.EMEvent.AgentCreated,ap.model.EMEvent.InitialDataLoadComplete,ap.model.EMEvent.FitWindow,ap.model.EMEvent.UserLogin,ap.model.EMEvent.UserLogout,ap.model.EMEvent.AliasLoaded,ap.model.EMEvent.AliasCreated,ap.model.EMEvent.AliasUpdated,ap.model.EMEvent.CreateAlias,ap.model.EMEvent.UpdateAlias,ap.model.EMEvent.DeleteAlias,ap.model.EMEvent.CreateContent,ap.model.EMEvent.DeleteContent,ap.model.EMEvent.UpdateContent,ap.model.EMEvent.CreateLabel,ap.model.EMEvent.UpdateLabel,ap.model.EMEvent.MoveLabel,ap.model.EMEvent.CopyLabel,ap.model.EMEvent.DeleteLabel,ap.model.EMEvent.GrantAccess,ap.model.EMEvent.RevokeAccess,ap.model.EMEvent.DeleteConnection,ap.model.EMEvent.INTRODUCTION_REQUEST,ap.model.EMEvent.RespondToIntroduction,ap.model.EMEvent.TargetChange,ap.model.EMEvent.VerificationRequest,ap.model.EMEvent.RespondToVerification,ap.model.EMEvent.RejectVerificationRequest,ap.model.EMEvent.AcceptVerification,ap.model.EMEvent.BACKUP,ap.model.EMEvent.RESTORE];
+ap.model.EMEvent.__empty_constructs__ = [ap.model.EMEvent.APP_INITIALIZED,ap.model.EMEvent.ALBUM_CONFIGS,ap.model.EMEvent.FILTER_RUN,ap.model.EMEvent.FILTER_CHANGE,ap.model.EMEvent.LoadFilteredContent,ap.model.EMEvent.AppendFilteredContent,ap.model.EMEvent.EditContentClosed,ap.model.EMEvent.CreateAgent,ap.model.EMEvent.AgentCreated,ap.model.EMEvent.InitialDataLoadComplete,ap.model.EMEvent.UserLogin,ap.model.EMEvent.UserLogout,ap.model.EMEvent.AliasLoaded,ap.model.EMEvent.AliasCreated,ap.model.EMEvent.AliasUpdated,ap.model.EMEvent.CreateAlias,ap.model.EMEvent.UpdateAlias,ap.model.EMEvent.DeleteAlias,ap.model.EMEvent.CreateContent,ap.model.EMEvent.DeleteContent,ap.model.EMEvent.UpdateContent,ap.model.EMEvent.CreateLabel,ap.model.EMEvent.UpdateLabel,ap.model.EMEvent.MoveLabel,ap.model.EMEvent.CopyLabel,ap.model.EMEvent.DeleteLabel,ap.model.EMEvent.GrantAccess,ap.model.EMEvent.RevokeAccess,ap.model.EMEvent.DeleteConnection,ap.model.EMEvent.INTRODUCTION_REQUEST,ap.model.EMEvent.RespondToIntroduction,ap.model.EMEvent.TargetChange,ap.model.EMEvent.VerificationRequest,ap.model.EMEvent.RespondToVerification,ap.model.EMEvent.RejectVerificationRequest,ap.model.EMEvent.AcceptVerification,ap.model.EMEvent.BACKUP,ap.model.EMEvent.RESTORE];
 m3.log = {};
 m3.log.Logga = function(logLevel) {
 	this.initialized = false;
@@ -3068,10 +3067,7 @@ ap.pages.ContentScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
 		var mapListener = function(content,contentComp,evt1) {
 			if(content != null && content.iid == contentId) {
 				_g._content = content;
-				if(evt1.isAdd()) {
-					contentComp.appendTo(contentDiv);
-					ap.model.EM.change(ap.model.EMEvent.FitWindow);
-				} else if(evt1.isUpdate()) ap.widget.MediaCompHelper.update(contentComp,content); else if(evt1.isDelete()) contentComp.remove();
+				if(evt1.isAdd()) contentComp.appendTo(contentDiv); else if(evt1.isUpdate()) ap.widget.MediaCompHelper.update(contentComp,content); else if(evt1.isDelete()) contentComp.remove();
 			}
 		};
 		var beforeSetContent = $.noop;
@@ -7393,18 +7389,6 @@ var defineWidget = function() {
 		self.container.append(self.userIdTxt);
 		self.userIdTxt.html("...");
 		self._setAlias(new qoid.model.Alias());
-		var changeDiv = new $("<div class='' style='margin-top: 15px;'></div>");
-		self.container.append(changeDiv);
-		self.switchAliasLink = new $("<a class='aliasToggle'>My Aliases</a>");
-		changeDiv.append(self.switchAliasLink);
-		self.switchAliasLink.click(function(evt) {
-			var aliasMenu = self._createAliasMenu();
-			aliasMenu.show();
-			aliasMenu.position({ my : "left top", at : "right bottom", of : self.switchAliasLink});
-			evt.preventDefault();
-			evt.stopPropagation();
-			return false;
-		});
 		self.aliasLoadedListener = ap.model.EM.addListener(ap.model.EMEvent.AliasLoaded,function(alias) {
 			self._setAlias(alias);
 		},"AliasComp-Alias");
@@ -7434,7 +7418,7 @@ var defineWidget = function() {
 			var alias3 = $it0.next();
 			var alias4 = [alias3];
 			menuOption = { label : alias4[0].profile.name, icon : "ui-icon-person", action : (function(alias4) {
-				return function(evt1,m) {
+				return function(evt,m) {
 					if(qoid.model.Alias.identifier(ap.AppContext.currentAlias) == qoid.model.Alias.identifier(alias4[0])) menu.hide(); else {
 						ap.AppContext.currentAlias = alias4[0];
 						ap.model.EM.change(ap.model.EMEvent.AliasLoaded,alias4[0]);
@@ -7443,7 +7427,7 @@ var defineWidget = function() {
 			})(alias4)};
 			menuOptions.push(menuOption);
 		}
-		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt2,m1) {
+		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt1,m1) {
 			ap.widget.DialogManager.showAliasManager();
 		}};
 		menuOptions.push(menuOption);
@@ -7544,7 +7528,6 @@ var defineWidget = function() {
 						});
 						if(!inserted) comps.last().after(contentComp);
 					}
-					ap.model.EM.change(ap.model.EMEvent.FitWindow);
 				} else if(evt.isUpdate()) ap.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
 			}
 		};

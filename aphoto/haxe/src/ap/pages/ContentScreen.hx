@@ -62,7 +62,6 @@ class ContentScreen extends APhotoPage {
 				_content = cast content;
 	    		if(evt.isAdd()) {
     				contentComp.appendTo(contentDiv);
-					EM.change(EMEvent.FitWindow);
 	    		} else if (evt.isUpdate()) {
 	    			contentComp.update(content);
 	    		} else if (evt.isDelete()) {

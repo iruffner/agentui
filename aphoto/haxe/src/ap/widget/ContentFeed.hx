@@ -71,7 +71,6 @@ extern class ContentFeed extends JQ {
 		            					comps.last().after(contentComp);
 		            				}
 		            			}
-								EM.change(EMEvent.FitWindow);
 		            		} else if (evt.isUpdate()) {
 		            			contentComp.update(content);
 		            		} else if (evt.isDelete()) {

@@ -21,7 +21,7 @@ enum EMEvent {
 	AgentCreated;
 	InitialDataLoadComplete;
 
-	FitWindow;
+	// FitWindow;
 	UserLogin;
 	UserLogout;
 

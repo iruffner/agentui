@@ -73,25 +73,25 @@ extern class AliasComp extends JQ {
 		        	self.userIdTxt.html("...");
 		        	self._setAlias(new Alias());
 
-		        	var changeDiv: JQ = new JQ("<div class='' style='margin-top: 15px;'></div>");
-	        		self.container.append(changeDiv);
-		        	self.switchAliasLink = new JQ("<a class='aliasToggle'>My Aliases</a>");
-	        		changeDiv.append(self.switchAliasLink);
+		    //     	var changeDiv: JQ = new JQ("<div class='' style='margin-top: 15px;'></div>");
+	     //    		self.container.append(changeDiv);
+		    //     	self.switchAliasLink = new JQ("<a class='aliasToggle'>My Aliases</a>");
+	     //    		changeDiv.append(self.switchAliasLink);
 
-		        	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
-		        		var aliasMenu = self._createAliasMenu();
+		    //     	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
+		    //     		var aliasMenu = self._createAliasMenu();
 
-	        			aliasMenu.show();
-	        			aliasMenu.position({
-		        			my: "left top",
-		        			at: "right bottom",
-		        			of: self.switchAliasLink
-		        		});
+	     //    			aliasMenu.show();
+	     //    			aliasMenu.position({
+		    //     			my: "left top",
+		    //     			at: "right bottom",
+		    //     			of: self.switchAliasLink
+		    //     		});
 
-						evt.preventDefault();
-	        			evt.stopPropagation();
-	        			return false;
-		        	});
+						// evt.preventDefault();
+	     //    			evt.stopPropagation();
+	     //    			return false;
+		    //     	});
 
 
 		        	self.aliasLoadedListener = EM.addListener(EMEvent.AliasLoaded, function(alias: Alias): Void {

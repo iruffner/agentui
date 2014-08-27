@@ -204,14 +204,9 @@ class AppContext {
         EM.addListener(EMEvent.AliasLoaded, function(a:Alias){
             js.Browser.document.title = a.profile.name + " | aPhoto"; 
         });
-
-        EM.addListener(EMEvent.FitWindow, function(n: {}) {
-                untyped __js__("fitWindow()");
-            }, "AppContext-FitWindow"
-        );
 	}
 
-    public static function getLabelDescendents(iid:String):ObservableSet<Label> {
+    public static function getLabelDescendents(parentIid:String):ObservableSet<Label> {
         var labelDescendents = new ObservableSet<Label>(Label.identifier);
 
         var getDescendentIids:String->Array<String>->Void;
@@ -227,7 +222,11 @@ class AppContext {
         };
 
         var iid_list = new Array<String>();
-        getDescendentIids(iid, iid_list);
+        getDescendentIids(parentIid, iid_list);
+        
+        //edit by isaiah
+        iid_list.remove(parentIid);
+
         for (iid_ in iid_list) {
             var label = LABELS.getElement(iid_);
             if (label == null) {
