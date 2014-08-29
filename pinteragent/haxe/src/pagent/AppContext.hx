@@ -200,7 +200,7 @@ class AppContext {
                        "AppContext-InitialDataLoadComplete");
 
         EM.addListener(EMEvent.AliasLoaded, function(a:Alias){
-            js.Browser.document.title = a.profile.name + " | aPhoto"; 
+            js.Browser.document.title = a.profile.name + " | PinterAgent"; 
         });
     }
 

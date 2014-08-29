@@ -4,6 +4,7 @@ import m3.jq.JQ;
 
 import pagent.AppContext;
 import pagent.widget.AliasComp;
+import pagent.widget.OptionBar;
 
 using m3.helper.OSetHelper;
 // using pagent.widget.AlbumList;
@@ -27,7 +28,11 @@ class HomeScreen extends PinterPage {
 		
 		var aliasComp: AliasComp = new AliasComp("<div></div>");
 		aliasComp.appendTo(content);
-		aliasComp.AliasComp();
+		aliasComp.aliasComp();
+
+		var optionBar: OptionBar = new OptionBar("<div></div>");
+		optionBar.appendTo(content);
+		optionBar.optionBar();
 
 		// notificationsDiv.append("<h2>My Notifications</h2>");
 

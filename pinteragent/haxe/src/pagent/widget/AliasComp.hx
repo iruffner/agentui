@@ -51,7 +51,7 @@ extern class AliasComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function AliasComp(?opts: AliasCompOptions): AliasComp;
+	function aliasComp(?opts: AliasCompOptions): AliasComp;
 
 	private static function __init__(): Void {
 		var defineWidget: Void->AliasCompWidgetDef = function(): AliasCompWidgetDef {
@@ -217,6 +217,6 @@ extern class AliasComp extends JQ {
 		        }
 		    };
 		}
-		JQ.widget( "ui.AliasComp", defineWidget());
+		JQ.widget( "ui.aliasComp", defineWidget());
 	}
 }

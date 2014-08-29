@@ -26,6 +26,12 @@ body {
 
 /* Containers
 -----------------------------------------------------------------------------*/
+.content {
+	max-width: 1000px;
+	margin: auto;
+	text-align: left;
+}
+
 .ocontainer {
 	background: #333;
 	border-radius: 9px;
@@ -84,173 +90,13 @@ body {
 /* Widgets
 -----------------------------------------------------------------------------*/
 
-	/* ._albumList
+	/* ._optionBar
 	-----------------------------------------------------------------------------*/
 
-	._albumList {
-		/*max-width: 300px;*/
-		overflow: auto;
-		text-align: left;
+	._optionBar {
+		padding: 10px;
+		margin-top: 10px;
 	}
-
-		._albumList>h2 {
-			margin-top: 0px;
-		}
-
-		.labelTreeBranch {
-			text-align: left;
-		}
-
-		.labelsList {
-			overflow: auto;
-		}
-
-			.labelTreeFullWidth {
-				/*min-width: 100%;*/
-			}
-
-		#labelc {
-			margin-top: 15px;
-		}
-
-		#labels {
-			padding: 5px;
-		}
-
-		.label {
-			min-height: 40px;
-			max-height: 40px;
-			min-width: 100px; 
-			padding: 0;
-			display: inline-block;
-		}
-
-			.label.small {
-				min-height: 16px;
-				max-height: 16px;
-				min-width: 30px;
-				font-size: .5em;
-			}
-
-			.labelTreeExpander {
-				margin-top: 8px;
-				margin-right: 3px;
-				/*float: left;*/
-				cursor: default;
-				display: inline-block;
-				vertical-align: top;
-			}
-
-			.label .labelTail {
-				width: 0;
-				height: 0;
-				border-top: 15px solid transparent;
-				border-bottom: 15px solid transparent;
-				border-right-width: 25px;
-				border-right-style: solid;
-				background: none; 
-				display: table-cell;
-			}
-
-			.label.small .labelTail {
-				border-top: 9px solid transparent;
-				border-bottom: 9px solid transparent;
-				border-right-width: 14px;
-			}
-
-			.label .labelBox {
-				border-bottom-right-radius: 5px; 
-				border-top-right-radius: 5px; 
-				display: table-cell;
-				min-width: 75px; 
-				cursor: default;
-			}
-
-			.label.small .labelBox {
-				min-width: 50px; 
-			}
-
-			.label .labelBody {
-				margin: 3px;
-				border-radius: 4px;
-				background: white;
-				min-width: 70px;
-				border: 2px solid black;
-				padding: 3px 4px;
-				text-align: center;
-			}
-
-			.label.small .labelBody {
-				min-width: 50px; 
-			}
-
-			.labelBox.small .labelBody {
-				min-width: 45px;
-			}
-
-				.labelBody div {
-				}
-
-			.labelChildren {
-				margin-left: 25px;
-				margin-top: 3px;
-				white-space: nowrap;
-			}
-
-			.newLabelButton {
-				float: right;
-			}
-
-				.newLabelButton span {
-					padding: .2em .4em !important;
-					font-size: .8em !important;
-				}
-
-		.labelRed .labelBox {
-			background: #D06C72;
-		}
-		.labelRed .labelTail {
-			border-right-color: #D06C72;
-		}
-
-		.labelBlue .labelBox {
-			background: #3D88C2;
-		}
-		.labelBlue .labelTail {
-			border-right-color: #3D88C2;
-		}
-
-		.labelGreen .labelBox {
-			background: #72D06C;
-		}
-		.labelGreen .labelTail {
-			border-right-color: #72D06C;
-		}
-
-		.labelOrange .labelBox {
-			background: #D0976C;
-		}
-		.labelOrange .labelTail {
-			border-right-color: #D0976C;
-		}
-
-		.labelBrown .labelBox {
-			background: #935A2F;
-		}
-		.labelBrown .labelTail {
-			border-right-color: #935A2F;
-		}
-
-		.labelPurple .labelBox {
-			background: #976CD0;
-		}
-		.labelPurple .labelTail {
-			border-right-color: #976CD0;
-		}
-
-		#label-action-menu span.ui-icon {
-			top: .4em;
-		}
 
 	/* ._albumDetails
 	-----------------------------------------------------------------------------*/

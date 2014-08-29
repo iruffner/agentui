@@ -20,7 +20,7 @@ class PinterContext {
     public static var CURRENT_MEDIA: String;
 
     public static var ROOT_LABEL_NAME_OF_ALL_APPS: String = "com.qoid.apps";
-    public static var APP_ROOT_LABEL_NAME: String = "com.qoid.apps.pinteragent";
+    public static var APP_ROOT_LABEL_NAME: String = ROOT_LABEL_NAME_OF_ALL_APPS + ".pinteragent";
 
     @:isVar public static var ROOT_LABEL_OF_ALL_APPS(get,set): Label;
     
@@ -62,9 +62,9 @@ class PinterContext {
         path.push(PinterContext.ROOT_ALBUM.name);
         root.addNode(new LabelNode(l, path));
 
-        var filterData = new FilterData("albumConfig");
+        var filterData = new FilterData("boardConfig");
         filterData.filter = new Filter(root);
-        filterData.filter.q = filterData.filter.q + " and contentType = 'com.qoid.apps.aphoto.config'";
+        filterData.filter.q = filterData.filter.q + " and contentType = '" + APP_ROOT_LABEL_NAME + ".config'";
         filterData.connectionIids = [];
         filterData.aliasIid       = AppContext.currentAlias.iid;
 

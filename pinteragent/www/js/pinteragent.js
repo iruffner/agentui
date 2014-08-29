@@ -4807,7 +4807,7 @@ pagent.AppContext.registerGlobalListeners = function() {
 	});
 	pagent.model.EM.addListener(pagent.model.EMEvent.InitialDataLoadComplete,pagent.AppContext.onInitialDataLoadComplete,"AppContext-InitialDataLoadComplete");
 	pagent.model.EM.addListener(pagent.model.EMEvent.AliasLoaded,function(a) {
-		window.document.title = a.profile.name + " | aPhoto";
+		window.document.title = a.profile.name + " | PinterAgent";
 	});
 };
 pagent.AppContext.getLabelDescendents = function(parentIid) {
@@ -4923,9 +4923,9 @@ pagent.PinterContext.set_ROOT_ALBUM = function(l) {
 	path.push(pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS().name);
 	path.push(pagent.PinterContext.get_ROOT_ALBUM().name);
 	root.addNode(new qoid.model.LabelNode(l,path));
-	var filterData = new qoid.model.FilterData("albumConfig");
+	var filterData = new qoid.model.FilterData("boardConfig");
 	filterData.filter = new qoid.model.Filter(root);
-	filterData.filter.q = filterData.filter.q + " and contentType = 'com.qoid.apps.aphoto.config'";
+	filterData.filter.q = filterData.filter.q + " and contentType = '" + pagent.PinterContext.APP_ROOT_LABEL_NAME + ".config'";
 	filterData.connectionIids = [];
 	filterData.aliasIid = pagent.AppContext.currentAlias.iid;
 	pagent.model.EM.change(pagent.model.EMEvent.FILTER_RUN,filterData);
@@ -5655,7 +5655,10 @@ pagent.pages.HomeScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
 		content.addClass("center");
 		var aliasComp = new $("<div></div>");
 		aliasComp.appendTo(content);
-		aliasComp.AliasComp();
+		aliasComp.aliasComp();
+		var optionBar = new $("<div></div>");
+		optionBar.appendTo(content);
+		optionBar.optionBar();
 	}
 	,__class__: pagent.pages.HomeScreen
 });
@@ -5892,6 +5895,9 @@ qoid.model.EditLabelData.__name__ = ["qoid","model","EditLabelData"];
 qoid.model.EditLabelData.prototype = {
 	__class__: qoid.model.EditLabelData
 };
+pagent.widget.OptionBarHelper = function() { };
+$hxClasses["pagent.widget.OptionBarHelper"] = pagent.widget.OptionBarHelper;
+pagent.widget.OptionBarHelper.__name__ = ["pagent","widget","OptionBarHelper"];
 qoid.api = {};
 qoid.api.ChannelMessage = function() { };
 $hxClasses["qoid.api.ChannelMessage"] = qoid.api.ChannelMessage;
@@ -7049,7 +7055,7 @@ var defineWidget = function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.AliasComp",defineWidget());
+$.widget("ui.aliasComp",defineWidget());
 var defineWidget = function() {
 	return { options : { labelIid : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dropTargetClass : "labelDT", dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
 		if(containment == null) containment = false;
@@ -7158,6 +7164,46 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.labelComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of OptionBar must be a div element");
+		selfElement.addClass("_optionBar ui-widget-content ui-corner-all");
+		self.boardsBtn = new $("<button>0 Boards</button>").appendTo(selfElement).button();
+		new $("<button>New Board...</button>").appendTo(selfElement).button();
+		new $("<button>All Pins...</button>").appendTo(selfElement).button();
+		new $("<button class='fright'>Followers</button>").appendTo(selfElement).button();
+		new $("<button class='fright'>Following</button>").appendTo(selfElement).button();
+		if((function($this) {
+			var $r;
+			var this1 = pagent.AppContext.GROUPED_LABELCHILDREN.delegate();
+			$r = this1.get(pagent.PinterContext.get_ROOT_ALBUM().iid);
+			return $r;
+		}(this)) == null) pagent.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(pagent.PinterContext.get_ROOT_ALBUM().iid);
+		self._onUpdateBoards = function(board,evt) {
+			if(evt.isAdd()) {
+			} else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) {
+			} else if(evt.isClear()) {
+			}
+		};
+		self.boards = new m3.observable.MappedSet((function($this) {
+			var $r;
+			var this11 = pagent.AppContext.GROUPED_LABELCHILDREN.delegate();
+			$r = this11.get(pagent.PinterContext.get_ROOT_ALBUM().iid);
+			return $r;
+		}(this)),function(labelChild) {
+			return m3.helper.OSetHelper.getElementComplex(pagent.AppContext.LABELS,labelChild.childIid);
+		});
+		self.boards.visualId = "root_map";
+		self.boards.listen(self._onUpdateBoards);
+	}, destroy : function() {
+		var self1 = this;
+		if(self1.boards != null) self1.boards.removeListener(self1._onUpdateBoards);
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.optionBar",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -7424,7 +7470,7 @@ m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params
 m3.util.ColorProvider._INDEX = 0;
 pagent.PinterContext.APP_INITIALIZED = false;
 pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS = "com.qoid.apps";
-pagent.PinterContext.APP_ROOT_LABEL_NAME = "com.qoid.apps.pinteragent";
+pagent.PinterContext.APP_ROOT_LABEL_NAME = pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + ".pinteragent";
 pagent.api.ProtocolHandler.QUERY = "/api/query";
 pagent.api.ProtocolHandler.UPSERT = "/api/upsert";
 pagent.api.ProtocolHandler.DELETE = "/api/delete";
