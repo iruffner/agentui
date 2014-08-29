@@ -81,18 +81,6 @@ body {
 	}
 
 
-#homeScreen {
-	white-space: nowrap;
-}
-
-	#homeScreen ._albumList,
-	#homeScreen .connectionsDiv,
-	#homeScreen .notificationsDiv {
-		display: inline-block;
-		vertical-align: top;
-		min-width: 300px;
-	}
-
 /* Widgets
 -----------------------------------------------------------------------------*/
 
@@ -438,6 +426,18 @@ body {
 /* *************************************************
 	                  PAGES
    ************************************************ */
+#homeScreen {
+	white-space: nowrap;
+}
+
+	#homeScreen ._albumList,
+	#homeScreen .connectionsDiv,
+	#homeScreen .notificationsDiv {
+		display: inline-block;
+		vertical-align: top;
+		min-width: 300px;
+	}
+	
 #albumScreen .content {
 	text-align: left;
 }

@@ -6,11 +6,11 @@ import m3.log.LogLevel;
 import m3.serialization.Serialization;
 import m3.util.HotKeyManager;
 
-import ap.APhotoContext;
-import ap.api.ProtocolHandler;
-import ap.pages.APhotoPageMgr;
-import qoid.model.EM;
-import ap.widget.DialogManager;
+import pagent.PinterContext;
+import pagent.api.ProtocolHandler;
+import pagent.pages.PinterPageMgr;
+import pagent.model.EM;
+import pagent.widget.DialogManager;
 
 using m3.helper.ArrayHelper;
 using Lambda;
@@ -22,14 +22,14 @@ class PinterAgent {
     public static var HOT_KEY_ACTIONS: HotKeyManager;
 
 	public static function main() {
-        APhotoContext.init();
+        PinterContext.init();
 
         PROTOCOL = new ProtocolHandler();
         HOT_KEY_ACTIONS = HotKeyManager.get;
     }
 
     public static function start(): Void {
-        APhotoContext.PAGE_MGR.setBackButton(new JQ("#navBackButton").button(
+        PinterContext.PAGE_MGR.setBackButton(new JQ("#navBackButton").button(
                 {
                     icons: {
                         primary: "ui-icon-arrowthick-1-w"
@@ -38,16 +38,16 @@ class PinterAgent {
             )
         );
 
-        APhotoContext.PAGE_MGR.initClientPages();
+        PinterContext.PAGE_MGR.initClientPages();
         
         var document: JQ = new JQ(js.Browser.document);
-        document.bind("pagebeforeshow", APhotoContext.PAGE_MGR.beforePageShow);
-        document.bind("pagebeforecreate", APhotoContext.PAGE_MGR.pageBeforeCreate);
-        document.bind("pageshow", APhotoContext.PAGE_MGR.pageShow);
-        document.bind("pagehide", APhotoContext.PAGE_MGR.pageHide);
+        document.bind("pagebeforeshow", PinterContext.PAGE_MGR.beforePageShow);
+        document.bind("pagebeforecreate", PinterContext.PAGE_MGR.pageBeforeCreate);
+        document.bind("pageshow", PinterContext.PAGE_MGR.pageShow);
+        document.bind("pagehide", PinterContext.PAGE_MGR.pageHide);
         
-        APhotoContext.PAGE_MGR.CURRENT_PAGE = APhotoPageMgr.HOME_SCREEN;
-        EM.change(EMEvent.APP_INITIALIZED);
+        PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.HOME_SCREEN;
+        // EM.change(EMEvent.APP_INITIALIZED);
 
         new JQ("body").click(function(evt: JQEvent): Void {
             new JQ(".nonmodalPopup").hide();

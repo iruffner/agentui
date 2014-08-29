@@ -1,6 +1,5 @@
 package pagent;
 
-import ap.APhotoContext;
 import haxe.ds.StringMap;
 
 import m3.jq.JQ;
@@ -9,7 +8,7 @@ import m3.log.LogLevel;
 import m3.observable.OSet;
 import m3.serialization.Serialization;
 
-import qoid.model.EM;
+import pagent.model.EM;
 import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
@@ -129,11 +128,11 @@ class AppContext {
             }
         }
 
-        var rootLabelOfThisApp: Label = AppContext.LABELS.getElementComplex(APhotoContext.APP_ROOT_LABEL_NAME, function(l: Label) {
+        var rootLabelOfThisApp: Label = AppContext.LABELS.getElementComplex(PinterContext.APP_ROOT_LABEL_NAME, function(l: Label) {
                 return l.name;
             });
 
-        var rootLabelOfAllApps: Label = AppContext.LABELS.getElementComplex(APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS, function(l: Label) {
+        var rootLabelOfAllApps: Label = AppContext.LABELS.getElementComplex(PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS, function(l: Label) {
             return l.name;
         });
 
@@ -144,10 +143,10 @@ class AppContext {
                 var listener: Label->EventType->Void = null;
                 listener = function(l: Label, evtType: EventType) {
                         if(evtType.isAdd()) {
-                            if(l.name == APhotoContext.APP_ROOT_LABEL_NAME) {
+                            if(l.name == PinterContext.APP_ROOT_LABEL_NAME) {
                                 LABELS.removeListener(listener);
-                                APhotoContext.ROOT_ALBUM = l;
-                                APhotoContext.ROOT_LABEL_OF_ALL_APPS = theRootLabelOfAllApps;
+                                PinterContext.ROOT_ALBUM = l;
+                                PinterContext.ROOT_LABEL_OF_ALL_APPS = theRootLabelOfAllApps;
                                 EM.change(EMEvent.AliasLoaded, currentAlias);
                             }
                         }
@@ -155,7 +154,7 @@ class AppContext {
                 LABELS.listen(listener, false);
                 
                 var label: Label = new Label();
-                label.name = APhotoContext.APP_ROOT_LABEL_NAME;
+                label.name = PinterContext.APP_ROOT_LABEL_NAME;
                 var eventData = new EditLabelData(label, rootLabelOfAllApps.iid);
                 EM.change(EMEvent.CreateLabel, eventData);
             }
@@ -165,7 +164,7 @@ class AppContext {
                 var listener: Label->EventType->Void = null;
                 listener = function(l: Label, evtType: EventType) {
                         if(evtType.isAdd()) {
-                            if(l.name == APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
+                            if(l.name == PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
                                 LABELS.removeListener(listener);
                                 createRootLabelOfThisApp(l);
                             }
@@ -174,17 +173,17 @@ class AppContext {
                 LABELS.listen(listener, false);
                 
                 var label: Label = new Label();
-                label.name = APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS;
+                label.name = PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS;
                 var eventData = new EditLabelData(label, AppContext.currentAlias.rootLabelIid);
                 EM.change(EMEvent.CreateLabel, eventData);
                 createRootLabelOfThisApp(label);
             } else {
-                APhotoContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
+                PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
                 createRootLabelOfThisApp(rootLabelOfAllApps);
             }
         } else {
-            APhotoContext.ROOT_ALBUM = rootLabelOfThisApp;
-            APhotoContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
+            PinterContext.ROOT_ALBUM = rootLabelOfThisApp;
+            PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
             EM.change(EMEvent.AliasLoaded, currentAlias);
         }
     }
@@ -202,10 +201,10 @@ class AppContext {
             js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
         });
 
-        EM.addListener(EMEvent.FitWindow, function(n: {}) {
-                untyped __js__("fitWindow()");
-            }, "AppContext-FitWindow"
-        );
+        // EM.addListener(EMEvent.FitWindow, function(n: {}) {
+        //         untyped __js__("fitWindow()");
+        //     }, "AppContext-FitWindow"
+        // );
 	}
 
     public static function getLabelDescendents(iid:String):ObservableSet<Label> {
