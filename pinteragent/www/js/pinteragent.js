@@ -4723,7 +4723,7 @@ pagent.AppContext.init = function() {
 		}
 	});
 	pagent.AppContext.SERIALIZER = new m3.serialization.Serializer();
-	pagent.AppContext.SERIALIZER.addHandler(qoid.model.Content,new qoid.model.ContentHandler());
+	pagent.AppContext.SERIALIZER.addHandler(qoid.model.Content,new pagent.PinterContentHandler());
 	pagent.AppContext.SERIALIZER.addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
 	pagent.AppContext.registerGlobalListeners();
 };
@@ -4763,15 +4763,15 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 					if(l2.name == pagent.PinterContext.APP_ROOT_LABEL_NAME) {
 						pagent.AppContext.LABELS.removeListener(listener);
 						pagent.PinterContext.set_ROOT_ALBUM(l2);
-						pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(theRootLabelOfAllApps);
 						pagent.model.EM.change(pagent.model.EMEvent.AliasLoaded,pagent.AppContext.currentAlias);
+						pagent.model.EM.change(pagent.model.EMEvent.APP_INITIALIZED);
 					}
 				}
 			};
 			pagent.AppContext.LABELS.listen(listener,false);
 			var label = new qoid.model.Label();
 			label.name = pagent.PinterContext.APP_ROOT_LABEL_NAME;
-			var eventData = new qoid.model.EditLabelData(label,rootLabelOfAllApps.iid);
+			var eventData = new qoid.model.EditLabelData(label,pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS().iid);
 			pagent.model.EM.change(pagent.model.EMEvent.CreateLabel,eventData);
 		};
 		if(rootLabelOfAllApps == null) {
@@ -4780,6 +4780,7 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 				if(evtType1.isAdd()) {
 					if(l3.name == pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
 						pagent.AppContext.LABELS.removeListener(listener1);
+						pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(l3);
 						createRootLabelOfThisApp(l3);
 					}
 				}
@@ -4789,15 +4790,15 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 			label1.name = pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS;
 			var eventData1 = new qoid.model.EditLabelData(label1,pagent.AppContext.currentAlias.rootLabelIid);
 			pagent.model.EM.change(pagent.model.EMEvent.CreateLabel,eventData1);
-			createRootLabelOfThisApp(label1);
 		} else {
 			pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
 			createRootLabelOfThisApp(rootLabelOfAllApps);
 		}
 	} else {
-		pagent.PinterContext.set_ROOT_ALBUM(rootLabelOfThisApp);
 		pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
+		pagent.PinterContext.set_ROOT_ALBUM(rootLabelOfThisApp);
 		pagent.model.EM.change(pagent.model.EMEvent.AliasLoaded,pagent.AppContext.currentAlias);
+		pagent.model.EM.change(pagent.model.EMEvent.APP_INITIALIZED);
 	}
 };
 pagent.AppContext.registerGlobalListeners = function() {
@@ -4806,16 +4807,16 @@ pagent.AppContext.registerGlobalListeners = function() {
 	});
 	pagent.model.EM.addListener(pagent.model.EMEvent.InitialDataLoadComplete,pagent.AppContext.onInitialDataLoadComplete,"AppContext-InitialDataLoadComplete");
 	pagent.model.EM.addListener(pagent.model.EMEvent.AliasLoaded,function(a) {
-		window.document.title = a.profile.name + " | Qoid-Bennu";
+		window.document.title = a.profile.name + " | aPhoto";
 	});
 };
-pagent.AppContext.getLabelDescendents = function(iid) {
+pagent.AppContext.getLabelDescendents = function(parentIid) {
 	var labelDescendents = new m3.observable.ObservableSet(qoid.model.Label.identifier);
 	var getDescendentIids;
-	getDescendentIids = function(iid1,iidList) {
-		iidList.splice(0,0,iid1);
+	getDescendentIids = function(iid,iidList) {
+		iidList.splice(0,0,iid);
 		var children = new m3.observable.FilteredSet(pagent.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == iid1;
+			return lc.parentIid == iid;
 		}).asArray();
 		var _g1 = 0;
 		var _g = children.length;
@@ -4825,7 +4826,8 @@ pagent.AppContext.getLabelDescendents = function(iid) {
 		}
 	};
 	var iid_list = new Array();
-	getDescendentIids(iid,iid_list);
+	getDescendentIids(parentIid,iid_list);
+	HxOverrides.remove(iid_list,parentIid);
 	var _g2 = 0;
 	while(_g2 < iid_list.length) {
 		var iid_ = iid_list[_g2];
@@ -4856,6 +4858,47 @@ pagent.PinterAgent.start = function() {
 		new $(".nonmodalPopup").hide();
 	});
 	pagent.widget.DialogManager.showLogin();
+};
+pagent.PinterContentHandler = function() {
+};
+$hxClasses["pagent.PinterContentHandler"] = pagent.PinterContentHandler;
+pagent.PinterContentHandler.__name__ = ["pagent","PinterContentHandler"];
+pagent.PinterContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
+pagent.PinterContentHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var obj = null;
+		try {
+			var _g = fromJson.contentType;
+			switch(_g) {
+			case qoid.model.ContentType.AUDIO:
+				obj = pagent.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.AudioContent);
+				break;
+			case qoid.model.ContentType.IMAGE:
+				obj = pagent.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.ImageContent);
+				break;
+			case qoid.model.ContentType.URL:
+				obj = pagent.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.UrlContent);
+				break;
+			case qoid.model.ContentType.VERIFICATION:
+				obj = pagent.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.VerificationContent);
+				break;
+			case qoid.model.ContentType.TEXT:
+				obj = pagent.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.MessageContent);
+				break;
+			case qoid.model.ContentType.CONFIG:
+				obj = pagent.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.ConfigContent);
+				break;
+			}
+		} catch( err ) {
+			fromJson.contentType = qoid.model.ContentType.TEXT;
+			obj = pagent.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.MessageContent);
+		}
+		return obj;
+	}
+	,write: function(value,writer) {
+		return pagent.AppContext.SERIALIZER.toJson(value);
+	}
+	,__class__: pagent.PinterContentHandler
 };
 pagent.PinterContext = function() { };
 $hxClasses["pagent.PinterContext"] = pagent.PinterContext;

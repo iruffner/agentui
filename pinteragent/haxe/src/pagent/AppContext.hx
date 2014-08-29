@@ -9,6 +9,7 @@ import m3.observable.OSet;
 import m3.serialization.Serialization;
 
 import pagent.model.EM;
+import pagent.PinterAgent.PinterContentHandler;
 import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
@@ -44,7 +45,7 @@ class AppContext {
 
 
     public static function init() {
-    	LOGGER = new Logga(LogLevel.DEBUG);
+        LOGGER = new Logga(LogLevel.DEBUG);
 
         // INTRODUCTIONS = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
 
@@ -96,11 +97,11 @@ class AppContext {
             }
         });
 
-		SERIALIZER = new Serializer();
-        SERIALIZER.addHandler(Content, new ContentHandler());
+        SERIALIZER = new Serializer();
+        SERIALIZER.addHandler(Content, new PinterContentHandler());
         SERIALIZER.addHandler(Notification, new NotificationHandler());
 
-    	registerGlobalListeners();
+        registerGlobalListeners();
     }
 
     public static function isAliasRootLabel(iid:String):Bool {
@@ -146,8 +147,8 @@ class AppContext {
                             if(l.name == PinterContext.APP_ROOT_LABEL_NAME) {
                                 LABELS.removeListener(listener);
                                 PinterContext.ROOT_ALBUM = l;
-                                PinterContext.ROOT_LABEL_OF_ALL_APPS = theRootLabelOfAllApps;
                                 EM.change(EMEvent.AliasLoaded, currentAlias);
+                                EM.change(EMEvent.APP_INITIALIZED);
                             }
                         }
                     };
@@ -155,7 +156,7 @@ class AppContext {
                 
                 var label: Label = new Label();
                 label.name = PinterContext.APP_ROOT_LABEL_NAME;
-                var eventData = new EditLabelData(label, rootLabelOfAllApps.iid);
+                var eventData = new EditLabelData(label, PinterContext.ROOT_LABEL_OF_ALL_APPS.iid);
                 EM.change(EMEvent.CreateLabel, eventData);
             }
 
@@ -166,6 +167,7 @@ class AppContext {
                         if(evtType.isAdd()) {
                             if(l.name == PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
                                 LABELS.removeListener(listener);
+                                PinterContext.ROOT_LABEL_OF_ALL_APPS = l;
                                 createRootLabelOfThisApp(l);
                             }
                         }
@@ -176,19 +178,19 @@ class AppContext {
                 label.name = PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS;
                 var eventData = new EditLabelData(label, AppContext.currentAlias.rootLabelIid);
                 EM.change(EMEvent.CreateLabel, eventData);
-                createRootLabelOfThisApp(label);
             } else {
                 PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
                 createRootLabelOfThisApp(rootLabelOfAllApps);
             }
         } else {
-            PinterContext.ROOT_ALBUM = rootLabelOfThisApp;
             PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
+            PinterContext.ROOT_ALBUM = rootLabelOfThisApp;
             EM.change(EMEvent.AliasLoaded, currentAlias);
+            EM.change(EMEvent.APP_INITIALIZED);
         }
     }
 
-	static function registerGlobalListeners() {
+    static function registerGlobalListeners() {
         new JQ(js.Browser.window).on("unload", function(evt: JQEvent){
             EM.change(EMEvent.UserLogout);
         });
@@ -198,16 +200,11 @@ class AppContext {
                        "AppContext-InitialDataLoadComplete");
 
         EM.addListener(EMEvent.AliasLoaded, function(a:Alias){
-            js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
+            js.Browser.document.title = a.profile.name + " | aPhoto"; 
         });
+    }
 
-        // EM.addListener(EMEvent.FitWindow, function(n: {}) {
-        //         untyped __js__("fitWindow()");
-        //     }, "AppContext-FitWindow"
-        // );
-	}
-
-    public static function getLabelDescendents(iid:String):ObservableSet<Label> {
+    public static function getLabelDescendents(parentIid:String):ObservableSet<Label> {
         var labelDescendents = new ObservableSet<Label>(Label.identifier);
 
         var getDescendentIids:String->Array<String>->Void;
@@ -223,7 +220,11 @@ class AppContext {
         };
 
         var iid_list = new Array<String>();
-        getDescendentIids(iid, iid_list);
+        getDescendentIids(parentIid, iid_list);
+        
+        //edit by isaiah
+        iid_list.remove(parentIid);
+
         for (iid_ in iid_list) {
             var label = LABELS.getElement(iid_);
             if (label == null) {

@@ -11,6 +11,7 @@ import pagent.api.ProtocolHandler;
 import pagent.pages.PinterPageMgr;
 import pagent.model.EM;
 import pagent.widget.DialogManager;
+import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using Lambda;
@@ -113,4 +114,40 @@ class PinterAgent {
     // }
 
 
+}
+
+class PinterContentHandler implements TypeHandler {
+    
+    public function new() {
+    }
+
+    public function read(fromJson: {contentType: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
+        var obj: Content<Dynamic> = null;
+
+        try {
+            switch ( fromJson.contentType ) {
+                case ContentType.AUDIO:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, AudioContent);
+                case ContentType.IMAGE:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, ImageContent);
+                case ContentType.URL:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, UrlContent);
+                case ContentType.VERIFICATION:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationContent);
+                case ContentType.TEXT:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
+                case ContentType.CONFIG:
+                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, ConfigContent);
+            }
+        } catch (err: Dynamic) {
+            fromJson.contentType = ContentType.TEXT;
+            obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
+        }
+
+        return obj;
+    }
+
+    public function write(value: Dynamic, writer: JsonWriter): Dynamic {
+        return AppContext.SERIALIZER.toJson(value);
+    }
 }
