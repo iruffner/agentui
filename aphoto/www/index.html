@@ -15,8 +15,9 @@
     				<!-- <div style="float:right;">
     					<img src="svg/notification-network-ethernet-disconnected.svg" id="disconnected-indicator"/>
     				</div> -->
+                    <button id='navHomeButton'>Home</button>
                     <button id='navBackButton'>Back</button>
-    				<strong style='margin-left: -45px; font-size: xx-large;'>aPhoto</strong>
+    				<strong style='margin-left: -100px; font-size: xx-large;'>aPhoto</strong>
     			</div>
     		</header>
             <div id="home">
@@ -27,87 +28,11 @@
     	</div>
         <script src="js/jq/1.10.2/jquery.js"></script>
         <script src="js/jqui/1.11.0/jquery-ui.js"></script>  
-        <script src="js/snap.svg.js"></script>
-        <script src="js/d3.js" charset="utf-8"></script>
         <script src="js/aPhoto.js"></script>
 
         <script>
             $(document).ready(function() {
                 ap.APhoto.start();
-
-                window.onload = fitWindow;
-                $(window).resize(fitWindow);
-                fitWindow();
-            });
-
-            function fitWindow() {
-                $('.spacer').height(0).css("max-height", "0").css("min-height", "0");
-                
-                var middleContainer = $('#middleContainer');
-                var leftContainer = $('#sideLeft');
-                var rightContainer = $('#sideRight');
-
-
-                fixHeight($('#middleContainer'), $('#middleContainerSpacer'));
-                fixHeight($('#sideLeft'), $('#sideLeftSpacer'));
-                fixHeight($('#sideRight'), $('.sideRightSpacer'));
-            }
-            
-            function fixHeight(container, spacer) {
-                var header = $("header");
-                var contentHeight = $(window).height() - header.height() - 45/*header.css("margin-bottom")*/;
-                var containerHeight = container.height();
-                if(containerHeight < contentHeight) {
-                    var newHeight = contentHeight - containerHeight;
-                    spacer.css({"height": newHeight, "max-height": newHeight, "min-height": newHeight});
-                }
-            }
-
-            var transMatrix = [1,0,0,1,0,0];
-            var _mapMatrix = null;
-            var svgDoc = window.svgDocument;
-            var mapMatrix = function() {
-                if (_mapMatrix == null) {
-                    _mapMatrix = svgDoc.getElementById("uber-group");
-                }
-                return _mapMatrix;
-            }
-            
-            function init(evt) {
-                if (window.svgDocument == null) {
-                    svgDoc = evt.target.ownerDocument;
-                }
-                width  = evt.target.getAttributeNS(null, "width");
-                height = evt.target.getAttributeNS(null, "height");
-            }
-            
-            function pan(dx, dy) {
-                transMatrix[4] += dx;
-                transMatrix[5] += dy;
-                
-                newMatrix = "matrix(" +  transMatrix.join(' ') + ")";
-                mapMatrix().setAttributeNS(null, "transform", newMatrix);
-            }
-            
-            function zoom(scale) {
-                for (var i=0; i<transMatrix.length; i++) {
-                    transMatrix[i] *= scale;
-                }
-                transMatrix[4] += (1-scale)*width/2;
-                transMatrix[5] += (1-scale)*height/2;
-                    
-                newMatrix = "matrix(" +  transMatrix.join(' ') + ")";
-                mapMatrix().setAttributeNS(null, "transform", newMatrix);
-            }
-
-            Snap.plugin(function (Snap, Element, Paper, glob) {
-                var elproto = Element.prototype;
-                elproto.toFront = function () {
-                    this.prependTo(this.paper);
-                };
-                elproto.toBack = function () {
-                    this.appendTo(this.paper);
-                };
             });
         </script>
     </body>

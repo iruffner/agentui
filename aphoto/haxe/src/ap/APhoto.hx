@@ -1,5 +1,6 @@
 package ap;
 
+import ap.pages.APhotoPage;
 import m3.jq.JQ;
 import m3.log.Logga;
 import m3.log.LogLevel;
@@ -30,6 +31,16 @@ class APhoto {
     }
 
     public static function start(): Void {
+        new JQ("#navHomeButton").button(
+                {
+                    icons: {
+                        primary: "ui-icon-home"
+                      }
+                }
+            )
+            .click(function() {
+                    APhotoContext.PAGE_MGR.CURRENT_PAGE = APhotoPageMgr.HOME_SCREEN;
+                });
         APhotoContext.PAGE_MGR.setBackButton(new JQ("#navBackButton").button(
                 {
                     icons: {
@@ -49,7 +60,7 @@ class APhoto {
         
         APhotoContext.PAGE_MGR.CURRENT_PAGE = APhotoPageMgr.HOME_SCREEN;
 
-        new JQ("body").click(function(evt: JQEvent): Void {
+        new JQ("body").click(function(): Void {
             new JQ(".nonmodalPopup").hide();
         });
 

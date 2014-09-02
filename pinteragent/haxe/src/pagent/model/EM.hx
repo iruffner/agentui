@@ -1,4 +1,4 @@
-package ap.model;
+package pagent.model;
 
 import m3.log.Logga;
 import m3.event.EventManager;
@@ -6,7 +6,7 @@ import m3.event.EventManager;
 enum EMEvent {	
 	/* aphoto specific */
 	APP_INITIALIZED;
-	ALBUM_CONFIGS;
+
 	/* *************** */
 	
 

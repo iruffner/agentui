@@ -1,8 +1,8 @@
-package ap.widget;
+package pagent.widget;
 
-import ap.AppContext;
-import ap.widget.DialogManager;
-import ap.model.EM;
+import pagent.AppContext;
+import pagent.widget.DialogManager;
+import pagent.model.EM;
 import m3.jq.JQ;
 import m3.jq.M3Menu;
 import m3.jq.M3Dialog;
@@ -19,7 +19,7 @@ import m3.util.JqueryUtil;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 using qoid.widget.UploadComp;
-using ap.widget.ConnectionAvatar;
+using pagent.widget.ConnectionAvatar;
 
 typedef AliasCompOptions = {
 }
@@ -51,7 +51,7 @@ extern class AliasComp extends JQ {
 
 	@:overload(function(cmd : String):Bool{})
 	@:overload(function(cmd:String, opt:String, newVal:Dynamic):JQ{})
-	function AliasComp(?opts: AliasCompOptions): AliasComp;
+	function aliasComp(?opts: AliasCompOptions): AliasComp;
 
 	private static function __init__(): Void {
 		var defineWidget: Void->AliasCompWidgetDef = function(): AliasCompWidgetDef {
@@ -217,6 +217,6 @@ extern class AliasComp extends JQ {
 		        }
 		    };
 		}
-		JQ.widget( "ui.AliasComp", defineWidget());
+		JQ.widget( "ui.aliasComp", defineWidget());
 	}
 }

@@ -19,6 +19,11 @@ body {
 	margin-bottom: 25px;
 }
 
+	#header #navHomeButton {
+		float: left;
+		margin-left: 15px;
+	}
+
 	#header #navBackButton {
 		float: left;
 		margin-left: 15px;
