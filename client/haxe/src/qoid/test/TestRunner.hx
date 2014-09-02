@@ -1,4 +1,4 @@
-package ui.test;
+package qoid.test;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
@@ -10,7 +10,7 @@ class TestRunner extends TestRunnerBase {
 
 	override function getUnitTestClasses() {
 	    var tests: Array<Dynamic> = [
-			ui.test.ProtocolMessageTest
+			qoid.test.ProtocolMessageTest
 		];
 		return tests;
 	}

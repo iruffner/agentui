@@ -1,29 +1,28 @@
 package qoid.model;
 
-import m3.log.Logga;
 import m3.event.EventManager;
 
 class EM {
-	private static var delegate:EventManager<EMEvent>;
+	private static var delegate:EventManager;
 
 	private static function __init__(): Void {
-		delegate = new EventManager<EMEvent>(	);
+		delegate = EventManager.instance;
 	}
 
 	public static function addListener<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
-		return delegate.addListener(id, func, listenerName);
+		return delegate.addListener(id.getName(), func, listenerName);
 	}
 
 	public static function listenOnce<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
-		return delegate.listenOnce(id, func, listenerName);
+		return delegate.listenOnce(id.getName(), func, listenerName);
 	}
 	
 	public static function removeListener<T>(id: EMEvent, listenerUid: String):Void {
-		delegate.removeListener(id, listenerUid);
+		delegate.removeListener(id.getName(), listenerUid);
 	}
 
 	public static function change<T>(id: EMEvent, ?t: T): Void {
-		delegate.change(id, t);
+		delegate.change(id.getName(), t);
 	}
 }
 
