@@ -15,12 +15,7 @@ import qoid.api.CrudMessage;
  */
 class SimpleRequest extends BaseRequest {
 	public function new(path:String, data:String, successFcn: Dynamic->Void) {
-		baseOpts = {
-			async: true,
-			url: path 
-		};
-
-		super(data, successFcn);
+		super(data, path, successFcn);
 	}
 }
 
@@ -28,9 +23,7 @@ class SubmitRequest extends BaseRequest {
 	public function new(msgs:Array<ChannelRequestMessage>,
 		                ?successFcn: Dynamic->Void) {
 		this.baseOpts = {
-			dataType: "text",
-			async: true,
-			url: "/api/channel/submit" 
+			dataType: "text" 
 		};
 
 		if (successFcn == null) {
@@ -41,7 +34,7 @@ class SubmitRequest extends BaseRequest {
 		var bundle = new ChannelRequestMessageBundle(msgs);
 		var data = AppContext.SERIALIZER.toJsonString(bundle);
 
-		super(data, successFcn);
+		super(data, "/api/channel/submit", successFcn);
 	}
 }
 

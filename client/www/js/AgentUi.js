@@ -297,12 +297,6 @@ Reflect.fields = function(o) {
 Reflect.isFunction = function(f) {
 	return typeof(f) == "function" && !(f.__name__ || f.__ename__);
 };
-Reflect.compare = function(a,b) {
-	if(a == b) return 0; else if(a > b) return 1; else return -1;
-};
-Reflect.isEnumValue = function(v) {
-	return v != null && v.__enum__ != null;
-};
 var Std = function() { };
 $hxClasses["Std"] = Std;
 Std.__name__ = ["Std"];
@@ -808,136 +802,6 @@ haxe.Timer.prototype = {
 	,__class__: haxe.Timer
 };
 haxe.ds = {};
-haxe.ds.BalancedTree = function() {
-};
-$hxClasses["haxe.ds.BalancedTree"] = haxe.ds.BalancedTree;
-haxe.ds.BalancedTree.__name__ = ["haxe","ds","BalancedTree"];
-haxe.ds.BalancedTree.prototype = {
-	set: function(key,value) {
-		this.root = this.setLoop(key,value,this.root);
-	}
-	,get: function(key) {
-		var node = this.root;
-		while(node != null) {
-			var c = this.compare(key,node.key);
-			if(c == 0) return node.value;
-			if(c < 0) node = node.left; else node = node.right;
-		}
-		return null;
-	}
-	,setLoop: function(k,v,node) {
-		if(node == null) return new haxe.ds.TreeNode(null,k,v,null);
-		var c = this.compare(k,node.key);
-		if(c == 0) return new haxe.ds.TreeNode(node.left,k,v,node.right,node == null?0:node._height); else if(c < 0) {
-			var nl = this.setLoop(k,v,node.left);
-			return this.balance(nl,node.key,node.value,node.right);
-		} else {
-			var nr = this.setLoop(k,v,node.right);
-			return this.balance(node.left,node.key,node.value,nr);
-		}
-	}
-	,balance: function(l,k,v,r) {
-		var hl;
-		if(l == null) hl = 0; else hl = l._height;
-		var hr;
-		if(r == null) hr = 0; else hr = r._height;
-		if(hl > hr + 2) {
-			if((function($this) {
-				var $r;
-				var _this = l.left;
-				$r = _this == null?0:_this._height;
-				return $r;
-			}(this)) >= (function($this) {
-				var $r;
-				var _this1 = l.right;
-				$r = _this1 == null?0:_this1._height;
-				return $r;
-			}(this))) return new haxe.ds.TreeNode(l.left,l.key,l.value,new haxe.ds.TreeNode(l.right,k,v,r)); else return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l.left,l.key,l.value,l.right.left),l.right.key,l.right.value,new haxe.ds.TreeNode(l.right.right,k,v,r));
-		} else if(hr > hl + 2) {
-			if((function($this) {
-				var $r;
-				var _this2 = r.right;
-				$r = _this2 == null?0:_this2._height;
-				return $r;
-			}(this)) > (function($this) {
-				var $r;
-				var _this3 = r.left;
-				$r = _this3 == null?0:_this3._height;
-				return $r;
-			}(this))) return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l,k,v,r.left),r.key,r.value,r.right); else return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l,k,v,r.left.left),r.left.key,r.left.value,new haxe.ds.TreeNode(r.left.right,r.key,r.value,r.right));
-		} else return new haxe.ds.TreeNode(l,k,v,r,(hl > hr?hl:hr) + 1);
-	}
-	,compare: function(k1,k2) {
-		return Reflect.compare(k1,k2);
-	}
-	,__class__: haxe.ds.BalancedTree
-};
-haxe.ds.TreeNode = function(l,k,v,r,h) {
-	if(h == null) h = -1;
-	this.left = l;
-	this.key = k;
-	this.value = v;
-	this.right = r;
-	if(h == -1) this._height = ((function($this) {
-		var $r;
-		var _this = $this.left;
-		$r = _this == null?0:_this._height;
-		return $r;
-	}(this)) > (function($this) {
-		var $r;
-		var _this1 = $this.right;
-		$r = _this1 == null?0:_this1._height;
-		return $r;
-	}(this))?(function($this) {
-		var $r;
-		var _this2 = $this.left;
-		$r = _this2 == null?0:_this2._height;
-		return $r;
-	}(this)):(function($this) {
-		var $r;
-		var _this3 = $this.right;
-		$r = _this3 == null?0:_this3._height;
-		return $r;
-	}(this))) + 1; else this._height = h;
-};
-$hxClasses["haxe.ds.TreeNode"] = haxe.ds.TreeNode;
-haxe.ds.TreeNode.__name__ = ["haxe","ds","TreeNode"];
-haxe.ds.TreeNode.prototype = {
-	__class__: haxe.ds.TreeNode
-};
-haxe.ds.EnumValueMap = function() {
-	haxe.ds.BalancedTree.call(this);
-};
-$hxClasses["haxe.ds.EnumValueMap"] = haxe.ds.EnumValueMap;
-haxe.ds.EnumValueMap.__name__ = ["haxe","ds","EnumValueMap"];
-haxe.ds.EnumValueMap.__interfaces__ = [IMap];
-haxe.ds.EnumValueMap.__super__ = haxe.ds.BalancedTree;
-haxe.ds.EnumValueMap.prototype = $extend(haxe.ds.BalancedTree.prototype,{
-	compare: function(k1,k2) {
-		var d = k1[1] - k2[1];
-		if(d != 0) return d;
-		var p1 = k1.slice(2);
-		var p2 = k2.slice(2);
-		if(p1.length == 0 && p2.length == 0) return 0;
-		return this.compareArgs(p1,p2);
-	}
-	,compareArgs: function(a1,a2) {
-		var ld = a1.length - a2.length;
-		if(ld != 0) return ld;
-		var _g1 = 0;
-		var _g = a1.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var d = this.compareArg(a1[i],a2[i]);
-			if(d != 0) return d;
-		}
-		return 0;
-	}
-	,compareArg: function(v1,v2) {
-		if(Reflect.isEnumValue(v1) && Reflect.isEnumValue(v2)) return this.compare(v1,v2); else if((v1 instanceof Array) && v1.__enum__ == null && ((v2 instanceof Array) && v2.__enum__ == null)) return this.compareArgs(v1,v2); else return Reflect.compare(v1,v2);
-	}
-	,__class__: haxe.ds.EnumValueMap
-});
 haxe.ds.StringMap = function() {
 	this.h = { };
 };
@@ -1980,34 +1844,53 @@ m3.CrossMojo.prettyPrint = function(json) {
 	return JSON.stringify(json, undefined, 2);
 };
 m3.comm = {};
-m3.comm.BaseRequest = function(requestData,successFcn,errorFcn,accessDeniedFcn) {
+m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
 	this.requestData = requestData;
+	this._url = url;
 	this.onSuccess = successFcn;
 	this.onError = errorFcn;
 	this.onAccessDenied = accessDeniedFcn;
+	this._requestHeaders = new haxe.ds.StringMap();
 };
 $hxClasses["m3.comm.BaseRequest"] = m3.comm.BaseRequest;
 m3.comm.BaseRequest.__name__ = ["m3","comm","BaseRequest"];
 m3.comm.BaseRequest.prototype = {
-	start: function(opts) {
+	ajaxOpts: function(opts) {
+		if(opts == null) return this.baseOpts; else {
+			this.baseOpts = opts;
+			return this;
+		}
+	}
+	,requestHeaders: function(headers) {
+		if(headers == null) return this._requestHeaders; else {
+			this._requestHeaders = headers;
+			return this;
+		}
+	}
+	,beforeSend: function(jqXHR,settings) {
+		var $it0 = this._requestHeaders.keys();
+		while( $it0.hasNext() ) {
+			var key = $it0.next();
+			if(this._requestHeaders.get(key) != null) jqXHR.setRequestHeader(key,this._requestHeaders.get(key));
+		}
+	}
+	,start: function(opts) {
 		var _g = this;
-		var ajaxOpts = { dataType : "json", contentType : "application/json", data : this.requestData, type : "POST", success : function(data,textStatus,jqXHR) {
-			if(jqXHR.getResponseHeader("Content-Length") == "0") return;
+		if(opts == null) opts = { };
+		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", url : this._url, success : function(data,textStatus,jqXHR) {
+			if(jqXHR.getResponseHeader("Content-Length") == "0") data = [];
 			if(_g.onSuccess != null) _g.onSuccess(data);
 		}, error : function(jqXHR1,textStatus1,errorThrown) {
-			if(jqXHR1.getResponseHeader("Content-Length") == "0") return;
 			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
-			var error_message = null;
-			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) error_message = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") error_message = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") error_message = errorThrown; else error_message = errorThrown.message;
-			if(m3.helper.StringHelper.isBlank(error_message)) error_message = "Error, but no error msg from server";
-			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + error_message);
-			if(_g.onError != null) _g.onError(new m3.exception.AjaxException(error_message,null,jqXHR1.status)); else {
-				m3.util.JqueryUtil.alert("There was an error making your request:  " + error_message);
-				throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR1.status + " | " + error_message);
-			}
+			var errorMessage = null;
+			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) errorMessage = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") errorMessage = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") errorMessage = errorThrown; else errorMessage = errorThrown.message;
+			if(m3.helper.StringHelper.isBlank(errorMessage)) errorMessage = "Error, but no error msg from server";
+			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + errorMessage);
+			var exc = new m3.exception.AjaxException(errorMessage,null,jqXHR1.status);
+			if(_g.onError != null) _g.onError(exc); else throw exc;
 		}};
 		$.extend(ajaxOpts,this.baseOpts);
-		if(opts != null) $.extend(ajaxOpts,opts);
+		$.extend(ajaxOpts,opts);
 		return $.ajax(ajaxOpts);
 	}
 	,abort: function() {
@@ -2038,7 +1921,7 @@ m3.comm.LongPollingRequest = function(channel,requestToRepeat,logga,successFcn,e
 		_g.delayNextPoll = true;
 		if(errorFcn != null) errorFcn(exc);
 	};
-	m3.comm.BaseRequest.call(this,requestToRepeat,onSuccess,onError);
+	m3.comm.BaseRequest.call(this,requestToRepeat,this.getUrl(),onSuccess,onError);
 };
 $hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
 m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
@@ -2073,13 +1956,16 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 			this.logger.error("error on poll abort | " + Std.string(err));
 		}
 	}
+	,getUrl: function() {
+		return "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
+	}
 	,poll: function() {
 		if(this.running) {
 			if(this.delayNextPoll == true) {
 				this.delayNextPoll = false;
 				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
 			} else {
-				this.baseOpts.url = "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
+				this.baseOpts.url = this.getUrl();
 				this.baseOpts.timeout = this.timeout + 1000;
 				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
 			}
@@ -2089,15 +1975,18 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 });
 m3.event = {};
 m3.event.EventManager = function() {
-	this.hash = new haxe.ds.EnumValueMap();
+	this.hash = new haxe.ds.StringMap();
 	this.oneTimers = new Array();
 };
 $hxClasses["m3.event.EventManager"] = m3.event.EventManager;
 m3.event.EventManager.__name__ = ["m3","event","EventManager"];
+m3.event.EventManager.get_instance = function() {
+	if(m3.event.EventManager.instance == null) m3.event.EventManager.instance = new m3.event.EventManager();
+	return m3.event.EventManager.instance;
+};
 m3.event.EventManager.prototype = {
-	get_logger: function() {
-		if(this._logger == null) this._logger = m3.log.Logga.get_DEFAULT();
-		return this._logger;
+	on: function(id,func,listenerName) {
+		return this.addListener(id,func,listenerName);
 	}
 	,addListener: function(id,func,listenerName) {
 		var listener = new m3.event.EMListener(func,listenerName);
@@ -2115,28 +2004,28 @@ m3.event.EventManager.prototype = {
 	}
 	,listenOnce: function(id,func,listenerName) {
 		var listener = new m3.event.EMListener(func,listenerName);
-		return this.listenOnceInternal(id,listener);
-	}
-	,listenOnceInternal: function(id,listener) {
-		var map = this.hash.get(id);
 		this.oneTimers.push(listener.get_uid());
 		return this.addListenerInternal(id,listener);
 	}
 	,removeListener: function(id,listenerUid) {
 		var map = this.hash.get(id);
-		if(map != null) map.remove(listenerUid);
+		if(map == null) m3.log.Logga.get_DEFAULT().warn("removeListener called for unknown uuid"); else {
+			HxOverrides.remove(this.oneTimers,listenerUid);
+			map.remove(listenerUid);
+		}
 	}
 	,change: function(id,t) {
-		this.get_logger().debug("EVENTMODEL: Change to " + Std.string(id));
+		var logger = m3.log.Logga.get_DEFAULT();
+		logger.debug("EVENTMODEL: Change to " + id);
 		var map = this.hash.get(id);
 		if(map == null) {
-			this.get_logger().warn("No listeners for event " + Std.string(id));
+			logger.warn("No listeners for event " + id);
 			return;
 		}
 		var iter = map.iterator();
 		while(iter.hasNext()) {
 			var listener = iter.next();
-			this.get_logger().debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
+			logger.debug("Notifying " + listener.get_name() + " of " + id + " event");
 			try {
 				listener.change(t);
 				if((function($this) {
@@ -2149,7 +2038,7 @@ m3.event.EventManager.prototype = {
 					map.remove(key);
 				}
 			} catch( err ) {
-				this.get_logger().error("Error executing " + listener.get_name() + " of " + Std.string(id) + " event",m3.log.Logga.getExceptionInst(err));
+				logger.error("Error executing " + listener.get_name() + " of " + id + " event",m3.log.Logga.getExceptionInst(err));
 			}
 		}
 	}
@@ -5006,19 +4895,18 @@ qoid.api.ProtocolHandler.prototype = {
 		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.VERIFICATION_RESPONSE,context,new qoid.api.VerificationResponseMessage(vr))]);
 		req.start();
 	}
-	,rejectVerificationRequest: function(notificationIid) {
+	,consumeNotification: function(notificationIid,context) {
 		var notification = m3.helper.OSetHelper.getElement(qoid.AppContext.NOTIFICATIONS,notificationIid);
 		notification.consumed = true;
-		var context = qoid.api.Synchronizer.createContext(1,"verificationRequestRejected");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(notification))]);
+		var context1 = qoid.api.Synchronizer.createContext(1,context);
+		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.UPSERT,context1,qoid.api.CrudMessage.create(notification))]);
 		req.start();
 	}
+	,rejectVerificationRequest: function(notificationIid) {
+		this.consumeNotification(notificationIid,"verificationRequestRejected");
+	}
 	,rejectVerificationResponse: function(notificationIid) {
-		var notification = m3.helper.OSetHelper.getElement(qoid.AppContext.NOTIFICATIONS,notificationIid);
-		notification.consumed = true;
-		var context = qoid.api.Synchronizer.createContext(1,"verificationResponseRejected");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(qoid.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(notification))]);
-		req.start();
+		this.consumeNotification(notificationIid,"verificationResponseRejected");
 	}
 	,acceptVerification: function(notificationIid) {
 		var context = qoid.api.Synchronizer.createContext(1,"acceptVerification");
@@ -5052,8 +4940,7 @@ qoid.api.ProtocolHandler.prototype = {
 	,__class__: qoid.api.ProtocolHandler
 };
 qoid.api.SimpleRequest = function(path,data,successFcn) {
-	this.baseOpts = { async : true, url : path};
-	m3.comm.BaseRequest.call(this,data,successFcn);
+	m3.comm.BaseRequest.call(this,data,path,successFcn);
 };
 $hxClasses["qoid.api.SimpleRequest"] = qoid.api.SimpleRequest;
 qoid.api.SimpleRequest.__name__ = ["qoid","api","SimpleRequest"];
@@ -5062,12 +4949,12 @@ qoid.api.SimpleRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 	__class__: qoid.api.SimpleRequest
 });
 qoid.api.SubmitRequest = function(msgs,successFcn) {
-	this.baseOpts = { dataType : "text", async : true, url : "/api/channel/submit"};
+	this.baseOpts = { dataType : "text"};
 	if(successFcn == null) successFcn = function(data) {
 	};
 	var bundle = new qoid.api.ChannelRequestMessageBundle(msgs);
 	var data1 = qoid.AppContext.SERIALIZER.toJsonString(bundle);
-	m3.comm.BaseRequest.call(this,data1,successFcn);
+	m3.comm.BaseRequest.call(this,data1,"/api/channel/submit",successFcn);
 };
 $hxClasses["qoid.api.SubmitRequest"] = qoid.api.SubmitRequest;
 qoid.api.SubmitRequest.__name__ = ["qoid","api","SubmitRequest"];
@@ -5375,16 +5262,16 @@ qoid.model.EM = function() { };
 $hxClasses["qoid.model.EM"] = qoid.model.EM;
 qoid.model.EM.__name__ = ["qoid","model","EM"];
 qoid.model.EM.addListener = function(id,func,listenerName) {
-	return qoid.model.EM.delegate.addListener(id,func,listenerName);
+	return qoid.model.EM.delegate.addListener(id[0],func,listenerName);
 };
 qoid.model.EM.listenOnce = function(id,func,listenerName) {
-	return qoid.model.EM.delegate.listenOnce(id,func,listenerName);
+	return qoid.model.EM.delegate.listenOnce(id[0],func,listenerName);
 };
 qoid.model.EM.removeListener = function(id,listenerUid) {
-	qoid.model.EM.delegate.removeListener(id,listenerUid);
+	qoid.model.EM.delegate.removeListener(id[0],listenerUid);
 };
 qoid.model.EM.change = function(id,t) {
-	qoid.model.EM.delegate.change(id,t);
+	qoid.model.EM.delegate.change(id[0],t);
 };
 qoid.model.EMEvent = $hxClasses["qoid.model.EMEvent"] = { __ename__ : ["qoid","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","VerificationRequest","VerificationRequest_RESPONSE","RespondToVerification","RespondToVerification_RESPONSE","RejectVerificationRequest","RejectVerificationRequest_RESPONSE","AcceptVerification","AcceptVerification_RESPONSE","RejectVerification","RejectVerification_RESPONSE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] };
 qoid.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
@@ -7050,7 +6937,7 @@ m3.util.ColorProvider._COLORS.push("#9BCC5C");
 m3.util.ColorProvider._COLORS.push("#CCC45C");
 m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
-qoid.model.EM.delegate = new m3.event.EventManager();
+qoid.model.EM.delegate = m3.event.EventManager.get_instance();
 qoid.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 qoid.model.ContentSource.listeners = new Array();
 qoid.model.EM.addListener(qoid.model.EMEvent.AliasLoaded,qoid.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
@@ -7909,7 +7796,8 @@ var defineWidget = function() {
 		selfElement1.append("<div>to access the label:</div>");
 		selfElement1.append("<div>&nbsp;</div>");
 		new $("<div></div>").labelComp({ dndEnabled : false, labelIid : self1.options.label.iid}).appendTo(selfElement1);
-		var dlgOptions = { autoOpen : false, title : "Allow Access", height : 290, width : 400, modal : true, buttons : { Allow : function() {
+		selfElement1.append("<div>&nbsp;&nbsp;?&nbsp;&nbsp;</div>");
+		var dlgOptions = { autoOpen : false, title : "Allow Access", height : 340, width : 300, modal : true, buttons : { Allow : function() {
 			self1._allowAccess();
 		}, Cancel : function() {
 			$(this).dialog("close");
