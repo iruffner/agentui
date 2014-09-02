@@ -3,97 +3,97 @@ package ap.model;
 import m3.log.Logga;
 import m3.event.EventManager;
 
-enum EMEvent {	
+class EMEvent {	
 	/* aphoto specific */
-	APP_INITIALIZED;
-	ALBUM_CONFIGS;
+	public static var APP_INITIALIZED: String = "APP_INITIALIZED";
+	public static var ALBUM_CONFIGS: String = "ALBUM_CONFIGS";
 	/* *************** */
 	
 
-	FILTER_RUN;
-	FILTER_CHANGE;
-	LoadFilteredContent;
-	AppendFilteredContent;
+	public static var FILTER_RUN: String = "FILTER_RUN";
+	public static var FILTER_CHANGE: String = "FILTER_CHANGE";
+	public static var LoadFilteredContent: String = "LoadFilteredContent";
+	public static var AppendFilteredContent: String = "AppendFilteredContent";
 
-	EditContentClosed;
+	public static var EditContentClosed: String = "EditContentClosed";
 
-	CreateAgent;
-	AgentCreated;
-	InitialDataLoadComplete;
+	public static var CreateAgent: String = "CreateAgent";
+	public static var AgentCreated: String = "AgentCreated";
+	public static var InitialDataLoadComplete: String = "InitialDataLoadComplete";
 
 	// FitWindow;
-	UserLogin;
-	UserLogout;
+	public static var UserLogin: String = "UserLogin";
+	public static var UserLogout: String = "UserLogout";
 
-	AliasLoaded;
-	AliasCreated;
-	AliasUpdated;
+	public static var AliasLoaded: String = "AliasLoaded";
+	public static var AliasCreated: String = "AliasCreated";
+	public static var AliasUpdated: String = "AliasUpdated";
 
-	CreateAlias;
-	UpdateAlias;
-	DeleteAlias;
+	public static var CreateAlias: String = "CreateAlias";
+	public static var UpdateAlias: String = "UpdateAlias";
+	public static var DeleteAlias: String = "DeleteAlias";
 
-	CreateContent;
-	DeleteContent;
-	UpdateContent;
+	public static var CreateContent: String = "CreateContent";
+	public static var DeleteContent: String = "DeleteContent";
+	public static var UpdateContent: String = "UpdateContent";
 
-	CreateLabel;
-	UpdateLabel;
-	MoveLabel;
-	CopyLabel;
-	DeleteLabel;
+	public static var CreateLabel: String = "CreateLabel";
+	public static var UpdateLabel: String = "UpdateLabel";
+	public static var MoveLabel: String = "MoveLabel";
+	public static var CopyLabel: String = "CopyLabel";
+	public static var DeleteLabel: String = "DeleteLabel";
 
-	GrantAccess;
+	public static var GrantAccess: String = "GrantAccess";
 	// AccessGranted;
-	RevokeAccess;
+	public static var RevokeAccess: String = "RevokeAccess";
 
-	DeleteConnection;
+	public static var DeleteConnection: String = "DeleteConnection";
 
-	INTRODUCTION_REQUEST;
+	public static var INTRODUCTION_REQUEST: String = "INTRODUCTION_REQUEST";
 	// INTRODUCTION_RESPONSE;
-	RespondToIntroduction;
+	public static var RespondToIntroduction: String = "RespondToIntroduction";
 	// RespondToIntroduction_RESPONSE;
 
-	TargetChange;
+	public static var TargetChange: String = "TargetChange";
 
-	VerificationRequest;
+	public static var VerificationRequest: String = "VerificationRequest";
 	// VerificationRequest_RESPONSE;
 
-	RespondToVerification;
+	public static var RespondToVerification: String = "RespondToVerification";
 	// RespondToVerification_RESPONSE;
 
-	RejectVerificationRequest;
+	public static var RejectVerificationRequest: String = "RejectVerificationRequest";
 	// RejectVerificationRequest_RESPONSE;
 	
-	AcceptVerification;
+	public static var AcceptVerification: String = "AcceptVerification";
 	// AcceptVerification_RESPONSE;
 
-	BACKUP;
-	RESTORE;
+	public static var BACKUP: String = "BACKUP";
+	public static var RESTORE: String = "RESTORE";
 	// RESTORES_REQUEST;
 	// AVAILABLE_BACKUPS;
 }
 
 class EM {
-	private static var delegate:EventManager<EMEvent>;
+	private static var delegate:EventManager;
 
 	private static function __init__(): Void {
-		delegate = new EventManager<EMEvent>(	);
+		delegate = EventManager.instance;
 	}
 
-	public static function addListener<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
+	public static function addListener<T>(id: String, func: T->Void, ?listenerName:String): String {
 		return delegate.addListener(id, func, listenerName);
 	}
 
-	public static function listenOnce<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
+	public static function listenOnce<T>(id: String, func: T->Void, ?listenerName:String): String {
 		return delegate.listenOnce(id, func, listenerName);
 	}
 	
-	public static function removeListener<T>(id: EMEvent, listenerUid: String):Void {
+	public static function removeListener<T>(id: String, listenerUid: String):Void {
 		delegate.removeListener(id, listenerUid);
 	}
 
-	public static function change<T>(id: EMEvent, ?t: T): Void {
+	public static function change<T>(id: String, ?t: T): Void {
 		delegate.change(id, t);
 	}
 }

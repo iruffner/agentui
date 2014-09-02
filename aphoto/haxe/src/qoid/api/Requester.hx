@@ -21,7 +21,7 @@ class SimpleRequest extends BaseRequest {
 			url: path 
 		};
 
-		super(data, successFcn);
+		super(data, path, successFcn);
 	}
 }
 
@@ -42,7 +42,8 @@ class SubmitRequest extends BaseRequest {
 		var bundle = new ChannelRequestMessageBundle(msgs);
 		var data = AppContext.SERIALIZER.toJsonString(bundle);
 
-		super(data, successFcn);
+		super(data, "/api/channel/submit", successFcn);
 	}
 }
+
 

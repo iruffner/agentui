@@ -15,7 +15,7 @@ body {
 /* Header
 -----------------------------------------------------------------------------*/
 #header {
-	height: 60px;
+	/*height: 60px;*/
 	margin-bottom: 25px;
 }
 
@@ -89,6 +89,45 @@ body {
 
 /* Widgets
 -----------------------------------------------------------------------------*/
+	/* ._boardList
+	-----------------------------------------------------------------------------*/
+
+	._boardList {
+		overflow: auto;
+		text-align: left;
+		margin-top: 20px;
+	}
+
+		._albumList>h2 {
+			margin-top: 0px;
+		}
+
+		._boardList h2 {
+			display: inline-block;
+			font-size: 28px;
+			vertical-align: top;
+		}
+
+		._boardList ._boardComp {
+			width: 33.3%;
+			max-width: 33.3%;
+			min-width: 33.3%;
+			display: inline-block;
+			vertical-align: middle;
+			text-align: center;
+			border: 1px solid gray;
+			padding: 5px;
+		}
+
+			._boardList ._boardComp .labelNameWrapper {
+				text-align: left;
+				font-size: 18px;
+				font-weight: bold;
+			}
+			._boardList ._boardComp img {
+				max-height: 210px;
+				min-height: 210px;
+			}
 
 	/* ._optionBar
 	-----------------------------------------------------------------------------*/
@@ -198,8 +237,9 @@ body {
 		/*position: relative;*/
 	}
 
-		._aliasComp.targetChange .userImg {
-			width: 50px !important;
+		._aliasComp>div {
+			display: inline-block;
+			vertical-align: top;
 		}
 
 		._aliasComp .userImg {
@@ -227,31 +267,9 @@ body {
 			/*text-align: right;*/
 			/*float: right;*/
 			font-size: 22px;
+			margin-left: 20px;
+			margin-top: 10px;
 		}
-
-		._aliasComp .aliasToggle {
-			color: blue;
-			text-decoration: underline;
-			/*position: absolute;*/
-			/*bottom: 0;
-			right: 5px;*/
-			/*width: 6em;*/
-			/*margin-bottom: 1em;*/
-			cursor: pointer;
-		}
-		._aliasComp .aliasBtn {
-			padding: 2px 6px;
-			width: 100%;
-		}
-			._aliasComp .aliasBtn:last-child {
-				border-bottom-left-radius: 9px;
-				border-bottom-right-radius: 9px;
-			}
-
-			._aliasComp .aliasBtn:first-child {
-				border-top-left-radius: 9px;
-				border-top-right-radius: 9px;
-			}
 
 /* *************************************************
 	                  DIALOGS
@@ -276,14 +294,6 @@ body {
 	white-space: nowrap;
 }
 
-	#homeScreen ._albumList,
-	#homeScreen .connectionsDiv,
-	#homeScreen .notificationsDiv {
-		display: inline-block;
-		vertical-align: top;
-		min-width: 300px;
-	}
-	
 #albumScreen .content {
 	text-align: left;
 }

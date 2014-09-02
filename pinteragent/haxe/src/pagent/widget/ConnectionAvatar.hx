@@ -18,7 +18,6 @@ import m3.exception.Exception;
 using StringTools;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using pagent.widget.LabelComp;
 
 typedef ConnectionAvatarOptions = {
 	>FilterableCompOptions,
@@ -135,80 +134,6 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            		untyped __js__("return false;"); 
 	            		});
 	            	} 
-	    //         	else {
-					// 	selfElement.addClass("filterable");
-			  //           selfElement.data(
-			  //           	"clone", self.options.cloneFcn
-		   //          	);
-		   //          	selfElement.data("dropTargetClass", self.options.dropTargetClass);
-		   //          	selfElement.data("getNode", function(): Node {
-		   //          		if (self.options.connectionIid != null) {
-		   //          			return new ConnectionNode(self.getConnection());
-		   //          		} else {
-		   //          			return null;
-		   //          		}
-		   //          	});
-
-		   //          	selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-	    //             		if(self.options.dragstop != null) {
-	    //             			self.options.dragstop(dragstopEvt, dragstopUi);
-	    //             		}
-	    //             	});
-
-			  //           var helper: Dynamic = "clone";
-			  //           if(!self.options.isDragByHelper) {
-			  //           	helper = "original";
-			  //           } else if (self.options.helperFcn != null && Reflect.isFunction(self.options.helperFcn)) {
-			  //           	helper = self.options.helperFcn;
-			  //           }
-
-			  //           cast(selfElement, JQDraggable).draggable({ 
-				 //    		containment: self.options.containment, 
-				 //    		helper: helper,
-				 //    		distance: 10,
-				 //    		// grid: [5,5],
-				 //    		revertDuration: 200,
-				 //    		scroll: false,
-				 //    		start: function(evt:JQEvent, _ui:UIDraggable):Void {
-				 //    			cast(selfElement, JQDraggable).draggable("option", "revert", false);
-				 //    		}
-				 //    	});
-
-			  //           cast(selfElement, JQDroppable).droppable({
-				 //    		accept: function(d) {
-				 //    			return !JQ.cur.parent().is(".filterCombination") && 
-				 //    					(d.is(".labelComp") ||
- 				//     			         (JQ.cur.parent().is(".dropCombiner") && d.is(".connectionAvatar")));
-				 //    		},
-					// 		activeClass: "ui-state-hover",
-					//       	hoverClass: "ui-state-active",
-					//       	greedy: true,
-					//       	drop: function(event: JQEvent, _ui: UIDroppable ) {
-					//       		if (_ui.draggable.is(".labelComp")) {
-					// 				var labelComp: LabelComp = cast(_ui.draggable, LabelComp);
-					// 				var connection = AppContext.CONNECTIONS.getElement(self.options.connectionIid);
-					// 				DialogManager.allowAccess(labelComp.labelComp("getLabel"), connection);
-					//       		} else {
-					// 	      		var filterCombiner: FilterCombination = new FilterCombination("<div></div>");
-					// 	      		filterCombiner.appendTo(JQ.cur.parent());
-					// 	      		filterCombiner.filterCombination({
-					// 	      			event: event,
-					// 	      			type: "CONNECTION",
-					// 	      			dragstop: self.options.dragstop
-					//       			});
-					//       			filterCombiner.filterCombination("addFilterable", JQ.cur);
-
-					//       			var clone: JQ = _ui.draggable.data("clone")(_ui.draggable,false,"#filter");
-					//                 clone.addClass("filterTrashable " + _ui.draggable.data("dropTargetClass"));
-
-					//       			filterCombiner.filterCombination("addFilterable", clone);
-
-					//       			filterCombiner.filterCombination("position");
-					//       		}
-					//       	},
-					//       	tolerance: "pointer"
-				 //    	});
-					// }
 		        },
 
 		        _updateWidgets: function(profile:Profile): Void {

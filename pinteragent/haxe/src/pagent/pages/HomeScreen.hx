@@ -4,6 +4,7 @@ import m3.jq.JQ;
 
 import pagent.AppContext;
 import pagent.widget.AliasComp;
+import pagent.widget.BoardList;
 import pagent.widget.OptionBar;
 
 using m3.helper.OSetHelper;
@@ -24,8 +25,6 @@ class HomeScreen extends PinterPage {
 		var content: JQ = new JQ(".content", screen).empty();
 		content.addClass("center");
 
-		// var notificationsDiv: JQ = new JQ("<div class='notificationsDiv'></div>").appendTo(content);
-		
 		var aliasComp: AliasComp = new AliasComp("<div></div>");
 		aliasComp.appendTo(content);
 		aliasComp.aliasComp();
@@ -34,13 +33,9 @@ class HomeScreen extends PinterPage {
 		optionBar.appendTo(content);
 		optionBar.optionBar();
 
-		// notificationsDiv.append("<h2>My Notifications</h2>");
-
-		// var albumListing: AlbumList = new AlbumList("<div style='margin-left: 50px;'></div>");
-		// albumListing.appendTo(content);
-		// albumListing.albumList({
-		// 		title: "My Albums"
-		// 	});
+		var boardListing: BoardList = new BoardList("<div></div>");
+		boardListing.appendTo(content);
+		boardListing.boardList();
 	}
 	
 }

@@ -297,12 +297,6 @@ Reflect.fields = function(o) {
 Reflect.isFunction = function(f) {
 	return typeof(f) == "function" && !(f.__name__ || f.__ename__);
 };
-Reflect.compare = function(a,b) {
-	if(a == b) return 0; else if(a > b) return 1; else return -1;
-};
-Reflect.isEnumValue = function(v) {
-	return v != null && v.__enum__ != null;
-};
 var Std = function() { };
 $hxClasses["Std"] = Std;
 Std.__name__ = ["Std"];
@@ -800,148 +794,6 @@ haxe.Timer.prototype = {
 	,__class__: haxe.Timer
 };
 haxe.ds = {};
-haxe.ds.BalancedTree = function() {
-};
-$hxClasses["haxe.ds.BalancedTree"] = haxe.ds.BalancedTree;
-haxe.ds.BalancedTree.__name__ = ["haxe","ds","BalancedTree"];
-haxe.ds.BalancedTree.prototype = {
-	set: function(key,value) {
-		this.root = this.setLoop(key,value,this.root);
-	}
-	,get: function(key) {
-		var node = this.root;
-		while(node != null) {
-			var c = this.compare(key,node.key);
-			if(c == 0) return node.value;
-			if(c < 0) node = node.left; else node = node.right;
-		}
-		return null;
-	}
-	,iterator: function() {
-		var ret = [];
-		this.iteratorLoop(this.root,ret);
-		return HxOverrides.iter(ret);
-	}
-	,setLoop: function(k,v,node) {
-		if(node == null) return new haxe.ds.TreeNode(null,k,v,null);
-		var c = this.compare(k,node.key);
-		if(c == 0) return new haxe.ds.TreeNode(node.left,k,v,node.right,node == null?0:node._height); else if(c < 0) {
-			var nl = this.setLoop(k,v,node.left);
-			return this.balance(nl,node.key,node.value,node.right);
-		} else {
-			var nr = this.setLoop(k,v,node.right);
-			return this.balance(node.left,node.key,node.value,nr);
-		}
-	}
-	,iteratorLoop: function(node,acc) {
-		if(node != null) {
-			this.iteratorLoop(node.left,acc);
-			acc.push(node.value);
-			this.iteratorLoop(node.right,acc);
-		}
-	}
-	,balance: function(l,k,v,r) {
-		var hl;
-		if(l == null) hl = 0; else hl = l._height;
-		var hr;
-		if(r == null) hr = 0; else hr = r._height;
-		if(hl > hr + 2) {
-			if((function($this) {
-				var $r;
-				var _this = l.left;
-				$r = _this == null?0:_this._height;
-				return $r;
-			}(this)) >= (function($this) {
-				var $r;
-				var _this1 = l.right;
-				$r = _this1 == null?0:_this1._height;
-				return $r;
-			}(this))) return new haxe.ds.TreeNode(l.left,l.key,l.value,new haxe.ds.TreeNode(l.right,k,v,r)); else return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l.left,l.key,l.value,l.right.left),l.right.key,l.right.value,new haxe.ds.TreeNode(l.right.right,k,v,r));
-		} else if(hr > hl + 2) {
-			if((function($this) {
-				var $r;
-				var _this2 = r.right;
-				$r = _this2 == null?0:_this2._height;
-				return $r;
-			}(this)) > (function($this) {
-				var $r;
-				var _this3 = r.left;
-				$r = _this3 == null?0:_this3._height;
-				return $r;
-			}(this))) return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l,k,v,r.left),r.key,r.value,r.right); else return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l,k,v,r.left.left),r.left.key,r.left.value,new haxe.ds.TreeNode(r.left.right,r.key,r.value,r.right));
-		} else return new haxe.ds.TreeNode(l,k,v,r,(hl > hr?hl:hr) + 1);
-	}
-	,compare: function(k1,k2) {
-		return Reflect.compare(k1,k2);
-	}
-	,__class__: haxe.ds.BalancedTree
-};
-haxe.ds.TreeNode = function(l,k,v,r,h) {
-	if(h == null) h = -1;
-	this.left = l;
-	this.key = k;
-	this.value = v;
-	this.right = r;
-	if(h == -1) this._height = ((function($this) {
-		var $r;
-		var _this = $this.left;
-		$r = _this == null?0:_this._height;
-		return $r;
-	}(this)) > (function($this) {
-		var $r;
-		var _this1 = $this.right;
-		$r = _this1 == null?0:_this1._height;
-		return $r;
-	}(this))?(function($this) {
-		var $r;
-		var _this2 = $this.left;
-		$r = _this2 == null?0:_this2._height;
-		return $r;
-	}(this)):(function($this) {
-		var $r;
-		var _this3 = $this.right;
-		$r = _this3 == null?0:_this3._height;
-		return $r;
-	}(this))) + 1; else this._height = h;
-};
-$hxClasses["haxe.ds.TreeNode"] = haxe.ds.TreeNode;
-haxe.ds.TreeNode.__name__ = ["haxe","ds","TreeNode"];
-haxe.ds.TreeNode.prototype = {
-	__class__: haxe.ds.TreeNode
-};
-haxe.ds.EnumValueMap = function() {
-	haxe.ds.BalancedTree.call(this);
-};
-$hxClasses["haxe.ds.EnumValueMap"] = haxe.ds.EnumValueMap;
-haxe.ds.EnumValueMap.__name__ = ["haxe","ds","EnumValueMap"];
-haxe.ds.EnumValueMap.__interfaces__ = [IMap];
-haxe.ds.EnumValueMap.__super__ = haxe.ds.BalancedTree;
-haxe.ds.EnumValueMap.prototype = $extend(haxe.ds.BalancedTree.prototype,{
-	compare: function(k1,k2) {
-		var d = k1[1] - k2[1];
-		if(d != 0) return d;
-		var p1 = k1.slice(2);
-		var p2 = k2.slice(2);
-		if(p1.length == 0 && p2.length == 0) return 0;
-		return this.compareArgs(p1,p2);
-	}
-	,compareArgs: function(a1,a2) {
-		var ld = a1.length - a2.length;
-		if(ld != 0) return ld;
-		var _g1 = 0;
-		var _g = a1.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var d = this.compareArg(a1[i],a2[i]);
-			if(d != 0) return d;
-		}
-		return 0;
-	}
-	,compareArg: function(v1,v2) {
-		if(Reflect.isEnumValue(v1) && Reflect.isEnumValue(v2)) return this.compare(v1,v2); else if((v1 instanceof Array) && v1.__enum__ == null && ((v2 instanceof Array) && v2.__enum__ == null)) return this.compareArgs(v1,v2); else return Reflect.compare(v1,v2);
-	}
-	,__class__: haxe.ds.EnumValueMap
-});
 haxe.ds.StringMap = function() {
 	this.h = { };
 };
@@ -1950,34 +1802,53 @@ m3.CrossMojo.prettyPrint = function(json) {
 	return JSON.stringify(json, undefined, 2);
 };
 m3.comm = {};
-m3.comm.BaseRequest = function(requestData,successFcn,errorFcn,accessDeniedFcn) {
+m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
 	this.requestData = requestData;
+	this._url = url;
 	this.onSuccess = successFcn;
 	this.onError = errorFcn;
 	this.onAccessDenied = accessDeniedFcn;
+	this._requestHeaders = new haxe.ds.StringMap();
 };
 $hxClasses["m3.comm.BaseRequest"] = m3.comm.BaseRequest;
 m3.comm.BaseRequest.__name__ = ["m3","comm","BaseRequest"];
 m3.comm.BaseRequest.prototype = {
-	start: function(opts) {
+	ajaxOpts: function(opts) {
+		if(opts == null) return this.baseOpts; else {
+			this.baseOpts = opts;
+			return this;
+		}
+	}
+	,requestHeaders: function(headers) {
+		if(headers == null) return this._requestHeaders; else {
+			this._requestHeaders = headers;
+			return this;
+		}
+	}
+	,beforeSend: function(jqXHR,settings) {
+		var $it0 = this._requestHeaders.keys();
+		while( $it0.hasNext() ) {
+			var key = $it0.next();
+			if(this._requestHeaders.get(key) != null) jqXHR.setRequestHeader(key,this._requestHeaders.get(key));
+		}
+	}
+	,start: function(opts) {
 		var _g = this;
-		var ajaxOpts = { dataType : "json", contentType : "application/json", data : this.requestData, type : "POST", success : function(data,textStatus,jqXHR) {
-			if(jqXHR.getResponseHeader("Content-Length") == "0") return;
+		if(opts == null) opts = { };
+		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", url : this._url, success : function(data,textStatus,jqXHR) {
+			if(jqXHR.getResponseHeader("Content-Length") == "0") data = [];
 			if(_g.onSuccess != null) _g.onSuccess(data);
 		}, error : function(jqXHR1,textStatus1,errorThrown) {
-			if(jqXHR1.getResponseHeader("Content-Length") == "0") return;
 			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
-			var error_message = null;
-			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) error_message = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") error_message = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") error_message = errorThrown; else error_message = errorThrown.message;
-			if(m3.helper.StringHelper.isBlank(error_message)) error_message = "Error, but no error msg from server";
-			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + error_message);
-			if(_g.onError != null) _g.onError(new m3.exception.AjaxException(error_message,null,jqXHR1.status)); else {
-				m3.util.JqueryUtil.alert("There was an error making your request:  " + error_message);
-				throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR1.status + " | " + error_message);
-			}
+			var errorMessage = null;
+			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) errorMessage = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") errorMessage = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") errorMessage = errorThrown; else errorMessage = errorThrown.message;
+			if(m3.helper.StringHelper.isBlank(errorMessage)) errorMessage = "Error, but no error msg from server";
+			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + errorMessage);
+			var exc = new m3.exception.AjaxException(errorMessage,null,jqXHR1.status);
+			if(_g.onError != null) _g.onError(exc); else throw exc;
 		}};
 		$.extend(ajaxOpts,this.baseOpts);
-		if(opts != null) $.extend(ajaxOpts,opts);
+		$.extend(ajaxOpts,opts);
 		return $.ajax(ajaxOpts);
 	}
 	,abort: function() {
@@ -2008,7 +1879,7 @@ m3.comm.LongPollingRequest = function(channel,requestToRepeat,logga,successFcn,e
 		_g.delayNextPoll = true;
 		if(errorFcn != null) errorFcn(exc);
 	};
-	m3.comm.BaseRequest.call(this,requestToRepeat,onSuccess,onError);
+	m3.comm.BaseRequest.call(this,requestToRepeat,this.getUrl(),onSuccess,onError);
 };
 $hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
 m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
@@ -2043,13 +1914,16 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 			this.logger.error("error on poll abort | " + Std.string(err));
 		}
 	}
+	,getUrl: function() {
+		return "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
+	}
 	,poll: function() {
 		if(this.running) {
 			if(this.delayNextPoll == true) {
 				this.delayNextPoll = false;
 				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
 			} else {
-				this.baseOpts.url = "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
+				this.baseOpts.url = this.getUrl();
 				this.baseOpts.timeout = this.timeout + 1000;
 				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
 			}
@@ -2059,15 +1933,18 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 });
 m3.event = {};
 m3.event.EventManager = function() {
-	this.hash = new haxe.ds.EnumValueMap();
+	this.hash = new haxe.ds.StringMap();
 	this.oneTimers = new Array();
 };
 $hxClasses["m3.event.EventManager"] = m3.event.EventManager;
 m3.event.EventManager.__name__ = ["m3","event","EventManager"];
+m3.event.EventManager.get_instance = function() {
+	if(m3.event.EventManager.instance == null) m3.event.EventManager.instance = new m3.event.EventManager();
+	return m3.event.EventManager.instance;
+};
 m3.event.EventManager.prototype = {
-	get_logger: function() {
-		if(this._logger == null) this._logger = m3.log.Logga.get_DEFAULT();
-		return this._logger;
+	on: function(id,func,listenerName) {
+		return this.addListener(id,func,listenerName);
 	}
 	,addListener: function(id,func,listenerName) {
 		var listener = new m3.event.EMListener(func,listenerName);
@@ -2085,28 +1962,28 @@ m3.event.EventManager.prototype = {
 	}
 	,listenOnce: function(id,func,listenerName) {
 		var listener = new m3.event.EMListener(func,listenerName);
-		return this.listenOnceInternal(id,listener);
-	}
-	,listenOnceInternal: function(id,listener) {
-		var map = this.hash.get(id);
 		this.oneTimers.push(listener.get_uid());
 		return this.addListenerInternal(id,listener);
 	}
 	,removeListener: function(id,listenerUid) {
 		var map = this.hash.get(id);
-		if(map != null) map.remove(listenerUid);
+		if(map == null) m3.log.Logga.get_DEFAULT().warn("removeListener called for unknown uuid"); else {
+			HxOverrides.remove(this.oneTimers,listenerUid);
+			map.remove(listenerUid);
+		}
 	}
 	,change: function(id,t) {
-		this.get_logger().debug("EVENTMODEL: Change to " + Std.string(id));
+		var logger = m3.log.Logga.get_DEFAULT();
+		logger.debug("EVENTMODEL: Change to " + id);
 		var map = this.hash.get(id);
 		if(map == null) {
-			this.get_logger().warn("No listeners for event " + Std.string(id));
+			logger.warn("No listeners for event " + id);
 			return;
 		}
 		var iter = map.iterator();
 		while(iter.hasNext()) {
 			var listener = iter.next();
-			this.get_logger().debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
+			logger.debug("Notifying " + listener.get_name() + " of " + id + " event");
 			try {
 				listener.change(t);
 				if((function($this) {
@@ -2119,7 +1996,7 @@ m3.event.EventManager.prototype = {
 					map.remove(key);
 				}
 			} catch( err ) {
-				this.get_logger().error("Error executing " + listener.get_name() + " of " + Std.string(id) + " event",m3.log.Logga.getExceptionInst(err));
+				logger.error("Error executing " + listener.get_name() + " of " + id + " event",m3.log.Logga.getExceptionInst(err));
 			}
 		}
 	}
@@ -4762,7 +4639,7 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 				if(evtType.isAdd()) {
 					if(l2.name == pagent.PinterContext.APP_ROOT_LABEL_NAME) {
 						pagent.AppContext.LABELS.removeListener(listener);
-						pagent.PinterContext.set_ROOT_ALBUM(l2);
+						pagent.PinterContext.set_ROOT_BOARD(l2);
 						pagent.model.EM.change(pagent.model.EMEvent.AliasLoaded,pagent.AppContext.currentAlias);
 						pagent.model.EM.change(pagent.model.EMEvent.APP_INITIALIZED);
 					}
@@ -4796,7 +4673,7 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 		}
 	} else {
 		pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
-		pagent.PinterContext.set_ROOT_ALBUM(rootLabelOfThisApp);
+		pagent.PinterContext.set_ROOT_BOARD(rootLabelOfThisApp);
 		pagent.model.EM.change(pagent.model.EMEvent.AliasLoaded,pagent.AppContext.currentAlias);
 		pagent.model.EM.change(pagent.model.EMEvent.APP_INITIALIZED);
 	}
@@ -4911,17 +4788,17 @@ pagent.PinterContext.init = function() {
 		pagent.PinterContext.APP_INITIALIZED = true;
 	},"PinterContext-AppInitialized");
 };
-pagent.PinterContext.get_ROOT_ALBUM = function() {
-	return pagent.PinterContext.ROOT_ALBUM;
+pagent.PinterContext.get_ROOT_BOARD = function() {
+	return pagent.PinterContext.ROOT_BOARD;
 };
-pagent.PinterContext.set_ROOT_ALBUM = function(l) {
-	pagent.PinterContext.ROOT_ALBUM = l;
+pagent.PinterContext.set_ROOT_BOARD = function(l) {
+	pagent.PinterContext.ROOT_BOARD = l;
 	var root = new qoid.model.Or();
 	root.type = "ROOT";
 	var path = new Array();
 	path.push(m3.helper.OSetHelper.getElement(pagent.AppContext.LABELS,pagent.AppContext.currentAlias.rootLabelIid).name);
 	path.push(pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS().name);
-	path.push(pagent.PinterContext.get_ROOT_ALBUM().name);
+	path.push(pagent.PinterContext.get_ROOT_BOARD().name);
 	root.addNode(new qoid.model.LabelNode(l,path));
 	var filterData = new qoid.model.FilterData("boardConfig");
 	filterData.filter = new qoid.model.Filter(root);
@@ -5509,82 +5386,9 @@ pagent.api.Synchronizer.prototype = {
 	,__class__: pagent.api.Synchronizer
 };
 pagent.model = {};
-pagent.model.EMEvent = $hxClasses["pagent.model.EMEvent"] = { __ename__ : ["pagent","model","EMEvent"], __constructs__ : ["APP_INITIALIZED","FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","RespondToIntroduction","TargetChange","VerificationRequest","RespondToVerification","RejectVerificationRequest","AcceptVerification","BACKUP","RESTORE"] };
-pagent.model.EMEvent.APP_INITIALIZED = ["APP_INITIALIZED",0];
-pagent.model.EMEvent.APP_INITIALIZED.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.FILTER_RUN = ["FILTER_RUN",1];
-pagent.model.EMEvent.FILTER_RUN.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.FILTER_CHANGE = ["FILTER_CHANGE",2];
-pagent.model.EMEvent.FILTER_CHANGE.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.LoadFilteredContent = ["LoadFilteredContent",3];
-pagent.model.EMEvent.LoadFilteredContent.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.AppendFilteredContent = ["AppendFilteredContent",4];
-pagent.model.EMEvent.AppendFilteredContent.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.EditContentClosed = ["EditContentClosed",5];
-pagent.model.EMEvent.EditContentClosed.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.CreateAgent = ["CreateAgent",6];
-pagent.model.EMEvent.CreateAgent.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.AgentCreated = ["AgentCreated",7];
-pagent.model.EMEvent.AgentCreated.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.InitialDataLoadComplete = ["InitialDataLoadComplete",8];
-pagent.model.EMEvent.InitialDataLoadComplete.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.UserLogin = ["UserLogin",9];
-pagent.model.EMEvent.UserLogin.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.UserLogout = ["UserLogout",10];
-pagent.model.EMEvent.UserLogout.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.AliasLoaded = ["AliasLoaded",11];
-pagent.model.EMEvent.AliasLoaded.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.AliasCreated = ["AliasCreated",12];
-pagent.model.EMEvent.AliasCreated.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.AliasUpdated = ["AliasUpdated",13];
-pagent.model.EMEvent.AliasUpdated.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.CreateAlias = ["CreateAlias",14];
-pagent.model.EMEvent.CreateAlias.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.UpdateAlias = ["UpdateAlias",15];
-pagent.model.EMEvent.UpdateAlias.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.DeleteAlias = ["DeleteAlias",16];
-pagent.model.EMEvent.DeleteAlias.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.CreateContent = ["CreateContent",17];
-pagent.model.EMEvent.CreateContent.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.DeleteContent = ["DeleteContent",18];
-pagent.model.EMEvent.DeleteContent.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.UpdateContent = ["UpdateContent",19];
-pagent.model.EMEvent.UpdateContent.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.CreateLabel = ["CreateLabel",20];
-pagent.model.EMEvent.CreateLabel.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.UpdateLabel = ["UpdateLabel",21];
-pagent.model.EMEvent.UpdateLabel.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.MoveLabel = ["MoveLabel",22];
-pagent.model.EMEvent.MoveLabel.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.CopyLabel = ["CopyLabel",23];
-pagent.model.EMEvent.CopyLabel.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.DeleteLabel = ["DeleteLabel",24];
-pagent.model.EMEvent.DeleteLabel.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.GrantAccess = ["GrantAccess",25];
-pagent.model.EMEvent.GrantAccess.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.RevokeAccess = ["RevokeAccess",26];
-pagent.model.EMEvent.RevokeAccess.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.DeleteConnection = ["DeleteConnection",27];
-pagent.model.EMEvent.DeleteConnection.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",28];
-pagent.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",29];
-pagent.model.EMEvent.RespondToIntroduction.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.TargetChange = ["TargetChange",30];
-pagent.model.EMEvent.TargetChange.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.VerificationRequest = ["VerificationRequest",31];
-pagent.model.EMEvent.VerificationRequest.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.RespondToVerification = ["RespondToVerification",32];
-pagent.model.EMEvent.RespondToVerification.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.RejectVerificationRequest = ["RejectVerificationRequest",33];
-pagent.model.EMEvent.RejectVerificationRequest.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.AcceptVerification = ["AcceptVerification",34];
-pagent.model.EMEvent.AcceptVerification.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.BACKUP = ["BACKUP",35];
-pagent.model.EMEvent.BACKUP.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.RESTORE = ["RESTORE",36];
-pagent.model.EMEvent.RESTORE.__enum__ = pagent.model.EMEvent;
-pagent.model.EMEvent.__empty_constructs__ = [pagent.model.EMEvent.APP_INITIALIZED,pagent.model.EMEvent.FILTER_RUN,pagent.model.EMEvent.FILTER_CHANGE,pagent.model.EMEvent.LoadFilteredContent,pagent.model.EMEvent.AppendFilteredContent,pagent.model.EMEvent.EditContentClosed,pagent.model.EMEvent.CreateAgent,pagent.model.EMEvent.AgentCreated,pagent.model.EMEvent.InitialDataLoadComplete,pagent.model.EMEvent.UserLogin,pagent.model.EMEvent.UserLogout,pagent.model.EMEvent.AliasLoaded,pagent.model.EMEvent.AliasCreated,pagent.model.EMEvent.AliasUpdated,pagent.model.EMEvent.CreateAlias,pagent.model.EMEvent.UpdateAlias,pagent.model.EMEvent.DeleteAlias,pagent.model.EMEvent.CreateContent,pagent.model.EMEvent.DeleteContent,pagent.model.EMEvent.UpdateContent,pagent.model.EMEvent.CreateLabel,pagent.model.EMEvent.UpdateLabel,pagent.model.EMEvent.MoveLabel,pagent.model.EMEvent.CopyLabel,pagent.model.EMEvent.DeleteLabel,pagent.model.EMEvent.GrantAccess,pagent.model.EMEvent.RevokeAccess,pagent.model.EMEvent.DeleteConnection,pagent.model.EMEvent.INTRODUCTION_REQUEST,pagent.model.EMEvent.RespondToIntroduction,pagent.model.EMEvent.TargetChange,pagent.model.EMEvent.VerificationRequest,pagent.model.EMEvent.RespondToVerification,pagent.model.EMEvent.RejectVerificationRequest,pagent.model.EMEvent.AcceptVerification,pagent.model.EMEvent.BACKUP,pagent.model.EMEvent.RESTORE];
+pagent.model.EMEvent = function() { };
+$hxClasses["pagent.model.EMEvent"] = pagent.model.EMEvent;
+pagent.model.EMEvent.__name__ = ["pagent","model","EMEvent"];
 pagent.model.EM = function() { };
 $hxClasses["pagent.model.EM"] = pagent.model.EM;
 pagent.model.EM.__name__ = ["pagent","model","EM"];
@@ -5659,6 +5463,9 @@ pagent.pages.HomeScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
 		var optionBar = new $("<div></div>");
 		optionBar.appendTo(content);
 		optionBar.optionBar();
+		var boardListing = new $("<div></div>");
+		boardListing.appendTo(content);
+		boardListing.boardList();
 	}
 	,__class__: pagent.pages.HomeScreen
 });
@@ -5759,6 +5566,18 @@ qoid.model.AliasData.prototype = $extend(qoid.model.ModelObj.prototype,{
 	__class__: qoid.model.AliasData
 });
 pagent.widget = {};
+pagent.widget.BoardCompHelper = function() { };
+$hxClasses["pagent.widget.BoardCompHelper"] = pagent.widget.BoardCompHelper;
+pagent.widget.BoardCompHelper.__name__ = ["pagent","widget","BoardCompHelper"];
+pagent.widget.BoardCompHelper.getLabel = function(l) {
+	return l.boardComp("getLabel");
+};
+pagent.widget.ConnectionAvatarHelper = function() { };
+$hxClasses["pagent.widget.ConnectionAvatarHelper"] = pagent.widget.ConnectionAvatarHelper;
+pagent.widget.ConnectionAvatarHelper.__name__ = ["pagent","widget","ConnectionAvatarHelper"];
+pagent.widget.ConnectionAvatarHelper.getAlias = function(c) {
+	return c.connectionAvatar("getAlias");
+};
 pagent.widget.DialogManager = $hx_exports.pagent.widget.DialogManager = function() { };
 $hxClasses["pagent.widget.DialogManager"] = pagent.widget.DialogManager;
 pagent.widget.DialogManager.__name__ = ["pagent","widget","DialogManager"];
@@ -5793,21 +5612,9 @@ pagent.widget.DialogManager.showCreateAgent = function() {
 pagent.widget.DialogManager.showAliasManager = function() {
 	pagent.widget.DialogManager.showDialog("aliasManagerDialog");
 };
-pagent.widget.ConnectionAvatarHelper = function() { };
-$hxClasses["pagent.widget.ConnectionAvatarHelper"] = pagent.widget.ConnectionAvatarHelper;
-pagent.widget.ConnectionAvatarHelper.__name__ = ["pagent","widget","ConnectionAvatarHelper"];
-pagent.widget.ConnectionAvatarHelper.getAlias = function(c) {
-	return c.connectionAvatar("getAlias");
-};
-pagent.widget.LabelCompHelper = function() { };
-$hxClasses["pagent.widget.LabelCompHelper"] = pagent.widget.LabelCompHelper;
-pagent.widget.LabelCompHelper.__name__ = ["pagent","widget","LabelCompHelper"];
-pagent.widget.LabelCompHelper.getLabel = function(l) {
-	return l.labelComp("getLabel");
-};
-pagent.widget.LabelCompHelper.parentIid = function(l) {
-	return l.labelComp("option","parentIid");
-};
+pagent.widget.OptionBarHelper = function() { };
+$hxClasses["pagent.widget.OptionBarHelper"] = pagent.widget.OptionBarHelper;
+pagent.widget.OptionBarHelper.__name__ = ["pagent","widget","OptionBarHelper"];
 qoid.model.Label = function(name) {
 	qoid.model.ModelObjWithIid.call(this);
 	this.name = name;
@@ -5832,59 +5639,6 @@ qoid.model.LabelData.__super__ = qoid.model.ModelObj;
 qoid.model.LabelData.prototype = $extend(qoid.model.ModelObj.prototype,{
 	__class__: qoid.model.LabelData
 });
-qoid.model.Node = function(type) {
-	this.type = "ROOT";
-	if(type != null) this.type = type;
-};
-$hxClasses["qoid.model.Node"] = qoid.model.Node;
-qoid.model.Node.__name__ = ["qoid","model","Node"];
-qoid.model.Node.prototype = {
-	addNode: function(n) {
-		this.nodes.push(n);
-	}
-	,hasChildren: function() {
-		return m3.helper.ArrayHelper.hasValues(this.nodes);
-	}
-	,getQuery: function() {
-		return "";
-	}
-	,__class__: qoid.model.Node
-};
-qoid.model.ContentNode = function(type,content) {
-	qoid.model.Node.call(this,type);
-	this.content = content;
-};
-$hxClasses["qoid.model.ContentNode"] = qoid.model.ContentNode;
-qoid.model.ContentNode.__name__ = ["qoid","model","ContentNode"];
-qoid.model.ContentNode.__super__ = qoid.model.Node;
-qoid.model.ContentNode.prototype = $extend(qoid.model.Node.prototype,{
-	hasChildren: function() {
-		return false;
-	}
-	,__class__: qoid.model.ContentNode
-});
-qoid.model.LabelNode = function(label,labelPath) {
-	qoid.model.ContentNode.call(this,"LABEL",label);
-	this.labelPath = labelPath;
-};
-$hxClasses["qoid.model.LabelNode"] = qoid.model.LabelNode;
-qoid.model.LabelNode.__name__ = ["qoid","model","LabelNode"];
-qoid.model.LabelNode.__super__ = qoid.model.ContentNode;
-qoid.model.LabelNode.prototype = $extend(qoid.model.ContentNode.prototype,{
-	getQuery: function() {
-		var ret = "hasLabelPath(";
-		var _g1 = 1;
-		var _g = this.labelPath.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			ret += "'" + StringTools.replace(this.labelPath[i],"'","\\'") + "'";
-			if(i < this.labelPath.length - 1) ret += ",";
-		}
-		ret += ")";
-		return ret;
-	}
-	,__class__: qoid.model.LabelNode
-});
 qoid.model.EditLabelData = function(label,parentIid,newParentId) {
 	this.label = label;
 	this.parentIid = parentIid;
@@ -5895,9 +5649,6 @@ qoid.model.EditLabelData.__name__ = ["qoid","model","EditLabelData"];
 qoid.model.EditLabelData.prototype = {
 	__class__: qoid.model.EditLabelData
 };
-pagent.widget.OptionBarHelper = function() { };
-$hxClasses["pagent.widget.OptionBarHelper"] = pagent.widget.OptionBarHelper;
-pagent.widget.OptionBarHelper.__name__ = ["pagent","widget","OptionBarHelper"];
 qoid.api = {};
 qoid.api.ChannelMessage = function() { };
 $hxClasses["qoid.api.ChannelMessage"] = qoid.api.ChannelMessage;
@@ -6059,7 +5810,7 @@ qoid.api.ChannelRequestMessageBundle.prototype = {
 };
 qoid.api.SimpleRequest = function(path,data,successFcn) {
 	this.baseOpts = { async : true, url : path};
-	m3.comm.BaseRequest.call(this,data,successFcn);
+	m3.comm.BaseRequest.call(this,data,path,successFcn);
 };
 $hxClasses["qoid.api.SimpleRequest"] = qoid.api.SimpleRequest;
 qoid.api.SimpleRequest.__name__ = ["qoid","api","SimpleRequest"];
@@ -6073,7 +5824,7 @@ qoid.api.SubmitRequest = function(msgs,successFcn) {
 	};
 	var bundle = new qoid.api.ChannelRequestMessageBundle(msgs);
 	var data1 = pagent.AppContext.SERIALIZER.toJsonString(bundle);
-	m3.comm.BaseRequest.call(this,data1,successFcn);
+	m3.comm.BaseRequest.call(this,data1,"/api/channel/submit",successFcn);
 };
 $hxClasses["qoid.api.SubmitRequest"] = qoid.api.SubmitRequest;
 qoid.api.SubmitRequest.__name__ = ["qoid","api","SubmitRequest"];
@@ -6650,6 +6401,24 @@ qoid.model.Verification.__name__ = ["qoid","model","Verification"];
 qoid.model.Verification.prototype = {
 	__class__: qoid.model.Verification
 };
+qoid.model.Node = function(type) {
+	this.type = "ROOT";
+	if(type != null) this.type = type;
+};
+$hxClasses["qoid.model.Node"] = qoid.model.Node;
+qoid.model.Node.__name__ = ["qoid","model","Node"];
+qoid.model.Node.prototype = {
+	addNode: function(n) {
+		this.nodes.push(n);
+	}
+	,hasChildren: function() {
+		return m3.helper.ArrayHelper.hasValues(this.nodes);
+	}
+	,getQuery: function() {
+		return "";
+	}
+	,__class__: qoid.model.Node
+};
 qoid.model.And = function() {
 	qoid.model.Node.call(this,"AND");
 	this.nodes = new Array();
@@ -6675,6 +6444,41 @@ qoid.model.Or.prototype = $extend(qoid.model.Node.prototype,{
 		return " OR ";
 	}
 	,__class__: qoid.model.Or
+});
+qoid.model.ContentNode = function(type,content) {
+	qoid.model.Node.call(this,type);
+	this.content = content;
+};
+$hxClasses["qoid.model.ContentNode"] = qoid.model.ContentNode;
+qoid.model.ContentNode.__name__ = ["qoid","model","ContentNode"];
+qoid.model.ContentNode.__super__ = qoid.model.Node;
+qoid.model.ContentNode.prototype = $extend(qoid.model.Node.prototype,{
+	hasChildren: function() {
+		return false;
+	}
+	,__class__: qoid.model.ContentNode
+});
+qoid.model.LabelNode = function(label,labelPath) {
+	qoid.model.ContentNode.call(this,"LABEL",label);
+	this.labelPath = labelPath;
+};
+$hxClasses["qoid.model.LabelNode"] = qoid.model.LabelNode;
+qoid.model.LabelNode.__name__ = ["qoid","model","LabelNode"];
+qoid.model.LabelNode.__super__ = qoid.model.ContentNode;
+qoid.model.LabelNode.prototype = $extend(qoid.model.ContentNode.prototype,{
+	getQuery: function() {
+		var ret = "hasLabelPath(";
+		var _g1 = 1;
+		var _g = this.labelPath.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			ret += "'" + StringTools.replace(this.labelPath[i],"'","\\'") + "'";
+			if(i < this.labelPath.length - 1) ret += ",";
+		}
+		ret += ")";
+		return ret;
+	}
+	,__class__: qoid.model.LabelNode
 });
 qoid.model.ConnectionNode = function(connection) {
 	qoid.model.ContentNode.call(this,"CONNECTION",connection);
@@ -6895,7 +6699,7 @@ m3.util.ColorProvider._COLORS.push("#9BCC5C");
 m3.util.ColorProvider._COLORS.push("#CCC45C");
 m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
-pagent.model.EM.delegate = new m3.event.EventManager();
+pagent.model.EM.delegate = m3.event.EventManager.get_instance();
 var defineWidget = function() {
 	return { options : { isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
 		if(containment == null) containment = false;
@@ -6976,11 +6780,9 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasComp must be a div element");
 		selfElement.addClass("_aliasComp");
-		self.container = new $("<div class=''></div>");
-		selfElement.append(self.container);
-		self.avatar = new $("<div></div>").appendTo(self.container);
+		self.avatar = new $("<div></div>").appendTo(selfElement);
 		self.userIdTxt = new $("<div class='userIdTxt'></div>");
-		self.container.append(self.userIdTxt);
+		selfElement.append(self.userIdTxt);
 		self.userIdTxt.html("...");
 		self._setAlias(new qoid.model.Alias());
 		self.aliasLoadedListener = pagent.model.EM.addListener(pagent.model.EMEvent.AliasLoaded,function(alias) {
@@ -6997,173 +6799,136 @@ var defineWidget = function() {
 			self._updateAliasWidgets(alias2);
 		};
 		if(pagent.AppContext.currentAlias != null) self._setAlias(pagent.AppContext.currentAlias);
-	}, _createAliasMenu : function() {
+	}, _updateAliasWidgets : function(alias3) {
 		var self1 = this;
-		new $("#userAliasMenu").remove();
-		var menu = new $("<ul id='userAliasMenu'></ul>");
-		menu.appendTo(self1.container);
-		var menuOptions = [];
-		var menuOption;
-		var aliases = new m3.observable.SortedSet(pagent.AppContext.ALIASES,function(a) {
-			return a.profile.name.toLowerCase();
-		});
-		var $it0 = aliases.iterator();
-		while( $it0.hasNext() ) {
-			var alias3 = $it0.next();
-			var alias4 = [alias3];
-			menuOption = { label : alias4[0].profile.name, icon : "ui-icon-person", action : (function(alias4) {
-				return function(evt,m) {
-					if(qoid.model.Alias.identifier(pagent.AppContext.currentAlias) == qoid.model.Alias.identifier(alias4[0])) menu.hide(); else {
-						pagent.AppContext.currentAlias = alias4[0];
-						pagent.model.EM.change(pagent.model.EMEvent.AliasLoaded,alias4[0]);
-					}
-				};
-			})(alias4)};
-			menuOptions.push(menuOption);
-		}
-		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt1,m1) {
-			pagent.widget.DialogManager.showAliasManager();
-		}};
-		menuOptions.push(menuOption);
-		menu.m3menu({ menuOptions : menuOptions}).hide();
-		return menu;
-	}, _updateAliasWidgets : function(alias5) {
+		var avatar = new $("<div class='avatar' style=''></div>").connectionAvatar({ aliasIid : alias3.iid, dndEnabled : true, isDragByHelper : true, containment : false});
+		self1.avatar.replaceWith(avatar);
+		self1.avatar = avatar;
+		new $(".userIdTxt").html(alias3.profile.name);
+	}, _setAlias : function(alias4) {
 		var self2 = this;
-		var avatar = new $("<div class='avatar' style=''></div>").connectionAvatar({ aliasIid : alias5.iid, dndEnabled : true, isDragByHelper : true, containment : false});
-		self2.avatar.replaceWith(avatar);
-		self2.avatar = avatar;
-		new $(".userIdTxt").html(alias5.profile.name);
-	}, _setAlias : function(alias6) {
-		var self3 = this;
 		var selfElement1 = this.element;
-		self3._updateAliasWidgets(alias6);
-		if(self3.aliasSet != null) self3.aliasSet.removeListener(self3._onupdate);
-		self3.aliasSet = new m3.observable.FilteredSet(pagent.AppContext.ALIASES,function(a1) {
-			return a1.iid == alias6.iid;
+		self2._updateAliasWidgets(alias4);
+		if(self2.aliasSet != null) self2.aliasSet.removeListener(self2._onupdate);
+		self2.aliasSet = new m3.observable.FilteredSet(pagent.AppContext.ALIASES,function(a) {
+			return a.iid == alias4.iid;
 		});
-		self3.aliasSet.listen(self3._onupdate);
-		if(self3.profileSet != null) self3.profileSet.removeListener(self3._onupdateProfile);
-		self3.profileSet = new m3.observable.FilteredSet(pagent.AppContext.PROFILES,function(p1) {
-			return p1.aliasIid == alias6.iid;
+		self2.aliasSet.listen(self2._onupdate);
+		if(self2.profileSet != null) self2.profileSet.removeListener(self2._onupdateProfile);
+		self2.profileSet = new m3.observable.FilteredSet(pagent.AppContext.PROFILES,function(p1) {
+			return p1.aliasIid == alias4.iid;
 		});
-		self3.profileSet.listen(self3._onupdateProfile);
+		self2.profileSet.listen(self2._onupdateProfile);
 	}, destroy : function() {
-		var self4 = this;
-		if(self4.aliasSet != null) self4.aliasSet.removeListener(self4._onupdate);
-		if(self4.profileSet != null) self4.profileSet.removeListener(self4._onupdateProfile);
-		pagent.model.EM.removeListener(pagent.model.EMEvent.AliasLoaded,self4.aliasLoadedListener);
+		var self3 = this;
+		if(self3.aliasSet != null) self3.aliasSet.removeListener(self3._onupdate);
+		if(self3.profileSet != null) self3.profileSet.removeListener(self3._onupdateProfile);
+		pagent.model.EM.removeListener(pagent.model.EMEvent.AliasLoaded,self3.aliasLoadedListener);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
 $.widget("ui.aliasComp",defineWidget());
 var defineWidget = function() {
-	return { options : { labelIid : null, isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dropTargetClass : "labelDT", dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
-		if(containment == null) containment = false;
-		if(isDragByHelper == null) isDragByHelper = false;
-		var labelComp;
-		labelComp = js.Boot.__cast(filterableComp , $);
-		if(labelComp.hasClass("clone")) return labelComp;
-		var clone = new $("<div class='clone'></div>");
-		clone.labelComp({ labelIid : labelComp.labelComp("option","labelIid"), parentIid : labelComp.labelComp("option","parentIid"), labelPath : labelComp.labelComp("option","labelPath"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : labelComp.labelComp("option","classes"), cloneFcn : labelComp.labelComp("option","cloneFcn"), dropTargetClass : labelComp.labelComp("option","dropTargetClass")});
-		return clone;
-	}}, getLabel : function() {
+	return { getLabel : function() {
 		var self = this;
-		return self.label;
-	}, getLabelPathNames : function() {
-		var self1 = this;
-		var ret = new Array();
-		var _g = 0;
-		var _g1 = self1.options.labelPath;
-		while(_g < _g1.length) {
-			var iid = _g1[_g];
-			++_g;
-			var label = m3.helper.OSetHelper.getElement(pagent.AppContext.LABELS,iid);
-			ret.push(label.name);
-		}
-		return ret;
+		return self.options.board;
 	}, _registerListeners : function() {
-		var self2 = this;
+		var self1 = this;
 		var selfElement = this.element;
-		self2._onupdate = function(label1,t) {
-			if(t.isAddOrUpdate()) {
-				self2.label = label1;
-				selfElement.find(".labelBody").text(label1.name);
-				selfElement.find(".labelTail").css("border-right-color",label1.data.color);
-				selfElement.find(".labelBox").css("background",label1.data.color);
-			} else if(t.isDelete()) {
-				self2.destroy();
+		self1._onupdate = function(label,t) {
+			if(t.isAddOrUpdate()) self1.options.board = label; else if(t.isDelete()) {
+				self1.destroy();
 				selfElement.remove();
 			}
 		};
-		self2.filteredSet = new m3.observable.FilteredSet(pagent.AppContext.LABELS,function(label2) {
-			return label2.iid == self2.options.labelIid;
+		self1.filteredSet = new m3.observable.FilteredSet(pagent.AppContext.LABELS,function(label1) {
+			return label1.iid == self1.options.board.iid;
 		});
-		self2.filteredSet.listen(self2._onupdate);
+		self1.filteredSet.listen(self1._onupdate);
+		self1._onBoardConfig = function(mc,evt) {
+			var match = m3.helper.OSetHelper.getElementComplex(pagent.AppContext.LABELEDCONTENT,mc.iid + "_" + self1.options.board.iid,function(lc) {
+				return lc.contentIid + "_" + lc.labelIid;
+			});
+			if(match != null) try {
+				self1.img.attr("src",mc.props.defaultImg);
+			} catch( err ) {
+				pagent.AppContext.LOGGER.error("problem using the default img");
+			}
+		};
+		pagent.PinterContext.BOARD_CONFIGS.listen(self1._onBoardConfig);
 	}, _create : function() {
-		var self3 = this;
+		var self2 = this;
 		var selfElement1 = this.element;
-		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelComp must be a div element");
-		self3.label = m3.helper.OSetHelper.getElement(pagent.AppContext.LABELS,self3.options.labelIid);
-		if(self3.label == null) {
-			self3.label = new qoid.model.Label("-->*<--");
-			self3.label.iid = self3.options.labelIid;
-			pagent.AppContext.LABELS.add(self3.label);
-		}
-		selfElement1.addClass("label labelComp ").attr("id",StringTools.htmlEscape(self3.label.name) + "_" + m3.util.UidGenerator.create(8));
-		var labelBox = new $("<div class='labelBox shadowRight'></div>");
-		labelBox.css("background",self3.label.data.color);
-		var labelBody = new $("<div class='labelBody'></div>");
-		var labelText = new $("<div>" + self3.label.name + "</div>");
-		labelBody.append(labelText);
-		labelBox.append(labelBody);
-		selfElement1.append(labelBox).append("<div class='clear'></div>");
-		selfElement1.addClass("filterable");
-		self3._registerListeners();
-		if(self3.options.dndEnabled) {
-			selfElement1.data("clone",self3.options.cloneFcn);
-			selfElement1.data("dropTargetClass",self3.options.dropTargetClass);
-			selfElement1.data("getNode",function() {
-				return new qoid.model.LabelNode(self3.label,self3.getLabelPathNames());
-			});
-			var helper = "clone";
-			if(!self3.options.isDragByHelper) helper = "original"; else if(self3.options.helperFcn != null && Reflect.isFunction(self3.options.helperFcn)) helper = self3.options.helperFcn;
-			selfElement1.on("dragstop",function(dragstopEvt,_ui) {
-				pagent.AppContext.LOGGER.debug("dragstop on label | " + self3.label.name);
-				if(self3.options.dragstop != null) self3.options.dragstop(dragstopEvt,_ui);
-				new $(window.document).off("keydown keyup");
-				_ui.helper.find("#copyIndicator").remove();
-			});
-			var showOrHideCopyIndicator = function(event,_ui1) {
-				var ci = _ui1.helper.find("#copyIndicator");
-				if(event.ctrlKey) {
-					if(ci.length == 0) new $("<img src='svg/add.svg' id='copyIndicator'/>").appendTo(_ui1.helper); else ci.show();
-				} else ci.hide();
-			};
-			selfElement1.on("dragstart",function(event1,_ui2) {
-				new $(window.document).on("keydown keyup",function(event2) {
-					showOrHideCopyIndicator(event2,_ui2);
-				});
-			});
-			selfElement1.on("drag",function(event3,_ui3) {
-				showOrHideCopyIndicator(event3,_ui3);
-			});
-			(js.Boot.__cast(selfElement1 , $)).draggable({ containment : self3.options.containment, helper : helper, distance : 10, scroll : false, revertDuration : 200, start : function(evt,_ui4) {
-				(js.Boot.__cast(selfElement1 , $)).draggable("option","revert",false);
-			}});
-			var copyOrMoveLabel = function(event4,_ui5) {
-				var labelComp1;
-				labelComp1 = js.Boot.__cast(_ui5.draggable , $);
-				var eld = new qoid.model.EditLabelData(pagent.widget.LabelCompHelper.getLabel(labelComp1),pagent.widget.LabelCompHelper.parentIid(labelComp1),self3.getLabel().iid);
-				if(event4.ctrlKey) pagent.model.EM.change(pagent.model.EMEvent.CopyLabel,eld); else pagent.model.EM.change(pagent.model.EMEvent.MoveLabel,eld);
-			};
-		}
+		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of BoardComp must be a div element");
+		selfElement1.addClass("_boardComp ").attr("id",StringTools.htmlEscape(self2.options.board.name) + "_" + m3.util.UidGenerator.create(8));
+		self2.nameDiv = new $("<div class='labelNameWrapper'></div>").appendTo(selfElement1);
+		self2.nameDiv.append("<span class='boardLabel'>" + self2.options.board.name + "</span>");
+		selfElement1.append("<br/>");
+		self2.img = new $("<img src='" + "media/boards-icon.jpg" + "' />").appendTo(selfElement1);
+		self2._registerListeners();
+		selfElement1.click(function(evt1) {
+			pagent.PinterContext.CURRENT_BOARD = self2.options.board.iid;
+			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.BOARD_SCREEN);
+			window.history.pushState({ },self2.options.board.iid,"index.html?board=" + self2.options.board.iid);
+		});
 	}, destroy : function() {
-		var self4 = this;
-		self4.filteredSet.removeListener(self4._onupdate);
+		var self3 = this;
+		self3.filteredSet.removeListener(self3._onupdate);
+		pagent.PinterContext.BOARD_CONFIGS.removeListener(self3._onBoardConfig);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.labelComp",defineWidget());
+$.widget("ui.boardComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of BoardList must be a div element");
+		selfElement.addClass("_boardList");
+		if(m3.helper.StringHelper.isNotBlank(self.options.title)) new $("<h2>" + self.options.title + "</h2>").appendTo(selfElement);
+		if((function($this) {
+			var $r;
+			var this1 = pagent.AppContext.GROUPED_LABELCHILDREN.delegate();
+			$r = this1.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+			return $r;
+		}(this)) == null) pagent.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
+		self.onchangeLabelChildren = function(BoardComp,evt) {
+			if(evt.isAdd()) selfElement.append(BoardComp); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) BoardComp.remove();
+		};
+		self.mappedLabels = new m3.observable.MappedSet((function($this) {
+			var $r;
+			var this11 = pagent.AppContext.GROUPED_LABELCHILDREN.delegate();
+			$r = this11.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+			return $r;
+		}(this)),function(labelChild) {
+			return new $("<div></div>").boardComp({ board : m3.helper.OSetHelper.getElementComplex(pagent.AppContext.LABELS,labelChild.childIid)});
+		});
+		self.mappedLabels.visualId = "root_map";
+		self.mappedLabels.listen(self.onchangeLabelChildren);
+	}, destroy : function() {
+		var self1 = this;
+		pagent.model.EM.removeListener(pagent.model.EMEvent.AliasLoaded,self1.listenerId);
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.boardList",defineWidget());
+var defineWidget = function() {
+	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of Popup must be a div element");
+		selfElement.addClass("ocontainer shadow popup");
+		if(!self.options.modal) new $("body").one("click",function(evt) {
+			selfElement.remove();
+			self.destroy();
+		});
+		self.options.createFcn(selfElement);
+		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.popup",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -7171,35 +6936,74 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of OptionBar must be a div element");
 		selfElement.addClass("_optionBar ui-widget-content ui-corner-all");
 		self.boardsBtn = new $("<button>0 Boards</button>").appendTo(selfElement).button();
-		new $("<button>New Board...</button>").appendTo(selfElement).button();
+		new $("<button>New Board...</button>").appendTo(selfElement).button().click(function(evt) {
+			evt.stopPropagation();
+			self._showNewLabelPopup($(this));
+		});
 		new $("<button>All Pins...</button>").appendTo(selfElement).button();
 		new $("<button class='fright'>Followers</button>").appendTo(selfElement).button();
 		new $("<button class='fright'>Following</button>").appendTo(selfElement).button();
 		if((function($this) {
 			var $r;
 			var this1 = pagent.AppContext.GROUPED_LABELCHILDREN.delegate();
-			$r = this1.get(pagent.PinterContext.get_ROOT_ALBUM().iid);
+			$r = this1.get(pagent.PinterContext.get_ROOT_BOARD().iid);
 			return $r;
-		}(this)) == null) pagent.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(pagent.PinterContext.get_ROOT_ALBUM().iid);
-		self._onUpdateBoards = function(board,evt) {
-			if(evt.isAdd()) {
-			} else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) {
-			} else if(evt.isClear()) {
+		}(this)) == null) pagent.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
+		self._onUpdateBoards = function(board,evt1) {
+			if(evt1.isAdd()) {
+			} else if(evt1.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt1.isDelete()) {
+			} else if(evt1.isClear()) {
 			}
 		};
 		self.boards = new m3.observable.MappedSet((function($this) {
 			var $r;
 			var this11 = pagent.AppContext.GROUPED_LABELCHILDREN.delegate();
-			$r = this11.get(pagent.PinterContext.get_ROOT_ALBUM().iid);
+			$r = this11.get(pagent.PinterContext.get_ROOT_BOARD().iid);
 			return $r;
 		}(this)),function(labelChild) {
 			return m3.helper.OSetHelper.getElementComplex(pagent.AppContext.LABELS,labelChild.childIid);
 		});
 		self.boards.visualId = "root_map";
 		self.boards.listen(self._onUpdateBoards);
-	}, destroy : function() {
+	}, _showNewLabelPopup : function(reference) {
 		var self1 = this;
-		if(self1.boards != null) self1.boards.removeListener(self1._onUpdateBoards);
+		var selfElement1 = this.element;
+		var popup = new $("<div class='newLabelPopup' style='position: absolute;width:300px;'></div>");
+		popup.appendTo(selfElement1);
+		popup = popup.popup({ createFcn : function(el) {
+			var createLabel = null;
+			var updateLabel = null;
+			var stopFcn = function(evt2) {
+				evt2.stopPropagation();
+			};
+			var enterFcn = function(evt3) {
+				if(evt3.keyCode == 13) createLabel();
+			};
+			var container = new $("<div class='icontainer'></div>").appendTo(el);
+			container.click(stopFcn).keypress(enterFcn);
+			container.append("<br/><label for='labelName'>Name: </label> ");
+			var input = new $("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
+			input.keypress(enterFcn).click(function(evt4) {
+				evt4.stopPropagation();
+				if($(this).val() == "New Label") $(this).val("");
+			}).focus();
+			container.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Board</button>").button().appendTo(container).click(function(evt5) {
+				createLabel();
+			});
+			createLabel = function() {
+				if(input.val().length == 0) return;
+				pagent.AppContext.LOGGER.info("Create new label | " + input.val());
+				var label = new qoid.model.Label();
+				label.name = input.val();
+				var eventData = new qoid.model.EditLabelData(label,pagent.PinterContext.get_ROOT_BOARD().iid);
+				pagent.model.EM.change(pagent.model.EMEvent.CreateLabel,eventData);
+				new $("body").click();
+			};
+		}, positionalElement : reference});
+	}, destroy : function() {
+		var self2 = this;
+		if(self2.boards != null) self2.boards.removeListener(self2._onUpdateBoards);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -7482,6 +7286,7 @@ pagent.api.ProtocolHandler.VERIFICATION_ACCEPT = "/api/verification/accept";
 pagent.api.ProtocolHandler.VERIFICATION_REQUEST = "/api/verification/request";
 pagent.api.ProtocolHandler.VERIFICATION_RESPONSE = "/api/verification/respond";
 pagent.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
+pagent.model.EMEvent.APP_INITIALIZED = "";
 pagent.pages.PinterPageMgr.HOME_SCREEN = new pagent.pages.HomeScreen();
 qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"26\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"47\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByAliasIid public=\"1\"><c path=\"String\"/></createdByAliasIid>\n\t<modifiedByAliasIid public=\"1\"><c path=\"String\"/></modifiedByAliasIid>\n\t<new public=\"1\" set=\"method\" line=\"40\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

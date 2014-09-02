@@ -16,7 +16,7 @@ class PinterContext {
 	public static var PAGE_MGR: PinterPageMgr;
     public static var APP_INITIALIZED: Bool = false;
 
-    public static var CURRENT_ALBUM: String;
+    public static var CURRENT_BOARD: String;
     public static var CURRENT_MEDIA: String;
 
     public static var ROOT_LABEL_NAME_OF_ALL_APPS: String = "com.qoid.apps";
@@ -25,7 +25,7 @@ class PinterContext {
     @:isVar public static var ROOT_LABEL_OF_ALL_APPS(get,set): Label;
     
     //this is a child of the current alias' root label
-    @:isVar public static var ROOT_ALBUM(get,set): Label;
+    @:isVar public static var ROOT_BOARD(get,set): Label;
 
     public static var BOARD_CONFIGS: ObservableSet<ConfigContent>;
 
@@ -47,19 +47,19 @@ class PinterContext {
 
     }
 
-    static function get_ROOT_ALBUM(): Label {
-        return ROOT_ALBUM;
+    static function get_ROOT_BOARD(): Label {
+        return ROOT_BOARD;
     }
 
-    static function set_ROOT_ALBUM(l: Label): Label {
-        ROOT_ALBUM = l;
+    static function set_ROOT_BOARD(l: Label): Label {
+        ROOT_BOARD = l;
 
         var root: Node = new Or();
         root.type = "ROOT";
         var path = new Array<String>();
         path.push(AppContext.LABELS.getElement(AppContext.currentAlias.rootLabelIid).name);
         path.push(PinterContext.ROOT_LABEL_OF_ALL_APPS.name);
-        path.push(PinterContext.ROOT_ALBUM.name);
+        path.push(PinterContext.ROOT_BOARD.name);
         root.addNode(new LabelNode(l, path));
 
         var filterData = new FilterData("boardConfig");

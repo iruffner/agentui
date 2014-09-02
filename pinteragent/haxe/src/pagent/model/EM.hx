@@ -3,97 +3,97 @@ package pagent.model;
 import m3.log.Logga;
 import m3.event.EventManager;
 
-enum EMEvent {	
+class EMEvent {	
 	/* aphoto specific */
-	APP_INITIALIZED;
+	public static var APP_INITIALIZED: String = "";
 
 	/* *************** */
 	
 
-	FILTER_RUN;
-	FILTER_CHANGE;
-	LoadFilteredContent;
-	AppendFilteredContent;
+	public static var FILTER_RUN;
+	public static var FILTER_CHANGE;
+	public static var LoadFilteredContent;
+	public static var AppendFilteredContent;
 
-	EditContentClosed;
+	public static var EditContentClosed;
 
-	CreateAgent;
-	AgentCreated;
-	InitialDataLoadComplete;
+	public static var CreateAgent;
+	public static var AgentCreated;
+	public static var InitialDataLoadComplete;
 
 	// FitWindow;
-	UserLogin;
-	UserLogout;
+	public static var UserLogin;
+	public static var UserLogout;
 
-	AliasLoaded;
-	AliasCreated;
-	AliasUpdated;
+	public static var AliasLoaded;
+	public static var AliasCreated;
+	public static var AliasUpdated;
 
-	CreateAlias;
-	UpdateAlias;
-	DeleteAlias;
+	public static var CreateAlias;
+	public static var UpdateAlias;
+	public static var DeleteAlias;
 
-	CreateContent;
-	DeleteContent;
-	UpdateContent;
+	public static var CreateContent;
+	public static var DeleteContent;
+	public static var UpdateContent;
 
-	CreateLabel;
-	UpdateLabel;
-	MoveLabel;
-	CopyLabel;
-	DeleteLabel;
+	public static var CreateLabel;
+	public static var UpdateLabel;
+	public static var MoveLabel;
+	public static var CopyLabel;
+	public static var DeleteLabel;
 
-	GrantAccess;
+	public static var GrantAccess;
 	// AccessGranted;
-	RevokeAccess;
+	public static var RevokeAccess;
 
-	DeleteConnection;
+	public static var DeleteConnection;
 
-	INTRODUCTION_REQUEST;
+	public static var INTRODUCTION_REQUEST;
 	// INTRODUCTION_RESPONSE;
-	RespondToIntroduction;
+	public static var RespondToIntroduction;
 	// RespondToIntroduction_RESPONSE;
 
-	TargetChange;
+	public static var TargetChange;
 
-	VerificationRequest;
+	public static var VerificationRequest;
 	// VerificationRequest_RESPONSE;
 
-	RespondToVerification;
+	public static var RespondToVerification;
 	// RespondToVerification_RESPONSE;
 
-	RejectVerificationRequest;
+	public static var RejectVerificationRequest;
 	// RejectVerificationRequest_RESPONSE;
 	
-	AcceptVerification;
+	public static var AcceptVerification;
 	// AcceptVerification_RESPONSE;
 
-	BACKUP;
-	RESTORE;
+	public static var BACKUP;
+	public static var RESTORE;
 	// RESTORES_REQUEST;
 	// AVAILABLE_BACKUPS;
 }
 
 class EM {
-	private static var delegate:EventManager<EMEvent>;
+	private static var delegate:EventManager;
 
 	private static function __init__(): Void {
-		delegate = new EventManager<EMEvent>(	);
+		delegate = EventManager.instance;
 	}
 
-	public static function addListener<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
+	public static function addListener<T>(id: String, func: T->Void, ?listenerName:String): String {
 		return delegate.addListener(id, func, listenerName);
 	}
 
-	public static function listenOnce<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
+	public static function listenOnce<T>(id: String, func: T->Void, ?listenerName:String): String {
 		return delegate.listenOnce(id, func, listenerName);
 	}
 	
-	public static function removeListener<T>(id: EMEvent, listenerUid: String):Void {
+	public static function removeListener<T>(id: String, listenerUid: String):Void {
 		delegate.removeListener(id, listenerUid);
 	}
 
-	public static function change<T>(id: EMEvent, ?t: T): Void {
+	public static function change<T>(id: String, ?t: T): Void {
 		delegate.change(id, t);
 	}
 }

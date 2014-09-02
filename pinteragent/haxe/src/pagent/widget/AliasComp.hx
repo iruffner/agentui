@@ -29,13 +29,10 @@ typedef AliasCompWidgetDef = {
 	var _create: Void->Void;
 	var _setAlias: Alias->Void;
 	var _updateAliasWidgets: Alias->Void;
-	var _createAliasMenu: Void->M3Menu;
 	var destroy: Void->Void;
 
-	@:optional var container: JQ;
 	@:optional var userImg: JQ;
 	@:optional var userIdTxt: JQ;
-	@:optional var switchAliasLink: JQ;
 	@:optional var avatar: JQ;
 	
 	@:optional var aliasLoadedListener: String;
@@ -64,35 +61,11 @@ extern class AliasComp extends JQ {
 		        	}
 
 		        	selfElement.addClass("_aliasComp");
-		        	self.container = new JQ("<div class=''></div>");
-		        	selfElement.append(self.container);
-
-		        	self.avatar = new JQ("<div></div>").appendTo(self.container);
+		        	self.avatar = new JQ("<div></div>").appendTo(selfElement);
 		        	self.userIdTxt = new JQ("<div class='userIdTxt'></div>");
-		        	self.container.append(self.userIdTxt);
+		        	selfElement.append(self.userIdTxt);
 		        	self.userIdTxt.html("...");
 		        	self._setAlias(new Alias());
-
-		    //     	var changeDiv: JQ = new JQ("<div class='' style='margin-top: 15px;'></div>");
-	     //    		self.container.append(changeDiv);
-		    //     	self.switchAliasLink = new JQ("<a class='aliasToggle'>My Aliases</a>");
-	     //    		changeDiv.append(self.switchAliasLink);
-
-		    //     	self.switchAliasLink.click(function(evt: JQEvent): Dynamic {
-		    //     		var aliasMenu = self._createAliasMenu();
-
-	     //    			aliasMenu.show();
-	     //    			aliasMenu.position({
-		    //     			my: "left top",
-		    //     			at: "right bottom",
-		    //     			of: self.switchAliasLink
-		    //     		});
-
-						// evt.preventDefault();
-	     //    			evt.stopPropagation();
-	     //    			return false;
-		    //     	});
-
 
 		        	self.aliasLoadedListener = EM.addListener(EMEvent.AliasLoaded, function(alias: Alias): Void {
 		        			self._setAlias(alias);
@@ -117,52 +90,6 @@ extern class AliasComp extends JQ {
 			       		self._setAlias(AppContext.currentAlias);
 			       	}
 		        },
-
-		       	_createAliasMenu: function() : M3Menu {
-		        	var self: AliasCompWidgetDef = Widgets.getSelf();
-
-		       		new JQ("#userAliasMenu").remove();
-
-		        	var menu: M3Menu = new M3Menu("<ul id='userAliasMenu'></ul>");
-		        	menu.appendTo(self.container);
-
-		        	var menuOptions:Array<MenuOption> = [];
-
-					var menuOption: MenuOption;
-
-					var aliases = new SortedSet<Alias>(AppContext.ALIASES, function(a:Alias):String {
-						return a.profile.name.toLowerCase();
-					});
-
-					for (alias in aliases) {
-						menuOption = {
-							label: alias.profile.name,
-							icon: "ui-icon-person",
-							action: function(evt: JQEvent, m: M3Menu): Void {
-								if (Alias.identifier(AppContext.currentAlias) == Alias.identifier(alias)) {
-									menu.hide();
-								} else {
-    								AppContext.currentAlias = alias;
-    								EM.change(EMEvent.AliasLoaded, alias);
-    							}
-							}
-						};
-						menuOptions.push(menuOption);
-					}
-
-					menuOption = {
-						label: "Manage Aliases...",
-						icon: "ui-icon-circle-plus",
-						action: function(evt: JQEvent, m: M3Menu): Void {
-			        		DialogManager.showAliasManager();
-						}
-					};
-					menuOptions.push(menuOption);
-
-        			menu.m3menu({menuOptions:menuOptions}).hide();
-
-					return menu;
-		       	},
 
 		       	_updateAliasWidgets: function(alias:Alias):Void {
 		        	var self: AliasCompWidgetDef = Widgets.getSelf();

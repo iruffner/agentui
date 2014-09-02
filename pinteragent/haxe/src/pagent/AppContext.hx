@@ -146,7 +146,7 @@ class AppContext {
                         if(evtType.isAdd()) {
                             if(l.name == PinterContext.APP_ROOT_LABEL_NAME) {
                                 LABELS.removeListener(listener);
-                                PinterContext.ROOT_ALBUM = l;
+                                PinterContext.ROOT_BOARD = l;
                                 EM.change(EMEvent.AliasLoaded, currentAlias);
                                 EM.change(EMEvent.APP_INITIALIZED);
                             }
@@ -184,7 +184,7 @@ class AppContext {
             }
         } else {
             PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
-            PinterContext.ROOT_ALBUM = rootLabelOfThisApp;
+            PinterContext.ROOT_BOARD = rootLabelOfThisApp;
             EM.change(EMEvent.AliasLoaded, currentAlias);
             EM.change(EMEvent.APP_INITIALIZED);
         }
