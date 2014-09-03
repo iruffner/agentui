@@ -12,7 +12,7 @@ class PinterPageMgr extends SinglePageManager {
 	public static var get(get,null): PinterPageMgr;
 
     public static var HOME_SCREEN: PinterPage = new HomeScreen();
-    // public static var ALBUM_SCREEN: APhotoPage = new AlbumScreen();
+    public static var BOARD_SCREEN: PinterPage;// = new BoardScreen();
     // public static var CONTENT_SCREEN: APhotoPage = new ContentScreen();
     // public static var LOGIN_SCREEN: APhotoPage = new LoginScreen();
 

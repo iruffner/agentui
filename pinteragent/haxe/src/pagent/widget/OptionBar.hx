@@ -2,12 +2,14 @@ package pagent.widget;
 
 import pagent.AppContext;
 import pagent.PinterContext;
+import pagent.model.EM;
 import m3.jq.JQ;
 import m3.observable.OSet;
 import m3.widget.Widgets;
-import qoid.model.ModelObj;
 import m3.observable.OSet.ObservableSet;
 import m3.exception.Exception;
+import qoid.model.ModelObj;
+import qoid.widget.Popup;
 
 using m3.helper.OSetHelper;
 
@@ -18,6 +20,7 @@ typedef OptionBarWidgetDef = {
 	@:optional var options: OptionBarOptions;
 	var _create: Void->Void;
 	var destroy: Void->Void;
+	var _showNewLabelPopup: JQ->Void;
 
 	@:optional var boardsBtn: JQ;
 
@@ -55,7 +58,11 @@ extern class OptionBar extends JQ {
 
 	        		new JQ("<button>New Board...</button>")
 	        			.appendTo(selfElement)
-	        			.button();
+	        			.button()
+	        			.click(function(evt: JQEvent) {
+		        				evt.stopPropagation();
+			        			self._showNewLabelPopup(JQ.cur);
+		        			});
 
         			new JQ("<button>All Pins...</button>")
 	        			.appendTo(selfElement)
@@ -70,8 +77,8 @@ extern class OptionBar extends JQ {
 	        			.button();
 
 
-		        	if (AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_ALBUM.iid) == null) {
-	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(PinterContext.ROOT_ALBUM.iid);
+		        	if (AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {
+	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(PinterContext.ROOT_BOARD.iid);
     				}
 		        	
 	        		self._onUpdateBoards = function(board: Label, evt: EventType): Void {
@@ -86,7 +93,7 @@ extern class OptionBar extends JQ {
 	            		}
 	            	};
 
-            		self.boards = new MappedSet<LabelChild, Label>(AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_ALBUM.iid), 
+            		self.boards = new MappedSet<LabelChild, Label>(AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_BOARD.iid), 
 		        		function(labelChild: LabelChild): Label {
 		        			return AppContext.LABELS.getElementComplex(labelChild.childIid);
 	        		});
@@ -95,6 +102,57 @@ extern class OptionBar extends JQ {
 		        	self.boards.listen(self._onUpdateBoards);
 
 		        },
+
+		        _showNewLabelPopup: function(reference: JQ): Void {
+					var self: OptionBarWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+        			var popup: Popup = new Popup("<div class='newLabelPopup' style='position: absolute;width:300px;'></div>");
+        			popup.appendTo(selfElement);
+        			popup = popup.popup({
+        					createFcn: function(el: JQ): Void {
+        						var createLabel: Void->Void = null;
+        						var updateLabel: Void->Void = null;
+        						var stopFcn: JQEvent->Void = function (evt: JQEvent): Void { evt.stopPropagation(); };
+        						var enterFcn: JQEvent->Void = function (evt: JQEvent): Void { 
+        							if(evt.keyCode == 13) {
+        								createLabel();
+    								}
+        						};
+
+        						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
+        						container.click(stopFcn).keypress(enterFcn);
+        						
+        						container.append("<br/><label for='labelName'>Name: </label> ");
+        						var input: JQ = new JQ("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
+        						input.keypress(enterFcn).click(function(evt: JQEvent): Void {
+        								evt.stopPropagation();
+        								if(JQ.cur.val() == "New Label") {
+        									JQ.cur.val("");
+        								}
+    								}).focus();
+        						container.append("<br/>");
+        						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Board</button>")
+        							.button()
+        							.appendTo(container)
+        							.click(function(evt: JQEvent): Void {
+        								createLabel();
+        							});
+
+        						createLabel = function(): Void {
+									if (input.val().length == 0) {return;}
+									AppContext.LOGGER.info("Create new label | " + input.val());
+									var label: Label = new Label();
+									label.name = input.val();
+  									var eventData = new EditLabelData(label, PinterContext.ROOT_BOARD.iid);
+  									EM.change(EMEvent.CreateLabel, eventData);
+									new JQ("body").click();
+        						};
+        					},
+        					positionalElement: reference
+        				});
+
+				},
 
 		        destroy: function() {
 		        	var self: OptionBarWidgetDef = Widgets.getSelf();

@@ -306,12 +306,6 @@ Reflect.fields = function(o) {
 Reflect.isFunction = function(f) {
 	return typeof(f) == "function" && !(f.__name__ || f.__ename__);
 };
-Reflect.compare = function(a,b) {
-	if(a == b) return 0; else if(a > b) return 1; else return -1;
-};
-Reflect.isEnumValue = function(v) {
-	return v != null && v.__enum__ != null;
-};
 var Std = function() { };
 $hxClasses["Std"] = Std;
 Std.__name__ = ["Std"];
@@ -1820,15 +1814,18 @@ m3.observable.EventManager.prototype = {
 };
 m3.event = {};
 m3.event.EventManager = function() {
-	this.hash = new haxe.ds.EnumValueMap();
+	this.hash = new haxe.ds.StringMap();
 	this.oneTimers = new Array();
 };
 $hxClasses["m3.event.EventManager"] = m3.event.EventManager;
 m3.event.EventManager.__name__ = ["m3","event","EventManager"];
+m3.event.EventManager.get_instance = function() {
+	if(m3.event.EventManager.instance == null) m3.event.EventManager.instance = new m3.event.EventManager();
+	return m3.event.EventManager.instance;
+};
 m3.event.EventManager.prototype = {
-	get_logger: function() {
-		if(this._logger == null) this._logger = m3.log.Logga.get_DEFAULT();
-		return this._logger;
+	on: function(id,func,listenerName) {
+		return this.addListener(id,func,listenerName);
 	}
 	,addListener: function(id,func,listenerName) {
 		var listener = new m3.event.EMListener(func,listenerName);
@@ -1846,28 +1843,28 @@ m3.event.EventManager.prototype = {
 	}
 	,listenOnce: function(id,func,listenerName) {
 		var listener = new m3.event.EMListener(func,listenerName);
-		return this.listenOnceInternal(id,listener);
-	}
-	,listenOnceInternal: function(id,listener) {
-		var map = this.hash.get(id);
 		this.oneTimers.push(listener.get_uid());
 		return this.addListenerInternal(id,listener);
 	}
 	,removeListener: function(id,listenerUid) {
 		var map = this.hash.get(id);
-		if(map != null) map.remove(listenerUid);
+		if(map == null) m3.log.Logga.get_DEFAULT().warn("removeListener called for unknown uuid"); else {
+			HxOverrides.remove(this.oneTimers,listenerUid);
+			map.remove(listenerUid);
+		}
 	}
 	,change: function(id,t) {
-		this.get_logger().debug("EVENTMODEL: Change to " + Std.string(id));
+		var logger = m3.log.Logga.get_DEFAULT();
+		logger.debug("EVENTMODEL: Change to " + id);
 		var map = this.hash.get(id);
 		if(map == null) {
-			this.get_logger().warn("No listeners for event " + Std.string(id));
+			logger.warn("No listeners for event " + id);
 			return;
 		}
 		var iter = map.iterator();
 		while(iter.hasNext()) {
 			var listener = iter.next();
-			this.get_logger().debug("Notifying " + listener.get_name() + " of " + Std.string(id) + " event");
+			logger.debug("Notifying " + listener.get_name() + " of " + id + " event");
 			try {
 				listener.change(t);
 				if((function($this) {
@@ -1880,121 +1877,12 @@ m3.event.EventManager.prototype = {
 					map.remove(key);
 				}
 			} catch( err ) {
-				this.get_logger().error("Error executing " + listener.get_name() + " of " + Std.string(id) + " event",m3.log.Logga.getExceptionInst(err));
+				logger.error("Error executing " + listener.get_name() + " of " + id + " event",m3.log.Logga.getExceptionInst(err));
 			}
 		}
 	}
 	,__class__: m3.event.EventManager
 };
-haxe.ds.BalancedTree = function() {
-};
-$hxClasses["haxe.ds.BalancedTree"] = haxe.ds.BalancedTree;
-haxe.ds.BalancedTree.__name__ = ["haxe","ds","BalancedTree"];
-haxe.ds.BalancedTree.prototype = {
-	set: function(key,value) {
-		this.root = this.setLoop(key,value,this.root);
-	}
-	,get: function(key) {
-		var node = this.root;
-		while(node != null) {
-			var c = this.compare(key,node.key);
-			if(c == 0) return node.value;
-			if(c < 0) node = node.left; else node = node.right;
-		}
-		return null;
-	}
-	,iterator: function() {
-		var ret = [];
-		this.iteratorLoop(this.root,ret);
-		return HxOverrides.iter(ret);
-	}
-	,setLoop: function(k,v,node) {
-		if(node == null) return new haxe.ds.TreeNode(null,k,v,null);
-		var c = this.compare(k,node.key);
-		if(c == 0) return new haxe.ds.TreeNode(node.left,k,v,node.right,node == null?0:node._height); else if(c < 0) {
-			var nl = this.setLoop(k,v,node.left);
-			return this.balance(nl,node.key,node.value,node.right);
-		} else {
-			var nr = this.setLoop(k,v,node.right);
-			return this.balance(node.left,node.key,node.value,nr);
-		}
-	}
-	,iteratorLoop: function(node,acc) {
-		if(node != null) {
-			this.iteratorLoop(node.left,acc);
-			acc.push(node.value);
-			this.iteratorLoop(node.right,acc);
-		}
-	}
-	,balance: function(l,k,v,r) {
-		var hl;
-		if(l == null) hl = 0; else hl = l._height;
-		var hr;
-		if(r == null) hr = 0; else hr = r._height;
-		if(hl > hr + 2) {
-			if((function($this) {
-				var $r;
-				var _this = l.left;
-				$r = _this == null?0:_this._height;
-				return $r;
-			}(this)) >= (function($this) {
-				var $r;
-				var _this1 = l.right;
-				$r = _this1 == null?0:_this1._height;
-				return $r;
-			}(this))) return new haxe.ds.TreeNode(l.left,l.key,l.value,new haxe.ds.TreeNode(l.right,k,v,r)); else return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l.left,l.key,l.value,l.right.left),l.right.key,l.right.value,new haxe.ds.TreeNode(l.right.right,k,v,r));
-		} else if(hr > hl + 2) {
-			if((function($this) {
-				var $r;
-				var _this2 = r.right;
-				$r = _this2 == null?0:_this2._height;
-				return $r;
-			}(this)) > (function($this) {
-				var $r;
-				var _this3 = r.left;
-				$r = _this3 == null?0:_this3._height;
-				return $r;
-			}(this))) return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l,k,v,r.left),r.key,r.value,r.right); else return new haxe.ds.TreeNode(new haxe.ds.TreeNode(l,k,v,r.left.left),r.left.key,r.left.value,new haxe.ds.TreeNode(r.left.right,r.key,r.value,r.right));
-		} else return new haxe.ds.TreeNode(l,k,v,r,(hl > hr?hl:hr) + 1);
-	}
-	,compare: function(k1,k2) {
-		return Reflect.compare(k1,k2);
-	}
-	,__class__: haxe.ds.BalancedTree
-};
-haxe.ds.EnumValueMap = function() {
-	haxe.ds.BalancedTree.call(this);
-};
-$hxClasses["haxe.ds.EnumValueMap"] = haxe.ds.EnumValueMap;
-haxe.ds.EnumValueMap.__name__ = ["haxe","ds","EnumValueMap"];
-haxe.ds.EnumValueMap.__interfaces__ = [IMap];
-haxe.ds.EnumValueMap.__super__ = haxe.ds.BalancedTree;
-haxe.ds.EnumValueMap.prototype = $extend(haxe.ds.BalancedTree.prototype,{
-	compare: function(k1,k2) {
-		var d = k1[1] - k2[1];
-		if(d != 0) return d;
-		var p1 = k1.slice(2);
-		var p2 = k2.slice(2);
-		if(p1.length == 0 && p2.length == 0) return 0;
-		return this.compareArgs(p1,p2);
-	}
-	,compareArgs: function(a1,a2) {
-		var ld = a1.length - a2.length;
-		if(ld != 0) return ld;
-		var _g1 = 0;
-		var _g = a1.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var d = this.compareArg(a1[i],a2[i]);
-			if(d != 0) return d;
-		}
-		return 0;
-	}
-	,compareArg: function(v1,v2) {
-		if(Reflect.isEnumValue(v1) && Reflect.isEnumValue(v2)) return this.compare(v1,v2); else if((v1 instanceof Array) && v1.__enum__ == null && ((v2 instanceof Array) && v2.__enum__ == null)) return this.compareArgs(v1,v2); else return Reflect.compare(v1,v2);
-	}
-	,__class__: haxe.ds.EnumValueMap
-});
 ap.model.EM = function() { };
 $hxClasses["ap.model.EM"] = ap.model.EM;
 ap.model.EM.__name__ = ["ap","model","EM"];
@@ -2010,84 +1898,9 @@ ap.model.EM.removeListener = function(id,listenerUid) {
 ap.model.EM.change = function(id,t) {
 	ap.model.EM.delegate.change(id,t);
 };
-ap.model.EMEvent = $hxClasses["ap.model.EMEvent"] = { __ename__ : ["ap","model","EMEvent"], __constructs__ : ["APP_INITIALIZED","ALBUM_CONFIGS","FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","RespondToIntroduction","TargetChange","VerificationRequest","RespondToVerification","RejectVerificationRequest","AcceptVerification","BACKUP","RESTORE"] };
-ap.model.EMEvent.APP_INITIALIZED = ["APP_INITIALIZED",0];
-ap.model.EMEvent.APP_INITIALIZED.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.ALBUM_CONFIGS = ["ALBUM_CONFIGS",1];
-ap.model.EMEvent.ALBUM_CONFIGS.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.FILTER_RUN = ["FILTER_RUN",2];
-ap.model.EMEvent.FILTER_RUN.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.FILTER_CHANGE = ["FILTER_CHANGE",3];
-ap.model.EMEvent.FILTER_CHANGE.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.LoadFilteredContent = ["LoadFilteredContent",4];
-ap.model.EMEvent.LoadFilteredContent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AppendFilteredContent = ["AppendFilteredContent",5];
-ap.model.EMEvent.AppendFilteredContent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.EditContentClosed = ["EditContentClosed",6];
-ap.model.EMEvent.EditContentClosed.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CreateAgent = ["CreateAgent",7];
-ap.model.EMEvent.CreateAgent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AgentCreated = ["AgentCreated",8];
-ap.model.EMEvent.AgentCreated.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.InitialDataLoadComplete = ["InitialDataLoadComplete",9];
-ap.model.EMEvent.InitialDataLoadComplete.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UserLogin = ["UserLogin",10];
-ap.model.EMEvent.UserLogin.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UserLogout = ["UserLogout",11];
-ap.model.EMEvent.UserLogout.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AliasLoaded = ["AliasLoaded",12];
-ap.model.EMEvent.AliasLoaded.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AliasCreated = ["AliasCreated",13];
-ap.model.EMEvent.AliasCreated.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AliasUpdated = ["AliasUpdated",14];
-ap.model.EMEvent.AliasUpdated.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CreateAlias = ["CreateAlias",15];
-ap.model.EMEvent.CreateAlias.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UpdateAlias = ["UpdateAlias",16];
-ap.model.EMEvent.UpdateAlias.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.DeleteAlias = ["DeleteAlias",17];
-ap.model.EMEvent.DeleteAlias.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CreateContent = ["CreateContent",18];
-ap.model.EMEvent.CreateContent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.DeleteContent = ["DeleteContent",19];
-ap.model.EMEvent.DeleteContent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UpdateContent = ["UpdateContent",20];
-ap.model.EMEvent.UpdateContent.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CreateLabel = ["CreateLabel",21];
-ap.model.EMEvent.CreateLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.UpdateLabel = ["UpdateLabel",22];
-ap.model.EMEvent.UpdateLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.MoveLabel = ["MoveLabel",23];
-ap.model.EMEvent.MoveLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.CopyLabel = ["CopyLabel",24];
-ap.model.EMEvent.CopyLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.DeleteLabel = ["DeleteLabel",25];
-ap.model.EMEvent.DeleteLabel.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.GrantAccess = ["GrantAccess",26];
-ap.model.EMEvent.GrantAccess.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RevokeAccess = ["RevokeAccess",27];
-ap.model.EMEvent.RevokeAccess.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.DeleteConnection = ["DeleteConnection",28];
-ap.model.EMEvent.DeleteConnection.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",29];
-ap.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",30];
-ap.model.EMEvent.RespondToIntroduction.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.TargetChange = ["TargetChange",31];
-ap.model.EMEvent.TargetChange.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.VerificationRequest = ["VerificationRequest",32];
-ap.model.EMEvent.VerificationRequest.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RespondToVerification = ["RespondToVerification",33];
-ap.model.EMEvent.RespondToVerification.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RejectVerificationRequest = ["RejectVerificationRequest",34];
-ap.model.EMEvent.RejectVerificationRequest.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.AcceptVerification = ["AcceptVerification",35];
-ap.model.EMEvent.AcceptVerification.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.BACKUP = ["BACKUP",36];
-ap.model.EMEvent.BACKUP.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.RESTORE = ["RESTORE",37];
-ap.model.EMEvent.RESTORE.__enum__ = ap.model.EMEvent;
-ap.model.EMEvent.__empty_constructs__ = [ap.model.EMEvent.APP_INITIALIZED,ap.model.EMEvent.ALBUM_CONFIGS,ap.model.EMEvent.FILTER_RUN,ap.model.EMEvent.FILTER_CHANGE,ap.model.EMEvent.LoadFilteredContent,ap.model.EMEvent.AppendFilteredContent,ap.model.EMEvent.EditContentClosed,ap.model.EMEvent.CreateAgent,ap.model.EMEvent.AgentCreated,ap.model.EMEvent.InitialDataLoadComplete,ap.model.EMEvent.UserLogin,ap.model.EMEvent.UserLogout,ap.model.EMEvent.AliasLoaded,ap.model.EMEvent.AliasCreated,ap.model.EMEvent.AliasUpdated,ap.model.EMEvent.CreateAlias,ap.model.EMEvent.UpdateAlias,ap.model.EMEvent.DeleteAlias,ap.model.EMEvent.CreateContent,ap.model.EMEvent.DeleteContent,ap.model.EMEvent.UpdateContent,ap.model.EMEvent.CreateLabel,ap.model.EMEvent.UpdateLabel,ap.model.EMEvent.MoveLabel,ap.model.EMEvent.CopyLabel,ap.model.EMEvent.DeleteLabel,ap.model.EMEvent.GrantAccess,ap.model.EMEvent.RevokeAccess,ap.model.EMEvent.DeleteConnection,ap.model.EMEvent.INTRODUCTION_REQUEST,ap.model.EMEvent.RespondToIntroduction,ap.model.EMEvent.TargetChange,ap.model.EMEvent.VerificationRequest,ap.model.EMEvent.RespondToVerification,ap.model.EMEvent.RejectVerificationRequest,ap.model.EMEvent.AcceptVerification,ap.model.EMEvent.BACKUP,ap.model.EMEvent.RESTORE];
+ap.model.EMEvent = function() { };
+$hxClasses["ap.model.EMEvent"] = ap.model.EMEvent;
+ap.model.EMEvent.__name__ = ["ap","model","EMEvent"];
 m3.log = {};
 m3.log.Logga = function(logLevel) {
 	this.initialized = false;
@@ -3130,7 +2943,7 @@ ap.pages.HomeScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
 		var notificationsDiv = new $("<div class='notificationsDiv'></div>").appendTo(content);
 		var aliasComp = new $("<div></div>");
 		aliasComp.appendTo(notificationsDiv);
-		aliasComp.AliasComp();
+		aliasComp.aliasComp();
 		var albumListing = new $("<div style='margin-left: 50px;'></div>");
 		albumListing.appendTo(content);
 		albumListing.albumList({ title : "My Albums"});
@@ -4077,39 +3890,6 @@ haxe.Timer.prototype = {
 	}
 	,__class__: haxe.Timer
 };
-haxe.ds.TreeNode = function(l,k,v,r,h) {
-	if(h == null) h = -1;
-	this.left = l;
-	this.key = k;
-	this.value = v;
-	this.right = r;
-	if(h == -1) this._height = ((function($this) {
-		var $r;
-		var _this = $this.left;
-		$r = _this == null?0:_this._height;
-		return $r;
-	}(this)) > (function($this) {
-		var $r;
-		var _this1 = $this.right;
-		$r = _this1 == null?0:_this1._height;
-		return $r;
-	}(this))?(function($this) {
-		var $r;
-		var _this2 = $this.left;
-		$r = _this2 == null?0:_this2._height;
-		return $r;
-	}(this)):(function($this) {
-		var $r;
-		var _this3 = $this.right;
-		$r = _this3 == null?0:_this3._height;
-		return $r;
-	}(this))) + 1; else this._height = h;
-};
-$hxClasses["haxe.ds.TreeNode"] = haxe.ds.TreeNode;
-haxe.ds.TreeNode.__name__ = ["haxe","ds","TreeNode"];
-haxe.ds.TreeNode.prototype = {
-	__class__: haxe.ds.TreeNode
-};
 haxe.macro = {};
 haxe.macro.Constant = $hxClasses["haxe.macro.Constant"] = { __ename__ : ["haxe","macro","Constant"], __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp"] };
 haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; return $x; };
@@ -4959,34 +4739,53 @@ m3.CrossMojo.prettyPrint = function(json) {
 	return JSON.stringify(json, undefined, 2);
 };
 m3.comm = {};
-m3.comm.BaseRequest = function(requestData,successFcn,errorFcn,accessDeniedFcn) {
+m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
 	this.requestData = requestData;
+	this._url = url;
 	this.onSuccess = successFcn;
 	this.onError = errorFcn;
 	this.onAccessDenied = accessDeniedFcn;
+	this._requestHeaders = new haxe.ds.StringMap();
 };
 $hxClasses["m3.comm.BaseRequest"] = m3.comm.BaseRequest;
 m3.comm.BaseRequest.__name__ = ["m3","comm","BaseRequest"];
 m3.comm.BaseRequest.prototype = {
-	start: function(opts) {
+	ajaxOpts: function(opts) {
+		if(opts == null) return this.baseOpts; else {
+			this.baseOpts = opts;
+			return this;
+		}
+	}
+	,requestHeaders: function(headers) {
+		if(headers == null) return this._requestHeaders; else {
+			this._requestHeaders = headers;
+			return this;
+		}
+	}
+	,beforeSend: function(jqXHR,settings) {
+		var $it0 = this._requestHeaders.keys();
+		while( $it0.hasNext() ) {
+			var key = $it0.next();
+			if(this._requestHeaders.get(key) != null) jqXHR.setRequestHeader(key,this._requestHeaders.get(key));
+		}
+	}
+	,start: function(opts) {
 		var _g = this;
-		var ajaxOpts = { dataType : "json", contentType : "application/json", data : this.requestData, type : "POST", success : function(data,textStatus,jqXHR) {
-			if(jqXHR.getResponseHeader("Content-Length") == "0") return;
+		if(opts == null) opts = { };
+		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", url : this._url, success : function(data,textStatus,jqXHR) {
+			if(jqXHR.getResponseHeader("Content-Length") == "0") data = [];
 			if(_g.onSuccess != null) _g.onSuccess(data);
 		}, error : function(jqXHR1,textStatus1,errorThrown) {
-			if(jqXHR1.getResponseHeader("Content-Length") == "0") return;
 			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
-			var error_message = null;
-			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) error_message = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") error_message = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") error_message = errorThrown; else error_message = errorThrown.message;
-			if(m3.helper.StringHelper.isBlank(error_message)) error_message = "Error, but no error msg from server";
-			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + error_message);
-			if(_g.onError != null) _g.onError(new m3.exception.AjaxException(error_message,null,jqXHR1.status)); else {
-				m3.util.JqueryUtil.alert("There was an error making your request:  " + error_message);
-				throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR1.status + " | " + error_message);
-			}
+			var errorMessage = null;
+			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) errorMessage = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") errorMessage = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") errorMessage = errorThrown; else errorMessage = errorThrown.message;
+			if(m3.helper.StringHelper.isBlank(errorMessage)) errorMessage = "Error, but no error msg from server";
+			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + errorMessage);
+			var exc = new m3.exception.AjaxException(errorMessage,null,jqXHR1.status);
+			if(_g.onError != null) _g.onError(exc); else throw exc;
 		}};
 		$.extend(ajaxOpts,this.baseOpts);
-		if(opts != null) $.extend(ajaxOpts,opts);
+		$.extend(ajaxOpts,opts);
 		return $.ajax(ajaxOpts);
 	}
 	,abort: function() {
@@ -5017,7 +4816,7 @@ m3.comm.LongPollingRequest = function(channel,requestToRepeat,logga,successFcn,e
 		_g.delayNextPoll = true;
 		if(errorFcn != null) errorFcn(exc);
 	};
-	m3.comm.BaseRequest.call(this,requestToRepeat,onSuccess,onError);
+	m3.comm.BaseRequest.call(this,requestToRepeat,this.getUrl(),onSuccess,onError);
 };
 $hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
 m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
@@ -5052,13 +4851,16 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 			this.logger.error("error on poll abort | " + Std.string(err));
 		}
 	}
+	,getUrl: function() {
+		return "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
+	}
 	,poll: function() {
 		if(this.running) {
 			if(this.delayNextPoll == true) {
 				this.delayNextPoll = false;
 				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
 			} else {
-				this.baseOpts.url = "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
+				this.baseOpts.url = this.getUrl();
 				this.baseOpts.timeout = this.timeout + 1000;
 				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
 			}
@@ -6355,8 +6157,7 @@ qoid.api.ChannelRequestMessageBundle.prototype = {
 	,__class__: qoid.api.ChannelRequestMessageBundle
 };
 qoid.api.SimpleRequest = function(path,data,successFcn) {
-	this.baseOpts = { async : true, url : path};
-	m3.comm.BaseRequest.call(this,data,successFcn);
+	m3.comm.BaseRequest.call(this,data,path,successFcn);
 };
 $hxClasses["qoid.api.SimpleRequest"] = qoid.api.SimpleRequest;
 qoid.api.SimpleRequest.__name__ = ["qoid","api","SimpleRequest"];
@@ -6365,12 +6166,12 @@ qoid.api.SimpleRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 	__class__: qoid.api.SimpleRequest
 });
 qoid.api.SubmitRequest = function(msgs,successFcn) {
-	this.baseOpts = { dataType : "text", async : true, url : "/api/channel/submit"};
+	this.baseOpts = { dataType : "text"};
 	if(successFcn == null) successFcn = function(data) {
 	};
 	var bundle = new qoid.api.ChannelRequestMessageBundle(msgs);
 	var data1 = ap.AppContext.SERIALIZER.toJsonString(bundle);
-	m3.comm.BaseRequest.call(this,data1,successFcn);
+	m3.comm.BaseRequest.call(this,data1,"/api/channel/submit",successFcn);
 };
 $hxClasses["qoid.api.SubmitRequest"] = qoid.api.SubmitRequest;
 qoid.api.SubmitRequest.__name__ = ["qoid","api","SubmitRequest"];
@@ -7002,7 +6803,7 @@ Xml.Comment = "comment";
 Xml.DocType = "doctype";
 Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
-ap.model.EM.delegate = new m3.event.EventManager();
+ap.model.EM.delegate = m3.event.EventManager.get_instance();
 ap.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 ap.model.ContentSource.listeners = new Array();
 ap.model.EM.addListener(ap.model.EMEvent.AliasLoaded,ap.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
@@ -7461,7 +7262,7 @@ var defineWidget = function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.AliasComp",defineWidget());
+$.widget("ui.aliasComp",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -8276,6 +8077,44 @@ m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" int
 m3.observable.AbstractSet.__rtti = "<class path=\"m3.observable.AbstractSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<implements path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></implements>\n\t<_eventManager public=\"1\"><c path=\"m3.observable.EventManager\"><c path=\"m3.observable.AbstractSet.T\"/></c></_eventManager>\n\t<visualId public=\"1\"><c path=\"String\"/></visualId>\n\t<listen public=\"1\" set=\"method\" line=\"129\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\" line=\"133\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<filter public=\"1\" set=\"method\" line=\"137\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"141\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"145\"><f a=\"t:type\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<getVisualId public=\"1\" set=\"method\" line=\"149\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<identifier public=\"1\" set=\"method\" line=\"153\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"157\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"161\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n</x></f></delegate>\n\t<new set=\"method\" line=\"125\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.ObservableSet.__rtti = "<class path=\"m3.observable.ObservableSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"m3.util.SizedMap\"><c path=\"m3.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"181\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"185\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"193\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"197\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"201\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"213\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"217\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"221\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"229\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"233\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"238\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"242\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"172\"><f a=\"identifier:?tArr\" v=\":null\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.EventManager.__rtti = "<class path=\"m3.observable.EventManager\" params=\"T\" module=\"m3.observable.OSet\">\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"47\"><f a=\"l:autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<remove public=\"1\" set=\"method\" line=\"56\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></remove>\n\t<fire public=\"1\" set=\"method\" line=\"59\"><f a=\"t:type\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<listenerCount public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Int\"/></f></listenerCount>\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ap.model.EMEvent.APP_INITIALIZED = "APP_INITIALIZED";
+ap.model.EMEvent.ALBUM_CONFIGS = "ALBUM_CONFIGS";
+ap.model.EMEvent.FILTER_RUN = "FILTER_RUN";
+ap.model.EMEvent.FILTER_CHANGE = "FILTER_CHANGE";
+ap.model.EMEvent.LoadFilteredContent = "LoadFilteredContent";
+ap.model.EMEvent.AppendFilteredContent = "AppendFilteredContent";
+ap.model.EMEvent.EditContentClosed = "EditContentClosed";
+ap.model.EMEvent.CreateAgent = "CreateAgent";
+ap.model.EMEvent.AgentCreated = "AgentCreated";
+ap.model.EMEvent.InitialDataLoadComplete = "InitialDataLoadComplete";
+ap.model.EMEvent.UserLogin = "UserLogin";
+ap.model.EMEvent.UserLogout = "UserLogout";
+ap.model.EMEvent.AliasLoaded = "AliasLoaded";
+ap.model.EMEvent.AliasCreated = "AliasCreated";
+ap.model.EMEvent.AliasUpdated = "AliasUpdated";
+ap.model.EMEvent.CreateAlias = "CreateAlias";
+ap.model.EMEvent.UpdateAlias = "UpdateAlias";
+ap.model.EMEvent.DeleteAlias = "DeleteAlias";
+ap.model.EMEvent.CreateContent = "CreateContent";
+ap.model.EMEvent.DeleteContent = "DeleteContent";
+ap.model.EMEvent.UpdateContent = "UpdateContent";
+ap.model.EMEvent.CreateLabel = "CreateLabel";
+ap.model.EMEvent.UpdateLabel = "UpdateLabel";
+ap.model.EMEvent.MoveLabel = "MoveLabel";
+ap.model.EMEvent.CopyLabel = "CopyLabel";
+ap.model.EMEvent.DeleteLabel = "DeleteLabel";
+ap.model.EMEvent.GrantAccess = "GrantAccess";
+ap.model.EMEvent.RevokeAccess = "RevokeAccess";
+ap.model.EMEvent.DeleteConnection = "DeleteConnection";
+ap.model.EMEvent.INTRODUCTION_REQUEST = "INTRODUCTION_REQUEST";
+ap.model.EMEvent.RespondToIntroduction = "RespondToIntroduction";
+ap.model.EMEvent.TargetChange = "TargetChange";
+ap.model.EMEvent.VerificationRequest = "VerificationRequest";
+ap.model.EMEvent.RespondToVerification = "RespondToVerification";
+ap.model.EMEvent.RejectVerificationRequest = "RejectVerificationRequest";
+ap.model.EMEvent.AcceptVerification = "AcceptVerification";
+ap.model.EMEvent.BACKUP = "BACKUP";
+ap.model.EMEvent.RESTORE = "RESTORE";
 qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"320\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"324\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"328\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"332\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"336\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"309\"><f a=\"contentType:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.jq.pages.SinglePageManager.SCREEN_MAP = new haxe.ds.StringMap();
 ap.pages.APhotoPageMgr.HOME_SCREEN = new ap.pages.HomeScreen();

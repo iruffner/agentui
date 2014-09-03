@@ -27,7 +27,7 @@ class HomeScreen extends APhotoPage {
 		
 		var aliasComp: AliasComp = new AliasComp("<div></div>");
 		aliasComp.appendTo(notificationsDiv);
-		aliasComp.AliasComp();
+		aliasComp.aliasComp();
 
 		// notificationsDiv.append("<h2>My Notifications</h2>");
 

@@ -102,7 +102,7 @@ class ContentScreen extends APhotoPage {
 			.click(function(evt: JQEvent) {
 					//find this config
 					var config: ConfigContent = null;
-					var event: EMEvent = null;
+					var event: String = null;
 					APhotoContext.ALBUM_CONFIGS.iter(function(c: ConfigContent) {
 							var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(c.iid+"_"+label.iid, function(lc: LabeledContent): String {
 										return lc.contentIid+"_"+lc.labelIid;
