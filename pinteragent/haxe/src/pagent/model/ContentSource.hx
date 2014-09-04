@@ -1,7 +1,7 @@
-package ap.model;
+package pagent.model;
 
-import ap.AppContext;
-import ap.model.EM;
+import pagent.AppContext;
+import pagent.model.EM;
 import m3.log.Logga;
 import m3.observable.OSet;
 import m3.util.UidGenerator;

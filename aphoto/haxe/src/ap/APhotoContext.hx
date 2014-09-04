@@ -75,7 +75,7 @@ class APhotoContext {
 
         var filterData = new FilterData("albumConfig");
         filterData.filter = new Filter(root);
-        filterData.filter.q = filterData.filter.q + " and contentType = 'com.qoid.apps.aphoto.config'";
+        filterData.filter.q = filterData.filter.q + " and contentType = '" + APP_ROOT_LABEL_NAME + ".config'";
         filterData.connectionIids = [];
         filterData.aliasIid       = AppContext.currentAlias.iid;
 

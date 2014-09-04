@@ -366,11 +366,11 @@ class ProtocolHandler {
 
 		_startPolling(data.channelId);
 
-		var context = Synchronizer.createContext(6, "initialDataLoad");
+		var context = Synchronizer.createContext(7, "initialDataLoad");
 		var requests = [
 			new ChannelRequestMessage(QUERY, context, QueryMessage.create("alias")),
 			// new ChannelRequestMessage(QUERY, context, QueryMessage.create("introduction")),
-			// new ChannelRequestMessage(QUERY, context, QueryMessage.create("connection")),
+			new ChannelRequestMessage(QUERY, context, QueryMessage.create("connection")),
 			// new ChannelRequestMessage(QUERY, context, QueryMessage.create("notification")),
 			new ChannelRequestMessage(QUERY, context, QueryMessage.create("label")),
 			new ChannelRequestMessage(QUERY, context, QueryMessage.create("labelAcl")),

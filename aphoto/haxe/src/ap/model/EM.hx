@@ -5,71 +5,71 @@ import m3.event.EventManager;
 
 class EMEvent {	
 	/* aphoto specific */
-	public static var APP_INITIALIZED: String = "APP_INITIALIZED";
-	public static var ALBUM_CONFIGS: String = "ALBUM_CONFIGS";
+	public static inline var APP_INITIALIZED: String = "APP_INITIALIZED";
+	public static inline var ALBUM_CONFIGS: String = "ALBUM_CONFIGS";
 	/* *************** */
 	
 
-	public static var FILTER_RUN: String = "FILTER_RUN";
-	public static var FILTER_CHANGE: String = "FILTER_CHANGE";
-	public static var LoadFilteredContent: String = "LoadFilteredContent";
-	public static var AppendFilteredContent: String = "AppendFilteredContent";
+	public static inline var FILTER_RUN: String = "FILTER_RUN";
+	public static inline var FILTER_CHANGE: String = "FILTER_CHANGE";
+	public static inline var LoadFilteredContent: String = "LoadFilteredContent";
+	public static inline var AppendFilteredContent: String = "AppendFilteredContent";
 
-	public static var EditContentClosed: String = "EditContentClosed";
+	public static inline var EditContentClosed: String = "EditContentClosed";
 
-	public static var CreateAgent: String = "CreateAgent";
-	public static var AgentCreated: String = "AgentCreated";
-	public static var InitialDataLoadComplete: String = "InitialDataLoadComplete";
+	public static inline var CreateAgent: String = "CreateAgent";
+	public static inline var AgentCreated: String = "AgentCreated";
+	public static inline var InitialDataLoadComplete: String = "InitialDataLoadComplete";
 
 	// FitWindow;
-	public static var UserLogin: String = "UserLogin";
-	public static var UserLogout: String = "UserLogout";
+	public static inline var UserLogin: String = "UserLogin";
+	public static inline var UserLogout: String = "UserLogout";
 
-	public static var AliasLoaded: String = "AliasLoaded";
-	public static var AliasCreated: String = "AliasCreated";
-	public static var AliasUpdated: String = "AliasUpdated";
+	public static inline var AliasLoaded: String = "AliasLoaded";
+	public static inline var AliasCreated: String = "AliasCreated";
+	public static inline var AliasUpdated: String = "AliasUpdated";
 
-	public static var CreateAlias: String = "CreateAlias";
-	public static var UpdateAlias: String = "UpdateAlias";
-	public static var DeleteAlias: String = "DeleteAlias";
+	public static inline var CreateAlias: String = "CreateAlias";
+	public static inline var UpdateAlias: String = "UpdateAlias";
+	public static inline var DeleteAlias: String = "DeleteAlias";
 
-	public static var CreateContent: String = "CreateContent";
-	public static var DeleteContent: String = "DeleteContent";
-	public static var UpdateContent: String = "UpdateContent";
+	public static inline var CreateContent: String = "CreateContent";
+	public static inline var DeleteContent: String = "DeleteContent";
+	public static inline var UpdateContent: String = "UpdateContent";
 
-	public static var CreateLabel: String = "CreateLabel";
-	public static var UpdateLabel: String = "UpdateLabel";
-	public static var MoveLabel: String = "MoveLabel";
-	public static var CopyLabel: String = "CopyLabel";
-	public static var DeleteLabel: String = "DeleteLabel";
+	public static inline var CreateLabel: String = "CreateLabel";
+	public static inline var UpdateLabel: String = "UpdateLabel";
+	public static inline var MoveLabel: String = "MoveLabel";
+	public static inline var CopyLabel: String = "CopyLabel";
+	public static inline var DeleteLabel: String = "DeleteLabel";
 
-	public static var GrantAccess: String = "GrantAccess";
+	public static inline var GrantAccess: String = "GrantAccess";
 	// AccessGranted;
-	public static var RevokeAccess: String = "RevokeAccess";
+	public static inline var RevokeAccess: String = "RevokeAccess";
 
-	public static var DeleteConnection: String = "DeleteConnection";
+	public static inline var DeleteConnection: String = "DeleteConnection";
 
-	public static var INTRODUCTION_REQUEST: String = "INTRODUCTION_REQUEST";
+	public static inline var INTRODUCTION_REQUEST: String = "INTRODUCTION_REQUEST";
 	// INTRODUCTION_RESPONSE;
-	public static var RespondToIntroduction: String = "RespondToIntroduction";
+	public static inline var RespondToIntroduction: String = "RespondToIntroduction";
 	// RespondToIntroduction_RESPONSE;
 
-	public static var TargetChange: String = "TargetChange";
+	public static inline var TargetChange: String = "TargetChange";
 
-	public static var VerificationRequest: String = "VerificationRequest";
+	public static inline var VerificationRequest: String = "VerificationRequest";
 	// VerificationRequest_RESPONSE;
 
-	public static var RespondToVerification: String = "RespondToVerification";
+	public static inline var RespondToVerification: String = "RespondToVerification";
 	// RespondToVerification_RESPONSE;
 
-	public static var RejectVerificationRequest: String = "RejectVerificationRequest";
+	public static inline var RejectVerificationRequest: String = "RejectVerificationRequest";
 	// RejectVerificationRequest_RESPONSE;
 	
-	public static var AcceptVerification: String = "AcceptVerification";
+	public static inline var AcceptVerification: String = "AcceptVerification";
 	// AcceptVerification_RESPONSE;
 
-	public static var BACKUP: String = "BACKUP";
-	public static var RESTORE: String = "RESTORE";
+	public static inline var BACKUP: String = "BACKUP";
+	public static inline var RESTORE: String = "RESTORE";
 	// RESTORES_REQUEST;
 	// AVAILABLE_BACKUPS;
 }

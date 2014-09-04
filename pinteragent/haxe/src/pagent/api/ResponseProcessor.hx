@@ -39,6 +39,8 @@ class ResponseProcessor {
                 var context = new Context(data.context);
 
                 switch (context.oncomplete) {
+                    case "connectionProfile":
+                        processProfile(data);
                     case "initialDataLoad":
                         if (data.responseType == "query") {
                             Synchronizer.processResponse(data);
@@ -86,6 +88,8 @@ class ResponseProcessor {
         switch (type) {
             case "alias":
                 processModelObject(AppContext.ALIASES, Alias, action, data);
+            case "connection":
+                processModelObject(AppContext.CONNECTIONS, Connection, action, data);
             case "label":
                 processModelObject(AppContext.LABELS, Label, action, data);
             case "labelacl":
@@ -105,6 +109,7 @@ class ResponseProcessor {
 
 	public static function initialDataLoad(data:SynchronizationParms) {
 		AppContext.ALIASES.addAll(data.aliases);
+        AppContext.CONNECTIONS.addAll(data.connections);
 		AppContext.LABELS.addAll(data.labels);
 		AppContext.LABELCHILDREN.addAll(data.labelChildren);
         AppContext.LABELEDCONTENT.addAll(data.labeledContent);
@@ -124,20 +129,20 @@ class ResponseProcessor {
         EM.change(EMEvent.InitialDataLoadComplete);
 	}
 
-    public static function albumConfigs(data:SynchronizationParms) {
+    public static function boardConfigs(data:SynchronizationParms) {
         PinterContext.BOARD_CONFIGS.addAll(cast data.content);
     }
 
-    // public static function processProfile(rec:Dynamic) {
-    //     if (rec.result && rec.result.handle) {
-    //         APhoto.PROTOCOL.addHandle(rec.result.handle);
-    //     } else {
-    //         var connection = AppContext.CONNECTIONS.getElement(rec.connectionIid);
-    //         var profile = AppContext.SERIALIZER.fromJsonX(rec.results[0], Profile);
-    //         profile.connectionIid = rec.connectionIid;
-    //         connection.data = profile;
-    //         AppContext.CONNECTIONS.addOrUpdate(connection);
-    //         AppContext.PROFILES.addOrUpdate(profile);
-    //     }
-    // }
+    public static function processProfile(rec:Dynamic) {
+        if (rec.result && rec.result.handle) {
+            PinterAgent.PROTOCOL.addHandle(rec.result.handle);
+        } else {
+            var connection = AppContext.CONNECTIONS.getElement(rec.connectionIid);
+            var profile = AppContext.SERIALIZER.fromJsonX(rec.results[0], Profile);
+            profile.connectionIid = rec.connectionIid;
+            connection.data = profile;
+            AppContext.CONNECTIONS.addOrUpdate(connection);
+            AppContext.PROFILES.addOrUpdate(profile);
+        }
+    }
 }
