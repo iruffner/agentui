@@ -253,23 +253,6 @@ StringTools.lpad = function(s,c,l) {
 StringTools.replace = function(s,sub,by) {
 	return s.split(sub).join(by);
 };
-var ValueType = { __ename__ : true, __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
-ValueType.TNull = ["TNull",0];
-ValueType.TNull.__enum__ = ValueType;
-ValueType.TInt = ["TInt",1];
-ValueType.TInt.__enum__ = ValueType;
-ValueType.TFloat = ["TFloat",2];
-ValueType.TFloat.__enum__ = ValueType;
-ValueType.TBool = ["TBool",3];
-ValueType.TBool.__enum__ = ValueType;
-ValueType.TObject = ["TObject",4];
-ValueType.TObject.__enum__ = ValueType;
-ValueType.TFunction = ["TFunction",5];
-ValueType.TFunction.__enum__ = ValueType;
-ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; return $x; };
-ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; return $x; };
-ValueType.TUnknown = ["TUnknown",8];
-ValueType.TUnknown.__enum__ = ValueType;
 var Type = function() { };
 Type.__name__ = true;
 Type.enumEq = function(a,b) {
@@ -371,8 +354,17 @@ haxe.ds.StringMap = function() {
 haxe.ds.StringMap.__name__ = true;
 haxe.ds.StringMap.__interfaces__ = [IMap];
 haxe.ds.StringMap.prototype = {
-	get: function(key) {
+	set: function(key,value) {
+		this.h["$" + key] = value;
+	}
+	,get: function(key) {
 		return this.h["$" + key];
+	}
+	,remove: function(key) {
+		key = "$" + key;
+		if(!this.h.hasOwnProperty(key)) return false;
+		delete(this.h[key]);
+		return true;
 	}
 	,keys: function() {
 		var a = [];
@@ -640,12 +632,13 @@ m3.CrossMojo.prettyPrint = function(json) {
 	return JSON.stringify(json, undefined, 2);
 };
 m3.comm = {};
-m3.comm.BaseRequest = function(requestData,successFcn,errorFcn,accessDeniedFcn) {
+m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
 	this.requestData = requestData;
+	this._url = url;
 	this.onSuccess = successFcn;
 	this.onError = errorFcn;
 	this.onAccessDenied = accessDeniedFcn;
-	this.requestHeaders = new haxe.ds.StringMap();
+	this._requestHeaders = new haxe.ds.StringMap();
 };
 m3.comm.BaseRequest.__name__ = true;
 m3.comm.BaseRequest.prototype = {
@@ -655,22 +648,24 @@ m3.comm.BaseRequest.prototype = {
 			return this;
 		}
 	}
-	,setRequestHeaders: function(headers) {
-		this.requestHeaders = headers;
-		return this;
+	,requestHeaders: function(headers) {
+		if(headers == null) return this._requestHeaders; else {
+			this._requestHeaders = headers;
+			return this;
+		}
 	}
 	,beforeSend: function(jqXHR,settings) {
-		var $it0 = this.requestHeaders.keys();
+		var $it0 = this._requestHeaders.keys();
 		while( $it0.hasNext() ) {
 			var key = $it0.next();
-			jqXHR.setRequestHeader(key,this.requestHeaders.get(key));
+			if(this._requestHeaders.get(key) != null) jqXHR.setRequestHeader(key,this._requestHeaders.get(key));
 		}
 	}
 	,start: function(opts) {
 		var _g = this;
 		if(opts == null) opts = { };
-		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", success : function(data,textStatus,jqXHR) {
-			if(jqXHR.getResponseHeader("Content-Length") == "0") data = { };
+		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", url : this._url, success : function(data,textStatus,jqXHR) {
+			if(jqXHR.getResponseHeader("Content-Length") == "0") data = [];
 			if(_g.onSuccess != null) _g.onSuccess(data);
 		}, error : function(jqXHR1,textStatus1,errorThrown) {
 			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
@@ -678,10 +673,8 @@ m3.comm.BaseRequest.prototype = {
 			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) errorMessage = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") errorMessage = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") errorMessage = errorThrown; else errorMessage = errorThrown.message;
 			if(m3.helper.StringHelper.isBlank(errorMessage)) errorMessage = "Error, but no error msg from server";
 			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + errorMessage);
-			if(_g.onError != null) _g.onError(new m3.exception.AjaxException(errorMessage,null,jqXHR1.status)); else {
-				m3.util.JqueryUtil.alert("There was an error making your request:  " + errorMessage);
-				throw new m3.exception.Exception("Error executing ajax call | Response Code: " + jqXHR1.status + " | " + errorMessage);
-			}
+			var exc = new m3.exception.AjaxException(errorMessage,null,jqXHR1.status);
+			if(_g.onError != null) _g.onError(exc); else throw exc;
 		}};
 		$.extend(ajaxOpts,this.baseOpts);
 		$.extend(ajaxOpts,opts);
@@ -692,14 +685,101 @@ m3.comm.BaseRequest.prototype = {
 	,__class__: m3.comm.BaseRequest
 };
 m3.comm.JsonRequest = function(requestJson,url,successFcn,errorFcn,accessDeniedFcn) {
-	this.baseOpts = { url : url};
-	m3.comm.BaseRequest.call(this,JSON.stringify(requestJson),successFcn,errorFcn,accessDeniedFcn);
+	m3.comm.BaseRequest.call(this,JSON.stringify(requestJson),url,successFcn,errorFcn,accessDeniedFcn);
 };
 m3.comm.JsonRequest.__name__ = true;
 m3.comm.JsonRequest.__super__ = m3.comm.BaseRequest;
 m3.comm.JsonRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 	__class__: m3.comm.JsonRequest
 });
+m3.event = {};
+m3.event.EventManager = function() {
+	this.hash = new haxe.ds.StringMap();
+	this.oneTimers = new Array();
+};
+m3.event.EventManager.__name__ = true;
+m3.event.EventManager.get_instance = function() {
+	if(m3.event.EventManager.instance == null) m3.event.EventManager.instance = new m3.event.EventManager();
+	return m3.event.EventManager.instance;
+};
+m3.event.EventManager.prototype = {
+	on: function(id,func,listenerName) {
+		return this.addListener(id,func,listenerName);
+	}
+	,addListener: function(id,func,listenerName) {
+		var listener = new m3.event.EMListener(func,listenerName);
+		return this.addListenerInternal(id,listener);
+	}
+	,addListenerInternal: function(id,listener) {
+		var map = this.hash.get(id);
+		if(map == null) {
+			map = new haxe.ds.StringMap();
+			this.hash.set(id,map);
+		}
+		var key = listener.get_uid();
+		map.set(key,listener);
+		return listener.get_uid();
+	}
+	,listenOnce: function(id,func,listenerName) {
+		var listener = new m3.event.EMListener(func,listenerName);
+		this.oneTimers.push(listener.get_uid());
+		return this.addListenerInternal(id,listener);
+	}
+	,removeListener: function(id,listenerUid) {
+		var map = this.hash.get(id);
+		if(map == null) m3.log.Logga.get_DEFAULT().warn("removeListener called for unknown uuid"); else {
+			HxOverrides.remove(this.oneTimers,listenerUid);
+			map.remove(listenerUid);
+		}
+	}
+	,change: function(id,t) {
+		var logger = m3.log.Logga.get_DEFAULT();
+		logger.debug("EVENTMODEL: Change to " + id);
+		var map = this.hash.get(id);
+		if(map == null) {
+			logger.warn("No listeners for event " + id);
+			return;
+		}
+		var iter = map.iterator();
+		while(iter.hasNext()) {
+			var listener = iter.next();
+			logger.debug("Notifying " + listener.get_name() + " of " + id + " event");
+			try {
+				listener.change(t);
+				if((function($this) {
+					var $r;
+					var x = listener.get_uid();
+					$r = HxOverrides.remove($this.oneTimers,x);
+					return $r;
+				}(this))) {
+					var key = listener.get_uid();
+					map.remove(key);
+				}
+			} catch( err ) {
+				logger.error("Error executing " + listener.get_name() + " of " + id + " event",m3.log.Logga.getExceptionInst(err));
+			}
+		}
+	}
+	,__class__: m3.event.EventManager
+};
+m3.event.EMListener = function(fcn,name) {
+	this.fcn = fcn;
+	this.uid = m3.util.UidGenerator.create(20);
+	if(name == null) this.name = this.get_uid(); else this.name = name;
+};
+m3.event.EMListener.__name__ = true;
+m3.event.EMListener.prototype = {
+	change: function(t) {
+		this.fcn(t);
+	}
+	,get_uid: function() {
+		return this.uid;
+	}
+	,get_name: function() {
+		return this.name;
+	}
+	,__class__: m3.event.EMListener
+};
 m3.exception = {};
 m3.exception.Exception = function(message,cause) {
 	this.message = message;
@@ -1591,75 +1671,141 @@ qoid.QoidAPI.addChannel = function(c) {
 qoid.QoidAPI.removeChannel = function(c) {
 	return HxOverrides.remove(qoid.QoidAPI.channels,c);
 };
+qoid.QoidAPI.requestHeaders = function() {
+	var ret = new haxe.ds.StringMap();
+	ret.set("Qoid-ChannelId",qoid.QoidAPI.get_activeChannel());
+	return ret;
+};
 qoid.QoidAPI.createAgent = function(name,password) {
 	var json = { name : name, password : password};
-	new m3.comm.JsonRequest(json,qoid.QoidAPI.AGENT_CREATE).start();
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.AGENT_CREATE,function(data) {
+		m3.event.EventManager.get_instance().change("agentCreated",data);
+	}).start();
 };
 qoid.QoidAPI.login = function(authenticationId,password) {
 	var json = { authenticationId : authenticationId, password : password};
-	var req = new m3.comm.JsonRequest(json,qoid.QoidAPI.LOGIN,function(data) {
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LOGIN,function(data) {
 		var auth = json;
 		qoid.QoidAPI.addChannel(auth.channelId);
 		qoid.QoidAPI.set_activeChannel(auth.channelId);
-	});
-	req.start();
+		m3.event.EventManager.get_instance().change("login",data);
+	}).start();
 };
 qoid.QoidAPI.logout = function() {
 	new m3.comm.JsonRequest({ },qoid.QoidAPI.LOGOUT).start();
 };
 qoid.QoidAPI.spawnSession = function(aliasIid) {
-	var json = { aliasIid : aliasIid};
-	new m3.comm.JsonRequest(json,qoid.QoidAPI.LOGIN).start();
+	var json = { authenticationId : aliasIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.SPAWN,function(data) {
+		var auth = json;
+		m3.event.EventManager.get_instance().change("sessionSpawned",auth);
+		qoid.QoidAPI.addChannel(auth.channelId);
+		qoid.QoidAPI.set_activeChannel(auth.channelId);
+	}).requestHeaders().start();
 };
 qoid.QoidAPI.createAlias = function(route,name,profileName,profileImage,data) {
+	var json = { route : route, name : name, profileName : profileName, profileImage : profileImage, data : data};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.ALIAS_CREATE).requestHeaders().start();
 };
 qoid.QoidAPI.updateAlias = function(route,aliasIid,data) {
+	var json = { route : route, aliasIid : aliasIid, data : data};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.ALIAS_UPDATE).requestHeaders().start();
 };
 qoid.QoidAPI.deleteAlias = function(route,aliasIid) {
+	var json = { route : route, aliasIid : aliasIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.ALIAS_DELETE).requestHeaders().start();
 };
 qoid.QoidAPI.createAliasLogin = function(route,aliasIid,password) {
+	var json = { route : route, aliasIid : aliasIid, password : password};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.ALIAS_LOGIN_CREATE).requestHeaders().start();
 };
 qoid.QoidAPI.updateAliasLogin = function(route,aliasIid,password) {
+	var json = { route : route, aliasIid : aliasIid, password : password};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.ALIAS_LOGIN_UPDATE).requestHeaders().start();
 };
 qoid.QoidAPI.deleteAliasLogin = function(route,aliasIid) {
+	var json = { route : route, aliasIid : aliasIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.ALIAS_LOGIN_DELETE).requestHeaders().start();
 };
 qoid.QoidAPI.updateAliasProfile = function(route,aliasIid,profileName,profileImage) {
+	var json = { route : route, aliasIid : aliasIid, profileName : profileName, profileImage : profileImage};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.ALIAS_PROFILE_UPDATE).requestHeaders().start();
 };
-qoid.QoidAPI.deleteConnection = function(connectionIid) {
+qoid.QoidAPI.deleteConnection = function(route,connectionIid) {
+	var json = { route : route, connectionIid : connectionIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.CONNECTION_DELETE).requestHeaders().start();
 };
 qoid.QoidAPI.createContent = function(route,contentType,data,labelIids) {
+	var json = { route : route, contentType : contentType, data : data, labelIids : labelIids};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.CONTENT_CREATE).requestHeaders().start();
 };
-qoid.QoidAPI.updateContent = function(connectionIid) {
+qoid.QoidAPI.updateContent = function(route,contentIid,data) {
+	var json = { route : route, contentIid : contentIid, data : data};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.CONTENT_UPDATE).requestHeaders().start();
 };
-qoid.QoidAPI.deleteContent = function(connectionIid) {
+qoid.QoidAPI.deleteContent = function(route,contentIid) {
+	var json = { route : route, contentIid : contentIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.CONTENT_DELETE).requestHeaders().start();
 };
-qoid.QoidAPI.addContentLabel = function(connectionIid) {
+qoid.QoidAPI.addContentLabel = function(route,contentIid,labelIid) {
+	var json = { route : route, contentIid : contentIid, labelIid : labelIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.CONTENT_LABEL_ADD).requestHeaders().start();
 };
-qoid.QoidAPI.removeContentLabel = function(connectionIid) {
+qoid.QoidAPI.removeContentLabel = function(route,contentIid,labelIid) {
+	var json = { route : route, contentIid : contentIid, labelIid : labelIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.CONTENT_LABEL_REMOVE).requestHeaders().start();
 };
 qoid.QoidAPI.createLabel = function(route,parentLabelIid,name,data) {
+	var json = { route : route, parentLabelIid : parentLabelIid, name : name, data : data};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LABEL_CREATE).requestHeaders().start();
 };
-qoid.QoidAPI.updateLabel = function(labelIid) {
+qoid.QoidAPI.updateLabel = function(route,labelIid,name,data) {
+	var json = { route : route, labelIid : labelIid, name : name, data : data};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LABEL_UPDATE).requestHeaders().start();
 };
-qoid.QoidAPI.moveLabel = function(labelIid) {
+qoid.QoidAPI.moveLabel = function(route,labelIid,oldParentLabelIid,newParentLabelIid) {
+	var json = { route : route, labelIid : labelIid, oldParentLabelIid : oldParentLabelIid, newParentLabelIid : newParentLabelIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LABEL_MOVE).requestHeaders().start();
 };
-qoid.QoidAPI.copyLabel = function(labelIid) {
+qoid.QoidAPI.copyLabel = function(route,labelIid,newParentLabelIid) {
+	var json = { route : route, labelIid : labelIid, newParentLabelIid : newParentLabelIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LABEL_COPY).requestHeaders().start();
 };
-qoid.QoidAPI.removeLabel = function(labelIid) {
+qoid.QoidAPI.deleteLabel = function(route,labelIid,parentLabelIid) {
+	var json = { route : route, labelIid : labelIid, parentLabelIid : parentLabelIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LABEL_DELETE).requestHeaders().start();
 };
-qoid.QoidAPI.consumeNotification = function() {
+qoid.QoidAPI.grantAccess = function(route,labelIid,connectionIid,maxDoV) {
+	var json = { route : route, labelIid : labelIid, connectionIid : connectionIid, maxDoV : maxDoV};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LABEL_ACCESS_GRANT).requestHeaders().start();
 };
-qoid.QoidAPI.initiateIntroduction = function() {
+qoid.QoidAPI.revokeAccess = function(route,labelIid,connectionIid) {
+	var json = { route : route, labelIid : labelIid, connectionIid : connectionIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LABEL_ACCESS_REVOKE).requestHeaders().start();
 };
-qoid.QoidAPI.respondToIntroduction = function() {
+qoid.QoidAPI.updateAccess = function(route,labelIid,connectionIid,maxDoV) {
+	var json = { route : route, labelIid : labelIid, connectionIid : connectionIid, maxDoV : maxDoV};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LABEL_ACCESS_UPDATE).requestHeaders().start();
 };
-qoid.QoidAPI.requestVerification = function() {
+qoid.QoidAPI.createNotification = function(route,kind,data) {
+	var json = { route : route, kind : kind, data : data};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.NOTIFICATION_CREATE).requestHeaders().start();
 };
-qoid.QoidAPI.respondToVerificationRequest = function() {
+qoid.QoidAPI.consumeNotification = function(route,notificationIid) {
+	var json = { route : route, notificationIid : notificationIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.NOTIFICATION_CONSUME).requestHeaders().start();
 };
-qoid.QoidAPI.acceptVerification = function() {
+qoid.QoidAPI.deleteNotification = function(route,notificationIid) {
+	var json = { route : route, notificationIid : notificationIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.NOTIFICATION_DELETE).requestHeaders().start();
 };
-qoid.QoidAPI.verify = function() {
+qoid.QoidAPI.initiateIntroduction = function(route,aConnectionIid,aMessage,bConnectionIid,bMessage) {
+	var json = { route : route, aConnectionIid : aConnectionIid, aMessage : aMessage, bConnectionIid : bConnectionIid, bMessage : bMessage};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.INTRODUCTION_INITIATE).requestHeaders().start();
+};
+qoid.QoidAPI.acceptIntroduction = function(route,notificationIid) {
+	var json = { route : route, notificationIid : notificationIid};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.INTRODUCTION_ACCEPT).requestHeaders().start();
 };
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }
 var $_, $fid = 0;
@@ -1725,13 +1871,6 @@ $.fn.intersects = function(el) {
 	var intersects = false;
 	if(t_x_0 < i_x_1 && t_x_1 > i_x_0 && t_y_0 < i_y_1 && t_y_1 > i_y_0) intersects = true;
 	return intersects;
-};
-q.fn.iterator = function() {
-	return { pos : 0, j : this, hasNext : function() {
-		return this.pos < this.j.length;
-	}, next : function() {
-		return $(this.j[this.pos++]);
-	}};
 };
 var defineWidget = function() {
 	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false, onMaxToggle : $.noop}, originalSize : { width : 10, height : 10}, _create : function() {
@@ -1808,5 +1947,31 @@ qoid.QoidAPI.AGENT_CREATE = "/api/v1/agent/create";
 qoid.QoidAPI.LOGIN = "/api/v1/login";
 qoid.QoidAPI.LOGOUT = "/api/v1/logout";
 qoid.QoidAPI.SPAWN = "/api/v1/session/spawn";
+qoid.QoidAPI.ALIAS_CREATE = "/api/v1/alias/create";
+qoid.QoidAPI.ALIAS_UPDATE = "/api/v1/alias/update";
+qoid.QoidAPI.ALIAS_DELETE = "/api/v1/alias/delete";
+qoid.QoidAPI.ALIAS_LOGIN_CREATE = "/api/v1/alias/login/create";
+qoid.QoidAPI.ALIAS_LOGIN_UPDATE = "/api/v1/alias/login/update";
+qoid.QoidAPI.ALIAS_LOGIN_DELETE = "/api/v1/alias/login/delete";
+qoid.QoidAPI.ALIAS_PROFILE_UPDATE = "/api/v1/alias/profile/update";
+qoid.QoidAPI.CONNECTION_DELETE = "/api/v1/connection/delete";
+qoid.QoidAPI.CONTENT_CREATE = "/api/v1/content/create";
+qoid.QoidAPI.CONTENT_UPDATE = "/api/v1/content/update";
+qoid.QoidAPI.CONTENT_DELETE = "/api/v1/content/delete";
+qoid.QoidAPI.CONTENT_LABEL_ADD = "/api/v1/content/label/add";
+qoid.QoidAPI.CONTENT_LABEL_REMOVE = "/api/v1/content/label/remove";
+qoid.QoidAPI.LABEL_CREATE = "/api/v1/label/create";
+qoid.QoidAPI.LABEL_UPDATE = "/api/v1/label/update";
+qoid.QoidAPI.LABEL_DELETE = "/api/v1/label/remove";
+qoid.QoidAPI.LABEL_MOVE = "/api/v1/label/move";
+qoid.QoidAPI.LABEL_COPY = "/api/v1/label/copy";
+qoid.QoidAPI.LABEL_ACCESS_GRANT = "/api/v1/label/access/grant";
+qoid.QoidAPI.LABEL_ACCESS_REVOKE = "/api/v1/label/access/revoke";
+qoid.QoidAPI.LABEL_ACCESS_UPDATE = "/api/v1/label/access/update";
+qoid.QoidAPI.NOTIFICATION_CREATE = "/api/v1/notification/create";
+qoid.QoidAPI.NOTIFICATION_CONSUME = "/api/v1/notification/consume";
+qoid.QoidAPI.NOTIFICATION_DELETE = "/api/v1/notification/delete";
+qoid.QoidAPI.INTRODUCTION_INITIATE = "/api/v1/introduction/initiate";
+qoid.QoidAPI.INTRODUCTION_ACCEPT = "/api/v1/introduction/accept";
 qoid.QoidAPI.main();
 })(typeof window != "undefined" ? window : exports);
