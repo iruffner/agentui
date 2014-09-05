@@ -7143,7 +7143,7 @@ var defineWidget = function() {
 			self.destroy();
 		});
 		self.options.createFcn(selfElement);
-		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
+		selfElement.position({ my : "left top", at : "right bottom", of : self.options.positionalElement});
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -7256,7 +7256,7 @@ var defineWidget = function() {
 	}, _showAccessPopup : function(positionalElem2) {
 		var self3 = this;
 		var selfElement3 = this.element;
-		var popup2 = new $("<div class='updateDotPopup' style='position: absolute;width:300px;'></div>");
+		var popup2 = new $("<div class='updateAccessPopup' style='position: absolute;width:300px;'></div>");
 		popup2.appendTo(selfElement3);
 		popup2 = popup2.popup({ createFcn : function(el2) {
 			var updateDot1 = null;
@@ -7265,16 +7265,25 @@ var defineWidget = function() {
 			};
 			var container2 = new $("<div class='icontainer'></div>").appendTo(el2);
 			container2.click(stopFcn2);
-			container2.append("<label for='' style='font-size: 18px;'>Connections with Access: </label> ");
+			container2.append("<label for='' style='font-size: 18px;'>Connections with Access: <br/>(Click to remove)</label> ");
 			var connectionsContainer = new $("<div class='connectionsContainer'></div>").appendTo(el2);
 			new $("<button>Grant Access</button>").button().appendTo(el2).click(function(evt13) {
 				evt13.stopPropagation();
+				window.document.body.click();
 				self3._showAddAccessPopup(positionalElem2);
 			});
 			var labels = m3.helper.OSetHelper.getElement(pagent.AppContext.LABELACLS_ByLabel,pagent.PinterContext.CURRENT_BOARD);
 			if(labels != null) Lambda.iter(labels,function(l) {
-				new $("<div></div>").connectionAvatar({ connectionIid : l.connectionIid, aliasIid : pagent.AppContext.currentAlias.iid}).appendTo(connectionsContainer).click(function(evt14) {
+				var connectionDiv = new $("<div class='connectionDiv ui-corner-all ui-state-active'></div>").appendTo(connectionsContainer).click(function(evt14) {
+					var parms = { connectionIid : l.connectionIid, labelIid : self3.options.label.iid};
+					pagent.model.EM.change("RevokeAccess",parms);
 				});
+				var connAvatar = new $("<div></div>");
+				connAvatar.appendTo(connectionDiv);
+				var nameDiv = new $("<div></div>").appendTo(connectionDiv);
+				connAvatar.connectionAvatar({ connectionIid : l.connectionIid, onProfileUpdate : function(p) {
+					nameDiv.empty().append(p.name);
+				}});
 			});
 		}, positionalElement : positionalElem2});
 	}, _showAddAccessPopup : function(positionalElem3) {
@@ -7298,13 +7307,15 @@ var defineWidget = function() {
 				}) == null;
 			});
 			if(connections != null) Lambda.iter(connections,function(c1) {
-				var connectionDiv = new $("<div class='connectionDiv ui-corner-all ui-state-active'></div>").appendTo(connectionsContainer1).click(function(evt16) {
+				var connectionDiv1 = new $("<div class='connectionDiv ui-corner-all ui-state-active'></div>").appendTo(connectionsContainer1).click(function(evt16) {
+					var parms1 = { connectionIid : c1.iid, labelIid : self4.options.label.iid};
+					pagent.model.EM.change("GrantAccess",parms1);
 				});
-				var connAvatar = new $("<div></div>");
-				connAvatar.appendTo(connectionDiv);
-				var nameDiv = new $("<div></div>").appendTo(connectionDiv);
-				connAvatar.connectionAvatar({ connectionIid : c1.iid, onProfileUpdate : function(p) {
-					nameDiv.empty().append(p.name);
+				var connAvatar1 = new $("<div></div>");
+				connAvatar1.appendTo(connectionDiv1);
+				var nameDiv1 = new $("<div></div>").appendTo(connectionDiv1);
+				connAvatar1.connectionAvatar({ connectionIid : c1.iid, onProfileUpdate : function(p1) {
+					nameDiv1.empty().append(p1.name);
 				}});
 			});
 		}, positionalElement : positionalElem3});
@@ -8061,6 +8072,7 @@ pagent.model.EMEvent.MoveLabel = "MoveLabel";
 pagent.model.EMEvent.CopyLabel = "CopyLabel";
 pagent.model.EMEvent.DeleteLabel = "DeleteLabel";
 pagent.model.EMEvent.GrantAccess = "GrantAccess";
+pagent.model.EMEvent.AccessGranted = "AccessGranted";
 pagent.model.EMEvent.RevokeAccess = "RevokeAccess";
 pagent.model.EMEvent.DeleteConnection = "DeleteConnection";
 pagent.model.EMEvent.INTRODUCTION_REQUEST = "INTRODUCTION_REQUEST";

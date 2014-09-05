@@ -209,7 +209,7 @@ extern class BoardDetails extends JQ {
 					var self: BoardDetailsWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-        			var popup: Popup = new Popup("<div class='updateDotPopup' style='position: absolute;width:300px;'></div>");
+        			var popup: Popup = new Popup("<div class='updateAccessPopup' style='position: absolute;width:300px;'></div>");
         			popup.appendTo(selfElement);
         			popup = popup.popup({
         					createFcn: function(el: JQ): Void {
@@ -218,13 +218,14 @@ extern class BoardDetails extends JQ {
 
         						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
         						container.click(stopFcn);
-        						container.append("<label for='' style='font-size: 18px;'>Connections with Access: </label> ");
+        						container.append("<label for='' style='font-size: 18px;'>Connections with Access: <br/>(Click to remove)</label> ");
         						var connectionsContainer: JQ = new JQ("<div class='connectionsContainer'></div>").appendTo(el);
                                 new JQ("<button>Grant Access</button>")
                                     .button()
                                     .appendTo(el)
                                     .click(function(evt: JQEvent) {
                                         evt.stopPropagation();
+                                        js.Browser.document.body.click();
                                         self._showAddAccessPopup(positionalElem);
                                     });
 
@@ -232,14 +233,23 @@ extern class BoardDetails extends JQ {
         						if(labels != null)
                                     Lambda.iter(labels,
         								function(l: LabelAcl) {
-                                            new ConnectionAvatar("<div></div>")
-                                                .connectionAvatar({
-                                                        connectionIid: l.connectionIid,
-                                                        aliasIid: AppContext.currentAlias.iid
-                                                    })
+                                            var connectionDiv: JQ = new JQ("<div class='connectionDiv ui-corner-all ui-state-active'></div>")
                                                 .appendTo(connectionsContainer)
                                                 .click(function(evt:JQEvent) {
-
+                                                        var parms = {
+                                                            connectionIid: l.connectionIid,
+                                                            labelIid: self.options.label.iid,
+                                                        }
+                                                        EM.change(EMEvent.RevokeAccess, parms);
+                                                    });
+                                            var connAvatar: ConnectionAvatar = new ConnectionAvatar("<div></div>");
+                                            connAvatar.appendTo(connectionDiv);
+                                            var nameDiv: JQ = new JQ("<div></div>").appendTo(connectionDiv);
+                                            connAvatar.connectionAvatar({
+                                                        connectionIid: l.connectionIid,
+                                                        onProfileUpdate: function(p: Profile) {
+                                                            nameDiv.empty().append(p.name);
+                                                        }                                                   
                                                     });
         								}
         							);
@@ -277,7 +287,15 @@ extern class BoardDetails extends JQ {
                                             var connectionDiv: JQ = new JQ("<div class='connectionDiv ui-corner-all ui-state-active'></div>")
                                                 .appendTo(connectionsContainer)
                                                 .click(function(evt:JQEvent) {
+                                                        // EM.listenOnce(EMEvent.AccessGranted, function(n: {}): Void {
+                                                        //     selfElement.close();
+                                                        // });
 
+                                                        var parms = {
+                                                            connectionIid: c.iid,
+                                                            labelIid: self.options.label.iid,
+                                                        }
+                                                        EM.change(EMEvent.GrantAccess, parms);
                                                     });
                                             var connAvatar: ConnectionAvatar = new ConnectionAvatar("<div></div>");
                                             connAvatar.appendTo(connectionDiv);

@@ -44,7 +44,7 @@ class EMEvent {
 	public static inline var DeleteLabel: String = "DeleteLabel";
 
 	public static inline var GrantAccess: String = "GrantAccess";
-	// AccessGranted;
+	public static inline var AccessGranted: String = "AccessGranted";
 	public static inline var RevokeAccess: String = "RevokeAccess";
 
 	public static inline var DeleteConnection: String = "DeleteConnection";

@@ -356,15 +356,19 @@ body {
 			background-color: lightgrey;
 		}
 
-	#boardScreen .updateDotPopup .connectionsContainer{
-		min-height: 200px;
+	#boardScreen .updateAccessPopup .connectionsContainer,
+	#boardScreen .addAccessPopup .connectionsContainer {
+		min-height: 500px;
+		overflow: auto
 	}
 
-	#boardScreen .addAccessPopup .connectionDiv>div{
+	#boardScreen .updateAccessPopup .connectionDiv,
+	#boardScreen .addAccessPopup .connectionDiv {
 		margin: auto;
 		max-width: 80%;
 	}
-		#boardScreen .addAccessPopup .connectionDiv>div{
+		#boardScreen .updateAccessPopup .connectionDiv>div,
+		#boardScreen .addAccessPopup .connectionDiv>div {
 			display: inline-block;
 			vertical-align: middle;
 		}
