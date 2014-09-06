@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import js.html.Element;
 
@@ -6,19 +6,19 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
-import qoid.widget.UploadComp;
-import qoid.model.EM;
-import qoid.model.ModelObj;
+import agentui.widget.UploadComp;
+import agentui.model.EM;
+import agentui.model.ModelObj;
 import m3.observable.OSet;
 import m3.util.UidGenerator;
 import m3.util.JqueryUtil;
 import m3.exception.Exception;
 
 using m3.helper.OSetHelper;
-using qoid.widget.UploadComp;
-using qoid.widget.UrlComp;
-using qoid.widget.LabelComp;
-using qoid.widget.ConnectionAvatar;
+using agentui.widget.UploadComp;
+using agentui.widget.UrlComp;
+using agentui.widget.LabelComp;
+using agentui.widget.ConnectionAvatar;
 
 typedef PostCompOptions = {
 }

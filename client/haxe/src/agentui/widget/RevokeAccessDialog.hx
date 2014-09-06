@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import js.html.Element;
 
@@ -7,8 +7,8 @@ import m3.jq.JQDialog;
 import m3.jq.JQDraggable;
 import m3.jq.PlaceHolderUtil;
 import m3.widget.Widgets;
-import qoid.model.ModelObj;
-import qoid.model.EM;
+import agentui.model.ModelObj;
+import agentui.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 

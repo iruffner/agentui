@@ -1,18 +1,18 @@
-package qoid.widget;
+package agentui.widget;
 
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
-import qoid.model.ModelObj;
-import qoid.model.Node;
+import agentui.model.ModelObj;
+import agentui.model.Node;
 import m3.observable.OSet;
-import qoid.widget.FilterableComponent;
+import agentui.widget.FilterableComponent;
 import m3.exception.Exception;
 import m3.util.UidGenerator;
 
-import qoid.model.EM;
-using qoid.widget.LabelComp;
+import agentui.model.EM;
+using agentui.widget.LabelComp;
 using m3.helper.OSetHelper;
 using StringTools;
 

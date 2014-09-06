@@ -1,4 +1,4 @@
-package qoid;
+package agentui;
 
 import m3.jq.JQ;
 

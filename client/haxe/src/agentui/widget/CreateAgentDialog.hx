@@ -1,11 +1,11 @@
-package qoid.widget;
+package agentui.widget;
 
 import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.jq.PlaceHolderUtil;
 import m3.widget.Widgets;
-import qoid.model.ModelObj;
-import qoid.model.EM;
+import agentui.model.ModelObj;
+import agentui.model.EM;
 import m3.exception.Exception;
 
 using m3.helper.StringHelper;

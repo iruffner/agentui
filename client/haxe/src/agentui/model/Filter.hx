@@ -1,8 +1,8 @@
-package qoid.model;
+package agentui.model;
 
 import m3.exception.Exception;
 import m3.observable.OSet;
-import qoid.model.ModelObj;
+import agentui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;

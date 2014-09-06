@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import js.html.Element;
 
@@ -11,14 +11,14 @@ import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
-import qoid.model.ModelObj;
-import qoid.model.Node;
-import qoid.model.Filter;
-import qoid.model.EM;
-import qoid.widget.LabelComp;
+import agentui.model.ModelObj;
+import agentui.model.Node;
+import agentui.model.Filter;
+import agentui.model.EM;
+import agentui.widget.LabelComp;
 
-using qoid.widget.LiveBuildToggle;
-using qoid.widget.ConnectionAvatar;
+using agentui.widget.LiveBuildToggle;
+using agentui.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
 
 typedef FilterCompOptions = {

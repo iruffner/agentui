@@ -1,9 +1,9 @@
-package qoid.model;
+package agentui.model;
 
 import m3.observable.OSet;
-import qoid.model.EM;
-import qoid.model.ModelObj;
-import qoid.model.Filter;
+import agentui.model.EM;
+import agentui.model.ModelObj;
+import agentui.model.Filter;
 
 using m3.helper.OSetHelper;
 

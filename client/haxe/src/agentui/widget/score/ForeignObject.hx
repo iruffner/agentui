@@ -1,5 +1,5 @@
-package qoid.widget.score;
-import qoid.model.ModelObj;
+package agentui.widget.score;
+import agentui.model.ModelObj;
 import js.d3.D3;
 import js.html.*;
 

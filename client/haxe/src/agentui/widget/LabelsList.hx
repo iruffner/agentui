@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import m3.exception.Exception;
 import m3.jq.JQ;
@@ -8,12 +8,12 @@ import m3.util.UidGenerator;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
-import qoid.model.ModelObj;
-import qoid.model.EM;
-import qoid.widget.LabelComp;
+import agentui.model.ModelObj;
+import agentui.model.EM;
+import agentui.widget.LabelComp;
 
 using m3.helper.StringHelper;
-using qoid.widget.LabelComp;
+using agentui.widget.LabelComp;
 using m3.helper.OSetHelper;
 
 typedef LabelsListWidgetDef = {

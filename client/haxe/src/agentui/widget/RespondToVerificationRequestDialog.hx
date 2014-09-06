@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import js.html.Element;
 
@@ -7,12 +7,12 @@ import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.widget.Widgets;
 
-import qoid.api.CrudMessage;
-import qoid.model.ModelObj;
-import qoid.model.EM;
+import agentui.api.CrudMessage;
+import agentui.model.ModelObj;
+import agentui.model.EM;
 
 using StringTools;
-using qoid.widget.ConnectionAvatar;
+using agentui.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 

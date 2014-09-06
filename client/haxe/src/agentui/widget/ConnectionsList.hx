@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import m3.exception.Exception;
 import m3.jq.JQ;
@@ -8,11 +8,11 @@ import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 
-import qoid.model.EM;
-import qoid.model.ModelObj;
-import qoid.widget.DialogManager;
+import agentui.model.EM;
+import agentui.model.ModelObj;
+import agentui.widget.DialogManager;
 
-using qoid.widget.ConnectionComp;
+using agentui.widget.ConnectionComp;
 using Lambda;
 
 typedef ConnectionsListOptions = {

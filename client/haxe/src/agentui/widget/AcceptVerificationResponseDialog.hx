@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import js.html.Element;
 
@@ -7,10 +7,10 @@ import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.widget.Widgets;
 
-import qoid.model.ModelObj;
-import qoid.model.EM;
+import agentui.model.ModelObj;
+import agentui.model.EM;
 
-using qoid.widget.ConnectionAvatar;
+using agentui.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
 
 typedef AcceptVerificationResponseDialogOptions = {

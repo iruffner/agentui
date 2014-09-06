@@ -1,4 +1,4 @@
-package qoid.api;
+package agentui.api;
 
 import haxe.Json;
 import m3.comm.LongPollingRequest;
@@ -6,12 +6,12 @@ import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.observable.OSet;
 
-import qoid.api.CrudMessage;
-import qoid.api.Requester;
-import qoid.api.EventDelegate;
-import qoid.model.ModelObj;
-import qoid.model.Filter;
-import qoid.model.EM;
+import agentui.api.CrudMessage;
+import agentui.api.Requester;
+import agentui.api.EventDelegate;
+import agentui.model.ModelObj;
+import agentui.model.Filter;
+import agentui.model.EM;
 
 using Lambda;
 using m3.helper.OSetHelper;

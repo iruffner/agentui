@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import m3.util.M;
 import m3.jq.JQ;
@@ -7,17 +7,17 @@ import m3.jq.JQDraggable;
 import m3.jq.JQTooltip;
 import m3.observable.OSet;
 import m3.widget.Widgets;
-import qoid.widget.DialogManager;
-import qoid.model.ModelObj;
-import qoid.model.Node;
+import agentui.widget.DialogManager;
+import agentui.model.ModelObj;
+import agentui.model.Node;
 import m3.observable.OSet.ObservableSet;
-import qoid.widget.FilterableComponent;
+import agentui.widget.FilterableComponent;
 import m3.exception.Exception;
 
 using StringTools;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using qoid.widget.LabelComp;
+using agentui.widget.LabelComp;
 
 typedef ConnectionAvatarOptions = {
 	>FilterableCompOptions,

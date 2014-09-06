@@ -1,4 +1,4 @@
-package qoid;
+package agentui;
 
 import haxe.ds.StringMap;
 
@@ -8,8 +8,8 @@ import m3.log.LogLevel;
 import m3.observable.OSet;
 import m3.serialization.Serialization;
 
-import qoid.model.EM;
-import qoid.model.ModelObj;
+import agentui.model.EM;
+import agentui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;

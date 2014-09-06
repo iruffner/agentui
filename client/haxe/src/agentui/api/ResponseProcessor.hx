@@ -1,11 +1,11 @@
-package qoid.api;
+package agentui.api;
 
 import m3.util.JqueryUtil;
 import m3.observable.OSet;
-import qoid.api.Synchronizer;
-import qoid.model.Context;
-import qoid.model.EM;
-import qoid.model.ModelObj;
+import agentui.api.Synchronizer;
+import agentui.model.Context;
+import agentui.model.EM;
+import agentui.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;

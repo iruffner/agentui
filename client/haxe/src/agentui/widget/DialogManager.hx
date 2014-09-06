@@ -1,17 +1,17 @@
-package qoid.widget;
+package agentui.widget;
 
-import qoid.model.ModelObj;
+import agentui.model.ModelObj;
 import m3.jq.JQ;
-import qoid.widget.AliasManagerDialog;
-import qoid.widget.LoginDialog;
-import qoid.widget.CreateAgentDialog;
-import qoid.widget.RequestIntroductionDialog;
-import qoid.widget.AllowAccessDialog;
-import qoid.widget.RevokeAccessDialog;
-import qoid.widget.VerificationRequestDialog;
-import qoid.widget.IntroductionNotificationDialog;
-import qoid.widget.AcceptVerificationResponseDialog;
-import qoid.widget.RespondToVerificationRequestDialog;
+import agentui.widget.AliasManagerDialog;
+import agentui.widget.LoginDialog;
+import agentui.widget.CreateAgentDialog;
+import agentui.widget.RequestIntroductionDialog;
+import agentui.widget.AllowAccessDialog;
+import agentui.widget.RevokeAccessDialog;
+import agentui.widget.VerificationRequestDialog;
+import agentui.widget.IntroductionNotificationDialog;
+import agentui.widget.AcceptVerificationResponseDialog;
+import agentui.widget.RespondToVerificationRequestDialog;
 
 @:expose
 class DialogManager {

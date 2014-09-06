@@ -1,6 +1,6 @@
-package qoid.model;
+package agentui.model;
 
-import qoid.model.ModelObj;
+import agentui.model.ModelObj;
 import m3.exception.Exception;
 
 import m3.observable.OSet.ObservableSet;

@@ -1,16 +1,16 @@
-package qoid.widget;
+package agentui.widget;
 
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.M3Menu;
 import m3.widget.Widgets;
-import qoid.model.ModelObj;
+import agentui.model.ModelObj;
 import m3.observable.OSet;
-import qoid.widget.LabelComp;
+import agentui.widget.LabelComp;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
-import qoid.model.EM;
-import qoid.widget.DialogManager;
+import agentui.model.EM;
+import agentui.widget.DialogManager;
 
 using m3.helper.OSetHelper;
 

@@ -1,16 +1,16 @@
-package qoid.widget;
+package agentui.widget;
 
 import m3.util.M;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
-import qoid.model.ModelObj;
-import qoid.widget.DialogManager;
+import agentui.model.ModelObj;
+import agentui.widget.DialogManager;
 import m3.observable.OSet;
 import m3.exception.Exception;
 
-using qoid.widget.ConnectionAvatar;
+using agentui.widget.ConnectionAvatar;
 using m3.helper.StringHelper;
 
 typedef ConnectionCompOptions = {
@@ -146,7 +146,7 @@ extern class ConnectionComp extends JQ {
 					      				m3.util.JqueryUtil.alert("These two aliases are already connected");
 									}
 				      			} else {
-					      			qoid.widget.DialogManager.requestIntroduction(dropper, droppee);
+					      			agentui.widget.DialogManager.requestIntroduction(dropper, droppee);
 					      		}
 					      	}
 				      	},

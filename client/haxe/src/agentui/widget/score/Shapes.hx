@@ -1,4 +1,4 @@
-package qoid.widget.score;
+package agentui.widget.score;
 
 import snap.Snap;
 

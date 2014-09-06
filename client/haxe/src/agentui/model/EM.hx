@@ -1,4 +1,4 @@
-package qoid.model;
+package agentui.model;
 
 import m3.event.EventManager;
 

@@ -1,9 +1,9 @@
-package qoid.widget;
+package agentui.widget;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import m3.exception.Exception;
-import qoid.model.Node;
+import agentui.model.Node;
 
 typedef AndOrToggleOptions = {
 }

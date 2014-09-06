@@ -1,5 +1,5 @@
 
-package qoid.widget;
+package agentui.widget;
 
 import m3.jq.JQ;
 import m3.jq.M3Menu;
@@ -8,18 +8,18 @@ import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.observable.OSet;
 import m3.widget.Widgets;
-import qoid.model.ModelObj;
-import qoid.model.EM;
-import qoid.widget.UploadComp;
-import qoid.widget.ConnectionAvatar;
+import agentui.model.ModelObj;
+import agentui.model.EM;
+import agentui.widget.UploadComp;
+import agentui.widget.ConnectionAvatar;
 import m3.util.M;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using qoid.widget.UploadComp;
-using qoid.widget.ConnectionAvatar;
+using agentui.widget.UploadComp;
+using agentui.widget.ConnectionAvatar;
 
 typedef AliasCompOptions = {
 }
@@ -178,7 +178,7 @@ extern class AliasComp extends JQ {
 						label: "Manage Aliases...",
 						icon: "ui-icon-circle-plus",
 						action: function(evt: JQEvent, m: M3Menu): Void {
-			        		qoid.widget.DialogManager.showAliasManager();
+			        		agentui.widget.DialogManager.showAliasManager();
 						}
 					};
 					menuOptions.push(menuOption);

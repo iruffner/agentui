@@ -1,7 +1,7 @@
-package qoid.widget.score;
+package agentui.widget.score;
 
 import snap.Snap;
-import qoid.model.ModelObj;
+import agentui.model.ModelObj;
 import js.html.*;
 import m3.util.M;
 import m3.jq.JQ;

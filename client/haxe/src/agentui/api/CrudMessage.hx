@@ -1,7 +1,7 @@
-package qoid.api;
+package agentui.api;
 
-import qoid.model.Filter;
-import qoid.model.ModelObj;
+import agentui.model.Filter;
+import agentui.model.ModelObj;
 using m3.serialization.TypeTools;
 
 @:rtti

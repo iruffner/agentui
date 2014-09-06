@@ -1,4 +1,4 @@
-package qoid;
+package agentui;
 
 import js.JQuery;
 
@@ -7,12 +7,12 @@ import m3.log.Logga;
 import m3.log.LogLevel;
 import m3.serialization.Serialization;
 
-import qoid.api.ProtocolHandler;
-import qoid.widget.*;
-import qoid.widget.score.ScoreComp;
+import agentui.api.ProtocolHandler;
+import agentui.widget.*;
+import agentui.widget.score.ScoreComp;
 
 using m3.helper.ArrayHelper;
-using qoid.widget.ConnectionsList;
+using agentui.widget.ConnectionsList;
 using Lambda;
 
 @:expose
