@@ -6,6 +6,7 @@ import js.html.*;
 import m3.util.M;
 import m3.jq.JQ;
 import js.d3.*;
+import m3.log.Logga;
 
 class ContentTimeLine {
 	private static var initial_y_pos = 60;
@@ -158,7 +159,7 @@ class ContentTimeLine {
 						ele = paper.rect(bbox.x, bbox.y, bbox.width, bbox.height, 5, 5)
 		                			.attr({"class":"messageContentLarge"});
 		            default:
-		            	AppContext.LOGGER.warn("Unknown Content Type: " + g_type);
+		            	Logga.DEFAULT.warn("Unknown Content Type: " + g_type);
 				}
 
 				var g = paper.group(paper,[ele]);

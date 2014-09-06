@@ -7,6 +7,7 @@ import m3.observable.OSet;
 import m3.util.UidGenerator;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
+import m3.log.Logga;
 
 import agentui.model.ModelObj;
 import agentui.model.EM;
@@ -107,7 +108,7 @@ extern class LabelsList extends JQ {
 
         						createLabel = function(): Void {
 									if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Create new label | " + input.val());
+									Logga.DEFAULT.info("Create new label | " + input.val());
 									var label: Label = new Label();
 									label.name = input.val();
   									var eventData = new EditLabelData(label, parent.val());
@@ -118,7 +119,7 @@ extern class LabelsList extends JQ {
         						updateLabel = function(): Void {
 									if (input.val().length == 0) {return;}
 									var label = self.selectedLabelComp.getLabel();
-									AppContext.LOGGER.info("Update label | " + label.iid);
+									Logga.DEFAULT.info("Update label | " + label.iid);
 									label.name = input.val();
   									var eventData = new EditLabelData(label);
   									EM.change(EMEvent.UpdateLabel, eventData);

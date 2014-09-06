@@ -13,6 +13,7 @@ import agentui.model.Node;
 import m3.observable.OSet.ObservableSet;
 import agentui.widget.FilterableComponent;
 import m3.exception.Exception;
+import m3.log.Logga;
 
 using StringTools;
 using m3.helper.OSetHelper;
@@ -147,7 +148,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        		}
 		        		self.filteredSetAlias.listen(self._onUpdateAlias);
 		        	} else {
-		        		AppContext.LOGGER.warn("Both connectionIid and aliasIid are not set for Avatar");
+		        		Logga.DEFAULT.warn("Both connectionIid and aliasIid are not set for Avatar");
 		        	}
 
 		            cast(selfElement, JQTooltip).tooltip();

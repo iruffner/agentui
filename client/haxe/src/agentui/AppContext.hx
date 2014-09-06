@@ -20,10 +20,8 @@ class AppContext {
     public static var UBER_ALIAS_ID:String;
     public static var ROOT_LABEL_ID:String;
 
-    public static var LOGGER: Logga;
     public static var ALIASES:ObservableSet<Alias>;
     public static var TARGET: Connection;
-    public static var SERIALIZER: Serializer;
 
     public static var NOTIFICATIONS:FilteredSet<Notification<Dynamic>>;
     public static var MASTER_NOTIFICATIONS: ObservableSet<Notification<Dynamic>>;
@@ -51,8 +49,6 @@ class AppContext {
     public static var VERIFICATION_CONTENT: ObservableSet<Content<Dynamic>>;
 
     public static function init() {
-    	LOGGER = new Logga(LogLevel.DEBUG);
-
         INTRODUCTIONS = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
 
         MASTER_NOTIFICATIONS = new ObservableSet<Notification<Dynamic>>(ModelObjWithIid.identifier);
@@ -115,9 +111,8 @@ class AppContext {
 
         VERIFICATION_CONTENT = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
 
-		SERIALIZER = Serializer.instance;
-        SERIALIZER.addHandler(Content, new ContentHandler());
-        SERIALIZER.addHandler(Notification, new NotificationHandler());
+        Serializer.instance.addHandler(Content, new ContentHandler());
+        Serializer.instance.addHandler(Notification, new NotificationHandler());
 
     	registerGlobalListeners();
     }
@@ -190,7 +185,7 @@ class AppContext {
         for (iid_ in iid_list) {
             var label = LABELS.getElement(iid_);
             if (label == null) {
-                AppContext.LOGGER.error("LabelChild references missing label: " + iid_);
+                Logga.DEFAULT.error("LabelChild references missing label: " + iid_);
             } else {
                 labelDescendents.add(label);
             }

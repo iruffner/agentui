@@ -6,6 +6,8 @@ import agentui.api.Synchronizer;
 import agentui.model.Context;
 import agentui.model.EM;
 import agentui.model.ModelObj;
+import m3.serialization.Serialization;
+import m3.log.Logga;
 
 using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
@@ -20,7 +22,7 @@ class ResponseProcessor {
 		dataArr.iter(function(data:Dynamic): Void {
 			if (data.success == false) {
 				JqueryUtil.alert("ERROR:  " + data.error.message + "     Context: " + data.context);
-	            AppContext.LOGGER.error(data.error.stacktrace);
+	            Logga.DEFAULT.error(data.error.stacktrace);
             } else {
                 if (data.context == null) {
                     return;
@@ -77,7 +79,7 @@ class ResponseProcessor {
 
     private static function processModelObject<T>(set:ObservableSet<T>, type: Class<T>, action:String, data:Dynamic):Void {
         for (datum in cast(data, Array<Dynamic>)) {
-            var obj = AppContext.SERIALIZER.fromJsonX(datum, type);
+            var obj = Serializer.instance.fromJsonX(datum, type);
             if (action == "delete") {
                 set.delete(obj);
             } else {
@@ -110,7 +112,7 @@ class ResponseProcessor {
             case "profile":
                 processModelObject(AppContext.PROFILES, Profile, action, data);
             default:
-                AppContext.LOGGER.error("Unknown type: " + type);
+                Logga.DEFAULT.error("Unknown type: " + type);
         }
     }
 
@@ -143,7 +145,7 @@ class ResponseProcessor {
             AgentUi.PROTOCOL.addHandle(rec.result.handle);
         } else {
             var connection = AppContext.CONNECTIONS.getElement(rec.connectionIid);
-            var profile = AppContext.SERIALIZER.fromJsonX(rec.results[0], Profile);
+            var profile = Serializer.instance.fromJsonX(rec.results[0], Profile);
             profile.connectionIid = rec.connectionIid;
             connection.data = profile;
             AppContext.CONNECTIONS.addOrUpdate(connection);

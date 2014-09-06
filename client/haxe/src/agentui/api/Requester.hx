@@ -5,6 +5,7 @@ import haxe.Timer;
 import m3.comm.BaseRequest;
 import m3.exception.Exception;
 import m3.jq.JQ;
+import m3.serialization.Serialization;
 import m3.util.JqueryUtil;
 
 import agentui.model.ModelObj;
@@ -32,7 +33,7 @@ class SubmitRequest extends BaseRequest {
 		}
 
 		var bundle = new ChannelRequestMessageBundle(msgs);
-		var data = AppContext.SERIALIZER.toJsonString(bundle);
+		var data = Serializer.instance.toJsonString(bundle);
 
 		super(data, "/api/channel/submit", successFcn);
 	}

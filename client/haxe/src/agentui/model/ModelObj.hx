@@ -5,6 +5,7 @@ import m3.util.UidGenerator;
 import m3.observable.OSet;
 import m3.serialization.Serialization;
 import m3.exception.Exception;
+import m3.log.Logga;
 
 import agentui.model.EM;
 
@@ -194,22 +195,22 @@ class ContentHandler implements TypeHandler {
 
         switch ( ContentType.createByName(fromJson.contentType) ) {
         	case ContentType.AUDIO:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, AudioContent);
+        		obj = Serializer.instance.fromJsonX(fromJson, AudioContent);
         	case ContentType.IMAGE:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, ImageContent);
+        		obj = Serializer.instance.fromJsonX(fromJson, ImageContent);
         	case ContentType.TEXT:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
+        		obj = Serializer.instance.fromJsonX(fromJson, MessageContent);
         	case ContentType.URL:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, UrlContent);
+        		obj = Serializer.instance.fromJsonX(fromJson, UrlContent);
         	case ContentType.VERIFICATION:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationContent);
+        		obj = Serializer.instance.fromJsonX(fromJson, VerificationContent);
         }
 
         return obj;
     }
 
     public function write(value: Dynamic, writer: JsonWriter): Dynamic {
-        return AppContext.SERIALIZER.toJson(value);
+        return Serializer.instance.toJson(value);
     }
 }
 
@@ -316,11 +317,11 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	}
 
 	private function readResolve(): Void {
-		this.props = AppContext.SERIALIZER.fromJsonX(this.data, this.type);
+		this.props = Serializer.instance.fromJsonX(this.data, this.type);
 	}
 
 	private function writeResolve(): Void {
-		this.data = AppContext.SERIALIZER.toJson(this.props);
+		this.data = Serializer.instance.toJson(this.props);
 	}
 
 	public function getTimestamp(): String {
@@ -421,18 +422,18 @@ class NotificationHandler implements TypeHandler {
 
         switch (NotificationKind.createByName(fromJson.kind) ) {
         	case NotificationKind.IntroductionRequest:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, IntroductionRequestNotification);
+        		obj = Serializer.instance.fromJsonX(fromJson, IntroductionRequestNotification);
         	case NotificationKind.VerificationRequest:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationRequestNotification);
+        		obj = Serializer.instance.fromJsonX(fromJson, VerificationRequestNotification);
         	case NotificationKind.VerificationResponse:
-        		obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationResponseNotification);
+        		obj = Serializer.instance.fromJsonX(fromJson, VerificationResponseNotification);
         }
 
         return obj;
     }
 
     public function write(value: Dynamic, writer: JsonWriter): Dynamic {
-        return AppContext.SERIALIZER.toJson(value);
+        return Serializer.instance.toJson(value);
     }
 }
 
@@ -464,11 +465,11 @@ class Notification<T> extends ModelObjWithIid {
 	}
 
 	private function readResolve(): Void {
-		this.props = AppContext.SERIALIZER.fromJsonX(this.data, this.type);
+		this.props = Serializer.instance.fromJsonX(this.data, this.type);
 	}
 
 	private function writeResolve(): Void {
-		this.data = AppContext.SERIALIZER.toJson(this.props);
+		this.data = Serializer.instance.toJson(this.props);
 	}
 }
 
@@ -533,9 +534,9 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
 					createdByAliasIid:"Chewbaca",
 					modifiedByAliasIid:"PizzaTheHut"
 	    		};
-	    		return AppContext.SERIALIZER.fromJsonX(fromJson, Content);
+	    		return Serializer.instance.fromJsonX(fromJson, Content);
 	    	} catch (e:Dynamic) {
-	    		AppContext.LOGGER.error(e);
+	    		Logga.DEFAULT.error(e);
 	    		throw e;
 	    	}
     	}

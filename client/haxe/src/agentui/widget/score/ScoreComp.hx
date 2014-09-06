@@ -8,6 +8,7 @@ import agentui.model.ModelObj;
 import m3.observable.OSet;
 import m3.exception.Exception;
 import snap.Snap;
+import m3.log.Logga;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -94,7 +95,7 @@ extern class ScoreComp extends JQ {
 		            	self.uberGroup.append(self.contentTimeLines.get(content.aliasIid).timeLineElement);
 
 		            } catch (e:Dynamic) {
-		            	AppContext.LOGGER.error("error calling _addContent", e);
+		            	Logga.DEFAULT.error("error calling _addContent", e);
 		            }
 				},
 

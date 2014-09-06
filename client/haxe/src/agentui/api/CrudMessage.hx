@@ -2,6 +2,7 @@ package agentui.api;
 
 import agentui.model.Filter;
 import agentui.model.ModelObj;
+import m3.serialization.Serialization;
 using m3.serialization.TypeTools;
 
 @:rtti
@@ -49,7 +50,7 @@ class CrudMessage extends BennuMessage {
 	}
 
 	public static function create(object:ModelObjWithIid, ?optionals:Dynamic):CrudMessage {
-		var instance = AppContext.SERIALIZER.toJson(object);
+		var instance = Serializer.instance.toJson(object);
 		return new CrudMessage(object.objectType(), instance, optionals);
 	}
 }
@@ -163,7 +164,7 @@ class ChannelRequestMessage {
 	public function new(path:String, context:String, msg:ChannelMessage):Void {
 		this.path    = path;
 		this.context = context;
-		this.parms   = AppContext.SERIALIZER.toJson(msg);
+		this.parms   = Serializer.instance.toJson(msg);
 	}
 }
 

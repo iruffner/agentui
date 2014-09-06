@@ -4,6 +4,7 @@ import m3.observable.OSet;
 import agentui.model.EM;
 import agentui.model.ModelObj;
 import agentui.model.Filter;
+import m3.serialization.Serialization;
 
 using m3.helper.OSetHelper;
 
@@ -62,7 +63,7 @@ class ContentSource {
 		var connectionIids = new Array<String>();
 
 		for (result in results) {
-			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
+			var c = Serializer.instance.fromJsonX(result, Content);
 			if (connectionIid != null) {
 				c.aliasIid = null;
 				c.connectionIid = connectionIid;

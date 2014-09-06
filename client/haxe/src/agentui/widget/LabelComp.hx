@@ -10,6 +10,7 @@ import m3.observable.OSet;
 import agentui.widget.FilterableComponent;
 import m3.exception.Exception;
 import m3.util.UidGenerator;
+import m3.log.Logga;
 
 import agentui.model.EM;
 using agentui.widget.LabelComp;
@@ -167,7 +168,7 @@ extern class LabelComp extends FilterableComponent {
 			            }
 
 		            	selfElement.on("dragstop", function(dragstopEvt: JQEvent, _ui: UIDraggable): Void {
-            				AppContext.LOGGER.debug("dragstop on label | " + self.label.name);
+            				Logga.DEFAULT.debug("dragstop on label | " + self.label.name);
 	                		if (self.options.dragstop != null) {
 	                			self.options.dragstop(dragstopEvt, _ui);
 	                		}

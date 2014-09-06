@@ -33,7 +33,7 @@ class AgentUi {
         
         HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
             if(evt.altKey && evt.shiftKey && evt.keyCode == 82 /* ALT+SHIFT+R */) {
-                AppContext.LOGGER.debug("ALT + SHIFT + R");
+                Logga.DEFAULT.debug("ALT + SHIFT + R");
                 r.restoreWidget("open");
             }
         });

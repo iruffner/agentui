@@ -1,8 +1,10 @@
 package agentui.api;
 import haxe.ds.StringMap;
 import m3.util.UidGenerator;
+import m3.log.Logga;
 import agentui.model.Context;
 import agentui.model.ModelObj;
+import m3.serialization.Serialization;
 
 using m3.helper.OSetHelper;
 
@@ -74,7 +76,7 @@ class Synchronizer {
 
     private function processDataReceived<T>(list:Array<T>, type: Class<T>, data:Dynamic):Void {
         for (datum in cast(data, Array<Dynamic>)) {
-            list.push(AppContext.SERIALIZER.fromJsonX(datum, type));
+            list.push(Serializer.instance.fromJsonX(datum, type));
         }
     }
 
@@ -106,14 +108,14 @@ class Synchronizer {
             case "profile":
                 processDataReceived(parms.profiles, Profile, data);
             default:
-                AppContext.LOGGER.error("Unknown data type: " + dataObj.type);
+                Logga.DEFAULT.error("Unknown data type: " + dataObj.type);
         }
 
     	numResponsesExpected -= 1;
     	if (numResponsesExpected == 0) {
     		var func = Reflect.field(ResponseProcessor, oncomplete);
             if (func == null) {
-                AppContext.LOGGER.info("Missing oncomplete function: " + oncomplete);
+                Logga.DEFAULT.info("Missing oncomplete function: " + oncomplete);
             } else {
         		Reflect.callMethod(ResponseProcessor, func, [parms]);
             }
@@ -122,7 +124,7 @@ class Synchronizer {
             for (key in synchronizers.keys()) {
                 length += 1;
             }
-            AppContext.LOGGER.info("Number Synchronizers: " + length);
+            Logga.DEFAULT.info("Number Synchronizers: " + length);
     	}
     }
 }

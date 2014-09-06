@@ -735,7 +735,7 @@ agentui.AgentUi.start = function() {
 	var r = new $("<div></div>");
 	agentui.AgentUi.HOT_KEY_ACTIONS.push(function(evt) {
 		if(evt.altKey && evt.shiftKey && evt.keyCode == 82) {
-			agentui.AppContext.LOGGER.debug("ALT + SHIFT + R");
+			m3.log.Logga.get_DEFAULT().debug("ALT + SHIFT + R");
 			r.restoreWidget("open");
 		}
 	});
@@ -773,7 +773,6 @@ agentui.AppContext = function() { };
 $hxClasses["agentui.AppContext"] = agentui.AppContext;
 agentui.AppContext.__name__ = ["agentui","AppContext"];
 agentui.AppContext.init = function() {
-	agentui.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
 	agentui.AppContext.INTRODUCTIONS = new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier);
 	agentui.AppContext.MASTER_NOTIFICATIONS = new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier);
 	agentui.AppContext.NOTIFICATIONS = new m3.observable.FilteredSet(agentui.AppContext.MASTER_NOTIFICATIONS,function(a) {
@@ -818,9 +817,8 @@ agentui.AppContext.init = function() {
 		}
 	});
 	agentui.AppContext.VERIFICATION_CONTENT = new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier);
-	agentui.AppContext.SERIALIZER = m3.serialization.Serializer.get_instance();
-	agentui.AppContext.SERIALIZER.addHandler(agentui.model.Content,new agentui.model.ContentHandler());
-	agentui.AppContext.SERIALIZER.addHandler(agentui.model.Notification,new agentui.model.NotificationHandler());
+	m3.serialization.Serializer.get_instance().addHandler(agentui.model.Content,new agentui.model.ContentHandler());
+	m3.serialization.Serializer.get_instance().addHandler(agentui.model.Notification,new agentui.model.NotificationHandler());
 	agentui.AppContext.registerGlobalListeners();
 };
 agentui.AppContext.isAliasRootLabel = function(iid) {
@@ -881,7 +879,7 @@ agentui.AppContext.getLabelDescendents = function(iid) {
 		var iid_ = iid_list[_g2];
 		++_g2;
 		var label = m3.helper.OSetHelper.getElement(agentui.AppContext.LABELS,iid_);
-		if(label == null) agentui.AppContext.LOGGER.error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
+		if(label == null) m3.log.Logga.get_DEFAULT().error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
 	}
 	return labelDescendents;
 };
@@ -936,7 +934,7 @@ agentui.api.CrudMessage = function(type,instance,optionals) {
 $hxClasses["agentui.api.CrudMessage"] = agentui.api.CrudMessage;
 agentui.api.CrudMessage.__name__ = ["agentui","api","CrudMessage"];
 agentui.api.CrudMessage.create = function(object,optionals) {
-	var instance = agentui.AppContext.SERIALIZER.toJson(object);
+	var instance = m3.serialization.Serializer.get_instance().toJson(object);
 	return new agentui.api.CrudMessage(object.objectType(),instance,optionals);
 };
 agentui.api.CrudMessage.__super__ = agentui.api.BennuMessage;
@@ -1033,7 +1031,7 @@ agentui.api.QueryMessage.prototype = {
 agentui.api.ChannelRequestMessage = function(path,context,msg) {
 	this.path = path;
 	this.context = context;
-	this.parms = agentui.AppContext.SERIALIZER.toJson(msg);
+	this.parms = m3.serialization.Serializer.get_instance().toJson(msg);
 };
 $hxClasses["agentui.api.ChannelRequestMessage"] = agentui.api.ChannelRequestMessage;
 agentui.api.ChannelRequestMessage.__name__ = ["agentui","api","ChannelRequestMessage"];
@@ -1507,7 +1505,7 @@ agentui.api.SubmitRequest = function(msgs,successFcn) {
 	if(successFcn == null) successFcn = function(data) {
 	};
 	var bundle = new agentui.api.ChannelRequestMessageBundle(msgs);
-	var data1 = agentui.AppContext.SERIALIZER.toJsonString(bundle);
+	var data1 = m3.serialization.Serializer.get_instance().toJsonString(bundle);
 	m3.comm.BaseRequest.call(this,data1,"/api/channel/submit",successFcn);
 };
 $hxClasses["agentui.api.SubmitRequest"] = agentui.api.SubmitRequest;
@@ -1524,7 +1522,7 @@ agentui.api.ResponseProcessor.processResponse = function(dataArr) {
 	Lambda.iter(dataArr,function(data) {
 		if(data.success == false) {
 			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
-			agentui.AppContext.LOGGER.error(data.error.stacktrace);
+			m3.log.Logga.get_DEFAULT().error(data.error.stacktrace);
 		} else {
 			if(data.context == null) return;
 			var context = new agentui.model.Context(data.context);
@@ -1579,7 +1577,7 @@ agentui.api.ResponseProcessor.processModelObject = function(set,type,action,data
 	while(_g < _g1.length) {
 		var datum = _g1[_g];
 		++_g;
-		var obj = agentui.AppContext.SERIALIZER.fromJsonX(datum,type);
+		var obj = m3.serialization.Serializer.get_instance().fromJsonX(datum,type);
 		if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
 	}
 };
@@ -1617,7 +1615,7 @@ agentui.api.ResponseProcessor.updateModelObject = function(type,action,data) {
 		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.PROFILES,agentui.model.Profile,action,data);
 		break;
 	default:
-		agentui.AppContext.LOGGER.error("Unknown type: " + type1);
+		m3.log.Logga.get_DEFAULT().error("Unknown type: " + type1);
 	}
 };
 agentui.api.ResponseProcessor.initialDataLoad = function(data) {
@@ -1647,7 +1645,7 @@ agentui.api.ResponseProcessor.initialDataLoad = function(data) {
 agentui.api.ResponseProcessor.processProfile = function(rec) {
 	if(rec.result && rec.result.handle) agentui.AgentUi.PROTOCOL.addHandle(rec.result.handle); else {
 		var connection = m3.helper.OSetHelper.getElement(agentui.AppContext.CONNECTIONS,rec.connectionIid);
-		var profile = agentui.AppContext.SERIALIZER.fromJsonX(rec.results[0],agentui.model.Profile);
+		var profile = m3.serialization.Serializer.get_instance().fromJsonX(rec.results[0],agentui.model.Profile);
 		profile.connectionIid = rec.connectionIid;
 		connection.data = profile;
 		agentui.AppContext.CONNECTIONS.addOrUpdate(connection);
@@ -1754,7 +1752,7 @@ agentui.api.Synchronizer.prototype = {
 		while(_g < _g1.length) {
 			var datum = _g1[_g];
 			++_g;
-			list.push(agentui.AppContext.SERIALIZER.fromJsonX(datum,type));
+			list.push(m3.serialization.Serializer.get_instance().fromJsonX(datum,type));
 		}
 	}
 	,dataReceived: function(c,dataObj) {
@@ -1793,12 +1791,12 @@ agentui.api.Synchronizer.prototype = {
 			this.processDataReceived(this.parms.profiles,agentui.model.Profile,data);
 			break;
 		default:
-			agentui.AppContext.LOGGER.error("Unknown data type: " + Std.string(dataObj.type));
+			m3.log.Logga.get_DEFAULT().error("Unknown data type: " + Std.string(dataObj.type));
 		}
 		this.numResponsesExpected -= 1;
 		if(this.numResponsesExpected == 0) {
 			var func = Reflect.field(agentui.api.ResponseProcessor,this.oncomplete);
-			if(func == null) agentui.AppContext.LOGGER.info("Missing oncomplete function: " + this.oncomplete); else func.apply(agentui.api.ResponseProcessor,[this.parms]);
+			if(func == null) m3.log.Logga.get_DEFAULT().info("Missing oncomplete function: " + this.oncomplete); else func.apply(agentui.api.ResponseProcessor,[this.parms]);
 			agentui.api.Synchronizer.remove(this.iid);
 			var length = 0;
 			var $it0 = agentui.api.Synchronizer.synchronizers.keys();
@@ -1806,7 +1804,7 @@ agentui.api.Synchronizer.prototype = {
 				var key = $it0.next();
 				length += 1;
 			}
-			agentui.AppContext.LOGGER.info("Number Synchronizers: " + length);
+			m3.log.Logga.get_DEFAULT().info("Number Synchronizers: " + length);
 		}
 	}
 	,__class__: agentui.api.Synchronizer
@@ -2249,6 +2247,151 @@ agentui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",47];
 agentui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
 agentui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = agentui.model.EMEvent;
 agentui.model.EMEvent.__empty_constructs__ = [agentui.model.EMEvent.FILTER_RUN,agentui.model.EMEvent.FILTER_CHANGE,agentui.model.EMEvent.LoadFilteredContent,agentui.model.EMEvent.AppendFilteredContent,agentui.model.EMEvent.EditContentClosed,agentui.model.EMEvent.CreateAgent,agentui.model.EMEvent.AgentCreated,agentui.model.EMEvent.InitialDataLoadComplete,agentui.model.EMEvent.FitWindow,agentui.model.EMEvent.UserLogin,agentui.model.EMEvent.UserLogout,agentui.model.EMEvent.AliasLoaded,agentui.model.EMEvent.AliasCreated,agentui.model.EMEvent.AliasUpdated,agentui.model.EMEvent.CreateAlias,agentui.model.EMEvent.UpdateAlias,agentui.model.EMEvent.DeleteAlias,agentui.model.EMEvent.CreateContent,agentui.model.EMEvent.DeleteContent,agentui.model.EMEvent.UpdateContent,agentui.model.EMEvent.CreateLabel,agentui.model.EMEvent.UpdateLabel,agentui.model.EMEvent.MoveLabel,agentui.model.EMEvent.CopyLabel,agentui.model.EMEvent.DeleteLabel,agentui.model.EMEvent.GrantAccess,agentui.model.EMEvent.AccessGranted,agentui.model.EMEvent.RevokeAccess,agentui.model.EMEvent.DeleteConnection,agentui.model.EMEvent.INTRODUCTION_REQUEST,agentui.model.EMEvent.INTRODUCTION_RESPONSE,agentui.model.EMEvent.RespondToIntroduction,agentui.model.EMEvent.RespondToIntroduction_RESPONSE,agentui.model.EMEvent.TargetChange,agentui.model.EMEvent.VerificationRequest,agentui.model.EMEvent.VerificationRequest_RESPONSE,agentui.model.EMEvent.RespondToVerification,agentui.model.EMEvent.RespondToVerification_RESPONSE,agentui.model.EMEvent.RejectVerificationRequest,agentui.model.EMEvent.RejectVerificationRequest_RESPONSE,agentui.model.EMEvent.AcceptVerification,agentui.model.EMEvent.AcceptVerification_RESPONSE,agentui.model.EMEvent.RejectVerification,agentui.model.EMEvent.RejectVerification_RESPONSE,agentui.model.EMEvent.BACKUP,agentui.model.EMEvent.RESTORE,agentui.model.EMEvent.RESTORES_REQUEST,agentui.model.EMEvent.AVAILABLE_BACKUPS];
+m3.serialization = {};
+m3.serialization.Serializer = function(defaultToStrict) {
+	if(defaultToStrict == null) defaultToStrict = true;
+	this._defaultToStrict = defaultToStrict;
+	this._handlersMap = new haxe.ds.StringMap();
+	this.addHandlerViaName("Array<Dynamic>",new m3.serialization.DynamicArrayHandler());
+};
+$hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
+m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
+m3.serialization.Serializer.get_instance = function() {
+	if(m3.serialization.Serializer.instance == null) m3.serialization.Serializer.instance = new m3.serialization.Serializer();
+	return m3.serialization.Serializer.instance;
+};
+m3.serialization.Serializer.prototype = {
+	addHandler: function(clazz,handler) {
+		var typename = Type.getClassName(clazz);
+		this._handlersMap.set(typename,handler);
+	}
+	,addHandlerViaName: function(typename,handler) {
+		this._handlersMap.set(typename,handler);
+	}
+	,load: function(fromJson,instance,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,Type.getClass(instance),instance);
+		return reader;
+	}
+	,fromJsonX: function(fromJson,clazz,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,clazz);
+		return reader.instance;
+	}
+	,fromJson: function(fromJson,clazz,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,clazz);
+		return reader;
+	}
+	,toJson: function(value) {
+		return this.createWriter().write(value);
+	}
+	,toJsonString: function(value) {
+		return JSON.stringify(this.toJson(value));
+	}
+	,createReader: function(strict) {
+		if(strict == null) strict = true;
+		return new m3.serialization.JsonReader(this,strict);
+	}
+	,createWriter: function() {
+		return new m3.serialization.JsonWriter(this);
+	}
+	,getHandlerViaClass: function(clazz) {
+		var typename = m3.serialization.TypeTools.classname(clazz);
+		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
+	}
+	,getHandler: function(type) {
+		var typename = m3.serialization.CTypeTools.typename(type);
+		var handler = this._handlersMap.get(typename);
+		if(handler == null) {
+			handler = this.createHandler(type);
+			this._handlersMap.set(typename,handler);
+		}
+		return handler;
+	}
+	,createHandler: function(type) {
+		switch(type[1]) {
+		case 1:
+			var parms = type[3];
+			var path = type[2];
+			if(path == "Bool") return new m3.serialization.BoolHandler(); else return new m3.serialization.EnumHandler(path,parms);
+			break;
+		case 2:
+			var parms1 = type[3];
+			var path1 = type[2];
+			switch(path1) {
+			case "Bool":
+				return new m3.serialization.BoolHandler();
+			case "Float":
+				return new m3.serialization.FloatHandler();
+			case "String":
+				return new m3.serialization.StringHandler();
+			case "Int":
+				return new m3.serialization.IntHandler();
+			case "Array":
+				return new m3.serialization.ArrayHandler(parms1,this);
+			case "Date":
+				return new m3.serialization.DateHandler();
+			default:
+				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
+			}
+			break;
+		case 7:
+			var parms1 = type[3];
+			var path1 = type[2];
+			switch(path1) {
+			case "Bool":
+				return new m3.serialization.BoolHandler();
+			case "Float":
+				return new m3.serialization.FloatHandler();
+			case "String":
+				return new m3.serialization.StringHandler();
+			case "Int":
+				return new m3.serialization.IntHandler();
+			case "Array":
+				return new m3.serialization.ArrayHandler(parms1,this);
+			case "Date":
+				return new m3.serialization.DateHandler();
+			default:
+				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
+			}
+			break;
+		case 6:
+			return new m3.serialization.DynamicHandler();
+		case 4:
+			var ret = type[3];
+			var args = type[2];
+			return new m3.serialization.FunctionHandler();
+		default:
+			throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
+		}
+	}
+	,__class__: m3.serialization.Serializer
+};
+m3.serialization.TypeHandler = function() { };
+$hxClasses["m3.serialization.TypeHandler"] = m3.serialization.TypeHandler;
+m3.serialization.TypeHandler.__name__ = ["m3","serialization","TypeHandler"];
+m3.serialization.TypeHandler.prototype = {
+	__class__: m3.serialization.TypeHandler
+};
+m3.serialization.DynamicArrayHandler = function() {
+};
+$hxClasses["m3.serialization.DynamicArrayHandler"] = m3.serialization.DynamicArrayHandler;
+m3.serialization.DynamicArrayHandler.__name__ = ["m3","serialization","DynamicArrayHandler"];
+m3.serialization.DynamicArrayHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.DynamicArrayHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var classname = m3.serialization.ValueTypeTools.getClassname(Type["typeof"](fromJson));
+		if(classname == "Array") return fromJson; else return reader.error("expected an array got a " + classname);
+	}
+	,write: function(value,writer) {
+		return value;
+	}
+	,__class__: m3.serialization.DynamicArrayHandler
+};
 agentui.model.Content = function(contentType,type) {
 	agentui.model.ModelObjWithIid.call(this);
 	this.contentType = contentType;
@@ -2266,10 +2409,10 @@ agentui.model.Content.prototype = $extend(agentui.model.ModelObjWithIid.prototyp
 		this.data = data;
 	}
 	,readResolve: function() {
-		this.props = agentui.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
+		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
 	}
 	,writeResolve: function() {
-		this.data = agentui.AppContext.SERIALIZER.toJson(this.props);
+		this.data = m3.serialization.Serializer.get_instance().toJson(this.props);
 	}
 	,getTimestamp: function() {
 		return DateTools.format(this.created,"%Y-%m-%d %T");
@@ -2354,7 +2497,7 @@ agentui.model.ContentSource.addContent = function(results,connectionIid) {
 	while(_g < results.length) {
 		var result = results[_g];
 		++_g;
-		var c = agentui.AppContext.SERIALIZER.fromJsonX(result,agentui.model.Content);
+		var c = m3.serialization.Serializer.get_instance().fromJsonX(result,agentui.model.Content);
 		if(connectionIid != null) {
 			c.aliasIid = null;
 			c.connectionIid = connectionIid;
@@ -2597,13 +2740,6 @@ agentui.model.ContentType.VERIFICATION = ["VERIFICATION",4];
 agentui.model.ContentType.VERIFICATION.toString = $estr;
 agentui.model.ContentType.VERIFICATION.__enum__ = agentui.model.ContentType;
 agentui.model.ContentType.__empty_constructs__ = [agentui.model.ContentType.AUDIO,agentui.model.ContentType.IMAGE,agentui.model.ContentType.URL,agentui.model.ContentType.TEXT,agentui.model.ContentType.VERIFICATION];
-m3.serialization = {};
-m3.serialization.TypeHandler = function() { };
-$hxClasses["m3.serialization.TypeHandler"] = m3.serialization.TypeHandler;
-m3.serialization.TypeHandler.__name__ = ["m3","serialization","TypeHandler"];
-m3.serialization.TypeHandler.prototype = {
-	__class__: m3.serialization.TypeHandler
-};
 agentui.model.ContentHandler = function() {
 };
 $hxClasses["agentui.model.ContentHandler"] = agentui.model.ContentHandler;
@@ -2615,25 +2751,25 @@ agentui.model.ContentHandler.prototype = {
 		var _g = Type.createEnum(agentui.model.ContentType,fromJson.contentType,null);
 		switch(_g[1]) {
 		case 0:
-			obj = agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.AudioContent);
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.AudioContent);
 			break;
 		case 1:
-			obj = agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.ImageContent);
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.ImageContent);
 			break;
 		case 3:
-			obj = agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.MessageContent);
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.MessageContent);
 			break;
 		case 2:
-			obj = agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.UrlContent);
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.UrlContent);
 			break;
 		case 4:
-			obj = agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.VerificationContent);
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.VerificationContent);
 			break;
 		}
 		return obj;
 	}
 	,write: function(value,writer) {
-		return agentui.AppContext.SERIALIZER.toJson(value);
+		return m3.serialization.Serializer.get_instance().toJson(value);
 	}
 	,__class__: agentui.model.ContentHandler
 };
@@ -2813,19 +2949,19 @@ agentui.model.NotificationHandler.prototype = {
 		var _g = Type.createEnum(agentui.model.NotificationKind,fromJson.kind,null);
 		switch(_g[1]) {
 		case 0:
-			obj = agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.IntroductionRequestNotification);
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.IntroductionRequestNotification);
 			break;
 		case 1:
-			obj = agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.VerificationRequestNotification);
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.VerificationRequestNotification);
 			break;
 		case 2:
-			obj = agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.VerificationResponseNotification);
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.VerificationResponseNotification);
 			break;
 		}
 		return obj;
 	}
 	,write: function(value,writer) {
-		return agentui.AppContext.SERIALIZER.toJson(value);
+		return m3.serialization.Serializer.get_instance().toJson(value);
 	}
 	,__class__: agentui.model.NotificationHandler
 };
@@ -2855,10 +2991,10 @@ agentui.model.Notification.prototype = $extend(agentui.model.ModelObjWithIid.pro
 		return "notification";
 	}
 	,readResolve: function() {
-		this.props = agentui.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
+		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
 	}
 	,writeResolve: function() {
-		this.data = agentui.AppContext.SERIALIZER.toJson(this.props);
+		this.data = m3.serialization.Serializer.get_instance().toJson(this.props);
 	}
 	,__class__: agentui.model.Notification
 });
@@ -2932,9 +3068,9 @@ agentui.model.VerificationRequestData.prototype = {
 				$r = HxOverrides.dateStr(_this1);
 				return $r;
 			}(this)), createdByAliasIid : "Chewbaca", modifiedByAliasIid : "PizzaTheHut"};
-			return agentui.AppContext.SERIALIZER.fromJsonX(fromJson,agentui.model.Content);
+			return m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.Content);
 		} catch( e ) {
-			agentui.AppContext.LOGGER.error(e);
+			m3.log.Logga.get_DEFAULT().error(e);
 			throw e;
 		}
 	}
@@ -3345,6 +3481,194 @@ m3.observable.FilteredSet.prototype = $extend(m3.observable.AbstractSet.prototyp
 		return a;
 	}
 	,__class__: m3.observable.FilteredSet
+});
+m3.log = {};
+m3.log.Logga = function(logLevel) {
+	this.initialized = false;
+	this.loggerLevel = logLevel;
+};
+$hxClasses["m3.log.Logga"] = m3.log.Logga;
+m3.log.Logga.__name__ = ["m3","log","Logga"];
+m3.log.Logga.get_DEFAULT = function() {
+	if(m3.log.Logga.DEFAULT == null) m3.log.Logga.DEFAULT = new m3.log.RemoteLogga(m3.log.LogLevel.DEBUG,m3.log.LogLevel.DEBUG);
+	return m3.log.Logga.DEFAULT;
+};
+m3.log.Logga.getExceptionInst = function(err) {
+	if(js.Boot.__instanceof(err,m3.exception.Exception)) return err; else return new m3.exception.Exception(err);
+};
+m3.log.Logga.prototype = {
+	doOverrides: function() {
+		this.overrideConsoleError();
+		this.overrideConsoleTrace();
+		this.overrideConsoleLog();
+		window.onerror = function(message,url,lineNumber) {
+			LOGGER.error("WindowError | " + url + " (" + lineNumber + ") | " + message);
+			return false;
+		};
+	}
+	,_getLogger: function() {
+		this.console = window.console;
+		this.initialized = true;
+	}
+	,overrideConsoleError: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.preservedConsoleError = ($_=this.console,$bind($_,$_.error));
+			this.console.error = function() {
+				_g.error(arguments[0]);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.error");
+		}
+	}
+	,overrideConsoleTrace: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.preservedConsoleTrace = ($_=this.console,$bind($_,$_.trace));
+			this.console.trace = function() {
+				_g.preservedConsoleTrace.apply(_g.console);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.trace");
+		}
+	}
+	,overrideConsoleLog: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.console.log("prime console.log");
+			this.preservedConsoleLog = ($_=this.console,$bind($_,$_.log));
+			this.console.log = function() {
+				_g.warn(arguments[0]);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.log");
+		}
+	}
+	,setStatementPrefix: function(prefix) {
+		this.statementPrefix = prefix;
+	}
+	,log: function(statement,level,exception) {
+		if(!this.initialized) this._getLogger();
+		if(level == null) level = m3.log.LogLevel.INFO;
+		try {
+			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
+		} catch( err ) {
+			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
+		}
+		if(m3.helper.StringHelper.isBlank(statement)) {
+			this.console.error("empty log statement");
+			this.console.trace();
+		}
+		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
+		if(this.logsAtLevel(level) && this.console != null) try {
+			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
+				this.preservedConsoleError.apply(this.console,[statement]);
+				this.console.trace();
+			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
+				this.console.error(statement);
+				this.console.trace();
+			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
+		} catch( err1 ) {
+			if(this.console != null && Object.prototype.hasOwnProperty.call(this.console,"error")) this.console.error(err1);
+		}
+	}
+	,logsAtLevel: function(level) {
+		return this.loggerLevel[1] <= level[1];
+	}
+	,setLogLevel: function(logLevel) {
+		this.loggerLevel = logLevel;
+	}
+	,trace: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.TRACE,exception);
+	}
+	,debug: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.DEBUG,exception);
+	}
+	,info: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.INFO,exception);
+	}
+	,warn: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.WARN,exception);
+	}
+	,error: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.ERROR,exception);
+	}
+	,__class__: m3.log.Logga
+};
+m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
+m3.log.LogLevel.TRACE = ["TRACE",0];
+m3.log.LogLevel.TRACE.toString = $estr;
+m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.DEBUG = ["DEBUG",1];
+m3.log.LogLevel.DEBUG.toString = $estr;
+m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.INFO = ["INFO",2];
+m3.log.LogLevel.INFO.toString = $estr;
+m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.WARN = ["WARN",3];
+m3.log.LogLevel.WARN.toString = $estr;
+m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.ERROR = ["ERROR",4];
+m3.log.LogLevel.ERROR.toString = $estr;
+m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
+m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
+	m3.log.Logga.call(this,consoleLevel);
+	this.remoteLogLevel = remoteLevel;
+	this.logs = [];
+	this.sessionUid = m3.util.UidGenerator.create(32);
+	this.log("SessionUid: " + this.sessionUid);
+};
+$hxClasses["m3.log.RemoteLogga"] = m3.log.RemoteLogga;
+m3.log.RemoteLogga.__name__ = ["m3","log","RemoteLogga"];
+m3.log.RemoteLogga.pauseRemoteLogging = function() {
+	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
+		var rl = m3.log.Logga.get_DEFAULT();
+		rl.pause();
+	}
+};
+m3.log.RemoteLogga.unpauseRemoteLogging = function() {
+	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
+		var rl = m3.log.Logga.get_DEFAULT();
+		rl.unpause();
+	}
+};
+m3.log.RemoteLogga.__super__ = m3.log.Logga;
+m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
+	log: function(statement,level,exception) {
+		if(level == null) level = m3.log.LogLevel.INFO;
+		m3.log.Logga.prototype.log.call(this,statement,level,exception);
+		if(this.timer != null && this.remoteLogsAtLevel(level)) {
+			try {
+				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
+			} catch( err ) {
+			}
+			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
+			if(this.logs.length > 50) this.timer.run();
+		}
+	}
+	,remoteLogsAtLevel: function(level) {
+		return this.remoteLogLevel[1] <= level[1];
+	}
+	,setRemoteLoggingFcn: function(remoteLogFcn) {
+		var _g = this;
+		if(this.timer != null) this.timer.stop();
+		if(remoteLogFcn != null) this.timer = new m3.log._RemoteLogga.RemoteLoggingTimer(remoteLogFcn,function() {
+			var saved = _g.logs;
+			_g.logs = [];
+			return saved;
+		});
+	}
+	,pause: function() {
+		if(this.timer != null) this.timer.pause();
+	}
+	,unpause: function() {
+		if(this.timer != null) this.timer.unpause();
+	}
+	,__class__: m3.log.RemoteLogga
 });
 agentui.widget.DialogManager = $hx_exports.agentui.widget.DialogManager = function() { };
 $hxClasses["agentui.widget.DialogManager"] = agentui.widget.DialogManager;
@@ -3973,194 +4297,6 @@ m3.jq.JQDialogHelper.close = function(d) {
 m3.jq.JQDialogHelper.open = function(d) {
 	d.dialog("open");
 };
-m3.log = {};
-m3.log.Logga = function(logLevel) {
-	this.initialized = false;
-	this.loggerLevel = logLevel;
-};
-$hxClasses["m3.log.Logga"] = m3.log.Logga;
-m3.log.Logga.__name__ = ["m3","log","Logga"];
-m3.log.Logga.get_DEFAULT = function() {
-	if(m3.log.Logga.DEFAULT == null) m3.log.Logga.DEFAULT = new m3.log.RemoteLogga(m3.log.LogLevel.DEBUG,m3.log.LogLevel.DEBUG);
-	return m3.log.Logga.DEFAULT;
-};
-m3.log.Logga.getExceptionInst = function(err) {
-	if(js.Boot.__instanceof(err,m3.exception.Exception)) return err; else return new m3.exception.Exception(err);
-};
-m3.log.Logga.prototype = {
-	doOverrides: function() {
-		this.overrideConsoleError();
-		this.overrideConsoleTrace();
-		this.overrideConsoleLog();
-		window.onerror = function(message,url,lineNumber) {
-			LOGGER.error("WindowError | " + url + " (" + lineNumber + ") | " + message);
-			return false;
-		};
-	}
-	,_getLogger: function() {
-		this.console = window.console;
-		this.initialized = true;
-	}
-	,overrideConsoleError: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.preservedConsoleError = ($_=this.console,$bind($_,$_.error));
-			this.console.error = function() {
-				_g.error(arguments[0]);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.error");
-		}
-	}
-	,overrideConsoleTrace: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.preservedConsoleTrace = ($_=this.console,$bind($_,$_.trace));
-			this.console.trace = function() {
-				_g.preservedConsoleTrace.apply(_g.console);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.trace");
-		}
-	}
-	,overrideConsoleLog: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.console.log("prime console.log");
-			this.preservedConsoleLog = ($_=this.console,$bind($_,$_.log));
-			this.console.log = function() {
-				_g.warn(arguments[0]);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.log");
-		}
-	}
-	,setStatementPrefix: function(prefix) {
-		this.statementPrefix = prefix;
-	}
-	,log: function(statement,level,exception) {
-		if(!this.initialized) this._getLogger();
-		if(level == null) level = m3.log.LogLevel.INFO;
-		try {
-			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
-		} catch( err ) {
-			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
-		}
-		if(m3.helper.StringHelper.isBlank(statement)) {
-			this.console.error("empty log statement");
-			this.console.trace();
-		}
-		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
-		if(this.logsAtLevel(level) && this.console != null) try {
-			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
-				this.preservedConsoleError.apply(this.console,[statement]);
-				this.console.trace();
-			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
-				this.console.error(statement);
-				this.console.trace();
-			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
-		} catch( err1 ) {
-			if(this.console != null && Object.prototype.hasOwnProperty.call(this.console,"error")) this.console.error(err1);
-		}
-	}
-	,logsAtLevel: function(level) {
-		return this.loggerLevel[1] <= level[1];
-	}
-	,setLogLevel: function(logLevel) {
-		this.loggerLevel = logLevel;
-	}
-	,trace: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.TRACE,exception);
-	}
-	,debug: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.DEBUG,exception);
-	}
-	,info: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.INFO,exception);
-	}
-	,warn: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.WARN,exception);
-	}
-	,error: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.ERROR,exception);
-	}
-	,__class__: m3.log.Logga
-};
-m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
-m3.log.LogLevel.TRACE = ["TRACE",0];
-m3.log.LogLevel.TRACE.toString = $estr;
-m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.DEBUG = ["DEBUG",1];
-m3.log.LogLevel.DEBUG.toString = $estr;
-m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.INFO = ["INFO",2];
-m3.log.LogLevel.INFO.toString = $estr;
-m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.WARN = ["WARN",3];
-m3.log.LogLevel.WARN.toString = $estr;
-m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.ERROR = ["ERROR",4];
-m3.log.LogLevel.ERROR.toString = $estr;
-m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
-m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
-	m3.log.Logga.call(this,consoleLevel);
-	this.remoteLogLevel = remoteLevel;
-	this.logs = [];
-	this.sessionUid = m3.util.UidGenerator.create(32);
-	this.log("SessionUid: " + this.sessionUid);
-};
-$hxClasses["m3.log.RemoteLogga"] = m3.log.RemoteLogga;
-m3.log.RemoteLogga.__name__ = ["m3","log","RemoteLogga"];
-m3.log.RemoteLogga.pauseRemoteLogging = function() {
-	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
-		var rl = m3.log.Logga.get_DEFAULT();
-		rl.pause();
-	}
-};
-m3.log.RemoteLogga.unpauseRemoteLogging = function() {
-	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
-		var rl = m3.log.Logga.get_DEFAULT();
-		rl.unpause();
-	}
-};
-m3.log.RemoteLogga.__super__ = m3.log.Logga;
-m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
-	log: function(statement,level,exception) {
-		if(level == null) level = m3.log.LogLevel.INFO;
-		m3.log.Logga.prototype.log.call(this,statement,level,exception);
-		if(this.timer != null && this.remoteLogsAtLevel(level)) {
-			try {
-				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
-			} catch( err ) {
-			}
-			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
-			if(this.logs.length > 50) this.timer.run();
-		}
-	}
-	,remoteLogsAtLevel: function(level) {
-		return this.remoteLogLevel[1] <= level[1];
-	}
-	,setRemoteLoggingFcn: function(remoteLogFcn) {
-		var _g = this;
-		if(this.timer != null) this.timer.stop();
-		if(remoteLogFcn != null) this.timer = new m3.log._RemoteLogga.RemoteLoggingTimer(remoteLogFcn,function() {
-			var saved = _g.logs;
-			_g.logs = [];
-			return saved;
-		});
-	}
-	,pause: function() {
-		if(this.timer != null) this.timer.pause();
-	}
-	,unpause: function() {
-		if(this.timer != null) this.timer.unpause();
-	}
-	,__class__: m3.log.RemoteLogga
-});
 m3.helper.ArrayHelper = $hx_exports.m3.helper.ArrayHelper = function() { };
 $hxClasses["m3.helper.ArrayHelper"] = m3.helper.ArrayHelper;
 m3.helper.ArrayHelper.__name__ = ["m3","helper","ArrayHelper"];
@@ -4631,7 +4767,7 @@ agentui.widget.score.ContentTimeLine.prototype = {
 					ele1 = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,5,5).attr({ 'class' : "messageContentLarge"});
 					break;
 				default:
-					agentui.AppContext.LOGGER.warn("Unknown Content Type: " + g_type);
+					m3.log.Logga.get_DEFAULT().warn("Unknown Content Type: " + g_type);
 				}
 				var g;
 				var e123_0 = ele1;
@@ -6040,129 +6176,6 @@ m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype
 	}
 	,__class__: m3.observable.GroupedSet
 });
-m3.serialization.Serializer = function(defaultToStrict) {
-	if(defaultToStrict == null) defaultToStrict = true;
-	this._defaultToStrict = defaultToStrict;
-	this._handlersMap = new haxe.ds.StringMap();
-	this.addHandlerViaName("Array<Dynamic>",new m3.serialization.DynamicArrayHandler());
-};
-$hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
-m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
-m3.serialization.Serializer.get_instance = function() {
-	if(m3.serialization.Serializer.instance == null) m3.serialization.Serializer.instance = new m3.serialization.Serializer();
-	return m3.serialization.Serializer.instance;
-};
-m3.serialization.Serializer.prototype = {
-	addHandler: function(clazz,handler) {
-		var typename = Type.getClassName(clazz);
-		this._handlersMap.set(typename,handler);
-	}
-	,addHandlerViaName: function(typename,handler) {
-		this._handlersMap.set(typename,handler);
-	}
-	,load: function(fromJson,instance,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,Type.getClass(instance),instance);
-		return reader;
-	}
-	,fromJsonX: function(fromJson,clazz,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,clazz);
-		return reader.instance;
-	}
-	,fromJson: function(fromJson,clazz,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,clazz);
-		return reader;
-	}
-	,toJson: function(value) {
-		return this.createWriter().write(value);
-	}
-	,toJsonString: function(value) {
-		return JSON.stringify(this.toJson(value));
-	}
-	,createReader: function(strict) {
-		if(strict == null) strict = true;
-		return new m3.serialization.JsonReader(this,strict);
-	}
-	,createWriter: function() {
-		return new m3.serialization.JsonWriter(this);
-	}
-	,getHandlerViaClass: function(clazz) {
-		var typename = m3.serialization.TypeTools.classname(clazz);
-		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
-	}
-	,getHandler: function(type) {
-		var typename = m3.serialization.CTypeTools.typename(type);
-		var handler = this._handlersMap.get(typename);
-		if(handler == null) {
-			handler = this.createHandler(type);
-			this._handlersMap.set(typename,handler);
-		}
-		return handler;
-	}
-	,createHandler: function(type) {
-		switch(type[1]) {
-		case 1:
-			var parms = type[3];
-			var path = type[2];
-			if(path == "Bool") return new m3.serialization.BoolHandler(); else return new m3.serialization.EnumHandler(path,parms);
-			break;
-		case 2:
-			var parms1 = type[3];
-			var path1 = type[2];
-			switch(path1) {
-			case "Bool":
-				return new m3.serialization.BoolHandler();
-			case "Float":
-				return new m3.serialization.FloatHandler();
-			case "String":
-				return new m3.serialization.StringHandler();
-			case "Int":
-				return new m3.serialization.IntHandler();
-			case "Array":
-				return new m3.serialization.ArrayHandler(parms1,this);
-			case "Date":
-				return new m3.serialization.DateHandler();
-			default:
-				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
-			}
-			break;
-		case 7:
-			var parms1 = type[3];
-			var path1 = type[2];
-			switch(path1) {
-			case "Bool":
-				return new m3.serialization.BoolHandler();
-			case "Float":
-				return new m3.serialization.FloatHandler();
-			case "String":
-				return new m3.serialization.StringHandler();
-			case "Int":
-				return new m3.serialization.IntHandler();
-			case "Array":
-				return new m3.serialization.ArrayHandler(parms1,this);
-			case "Date":
-				return new m3.serialization.DateHandler();
-			default:
-				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
-			}
-			break;
-		case 6:
-			return new m3.serialization.DynamicHandler();
-		case 4:
-			var ret = type[3];
-			var args = type[2];
-			return new m3.serialization.FunctionHandler();
-		default:
-			throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
-		}
-	}
-	,__class__: m3.serialization.Serializer
-};
 m3.serialization.ArrayHandler = function(parms,serializer) {
 	this._parms = parms;
 	this._serializer = serializer;
@@ -6266,21 +6279,6 @@ m3.serialization.ValueTypeHandler.prototype = {
 		return value;
 	}
 	,__class__: m3.serialization.ValueTypeHandler
-};
-m3.serialization.DynamicArrayHandler = function() {
-};
-$hxClasses["m3.serialization.DynamicArrayHandler"] = m3.serialization.DynamicArrayHandler;
-m3.serialization.DynamicArrayHandler.__name__ = ["m3","serialization","DynamicArrayHandler"];
-m3.serialization.DynamicArrayHandler.__interfaces__ = [m3.serialization.TypeHandler];
-m3.serialization.DynamicArrayHandler.prototype = {
-	read: function(fromJson,reader,instance) {
-		var classname = m3.serialization.ValueTypeTools.getClassname(Type["typeof"](fromJson));
-		if(classname == "Array") return fromJson; else return reader.error("expected an array got a " + classname);
-	}
-	,write: function(value,writer) {
-		return value;
-	}
-	,__class__: m3.serialization.DynamicArrayHandler
 };
 m3.serialization.DynamicHandler = function() {
 };
@@ -6887,7 +6885,7 @@ var defineWidget = function() {
 			} else if(evt.isDelete()) self._remove(fc1);
 		});
 		selfElement.on("dragstop",function(dragstopEvt,dragstopUi) {
-			agentui.AppContext.LOGGER.debug("dragstop on filtercombo");
+			m3.log.Logga.get_DEFAULT().debug("dragstop on filtercombo");
 			if(self.options.dragstop != null) self.options.dragstop(dragstopEvt,dragstopUi);
 		});
 		selfElement.addClass("ui-state-highlight connectionDT labelDT filterable dropCombiner filterCombination filterTrashable container shadow" + m3.widget.Widgets.getWidgetClasses());
@@ -7046,7 +7044,7 @@ var defineWidget = function() {
 				}
 			};
 			self2.filteredSetAlias.listen(self2._onUpdateAlias);
-		} else agentui.AppContext.LOGGER.warn("Both connectionIid and aliasIid are not set for Avatar");
+		} else m3.log.Logga.get_DEFAULT().warn("Both connectionIid and aliasIid are not set for Avatar");
 		(js.Boot.__cast(selfElement , $)).tooltip();
 		if(!self2.options.dndEnabled) img.mousedown(function(evt2) {
 			return false;;
@@ -7397,25 +7395,25 @@ var defineWidget = function() {
 		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
 		self._createFileUploadComponent();
 		selfElement.on("dragleave",function(evt,d) {
-			agentui.AppContext.LOGGER.debug("dragleave");
+			m3.log.Logga.get_DEFAULT().debug("dragleave");
 			var target = evt.target;
 			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
 			evt.preventDefault();
 			evt.stopPropagation();
 		});
 		selfElement.on("dragenter",function(evt1,d1) {
-			agentui.AppContext.LOGGER.debug("dragenter");
+			m3.log.Logga.get_DEFAULT().debug("dragenter");
 			$(this).addClass("over");
 			evt1.preventDefault();
 			evt1.stopPropagation();
 		});
 		selfElement.on("dragover",function(evt2,d2) {
-			agentui.AppContext.LOGGER.debug("dragover");
+			m3.log.Logga.get_DEFAULT().debug("dragover");
 			evt2.preventDefault();
 			evt2.stopPropagation();
 		});
 		selfElement.on("drop",function(evt3,d3) {
-			agentui.AppContext.LOGGER.debug("drop");
+			m3.log.Logga.get_DEFAULT().debug("drop");
 			self._traverseFiles(evt3.originalEvent.dataTransfer.files);
 			$(this).removeClass("drop");
 			evt3.preventDefault();
@@ -7445,7 +7443,7 @@ var defineWidget = function() {
 			m3.util.JqueryUtil.alert("Please select an audio file.");
 			return;
 		}
-		agentui.AppContext.LOGGER.debug("upload " + Std.string(file.name));
+		m3.log.Logga.get_DEFAULT().debug("upload " + Std.string(file.name));
 		var reader = new FileReader();
 		reader.onload = function(evt5) {
 			self2.setPreviewImage(evt5.target.result);
@@ -7460,7 +7458,7 @@ var defineWidget = function() {
 		}
 		self3.previewImg.attr("src",src);
 	}, _traverseFiles : function(files) {
-		agentui.AppContext.LOGGER.debug("traverse the files");
+		m3.log.Logga.get_DEFAULT().debug("traverse the files");
 		var self4 = this;
 		if(m3.helper.ArrayHelper.hasValues(files)) {
 			var _g = 0;
@@ -7737,7 +7735,7 @@ var defineWidget = function() {
 			var helper = "clone";
 			if(!self3.options.isDragByHelper) helper = "original"; else if(self3.options.helperFcn != null && Reflect.isFunction(self3.options.helperFcn)) helper = self3.options.helperFcn;
 			selfElement1.on("dragstop",function(dragstopEvt,_ui) {
-				agentui.AppContext.LOGGER.debug("dragstop on label | " + self3.label.name);
+				m3.log.Logga.get_DEFAULT().debug("dragstop on label | " + self3.label.name);
 				if(self3.options.dragstop != null) self3.options.dragstop(dragstopEvt,_ui);
 				new $(window.document).off("keydown keyup");
 				_ui.helper.find("#copyIndicator").remove();
@@ -8059,7 +8057,7 @@ var defineWidget = function() {
 	}, _post : function() {
 		var self1 = this;
 		var selfElement1 = this.element;
-		agentui.AppContext.LOGGER.debug("post " + self1.urlInput.val());
+		m3.log.Logga.get_DEFAULT().debug("post " + self1.urlInput.val());
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}, valEle : function() {
@@ -8101,8 +8099,8 @@ var defineWidget = function() {
 		};
 		self2.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this2.get(self2.options.content.iid);
+			var this11 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
+			$r = this11.get(self2.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = agentui.AppContext.connectionFromMetaLabel(lc.labelIid);
@@ -8342,8 +8340,8 @@ var defineWidget = function() {
 			return $r;
 		}(this)) != null) aliasIid = self1.options.content.aliasIid; else if((function($this) {
 			var $r;
-			var this2 = agentui.AppContext.CONNECTIONS.delegate();
-			$r = this2.get(self1.options.content.connectionIid);
+			var this11 = agentui.AppContext.CONNECTIONS.delegate();
+			$r = this11.get(self1.options.content.connectionIid);
 			return $r;
 		}(this)) != null) connectionIid = self1.options.content.connectionIid;
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, aliasIid : aliasIid, connectionIid : connectionIid}).appendTo(postCreator);
@@ -8351,8 +8349,8 @@ var defineWidget = function() {
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		if((function($this) {
 			var $r;
-			var this3 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this3.get(self1.options.content.iid);
+			var this12 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
+			$r = this12.get(self1.options.content.iid);
 			return $r;
 		}(this)) == null) agentui.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self1.options.content.iid);
 		self1.onchangeLabelChildren = function(ele,evt2) {
@@ -8362,8 +8360,8 @@ var defineWidget = function() {
 		};
 		self1.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this4 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this4.get(self1.options.content.iid);
+			var this13 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
+			$r = this13.get(self1.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = agentui.AppContext.connectionFromMetaLabel(lc.labelIid);
@@ -8789,7 +8787,7 @@ var defineWidget = function() {
 			});
 			createLabel = function() {
 				if(input.val().length == 0) return;
-				agentui.AppContext.LOGGER.info("Create new label | " + input.val());
+				m3.log.Logga.get_DEFAULT().info("Create new label | " + input.val());
 				var label1 = new agentui.model.Label();
 				label1.name = input.val();
 				var eventData = new agentui.model.EditLabelData(label1,parent.val());
@@ -8799,7 +8797,7 @@ var defineWidget = function() {
 			updateLabel = function() {
 				if(input.val().length == 0) return;
 				var label2 = agentui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp);
-				agentui.AppContext.LOGGER.info("Update label | " + label2.iid);
+				m3.log.Logga.get_DEFAULT().info("Update label | " + label2.iid);
 				label2.name = input.val();
 				var eventData1 = new agentui.model.EditLabelData(label2);
 				agentui.model.EM.change(agentui.model.EMEvent.UpdateLabel,eventData1);
@@ -8885,8 +8883,8 @@ var defineWidget = function() {
 			$r = this1.get(self.options.labelIid);
 			return $r;
 		}(this)) == null) agentui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.labelIid);
-		var this2 = agentui.AppContext.GROUPED_LABELCHILDREN.delegate();
-		self.children = this2.get(self.options.labelIid);
+		var this11 = agentui.AppContext.GROUPED_LABELCHILDREN.delegate();
+		self.children = this11.get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
@@ -8932,8 +8930,8 @@ var defineWidget = function() {
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = agentui.AppContext.GROUPED_LABELCHILDREN.delegate();
-			$r = this2.get(self.options.parentIid);
+			var this11 = agentui.AppContext.GROUPED_LABELCHILDREN.delegate();
+			$r = this11.get(self.options.parentIid);
 			return $r;
 		}(this)),function(labelChild) {
 			var labelPath = self.options.labelPath.slice();
@@ -9068,7 +9066,7 @@ var defineWidget = function() {
 		var section = new $("<section id='postSection'></section>").appendTo(selfElement);
 		var addConnectionsAndLabels = null;
 		var doTextPost = function(evt,contentType,value) {
-			agentui.AppContext.LOGGER.debug("Post new text content");
+			m3.log.Logga.get_DEFAULT().debug("Post new text content");
 			evt.preventDefault();
 			var ccd = new agentui.model.EditContentData(agentui.model.ContentFactory.create(contentType,value));
 			addConnectionsAndLabels(ccd);
@@ -9559,7 +9557,7 @@ var defineWidget = function() {
 			self1.contentTimeLines.get(content1.aliasIid).addContent(content1);
 			self1.uberGroup.append(self1.contentTimeLines.get(content1.aliasIid).timeLineElement);
 		} catch( e ) {
-			agentui.AppContext.LOGGER.error("error calling _addContent",e);
+			m3.log.Logga.get_DEFAULT().error("error calling _addContent",e);
 		}
 	}, _deleteContent : function(content2) {
 		var self2 = this;
@@ -9626,18 +9624,18 @@ $.widget("ui.scoreComp",defineWidget());
 var q = window.jQuery;
 js.JQuery = q;
 agentui.api.ChannelMessage.__rtti = "<class path=\"agentui.api.ChannelMessage\" params=\"\" module=\"agentui.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
-agentui.api.BennuMessage.__rtti = "<class path=\"agentui.api.BennuMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.DeleteMessage.__rtti = "<class path=\"agentui.api.DeleteMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<extends path=\"agentui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"28\" static=\"1\"><f a=\"object\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<c path=\"agentui.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.api.CrudMessage.__rtti = "<class path=\"agentui.api.CrudMessage\" params=\"\">\n\t<extends path=\"agentui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"51\" static=\"1\"><f a=\"object:?optionals\" v=\":null\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<d/>\n\t<c path=\"agentui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<parentIid>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</parentIid>\n\t<profileName>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</profileName>\n\t<profileImgSrc>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</profileImgSrc>\n\t<labelIids>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</labelIids>\n\t<new public=\"1\" set=\"method\" line=\"40\"><f a=\"type:instance:?optionals\" v=\"::null\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.api.DeregisterMessage.__rtti = "<class path=\"agentui.api.DeregisterMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<handle public=\"1\"><c path=\"String\"/></handle>\n\t<new public=\"1\" set=\"method\" line=\"60\"><f a=\"handle\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.IntroMessage.__rtti = "<class path=\"agentui.api.IntroMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"72\"><f a=\"i\">\n\t<c path=\"agentui.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.VerificationRequestMessage.__rtti = "<class path=\"agentui.api.VerificationRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<new public=\"1\" set=\"method\" line=\"86\"><f a=\"vr\">\n\t<c path=\"agentui.model.VerificationRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.VerificationResponseMessage.__rtti = "<class path=\"agentui.api.VerificationResponseMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<verificationContent public=\"1\"><c path=\"String\"/></verificationContent>\n\t<new public=\"1\" set=\"method\" line=\"98\"><f a=\"vr\">\n\t<c path=\"agentui.model.VerificationResponse\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.AcceptVerificationMessage.__rtti = "<class path=\"agentui.api.AcceptVerificationMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<new public=\"1\" set=\"method\" line=\"108\"><f a=\"notificationIid\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.IntroResponseMessage.__rtti = "<class path=\"agentui.api.IntroResponseMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"118\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.QueryMessage.__rtti = "<class path=\"agentui.api.QueryMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"152\" static=\"1\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.QueryMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<standing public=\"1\"><x path=\"Bool\"/></standing>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<local public=\"1\"><x path=\"Bool\"/></local>\n\t<new public=\"1\" set=\"method\" line=\"134\"><f a=\"fd:?type:?q\" v=\":null:null\">\n\t<c path=\"agentui.model.FilterData\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.ChannelRequestMessage.__rtti = "<class path=\"agentui.api.ChannelRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"163\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"agentui.api.ChannelRequestMessageBundle\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"agentui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"185\"><f a=\"request\">\n\t<c path=\"agentui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"189\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"176\"><f a=\"?requests_\" v=\"null\">\n\t<c path=\"Array\"><c path=\"agentui.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.BennuMessage.__rtti = "<class path=\"agentui.api.BennuMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"16\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.DeleteMessage.__rtti = "<class path=\"agentui.api.DeleteMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<extends path=\"agentui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"29\" static=\"1\"><f a=\"object\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<c path=\"agentui.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.api.CrudMessage.__rtti = "<class path=\"agentui.api.CrudMessage\" params=\"\">\n\t<extends path=\"agentui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"52\" static=\"1\"><f a=\"object:?optionals\" v=\":null\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<d/>\n\t<c path=\"agentui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<parentIid>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</parentIid>\n\t<profileName>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</profileName>\n\t<profileImgSrc>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</profileImgSrc>\n\t<labelIids>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</labelIids>\n\t<new public=\"1\" set=\"method\" line=\"41\"><f a=\"type:instance:?optionals\" v=\"::null\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.api.DeregisterMessage.__rtti = "<class path=\"agentui.api.DeregisterMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<handle public=\"1\"><c path=\"String\"/></handle>\n\t<new public=\"1\" set=\"method\" line=\"61\"><f a=\"handle\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.IntroMessage.__rtti = "<class path=\"agentui.api.IntroMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"73\"><f a=\"i\">\n\t<c path=\"agentui.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.VerificationRequestMessage.__rtti = "<class path=\"agentui.api.VerificationRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<new public=\"1\" set=\"method\" line=\"87\"><f a=\"vr\">\n\t<c path=\"agentui.model.VerificationRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.VerificationResponseMessage.__rtti = "<class path=\"agentui.api.VerificationResponseMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<verificationContent public=\"1\"><c path=\"String\"/></verificationContent>\n\t<new public=\"1\" set=\"method\" line=\"99\"><f a=\"vr\">\n\t<c path=\"agentui.model.VerificationResponse\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.AcceptVerificationMessage.__rtti = "<class path=\"agentui.api.AcceptVerificationMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<new public=\"1\" set=\"method\" line=\"109\"><f a=\"notificationIid\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.IntroResponseMessage.__rtti = "<class path=\"agentui.api.IntroResponseMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"119\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.QueryMessage.__rtti = "<class path=\"agentui.api.QueryMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"153\" static=\"1\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.QueryMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<standing public=\"1\"><x path=\"Bool\"/></standing>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<local public=\"1\"><x path=\"Bool\"/></local>\n\t<new public=\"1\" set=\"method\" line=\"135\"><f a=\"fd:?type:?q\" v=\":null:null\">\n\t<c path=\"agentui.model.FilterData\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.ChannelRequestMessage.__rtti = "<class path=\"agentui.api.ChannelRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"agentui.api.ChannelRequestMessageBundle\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"agentui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"186\"><f a=\"request\">\n\t<c path=\"agentui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"190\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"177\"><f a=\"?requests_\" v=\"null\">\n\t<c path=\"Array\"><c path=\"agentui.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 agentui.api.ProtocolHandler.QUERY = "/api/query";
 agentui.api.ProtocolHandler.UPSERT = "/api/upsert";
 agentui.api.ProtocolHandler.DELETE = "/api/delete";
@@ -9649,47 +9647,47 @@ agentui.api.ProtocolHandler.VERIFICATION_ACCEPT = "/api/verification/accept";
 agentui.api.ProtocolHandler.VERIFICATION_REQUEST = "/api/verification/request";
 agentui.api.ProtocolHandler.VERIFICATION_RESPONSE = "/api/verification/respond";
 agentui.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
-agentui.model.ModelObj.__rtti = "<class path=\"agentui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"25\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.ModelObjWithIid.__rtti = "<class path=\"agentui.model.ModelObjWithIid\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"46\" static=\"1\"><f a=\"t\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByAliasIid public=\"1\"><c path=\"String\"/></createdByAliasIid>\n\t<modifiedByAliasIid public=\"1\"><c path=\"String\"/></modifiedByAliasIid>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.ModelObj.__rtti = "<class path=\"agentui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"26\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.model.ModelObjWithIid.__rtti = "<class path=\"agentui.model.ModelObjWithIid\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"47\" static=\"1\"><f a=\"t\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByAliasIid public=\"1\"><c path=\"String\"/></createdByAliasIid>\n\t<modifiedByAliasIid public=\"1\"><c path=\"String\"/></modifiedByAliasIid>\n\t<new public=\"1\" set=\"method\" line=\"40\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l:?autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet.T\"/>\n</x></f></delegate>\n\t<getVisualId public=\"1\" set=\"method\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.AbstractSet.__rtti = "<class path=\"m3.observable.AbstractSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<implements path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></implements>\n\t<_eventManager public=\"1\"><c path=\"m3.observable.EventManager\"><c path=\"m3.observable.AbstractSet.T\"/></c></_eventManager>\n\t<visualId public=\"1\"><c path=\"String\"/></visualId>\n\t<listen public=\"1\" set=\"method\" line=\"129\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\" line=\"133\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<filter public=\"1\" set=\"method\" line=\"137\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"141\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"145\"><f a=\"t:type\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<getVisualId public=\"1\" set=\"method\" line=\"149\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<identifier public=\"1\" set=\"method\" line=\"153\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"157\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"161\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n</x></f></delegate>\n\t<new set=\"method\" line=\"125\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.ObservableSet.__rtti = "<class path=\"m3.observable.ObservableSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"m3.util.SizedMap\"><c path=\"m3.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"181\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"185\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"193\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"197\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"201\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"213\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"217\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"221\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"229\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"233\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"238\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"242\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"172\"><f a=\"identifier:?tArr\" v=\":null\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.EventManager.__rtti = "<class path=\"m3.observable.EventManager\" params=\"T\" module=\"m3.observable.OSet\">\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"47\"><f a=\"l:autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<remove public=\"1\" set=\"method\" line=\"56\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></remove>\n\t<fire public=\"1\" set=\"method\" line=\"59\"><f a=\"t:type\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<listenerCount public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Int\"/></f></listenerCount>\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.Content.__rtti = "<class path=\"agentui.model.Content\" params=\"T\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><e path=\"agentui.model.ContentType\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"agentui.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"agentui.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"agentui.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"314\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"318\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"322\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"326\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"330\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"303\"><f a=\"contentType:type\">\n\t<e path=\"agentui.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"agentui.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.Profile.__rtti = "<class path=\"agentui.model.Profile\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"64\" static=\"1\"><f a=\"profile\">\n\t<c path=\"agentui.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"58\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.AliasData.__rtti = "<class path=\"agentui.model.AliasData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"71\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.Alias.__rtti = "<class path=\"agentui.model.Alias\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"89\" static=\"1\"><f a=\"alias\">\n\t<c path=\"agentui.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<profile public=\"1\">\n\t\t<c path=\"agentui.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"83\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.LabelData.__rtti = "<class path=\"agentui.model.LabelData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"96\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.Label.__rtti = "<class path=\"agentui.model.Label\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"113\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"agentui.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"107\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.LabelChild.__rtti = "<class path=\"agentui.model.LabelChild\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"132\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"123\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.LabelAcl.__rtti = "<class path=\"agentui.model.LabelAcl\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"147\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<new public=\"1\" set=\"method\" line=\"141\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.Connection.__rtti = "<class path=\"agentui.model.Connection\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"160\" static=\"1\"><f a=\"c\">\n\t<c path=\"agentui.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<allowedDegreesOfVisibility public=\"1\"><x path=\"Int\"/></allowedDegreesOfVisibility>\n\t<metaLabelIid public=\"1\"><c path=\"String\"/></metaLabelIid>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"169\"><f a=\"c\">\n\t<c path=\"agentui.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.LabeledContent.__rtti = "<class path=\"agentui.model.LabeledContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"251\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"255\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.ContentData.__rtti = "<class path=\"agentui.model.ContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"264\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.model.Content.__rtti = "<class path=\"agentui.model.Content\" params=\"T\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><e path=\"agentui.model.ContentType\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"agentui.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"agentui.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"agentui.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"315\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"319\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"323\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"327\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"331\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"304\"><f a=\"contentType:type\">\n\t<e path=\"agentui.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"agentui.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.model.Profile.__rtti = "<class path=\"agentui.model.Profile\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"65\" static=\"1\"><f a=\"profile\">\n\t<c path=\"agentui.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.model.AliasData.__rtti = "<class path=\"agentui.model.AliasData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"72\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.Alias.__rtti = "<class path=\"agentui.model.Alias\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"90\" static=\"1\"><f a=\"alias\">\n\t<c path=\"agentui.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<profile public=\"1\">\n\t\t<c path=\"agentui.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"84\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.LabelData.__rtti = "<class path=\"agentui.model.LabelData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"97\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.Label.__rtti = "<class path=\"agentui.model.Label\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"114\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"agentui.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"108\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.model.LabelChild.__rtti = "<class path=\"agentui.model.LabelChild\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"133\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"124\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.model.LabelAcl.__rtti = "<class path=\"agentui.model.LabelAcl\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"148\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<new public=\"1\" set=\"method\" line=\"142\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.model.Connection.__rtti = "<class path=\"agentui.model.Connection\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"161\" static=\"1\"><f a=\"c\">\n\t<c path=\"agentui.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<allowedDegreesOfVisibility public=\"1\"><x path=\"Int\"/></allowedDegreesOfVisibility>\n\t<metaLabelIid public=\"1\"><c path=\"String\"/></metaLabelIid>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"170\"><f a=\"c\">\n\t<c path=\"agentui.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"165\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.LabeledContent.__rtti = "<class path=\"agentui.model.LabeledContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"252\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"256\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.model.ContentData.__rtti = "<class path=\"agentui.model.ContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"265\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 agentui.model.ContentVerification.__rtti = "<class path=\"agentui.model.ContentVerification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 agentui.model.VerifiedContentMetaData.__rtti = "<class path=\"agentui.model.VerifiedContentMetaData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.ContentMetaData.__rtti = "<class path=\"agentui.model.ContentMetaData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"agentui.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"agentui.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"287\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.ImageContentData.__rtti = "<class path=\"agentui.model.ImageContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"339\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.ImageContent.__rtti = "<class path=\"agentui.model.ImageContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.AudioContentData.__rtti = "<class path=\"agentui.model.AudioContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"355\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.AudioContent.__rtti = "<class path=\"agentui.model.AudioContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"361\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.MessageContentData.__rtti = "<class path=\"agentui.model.MessageContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"369\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.MessageContent.__rtti = "<class path=\"agentui.model.MessageContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"375\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.UrlContentData.__rtti = "<class path=\"agentui.model.UrlContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"384\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.UrlContent.__rtti = "<class path=\"agentui.model.UrlContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"390\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.VerificationContentData.__rtti = "<class path=\"agentui.model.VerificationContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"399\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.VerificationContent.__rtti = "<class path=\"agentui.model.VerificationContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"405\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.Notification.__rtti = "<class path=\"agentui.model.Notification\" params=\"T\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"agentui.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"agentui.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"agentui.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"454\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"466\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"470\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"458\"><f a=\"kind:type\">\n\t<e path=\"agentui.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"agentui.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.IntroductionRequest.__rtti = "<class path=\"agentui.model.IntroductionRequest\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"483\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.Introduction.__rtti = "<class path=\"agentui.model.Introduction\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"agentui.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"agentui.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"490\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.IntroductionRequestNotification.__rtti = "<class path=\"agentui.model.IntroductionRequestNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"500\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.ContentMetaData.__rtti = "<class path=\"agentui.model.ContentMetaData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"agentui.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"agentui.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"288\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.model.ImageContentData.__rtti = "<class path=\"agentui.model.ImageContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"340\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.ImageContent.__rtti = "<class path=\"agentui.model.ImageContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"346\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.AudioContentData.__rtti = "<class path=\"agentui.model.AudioContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"356\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.AudioContent.__rtti = "<class path=\"agentui.model.AudioContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"362\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.MessageContentData.__rtti = "<class path=\"agentui.model.MessageContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"370\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.MessageContent.__rtti = "<class path=\"agentui.model.MessageContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"376\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.UrlContentData.__rtti = "<class path=\"agentui.model.UrlContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"385\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.UrlContent.__rtti = "<class path=\"agentui.model.UrlContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"391\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.VerificationContentData.__rtti = "<class path=\"agentui.model.VerificationContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"400\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.VerificationContent.__rtti = "<class path=\"agentui.model.VerificationContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"406\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.Notification.__rtti = "<class path=\"agentui.model.Notification\" params=\"T\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"agentui.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"agentui.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"agentui.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"455\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"467\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"471\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"459\"><f a=\"kind:type\">\n\t<e path=\"agentui.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"agentui.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+agentui.model.IntroductionRequest.__rtti = "<class path=\"agentui.model.IntroductionRequest\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"484\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.Introduction.__rtti = "<class path=\"agentui.model.Introduction\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"agentui.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"agentui.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"491\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.IntroductionRequestNotification.__rtti = "<class path=\"agentui.model.IntroductionRequestNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"501\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 agentui.model.IntroductionRequestData.__rtti = "<class path=\"agentui.model.IntroductionRequestData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"agentui.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.VerificationRequestNotification.__rtti = "<class path=\"agentui.model.VerificationRequestNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"513\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.VerificationRequestData.__rtti = "<class path=\"agentui.model.VerificationRequestData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><e path=\"agentui.model.ContentType\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"525\">\n\t\t<f a=\"\"><c path=\"agentui.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.VerificationResponseNotification.__rtti = "<class path=\"agentui.model.VerificationResponseNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"545\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.VerificationRequestNotification.__rtti = "<class path=\"agentui.model.VerificationRequestNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"514\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.VerificationRequestData.__rtti = "<class path=\"agentui.model.VerificationRequestData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><e path=\"agentui.model.ContentType\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"526\">\n\t\t<f a=\"\"><c path=\"agentui.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.model.VerificationResponseNotification.__rtti = "<class path=\"agentui.model.VerificationResponseNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"546\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 agentui.model.VerificationResponseData.__rtti = "<class path=\"agentui.model.VerificationResponseData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.Login.__rtti = "<class path=\"agentui.model.Login\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.NewUser.__rtti = "<class path=\"agentui.model.NewUser\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"575\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.Login.__rtti = "<class path=\"agentui.model.Login\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"563\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.NewUser.__rtti = "<class path=\"agentui.model.NewUser\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"576\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<delegate public=\"1\" set=\"method\" line=\"366\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"370\"><f a=\"t\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"387\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"391\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"395\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.FilteredSet.T\"/></t></f></iterator>\n\t<asArray public=\"1\" set=\"method\" line=\"399\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.FilteredSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"342\"><f a=\"source:filter\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"570\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"575\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"593\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"597\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"603\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"607\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"611\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.MappedSet.__rtti = "<class path=\"m3.observable.MappedSet\" params=\"T:U\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<_remapOnUpdate><x path=\"Bool\"/></_remapOnUpdate>\n\t<_mapListeners><c path=\"Array\"><f a=\"::\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_mapListeners>\n\t<_sourceListener set=\"method\" line=\"270\"><f a=\"t:type\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></_sourceListener>\n\t<identifier public=\"1\" set=\"method\" line=\"296\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"300\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"304\"><f a=\"u\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"315\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.MappedSet.U\"/></t></f></iterator>\n\t<mapListen public=\"1\" set=\"method\" line=\"319\"><f a=\"f\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></mapListen>\n\t<removeListeners public=\"1\" set=\"method\" line=\"330\"><f a=\"mapListener\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListeners>\n\t<new public=\"1\" set=\"method\" line=\"260\"><f a=\"source:mapper:?remapOnUpdate\" v=\"::false\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";

@@ -11,6 +11,7 @@ import agentui.model.ModelObj;
 import agentui.model.Node;
 import m3.observable.OSet;
 import m3.exception.Exception;
+import m3.log.Logga;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
@@ -81,7 +82,7 @@ extern class FilterCombination extends FilterableComponent {
 		            	});
 
 					selfElement.on("dragstop", function(dragstopEvt: JQEvent, dragstopUi: UIDraggable): Void {
-	            				AppContext.LOGGER.debug("dragstop on filtercombo");
+	            				Logga.DEFAULT.debug("dragstop on filtercombo");
 		                		if(self.options.dragstop != null) {
 		                			self.options.dragstop(dragstopEvt, dragstopUi);
 		                		}

@@ -13,6 +13,7 @@ import m3.observable.OSet;
 import m3.util.UidGenerator;
 import m3.util.JqueryUtil;
 import m3.exception.Exception;
+import m3.log.Logga;
 
 using m3.helper.OSetHelper;
 using agentui.widget.UploadComp;
@@ -56,7 +57,7 @@ extern class PostComp extends JQ {
 		        	var addConnectionsAndLabels: EditContentData->Void = null;
 
 		        	var doTextPost: JQEvent->ContentType->String->Void = function(evt: JQEvent, contentType: ContentType, value:String): Void {
-		        		AppContext.LOGGER.debug("Post new text content");
+		        		Logga.DEFAULT.debug("Post new text content");
 						evt.preventDefault();
 
 						var ccd = new EditContentData(ContentFactory.create(contentType, value));						

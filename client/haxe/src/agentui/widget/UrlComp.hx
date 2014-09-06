@@ -3,7 +3,8 @@ package agentui.widget;
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import m3.exception.Exception;
-// import js.html.FileReader;
+import m3.log.Logga;
+
 // import js.html.File;
 
 using m3.helper.ArrayHelper;
@@ -59,7 +60,7 @@ extern class UrlComp extends JQ {
 		        	var self: UrlCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-					AppContext.LOGGER.debug("post " + self.urlInput.val());
+					Logga.DEFAULT.debug("post " + self.urlInput.val());
 				},
 
 		        destroy: function() {
