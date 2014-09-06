@@ -115,7 +115,7 @@ class AppContext {
 
         VERIFICATION_CONTENT = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
 
-		SERIALIZER = new Serializer();
+		SERIALIZER = Serializer.instance;
         SERIALIZER.addHandler(Content, new ContentHandler());
         SERIALIZER.addHandler(Notification, new NotificationHandler());
 

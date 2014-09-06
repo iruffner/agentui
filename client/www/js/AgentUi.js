@@ -1897,13 +1897,13 @@ m3.comm.BaseRequest.prototype = {
 	}
 	,__class__: m3.comm.BaseRequest
 };
-m3.comm.LongPollingRequest = function(channel,requestToRepeat,logga,successFcn,errorFcn,ajaxOpts) {
+m3.comm.LongPollingRequest = function(channel,successFcn,errorFcn,ajaxOpts,baseUrl) {
 	this.timeout = 30000;
 	this.delayNextPoll = false;
 	this.running = true;
 	var _g = this;
 	this.channel = channel;
-	this.logger = logga;
+	if(baseUrl == null) this.baseUrl = "/api/channel/poll"; else this.baseUrl = baseUrl;
 	this.baseOpts = { complete : function(jqXHR,textStatus) {
 		_g.poll();
 	}};
@@ -1913,15 +1913,16 @@ m3.comm.LongPollingRequest = function(channel,requestToRepeat,logga,successFcn,e
 			successFcn(data);
 		} catch( e ) {
 			if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
-				_g.logger.error("Error while polling",e);
+				m3.log.Logga.get_DEFAULT().error("Error while polling",e);
 			} else throw(e);
 		}
 	};
 	var onError = function(exc) {
 		_g.delayNextPoll = true;
+		m3.log.Logga.get_DEFAULT().error("Error executing ajax call | Response Code: " + Std.string(_g.jqXHR.status) + " | " + Std.string(_g.jqXHR.message));
 		if(errorFcn != null) errorFcn(exc);
 	};
-	m3.comm.BaseRequest.call(this,requestToRepeat,this.getUrl(),onSuccess,onError);
+	m3.comm.BaseRequest.call(this,"",this.getUrl(),onSuccess,onError);
 };
 $hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
 m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
@@ -1937,7 +1938,7 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 	}
 	,toggle: function() {
 		this.running = !this.running;
-		this.logger.debug("Long Polling is running? " + Std.string(this.running));
+		m3.log.Logga.get_DEFAULT().debug("Long Polling is running? " + Std.string(this.running));
 		this.poll();
 	}
 	,getChannelId: function() {
@@ -1953,11 +1954,11 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 			this.jqXHR.abort();
 			this.jqXHR = null;
 		} catch( err ) {
-			this.logger.error("error on poll abort | " + Std.string(err));
+			m3.log.Logga.get_DEFAULT().error("error on poll abort | " + Std.string(err));
 		}
 	}
 	,getUrl: function() {
-		return "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
+		return this.baseUrl + "?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
 	}
 	,poll: function() {
 		if(this.running) {
@@ -2013,6 +2014,9 @@ m3.event.EventManager.prototype = {
 			HxOverrides.remove(this.oneTimers,listenerUid);
 			map.remove(listenerUid);
 		}
+	}
+	,fire: function(id,t) {
+		this.change(id,t);
 	}
 	,change: function(id,t) {
 		var logger = m3.log.Logga.get_DEFAULT();
@@ -2786,6 +2790,7 @@ m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
 			} catch( err ) {
 			}
 			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
+			if(this.logs.length > 50) this.timer.run();
 		}
 	}
 	,remoteLogsAtLevel: function(level) {
@@ -3365,6 +3370,10 @@ m3.serialization.Serializer = function(defaultToStrict) {
 };
 $hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
 m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
+m3.serialization.Serializer.get_instance = function() {
+	if(m3.serialization.Serializer.instance == null) m3.serialization.Serializer.instance = new m3.serialization.Serializer();
+	return m3.serialization.Serializer.instance;
+};
 m3.serialization.Serializer.prototype = {
 	addHandler: function(clazz,handler) {
 		var typename = Type.getClassName(clazz);
@@ -4319,7 +4328,7 @@ qoid.AppContext.init = function() {
 		}
 	});
 	qoid.AppContext.VERIFICATION_CONTENT = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
-	qoid.AppContext.SERIALIZER = new m3.serialization.Serializer();
+	qoid.AppContext.SERIALIZER = m3.serialization.Serializer.get_instance();
 	qoid.AppContext.SERIALIZER.addHandler(qoid.model.Content,new qoid.model.ContentHandler());
 	qoid.AppContext.SERIALIZER.addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
 	qoid.AppContext.registerGlobalListeners();
@@ -4924,7 +4933,7 @@ qoid.api.ProtocolHandler.prototype = {
 	,_startPolling: function(channelId) {
 		var timeout = 10000;
 		var ajaxOptions = { contentType : "", type : "GET"};
-		this.listeningChannel = new m3.comm.LongPollingRequest(channelId,"",qoid.AppContext.LOGGER,qoid.api.ResponseProcessor.processResponse,null,ajaxOptions);
+		this.listeningChannel = new m3.comm.LongPollingRequest(channelId,qoid.api.ResponseProcessor.processResponse,null,ajaxOptions);
 		this.listeningChannel.timeout = timeout;
 		this.listeningChannel.start();
 	}
@@ -8094,8 +8103,8 @@ var defineWidget = function() {
 		};
 		self2.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = qoid.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this2.get(self2.options.content.iid);
+			var this11 = qoid.AppContext.GROUPED_LABELEDCONTENT.delegate();
+			$r = this11.get(self2.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.AppContext.connectionFromMetaLabel(lc.labelIid);
@@ -8335,8 +8344,8 @@ var defineWidget = function() {
 			return $r;
 		}(this)) != null) aliasIid = self1.options.content.aliasIid; else if((function($this) {
 			var $r;
-			var this2 = qoid.AppContext.CONNECTIONS.delegate();
-			$r = this2.get(self1.options.content.connectionIid);
+			var this11 = qoid.AppContext.CONNECTIONS.delegate();
+			$r = this11.get(self1.options.content.connectionIid);
 			return $r;
 		}(this)) != null) connectionIid = self1.options.content.connectionIid;
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, aliasIid : aliasIid, connectionIid : connectionIid}).appendTo(postCreator);
@@ -8344,8 +8353,8 @@ var defineWidget = function() {
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		if((function($this) {
 			var $r;
-			var this3 = qoid.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this3.get(self1.options.content.iid);
+			var this12 = qoid.AppContext.GROUPED_LABELEDCONTENT.delegate();
+			$r = this12.get(self1.options.content.iid);
 			return $r;
 		}(this)) == null) qoid.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self1.options.content.iid);
 		self1.onchangeLabelChildren = function(ele,evt2) {
@@ -8355,8 +8364,8 @@ var defineWidget = function() {
 		};
 		self1.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this4 = qoid.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this4.get(self1.options.content.iid);
+			var this13 = qoid.AppContext.GROUPED_LABELEDCONTENT.delegate();
+			$r = this13.get(self1.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.AppContext.connectionFromMetaLabel(lc.labelIid);
@@ -8878,8 +8887,8 @@ var defineWidget = function() {
 			$r = this1.get(self.options.labelIid);
 			return $r;
 		}(this)) == null) qoid.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.labelIid);
-		var this2 = qoid.AppContext.GROUPED_LABELCHILDREN.delegate();
-		self.children = this2.get(self.options.labelIid);
+		var this11 = qoid.AppContext.GROUPED_LABELCHILDREN.delegate();
+		self.children = this11.get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
@@ -8925,8 +8934,8 @@ var defineWidget = function() {
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = qoid.AppContext.GROUPED_LABELCHILDREN.delegate();
-			$r = this2.get(self.options.parentIid);
+			var this11 = qoid.AppContext.GROUPED_LABELCHILDREN.delegate();
+			$r = this11.get(self.options.parentIid);
 			return $r;
 		}(this)),function(labelChild) {
 			var labelPath = self.options.labelPath.slice();
