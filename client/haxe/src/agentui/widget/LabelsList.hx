@@ -9,7 +9,8 @@ import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 import m3.log.Logga;
 
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
+import qoid.Qoid;
 import agentui.model.EM;
 import agentui.widget.LabelComp;
 
@@ -68,13 +69,13 @@ extern class LabelsList extends JQ {
         						var parent: JQ = null;
         						if (!isUpdate) {
 	        						container.append("<label for='labelParent'>Parent: </label> ");
-	        						parent = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + AppContext.currentAlias.rootLabelIid+ "'>No Parent</option></select>").appendTo(container);
+	        						parent = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + Qoid.currentAlias.rootLabelIid+ "'>No Parent</option></select>").appendTo(container);
 	        						parent.click(stopFcn);
-	        						var aliasLabels = AppContext.getLabelDescendents(AppContext.currentAlias.rootLabelIid);
+	        						var aliasLabels = Qoid.getLabelDescendents(Qoid.currentAlias.rootLabelIid);
 	        						var iter: Iterator<Label> = aliasLabels.iterator();
 	        						while(iter.hasNext()) {
 	        							var label: Label = iter.next();
-	        							if (label.iid != AppContext.currentAlias.rootLabelIid) {
+	        							if (label.iid != Qoid.currentAlias.rootLabelIid) {
 		        							var option = "<option value='" + label.iid + "'";
 		        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().iid == label.iid) {
 		        								option += " SELECTED";
@@ -253,6 +254,7 @@ extern class LabelsList extends JQ {
 	}
 }
 
+// TODO:  Verify this:
 // TODO:  Add a listener to LABELS.  On the add event, check to see if the 
 // label that was added is a child of the selected label.  If it is, expand that
 // labelTreeBranch...

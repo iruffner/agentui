@@ -4,7 +4,7 @@ import m3.jq.JQ;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 import m3.exception.Exception;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.log.Logga;
 
 using m3.helper.ArrayHelper;

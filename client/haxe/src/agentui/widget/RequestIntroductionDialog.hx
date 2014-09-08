@@ -3,9 +3,11 @@ package agentui.widget;
 import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
 import m3.exception.Exception;
+import qoid.Qoid;
+
 using m3.helper.StringHelper;
 
 typedef RequestIntroductionDialogOptions = {
@@ -94,7 +96,7 @@ extern class RequestIntroductionDialog extends JQ {
  	  		        				.appendTo(divTa1)
  	  		        				.attr("id", "from_text")
  	  		        				.keyup(from_text_changed)
- 	  		        				.val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + AppContext.currentAlias.profile.name);
+ 	  		        				.val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + Qoid.currentAlias.profile.name);
 
 		        	var divTa2:JQ = new JQ("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
 					var to_text: JQ = new JQ("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>")
@@ -121,7 +123,7 @@ extern class RequestIntroductionDialog extends JQ {
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
 					// Build out the introduction request message
-					var alias:String = AppContext.currentAlias.profile.name;
+					var alias:String = Qoid.currentAlias.profile.name;
 					var intro: IntroductionRequest = new IntroductionRequest();
 					intro.aConnectionIid = self.options.to.iid;
 					intro.bConnectionIid = self.options.from.iid;

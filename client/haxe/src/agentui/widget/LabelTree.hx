@@ -2,10 +2,11 @@ package agentui.widget;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
 import agentui.widget.LabelComp;
 import m3.exception.Exception;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 
@@ -47,8 +48,8 @@ extern class LabelTree extends JQ {
 
 		        	selfElement.addClass("labelTree boxsizingBorder " + Widgets.getWidgetClasses());
 
-    				if (AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid) == null) {
-	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
+    				if (Qoid.groupedLabelChildren.delegate().get(self.options.parentIid) == null) {
+	        			Qoid.groupedLabelChildren.addEmptyGroup(self.options.parentIid);
     				}
 
 			        self.onchangeLabelChildren = function(labelTreeBranch: LabelTreeBranch, evt: EventType): Void {
@@ -61,7 +62,7 @@ extern class LabelTree extends JQ {
 	            		}
 	            	};
 
-            		self.mappedLabels = new MappedSet<LabelChild, LabelTreeBranch>(AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.parentIid), 
+            		self.mappedLabels = new MappedSet<LabelChild, LabelTreeBranch>(Qoid.groupedLabelChildren.delegate().get(self.options.parentIid), 
 		        		function(labelChild: LabelChild): LabelTreeBranch {
 		        			var labelPath = self.options.labelPath.copy();
 		        			labelPath.push(labelChild.childIid);

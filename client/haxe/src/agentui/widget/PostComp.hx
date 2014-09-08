@@ -8,7 +8,7 @@ import m3.jq.JQDraggable;
 import m3.widget.Widgets;
 import agentui.widget.UploadComp;
 import agentui.model.EM;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
 import m3.util.UidGenerator;
 import m3.util.JqueryUtil;

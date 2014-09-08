@@ -2,7 +2,7 @@ package agentui.model;
 
 import m3.exception.Exception;
 import m3.observable.OSet;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;

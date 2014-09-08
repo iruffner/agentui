@@ -4,13 +4,14 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.M3Menu;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
 import agentui.widget.LabelComp;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import agentui.model.EM;
 import agentui.widget.DialogManager;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 
@@ -68,13 +69,13 @@ extern class ContentComp extends JQ {
         			var vdata = new Array<VerifierData>();
 					var vs = self.options.content.metaData.verifications;
 					for (v in vs) {
-						var p = AppContext.PROFILES.getElementComplex(v.verifierId, "sharedId");
-						var msg:MessageContent = cast(AppContext.VERIFICATION_CONTENT.getElement(v.verificationIid));
+						var p = Qoid.profiles.getElementComplex(v.verifierId, "sharedId");
+						var msg:MessageContent = cast(Qoid.verificationContent.getElement(v.verificationIid));
 						var text = msg == null ? "Unable to retrieve verification content." : msg.props.text;
 						vdata.push({profile:p, message:text});
 					}
 
-					// TODO:  set up a listener for VERIFICATION_CONTENT
+					// TODO:  set up a listener for verificationContent
 
 					// Create a popup to show the verification information
         			var popup: Popup = new Popup("<div style='position: absolute;width:300px;'></div>");
@@ -176,10 +177,10 @@ extern class ContentComp extends JQ {
 
 		        	var aliasIid = null;
 		        	var connectionIid = null;
-		        	if (AppContext.ALIASES.delegate().get(self.options.content.aliasIid) != null) {
+		        	if (Qoid.aliases.delegate().get(self.options.content.aliasIid) != null) {
 		        		aliasIid = self.options.content.aliasIid;
 		        	} else {
-		        		if (AppContext.CONNECTIONS.delegate().get(self.options.content.connectionIid) != null) {
+		        		if (Qoid.connections.delegate().get(self.options.content.connectionIid) != null) {
 		        			connectionIid = self.options.content.connectionIid;
 		        		}
 		        	}
@@ -193,8 +194,8 @@ extern class ContentComp extends JQ {
 		        	var postLabels = new JQ("<aside class='postLabels'></div>").appendTo(postWr);
 		        	var postConnections: JQ = new JQ("<aside class='postConnections'></aside>").appendTo(postWr);
 
-		        	if (AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) {
-		        		AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
+		        	if (Qoid.groupedLabeledContent.delegate().get(self.options.content.iid) == null) {
+		        		Qoid.groupedLabeledContent.addEmptyGroup(self.options.content.iid);
 		        	}
 		        	self.onchangeLabelChildren = function(ele: JQ, evt: EventType): Void {
 	            		if(evt.isAdd()) {
@@ -210,9 +211,9 @@ extern class ContentComp extends JQ {
 	            		}
 	            	};
 
-            		self.mappedLabels = new MappedSet<LabeledContent, JQ>(AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid), 
+            		self.mappedLabels = new MappedSet<LabeledContent, JQ>(Qoid.groupedLabeledContent.delegate().get(self.options.content.iid), 
 		        		function(lc: LabeledContent): JQ {
-		        			var connection = AppContext.connectionFromMetaLabel(lc.labelIid);
+		        			var connection = Qoid.connectionFromMetaLabel(lc.labelIid);
 		        			if (connection != null) {
 		        				return new ConnectionAvatar("<div></div>").connectionAvatar({
 			        				dndEnabled: false,

@@ -4,10 +4,11 @@ import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.jq.PlaceHolderUtil;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
+import qoid.Qoid;
 
 using m3.helper.StringHelper;
 
@@ -131,7 +132,7 @@ extern class LoginDialog extends JQ {
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {
-		        			if(AppContext.UBER_ALIAS_ID == null) {
+		        			if (Qoid.currentAlias == null) {
 		        				JqueryUtil.alert("A valid login is required to use the app");
 		        				return false;
 		        			}

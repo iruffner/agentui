@@ -8,13 +8,14 @@ import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.observable.OSet;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
 import agentui.widget.UploadComp;
 import agentui.widget.ConnectionAvatar;
 import m3.util.M;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -111,8 +112,8 @@ extern class AliasComp extends JQ {
 			                		dragstopUi.helper.remove();
 			                		selfElement.removeClass("targetChange");
 			                		JqueryUtil.deleteEffects(dragstopEvt);
-			                		AppContext.TARGET = null;
-			                		self._setAlias(AppContext.currentAlias);
+			                		// TODO: AppContext.TARGET = null;
+			                		self._setAlias(Qoid.currentAlias);
 			                	}
 			                };
 
@@ -137,7 +138,7 @@ extern class AliasComp extends JQ {
 		        	};
 
 			       	self._onupdateProfile = function(p:Profile, t:EventType): Void {
-			       		var alias = AppContext.ALIASES.getElement(p.aliasIid);
+			       		var alias = Qoid.aliases.getElement(p.aliasIid);
 						self._updateAliasWidgets(alias);
 			       	};
 		        },
@@ -154,7 +155,7 @@ extern class AliasComp extends JQ {
 
 					var menuOption: MenuOption;
 
-					var aliases = new SortedSet<Alias>(AppContext.ALIASES, function(a:Alias):String {
+					var aliases = new SortedSet<Alias>(Qoid.aliases, function(a:Alias):String {
 						return a.profile.name.toLowerCase();
 					});
 
@@ -163,10 +164,10 @@ extern class AliasComp extends JQ {
 							label: alias.profile.name,
 							icon: "ui-icon-person",
 							action: function(evt: JQEvent, m: M3Menu): Void {
-								if (Alias.identifier(AppContext.currentAlias) == Alias.identifier(alias)) {
+								if (Alias.identifier(Qoid.currentAlias) == Alias.identifier(alias)) {
 									menu.hide();
 								} else {
-    								AppContext.currentAlias = alias;
+    								Qoid.currentAlias = alias;
     								EM.change(EMEvent.AliasLoaded, alias);
     							}
 							}
@@ -212,7 +213,7 @@ extern class AliasComp extends JQ {
 	        			self.aliasSet.removeListener(self._onupdate);
 	        		}
 		        
-		        	self.aliasSet = new FilteredSet<Alias>(AppContext.ALIASES, function(a:Alias):Bool {
+		        	self.aliasSet = new FilteredSet<Alias>(Qoid.aliases, function(a:Alias):Bool {
 		        		return a.iid == alias.iid;
 		        	});
 					self.aliasSet.listen(self._onupdate);
@@ -222,7 +223,7 @@ extern class AliasComp extends JQ {
 	        			self.profileSet.removeListener(self._onupdateProfile);
 	        		}
 
-		        	self.profileSet = new FilteredSet<Profile>(AppContext.PROFILES, function(p:Profile):Bool {
+		        	self.profileSet = new FilteredSet<Profile>(Qoid.profiles, function(p:Profile):Bool {
 		        		return p.aliasIid == alias.iid;
 		        	});
 					self.profileSet.listen(self._onupdateProfile);
@@ -233,7 +234,7 @@ extern class AliasComp extends JQ {
 		        	self.switchAliasLink.hide();
 	        		self.userIdTxt.html(conn.data.name);
 
-		        	AppContext.TARGET = conn;
+		        	//TODO:  Qoid.TARGET = conn;
 	        		EM.change(EMEvent.TargetChange, conn);
         		},
 

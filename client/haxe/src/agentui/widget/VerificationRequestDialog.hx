@@ -5,10 +5,11 @@ import js.html.Element;
 import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
 import m3.exception.Exception;
 using m3.helper.StringHelper;
+import qoid.Qoid;
 
 typedef VerificationRequestDialogOptions = {
 	@:optional var content:Content<Dynamic>;
@@ -54,7 +55,7 @@ extern class VerificationRequestDialog extends JQ {
 		        	var connectionContainer = new JQ("<div class='container' style='width:450px;height:135px;overflow:auto;'></div>");
 		        	uberDiv.append(connectionContainer);
 
-		        	for (conn in AppContext.GROUPED_CONNECTIONS.delegate().get(AppContext.currentAlias.iid)) {
+		        	for (conn in Qoid.groupedConnections.delegate().get(Qoid.currentAlias.iid)) {
 		        		var div = new JQ("<div></div>");
 		        		div.append("<input type='checkbox' class='conn_cb' id='cb_" + conn.iid + "'/>");
 						self._appendConnectionAvatar(conn, div);

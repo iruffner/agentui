@@ -5,10 +5,11 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.widget.DialogManager;
 import m3.observable.OSet;
 import m3.exception.Exception;
+import qoid.Qoid;
 
 using agentui.widget.ConnectionAvatar;
 using m3.helper.StringHelper;
@@ -90,7 +91,7 @@ extern class ConnectionComp extends JQ {
 		        		} 
 		        	});
 
-	        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.CONNECTIONS,function(c:Connection):Bool{
+	        		self.filteredSetConnection = new FilteredSet<Connection>(Qoid.connections,function(c:Connection):Bool{
 	        			return c.iid == self.options.connection.iid;
 	        		});
 	        		self._onUpdateConnection = function(c:Connection, evt:EventType) {
@@ -132,7 +133,7 @@ extern class ConnectionComp extends JQ {
 				      		if (!dropper.equals(droppee)) {
 				      			var intro:Introduction = null;
 				      			// Check to see if there is already an introduction in progress
-				      			for (i in AppContext.INTRODUCTIONS) {
+				      			for (i in Qoid.introductions) {
 				      				if ((i.aConnectionIid == dropper.iid && i.bConnectionIid == droppee.iid) ||
 				      					(i.bConnectionIid == dropper.iid && i.aConnectionIid == droppee.iid)) {
 				      					intro = i;
@@ -154,7 +155,7 @@ extern class ConnectionComp extends JQ {
 			    	});
 
 			    	// Set up a listener to notification changes
-			    	self.notifications = new FilteredSet<Notification<Dynamic>>(AppContext.NOTIFICATIONS, function(n:Notification<Dynamic>):Bool {
+			    	self.notifications = new FilteredSet<Notification<Dynamic>>(Qoid.notifications, function(n:Notification<Dynamic>):Bool {
                 		return (n.fromConnectionIid == self.options.connection.iid);
                 	});
                 	self.notifications.listen(function(i:Notification<Dynamic>, evt:EventType):Void{

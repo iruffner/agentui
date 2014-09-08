@@ -2,9 +2,10 @@ package agentui.model;
 
 import m3.observable.OSet;
 import agentui.model.EM;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.Filter;
 import m3.serialization.Serialization;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 
@@ -71,7 +72,7 @@ class ContentSource {
 			filteredContent.addOrUpdate(c);
 
 			for (v in c.metaData.verifications) {
-				var p = AppContext.PROFILES.getElementComplex(v.verifierId, "sharedId");
+				var p = Qoid.profiles.getElementComplex(v.verifierId, "sharedId");
 				if (connectionIids.indexOf(p.connectionIid) == -1) {
 					connectionIids.push(p.connectionIid);
 				}
@@ -80,7 +81,7 @@ class ContentSource {
 			}
 		}
 
-		AgentUi.PROTOCOL.getVerificationContent(connectionIids, iids);
+		qoid.QoidAPI.getVerificationContent(connectionIids, iids);
 	}
 
 	private static function onLoadFilteredContent(data:Dynamic): Void {
@@ -96,7 +97,8 @@ class ContentSource {
 
     public static function clearQuery() {
 		if (handle != null) {
-			AgentUi.PROTOCOL.deregisterSqueries([handle]);
+			// TODO:  call cancelQuery
+			//qoid.QoidAPI.cancelQuery(handle);
 			filteredContent.clear();
 			handle = null;
 		}

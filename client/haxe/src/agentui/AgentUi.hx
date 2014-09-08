@@ -7,9 +7,9 @@ import m3.log.Logga;
 import m3.log.LogLevel;
 import m3.serialization.Serialization;
 
-import agentui.api.ProtocolHandler;
 import agentui.widget.*;
 import agentui.widget.score.ScoreComp;
+import agentui.api.EventDelegate;
 
 using m3.helper.ArrayHelper;
 using agentui.widget.ConnectionsList;
@@ -17,14 +17,10 @@ using Lambda;
 
 @:expose
 class AgentUi {
-    
-    public static var PROTOCOL: ProtocolHandler;
+
     public static var HOT_KEY_ACTIONS: Array<JQEvent->Void>;
 
 	public static function main() {
-        AppContext.init();
-
-        PROTOCOL = new ProtocolHandler();
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
     }
 

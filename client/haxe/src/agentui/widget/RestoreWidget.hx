@@ -4,7 +4,7 @@ import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.jq.M3Dialog;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
 
 using m3.helper.StringHelper;

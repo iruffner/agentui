@@ -1,6 +1,6 @@
 package agentui.widget;
 
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.jq.JQ;
 import agentui.widget.AliasManagerDialog;
 import agentui.widget.LoginDialog;

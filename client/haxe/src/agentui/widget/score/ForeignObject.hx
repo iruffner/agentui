@@ -1,5 +1,5 @@
 package agentui.widget.score;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import js.d3.D3;
 import js.html.*;
 

@@ -2,11 +2,11 @@ package agentui.widget;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
 import m3.observable.OSet;
 import m3.exception.Exception;
-
+import qoid.Qoid;
 import agentui.widget.LabelComp;
 using agentui.widget.LabelComp;
 using agentui.widget.LabelsList;
@@ -77,11 +77,11 @@ extern class LabelTreeBranch extends JQ {
 	            	);
 
 		            // Create the children
-		            if (AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid) == null) {
-	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.labelIid);
+		            if (Qoid.groupedLabelChildren.delegate().get(self.options.labelIid) == null) {
+	        			Qoid.groupedLabelChildren.addEmptyGroup(self.options.labelIid);
     				}
 
-		            self.children = AppContext.GROUPED_LABELCHILDREN.delegate().get(self.options.labelIid);
+		            self.children = Qoid.groupedLabelChildren.delegate().get(self.options.labelIid);
 
 		            var labelChildren: LabelTree = new LabelTree("<div class='labelChildren' style='display: none;'></div>");
 		            labelChildren.labelTree({

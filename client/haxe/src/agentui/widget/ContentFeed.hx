@@ -6,7 +6,7 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import agentui.model.EM;
 import agentui.model.ContentSource;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
 import agentui.widget.LabelComp;
 import m3.exception.Exception;

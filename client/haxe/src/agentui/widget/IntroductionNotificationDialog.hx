@@ -4,10 +4,11 @@ import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.jq.PlaceHolderUtil;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
 import agentui.api.CrudMessage;
 import m3.exception.Exception;
+import qoid.Qoid;
 
 using m3.helper.StringHelper;
 using m3.helper.OSetHelper;
@@ -48,7 +49,7 @@ extern class IntroductionNotificationDialog extends JQ {
 		        	}
 		        	selfElement.addClass("introductionNotificationComp notification-ui container boxsizingBorder");
 
-		        	var conn: Connection = AppContext.CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
+		        	var conn: Connection = Qoid.connections.getElement(self.options.notification.fromConnectionIid);
 
 		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 

@@ -7,10 +7,11 @@ import m3.jq.JQDialog;
 import m3.jq.JQDraggable;
 import m3.jq.PlaceHolderUtil;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
+import qoid.Qoid;
 
 using m3.helper.StringHelper;
 using m3.helper.OSetHelper;
@@ -52,9 +53,9 @@ extern class RevokeAccessDialog extends JQ {
 		        	var self: RevokeAccessDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-					var lacls = AppContext.GROUPED_LABELACLS.delegate().get(self.options.connection.iid);
+					var lacls = Qoid.groupedLabelAcls.delegate().get(self.options.connection.iid);
 					if (lacls == null) {
-						lacls = AppContext.GROUPED_LABELACLS.addEmptyGroup(self.options.connection.iid);
+						lacls = Qoid.groupedLabelAcls.addEmptyGroup(self.options.connection.iid);
 					}
 
 					selfElement.append("<div style='margin-bottom:4px;'>To revoke access, check the label.</div>");
@@ -97,7 +98,7 @@ extern class RevokeAccessDialog extends JQ {
 							var cb = new JQ(ele);
 							if (cb.prop("checked") == true) {
 								var id = cb.attr("id").split("-")[1]; 
-								se.push(AppContext.LABELACLS.getElement(id));
+								se.push(Qoid.labelAcls.getElement(id));
 							}
 						}
 					);

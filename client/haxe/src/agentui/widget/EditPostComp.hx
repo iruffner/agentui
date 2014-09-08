@@ -8,11 +8,12 @@ import m3.jq.JQDraggable;
 import m3.widget.Widgets;
 import agentui.widget.UploadComp;
 import agentui.model.EM;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
 import m3.util.UidGenerator;
 import m3.util.JqueryUtil;
 import m3.exception.Exception;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using agentui.widget.UrlComp;
@@ -95,8 +96,8 @@ extern class EditPostComp extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 		        	var edit_post_comps_tags: JQ = new JQ("#edit_post_comps_tags", selfElement);
 
-		        	if (AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid) == null) {
-		        		AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self.options.content.iid);
+		        	if (Qoid.groupedLabeledContent.delegate().get(self.options.content.iid) == null) {
+		        		Qoid.groupedLabeledContent.addEmptyGroup(self.options.content.iid);
 		        	}
 
 		        	self.onchangeLabelChildren = function(jq: JQ, evt: EventType): Void {
@@ -109,9 +110,9 @@ extern class EditPostComp extends JQ {
 	            		}
 	            	};
 
-            		self.mappedLabels = new MappedSet<LabeledContent, JQ>(AppContext.GROUPED_LABELEDCONTENT.delegate().get(self.options.content.iid), 
+            		self.mappedLabels = new MappedSet<LabeledContent, JQ>(Qoid.groupedLabeledContent.delegate().get(self.options.content.iid), 
 		        		function(lc: LabeledContent): JQ {
-		        			var connection = AppContext.connectionFromMetaLabel(lc.labelIid);
+		        			var connection = Qoid.connectionFromMetaLabel(lc.labelIid);
 		        			if (connection != null) {
 				        		var ca = new ConnectionAvatar("<div></div>").connectionAvatar({
 				        				connectionIid: connection.iid,

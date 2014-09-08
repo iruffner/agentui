@@ -7,7 +7,7 @@ import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
 import m3.util.UidGenerator;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.Node;
 import m3.observable.OSet;
 import m3.exception.Exception;

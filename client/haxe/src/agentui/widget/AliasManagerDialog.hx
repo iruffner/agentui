@@ -6,8 +6,9 @@ import m3.jq.JQ;
 import m3.widget.Widgets;
 import m3.observable.OSet;
 import m3.util.M;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
+import qoid.Qoid;
 
 using m3.jq.M3Dialog;
 using agentui.widget.UploadComp;
@@ -68,7 +69,7 @@ extern class AliasManagerDialog extends JQ {
 		        	self.rightDiv.append("<h2>Aliases</h2>");
 		        	var alii_div = new JQ("<div class='alii'><div>").appendTo(self.rightDiv);
 		        	
- 	  				self.aliasMap = new MappedSet<Alias, JQ>(AppContext.ALIASES, function(a: Alias):JQ {
+ 	  				self.aliasMap = new MappedSet<Alias, JQ>(Qoid.aliases, function(a: Alias):JQ {
         				return new JQ("<div class='clickable alias_link' id='a_" + a.iid + "'></div>")
         					.appendTo(alii_div)
         					.click(function(evt: JQEvent) {
@@ -92,7 +93,7 @@ extern class AliasManagerDialog extends JQ {
 		        			})
 		        		.appendTo(self.rightDiv);
 
-		        	self._showAliasDetail(AppContext.currentAlias);
+		        	self._showAliasDetail(Qoid.currentAlias);
 		        },
 
 		        _onAliasDeleted: function(alias:Alias, w:JQ) {
@@ -112,7 +113,7 @@ extern class AliasManagerDialog extends JQ {
 		        		.appendTo(self.leftDiv)
 		        		.button()
 		        		.click( function(evt: JQEvent): Void {
-	        				AppContext.currentAlias = alias;
+	        				Qoid.currentAlias = alias;
 							EM.change(EMEvent.AliasLoaded, alias);
 	        				selfElement.close();
 	        			});
@@ -223,7 +224,7 @@ extern class AliasManagerDialog extends JQ {
 		        						alias = new Alias();
 				        				alias.profile.name = name;
 				        				alias.profile.imgSrc = profilePic;
-				        				alias.rootLabelIid = AppContext.ROOT_LABEL_ID;
+				        				alias.rootLabelIid = Qoid.currentAlias.rootLabelIid;
 		        						function() {
 					        				EM.listenOnce(EMEvent.AliasCreated, function(alias:Alias) {
 						        				Timer.delay(function() {

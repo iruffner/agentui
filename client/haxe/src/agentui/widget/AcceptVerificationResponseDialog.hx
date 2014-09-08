@@ -7,8 +7,9 @@ import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.widget.Widgets;
 
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.EM;
+import qoid.Qoid;
 
 using agentui.widget.ConnectionAvatar;
 using m3.helper.OSetHelper;
@@ -55,7 +56,7 @@ extern class AcceptVerificationResponseDialog extends JQ {
 		        	}
 		        	selfElement.addClass("acceptVerificationResponseDialog notification-ui container boxsizingBorder");
 
-		        	var conn: Connection = AppContext.CONNECTIONS.getElement(self.options.notification.fromConnectionIid);
+		        	var conn: Connection = Qoid.connections.getElement(self.options.notification.fromConnectionIid);
 
 		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 

@@ -4,11 +4,12 @@ import haxe.ds.StringMap;
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import agentui.model.ContentSource;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
 import m3.exception.Exception;
 import snap.Snap;
 import m3.log.Logga;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -55,11 +56,11 @@ extern class ScoreComp extends JQ {
 				},
 
 				_getProfile:function(content:Content<Dynamic>):Profile {
-		            var alias = AppContext.ALIASES.getElement(content.aliasIid);
+		            var alias = Qoid.aliases.getElement(content.aliasIid);
 		            if (alias != null) {
 		            	return alias.profile;
 		            }
-		            var connection = AppContext.CONNECTIONS.getElement(content.connectionIid);
+		            var connection = Qoid.connections.getElement(content.connectionIid);
 		            if (connection != null) {
 		            	return connection.data;
 		            }

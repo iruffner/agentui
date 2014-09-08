@@ -10,8 +10,9 @@ import m3.jq.JQTooltip;
 import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
+import qoid.Qoid;
 
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.Node;
 import agentui.model.Filter;
 import agentui.model.EM;
@@ -133,7 +134,7 @@ extern class FilterComp extends JQ {
 		        	var filterables: JQ = selfElement.children(".filterable");
 
 		        	if (filterables.length == 0) {
-						EM.change(EMEvent.AliasLoaded, AppContext.currentAlias);
+						EM.change(EMEvent.AliasLoaded, Qoid.currentAlias);
 		        	} else {
 			        	filterables.each(function (idx: Int, el: Element): Void {
 			        		var jqEle = new JQ(el);

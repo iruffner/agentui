@@ -7,9 +7,10 @@ import m3.jq.M3Menu;
 import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
+import qoid.Qoid;
 
 import agentui.model.EM;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.widget.DialogManager;
 
 using agentui.widget.ConnectionComp;
@@ -125,9 +126,9 @@ extern class ConnectionsList extends JQ {
 	            	};
 
 	            	EM.addListener(EMEvent.AliasLoaded,function(a:Alias){
-			        	var connections = AppContext.GROUPED_CONNECTIONS.delegate().get(a.iid);
+			        	var connections = Qoid.groupedConnections.delegate().get(a.iid);
 	        			if (connections == null) {
-	        				connections = AppContext.GROUPED_CONNECTIONS.addEmptyGroup(a.iid);
+	        				connections = Qoid.groupedConnections.addEmptyGroup(a.iid);
 	        			}
 			            self._setConnections(connections);
 	            	});

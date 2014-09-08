@@ -4,13 +4,14 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import agentui.model.Node;
 import m3.observable.OSet;
 import agentui.widget.FilterableComponent;
 import m3.exception.Exception;
 import m3.util.UidGenerator;
 import m3.log.Logga;
+import qoid.Qoid;
 
 import agentui.model.EM;
 using agentui.widget.LabelComp;
@@ -92,7 +93,7 @@ extern class LabelComp extends FilterableComponent {
 		        	var self: LabelCompWidgetDef = Widgets.getSelf();
 		        	var ret = new Array<String>();
 		        	for (iid in self.options.labelPath) {
-		        		var label = AppContext.LABELS.getElement(iid);
+		        		var label = Qoid.labels.getElement(iid);
 		        		ret.push(label.name);
 		        	}
 		        	return ret;
@@ -114,7 +115,7 @@ extern class LabelComp extends FilterableComponent {
 				        }
 		        	};
 		        
-		        	self.filteredSet = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
+		        	self.filteredSet = new FilteredSet<Label>(Qoid.labels, function(label:Label):Bool {
 		        		return label.iid == self.options.labelIid;
 		        	});
 					self.filteredSet.listen(self._onupdate);
@@ -127,11 +128,11 @@ extern class LabelComp extends FilterableComponent {
 		        		throw new Exception("Root of LabelComp must be a div element");
 		        	}
 
-		        	self.label = AppContext.LABELS.getElement(self.options.labelIid);
+		        	self.label = Qoid.labels.getElement(self.options.labelIid);
 		        	if (self.label == null) {
 		        		self.label = new Label("-->*<--");
 		        		self.label.iid = self.options.labelIid;
-		        		AppContext.LABELS.add(self.label);
+		        		Qoid.labels.add(self.label);
 		        	}
 
 		        	selfElement.addClass("label labelComp ").attr("id", self.label.name.htmlEscape() + "_" + UidGenerator.create(8));

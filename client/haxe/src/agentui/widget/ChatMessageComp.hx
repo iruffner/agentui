@@ -2,7 +2,7 @@ package agentui.widget;
 
 import m3.jq.JQ;
 import m3.widget.Widgets;
-import agentui.model.ModelObj;
+import qoid.model.ModelObj;
 import m3.observable.OSet;
 import agentui.widget.LabelComp;
 import m3.exception.Exception;
