@@ -6,12 +6,14 @@ import m3.log.LogLevel;
 import m3.serialization.Serialization;
 import m3.util.HotKeyManager;
 
+import pagent.api.EventDelegate;
 import pagent.PinterContext;
-import pagent.api.ProtocolHandler;
 import pagent.pages.PinterPageMgr;
 import pagent.model.EM;
 import pagent.widget.DialogManager;
+import pagent.model.PinterModel;
 import qoid.model.ModelObj;
+import qoid.QE;
 
 using m3.helper.ArrayHelper;
 using Lambda;
@@ -19,13 +21,16 @@ using Lambda;
 @:expose
 class PinterAgent {
     
-    public static var PROTOCOL: ProtocolHandler;
     public static var HOT_KEY_ACTIONS: HotKeyManager;
 
 	public static function main() {
+        EventDelegate.init();
         PinterContext.init();
 
-        PROTOCOL = new ProtocolHandler();
+        EM.addListener(QE.onAliasLoaded, function(a:Alias){
+            js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
+        });
+
         HOT_KEY_ACTIONS = HotKeyManager.get;
     }
 
@@ -47,8 +52,8 @@ class PinterAgent {
         document.bind("pageshow", PinterContext.PAGE_MGR.pageShow);
         document.bind("pagehide", PinterContext.PAGE_MGR.pageHide);
         
-        // PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.HOME_SCREEN;
-        PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.SOCIAL_SCREEN;
+        PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.HOME_SCREEN;
+        // PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.SOCIAL_SCREEN;
         // EM.change(EMEvent.APP_INITIALIZED);
 
         new JQ("body").click(function(evt: JQEvent): Void {
@@ -127,28 +132,28 @@ class PinterContentHandler implements TypeHandler {
 
         try {
             switch ( fromJson.contentType ) {
-                case ContentType.AUDIO:
-                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, AudioContent);
-                case ContentType.IMAGE:
-                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, ImageContent);
-                case ContentType.URL:
-                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, UrlContent);
-                case ContentType.VERIFICATION:
-                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, VerificationContent);
-                case ContentType.TEXT:
-                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
-                case ContentType.CONFIG:
-                    obj = AppContext.SERIALIZER.fromJsonX(fromJson, ConfigContent);
+                case ContentTypes.AUDIO:
+                    obj = Serializer.instance.fromJsonX(fromJson, AudioContent);
+                case ContentTypes.IMAGE:
+                    obj = Serializer.instance.fromJsonX(fromJson, ImageContent);
+                case ContentTypes.TEXT:
+                    obj = Serializer.instance.fromJsonX(fromJson, MessageContent);
+                case ContentTypes.URL:
+                    obj = Serializer.instance.fromJsonX(fromJson, UrlContent);
+                case ContentTypes.VERIFICATION:
+                    obj = Serializer.instance.fromJsonX(fromJson, VerificationContent);
+                case "ContentType.CONFIG":
+                    obj = Serializer.instance.fromJsonX(fromJson, ConfigContent);
             }
         } catch (err: Dynamic) {
-            fromJson.contentType = ContentType.TEXT;
-            obj = AppContext.SERIALIZER.fromJsonX(fromJson, MessageContent);
+            fromJson.contentType = "TEXT";
+            obj = Serializer.instance.fromJsonX(fromJson, MessageContent);
         }
 
         return obj;
     }
 
     public function write(value: Dynamic, writer: JsonWriter): Dynamic {
-        return AppContext.SERIALIZER.toJson(value);
+        return Serializer.instance.toJson(value);
     }
 }

@@ -5,16 +5,15 @@ import pagent.model.ContentSource;
 import haxe.Json;
 import m3.jq.JQ;
 
-import pagent.AppContext;
 import pagent.widget.BoardDetails;
 import pagent.widget.PinFeed;
 import pagent.model.EM;
 import m3.observable.OSet.EventType;
 import m3.observable.OSet.FilteredSet;
-import qoid.model.Filter;
+import agentui.model.Filter;
+import agentui.model.Node;
 import qoid.model.ModelObj;
-import qoid.model.ModelObj;
-import qoid.model.Node;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using pagent.widget.MediaComp;
@@ -43,7 +42,7 @@ class ContentScreen extends PinterPage {
 
 		var contentId: String = PinterContext.CURRENT_MEDIA;
 
-		labelSet = new FilteredSet(AppContext.LABELS, function(l: Label) {
+		labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
 				return l.iid == PinterContext.CURRENT_BOARD;
 			});
 		

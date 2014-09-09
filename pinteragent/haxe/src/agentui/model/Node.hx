@@ -1,4 +1,4 @@
-package qoid.model;
+package agentui.model;
 
 import qoid.model.ModelObj;
 import m3.exception.Exception;

@@ -1,7 +1,6 @@
 package pagent.widget;
 
 import pagent.PinterContext;
-import pagent.AppContext;
 import pagent.model.EM;
 import m3.jq.JQ;
 import m3.jq.M3Menu;
@@ -11,11 +10,12 @@ import m3.widget.Widgets;
 import m3.exception.Exception;
 
 import qoid.model.ModelObj;
-import qoid.widget.Popup;
+import agentui.widget.Popup;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using qoid.widget.UploadComp;
+using agentui.widget.UploadComp;
 using pagent.widget.ConnectionAvatar;
 
 typedef BoardListOptions = {
@@ -65,8 +65,8 @@ extern class BoardList extends JQ {
 		        	// 			evt.stopPropagation();
 			        // 			self._showNewLabelPopup(JQ.cur);
 		        	// 		});
-					if (AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {
-	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(PinterContext.ROOT_BOARD.iid);
+					if (Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {
+	        			Qoid.groupedLabelChildren.addEmptyGroup(PinterContext.ROOT_BOARD.iid);
     				}
 
 			        self.onchangeLabelChildren = function(BoardComp: BoardComp, evt: EventType): Void {
@@ -79,10 +79,10 @@ extern class BoardList extends JQ {
 	            		}
 	            	};
 
-            		self.mappedLabels = new MappedSet<LabelChild, BoardComp>(AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_BOARD.iid), 
+            		self.mappedLabels = new MappedSet<LabelChild, BoardComp>(Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid), 
 		        		function(labelChild: LabelChild): BoardComp {
 		        			return new BoardComp("<div></div>").boardComp({
-		        				board: AppContext.LABELS.getElementComplex(labelChild.childIid)
+		        				board: Qoid.labels.getElementComplex(labelChild.childIid)
 		        			});
 	        		});
 		        	self.mappedLabels.visualId = "root_map";
@@ -143,7 +143,7 @@ extern class BoardList extends JQ {
 
 		        destroy: function() {
 		        	var self: BoardListWidgetDef = Widgets.getSelf();
-		        	EM.removeListener(EMEvent.AliasLoaded, self.listenerId);
+		        	// EM.removeListener(QE.onAliasLoaded, self.listenerId);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

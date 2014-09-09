@@ -177,6 +177,14 @@ class Connection extends ModelObjWithIid {
 
 typedef ContentType = String;
 
+class ContentTypes {
+	public static var AUDIO: ContentType = "AUDIO";
+	public static var IMAGE: ContentType = "IMAGE";
+	public static var TEXT: ContentType = "TEXT";
+	public static var URL: ContentType = "URL";
+	public static var VERIFICATION: ContentType = "VERIFICATION";
+}
+
 class ContentHandler implements TypeHandler {
 	
     public function new() {
@@ -186,15 +194,15 @@ class ContentHandler implements TypeHandler {
         var obj: Content<Dynamic> = null;
 
         switch (fromJson.contentType) {
-        	case "AUDIO":
+        	case ContentTypes.AUDIO:
         		obj = Serializer.instance.fromJsonX(fromJson, AudioContent);
-        	case "IMAGE":
+        	case ContentTypes.IMAGE:
         		obj = Serializer.instance.fromJsonX(fromJson, ImageContent);
-        	case "TEXT":
+        	case ContentTypes.TEXT:
         		obj = Serializer.instance.fromJsonX(fromJson, MessageContent);
-        	case "URL":
+        	case ContentTypes.URL:
         		obj = Serializer.instance.fromJsonX(fromJson, UrlContent);
-        	case "VERIFICATION":
+        	case ContentTypes.VERIFICATION:
         		obj = Serializer.instance.fromJsonX(fromJson, VerificationContent);
         }
 

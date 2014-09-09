@@ -1,20 +1,24 @@
 package pagent;
 
-import m3.observable.OSet.ObservableSet;
+import m3.observable.OSet;
 
-import pagent.AppContext;
 import pagent.pages.PinterPageMgr;
 import pagent.model.EM;
 
-import qoid.model.Filter;
+import agentui.model.Filter;
+import agentui.model.Node;
 import qoid.model.ModelObj;
-import qoid.model.Node;
+import pagent.model.PinterModel;
+import qoid.Qoid;
+import qoid.QE;
 
 using m3.helper.OSetHelper;
 
 class PinterContext {
 	public static var PAGE_MGR: PinterPageMgr;
     public static var APP_INITIALIZED: Bool = false;
+
+    public static var LABELACLS_ByLabel: GroupedSet<LabelAcl>;
 
     public static var CURRENT_BOARD: String;
     public static var CURRENT_MEDIA: String;
@@ -31,8 +35,14 @@ class PinterContext {
 
     public static function init() {
         PAGE_MGR = PinterPageMgr.get;
+
+        registerListeners();
     	
-        AppContext.init();
+        // AppContext.init();
+
+        LABELACLS_ByLabel = new GroupedSet<LabelAcl>(Qoid.labelAcls, function(l:LabelAcl):String {
+            return l.labelIid;
+        });
 
         BOARD_CONFIGS = new ObservableSet<ConfigContent>(ModelObjWithIid.identifier);
 
@@ -57,7 +67,7 @@ class PinterContext {
         var root: Node = new Or();
         root.type = "ROOT";
         var path = new Array<String>();
-        path.push(AppContext.LABELS.getElement(AppContext.currentAlias.rootLabelIid).name);
+        path.push(Qoid.labels.getElement(Qoid.currentAlias.labelIid).name);
         path.push(PinterContext.ROOT_LABEL_OF_ALL_APPS.name);
         path.push(PinterContext.ROOT_BOARD.name);
         root.addNode(new LabelNode(l, path));
@@ -66,7 +76,7 @@ class PinterContext {
         filterData.filter = new Filter(root);
         filterData.filter.q = filterData.filter.q + " and contentType = '" + APP_ROOT_LABEL_NAME + ".config'";
         filterData.connectionIids = [];
-        filterData.aliasIid       = AppContext.currentAlias.iid;
+        filterData.aliasIid       = Qoid.currentAlias.iid;
 
         EM.change(EMEvent.FILTER_RUN, filterData);
 
@@ -80,5 +90,71 @@ class PinterContext {
     static function set_ROOT_LABEL_OF_ALL_APPS(l: Label): Label {
         ROOT_LABEL_OF_ALL_APPS = l;
         return l;
+    }
+
+    static function registerListeners(): Void {
+        EM.listenOnce(QE.onInitialDataload, _onInitialDataLoadComplete, "PinterContext-onInitialDataLoad");
+    }
+
+    static function _onInitialDataLoadComplete(n: {}) {
+        var rootLabelOfThisApp: Label = Qoid.labels.getElementComplex(PinterContext.APP_ROOT_LABEL_NAME, function(l: Label) {
+                return l.name;
+            });
+
+        var rootLabelOfAllApps: Label = Qoid.labels.getElementComplex(PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS, function(l: Label) {
+            return l.name;
+        });
+
+        if(rootLabelOfThisApp == null) {
+
+            var createRootLabelOfThisApp = function(theRootLabelOfAllApps: Label) {
+                //listen for changes to the labels since the next add event should be our new label
+                var listener: Label->EventType->Void = null;
+                listener = function(l: Label, evtType: EventType) {
+                        if(evtType.isAdd()) {
+                            if(l.name == PinterContext.APP_ROOT_LABEL_NAME) {
+                                Qoid.labels.removeListener(listener);
+                                PinterContext.ROOT_BOARD = l;
+                                EM.change(QE.onAliasLoaded, Qoid.currentAlias);
+                                EM.change(EMEvent.APP_INITIALIZED);
+                            }
+                        }
+                    };
+                Qoid.labels.listen(listener, false);
+                
+                var label: Label = new Label();
+                label.name = PinterContext.APP_ROOT_LABEL_NAME;
+                var eventData = new EditLabelData(label, PinterContext.ROOT_LABEL_OF_ALL_APPS.iid);
+                EM.change(EMEvent.CreateLabel, eventData);
+            }
+
+            if(rootLabelOfAllApps == null) {
+                //listen for changes to the labels since the next add event should be our new label
+                var listener: Label->EventType->Void = null;
+                listener = function(l: Label, evtType: EventType) {
+                        if(evtType.isAdd()) {
+                            if(l.name == PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
+                                Qoid.labels.removeListener(listener);
+                                PinterContext.ROOT_LABEL_OF_ALL_APPS = l;
+                                createRootLabelOfThisApp(l);
+                            }
+                        }
+                    };
+                Qoid.labels.listen(listener, false);
+                
+                var label: Label = new Label();
+                label.name = PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS;
+                var eventData = new EditLabelData(label, Qoid.currentAlias.labelIid);
+                EM.change(EMEvent.CreateLabel, eventData);
+            } else {
+                PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
+                createRootLabelOfThisApp(rootLabelOfAllApps);
+            }
+        } else {
+            PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
+            PinterContext.ROOT_BOARD = rootLabelOfThisApp;
+            EM.change(QE.onAliasLoaded, Qoid.currentAlias);
+            EM.change(EMEvent.APP_INITIALIZED);
+        }
     }
 }

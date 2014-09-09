@@ -1,6 +1,6 @@
 package pagent.widget;
 
-import pagent.AppContext;
+import m3.log.Logga;
 import pagent.pages.PinterPageMgr;
 import pagent.PinterContext;
 import pagent.model.EM;
@@ -10,7 +10,8 @@ import m3.widget.Widgets;
 import m3.observable.OSet.ObservableSet;
 import m3.exception.Exception;
 import qoid.model.ModelObj;
-import qoid.widget.Popup;
+import agentui.widget.Popup;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 
@@ -85,8 +86,8 @@ extern class OptionBar extends JQ {
 		        			});
 
 
-		        	if (AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {
-	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(PinterContext.ROOT_BOARD.iid);
+		        	if (Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {
+	        			Qoid.groupedLabelChildren.addEmptyGroup(PinterContext.ROOT_BOARD.iid);
     				}
 		        	
 	        		self._onUpdateBoards = function(board: Label, evt: EventType): Void {
@@ -101,9 +102,9 @@ extern class OptionBar extends JQ {
 	            		}
 	            	};
 
-            		self.boards = new MappedSet<LabelChild, Label>(AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_BOARD.iid), 
+            		self.boards = new MappedSet<LabelChild, Label>(Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid), 
 		        		function(labelChild: LabelChild): Label {
-		        			return AppContext.LABELS.getElementComplex(labelChild.childIid);
+		        			return Qoid.labels.getElementComplex(labelChild.childIid);
 	        		});
 		        	self.boards.visualId = "root_map";
 
@@ -149,7 +150,7 @@ extern class OptionBar extends JQ {
 
         						createLabel = function(): Void {
 									if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Create new label | " + input.val());
+									Logga.DEFAULT.info("Create new label | " + input.val());
 									var label: Label = new Label();
 									label.name = input.val();
   									var eventData = new EditLabelData(label, PinterContext.ROOT_BOARD.iid);

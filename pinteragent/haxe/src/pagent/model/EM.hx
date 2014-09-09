@@ -18,16 +18,8 @@ class EMEvent {
 	public static inline var EditContentClosed: String = "EditContentClosed";
 
 	public static inline var CreateAgent: String = "CreateAgent";
-	public static inline var AgentCreated: String = "AgentCreated";
-	public static inline var InitialDataLoadComplete: String = "InitialDataLoadComplete";
 
-	// FitWindow;
-	public static inline var UserLogin: String = "UserLogin";
 	public static inline var UserLogout: String = "UserLogout";
-
-	public static inline var AliasLoaded: String = "AliasLoaded";
-	public static inline var AliasCreated: String = "AliasCreated";
-	public static inline var AliasUpdated: String = "AliasUpdated";
 
 	public static inline var CreateAlias: String = "CreateAlias";
 	public static inline var UpdateAlias: String = "UpdateAlias";

@@ -1,6 +1,5 @@
 package pagent.widget;
 
-import pagent.AppContext;
 import pagent.widget.DialogManager;
 import pagent.model.EM;
 import m3.jq.JQ;
@@ -11,14 +10,15 @@ import m3.jq.JQDraggable;
 import m3.observable.OSet;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
-import qoid.widget.UploadComp;
 import m3.util.M;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
+import qoid.Qoid;
+import qoid.QE;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using qoid.widget.UploadComp;
+using agentui.widget.UploadComp;
 using pagent.widget.ConnectionAvatar;
 
 typedef AliasCompOptions = {
@@ -67,7 +67,7 @@ extern class AliasComp extends JQ {
 		        	self.userIdTxt.html("...");
 		        	self._setAlias(new Alias());
 
-		        	self.aliasLoadedListener = EM.addListener(EMEvent.AliasLoaded, function(alias: Alias): Void {
+		        	self.aliasLoadedListener = EM.addListener(QE.onAliasLoaded, function(alias: Alias): Void {
 		        			self._setAlias(alias);
 		        		}, "AliasComp-Alias"
 		        	);
@@ -82,12 +82,12 @@ extern class AliasComp extends JQ {
 		        	};
 
 			       	self._onupdateProfile = function(p:Profile, t:EventType): Void {
-			       		var alias = AppContext.ALIASES.getElement(p.aliasIid);
+			       		var alias = Qoid.aliases.getElement(p.aliasIid);
 						self._updateAliasWidgets(alias);
 			       	};
 
-			       	if(AppContext.currentAlias != null) {
-			       		self._setAlias(AppContext.currentAlias);
+			       	if(Qoid.currentAlias != null) {
+			       		self._setAlias(Qoid.currentAlias);
 			       	}
 		        },
 
@@ -115,7 +115,7 @@ extern class AliasComp extends JQ {
 	        			self.aliasSet.removeListener(self._onupdate);
 	        		}
 		        
-		        	self.aliasSet = new FilteredSet<Alias>(AppContext.ALIASES, function(a:Alias):Bool {
+		        	self.aliasSet = new FilteredSet<Alias>(Qoid.aliases, function(a:Alias):Bool {
 		        		return a.iid == alias.iid;
 		        	});
 					self.aliasSet.listen(self._onupdate);
@@ -125,7 +125,7 @@ extern class AliasComp extends JQ {
 	        			self.profileSet.removeListener(self._onupdateProfile);
 	        		}
 
-		        	self.profileSet = new FilteredSet<Profile>(AppContext.PROFILES, function(p:Profile):Bool {
+		        	self.profileSet = new FilteredSet<Profile>(Qoid.profiles, function(p:Profile):Bool {
 		        		return p.aliasIid == alias.iid;
 		        	});
 					self.profileSet.listen(self._onupdateProfile);
@@ -139,7 +139,7 @@ extern class AliasComp extends JQ {
 	        		if (self.profileSet != null) {
 	        			self.profileSet.removeListener(self._onupdateProfile);
 	        		}
-	        		EM.removeListener(EMEvent.AliasLoaded, self.aliasLoadedListener);
+	        		EM.removeListener(QE.onAliasLoaded, self.aliasLoadedListener);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

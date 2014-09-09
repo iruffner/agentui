@@ -2,135 +2,82 @@ package pagent.api;
 
 import m3.jq.JQ;
 
-import qoid.api.CrudMessage;
-import pagent.api.ProtocolHandler;
+import agentui.api.CrudMessage;
+import agentui.model.Filter;
 import pagent.model.EM;
+import qoid.QoidAPI;
 import qoid.model.ModelObj;
-import qoid.model.Filter;
 
 class EventDelegate {
 	
-	private var protocolHandler:ProtocolHandler;
-	private var filterIsRunning: Bool = false;
+	// private var QoidAPI:QoidAPI;
+	// private var filterIsRunning: Bool = false;
 
-	public function new(protocolHandler:ProtocolHandler) {
-		this.protocolHandler = protocolHandler;
-		this._setUpEventListeners();
-	}
+	// public function new(QoidAPI:QoidAPI) {
+	// 	this.QoidAPI = QoidAPI;
+	// 	this._setUpEventListeners();
+	// }
 
-	private function _setUpEventListeners() {
+	public static function init() {
 
 		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {
-            if(filterData.type == "boardConfig") {
-                filterData.type = "content";
-                protocolHandler.boardConfigs(filterData);
-        	} else 
-                protocolHandler.filter(filterData);
-        });
-
-        EM.addListener(EMEvent.CreateAlias, function(alias: Alias): Void {
-            protocolHandler.createAlias(alias);
-        });
-
-        EM.addListener(EMEvent.DeleteAlias, function(alias: Alias): Void {
-            protocolHandler.deleteAlias(alias);
-        });
-
-        EM.addListener(EMEvent.UpdateAlias, function(alias: Alias): Void {
-            protocolHandler.updateAlias(alias);
-        });
-
-        EM.addListener(EMEvent.UserLogin, function(login: Login): Void {
-          	protocolHandler.login(login);
+         //    if(filterData.type == "boardConfig") {
+         //        filterData.type = "content";
+         //        QoidAPI.boardConfigs(filterData);
+        	// } else 
+         //        QoidAPI.filter(filterData);
         });
 
         EM.addListener(EMEvent.CreateAgent, function(user: NewUser): Void {
-            protocolHandler.createAgent(user);
+            QoidAPI.createAgent(user.name, user.pwd);
         });
 
         EM.addListener(EMEvent.CreateContent, function(data:EditContentData): Void {
-        	protocolHandler.createContent(data);
+        	QoidAPI.createContent(data.content.contentType, data.content, data.labelIids);
     	});
 
         EM.addListener(EMEvent.UpdateContent, function(data:EditContentData): Void {
-            protocolHandler.updateContent(data);
+            QoidAPI.updateContent(data.content.iid, data.content);
         });
 
         EM.addListener(EMEvent.DeleteContent, function(data:EditContentData): Void {
-            protocolHandler.deleteContent(data);
+            QoidAPI.deleteContent(data.content.iid);
         });
 
         EM.addListener(EMEvent.CreateLabel, function(data:EditLabelData): Void {
-        	protocolHandler.createLabel(data);
+        	QoidAPI.createLabel(data.parentIid, data.label.name, data.label.data);
     	});
 
         EM.addListener(EMEvent.UpdateLabel, function(data:EditLabelData): Void {
-            protocolHandler.updateLabel(data);
+            QoidAPI.updateLabel(data.label.iid, data.label.name, data.label.data);
         });
 
         EM.addListener(EMEvent.MoveLabel, function(data:EditLabelData): Void {
-            protocolHandler.moveLabel(data);
+            QoidAPI.moveLabel(data.label.iid, data.parentIid, data.newParentId);
         });
 
         EM.addListener(EMEvent.CopyLabel, function(data:EditLabelData): Void {
-            protocolHandler.copyLabel(data);
+            QoidAPI.copyLabel(data.label.iid, data.newParentId);
         });
 
         EM.addListener(EMEvent.DeleteLabel, function(data:EditLabelData): Void {
-            protocolHandler.deleteLabel(data);
+            QoidAPI.deleteLabel(data.label.iid, data.parentIid);
         });
 
-        EM.addListener(EMEvent.RespondToIntroduction, function(intro: IntroResponseMessage):Void{
-            protocolHandler.confirmIntroduction(intro);
+        EM.addListener(EMEvent.GrantAccess, function(parms:{connectionIid: String,labelIid: String}):Void{
+            QoidAPI.grantAccess(parms.labelIid, parms.connectionIid, 1);
         });
 
-        EM.addListener(EMEvent.INTRODUCTION_REQUEST, function(intro: IntroductionRequest):Void{
-        	protocolHandler.beginIntroduction(intro);
-        });
-
-        EM.addListener(EMEvent.GrantAccess, function(parms:Dynamic):Void{
-            protocolHandler.grantAccess(parms.connectionIid, parms.labelIid);
-        });
-
-        EM.addListener(EMEvent.RevokeAccess, function(lacls:Array<LabelAcl>):Void{
-            protocolHandler.revokeAccess(lacls);
+        EM.addListener(EMEvent.RevokeAccess, function(parms: {connectionIid: String,labelIid: String}):Void{
+            QoidAPI.revokeAccess(parms.labelIid, parms.connectionIid);
         });
 
         EM.addListener(EMEvent.DeleteConnection, function(c:Connection):Void{
-            protocolHandler.deleteConnection(c);
+            QoidAPI.deleteConnection(c.iid);
         });
 
         EM.addListener(EMEvent.UserLogout, function(c:{}):Void{
-            protocolHandler.deregisterAllSqueries();
+            QoidAPI.logout();
         });
-
-        EM.addListener(EMEvent.TargetChange, function(conn:Connection):Void{
-            // Do something
-        });
-
-		EM.addListener(EMEvent.BACKUP, function(n: {}): Void{
-        	protocolHandler.backup();
-        });
-
-        EM.addListener(EMEvent.RESTORE, function(n: {}): Void{
-        	protocolHandler.restore();
-        });
-
-        EM.addListener(EMEvent.VerificationRequest, function(vr:VerificationRequest){
-            protocolHandler.verificationRequest(vr);
-        });
-
-        EM.addListener(EMEvent.RespondToVerification, function(vr:VerificationResponse){
-            protocolHandler.respondToVerificationRequest(vr);
-        });
-        
-        EM.addListener(EMEvent.AcceptVerification, function(notificationIid:String){
-            protocolHandler.acceptVerification(notificationIid);
-        });
-
-        EM.addListener(EMEvent.RejectVerificationRequest, function(notificationIid:String){
-            protocolHandler.rejectVerificationRequest(notificationIid);
-        });
-
 	}
 }

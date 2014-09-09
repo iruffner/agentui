@@ -3,8 +3,8 @@ package pagent.widget;
 import qoid.model.ModelObj;
 import m3.jq.JQ;
 // import qoid.widget.AliasManagerDialog;
-import qoid.widget.LoginDialog;
-import qoid.widget.CreateAgentDialog;
+import agentui.widget.LoginDialog;
+import agentui.widget.CreateAgentDialog;
 
 @:expose
 class DialogManager {

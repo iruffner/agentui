@@ -11,7 +11,7 @@ import m3.observable.OSet;
 import m3.exception.Exception;
 import m3.widget.Widgets;
 import m3.helper.StringHelper;
-import qoid.widget.UploadComp;
+import agentui.widget.UploadComp;
 
 using pagent.widget.ContentComp;
 using m3.jq.M3Dialog;
@@ -66,7 +66,7 @@ extern class PinFeed extends JQ {
 								uploadComp.uploadComp({
 										onload: function(bytes: String): Void {
 											dlg.close();
-											var ccd = new EditContentData(ContentFactory.create(ContentType.IMAGE, bytes));
+											var ccd = new EditContentData(ContentFactory.create(ContentTypes.IMAGE, bytes));
 											ccd.labelIids.push(PinterContext.CURRENT_BOARD);			
 											EM.change(EMEvent.CreateContent, ccd);
 										}
@@ -85,7 +85,7 @@ extern class PinFeed extends JQ {
 							});
 
 		        	var mapListener = function(content: Content<Dynamic>, contentComp:ContentComp, evt: EventType): Void {
-		        		if(content != null && ContentType.IMAGE == content.contentType) {
+		        		if(content != null && ContentTypes.IMAGE == content.contentType) {
 		            		if(evt.isAdd()) {
 		            			var contentComps = new JQ(".contentComp");
 		            			if (contentComps.length == 0) {

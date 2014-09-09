@@ -1,4 +1,4 @@
-package qoid.widget;
+package agentui.widget;
 
 import pagent.widget.DialogManager;
 import pagent.model.EM;
@@ -20,13 +20,13 @@ typedef CreateAgentDialogWidgetDef = {
 	@:optional var _registered: Bool;
 
 	@:optional var input_n: JQ;
-	@:optional var input_un: JQ;
+	// @:optional var input_un: JQ;
 	@:optional var input_pw: JQ;
-	@:optional var input_em: JQ;
+	// @:optional var input_em: JQ;
 	@:optional var placeholder_n: JQ;
-	@:optional var placeholder_un: JQ;
+	// @:optional var placeholder_un: JQ;
 	@:optional var placeholder_pw: JQ;
-	@:optional var placeholder_em: JQ;
+	// @:optional var placeholder_em: JQ;
 	
 	var initialized: Bool;
 
@@ -63,16 +63,16 @@ extern class CreateAgentDialog extends JQ {
 		        	var inputs: JQ = new JQ("<div class='fleft'></div>").appendTo(selfElement);
 
 		        	labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
-		        	labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
+		        	// labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
 		        	// labels.append("<div class='labelDiv'><label id='un_label' for='newu_un'>Username</label></div>");
 		        	labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
 
 		        	self.input_n = new JQ("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		        	self.placeholder_n = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
 		        	inputs.append("<br/>");
-		        	self.input_em = new JQ("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		        	self.placeholder_em = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
-		        	inputs.append("<br/>");
+		        	// self.input_em = new JQ("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		        	// self.placeholder_em = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		        	// inputs.append("<br/>");
 		        	// self.input_un = new JQ("<input id='newu_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
 		        	// self.placeholder_un = new JQ("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Username'>").appendTo(inputs);
 		        	// inputs.append("<br/>");
@@ -90,7 +90,7 @@ extern class CreateAgentDialog extends JQ {
 
 		        	PlaceHolderUtil.setFocusBehavior(self.input_n, self.placeholder_n);
 		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
-		        	PlaceHolderUtil.setFocusBehavior(self.input_em, self.placeholder_em);
+		        	// PlaceHolderUtil.setFocusBehavior(self.input_em, self.placeholder_em);
 		        },
 
 		        initialized: false,
@@ -106,18 +106,18 @@ extern class CreateAgentDialog extends JQ {
     				// 	self.placeholder_un.addClass("ui-state-error");
     				// 	valid = false;
     				// }
-    				/*
+    				
     				newUser.pwd = self.input_pw.val();
     				if(newUser.pwd.isBlank()) {
     					self.placeholder_pw.addClass("ui-state-error");
     					valid = false;
     				}
-    				newUser.email = self.input_em.val();
-    				if(newUser.email.isBlank()) {
-    					self.placeholder_em.addClass("ui-state-error");
-    					valid = false;
-    				}
-    				*/
+    				// newUser.email = self.input_em.val();
+    				// if(newUser.email.isBlank()) {
+    				// 	self.placeholder_em.addClass("ui-state-error");
+    				// 	valid = false;
+    				// }
+    				
     				newUser.name = self.input_n.val();
     				if(newUser.name.isBlank()) {
     					self.placeholder_n.addClass("ui-state-error");
@@ -127,7 +127,7 @@ extern class CreateAgentDialog extends JQ {
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EM.change(EMEvent.CreateAgent, newUser);
 
-    				EM.listenOnce(EMEvent.AgentCreated, function(n: {}): Void {
+    				EM.listenOnce(qoid.QE.onAgentCreated, function(n: {}): Void {
     					selfElement.dialog("close");
     				}, "CreateAgentDialog-UserSignup");
 	        	},

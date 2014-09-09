@@ -1,10 +1,11 @@
 package pagent.widget;
 
+import m3.log.Logga;
 import pagent.PinterContext;
-import pagent.AppContext;
 import pagent.pages.PinterPage;
 import pagent.pages.PinterPageMgr;
 import pagent.model.EM;
+import pagent.model.PinterModel;
 import js.Browser;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
@@ -15,7 +16,8 @@ import m3.observable.OSet;
 // import pagent.widget.LabelComp;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
-import qoid.widget.Popup;
+import agentui.widget.Popup;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -80,7 +82,7 @@ extern class MediaComp extends ContentComp {
 					var content: Content<Dynamic> = self.options.content;
 
 		        	switch(content.contentType) {
-		        		case ContentType.IMAGE:
+		        		case ContentTypes.IMAGE:
 		        			var imgDiv: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement);
 		        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
 		        				.commentsComp({
@@ -121,13 +123,13 @@ extern class MediaComp extends ContentComp {
 											var config: ConfigContent = null;
 											var event: String = null;
 											PinterContext.BOARD_CONFIGS.iter(function(c: ConfigContent) {
-													var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(c.iid+"_"+PinterContext.CURRENT_BOARD, function(lc: LabeledContent): String {
+													var match: LabeledContent = Qoid.labeledContent.getElementComplex(c.iid+"_"+PinterContext.CURRENT_BOARD, function(lc: LabeledContent): String {
 																return lc.contentIid+"_"+lc.labelIid;
 															});
 													if(match != null) config = c;
 												});
 											if(config == null) {
-												config = cast ContentFactory.create(ContentType.CONFIG, self.options.content.props.imgSrc);
+												config = cast ContentFactory.create(PinterContentTypes.CONFIG, self.options.content.props.imgSrc);
 												event = EMEvent.CreateContent;
 											} else {
 												config.props.defaultImg = self.options.content.props.imgSrc;
@@ -187,9 +189,9 @@ extern class MediaComp extends ContentComp {
 
         						updateCaption = function(): Void {
 									if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Update content | " + c.iid);
+									Logga.DEFAULT.info("Update content | " + c.iid);
 									c.props.caption = input.val();
-  									var eventData = new EditContentData(c, AppContext.GROUPED_LABELEDCONTENT.getElement(c.iid).map(
+  									var eventData = new EditContentData(c, Qoid.groupedLabeledContent.getElement(c.iid).map(
   											function(laco: LabeledContent): String {
   													return laco.labelIid;
   												}  
@@ -224,7 +226,7 @@ extern class MediaComp extends ContentComp {
     							container.append("<label for='labelParent'>Album: </label> ");
         						var select: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container);
         						select.click(stopFcn);
-        						var aliasLabels = AppContext.getLabelDescendents(PinterContext.ROOT_BOARD.iid);
+        						var aliasLabels = Qoid.getLabelDescendents(PinterContext.ROOT_BOARD.iid);
         						var iter: Iterator<Label> = aliasLabels.iterator();
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
@@ -245,9 +247,9 @@ extern class MediaComp extends ContentComp {
 
         						updateLabels = function(): Void {
 									// if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Update content | " + c.iid);
+									Logga.DEFAULT.info("Update content | " + c.iid);
 									// [APhotoContext.CURRENT_ALBUM, select.val()]
-									var list = AppContext.GROUPED_LABELEDCONTENT.getElement(c.iid).map(
+									var list = Qoid.groupedLabeledContent.getElement(c.iid).map(
   											function(laco: LabeledContent): String {
   													return laco.labelIid;
   												}  
@@ -276,7 +278,7 @@ extern class MediaComp extends ContentComp {
 
 		        destroy: function() {
 		        	var self: MediaCompWidgetDef = Widgets.getSelf();
-		        	AppContext.GROUPED_LABELEDCONTENT.getElement(self.options.content.iid).removeListener(self.labelListener);
+		        	Qoid.groupedLabeledContent.getElement(self.options.content.iid).removeListener(self.labelListener);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

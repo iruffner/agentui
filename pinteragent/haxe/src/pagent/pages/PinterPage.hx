@@ -45,7 +45,7 @@ class PinterPage extends Page {
                             justReloaded = true;
                             fcn();
                             holdingOnInitialization = false;
-                            AppContext.LOGGER.debug(nonCssId + " is no longer holdingOnInitialization");
+                            Logga.DEFAULT.debug(nonCssId + " is no longer holdingOnInitialization");
                         },
                     "PageBefore-AppInitialized"
                  );

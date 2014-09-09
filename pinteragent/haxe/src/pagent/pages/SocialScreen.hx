@@ -2,7 +2,6 @@ package pagent.pages;
 
 import m3.jq.JQ;
 
-import pagent.AppContext;
 import pagent.widget.AliasComp;
 import pagent.widget.BoardList;
 import pagent.widget.OptionBar;

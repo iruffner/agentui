@@ -1,8 +1,10 @@
-package qoid.api;
+package agentui.api;
 
-import pagent.AppContext;
-import qoid.model.Filter;
+import agentui.model.Filter;
+import m3.serialization.Serialization.Serializer;
 import qoid.model.ModelObj;
+import qoid.Qoid;
+
 using m3.serialization.TypeTools;
 
 @:rtti
@@ -50,7 +52,7 @@ class CrudMessage extends BennuMessage {
 	}
 
 	public static function create(object:ModelObjWithIid, ?optionals:Dynamic):CrudMessage {
-		var instance = AppContext.SERIALIZER.toJson(object);
+		var instance = Serializer.instance.toJson(object);
 		return new CrudMessage(object.objectType(), instance, optionals);
 	}
 }
@@ -164,31 +166,31 @@ class ChannelRequestMessage {
 	public function new(path:String, context:String, msg:ChannelMessage):Void {
 		this.path    = path;
 		this.context = context;
-		this.parms   = AppContext.SERIALIZER.toJson(msg);
+		this.parms   = Serializer.instance.toJson(msg);
 	}
 }
 
-@:rtti
-class ChannelRequestMessageBundle {
+// @:rtti
+// class ChannelRequestMessageBundle {
 
-	private var channel:String;
-	private var requests:Array<ChannelRequestMessage>;
+// 	private var channel:String;
+// 	private var requests:Array<ChannelRequestMessage>;
 
-	public function new(?requests_:Array<ChannelRequestMessage>) {
-		this.channel = AppContext.SUBMIT_CHANNEL;
-		if (requests_ == null) {
-			this.requests = new Array<ChannelRequestMessage>();
-		} else {
-			this.requests = requests_;
-		}
-	}
+// 	public function new(?requests_:Array<ChannelRequestMessage>) {
+// 		this.channel = Qoid.SUBMIT_CHANNEL;
+// 		if (requests_ == null) {
+// 			this.requests = new Array<ChannelRequestMessage>();
+// 		} else {
+// 			this.requests = requests_;
+// 		}
+// 	}
 
-	public function addChannelRequest(request:ChannelRequestMessage):Void {
-		this.requests.push(request);
-	}
+// 	public function addChannelRequest(request:ChannelRequestMessage):Void {
+// 		this.requests.push(request);
+// 	}
 
-	public function addRequest(path:String, context:String, parms:BennuMessage):Void {
-		var request = new ChannelRequestMessage(path, context, parms);
-		this.addChannelRequest(request);
-	}
-}
+// 	public function addRequest(path:String, context:String, parms:BennuMessage):Void {
+// 		var request = new ChannelRequestMessage(path, context, parms);
+// 		this.addChannelRequest(request);
+// 	}
+// }

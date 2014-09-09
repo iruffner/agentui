@@ -1,8 +1,9 @@
 package pagent.widget;
 
+import m3.log.Logga;
 import pagent.PinterContext;
-import pagent.AppContext;
 import pagent.pages.PinterPageMgr;
+import pagent.model.PinterModel;
 import haxe.Json;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
@@ -12,10 +13,11 @@ import m3.observable.OSet;
 import m3.exception.Exception;
 import m3.util.UidGenerator;
 
-import qoid.widget.FilterableComponent;
+import agentui.widget.FilterableComponent;
 import qoid.model.ModelObj;
-import qoid.model.Node;
+import agentui.model.Node;
 import pagent.model.EM;
+import qoid.Qoid;
 
 using pagent.widget.BoardComp;
 using m3.helper.OSetHelper;
@@ -75,20 +77,20 @@ extern class BoardComp extends JQ {
 				        }
 		        	};
 		        
-		        	self.filteredSet = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
+		        	self.filteredSet = new FilteredSet<Label>(Qoid.labels, function(label:Label):Bool {
 		        		return label.iid == self.options.board.iid;
 		        	});
 					self.filteredSet.listen(self._onupdate);
 
 					self._onBoardConfig = function(mc: ConfigContent, evt: EventType) {
-						var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(mc.iid+"_"+self.options.board.iid, function(lc: LabeledContent): String {
+						var match: LabeledContent = Qoid.labeledContent.getElementComplex(mc.iid+"_"+self.options.board.iid, function(lc: LabeledContent): String {
 								return lc.contentIid+"_"+lc.labelIid;
 							});
 						if(match != null) {
 							try {
 								self.img.attr("src", mc.props.defaultImg);
 							} catch (err: Dynamic) {
-								AppContext.LOGGER.error("problem using the default img");
+								Logga.DEFAULT.error("problem using the default img");
 							}
 						}
 					}

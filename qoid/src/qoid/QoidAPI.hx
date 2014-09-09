@@ -196,6 +196,8 @@ class QoidAPI {
 
     // TODO:
     public static function query(type: String, query: String, historical: Bool, standing: Bool, ?route: Array<String>):Void {
+        var q = createQueryJson(type, query, historical, standing, route);
+        submitRequest( q , QUERY, context);
 
     }
 

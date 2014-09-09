@@ -1,7 +1,7 @@
 package pagent.widget;
 
+import m3.log.Logga;
 import pagent.PinterContext;
-import pagent.AppContext;
 import pagent.pages.PinterPage;
 import pagent.pages.PinterPageMgr;
 import haxe.Json;
@@ -91,7 +91,7 @@ extern class ContentComp extends JQ {
 					var content:Content<Dynamic> = self.options.content;
 
 		        	switch(content.contentType) {
-		        		case ContentType.IMAGE:
+		        		case ContentTypes.IMAGE:
 		        			var img: ImageContent = cast(content, ImageContent);
 		        			selfElement.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
 							var captionDiv: JQ = new JQ("<div class='caption ui-corner-bottom'></div>").appendTo(selfElement);
@@ -101,7 +101,7 @@ extern class ContentComp extends JQ {
 								// captionDiv.append( html : String )
 							}
 		        		case _:
-		        			AppContext.LOGGER.debug("Only image content should be displayed"); 
+		        			Logga.DEFAULT.debug("Only image content should be displayed"); 
 		        	}
 				},
 		        

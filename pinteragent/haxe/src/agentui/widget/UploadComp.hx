@@ -1,7 +1,7 @@
-package qoid.widget;
+package agentui.widget;
 
-import pagent.AppContext;
 import m3.jq.JQ;
+import m3.log.Logga;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 import m3.exception.Exception;
@@ -71,7 +71,7 @@ extern class UploadComp extends JQ {
 		        	self._createFileUploadComponent();
 					
 					selfElement.on("dragleave", function (evt: JQEvent, d: Dynamic) {
-						AppContext.LOGGER.debug("dragleave");
+						Logga.DEFAULT.debug("dragleave");
 
 						var target = evt.target;
 						
@@ -83,7 +83,7 @@ extern class UploadComp extends JQ {
 					});
 					
 					selfElement.on("dragenter", function (evt: JQEvent, d: Dynamic) {
-						AppContext.LOGGER.debug("dragenter");
+						Logga.DEFAULT.debug("dragenter");
 
 						JQ.cur.addClass("over");
 						evt.preventDefault();
@@ -91,14 +91,14 @@ extern class UploadComp extends JQ {
 					});
 					
 					selfElement.on("dragover", function (evt: JQEvent, d: Dynamic) {
-						AppContext.LOGGER.debug("dragover");
+						Logga.DEFAULT.debug("dragover");
 
 						evt.preventDefault();
 						evt.stopPropagation();
 					});
 					
 					selfElement.on("drop", function (evt: JQEvent, d: Dynamic) {
-						AppContext.LOGGER.debug("drop");
+						Logga.DEFAULT.debug("drop");
 
 						self._traverseFiles(evt.originalEvent.dataTransfer.files);
 						JQ.cur.removeClass("drop");
@@ -131,17 +131,17 @@ extern class UploadComp extends JQ {
 		        		return;
 		        	}
 
-		        	if (self.options.contentType == ContentType.IMAGE && !(~/image/i).match(file.type)) {
+		        	if (self.options.contentType == ContentTypes.IMAGE && !(~/image/i).match(file.type)) {
 		        		JqueryUtil.alert("Please select an image file.");
 		        		return;
 		        	}
 
-		        	if (self.options.contentType == ContentType.AUDIO && !(~/audio/i).match(file.type)) {
+		        	if (self.options.contentType == ContentTypes.AUDIO && !(~/audio/i).match(file.type)) {
 		        		JqueryUtil.alert("Please select an audio file.");
 		        		return;
 		        	}
 
-					AppContext.LOGGER.debug("upload " + file.name);
+					Logga.DEFAULT.debug("upload " + file.name);
 
 
 					// TODO:  Add controls for previewing audio content
@@ -170,7 +170,7 @@ extern class UploadComp extends JQ {
 				},
 
 				_traverseFiles: function(files: Array<Dynamic>) {
-					AppContext.LOGGER.debug("traverse the files");
+					Logga.DEFAULT.debug("traverse the files");
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 
 					if (files.hasValues()) {

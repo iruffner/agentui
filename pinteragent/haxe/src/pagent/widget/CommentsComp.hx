@@ -1,7 +1,7 @@
 package pagent.widget;
 
+import m3.log.Logga;
 import pagent.PinterContext;
-import pagent.AppContext;
 import pagent.pages.PinterPage;
 import pagent.pages.PinterPageMgr;
 import pagent.model.EM;
@@ -14,7 +14,8 @@ import qoid.model.ModelObj;
 import m3.observable.OSet;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
-import qoid.widget.Popup;
+import agentui.widget.Popup;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -131,9 +132,9 @@ extern class CommentsComp extends ContentComp {
 
         						updateCaption = function(): Void {
 									if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Update content | " + c.iid);
+									Logga.DEFAULT.info("Update content | " + c.iid);
 									c.props.caption = input.val();
-  									var eventData = new EditContentData(c, AppContext.GROUPED_LABELEDCONTENT.getElement(c.iid).map(
+  									var eventData = new EditContentData(c, Qoid.groupedLabeledContent.getElement(c.iid).map(
   											function(laco: LabeledContent): String {
   													return laco.labelIid;
   												}  
@@ -168,7 +169,7 @@ extern class CommentsComp extends ContentComp {
     							container.append("<label for='labelParent'>Album: </label> ");
         						var select: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container);
         						select.click(stopFcn);
-        						var aliasLabels = AppContext.getLabelDescendents(PinterContext.ROOT_BOARD.iid);
+        						var aliasLabels = Qoid.getLabelDescendents(PinterContext.ROOT_BOARD.iid);
         						var iter: Iterator<Label> = aliasLabels.iterator();
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
@@ -189,9 +190,9 @@ extern class CommentsComp extends ContentComp {
 
         						updateLabels = function(): Void {
 									// if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Update content | " + c.iid);
+									Logga.DEFAULT.info("Update content | " + c.iid);
 									// [APhotoContext.CURRENT_ALBUM, select.val()]
-									var list = AppContext.GROUPED_LABELEDCONTENT.getElement(c.iid).map(
+									var list = Qoid.groupedLabeledContent.getElement(c.iid).map(
   											function(laco: LabeledContent): String {
   													return laco.labelIid;
   												}  
@@ -220,7 +221,7 @@ extern class CommentsComp extends ContentComp {
 
 		        destroy: function() {
 		        	var self: CommentsCompWidgetDef = Widgets.getSelf();
-		        	AppContext.GROUPED_LABELEDCONTENT.getElement(self.options.content.iid).removeListener(self.labelListener);
+		        	Qoid.groupedLabeledContent.getElement(self.options.content.iid).removeListener(self.labelListener);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

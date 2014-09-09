@@ -1,6 +1,6 @@
 package pagent.widget;
 
-import pagent.AppContext;
+import m3.log.Logga;
 import pagent.model.EM;
 import m3.jq.JQ;
 import m3.widget.Widgets;
@@ -11,12 +11,12 @@ import m3.util.JqueryUtil;
 import pagent.PinterContext;
 import pagent.widget.ConnectionAvatar;
 import qoid.model.ModelObj;
-import qoid.widget.Popup;
-import qoid.widget.UploadComp;
+import agentui.widget.Popup;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using qoid.widget.UploadComp;
+using agentui.widget.UploadComp;
 
 typedef BoardDetailsOptions = {
 	var label: Label;
@@ -141,7 +141,7 @@ extern class BoardDetails extends JQ {
         						updateLabel = function(): Void {
 									if (input.val().length == 0) {return;}
 									var label = self.options.label;
-									AppContext.LOGGER.info("Update label | " + label.iid);
+									Logga.DEFAULT.info("Update label | " + label.iid);
 									label.name = input.val();
   									var eventData = new EditLabelData(label);
   									EM.change(EMEvent.UpdateLabel, eventData);
@@ -193,7 +193,7 @@ extern class BoardDetails extends JQ {
         						updateDot = function(): Void {
 									if (input.val().length == 0) {return;}
 									var label = self.options.label;
-									AppContext.LOGGER.info("Update label | " + label.iid);
+									Logga.DEFAULT.info("Update label | " + label.iid);
 									label.name = input.val();
   									var eventData = new EditLabelData(label);
   									EM.change(EMEvent.UpdateLabel, eventData);
@@ -229,7 +229,7 @@ extern class BoardDetails extends JQ {
                                         self._showAddAccessPopup(positionalElem);
                                     });
 
-        						var labels: OSet<LabelAcl> = AppContext.LABELACLS_ByLabel.getElement(pagent.PinterContext.CURRENT_BOARD);
+        						var labels: OSet<LabelAcl> = PinterContext.LABELACLS_ByLabel.getElement(pagent.PinterContext.CURRENT_BOARD);
         						if(labels != null)
                                     Lambda.iter(labels,
         								function(l: LabelAcl) {
@@ -276,8 +276,8 @@ extern class BoardDetails extends JQ {
                                 var connectionsContainer: JQ = new JQ("<div class='connectionsContainer'></div>").appendTo(el);
                                 
 
-                                var labels: OSet<LabelAcl> = AppContext.LABELACLS_ByLabel.getElement(pagent.PinterContext.CURRENT_BOARD);
-                                var connections: OSet<Connection> = AppContext.CONNECTIONS.filter(
+                                var labels: OSet<LabelAcl> = PinterContext.LABELACLS_ByLabel.getElement(pagent.PinterContext.CURRENT_BOARD);
+                                var connections: OSet<Connection> = Qoid.connections.filter(
                                     function(c: Connection): Bool {
                                             return labels == null || labels.getElementComplex(c.iid, function(l: LabelAcl) { return l.connectionIid; }) == null;
                                         });

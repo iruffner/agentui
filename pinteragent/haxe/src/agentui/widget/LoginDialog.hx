@@ -1,6 +1,5 @@
-package qoid.widget;
+package agentui.widget;
 
-import pagent.AppContext;
 import pagent.widget.DialogManager;
 import pagent.model.EM;
 import m3.jq.JQ;
@@ -10,6 +9,9 @@ import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
+import qoid.Qoid;
+import qoid.QE;
+import qoid.QoidAPI;
 
 using m3.helper.StringHelper;
 
@@ -67,7 +69,7 @@ extern class LoginDialog extends JQ {
 		        	self.placeholder_pw = new JQ("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
 
 	        		self.input_un.val("dave");
-	        		self.input_pw.val("ohyea");
+	        		self.input_pw.val("asdf");
 
 		        	inputs.children("input").keypress(function(evt: JQEvent): Void {
 		        			if(evt.keyCode == 13) {
@@ -78,7 +80,7 @@ extern class LoginDialog extends JQ {
 		        	PlaceHolderUtil.setFocusBehavior(self.input_un, self.placeholder_un);
 		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
 
-		        	EM.addListener(EMEvent.InitialDataLoadComplete, function(n: {}): Void {
+		        	EM.addListener(QE.onInitialDataload, function(n: {}): Void {
     						selfElement.dialog("close");
 		        		}, "Login-InitialDataLoadComplete"
 		        	);
@@ -108,7 +110,7 @@ extern class LoginDialog extends JQ {
 
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
 
-    				EM.change(EMEvent.UserLogin, login);
+          			QoidAPI.login(login.agentId, login.password);
 	        	},
 
 		        _buildDialog: function(): Void {
@@ -133,7 +135,7 @@ extern class LoginDialog extends JQ {
 		        			}
 		        		},
 		        		beforeClose: function(evt: JQEvent, ui: UIJQDialog): Dynamic {
-		        			if(AppContext.UBER_ALIAS_ID == null) {
+		        			if(Qoid.currentAlias == null) {
 		        				JqueryUtil.alert("A valid login is required to use the app");
 		        				return false;
 		        			}

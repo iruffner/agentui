@@ -2,20 +2,17 @@ package pagent.pages;
 
 import m3.jq.JQ;
 
-import pagent.AppContext;
 import pagent.PinterContext;
 import pagent.widget.PinFeed;
 import pagent.model.EM;
 import m3.jq.M3Dialog;
 import m3.observable.OSet.EventType;
 import m3.observable.OSet.FilteredSet;
-import qoid.model.Filter;
-import qoid.model.ModelObj.ContentFactory;
-import qoid.model.ModelObj.ContentType;
-import qoid.model.ModelObj.EditContentData;
-import qoid.model.ModelObj.Label;
-import qoid.model.Node;
-import qoid.widget.UploadComp;
+import agentui.model.Filter;
+import qoid.model.ModelObj;
+import agentui.model.Node;
+import agentui.widget.UploadComp;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.jq.M3Dialog;
@@ -39,7 +36,7 @@ class BoardScreen extends PinterPage {
 		var content: JQ = new JQ(".content", screen).empty();
 		content.addClass("center");
 
-		labelSet = new FilteredSet(AppContext.LABELS, function(l: Label) {
+		labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
 				return l.iid == PinterContext.CURRENT_BOARD;
 			});
 		
@@ -68,7 +65,7 @@ class BoardScreen extends PinterPage {
 		var root: Node = new Or();
 		root.type = "ROOT";
 		var path = new Array<String>();
-		path.push(AppContext.LABELS.getElement(AppContext.currentAlias.rootLabelIid).name);
+		path.push(Qoid.labels.getElement(Qoid.currentAlias.labelIid).name);
 		path.push(PinterContext.ROOT_LABEL_OF_ALL_APPS.name);
 		path.push(PinterContext.ROOT_BOARD.name);
 		path.push(label.name);
@@ -77,7 +74,7 @@ class BoardScreen extends PinterPage {
 		var filterData = new FilterData("content");
 		filterData.filter = new Filter(root);
 		filterData.connectionIids = [];
-		filterData.aliasIid       = AppContext.currentAlias.iid;
+		filterData.aliasIid       = Qoid.currentAlias.iid;
 
 		EM.change(EMEvent.FILTER_RUN, filterData);
 

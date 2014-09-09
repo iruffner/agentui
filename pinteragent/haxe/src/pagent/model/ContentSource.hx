@@ -1,12 +1,13 @@
 package pagent.model;
 
-import pagent.AppContext;
-import pagent.model.EM;
+import agentui.model.Filter;
+import m3.serialization.Serialization.Serializer;
 import m3.log.Logga;
 import m3.observable.OSet;
 import m3.util.UidGenerator;
+import pagent.model.EM;
 import qoid.model.ModelObj;
-import qoid.model.Filter;
+import qoid.QE;
 
 using m3.helper.OSetHelper;
 using m3.helper.ArrayHelper;
@@ -46,7 +47,7 @@ class ContentSource {
 		filteredContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
 		listeners = new Array<ContentSourceListener<Dynamic>>();
 
-    	EM.addListener(EMEvent.AliasLoaded, onAliasLoaded, 
+    	EM.addListener(QE.onAliasLoaded, onAliasLoaded, 
     		                                "ContentSource-AliasLoaded"
     	);
 
@@ -79,7 +80,7 @@ class ContentSource {
 		var connectionIids = new Array<String>();
 
 		for (result in results) {
-			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
+			var c = Serializer.instance.fromJsonX(result, Content);
 			if(c != null) { //occurs when there is an unknown content type
 				if (connectionIid != null) {
 					c.aliasIid = null;

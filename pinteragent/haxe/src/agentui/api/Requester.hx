@@ -1,15 +1,15 @@
-package qoid.api;
+package agentui.api;
 
-import pagent.AppContext;
 import haxe.Timer;
 
 import m3.comm.BaseRequest;
 import m3.exception.Exception;
 import m3.jq.JQ;
+import m3.serialization.Serialization.Serializer;
 import m3.util.JqueryUtil;
 
 import qoid.model.ModelObj;
-import qoid.api.CrudMessage;
+import agentui.api.CrudMessage;
 
 /**
  * Base class for making http requests.
@@ -40,7 +40,7 @@ class SubmitRequest extends BaseRequest {
 		}
 
 		var bundle = new ChannelRequestMessageBundle(msgs);
-		var data = AppContext.SERIALIZER.toJsonString(bundle);
+		var data = Serializer.instance.toJsonString(bundle);
 
 		super(data, "/api/channel/submit", successFcn);
 	}
