@@ -2,6 +2,7 @@
 $hx_exports.m3 = $hx_exports.m3 || {};
 $hx_exports.m3.helper = $hx_exports.m3.helper || {};
 ;$hx_exports.m3.util = $hx_exports.m3.util || {};
+$hx_exports.qoid = $hx_exports.qoid || {};
 $hx_exports.agentui = $hx_exports.agentui || {};
 $hx_exports.agentui.widget = $hx_exports.agentui.widget || {};
 var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
@@ -338,6 +339,9 @@ StringTools.__name__ = ["StringTools"];
 StringTools.htmlEscape = function(s,quotes) {
 	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
 	if(quotes) return s.split("\"").join("&quot;").split("'").join("&#039;"); else return s;
+};
+StringTools.startsWith = function(s,start) {
+	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
 };
 StringTools.endsWith = function(s,end) {
 	var elen = end.length;
@@ -727,9 +731,8 @@ agentui.AgentUi = $hx_exports.agentui.AgentUi = function() { };
 $hxClasses["agentui.AgentUi"] = agentui.AgentUi;
 agentui.AgentUi.__name__ = ["agentui","AgentUi"];
 agentui.AgentUi.main = function() {
-	agentui.AppContext.init();
-	agentui.AgentUi.PROTOCOL = new agentui.api.ProtocolHandler();
 	agentui.AgentUi.HOT_KEY_ACTIONS = new Array();
+	agentui.api.EventDelegate.init();
 };
 agentui.AgentUi.start = function() {
 	var r = new $("<div></div>");
@@ -769,199 +772,7 @@ agentui.AgentUi.start = function() {
 	r.restoreWidget();
 	agentui.widget.DialogManager.showLogin();
 };
-agentui.AppContext = function() { };
-$hxClasses["agentui.AppContext"] = agentui.AppContext;
-agentui.AppContext.__name__ = ["agentui","AppContext"];
-agentui.AppContext.init = function() {
-	agentui.AppContext.INTRODUCTIONS = new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier);
-	agentui.AppContext.MASTER_NOTIFICATIONS = new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier);
-	agentui.AppContext.NOTIFICATIONS = new m3.observable.FilteredSet(agentui.AppContext.MASTER_NOTIFICATIONS,function(a) {
-		return !a.consumed;
-	});
-	agentui.AppContext.ALIASES = new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier);
-	agentui.AppContext.ALIASES.listen(function(a1,evt) {
-		if(evt.isAddOrUpdate()) {
-			var p = m3.helper.OSetHelper.getElementComplex(agentui.AppContext.PROFILES,a1.iid,"aliasIid");
-			if(p != null) a1.profile = p;
-			if(evt.isAdd()) agentui.model.EM.change(agentui.model.EMEvent.AliasCreated,a1); else agentui.model.EM.change(agentui.model.EMEvent.AliasUpdated,a1);
-		}
-	});
-	agentui.AppContext.LABELS = new m3.observable.ObservableSet(agentui.model.Label.identifier);
-	agentui.AppContext.CONNECTIONS = new m3.observable.ObservableSet(agentui.model.Connection.identifier);
-	agentui.AppContext.CONNECTIONS.listen(function(c,evt1) {
-		if(evt1.isAdd()) agentui.AgentUi.PROTOCOL.getProfiles([c.iid]);
-	});
-	agentui.AppContext.GROUPED_CONNECTIONS = new m3.observable.GroupedSet(agentui.AppContext.CONNECTIONS,function(c1) {
-		return c1.aliasIid;
-	});
-	agentui.AppContext.LABELACLS = new m3.observable.ObservableSet(agentui.model.LabelAcl.identifier);
-	agentui.AppContext.GROUPED_LABELACLS = new m3.observable.GroupedSet(agentui.AppContext.LABELACLS,function(l) {
-		return l.connectionIid;
-	});
-	agentui.AppContext.LABELCHILDREN = new m3.observable.ObservableSet(agentui.model.LabelChild.identifier);
-	agentui.AppContext.GROUPED_LABELCHILDREN = new m3.observable.GroupedSet(agentui.AppContext.LABELCHILDREN,function(lc) {
-		return lc.parentIid;
-	});
-	agentui.AppContext.LABELEDCONTENT = new m3.observable.ObservableSet(agentui.model.LabeledContent.identifier);
-	agentui.AppContext.GROUPED_LABELEDCONTENT = new m3.observable.GroupedSet(agentui.AppContext.LABELEDCONTENT,function(lc1) {
-		return lc1.contentIid;
-	});
-	agentui.AppContext.PROFILES = new m3.observable.ObservableSet(agentui.model.Profile.identifier);
-	agentui.AppContext.PROFILES.listen(function(p1,evt2) {
-		if(evt2.isAddOrUpdate()) {
-			var alias = m3.helper.OSetHelper.getElement(agentui.AppContext.ALIASES,p1.aliasIid);
-			if(alias != null) {
-				alias.profile = p1;
-				agentui.AppContext.ALIASES.addOrUpdate(alias);
-			}
-		}
-	});
-	agentui.AppContext.VERIFICATION_CONTENT = new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier);
-	m3.serialization.Serializer.get_instance().addHandler(agentui.model.Content,new agentui.model.ContentHandler());
-	m3.serialization.Serializer.get_instance().addHandler(agentui.model.Notification,new agentui.model.NotificationHandler());
-	agentui.AppContext.registerGlobalListeners();
-};
-agentui.AppContext.isAliasRootLabel = function(iid) {
-	var $it0 = agentui.AppContext.ALIASES.iterator();
-	while( $it0.hasNext() ) {
-		var alias = $it0.next();
-		if(alias.rootLabelIid == iid) return true;
-	}
-	return false;
-};
-agentui.AppContext.getUberLabelIid = function() {
-	return m3.helper.OSetHelper.getElement(agentui.AppContext.ALIASES,agentui.AppContext.UBER_ALIAS_ID).rootLabelIid;
-};
-agentui.AppContext.onInitialDataLoadComplete = function(nada) {
-	agentui.AppContext.ROOT_LABEL_ID = m3.helper.OSetHelper.getElement(agentui.AppContext.ALIASES,agentui.AppContext.UBER_ALIAS_ID).rootLabelIid;
-	agentui.AppContext.currentAlias = m3.helper.OSetHelper.getElement(agentui.AppContext.ALIASES,agentui.AppContext.UBER_ALIAS_ID);
-	var $it0 = agentui.AppContext.ALIASES.iterator();
-	while( $it0.hasNext() ) {
-		var alias = $it0.next();
-		if(alias.data.isDefault == true) {
-			agentui.AppContext.currentAlias = alias;
-			break;
-		}
-	}
-	agentui.model.EM.change(agentui.model.EMEvent.AliasLoaded,agentui.AppContext.currentAlias);
-};
-agentui.AppContext.registerGlobalListeners = function() {
-	new $(window).on("unload",function(evt) {
-		agentui.model.EM.change(agentui.model.EMEvent.UserLogout);
-	});
-	agentui.model.EM.addListener(agentui.model.EMEvent.InitialDataLoadComplete,agentui.AppContext.onInitialDataLoadComplete,"AppContext-InitialDataLoadComplete");
-	agentui.model.EM.addListener(agentui.model.EMEvent.AliasLoaded,function(a) {
-		window.document.title = a.profile.name + " | Qoid-Bennu";
-	});
-	agentui.model.EM.addListener(agentui.model.EMEvent.FitWindow,function(n) {
-		fitWindow();
-	},"AppContext-FitWindow");
-};
-agentui.AppContext.getLabelDescendents = function(iid) {
-	var labelDescendents = new m3.observable.ObservableSet(agentui.model.Label.identifier);
-	var getDescendentIids;
-	getDescendentIids = function(iid1,iidList) {
-		iidList.splice(0,0,iid1);
-		var children = new m3.observable.FilteredSet(agentui.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == iid1;
-		}).asArray();
-		var _g1 = 0;
-		var _g = children.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			getDescendentIids(children[i].childIid,iidList);
-		}
-	};
-	var iid_list = new Array();
-	getDescendentIids(iid,iid_list);
-	var _g2 = 0;
-	while(_g2 < iid_list.length) {
-		var iid_ = iid_list[_g2];
-		++_g2;
-		var label = m3.helper.OSetHelper.getElement(agentui.AppContext.LABELS,iid_);
-		if(label == null) m3.log.Logga.get_DEFAULT().error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
-	}
-	return labelDescendents;
-};
-agentui.AppContext.connectionFromMetaLabel = function(metaLabelIid) {
-	var ret = null;
-	var $it0 = agentui.AppContext.CONNECTIONS.iterator();
-	while( $it0.hasNext() ) {
-		var connection = $it0.next();
-		if(connection.metaLabelIid == metaLabelIid) {
-			ret = connection;
-			break;
-		}
-	}
-	return ret;
-};
 agentui.api = {};
-agentui.api.ChannelMessage = function() { };
-$hxClasses["agentui.api.ChannelMessage"] = agentui.api.ChannelMessage;
-agentui.api.ChannelMessage.__name__ = ["agentui","api","ChannelMessage"];
-agentui.api.BennuMessage = function(type) {
-	this.type = type;
-};
-$hxClasses["agentui.api.BennuMessage"] = agentui.api.BennuMessage;
-agentui.api.BennuMessage.__name__ = ["agentui","api","BennuMessage"];
-agentui.api.BennuMessage.__interfaces__ = [agentui.api.ChannelMessage];
-agentui.api.BennuMessage.prototype = {
-	__class__: agentui.api.BennuMessage
-};
-agentui.api.DeleteMessage = function(type,primaryKey) {
-	agentui.api.BennuMessage.call(this,type);
-	this.primaryKey = primaryKey;
-};
-$hxClasses["agentui.api.DeleteMessage"] = agentui.api.DeleteMessage;
-agentui.api.DeleteMessage.__name__ = ["agentui","api","DeleteMessage"];
-agentui.api.DeleteMessage.create = function(object) {
-	return new agentui.api.DeleteMessage(object.objectType(),object.iid);
-};
-agentui.api.DeleteMessage.__super__ = agentui.api.BennuMessage;
-agentui.api.DeleteMessage.prototype = $extend(agentui.api.BennuMessage.prototype,{
-	__class__: agentui.api.DeleteMessage
-});
-agentui.api.CrudMessage = function(type,instance,optionals) {
-	agentui.api.BennuMessage.call(this,type);
-	this.instance = instance;
-	if(optionals != null) {
-		this.parentIid = optionals.parentIid;
-		this.profileName = optionals.profileName;
-		this.profileImgSrc = optionals.profileImgSrc;
-		this.labelIids = optionals.labelIids;
-	}
-};
-$hxClasses["agentui.api.CrudMessage"] = agentui.api.CrudMessage;
-agentui.api.CrudMessage.__name__ = ["agentui","api","CrudMessage"];
-agentui.api.CrudMessage.create = function(object,optionals) {
-	var instance = m3.serialization.Serializer.get_instance().toJson(object);
-	return new agentui.api.CrudMessage(object.objectType(),instance,optionals);
-};
-agentui.api.CrudMessage.__super__ = agentui.api.BennuMessage;
-agentui.api.CrudMessage.prototype = $extend(agentui.api.BennuMessage.prototype,{
-	__class__: agentui.api.CrudMessage
-});
-agentui.api.DeregisterMessage = function(handle) {
-	this.handle = handle;
-};
-$hxClasses["agentui.api.DeregisterMessage"] = agentui.api.DeregisterMessage;
-agentui.api.DeregisterMessage.__name__ = ["agentui","api","DeregisterMessage"];
-agentui.api.DeregisterMessage.__interfaces__ = [agentui.api.ChannelMessage];
-agentui.api.DeregisterMessage.prototype = {
-	__class__: agentui.api.DeregisterMessage
-};
-agentui.api.IntroMessage = function(i) {
-	this.aConnectionIid = i.aConnectionIid;
-	this.aMessage = i.aMessage;
-	this.bConnectionIid = i.bConnectionIid;
-	this.bMessage = i.bMessage;
-};
-$hxClasses["agentui.api.IntroMessage"] = agentui.api.IntroMessage;
-agentui.api.IntroMessage.__name__ = ["agentui","api","IntroMessage"];
-agentui.api.IntroMessage.__interfaces__ = [agentui.api.ChannelMessage];
-agentui.api.IntroMessage.prototype = {
-	__class__: agentui.api.IntroMessage
-};
 agentui.api.VerificationRequestMessage = function(vr) {
 	this.contentIid = vr.contentIid;
 	this.connectionIids = vr.connectionIids;
@@ -969,7 +780,6 @@ agentui.api.VerificationRequestMessage = function(vr) {
 };
 $hxClasses["agentui.api.VerificationRequestMessage"] = agentui.api.VerificationRequestMessage;
 agentui.api.VerificationRequestMessage.__name__ = ["agentui","api","VerificationRequestMessage"];
-agentui.api.VerificationRequestMessage.__interfaces__ = [agentui.api.ChannelMessage];
 agentui.api.VerificationRequestMessage.prototype = {
 	__class__: agentui.api.VerificationRequestMessage
 };
@@ -979,7 +789,6 @@ agentui.api.VerificationResponseMessage = function(vr) {
 };
 $hxClasses["agentui.api.VerificationResponseMessage"] = agentui.api.VerificationResponseMessage;
 agentui.api.VerificationResponseMessage.__name__ = ["agentui","api","VerificationResponseMessage"];
-agentui.api.VerificationResponseMessage.__interfaces__ = [agentui.api.ChannelMessage];
 agentui.api.VerificationResponseMessage.prototype = {
 	__class__: agentui.api.VerificationResponseMessage
 };
@@ -988,7 +797,6 @@ agentui.api.AcceptVerificationMessage = function(notificationIid) {
 };
 $hxClasses["agentui.api.AcceptVerificationMessage"] = agentui.api.AcceptVerificationMessage;
 agentui.api.AcceptVerificationMessage.__name__ = ["agentui","api","AcceptVerificationMessage"];
-agentui.api.AcceptVerificationMessage.__interfaces__ = [agentui.api.ChannelMessage];
 agentui.api.AcceptVerificationMessage.prototype = {
 	__class__: agentui.api.AcceptVerificationMessage
 };
@@ -998,816 +806,79 @@ agentui.api.IntroResponseMessage = function(notificationIid,accepted) {
 };
 $hxClasses["agentui.api.IntroResponseMessage"] = agentui.api.IntroResponseMessage;
 agentui.api.IntroResponseMessage.__name__ = ["agentui","api","IntroResponseMessage"];
-agentui.api.IntroResponseMessage.__interfaces__ = [agentui.api.ChannelMessage];
 agentui.api.IntroResponseMessage.prototype = {
 	__class__: agentui.api.IntroResponseMessage
 };
-agentui.api.QueryMessage = function(fd,type,q) {
-	if(fd == null) {
-		this.type = type;
-		this.q = q;
-		this.aliasIid = null;
-		this.connectionIids = new Array();
-		this.local = true;
-	} else {
-		this.type = fd.type;
-		this.q = fd.filter.q;
-		this.aliasIid = fd.aliasIid;
-		this.connectionIids = fd.connectionIids;
-		this.local = fd.aliasIid != null;
-	}
-	this.historical = true;
-	this.standing = true;
-};
-$hxClasses["agentui.api.QueryMessage"] = agentui.api.QueryMessage;
-agentui.api.QueryMessage.__name__ = ["agentui","api","QueryMessage"];
-agentui.api.QueryMessage.__interfaces__ = [agentui.api.ChannelMessage];
-agentui.api.QueryMessage.create = function(type) {
-	return new agentui.api.QueryMessage(null,type,"1=1");
-};
-agentui.api.QueryMessage.prototype = {
-	__class__: agentui.api.QueryMessage
-};
-agentui.api.ChannelRequestMessage = function(path,context,msg) {
-	this.path = path;
-	this.context = context;
-	this.parms = m3.serialization.Serializer.get_instance().toJson(msg);
-};
-$hxClasses["agentui.api.ChannelRequestMessage"] = agentui.api.ChannelRequestMessage;
-agentui.api.ChannelRequestMessage.__name__ = ["agentui","api","ChannelRequestMessage"];
-agentui.api.ChannelRequestMessage.prototype = {
-	__class__: agentui.api.ChannelRequestMessage
-};
-agentui.api.ChannelRequestMessageBundle = function(requests_) {
-	this.channel = agentui.AppContext.SUBMIT_CHANNEL;
-	if(requests_ == null) this.requests = new Array(); else this.requests = requests_;
-};
-$hxClasses["agentui.api.ChannelRequestMessageBundle"] = agentui.api.ChannelRequestMessageBundle;
-agentui.api.ChannelRequestMessageBundle.__name__ = ["agentui","api","ChannelRequestMessageBundle"];
-agentui.api.ChannelRequestMessageBundle.prototype = {
-	addChannelRequest: function(request) {
-		this.requests.push(request);
-	}
-	,addRequest: function(path,context,parms) {
-		var request = new agentui.api.ChannelRequestMessage(path,context,parms);
-		this.addChannelRequest(request);
-	}
-	,__class__: agentui.api.ChannelRequestMessageBundle
-};
-agentui.api.EventDelegate = function(protocolHandler) {
-	this.filterIsRunning = false;
-	this.protocolHandler = protocolHandler;
-	this._setUpEventListeners();
-};
+agentui.api.EventDelegate = function() { };
 $hxClasses["agentui.api.EventDelegate"] = agentui.api.EventDelegate;
 agentui.api.EventDelegate.__name__ = ["agentui","api","EventDelegate"];
-agentui.api.EventDelegate.prototype = {
-	_setUpEventListeners: function() {
-		var _g = this;
-		agentui.model.EM.addListener(agentui.model.EMEvent.FILTER_RUN,function(filterData) {
-			_g.protocolHandler.filter(filterData);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.CreateAlias,function(alias) {
-			_g.protocolHandler.createAlias(alias);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.DeleteAlias,function(alias1) {
-			_g.protocolHandler.deleteAlias(alias1);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.UpdateAlias,function(alias2) {
-			_g.protocolHandler.updateAlias(alias2);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.UserLogin,function(login) {
-			_g.protocolHandler.login(login);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.CreateAgent,function(user) {
-			_g.protocolHandler.createAgent(user);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.CreateContent,function(data) {
-			_g.protocolHandler.createContent(data);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.UpdateContent,function(data1) {
-			_g.protocolHandler.updateContent(data1);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.DeleteContent,function(data2) {
-			_g.protocolHandler.deleteContent(data2);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.CreateLabel,function(data3) {
-			_g.protocolHandler.createLabel(data3);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.UpdateLabel,function(data4) {
-			_g.protocolHandler.updateLabel(data4);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.MoveLabel,function(data5) {
-			_g.protocolHandler.moveLabel(data5);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.CopyLabel,function(data6) {
-			_g.protocolHandler.copyLabel(data6);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.DeleteLabel,function(data7) {
-			_g.protocolHandler.deleteLabel(data7);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.RespondToIntroduction,function(intro) {
-			_g.protocolHandler.confirmIntroduction(intro);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.INTRODUCTION_REQUEST,function(intro1) {
-			_g.protocolHandler.beginIntroduction(intro1);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.GrantAccess,function(parms) {
-			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.RevokeAccess,function(lacls) {
-			_g.protocolHandler.revokeAccess(lacls);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.DeleteConnection,function(c) {
-			_g.protocolHandler.deleteConnection(c);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.UserLogout,function(c1) {
-			_g.protocolHandler.deregisterAllSqueries();
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.TargetChange,function(conn) {
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.BACKUP,function(n) {
-			_g.protocolHandler.backup();
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.RESTORE,function(n1) {
-			_g.protocolHandler.restore();
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.VerificationRequest,function(vr) {
-			_g.protocolHandler.verificationRequest(vr);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.RespondToVerification,function(vr1) {
-			_g.protocolHandler.respondToVerificationRequest(vr1);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.AcceptVerification,function(notificationIid) {
-			_g.protocolHandler.acceptVerification(notificationIid);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.RejectVerificationRequest,function(notificationIid1) {
-			_g.protocolHandler.rejectVerificationRequest(notificationIid1);
-		});
-		agentui.model.EM.addListener(agentui.model.EMEvent.RejectVerification,function(notificationIid2) {
-			_g.protocolHandler.rejectVerificationResponse(notificationIid2);
-		});
-	}
-	,__class__: agentui.api.EventDelegate
-};
-agentui.api.ProtocolHandler = function() {
-	this.eventDelegate = new agentui.api.EventDelegate(this);
-	this.registeredHandles = new Array();
-};
-$hxClasses["agentui.api.ProtocolHandler"] = agentui.api.ProtocolHandler;
-agentui.api.ProtocolHandler.__name__ = ["agentui","api","ProtocolHandler"];
-agentui.api.ProtocolHandler.prototype = {
-	createChannel: function(aliasName,successFunc) {
-		new agentui.api.SimpleRequest("/api/channel/create/" + aliasName,"",successFunc).start();
-	}
-	,addHandle: function(handle) {
-		this.registeredHandles.push(handle);
-	}
-	,deregisterAllSqueries: function() {
-		if(this.registeredHandles.length > 0) this.deregisterSqueries(this.registeredHandles.slice());
-	}
-	,deregisterSqueries: function(handles) {
-		var context = agentui.api.Synchronizer.createContext(handles.length,"deregisterSqueriesResponse");
-		var requests = new Array();
-		var _g = 0;
-		while(_g < handles.length) {
-			var handle = handles[_g];
-			++_g;
-			requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DEREGISTER,context,new agentui.api.DeregisterMessage(handle)));
-			HxOverrides.remove(this.registeredHandles,handle);
-		}
-		new agentui.api.SubmitRequest(requests).start({ async : false});
-	}
-	,getProfiles: function(connectionIids) {
-		var context = agentui.api.Synchronizer.createContext(1,"connectionProfile");
-		var qm = agentui.api.QueryMessage.create("profile");
-		qm.connectionIids = connectionIids;
-		qm.local = false;
-		new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,qm)]).start();
-	}
-	,getVerificationContent: function(connectionIids,iids) {
-		var context = agentui.api.Synchronizer.createContext(1,"verificationContent");
-		var qm = agentui.api.QueryMessage.create("content");
-		qm.connectionIids = connectionIids;
-		qm.q = "iid in (" + iids.join(",") + ")";
-		qm.local = false;
-		qm.standing = false;
-		new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,qm)]).start();
-	}
-	,login: function(login) {
-		this.createChannel(login.agentId,$bind(this,this.onCreateSubmitChannel));
-	}
-	,createAgent: function(newUser) {
-		var req = new agentui.api.SimpleRequest("/api/agent/create/" + newUser.name,"",function(data) {
-			agentui.model.EM.change(agentui.model.EMEvent.AgentCreated);
-		});
-		req.start();
-	}
-	,beginIntroduction: function(intro) {
-		var context = agentui.api.Synchronizer.createContext(1,"beginIntroduction");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.INTRODUCE,context,new agentui.api.IntroMessage(intro))]);
-		req.start();
-	}
-	,confirmIntroduction: function(confirmation) {
-		var context = agentui.api.Synchronizer.createContext(1,"confirmIntroduction");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.INTRO_RESPONSE,context,confirmation)]);
-		req.start();
-	}
-	,deleteConnection: function(c) {
-		var context = agentui.api.Synchronizer.createContext(1,"connectionDeleted");
-		new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DELETE,context,agentui.api.DeleteMessage.create(c))]).start();
-	}
-	,grantAccess: function(connectionIid,labelIid) {
-		var acl = new agentui.model.LabelAcl(connectionIid,labelIid);
-		var context = agentui.api.Synchronizer.createContext(1,"grantAccess");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(acl))]);
-		req.start();
-	}
-	,revokeAccess: function(lacls) {
-		var context = agentui.api.Synchronizer.createContext(1,"accessRevoked");
-		var requests = new Array();
-		var _g = 0;
-		while(_g < lacls.length) {
-			var lacl = lacls[_g];
-			++_g;
-			requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DELETE,context,agentui.api.DeleteMessage.create(lacl)));
-		}
-		new agentui.api.SubmitRequest(requests).start();
-	}
-	,filter: function(filterData) {
-		var context = agentui.api.Synchronizer.createContext(1,"filterContent");
-		var requests = [new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,new agentui.api.QueryMessage(filterData))];
-		new agentui.api.SubmitRequest(requests).start();
-	}
-	,createAlias: function(alias) {
-		alias.name = alias.profile.name;
-		var options = { profileName : alias.profile.name, profileImgSrc : alias.profile.imgSrc, parentIid : agentui.AppContext.ROOT_LABEL_ID};
-		var context = agentui.api.Synchronizer.createContext(1,"aliasCreated");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(alias,options))]);
-		req.start();
-	}
-	,updateAlias: function(alias) {
-		alias.name = alias.profile.name;
-		var context = agentui.api.Synchronizer.createContext(1,"aliasUpdated");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(alias)),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(alias.profile))]);
-		req.start();
-	}
-	,deleteAlias: function(alias) {
-		var context = agentui.api.Synchronizer.createContext(1,"aliasDeleted");
-		new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DELETE,context,agentui.api.DeleteMessage.create(alias))]).start();
-	}
-	,createContent: function(data) {
-		var context = agentui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentCreated");
-		var requests = new Array();
-		requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(data.content)));
-		var _g = 0;
-		var _g1 = data.labelIids;
-		while(_g < _g1.length) {
-			var iid = _g1[_g];
-			++_g;
-			var labeledContent = new agentui.model.LabeledContent(data.content.iid,iid);
-			requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(labeledContent)));
-		}
-		new agentui.api.SubmitRequest(requests).start();
-	}
-	,updateContent: function(data) {
-		var currentLabels;
-		var this1 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
-		currentLabels = this1.get(data.content.iid);
-		var labelsToDelete = new Array();
-		var $it0 = currentLabels.iterator();
-		while( $it0.hasNext() ) {
-			var labeledContent = $it0.next();
-			var found = false;
-			var _g = 0;
-			var _g1 = data.labelIids;
-			while(_g < _g1.length) {
-				var iid = _g1[_g];
-				++_g;
-				if(iid == labeledContent.labelIid) {
-					found = true;
-					break;
-				}
-			}
-			if(!found) labelsToDelete.push(labeledContent);
-		}
-		var labelsToAdd = new Array();
-		var _g2 = 0;
-		var _g11 = data.labelIids;
-		while(_g2 < _g11.length) {
-			var iid1 = _g11[_g2];
-			++_g2;
-			var found1 = false;
-			var $it1 = currentLabels.iterator();
-			while( $it1.hasNext() ) {
-				var labeledContent1 = $it1.next();
-				if(iid1 == labeledContent1.labelIid) {
-					found1 = true;
-					break;
-				}
-			}
-			if(!found1) labelsToAdd.push(new agentui.model.LabeledContent(data.content.iid,iid1));
-		}
-		var context = agentui.api.Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length,"contentUpdated");
-		var requests = new Array();
-		requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(data.content)));
-		var _g3 = 0;
-		while(_g3 < labelsToDelete.length) {
-			var lc = labelsToDelete[_g3];
-			++_g3;
-			requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DELETE,context,agentui.api.DeleteMessage.create(lc)));
-		}
-		var _g4 = 0;
-		while(_g4 < labelsToAdd.length) {
-			var lc1 = labelsToAdd[_g4];
-			++_g4;
-			requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(lc1)));
-		}
-		new agentui.api.SubmitRequest(requests).start();
-	}
-	,deleteContent: function(data) {
-		var context = agentui.api.Synchronizer.createContext(1 + data.labelIids.length,"contentDeleted");
-		var requests = new Array();
-		requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DELETE,context,agentui.api.DeleteMessage.create(data.content)));
-		var $it0 = ((function($this) {
-			var $r;
-			var this1 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this1.get(data.content.iid);
-			return $r;
-		}(this))).iterator();
-		while( $it0.hasNext() ) {
-			var lc = $it0.next();
-			requests.push(new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DELETE,context,agentui.api.DeleteMessage.create(lc)));
-		}
-		new agentui.api.SubmitRequest(requests).start();
-	}
-	,createLabel: function(data) {
-		var context = agentui.api.Synchronizer.createContext(1,"labelCreated");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(data.label,{ parentIid : data.parentIid}))]);
-		req.start();
-	}
-	,updateLabel: function(data) {
-		var context = agentui.api.Synchronizer.createContext(1,"labelUpdated");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(data.label))]);
-		req.start();
-	}
-	,getExistingLabelChild: function(parentIid,childIid) {
-		var lcs = new m3.observable.FilteredSet(agentui.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == parentIid && lc.childIid == childIid;
-		});
-		return lcs.iterator().next();
-	}
-	,moveLabel: function(data) {
-		var lcs = new m3.observable.FilteredSet(agentui.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == data.parentIid && lc.childIid == data.label.iid;
-		});
-		var lcToRemove = this.getExistingLabelChild(data.parentIid,data.label.iid);
-		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.iid);
-		if(lcToAdd == null) lcToAdd = new agentui.model.LabelChild(data.newParentId,data.label.iid);
-		var context = agentui.api.Synchronizer.createContext(2,"labelMoved");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DELETE,context,agentui.api.DeleteMessage.create(lcToRemove)),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(lcToAdd))]);
-		req.start();
-	}
-	,copyLabel: function(data) {
-		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.iid);
-		if(lcToAdd == null) lcToAdd = new agentui.model.LabelChild(data.newParentId,data.label.iid);
-		var context = agentui.api.Synchronizer.createContext(1,"labelCopied");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context,agentui.api.CrudMessage.create(lcToAdd))]);
-		req.start();
-	}
-	,deleteLabel: function(data) {
-		var lc = m3.helper.OSetHelper.getElementComplex2(agentui.AppContext.LABELCHILDREN,function(lc1) {
-			return lc1.parentIid == data.parentIid && lc1.childIid == data.label.iid;
-		});
-		var context = agentui.api.Synchronizer.createContext(1,"labelDeleted");
-		new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.DELETE,context,agentui.api.DeleteMessage.create(lc))]).start();
-	}
-	,verificationRequest: function(vr) {
-		var context = agentui.api.Synchronizer.createContext(1,"verificationRequest");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.VERIFICATION_REQUEST,context,new agentui.api.VerificationRequestMessage(vr))]);
-		req.start();
-	}
-	,respondToVerificationRequest: function(vr) {
-		var context = agentui.api.Synchronizer.createContext(1,"respondToVerificationRequest");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.VERIFICATION_RESPONSE,context,new agentui.api.VerificationResponseMessage(vr))]);
-		req.start();
-	}
-	,consumeNotification: function(notificationIid,context) {
-		var notification = m3.helper.OSetHelper.getElement(agentui.AppContext.NOTIFICATIONS,notificationIid);
-		notification.consumed = true;
-		var context1 = agentui.api.Synchronizer.createContext(1,context);
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.UPSERT,context1,agentui.api.CrudMessage.create(notification))]);
-		req.start();
-	}
-	,rejectVerificationRequest: function(notificationIid) {
-		this.consumeNotification(notificationIid,"verificationRequestRejected");
-	}
-	,rejectVerificationResponse: function(notificationIid) {
-		this.consumeNotification(notificationIid,"verificationResponseRejected");
-	}
-	,acceptVerification: function(notificationIid) {
-		var context = agentui.api.Synchronizer.createContext(1,"acceptVerification");
-		var req = new agentui.api.SubmitRequest([new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.VERIFICATION_ACCEPT,context,new agentui.api.AcceptVerificationMessage(notificationIid))]);
-		req.start();
-	}
-	,onCreateSubmitChannel: function(data) {
-		agentui.AppContext.SUBMIT_CHANNEL = data.channelId;
-		agentui.AppContext.UBER_ALIAS_ID = data.aliasIid;
-		this._startPolling(data.channelId);
-		var context = agentui.api.Synchronizer.createContext(9,"initialDataLoad");
-		var requests = [new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("alias")),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("introduction")),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("connection")),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("notification")),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("label")),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("labelAcl")),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("labeledContent")),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("labelChild")),new agentui.api.ChannelRequestMessage(agentui.api.ProtocolHandler.QUERY,context,agentui.api.QueryMessage.create("profile"))];
-		new agentui.api.SubmitRequest(requests).start();
-	}
-	,_startPolling: function(channelId) {
-		var timeout = 10000;
-		var ajaxOptions = { contentType : "", type : "GET"};
-		this.listeningChannel = new m3.comm.LongPollingRequest(channelId,agentui.api.ResponseProcessor.processResponse,null,ajaxOptions);
-		this.listeningChannel.timeout = timeout;
-		this.listeningChannel.start();
-	}
-	,backup: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,restore: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,restores: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,__class__: agentui.api.ProtocolHandler
-};
-var m3 = {};
-m3.comm = {};
-m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
-	this.requestData = requestData;
-	this._url = url;
-	this.onSuccess = successFcn;
-	this.onError = errorFcn;
-	this.onAccessDenied = accessDeniedFcn;
-	this._requestHeaders = new haxe.ds.StringMap();
-};
-$hxClasses["m3.comm.BaseRequest"] = m3.comm.BaseRequest;
-m3.comm.BaseRequest.__name__ = ["m3","comm","BaseRequest"];
-m3.comm.BaseRequest.prototype = {
-	ajaxOpts: function(opts) {
-		if(opts == null) return this.baseOpts; else {
-			this.baseOpts = opts;
-			return this;
-		}
-	}
-	,requestHeaders: function(headers) {
-		if(headers == null) return this._requestHeaders; else {
-			this._requestHeaders = headers;
-			return this;
-		}
-	}
-	,beforeSend: function(jqXHR,settings) {
-		var $it0 = this._requestHeaders.keys();
-		while( $it0.hasNext() ) {
-			var key = $it0.next();
-			if(this._requestHeaders.get(key) != null) jqXHR.setRequestHeader(key,this._requestHeaders.get(key));
-		}
-	}
-	,start: function(opts) {
-		var _g = this;
-		if(opts == null) opts = { };
-		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", url : this._url, success : function(data,textStatus,jqXHR) {
-			if(jqXHR.getResponseHeader("Content-Length") == "0") data = [];
-			if(_g.onSuccess != null) _g.onSuccess(data);
-		}, error : function(jqXHR1,textStatus1,errorThrown) {
-			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
-			var errorMessage = null;
-			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) errorMessage = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") errorMessage = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") errorMessage = errorThrown; else errorMessage = errorThrown.message;
-			if(m3.helper.StringHelper.isBlank(errorMessage)) errorMessage = "Error, but no error msg from server";
-			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + errorMessage);
-			var exc = new m3.exception.AjaxException(errorMessage,null,jqXHR1.status);
-			if(_g.onError != null) _g.onError(exc); else throw exc;
-		}};
-		$.extend(ajaxOpts,this.baseOpts);
-		$.extend(ajaxOpts,opts);
-		return $.ajax(ajaxOpts);
-	}
-	,abort: function() {
-	}
-	,__class__: m3.comm.BaseRequest
-};
-agentui.api.SimpleRequest = function(path,data,successFcn) {
-	m3.comm.BaseRequest.call(this,data,path,successFcn);
-};
-$hxClasses["agentui.api.SimpleRequest"] = agentui.api.SimpleRequest;
-agentui.api.SimpleRequest.__name__ = ["agentui","api","SimpleRequest"];
-agentui.api.SimpleRequest.__super__ = m3.comm.BaseRequest;
-agentui.api.SimpleRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
-	__class__: agentui.api.SimpleRequest
-});
-agentui.api.SubmitRequest = function(msgs,successFcn) {
-	this.baseOpts = { dataType : "text"};
-	if(successFcn == null) successFcn = function(data) {
-	};
-	var bundle = new agentui.api.ChannelRequestMessageBundle(msgs);
-	var data1 = m3.serialization.Serializer.get_instance().toJsonString(bundle);
-	m3.comm.BaseRequest.call(this,data1,"/api/channel/submit",successFcn);
-};
-$hxClasses["agentui.api.SubmitRequest"] = agentui.api.SubmitRequest;
-agentui.api.SubmitRequest.__name__ = ["agentui","api","SubmitRequest"];
-agentui.api.SubmitRequest.__super__ = m3.comm.BaseRequest;
-agentui.api.SubmitRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
-	__class__: agentui.api.SubmitRequest
-});
-agentui.api.ResponseProcessor = function() { };
-$hxClasses["agentui.api.ResponseProcessor"] = agentui.api.ResponseProcessor;
-agentui.api.ResponseProcessor.__name__ = ["agentui","api","ResponseProcessor"];
-agentui.api.ResponseProcessor.processResponse = function(dataArr) {
-	if(dataArr == null || dataArr.length == 0) return;
-	Lambda.iter(dataArr,function(data) {
-		if(data.success == false) {
-			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
-			m3.log.Logga.get_DEFAULT().error(data.error.stacktrace);
-		} else {
-			if(data.context == null) return;
-			var context = new agentui.model.Context(data.context);
-			var _g = context.oncomplete;
-			switch(_g) {
-			case "beginIntroduction":
-				agentui.api.ResponseProcessor.beginIntroduction();
-				break;
-			case "confirmIntroduction":
-				agentui.api.ResponseProcessor.confirmIntroduction();
-				break;
-			case "connectionProfile":
-				agentui.api.ResponseProcessor.processProfile(data);
-				break;
-			case "grantAccess":
-				agentui.api.ResponseProcessor.grantAccess();
-				break;
-			case "initialDataLoad":
-				if(data.responseType == "query") agentui.api.Synchronizer.processResponse(data); else if(data.responseType == "squery") agentui.api.ResponseProcessor.updateModelObject(data.type,data.action,data.results); else if(data.result && data.result.handle) agentui.AgentUi.PROTOCOL.addHandle(data.result.handle);
-				break;
-			case "filterContent":
-				if(data.responseType == "query") agentui.model.EM.change(agentui.model.EMEvent.LoadFilteredContent,data); else if(data.responseType == "squery") agentui.model.EM.change(agentui.model.EMEvent.AppendFilteredContent,data); else if(data.result && data.result.handle) agentui.AgentUi.PROTOCOL.addHandle(data.result.handle);
-				break;
-			case "verificationContent":
-				if(data.result && data.result.handle) agentui.AgentUi.PROTOCOL.addHandle(data.result.handle); else agentui.api.ResponseProcessor.updateModelObject(data.type,data.action,data.results);
-				break;
-			case "verificationRequest":
-				agentui.model.EM.change(agentui.model.EMEvent.VerificationRequest_RESPONSE);
-				break;
-			case "respondToVerificationRequest":
-				agentui.model.EM.change(agentui.model.EMEvent.RespondToVerification_RESPONSE);
-				break;
-			case "acceptVerification":
-				agentui.model.EM.change(agentui.model.EMEvent.AcceptVerification_RESPONSE);
-				break;
-			case "verificationRequestRejected":
-				agentui.model.EM.change(agentui.model.EMEvent.RejectVerificationRequest_RESPONSE);
-				break;
-			case "verificationResponseRejected":
-				agentui.model.EM.change(agentui.model.EMEvent.RejectVerification_RESPONSE);
-				break;
-			default:
-				agentui.api.Synchronizer.processResponse(data);
-			}
-		}
+agentui.api.EventDelegate.init = function() {
+	agentui.model.EM.addListener(agentui.model.EMEvent.FILTER_RUN,function(filterData) {
 	});
-};
-agentui.api.ResponseProcessor.processModelObject = function(set,type,action,data) {
-	var _g = 0;
-	var _g1;
-	_g1 = js.Boot.__cast(data , Array);
-	while(_g < _g1.length) {
-		var datum = _g1[_g];
-		++_g;
-		var obj = m3.serialization.Serializer.get_instance().fromJsonX(datum,type);
-		if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
-	}
-};
-agentui.api.ResponseProcessor.updateModelObject = function(type,action,data) {
-	var type1 = type.toLowerCase();
-	switch(type1) {
-	case "alias":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.ALIASES,agentui.model.Alias,action,data);
-		break;
-	case "connection":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.CONNECTIONS,agentui.model.Connection,action,data);
-		break;
-	case "content":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.VERIFICATION_CONTENT,agentui.model.Content,action,data);
-		break;
-	case "introduction":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.INTRODUCTIONS,agentui.model.Introduction,action,data);
-		break;
-	case "label":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.LABELS,agentui.model.Label,action,data);
-		break;
-	case "labelacl":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.LABELACLS,agentui.model.LabelAcl,action,data);
-		break;
-	case "labelchild":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.LABELCHILDREN,agentui.model.LabelChild,action,data);
-		break;
-	case "labeledcontent":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.LABELEDCONTENT,agentui.model.LabeledContent,action,data);
-		break;
-	case "notification":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.MASTER_NOTIFICATIONS,agentui.model.Notification,action,data);
-		break;
-	case "profile":
-		agentui.api.ResponseProcessor.processModelObject(agentui.AppContext.PROFILES,agentui.model.Profile,action,data);
-		break;
-	default:
-		m3.log.Logga.get_DEFAULT().error("Unknown type: " + type1);
-	}
-};
-agentui.api.ResponseProcessor.initialDataLoad = function(data) {
-	agentui.AppContext.ALIASES.addAll(data.aliases);
-	agentui.AppContext.CONNECTIONS.addAll(data.connections);
-	agentui.AppContext.LABELS.addAll(data.labels);
-	agentui.AppContext.LABELCHILDREN.addAll(data.labelChildren);
-	agentui.AppContext.INTRODUCTIONS.addAll(data.introductions);
-	agentui.AppContext.MASTER_NOTIFICATIONS.addAll(data.notifications);
-	agentui.AppContext.LABELEDCONTENT.addAll(data.labeledContent);
-	agentui.AppContext.LABELACLS.addAll(data.labelAcls);
-	agentui.AppContext.PROFILES.addAll(data.profiles);
-	var $it0 = agentui.AppContext.ALIASES.iterator();
-	while( $it0.hasNext() ) {
-		var alias_ = $it0.next();
-		var $it1 = agentui.AppContext.PROFILES.iterator();
-		while( $it1.hasNext() ) {
-			var profile_ = $it1.next();
-			if(profile_.aliasIid == alias_.iid) {
-				alias_.profile = profile_;
-				agentui.AppContext.ALIASES.update(alias_);
-			}
-		}
-	}
-	agentui.model.EM.change(agentui.model.EMEvent.InitialDataLoadComplete);
-};
-agentui.api.ResponseProcessor.processProfile = function(rec) {
-	if(rec.result && rec.result.handle) agentui.AgentUi.PROTOCOL.addHandle(rec.result.handle); else {
-		var connection = m3.helper.OSetHelper.getElement(agentui.AppContext.CONNECTIONS,rec.connectionIid);
-		var profile = m3.serialization.Serializer.get_instance().fromJsonX(rec.results[0],agentui.model.Profile);
-		profile.connectionIid = rec.connectionIid;
-		connection.data = profile;
-		agentui.AppContext.CONNECTIONS.addOrUpdate(connection);
-		agentui.AppContext.PROFILES.addOrUpdate(profile);
-	}
-};
-agentui.api.ResponseProcessor.beginIntroduction = function() {
-	agentui.model.EM.change(agentui.model.EMEvent.INTRODUCTION_RESPONSE);
-};
-agentui.api.ResponseProcessor.confirmIntroduction = function() {
-	agentui.model.EM.change(agentui.model.EMEvent.RespondToIntroduction_RESPONSE);
-};
-agentui.api.ResponseProcessor.grantAccess = function() {
-	agentui.model.EM.change(agentui.model.EMEvent.AccessGranted);
-};
-agentui.api.SynchronizationParms = function() {
-	this.aliases = new Array();
-	this.connections = new Array();
-	this.content = new Array();
-	this.introductions = new Array();
-	this.labels = new Array();
-	this.labelAcls = new Array();
-	this.labelChildren = new Array();
-	this.labeledContent = new Array();
-	this.notifications = new Array();
-	this.profiles = new Array();
-};
-$hxClasses["agentui.api.SynchronizationParms"] = agentui.api.SynchronizationParms;
-agentui.api.SynchronizationParms.__name__ = ["agentui","api","SynchronizationParms"];
-agentui.api.SynchronizationParms.prototype = {
-	__class__: agentui.api.SynchronizationParms
-};
-var haxe = {};
-haxe.ds = {};
-haxe.ds.StringMap = function() {
-	this.h = { };
-};
-$hxClasses["haxe.ds.StringMap"] = haxe.ds.StringMap;
-haxe.ds.StringMap.__name__ = ["haxe","ds","StringMap"];
-haxe.ds.StringMap.__interfaces__ = [IMap];
-haxe.ds.StringMap.prototype = {
-	set: function(key,value) {
-		this.h["$" + key] = value;
-	}
-	,get: function(key) {
-		return this.h["$" + key];
-	}
-	,exists: function(key) {
-		return this.h.hasOwnProperty("$" + key);
-	}
-	,remove: function(key) {
-		key = "$" + key;
-		if(!this.h.hasOwnProperty(key)) return false;
-		delete(this.h[key]);
-		return true;
-	}
-	,keys: function() {
-		var a = [];
-		for( var key in this.h ) {
-		if(this.h.hasOwnProperty(key)) a.push(key.substr(1));
-		}
-		return HxOverrides.iter(a);
-	}
-	,iterator: function() {
-		return { ref : this.h, it : this.keys(), hasNext : function() {
-			return this.it.hasNext();
-		}, next : function() {
-			var i = this.it.next();
-			return this.ref["$" + i];
-		}};
-	}
-	,__class__: haxe.ds.StringMap
-};
-agentui.api.Synchronizer = function(iid,numResponsesExpected,oncomplete) {
-	this.iid = iid;
-	this.numResponsesExpected = numResponsesExpected;
-	this.oncomplete = oncomplete;
-	this.parms = new agentui.api.SynchronizationParms();
-};
-$hxClasses["agentui.api.Synchronizer"] = agentui.api.Synchronizer;
-agentui.api.Synchronizer.__name__ = ["agentui","api","Synchronizer"];
-agentui.api.Synchronizer.createContext = function(numResponsesExpected,oncomplete) {
-	return m3.util.UidGenerator.create(32) + "-" + (numResponsesExpected == null?"null":"" + numResponsesExpected) + "-" + oncomplete;
-};
-agentui.api.Synchronizer.processResponse = function(data) {
-	var context = new agentui.model.Context(data.context);
-	var synchronizer = agentui.api.Synchronizer.synchronizers.get(context.iid);
-	if(synchronizer == null) synchronizer = agentui.api.Synchronizer.add(context);
-	synchronizer.dataReceived(context,data);
-};
-agentui.api.Synchronizer.add = function(c) {
-	var synchronizer = new agentui.api.Synchronizer(c.iid,c.numResponsesExpected,c.oncomplete);
-	agentui.api.Synchronizer.synchronizers.set(c.iid,synchronizer);
-	return synchronizer;
-};
-agentui.api.Synchronizer.remove = function(iid) {
-	agentui.api.Synchronizer.synchronizers.remove(iid);
-};
-agentui.api.Synchronizer.prototype = {
-	processDataReceived: function(list,type,data) {
-		var _g = 0;
-		var _g1;
-		_g1 = js.Boot.__cast(data , Array);
-		while(_g < _g1.length) {
-			var datum = _g1[_g];
-			++_g;
-			list.push(m3.serialization.Serializer.get_instance().fromJsonX(datum,type));
-		}
-	}
-	,dataReceived: function(c,dataObj) {
-		var data = dataObj.results;
-		if(data == null) return;
-		var type = dataObj.type.toLowerCase();
-		switch(type) {
-		case "alias":
-			this.processDataReceived(this.parms.aliases,agentui.model.Alias,data);
-			break;
-		case "connection":
-			this.processDataReceived(this.parms.connections,agentui.model.Connection,data);
-			break;
-		case "content":
-			this.processDataReceived(this.parms.content,agentui.model.Content,data);
-			break;
-		case "introduction":
-			this.processDataReceived(this.parms.introductions,agentui.model.Introduction,data);
-			break;
-		case "label":
-			this.processDataReceived(this.parms.labels,agentui.model.Label,data);
-			break;
-		case "labelacl":
-			this.processDataReceived(this.parms.labelAcls,agentui.model.LabelAcl,data);
-			break;
-		case "labelchild":
-			this.processDataReceived(this.parms.labelChildren,agentui.model.LabelChild,data);
-			break;
-		case "labeledcontent":
-			this.processDataReceived(this.parms.labeledContent,agentui.model.LabeledContent,data);
-			break;
-		case "notification":
-			this.processDataReceived(this.parms.notifications,agentui.model.Notification,data);
-			break;
-		case "profile":
-			this.processDataReceived(this.parms.profiles,agentui.model.Profile,data);
-			break;
-		default:
-			m3.log.Logga.get_DEFAULT().error("Unknown data type: " + Std.string(dataObj.type));
-		}
-		this.numResponsesExpected -= 1;
-		if(this.numResponsesExpected == 0) {
-			var func = Reflect.field(agentui.api.ResponseProcessor,this.oncomplete);
-			if(func == null) m3.log.Logga.get_DEFAULT().info("Missing oncomplete function: " + this.oncomplete); else func.apply(agentui.api.ResponseProcessor,[this.parms]);
-			agentui.api.Synchronizer.remove(this.iid);
-			var length = 0;
-			var $it0 = agentui.api.Synchronizer.synchronizers.keys();
-			while( $it0.hasNext() ) {
-				var key = $it0.next();
-				length += 1;
-			}
-			m3.log.Logga.get_DEFAULT().info("Number Synchronizers: " + length);
-		}
-	}
-	,__class__: agentui.api.Synchronizer
+	agentui.model.EM.addListener(agentui.model.EMEvent.CreateAlias,function(alias) {
+		qoid.QoidAPI.createAlias(alias.profile.name,alias.profile.imgSrc);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.DeleteAlias,function(alias1) {
+		qoid.QoidAPI.deleteAlias(alias1.iid);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.UpdateAlias,function(alias2) {
+		qoid.QoidAPI.updateAlias(alias2.iid,alias2.data);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.UserLogin,function(login) {
+		qoid.QoidAPI.login(login.agentId,login.password);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.CreateAgent,function(user) {
+		qoid.QoidAPI.createAgent(user.name,user.pwd);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.CreateContent,function(data) {
+		qoid.QoidAPI.createContent(data.content.contentType[0],data.content,data.labelIids);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.UpdateContent,function(data1) {
+		qoid.QoidAPI.updateContent(data1.content.iid,data1.content);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.DeleteContent,function(data2) {
+		qoid.QoidAPI.deleteContent(data2.content.iid);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.CreateLabel,function(data3) {
+		qoid.QoidAPI.createLabel(data3.parentIid,data3.label.name,data3.label.data);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.UpdateLabel,function(data4) {
+		qoid.QoidAPI.updateLabel(data4.label.iid,data4.label.name,data4.label.data);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.MoveLabel,function(data5) {
+		qoid.QoidAPI.moveLabel(data5.label.iid,data5.parentIid,data5.newParentId);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.CopyLabel,function(data6) {
+		qoid.QoidAPI.copyLabel(data6.label.iid,data6.newParentId);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.DeleteLabel,function(data7) {
+		qoid.QoidAPI.deleteLabel(data7.label.iid,data7.parentIid);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.RespondToIntroduction,function(n) {
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.INTRODUCTION_REQUEST,function(intro) {
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.GrantAccess,function(parms) {
+		qoid.QoidAPI.grantAccess(parms.labelIid,parms.connectionIid,1);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.RevokeAccess,function(lacls) {
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.DeleteConnection,function(c) {
+		qoid.QoidAPI.deleteConnection(c.iid);
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.UserLogout,function(c1) {
+		qoid.QoidAPI.logout();
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.VerificationRequest,function(vr) {
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.RespondToVerification,function(vr1) {
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.AcceptVerification,function(notificationIid) {
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.RejectVerificationRequest,function(notificationIid1) {
+	});
+	agentui.model.EM.addListener(agentui.model.EMEvent.RejectVerification,function(notificationIid2) {
+	});
 };
 agentui.model = {};
 agentui.model.ContentSourceListener = function(mapListener,onBeforeSetContent,widgetCreator,content) {
@@ -1824,33 +895,36 @@ agentui.model.ContentSourceListener.__name__ = ["agentui","model","ContentSource
 agentui.model.ContentSourceListener.prototype = {
 	__class__: agentui.model.ContentSourceListener
 };
-agentui.model.ModelObj = function() {
+var qoid = {};
+qoid.model = {};
+qoid.model.ModelObj = function() {
 };
-$hxClasses["agentui.model.ModelObj"] = agentui.model.ModelObj;
-agentui.model.ModelObj.__name__ = ["agentui","model","ModelObj"];
-agentui.model.ModelObj.prototype = {
+$hxClasses["qoid.model.ModelObj"] = qoid.model.ModelObj;
+qoid.model.ModelObj.__name__ = ["qoid","model","ModelObj"];
+qoid.model.ModelObj.prototype = {
 	objectType: function() {
 		var className = m3.serialization.TypeTools.classname(m3.serialization.TypeTools.clazz(this)).toLowerCase();
 		var parts = className.split(".");
 		return parts[parts.length - 1];
 	}
-	,__class__: agentui.model.ModelObj
+	,__class__: qoid.model.ModelObj
 };
-agentui.model.ModelObjWithIid = function() {
-	agentui.model.ModelObj.call(this);
+qoid.model.ModelObjWithIid = function() {
+	qoid.model.ModelObj.call(this);
 	this.iid = m3.util.UidGenerator.create(32);
 	this.created = new Date();
 	this.modified = new Date();
 };
-$hxClasses["agentui.model.ModelObjWithIid"] = agentui.model.ModelObjWithIid;
-agentui.model.ModelObjWithIid.__name__ = ["agentui","model","ModelObjWithIid"];
-agentui.model.ModelObjWithIid.identifier = function(t) {
+$hxClasses["qoid.model.ModelObjWithIid"] = qoid.model.ModelObjWithIid;
+qoid.model.ModelObjWithIid.__name__ = ["qoid","model","ModelObjWithIid"];
+qoid.model.ModelObjWithIid.identifier = function(t) {
 	return t.iid;
 };
-agentui.model.ModelObjWithIid.__super__ = agentui.model.ModelObj;
-agentui.model.ModelObjWithIid.prototype = $extend(agentui.model.ModelObj.prototype,{
-	__class__: agentui.model.ModelObjWithIid
+qoid.model.ModelObjWithIid.__super__ = qoid.model.ModelObj;
+qoid.model.ModelObjWithIid.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.ModelObjWithIid
 });
+var m3 = {};
 m3.observable = {};
 m3.observable.OSet = function() { };
 $hxClasses["m3.observable.OSet"] = m3.observable.OSet;
@@ -1962,6 +1036,47 @@ m3.observable.ObservableSet.prototype = $extend(m3.observable.AbstractSet.protot
 	}
 	,__class__: m3.observable.ObservableSet
 });
+var haxe = {};
+haxe.ds = {};
+haxe.ds.StringMap = function() {
+	this.h = { };
+};
+$hxClasses["haxe.ds.StringMap"] = haxe.ds.StringMap;
+haxe.ds.StringMap.__name__ = ["haxe","ds","StringMap"];
+haxe.ds.StringMap.__interfaces__ = [IMap];
+haxe.ds.StringMap.prototype = {
+	set: function(key,value) {
+		this.h["$" + key] = value;
+	}
+	,get: function(key) {
+		return this.h["$" + key];
+	}
+	,exists: function(key) {
+		return this.h.hasOwnProperty("$" + key);
+	}
+	,remove: function(key) {
+		key = "$" + key;
+		if(!this.h.hasOwnProperty(key)) return false;
+		delete(this.h[key]);
+		return true;
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) a.push(key.substr(1));
+		}
+		return HxOverrides.iter(a);
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref["$" + i];
+		}};
+	}
+	,__class__: haxe.ds.StringMap
+};
 m3.util = {};
 m3.util.SizedMap = function() {
 	haxe.ds.StringMap.call(this);
@@ -2090,163 +1205,20 @@ agentui.model.EM = function() { };
 $hxClasses["agentui.model.EM"] = agentui.model.EM;
 agentui.model.EM.__name__ = ["agentui","model","EM"];
 agentui.model.EM.addListener = function(id,func,listenerName) {
-	return agentui.model.EM.delegate.addListener(id[0],func,listenerName);
+	return agentui.model.EM.delegate.addListener(id,func,listenerName);
 };
 agentui.model.EM.listenOnce = function(id,func,listenerName) {
-	return agentui.model.EM.delegate.listenOnce(id[0],func,listenerName);
+	return agentui.model.EM.delegate.listenOnce(id,func,listenerName);
 };
 agentui.model.EM.removeListener = function(id,listenerUid) {
-	agentui.model.EM.delegate.removeListener(id[0],listenerUid);
+	agentui.model.EM.delegate.removeListener(id,listenerUid);
 };
 agentui.model.EM.change = function(id,t) {
-	agentui.model.EM.delegate.change(id[0],t);
+	agentui.model.EM.delegate.change(id,t);
 };
-agentui.model.EMEvent = $hxClasses["agentui.model.EMEvent"] = { __ename__ : ["agentui","model","EMEvent"], __constructs__ : ["FILTER_RUN","FILTER_CHANGE","LoadFilteredContent","AppendFilteredContent","EditContentClosed","CreateAgent","AgentCreated","InitialDataLoadComplete","FitWindow","UserLogin","UserLogout","AliasLoaded","AliasCreated","AliasUpdated","CreateAlias","UpdateAlias","DeleteAlias","CreateContent","DeleteContent","UpdateContent","CreateLabel","UpdateLabel","MoveLabel","CopyLabel","DeleteLabel","GrantAccess","AccessGranted","RevokeAccess","DeleteConnection","INTRODUCTION_REQUEST","INTRODUCTION_RESPONSE","RespondToIntroduction","RespondToIntroduction_RESPONSE","TargetChange","VerificationRequest","VerificationRequest_RESPONSE","RespondToVerification","RespondToVerification_RESPONSE","RejectVerificationRequest","RejectVerificationRequest_RESPONSE","AcceptVerification","AcceptVerification_RESPONSE","RejectVerification","RejectVerification_RESPONSE","BACKUP","RESTORE","RESTORES_REQUEST","AVAILABLE_BACKUPS"] };
-agentui.model.EMEvent.FILTER_RUN = ["FILTER_RUN",0];
-agentui.model.EMEvent.FILTER_RUN.toString = $estr;
-agentui.model.EMEvent.FILTER_RUN.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.FILTER_CHANGE = ["FILTER_CHANGE",1];
-agentui.model.EMEvent.FILTER_CHANGE.toString = $estr;
-agentui.model.EMEvent.FILTER_CHANGE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.LoadFilteredContent = ["LoadFilteredContent",2];
-agentui.model.EMEvent.LoadFilteredContent.toString = $estr;
-agentui.model.EMEvent.LoadFilteredContent.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AppendFilteredContent = ["AppendFilteredContent",3];
-agentui.model.EMEvent.AppendFilteredContent.toString = $estr;
-agentui.model.EMEvent.AppendFilteredContent.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.EditContentClosed = ["EditContentClosed",4];
-agentui.model.EMEvent.EditContentClosed.toString = $estr;
-agentui.model.EMEvent.EditContentClosed.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.CreateAgent = ["CreateAgent",5];
-agentui.model.EMEvent.CreateAgent.toString = $estr;
-agentui.model.EMEvent.CreateAgent.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AgentCreated = ["AgentCreated",6];
-agentui.model.EMEvent.AgentCreated.toString = $estr;
-agentui.model.EMEvent.AgentCreated.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.InitialDataLoadComplete = ["InitialDataLoadComplete",7];
-agentui.model.EMEvent.InitialDataLoadComplete.toString = $estr;
-agentui.model.EMEvent.InitialDataLoadComplete.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.FitWindow = ["FitWindow",8];
-agentui.model.EMEvent.FitWindow.toString = $estr;
-agentui.model.EMEvent.FitWindow.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.UserLogin = ["UserLogin",9];
-agentui.model.EMEvent.UserLogin.toString = $estr;
-agentui.model.EMEvent.UserLogin.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.UserLogout = ["UserLogout",10];
-agentui.model.EMEvent.UserLogout.toString = $estr;
-agentui.model.EMEvent.UserLogout.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AliasLoaded = ["AliasLoaded",11];
-agentui.model.EMEvent.AliasLoaded.toString = $estr;
-agentui.model.EMEvent.AliasLoaded.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AliasCreated = ["AliasCreated",12];
-agentui.model.EMEvent.AliasCreated.toString = $estr;
-agentui.model.EMEvent.AliasCreated.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AliasUpdated = ["AliasUpdated",13];
-agentui.model.EMEvent.AliasUpdated.toString = $estr;
-agentui.model.EMEvent.AliasUpdated.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.CreateAlias = ["CreateAlias",14];
-agentui.model.EMEvent.CreateAlias.toString = $estr;
-agentui.model.EMEvent.CreateAlias.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.UpdateAlias = ["UpdateAlias",15];
-agentui.model.EMEvent.UpdateAlias.toString = $estr;
-agentui.model.EMEvent.UpdateAlias.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.DeleteAlias = ["DeleteAlias",16];
-agentui.model.EMEvent.DeleteAlias.toString = $estr;
-agentui.model.EMEvent.DeleteAlias.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.CreateContent = ["CreateContent",17];
-agentui.model.EMEvent.CreateContent.toString = $estr;
-agentui.model.EMEvent.CreateContent.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.DeleteContent = ["DeleteContent",18];
-agentui.model.EMEvent.DeleteContent.toString = $estr;
-agentui.model.EMEvent.DeleteContent.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.UpdateContent = ["UpdateContent",19];
-agentui.model.EMEvent.UpdateContent.toString = $estr;
-agentui.model.EMEvent.UpdateContent.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.CreateLabel = ["CreateLabel",20];
-agentui.model.EMEvent.CreateLabel.toString = $estr;
-agentui.model.EMEvent.CreateLabel.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.UpdateLabel = ["UpdateLabel",21];
-agentui.model.EMEvent.UpdateLabel.toString = $estr;
-agentui.model.EMEvent.UpdateLabel.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.MoveLabel = ["MoveLabel",22];
-agentui.model.EMEvent.MoveLabel.toString = $estr;
-agentui.model.EMEvent.MoveLabel.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.CopyLabel = ["CopyLabel",23];
-agentui.model.EMEvent.CopyLabel.toString = $estr;
-agentui.model.EMEvent.CopyLabel.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.DeleteLabel = ["DeleteLabel",24];
-agentui.model.EMEvent.DeleteLabel.toString = $estr;
-agentui.model.EMEvent.DeleteLabel.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.GrantAccess = ["GrantAccess",25];
-agentui.model.EMEvent.GrantAccess.toString = $estr;
-agentui.model.EMEvent.GrantAccess.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AccessGranted = ["AccessGranted",26];
-agentui.model.EMEvent.AccessGranted.toString = $estr;
-agentui.model.EMEvent.AccessGranted.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RevokeAccess = ["RevokeAccess",27];
-agentui.model.EMEvent.RevokeAccess.toString = $estr;
-agentui.model.EMEvent.RevokeAccess.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.DeleteConnection = ["DeleteConnection",28];
-agentui.model.EMEvent.DeleteConnection.toString = $estr;
-agentui.model.EMEvent.DeleteConnection.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.INTRODUCTION_REQUEST = ["INTRODUCTION_REQUEST",29];
-agentui.model.EMEvent.INTRODUCTION_REQUEST.toString = $estr;
-agentui.model.EMEvent.INTRODUCTION_REQUEST.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.INTRODUCTION_RESPONSE = ["INTRODUCTION_RESPONSE",30];
-agentui.model.EMEvent.INTRODUCTION_RESPONSE.toString = $estr;
-agentui.model.EMEvent.INTRODUCTION_RESPONSE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RespondToIntroduction = ["RespondToIntroduction",31];
-agentui.model.EMEvent.RespondToIntroduction.toString = $estr;
-agentui.model.EMEvent.RespondToIntroduction.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RespondToIntroduction_RESPONSE = ["RespondToIntroduction_RESPONSE",32];
-agentui.model.EMEvent.RespondToIntroduction_RESPONSE.toString = $estr;
-agentui.model.EMEvent.RespondToIntroduction_RESPONSE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.TargetChange = ["TargetChange",33];
-agentui.model.EMEvent.TargetChange.toString = $estr;
-agentui.model.EMEvent.TargetChange.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.VerificationRequest = ["VerificationRequest",34];
-agentui.model.EMEvent.VerificationRequest.toString = $estr;
-agentui.model.EMEvent.VerificationRequest.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.VerificationRequest_RESPONSE = ["VerificationRequest_RESPONSE",35];
-agentui.model.EMEvent.VerificationRequest_RESPONSE.toString = $estr;
-agentui.model.EMEvent.VerificationRequest_RESPONSE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RespondToVerification = ["RespondToVerification",36];
-agentui.model.EMEvent.RespondToVerification.toString = $estr;
-agentui.model.EMEvent.RespondToVerification.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RespondToVerification_RESPONSE = ["RespondToVerification_RESPONSE",37];
-agentui.model.EMEvent.RespondToVerification_RESPONSE.toString = $estr;
-agentui.model.EMEvent.RespondToVerification_RESPONSE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RejectVerificationRequest = ["RejectVerificationRequest",38];
-agentui.model.EMEvent.RejectVerificationRequest.toString = $estr;
-agentui.model.EMEvent.RejectVerificationRequest.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RejectVerificationRequest_RESPONSE = ["RejectVerificationRequest_RESPONSE",39];
-agentui.model.EMEvent.RejectVerificationRequest_RESPONSE.toString = $estr;
-agentui.model.EMEvent.RejectVerificationRequest_RESPONSE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AcceptVerification = ["AcceptVerification",40];
-agentui.model.EMEvent.AcceptVerification.toString = $estr;
-agentui.model.EMEvent.AcceptVerification.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AcceptVerification_RESPONSE = ["AcceptVerification_RESPONSE",41];
-agentui.model.EMEvent.AcceptVerification_RESPONSE.toString = $estr;
-agentui.model.EMEvent.AcceptVerification_RESPONSE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RejectVerification = ["RejectVerification",42];
-agentui.model.EMEvent.RejectVerification.toString = $estr;
-agentui.model.EMEvent.RejectVerification.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RejectVerification_RESPONSE = ["RejectVerification_RESPONSE",43];
-agentui.model.EMEvent.RejectVerification_RESPONSE.toString = $estr;
-agentui.model.EMEvent.RejectVerification_RESPONSE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.BACKUP = ["BACKUP",44];
-agentui.model.EMEvent.BACKUP.toString = $estr;
-agentui.model.EMEvent.BACKUP.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RESTORE = ["RESTORE",45];
-agentui.model.EMEvent.RESTORE.toString = $estr;
-agentui.model.EMEvent.RESTORE.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.RESTORES_REQUEST = ["RESTORES_REQUEST",46];
-agentui.model.EMEvent.RESTORES_REQUEST.toString = $estr;
-agentui.model.EMEvent.RESTORES_REQUEST.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.AVAILABLE_BACKUPS = ["AVAILABLE_BACKUPS",47];
-agentui.model.EMEvent.AVAILABLE_BACKUPS.toString = $estr;
-agentui.model.EMEvent.AVAILABLE_BACKUPS.__enum__ = agentui.model.EMEvent;
-agentui.model.EMEvent.__empty_constructs__ = [agentui.model.EMEvent.FILTER_RUN,agentui.model.EMEvent.FILTER_CHANGE,agentui.model.EMEvent.LoadFilteredContent,agentui.model.EMEvent.AppendFilteredContent,agentui.model.EMEvent.EditContentClosed,agentui.model.EMEvent.CreateAgent,agentui.model.EMEvent.AgentCreated,agentui.model.EMEvent.InitialDataLoadComplete,agentui.model.EMEvent.FitWindow,agentui.model.EMEvent.UserLogin,agentui.model.EMEvent.UserLogout,agentui.model.EMEvent.AliasLoaded,agentui.model.EMEvent.AliasCreated,agentui.model.EMEvent.AliasUpdated,agentui.model.EMEvent.CreateAlias,agentui.model.EMEvent.UpdateAlias,agentui.model.EMEvent.DeleteAlias,agentui.model.EMEvent.CreateContent,agentui.model.EMEvent.DeleteContent,agentui.model.EMEvent.UpdateContent,agentui.model.EMEvent.CreateLabel,agentui.model.EMEvent.UpdateLabel,agentui.model.EMEvent.MoveLabel,agentui.model.EMEvent.CopyLabel,agentui.model.EMEvent.DeleteLabel,agentui.model.EMEvent.GrantAccess,agentui.model.EMEvent.AccessGranted,agentui.model.EMEvent.RevokeAccess,agentui.model.EMEvent.DeleteConnection,agentui.model.EMEvent.INTRODUCTION_REQUEST,agentui.model.EMEvent.INTRODUCTION_RESPONSE,agentui.model.EMEvent.RespondToIntroduction,agentui.model.EMEvent.RespondToIntroduction_RESPONSE,agentui.model.EMEvent.TargetChange,agentui.model.EMEvent.VerificationRequest,agentui.model.EMEvent.VerificationRequest_RESPONSE,agentui.model.EMEvent.RespondToVerification,agentui.model.EMEvent.RespondToVerification_RESPONSE,agentui.model.EMEvent.RejectVerificationRequest,agentui.model.EMEvent.RejectVerificationRequest_RESPONSE,agentui.model.EMEvent.AcceptVerification,agentui.model.EMEvent.AcceptVerification_RESPONSE,agentui.model.EMEvent.RejectVerification,agentui.model.EMEvent.RejectVerification_RESPONSE,agentui.model.EMEvent.BACKUP,agentui.model.EMEvent.RESTORE,agentui.model.EMEvent.RESTORES_REQUEST,agentui.model.EMEvent.AVAILABLE_BACKUPS];
+agentui.model.EMEvent = function() { };
+$hxClasses["agentui.model.EMEvent"] = agentui.model.EMEvent;
+agentui.model.EMEvent.__name__ = ["agentui","model","EMEvent"];
 m3.serialization = {};
 m3.serialization.Serializer = function(defaultToStrict) {
 	if(defaultToStrict == null) defaultToStrict = true;
@@ -2392,19 +1364,19 @@ m3.serialization.DynamicArrayHandler.prototype = {
 	}
 	,__class__: m3.serialization.DynamicArrayHandler
 };
-agentui.model.Content = function(contentType,type) {
-	agentui.model.ModelObjWithIid.call(this);
+qoid.model.Content = function(contentType,type) {
+	qoid.model.ModelObjWithIid.call(this);
 	this.contentType = contentType;
-	if(agentui.AppContext.currentAlias == null) this.aliasIid = null; else this.aliasIid = agentui.AppContext.currentAlias.iid;
+	if(qoid.Qoid.get_currentAlias() == null) this.aliasIid = null; else this.aliasIid = qoid.Qoid.get_currentAlias().iid;
 	this.data = { };
 	this.type = type;
 	this.props = Type.createInstance(type,[]);
-	this.metaData = new agentui.model.ContentMetaData();
+	this.metaData = new qoid.model.ContentMetaData();
 };
-$hxClasses["agentui.model.Content"] = agentui.model.Content;
-agentui.model.Content.__name__ = ["agentui","model","Content"];
-agentui.model.Content.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.Content.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
+$hxClasses["qoid.model.Content"] = qoid.model.Content;
+qoid.model.Content.__name__ = ["qoid","model","Content"];
+qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	setData: function(data) {
 		this.data = data;
 	}
@@ -2420,7 +1392,7 @@ agentui.model.Content.prototype = $extend(agentui.model.ModelObjWithIid.prototyp
 	,objectType: function() {
 		return "content";
 	}
-	,__class__: agentui.model.Content
+	,__class__: qoid.model.Content
 });
 m3.helper = {};
 m3.helper.OSetHelper = function() { };
@@ -2483,6 +1455,937 @@ m3.helper.OSetHelper.joinX = function(oset,sep,getString) {
 m3.helper.OSetHelper.strIdentifier = function(str) {
 	return str;
 };
+qoid.model.Label = function(name) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.name = name;
+	this.data = new qoid.model.LabelData();
+};
+$hxClasses["qoid.model.Label"] = qoid.model.Label;
+qoid.model.Label.__name__ = ["qoid","model","Label"];
+qoid.model.Label.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.Label.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Label.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Label
+});
+qoid.model.Connection = function() {
+	qoid.model.ModelObjWithIid.call(this);
+	this.data = new qoid.model.Profile("-->*<--","");
+};
+$hxClasses["qoid.model.Connection"] = qoid.model.Connection;
+qoid.model.Connection.__name__ = ["qoid","model","Connection"];
+qoid.model.Connection.identifier = function(c) {
+	return c.iid;
+};
+qoid.model.Connection.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Connection.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	equals: function(c) {
+		return this.iid == c.iid;
+	}
+	,__class__: qoid.model.Connection
+});
+qoid.QoidAPI = $hx_exports.qoid.QoidAPI = function() { };
+$hxClasses["qoid.QoidAPI"] = qoid.QoidAPI;
+qoid.QoidAPI.__name__ = ["qoid","QoidAPI"];
+qoid.QoidAPI.main = function() {
+};
+qoid.QoidAPI.set_activeChannel = function(c) {
+	qoid.QoidAPI.activeChannel = c;
+	return qoid.QoidAPI.get_activeChannel();
+};
+qoid.QoidAPI.get_activeChannel = function() {
+	return qoid.QoidAPI.activeChannel;
+};
+qoid.QoidAPI.set_activeAlias = function(a) {
+	qoid.QoidAPI.activeAlias = a;
+	return qoid.QoidAPI.get_activeAlias();
+};
+qoid.QoidAPI.get_activeAlias = function() {
+	return qoid.QoidAPI.activeAlias;
+};
+qoid.QoidAPI.addChannel = function(c) {
+	qoid.QoidAPI.channels.push(c);
+};
+qoid.QoidAPI.removeChannel = function(c) {
+	return HxOverrides.remove(qoid.QoidAPI.channels,c);
+};
+qoid.QoidAPI.get_headers = function() {
+	var ret = new haxe.ds.StringMap();
+	ret.set("Qoid-ChannelId",qoid.QoidAPI.get_activeChannel());
+	return ret;
+};
+qoid.QoidAPI.createAgent = function(name,password) {
+	var json = { name : name, password : password};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.AGENT_CREATE,function(data) {
+		m3.event.EventManager.get_instance().change(qoid.QE.onAgentCreated,data);
+	},function(exc) {
+		js.Lib.alert(exc);
+	}).start();
+};
+qoid.QoidAPI.login = function(authenticationId,password) {
+	var json = { authenticationId : authenticationId, password : password};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LOGIN,qoid.QoidAPI.onLogin,qoid.QoidAPI.onLoginError).start();
+};
+qoid.QoidAPI.onLoginError = function(exc) {
+	js.Lib.alert(exc);
+};
+qoid.QoidAPI.onLogin = function(data) {
+	var auth = data;
+	qoid.QoidAPI.addChannel(auth.channelId);
+	qoid.QoidAPI.set_activeChannel(auth.channelId);
+	qoid.QoidAPI._startPolling(auth.channelId);
+	var context = "initialDataLoad";
+	var sychoronizer = new qoid.Synchronizer(context,9,qoid.QoidAPI.onInitialDataload);
+	var requests = [new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-alias",qoid.QoidAPI.createQueryJson("alias")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-introduction",qoid.QoidAPI.createQueryJson("introduction")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-connection",qoid.QoidAPI.createQueryJson("connection")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-notification",qoid.QoidAPI.createQueryJson("notification","consumed='0'")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-label",qoid.QoidAPI.createQueryJson("label")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-labelAcl",qoid.QoidAPI.createQueryJson("labelAcl")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-labeledContent",qoid.QoidAPI.createQueryJson("labeledContent")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-labelChild",qoid.QoidAPI.createQueryJson("labelChild")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,context + "-profile",qoid.QoidAPI.createQueryJson("profile"))];
+	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
+	m3.event.EventManager.get_instance().change(qoid.QE.onUserLogin);
+};
+qoid.QoidAPI.onInitialDataload = function(data) {
+	qoid.Qoid.aliases.addAll(data.aliases);
+	qoid.Qoid.connections.addAll(data.connections);
+	qoid.Qoid.labels.addAll(data.labels);
+	qoid.Qoid.labelChildren.addAll(data.labelChildren);
+	qoid.Qoid.introductions.addAll(data.introductions);
+	qoid.Qoid.notifications.addAll(data.notifications);
+	qoid.Qoid.labeledContent.addAll(data.labeledContent);
+	qoid.Qoid.labelAcls.addAll(data.labelAcls);
+	qoid.Qoid.profiles.addAll(data.profiles);
+	var $it0 = qoid.Qoid.aliases.iterator();
+	while( $it0.hasNext() ) {
+		var alias_ = $it0.next();
+		var $it1 = qoid.Qoid.profiles.iterator();
+		while( $it1.hasNext() ) {
+			var profile_ = $it1.next();
+			if(profile_.aliasIid == alias_.iid) {
+				alias_.profile = profile_;
+				qoid.Qoid.aliases.update(alias_);
+			}
+		}
+	}
+	m3.event.EventManager.get_instance().change(qoid.QE.onInitialDataload);
+};
+qoid.QoidAPI._startPolling = function(channelId) {
+	var timeout = 10000;
+	var ajaxOptions = { contentType : ""};
+	var lpr = new m3.comm.LongPollingRequest(channelId,qoid.ResponseProcessor.processResponse,null,ajaxOptions,"/api/v1/channel/poll");
+	lpr.timeout = timeout;
+	lpr.requestHeaders(qoid.QoidAPI.get_headers());
+	lpr.start();
+	qoid.QoidAPI.longPolls.set(channelId,lpr);
+};
+qoid.QoidAPI.query = function(type,query,historical,standing,route) {
+};
+qoid.QoidAPI.createQueryJson = function(type,query,historical,standing,route) {
+	if(standing == null) standing = true;
+	if(historical == null) historical = true;
+	if(query == null) query = "1=1";
+	var ret = { type : type, query : query, historical : historical, standing : standing};
+	if(route != null) ret.route = route;
+	return ret;
+};
+qoid.QoidAPI.getProfile = function(connectionIid) {
+	var json = qoid.QoidAPI.createQueryJson("profile",null,true,false,[connectionIid]);
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,"connectionProfile");
+};
+qoid.QoidAPI.getVerificationContent = function(connectionIids,iids) {
+	var json = qoid.QoidAPI.createQueryJson("content","iid in (" + iids.join(",") + ")",true,false);
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,"verificationContent");
+};
+qoid.QoidAPI.cancelQuery = function(context) {
+	qoid.QoidAPI.submitRequest({ },qoid.QoidAPI.QUERY_CANCEL,context);
+};
+qoid.QoidAPI.logout = function() {
+	new m3.comm.JsonRequest({ },qoid.QoidAPI.LOGOUT).start();
+};
+qoid.QoidAPI.spawnSession = function(aliasIid) {
+	var json = { authenticationId : aliasIid};
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.SPAWN,"spawnSession");
+};
+qoid.QoidAPI.createAlias = function(profileName,profileImage,data,route) {
+	var json = { profileName : profileName, profileImage : profileImage};
+	if(route != null) json.route = route;
+	if(data != null) json.data = data;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_CREATE,"createAlias");
+};
+qoid.QoidAPI.updateAlias = function(aliasIid,data,route) {
+	var json = { aliasIid : aliasIid, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_UPDATE,"updateAlias");
+};
+qoid.QoidAPI.deleteAlias = function(aliasIid,route) {
+	var json = { aliasIid : aliasIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_DELETE,"deleteAlias");
+};
+qoid.QoidAPI.createAliasLogin = function(aliasIid,password,route) {
+	var json = { aliasIid : aliasIid, password : password};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_LOGIN_CREATE,"createAliasLogin");
+};
+qoid.QoidAPI.updateAliasLogin = function(aliasIid,password,route) {
+	var json = { aliasIid : aliasIid, password : password};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_LOGIN_UPDATE,"updateAliasLogin");
+};
+qoid.QoidAPI.deleteAliasLogin = function(aliasIid,route) {
+	var json = { aliasIid : aliasIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_LOGIN_DELETE,"deleteAliasLogin");
+};
+qoid.QoidAPI.updateAliasProfile = function(aliasIid,profileName,profileImage,route) {
+	var json = { aliasIid : aliasIid, profileName : profileName, profileImage : profileImage};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_PROFILE_UPDATE,"updateAliasProfile");
+};
+qoid.QoidAPI.deleteConnection = function(connectionIid,route) {
+	var json = { connectionIid : connectionIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONNECTION_DELETE,"deleteConnection");
+};
+qoid.QoidAPI.createContent = function(contentType,data,labelIids,route) {
+	var json = { contentType : contentType, data : data, labelIids : labelIids};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_CREATE,"createContent");
+};
+qoid.QoidAPI.updateContent = function(contentIid,data,route) {
+	var json = { contentIid : contentIid, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_UPDATE,"updateContent");
+};
+qoid.QoidAPI.deleteContent = function(contentIid,route) {
+	var json = { contentIid : contentIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_DELETE,"deleteContent");
+};
+qoid.QoidAPI.addContentLabel = function(contentIid,labelIid,route) {
+	var json = { contentIid : contentIid, labelIid : labelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_LABEL_ADD,"addContentLabel");
+};
+qoid.QoidAPI.removeContentLabel = function(contentIid,labelIid,route) {
+	var json = { contentIid : contentIid, labelIid : labelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_LABEL_REMOVE,"removeContentLabel");
+};
+qoid.QoidAPI.createLabel = function(parentLabelIid,name,data,route) {
+	var json = { parentLabelIid : parentLabelIid, name : name, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_CREATE,"createLabel");
+};
+qoid.QoidAPI.updateLabel = function(labelIid,name,data,route) {
+	var json = { labelIid : labelIid, name : name, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_UPDATE,"updateLabel");
+};
+qoid.QoidAPI.moveLabel = function(labelIid,oldParentLabelIid,newParentLabelIid,route) {
+	var json = { labelIid : labelIid, oldParentLabelIid : oldParentLabelIid, newParentLabelIid : newParentLabelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_MOVE,"moveLabel");
+};
+qoid.QoidAPI.copyLabel = function(labelIid,newParentLabelIid,route) {
+	var json = { labelIid : labelIid, newParentLabelIid : newParentLabelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_COPY,"copyLabel");
+};
+qoid.QoidAPI.deleteLabel = function(labelIid,parentLabelIid,route) {
+	var json = { labelIid : labelIid, parentLabelIid : parentLabelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_DELETE,"deleteLabel");
+};
+qoid.QoidAPI.grantAccess = function(labelIid,connectionIid,maxDoV,route) {
+	var json = { labelIid : labelIid, connectionIid : connectionIid, maxDoV : maxDoV};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_ACCESS_GRANT,"grantAccess");
+};
+qoid.QoidAPI.revokeAccess = function(labelIid,connectionIid,route) {
+	var json = { labelIid : labelIid, connectionIid : connectionIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_ACCESS_REVOKE,"revokeAccess");
+};
+qoid.QoidAPI.updateAccess = function(labelIid,connectionIid,maxDoV,route) {
+	var json = { labelIid : labelIid, connectionIid : connectionIid, maxDoV : maxDoV};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_ACCESS_UPDATE,"updateAccess");
+};
+qoid.QoidAPI.createNotification = function(kind,data,route) {
+	var json = { kind : kind, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_CREATE,"createNotification");
+};
+qoid.QoidAPI.consumeNotification = function(notificationIid,route) {
+	var json = { notificationIid : notificationIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_CONSUME,"consumeNotification");
+};
+qoid.QoidAPI.deleteNotification = function(notificationIid,route) {
+	var json = { notificationIid : notificationIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_DELETE,"deleteNotification");
+};
+qoid.QoidAPI.initiateIntroduction = function(aConnectionIid,aMessage,bConnectionIid,bMessage,route) {
+	var json = { aConnectionIid : aConnectionIid, aMessage : aMessage, bConnectionIid : bConnectionIid, bMessage : bMessage};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.INTRODUCTION_INITIATE,"initiateIntroduction");
+};
+qoid.QoidAPI.acceptIntroduction = function(notificationIid,route) {
+	var json = { notificationIid : notificationIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.INTRODUCTION_ACCEPT,"acceptIntroduction");
+};
+qoid.QoidAPI.submitRequest = function(json,path,context) {
+	var msg = new m3.comm.ChannelRequestMessage(path,context,json);
+	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),[msg],qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
+};
+qoid.QoidAPI.onSuccess = function(data) {
+	if(data.context == "spawnSession") {
+		var auth = data.results[0];
+		qoid.QoidAPI.addChannel(auth.channelId);
+		qoid.QoidAPI.set_activeChannel(auth.channelId);
+		m3.event.EventManager.get_instance().change("sessionSpawned",auth);
+	}
+};
+qoid.QoidAPI.onError = function(ae) {
+	m3.log.Logga.get_DEFAULT().error("QoidAPI Error",ae);
+};
+m3.comm = {};
+m3.comm.ChannelRequestMessage = function(path,context,parms) {
+	this.path = path;
+	this.context = context;
+	this.parms = parms;
+};
+$hxClasses["m3.comm.ChannelRequestMessage"] = m3.comm.ChannelRequestMessage;
+m3.comm.ChannelRequestMessage.__name__ = ["m3","comm","ChannelRequestMessage"];
+m3.comm.ChannelRequestMessage.prototype = {
+	__class__: m3.comm.ChannelRequestMessage
+};
+m3.log = {};
+m3.log.Logga = function(logLevel) {
+	this.initialized = false;
+	this.loggerLevel = logLevel;
+};
+$hxClasses["m3.log.Logga"] = m3.log.Logga;
+m3.log.Logga.__name__ = ["m3","log","Logga"];
+m3.log.Logga.get_DEFAULT = function() {
+	if(m3.log.Logga.DEFAULT == null) m3.log.Logga.DEFAULT = new m3.log.RemoteLogga(m3.log.LogLevel.DEBUG,m3.log.LogLevel.DEBUG);
+	return m3.log.Logga.DEFAULT;
+};
+m3.log.Logga.getExceptionInst = function(err) {
+	if(js.Boot.__instanceof(err,m3.exception.Exception)) return err; else return new m3.exception.Exception(err);
+};
+m3.log.Logga.prototype = {
+	doOverrides: function() {
+		this.overrideConsoleError();
+		this.overrideConsoleTrace();
+		this.overrideConsoleLog();
+		window.onerror = function(message,url,lineNumber) {
+			LOGGER.error("WindowError | " + url + " (" + lineNumber + ") | " + message);
+			return false;
+		};
+	}
+	,_getLogger: function() {
+		this.console = window.console;
+		this.initialized = true;
+	}
+	,overrideConsoleError: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.preservedConsoleError = ($_=this.console,$bind($_,$_.error));
+			this.console.error = function() {
+				_g.error(arguments[0]);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.error");
+		}
+	}
+	,overrideConsoleTrace: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.preservedConsoleTrace = ($_=this.console,$bind($_,$_.trace));
+			this.console.trace = function() {
+				_g.preservedConsoleTrace.apply(_g.console);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.trace");
+		}
+	}
+	,overrideConsoleLog: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.console.log("prime console.log");
+			this.preservedConsoleLog = ($_=this.console,$bind($_,$_.log));
+			this.console.log = function() {
+				_g.warn(arguments[0]);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.log");
+		}
+	}
+	,setStatementPrefix: function(prefix) {
+		this.statementPrefix = prefix;
+	}
+	,log: function(statement,level,exception) {
+		if(!this.initialized) this._getLogger();
+		if(level == null) level = m3.log.LogLevel.INFO;
+		try {
+			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
+		} catch( err ) {
+			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
+		}
+		if(m3.helper.StringHelper.isBlank(statement)) {
+			this.console.error("empty log statement");
+			this.console.trace();
+		}
+		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
+		if(this.logsAtLevel(level) && this.console != null) try {
+			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
+				this.preservedConsoleError.apply(this.console,[statement]);
+				this.console.trace();
+			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
+				this.console.error(statement);
+				this.console.trace();
+			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
+		} catch( err1 ) {
+			if(this.console != null && Object.prototype.hasOwnProperty.call(this.console,"error")) this.console.error(err1);
+		}
+	}
+	,logsAtLevel: function(level) {
+		return this.loggerLevel[1] <= level[1];
+	}
+	,setLogLevel: function(logLevel) {
+		this.loggerLevel = logLevel;
+	}
+	,trace: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.TRACE,exception);
+	}
+	,debug: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.DEBUG,exception);
+	}
+	,info: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.INFO,exception);
+	}
+	,warn: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.WARN,exception);
+	}
+	,error: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.ERROR,exception);
+	}
+	,__class__: m3.log.Logga
+};
+m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
+m3.log.LogLevel.TRACE = ["TRACE",0];
+m3.log.LogLevel.TRACE.toString = $estr;
+m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.DEBUG = ["DEBUG",1];
+m3.log.LogLevel.DEBUG.toString = $estr;
+m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.INFO = ["INFO",2];
+m3.log.LogLevel.INFO.toString = $estr;
+m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.WARN = ["WARN",3];
+m3.log.LogLevel.WARN.toString = $estr;
+m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.ERROR = ["ERROR",4];
+m3.log.LogLevel.ERROR.toString = $estr;
+m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
+m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
+	m3.log.Logga.call(this,consoleLevel);
+	this.remoteLogLevel = remoteLevel;
+	this.logs = [];
+	this.sessionUid = m3.util.UidGenerator.create(32);
+	this.log("SessionUid: " + this.sessionUid);
+};
+$hxClasses["m3.log.RemoteLogga"] = m3.log.RemoteLogga;
+m3.log.RemoteLogga.__name__ = ["m3","log","RemoteLogga"];
+m3.log.RemoteLogga.pauseRemoteLogging = function() {
+	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
+		var rl = m3.log.Logga.get_DEFAULT();
+		rl.pause();
+	}
+};
+m3.log.RemoteLogga.unpauseRemoteLogging = function() {
+	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
+		var rl = m3.log.Logga.get_DEFAULT();
+		rl.unpause();
+	}
+};
+m3.log.RemoteLogga.__super__ = m3.log.Logga;
+m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
+	log: function(statement,level,exception) {
+		if(level == null) level = m3.log.LogLevel.INFO;
+		m3.log.Logga.prototype.log.call(this,statement,level,exception);
+		if(this.timer != null && this.remoteLogsAtLevel(level)) {
+			try {
+				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
+			} catch( err ) {
+			}
+			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
+			if(this.logs.length > 50) this.timer.run();
+		}
+	}
+	,remoteLogsAtLevel: function(level) {
+		return this.remoteLogLevel[1] <= level[1];
+	}
+	,setRemoteLoggingFcn: function(remoteLogFcn) {
+		var _g = this;
+		if(this.timer != null) this.timer.stop();
+		if(remoteLogFcn != null) this.timer = new m3.log._RemoteLogga.RemoteLoggingTimer(remoteLogFcn,function() {
+			var saved = _g.logs;
+			_g.logs = [];
+			return saved;
+		});
+	}
+	,pause: function() {
+		if(this.timer != null) this.timer.pause();
+	}
+	,unpause: function() {
+		if(this.timer != null) this.timer.unpause();
+	}
+	,__class__: m3.log.RemoteLogga
+});
+m3.util.UidGenerator = function() { };
+$hxClasses["m3.util.UidGenerator"] = m3.util.UidGenerator;
+m3.util.UidGenerator.__name__ = ["m3","util","UidGenerator"];
+m3.util.UidGenerator.get_chars = function() {
+	return "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
+};
+m3.util.UidGenerator.get_nums = function() {
+	return "0123456789";
+};
+m3.util.UidGenerator.create = function(length) {
+	if(length == null) length = 20;
+	var str = new Array();
+	var charsLength = m3.util.UidGenerator.get_chars().length;
+	while(str.length == 0) {
+		var ch = m3.util.UidGenerator.randomChar();
+		if(m3.util.UidGenerator.isLetter(ch)) str.push(ch);
+	}
+	while(str.length < length) {
+		var ch1 = m3.util.UidGenerator.randomChar();
+		str.push(ch1);
+	}
+	return str.join("");
+};
+m3.util.UidGenerator.isLetter = function($char) {
+	var _g1 = 0;
+	var _g = m3.util.UidGenerator.get_chars().length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(m3.util.UidGenerator.get_chars().charAt(i) == $char) return true;
+	}
+	return false;
+};
+m3.util.UidGenerator.randomNum = function() {
+	var max = m3.util.UidGenerator.get_chars().length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
+};
+m3.util.UidGenerator.randomIndex = function(str) {
+	var max = str.length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
+};
+m3.util.UidGenerator.randomChar = function() {
+	var i = 0;
+	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_chars())) >= m3.util.UidGenerator.get_chars().length) continue;
+	return m3.util.UidGenerator.get_chars().charAt(i);
+};
+m3.util.UidGenerator.randomNumChar = function() {
+	var i = 0;
+	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
+	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
+};
+m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
+	this.requestData = requestData;
+	this._url = url;
+	this.onSuccess = successFcn;
+	this.onError = errorFcn;
+	this.onAccessDenied = accessDeniedFcn;
+	this._requestHeaders = new haxe.ds.StringMap();
+};
+$hxClasses["m3.comm.BaseRequest"] = m3.comm.BaseRequest;
+m3.comm.BaseRequest.__name__ = ["m3","comm","BaseRequest"];
+m3.comm.BaseRequest.prototype = {
+	ajaxOpts: function(opts) {
+		if(opts == null) return this.baseOpts; else {
+			this.baseOpts = opts;
+			return this;
+		}
+	}
+	,requestHeaders: function(headers) {
+		if(headers == null) return this._requestHeaders; else {
+			this._requestHeaders = headers;
+			return this;
+		}
+	}
+	,beforeSend: function(jqXHR,settings) {
+		var $it0 = this._requestHeaders.keys();
+		while( $it0.hasNext() ) {
+			var key = $it0.next();
+			if(this._requestHeaders.get(key) != null) jqXHR.setRequestHeader(key,this._requestHeaders.get(key));
+		}
+	}
+	,start: function(opts) {
+		var _g = this;
+		if(opts == null) opts = { };
+		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", url : this._url, success : function(data,textStatus,jqXHR) {
+			if(jqXHR.getResponseHeader("Content-Length") == "0") data = [];
+			if(_g.onSuccess != null) _g.onSuccess(data);
+		}, error : function(jqXHR1,textStatus1,errorThrown) {
+			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
+			var errorMessage = null;
+			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) errorMessage = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") errorMessage = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") errorMessage = errorThrown; else errorMessage = errorThrown.message;
+			if(m3.helper.StringHelper.isBlank(errorMessage)) errorMessage = "Error, but no error msg from server";
+			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + errorMessage);
+			var exc = new m3.exception.AjaxException(errorMessage,null,jqXHR1.status);
+			if(_g.onError != null) _g.onError(exc); else throw exc;
+		}};
+		$.extend(ajaxOpts,this.baseOpts);
+		$.extend(ajaxOpts,opts);
+		return $.ajax(ajaxOpts);
+	}
+	,abort: function() {
+	}
+	,__class__: m3.comm.BaseRequest
+};
+m3.comm.JsonRequest = function(requestJson,url,successFcn,errorFcn,accessDeniedFcn) {
+	m3.comm.BaseRequest.call(this,JSON.stringify(requestJson),url,successFcn,errorFcn,accessDeniedFcn);
+};
+$hxClasses["m3.comm.JsonRequest"] = m3.comm.JsonRequest;
+m3.comm.JsonRequest.__name__ = ["m3","comm","JsonRequest"];
+m3.comm.JsonRequest.__super__ = m3.comm.BaseRequest;
+m3.comm.JsonRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
+	__class__: m3.comm.JsonRequest
+});
+qoid.SubmitRequest = function(channel,msgs,successFcn,errorFcn) {
+	this.baseOpts = { dataType : "text"};
+	var bundle = new m3.comm.ChannelRequestMessageBundle(channel,msgs);
+	var data = m3.serialization.Serializer.get_instance().toJson(bundle);
+	m3.comm.JsonRequest.call(this,data,"/api/v1/channel/submit",successFcn,errorFcn);
+};
+$hxClasses["qoid.SubmitRequest"] = qoid.SubmitRequest;
+qoid.SubmitRequest.__name__ = ["qoid","SubmitRequest"];
+qoid.SubmitRequest.__super__ = m3.comm.JsonRequest;
+qoid.SubmitRequest.prototype = $extend(m3.comm.JsonRequest.prototype,{
+	__class__: qoid.SubmitRequest
+});
+m3.comm.ChannelRequestMessageBundle = function(channel,requests) {
+	this.channel = channel;
+	this.requests = requests;
+};
+$hxClasses["m3.comm.ChannelRequestMessageBundle"] = m3.comm.ChannelRequestMessageBundle;
+m3.comm.ChannelRequestMessageBundle.__name__ = ["m3","comm","ChannelRequestMessageBundle"];
+m3.comm.ChannelRequestMessageBundle.prototype = {
+	add: function(request) {
+		this.requests.push(request);
+	}
+	,createAndAdd: function(path,context,parms) {
+		var request = new m3.comm.ChannelRequestMessage(path,context,parms);
+		this.add(request);
+	}
+	,__class__: m3.comm.ChannelRequestMessageBundle
+};
+m3.observable.GroupedSet = function(source,groupingFn) {
+	var _g = this;
+	m3.observable.AbstractSet.call(this);
+	this._source = source;
+	this._groupingFn = groupingFn;
+	this._groupedSets = new haxe.ds.StringMap();
+	this._identityToGrouping = new haxe.ds.StringMap();
+	source.listen(function(t,type) {
+		var groupingKey = groupingFn(t);
+		var previousGroupingKey = _g._identityToGrouping.get(groupingKey);
+		if(type.isAddOrUpdate()) {
+			if(previousGroupingKey != groupingKey) {
+				_g["delete"](t,false);
+				_g.add(t);
+			}
+		} else _g["delete"](t);
+	});
+};
+$hxClasses["m3.observable.GroupedSet"] = m3.observable.GroupedSet;
+m3.observable.GroupedSet.__name__ = ["m3","observable","GroupedSet"];
+m3.observable.GroupedSet.__super__ = m3.observable.AbstractSet;
+m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
+	'delete': function(t,deleteEmptySet) {
+		if(deleteEmptySet == null) deleteEmptySet = true;
+		var id = (this._source.identifier())(t);
+		var key = this._identityToGrouping.get(id);
+		if(key != null) {
+			this._identityToGrouping.remove(id);
+			var groupedSet = this._groupedSets.get(key);
+			if(groupedSet != null) {
+				groupedSet["delete"](t);
+				if(groupedSet.isEmpty() && deleteEmptySet) {
+					this._groupedSets.remove(key);
+					this.fire(groupedSet,m3.observable.EventType.Delete);
+				} else this.fire(groupedSet,m3.observable.EventType.Update);
+			} else {
+			}
+		} else {
+		}
+	}
+	,add: function(t) {
+		var id = (this._source.identifier())(t);
+		var key = this._identityToGrouping.get(id);
+		if(key != null) throw new m3.exception.Exception("cannot add it is already in the list" + id + " -- " + key);
+		key = this._groupingFn(t);
+		this._identityToGrouping.set(id,key);
+		var groupedSet = this._groupedSets.get(key);
+		if(groupedSet == null) {
+			groupedSet = this.addEmptyGroup(key);
+			groupedSet.addOrUpdate(t);
+			this.fire(groupedSet,m3.observable.EventType.Add);
+		} else {
+			groupedSet.addOrUpdate(t);
+			this.fire(groupedSet,m3.observable.EventType.Update);
+		}
+	}
+	,addEmptyGroup: function(key) {
+		if(this._groupedSets.get(key) == null) {
+			var groupedSet = new m3.observable.ObservableSet(this._source.identifier());
+			groupedSet.visualId = key;
+			this._groupedSets.set(key,groupedSet);
+		}
+		return this._groupedSets.get(key);
+	}
+	,identifier: function() {
+		return $bind(this,this.identify);
+	}
+	,identify: function(set) {
+		var keys = this._groupedSets.keys();
+		while(keys.hasNext()) {
+			var key = keys.next();
+			if(this._groupedSets.get(key) == set) return key;
+		}
+		throw new m3.exception.Exception("unable to find identity for " + Std.string(set));
+	}
+	,iterator: function() {
+		return this._groupedSets.iterator();
+	}
+	,delegate: function() {
+		return this._groupedSets;
+	}
+	,__class__: m3.observable.GroupedSet
+});
+qoid.model.LabelAcl = function(connectionIid,labelIid) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.connectionIid = connectionIid;
+	this.labelIid = labelIid;
+};
+$hxClasses["qoid.model.LabelAcl"] = qoid.model.LabelAcl;
+qoid.model.LabelAcl.__name__ = ["qoid","model","LabelAcl"];
+qoid.model.LabelAcl.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.LabelAcl.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabelAcl.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabelAcl
+});
+qoid.model.LabelChild = function(parentIid,childIid) {
+	if(parentIid != null && childIid != null && parentIid == childIid) throw new m3.exception.Exception("parentIid and childIid of LabelChild must be different");
+	qoid.model.ModelObjWithIid.call(this);
+	this.parentIid = parentIid;
+	this.childIid = childIid;
+};
+$hxClasses["qoid.model.LabelChild"] = qoid.model.LabelChild;
+qoid.model.LabelChild.__name__ = ["qoid","model","LabelChild"];
+qoid.model.LabelChild.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.LabelChild.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabelChild.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabelChild
+});
+qoid.model.LabeledContent = function(contentIid,labelIid) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.contentIid = contentIid;
+	this.labelIid = labelIid;
+};
+$hxClasses["qoid.model.LabeledContent"] = qoid.model.LabeledContent;
+qoid.model.LabeledContent.__name__ = ["qoid","model","LabeledContent"];
+qoid.model.LabeledContent.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.LabeledContent.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabeledContent.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabeledContent
+});
+qoid.model.Profile = function(name,imgSrc,aliasIid) {
+	qoid.model.ModelObjWithIid.call(this);
+	if(name == null) this.name = "Unknown"; else this.name = name;
+	if(imgSrc == null) this.imgSrc = "media/koi.jpg"; else this.imgSrc = imgSrc;
+	this.aliasIid = aliasIid;
+};
+$hxClasses["qoid.model.Profile"] = qoid.model.Profile;
+qoid.model.Profile.__name__ = ["qoid","model","Profile"];
+qoid.model.Profile.identifier = function(profile) {
+	return profile.iid;
+};
+qoid.model.Profile.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Profile.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Profile
+});
+qoid.model.ContentHandler = function() {
+};
+$hxClasses["qoid.model.ContentHandler"] = qoid.model.ContentHandler;
+qoid.model.ContentHandler.__name__ = ["qoid","model","ContentHandler"];
+qoid.model.ContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
+qoid.model.ContentHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var obj = null;
+		var _g = Type.createEnum(qoid.model.ContentType,fromJson.contentType,null);
+		switch(_g[1]) {
+		case 0:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.AudioContent);
+			break;
+		case 1:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.ImageContent);
+			break;
+		case 3:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.MessageContent);
+			break;
+		case 2:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.UrlContent);
+			break;
+		case 4:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.VerificationContent);
+			break;
+		}
+		return obj;
+	}
+	,write: function(value,writer) {
+		return m3.serialization.Serializer.get_instance().toJson(value);
+	}
+	,__class__: qoid.model.ContentHandler
+};
+qoid.model.Notification = function(kind,type) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.kind = kind;
+	this.data = { };
+	this.type = type;
+	this.route = new Array();
+	this.props = Type.createInstance(type,[]);
+};
+$hxClasses["qoid.model.Notification"] = qoid.model.Notification;
+qoid.model.Notification.__name__ = ["qoid","model","Notification"];
+qoid.model.Notification.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Notification.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	objectType: function() {
+		return "notification";
+	}
+	,readResolve: function() {
+		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
+	}
+	,writeResolve: function() {
+		this.data = m3.serialization.Serializer.get_instance().toJson(this.props);
+	}
+	,__class__: qoid.model.Notification
+});
+qoid.model.NotificationHandler = function() {
+};
+$hxClasses["qoid.model.NotificationHandler"] = qoid.model.NotificationHandler;
+qoid.model.NotificationHandler.__name__ = ["qoid","model","NotificationHandler"];
+qoid.model.NotificationHandler.__interfaces__ = [m3.serialization.TypeHandler];
+qoid.model.NotificationHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var obj = null;
+		var _g = Type.createEnum(qoid.model.NotificationKind,fromJson.kind,null);
+		switch(_g[1]) {
+		case 0:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.IntroductionRequestNotification);
+			break;
+		case 1:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.VerificationRequestNotification);
+			break;
+		case 2:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.VerificationResponseNotification);
+			break;
+		}
+		return obj;
+	}
+	,write: function(value,writer) {
+		return m3.serialization.Serializer.get_instance().toJson(value);
+	}
+	,__class__: qoid.model.NotificationHandler
+};
+qoid.QE = function() { };
+$hxClasses["qoid.QE"] = qoid.QE;
+qoid.QE.__name__ = ["qoid","QE"];
+qoid.Qoid = function() { };
+$hxClasses["qoid.Qoid"] = qoid.Qoid;
+qoid.Qoid.__name__ = ["qoid","Qoid"];
+qoid.Qoid.set_currentAlias = function(a) {
+	qoid.Qoid.currentAlias = a;
+	m3.event.EventManager.get_instance().change("onAliasLoaded",qoid.Qoid.get_currentAlias());
+	return qoid.Qoid.get_currentAlias();
+};
+qoid.Qoid.get_currentAlias = function() {
+	return qoid.Qoid.currentAlias;
+};
+qoid.Qoid.onInitialDataLoadComplete = function(nada) {
+	qoid.Qoid.ROOT_LABEL_ID = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,qoid.Qoid.UBER_ALIAS_ID).labelIid;
+	var a = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,qoid.Qoid.UBER_ALIAS_ID);
+	var $it0 = qoid.Qoid.aliases.iterator();
+	while( $it0.hasNext() ) {
+		var alias = $it0.next();
+		if(alias.data.isDefault == true) {
+			a = alias;
+			break;
+		}
+	}
+	qoid.Qoid.set_currentAlias(a);
+};
+qoid.Qoid.processProfile = function(rec) {
+	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,rec.connectionIid);
+	var profile = m3.serialization.Serializer.get_instance().fromJsonX(rec.results[0],qoid.model.Profile);
+	profile.connectionIid = rec.connectionIid;
+	connection.data = profile;
+	qoid.Qoid.connections.addOrUpdate(connection);
+	qoid.Qoid.profiles.addOrUpdate(profile);
+};
+qoid.Qoid.getLabelDescendents = function(iid) {
+	var labelDescendents = new m3.observable.ObservableSet(qoid.model.Label.identifier);
+	var getDescendentIids;
+	getDescendentIids = function(iid1,iidList) {
+		iidList.splice(0,0,iid1);
+		var children = new m3.observable.FilteredSet(qoid.Qoid.labelChildren,function(lc) {
+			return lc.parentIid == iid1;
+		}).asArray();
+		var _g1 = 0;
+		var _g = children.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			getDescendentIids(children[i].childIid,iidList);
+		}
+	};
+	var iid_list = new Array();
+	getDescendentIids(iid,iid_list);
+	var _g2 = 0;
+	while(_g2 < iid_list.length) {
+		var iid_ = iid_list[_g2];
+		++_g2;
+		var label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,iid_);
+		if(label == null) m3.log.Logga.get_DEFAULT().error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
+	}
+	return labelDescendents;
+};
+qoid.Qoid.connectionFromMetaLabel = function(labelIid) {
+	var ret = null;
+	var $it0 = qoid.Qoid.connections.iterator();
+	while( $it0.hasNext() ) {
+		var connection = $it0.next();
+		if(connection.labelIid == labelIid) {
+			ret = connection;
+			break;
+		}
+	}
+	return ret;
+};
 agentui.model.ContentSource = function() { };
 $hxClasses["agentui.model.ContentSource"] = agentui.model.ContentSource;
 agentui.model.ContentSource.__name__ = ["agentui","model","ContentSource"];
@@ -2497,7 +2400,7 @@ agentui.model.ContentSource.addContent = function(results,connectionIid) {
 	while(_g < results.length) {
 		var result = results[_g];
 		++_g;
-		var c = m3.serialization.Serializer.get_instance().fromJsonX(result,agentui.model.Content);
+		var c = m3.serialization.Serializer.get_instance().fromJsonX(result,qoid.model.Content);
 		if(connectionIid != null) {
 			c.aliasIid = null;
 			c.connectionIid = connectionIid;
@@ -2508,12 +2411,12 @@ agentui.model.ContentSource.addContent = function(results,connectionIid) {
 		while(_g1 < _g2.length) {
 			var v = _g2[_g1];
 			++_g1;
-			var p = m3.helper.OSetHelper.getElementComplex(agentui.AppContext.PROFILES,v.verifierId,"sharedId");
+			var p = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.profiles,v.verifierId,"sharedId");
 			if(HxOverrides.indexOf(connectionIids,p.connectionIid,0) == -1) connectionIids.push(p.connectionIid);
 			iids.push("'" + v.verificationIid + "'");
 		}
 	}
-	agentui.AgentUi.PROTOCOL.getVerificationContent(connectionIids,iids);
+	qoid.QoidAPI.getVerificationContent(connectionIids,iids);
 };
 agentui.model.ContentSource.onLoadFilteredContent = function(data) {
 	if(agentui.model.ContentSource.handle == data.handle) agentui.model.ContentSource.addContent(data.results,data.connectionIid); else {
@@ -2525,7 +2428,6 @@ agentui.model.ContentSource.onLoadFilteredContent = function(data) {
 };
 agentui.model.ContentSource.clearQuery = function() {
 	if(agentui.model.ContentSource.handle != null) {
-		agentui.AgentUi.PROTOCOL.deregisterSqueries([agentui.model.ContentSource.handle]);
 		agentui.model.ContentSource.filteredContent.clear();
 		agentui.model.ContentSource.handle = null;
 	}
@@ -2544,18 +2446,6 @@ agentui.model.ContentSource.beforeSetContent = function() {
 		++_g;
 		l.onBeforeSetContent();
 	}
-};
-agentui.model.Context = function(context) {
-	var c = context.split("-");
-	if(c.length != 3) throw new m3.exception.Exception("invalid context");
-	this.iid = c[0];
-	this.numResponsesExpected = Std.parseInt(c[1]);
-	this.oncomplete = c[2];
-};
-$hxClasses["agentui.model.Context"] = agentui.model.Context;
-agentui.model.Context.__name__ = ["agentui","model","Context"];
-agentui.model.Context.prototype = {
-	__class__: agentui.model.Context
 };
 agentui.model.Filter = function(node) {
 	this.rootNode = node;
@@ -2614,545 +2504,6 @@ $hxClasses["agentui.model.FilterResponse"] = agentui.model.FilterResponse;
 agentui.model.FilterResponse.__name__ = ["agentui","model","FilterResponse"];
 agentui.model.FilterResponse.prototype = {
 	__class__: agentui.model.FilterResponse
-};
-agentui.model.Profile = function(name,imgSrc,aliasIid) {
-	agentui.model.ModelObjWithIid.call(this);
-	if(name == null) this.name = "Unknown"; else this.name = name;
-	if(imgSrc == null) this.imgSrc = "media/koi.jpg"; else this.imgSrc = imgSrc;
-	this.aliasIid = aliasIid;
-};
-$hxClasses["agentui.model.Profile"] = agentui.model.Profile;
-agentui.model.Profile.__name__ = ["agentui","model","Profile"];
-agentui.model.Profile.identifier = function(profile) {
-	return profile.iid;
-};
-agentui.model.Profile.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.Profile.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	__class__: agentui.model.Profile
-});
-agentui.model.AliasData = function() {
-	agentui.model.ModelObj.call(this);
-	this.isDefault = false;
-};
-$hxClasses["agentui.model.AliasData"] = agentui.model.AliasData;
-agentui.model.AliasData.__name__ = ["agentui","model","AliasData"];
-agentui.model.AliasData.__super__ = agentui.model.ModelObj;
-agentui.model.AliasData.prototype = $extend(agentui.model.ModelObj.prototype,{
-	__class__: agentui.model.AliasData
-});
-agentui.model.Alias = function() {
-	agentui.model.ModelObjWithIid.call(this);
-	this.profile = new agentui.model.Profile();
-	this.data = new agentui.model.AliasData();
-};
-$hxClasses["agentui.model.Alias"] = agentui.model.Alias;
-agentui.model.Alias.__name__ = ["agentui","model","Alias"];
-agentui.model.Alias.identifier = function(alias) {
-	return alias.iid;
-};
-agentui.model.Alias.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.Alias.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	__class__: agentui.model.Alias
-});
-agentui.model.LabelData = function() {
-	agentui.model.ModelObj.call(this);
-	this.color = m3.util.ColorProvider.getNextColor();
-};
-$hxClasses["agentui.model.LabelData"] = agentui.model.LabelData;
-agentui.model.LabelData.__name__ = ["agentui","model","LabelData"];
-agentui.model.LabelData.__super__ = agentui.model.ModelObj;
-agentui.model.LabelData.prototype = $extend(agentui.model.ModelObj.prototype,{
-	__class__: agentui.model.LabelData
-});
-agentui.model.Label = function(name) {
-	agentui.model.ModelObjWithIid.call(this);
-	this.name = name;
-	this.data = new agentui.model.LabelData();
-};
-$hxClasses["agentui.model.Label"] = agentui.model.Label;
-agentui.model.Label.__name__ = ["agentui","model","Label"];
-agentui.model.Label.identifier = function(l) {
-	return l.iid;
-};
-agentui.model.Label.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.Label.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	__class__: agentui.model.Label
-});
-agentui.model.LabelChild = function(parentIid,childIid) {
-	if(parentIid != null && childIid != null && parentIid == childIid) throw new m3.exception.Exception("parentIid and childIid of LabelChild must be different");
-	agentui.model.ModelObjWithIid.call(this);
-	this.parentIid = parentIid;
-	this.childIid = childIid;
-};
-$hxClasses["agentui.model.LabelChild"] = agentui.model.LabelChild;
-agentui.model.LabelChild.__name__ = ["agentui","model","LabelChild"];
-agentui.model.LabelChild.identifier = function(l) {
-	return l.iid;
-};
-agentui.model.LabelChild.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.LabelChild.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	__class__: agentui.model.LabelChild
-});
-agentui.model.LabelAcl = function(connectionIid,labelIid) {
-	agentui.model.ModelObjWithIid.call(this);
-	this.connectionIid = connectionIid;
-	this.labelIid = labelIid;
-};
-$hxClasses["agentui.model.LabelAcl"] = agentui.model.LabelAcl;
-agentui.model.LabelAcl.__name__ = ["agentui","model","LabelAcl"];
-agentui.model.LabelAcl.identifier = function(l) {
-	return l.iid;
-};
-agentui.model.LabelAcl.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.LabelAcl.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	__class__: agentui.model.LabelAcl
-});
-agentui.model.Connection = function() {
-	agentui.model.ModelObjWithIid.call(this);
-	this.data = new agentui.model.Profile("-->*<--","");
-};
-$hxClasses["agentui.model.Connection"] = agentui.model.Connection;
-agentui.model.Connection.__name__ = ["agentui","model","Connection"];
-agentui.model.Connection.identifier = function(c) {
-	return c.iid;
-};
-agentui.model.Connection.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.Connection.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	equals: function(c) {
-		return this.iid == c.iid;
-	}
-	,__class__: agentui.model.Connection
-});
-agentui.model.ContentType = $hxClasses["agentui.model.ContentType"] = { __ename__ : ["agentui","model","ContentType"], __constructs__ : ["AUDIO","IMAGE","URL","TEXT","VERIFICATION"] };
-agentui.model.ContentType.AUDIO = ["AUDIO",0];
-agentui.model.ContentType.AUDIO.toString = $estr;
-agentui.model.ContentType.AUDIO.__enum__ = agentui.model.ContentType;
-agentui.model.ContentType.IMAGE = ["IMAGE",1];
-agentui.model.ContentType.IMAGE.toString = $estr;
-agentui.model.ContentType.IMAGE.__enum__ = agentui.model.ContentType;
-agentui.model.ContentType.URL = ["URL",2];
-agentui.model.ContentType.URL.toString = $estr;
-agentui.model.ContentType.URL.__enum__ = agentui.model.ContentType;
-agentui.model.ContentType.TEXT = ["TEXT",3];
-agentui.model.ContentType.TEXT.toString = $estr;
-agentui.model.ContentType.TEXT.__enum__ = agentui.model.ContentType;
-agentui.model.ContentType.VERIFICATION = ["VERIFICATION",4];
-agentui.model.ContentType.VERIFICATION.toString = $estr;
-agentui.model.ContentType.VERIFICATION.__enum__ = agentui.model.ContentType;
-agentui.model.ContentType.__empty_constructs__ = [agentui.model.ContentType.AUDIO,agentui.model.ContentType.IMAGE,agentui.model.ContentType.URL,agentui.model.ContentType.TEXT,agentui.model.ContentType.VERIFICATION];
-agentui.model.ContentHandler = function() {
-};
-$hxClasses["agentui.model.ContentHandler"] = agentui.model.ContentHandler;
-agentui.model.ContentHandler.__name__ = ["agentui","model","ContentHandler"];
-agentui.model.ContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
-agentui.model.ContentHandler.prototype = {
-	read: function(fromJson,reader,instance) {
-		var obj = null;
-		var _g = Type.createEnum(agentui.model.ContentType,fromJson.contentType,null);
-		switch(_g[1]) {
-		case 0:
-			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.AudioContent);
-			break;
-		case 1:
-			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.ImageContent);
-			break;
-		case 3:
-			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.MessageContent);
-			break;
-		case 2:
-			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.UrlContent);
-			break;
-		case 4:
-			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.VerificationContent);
-			break;
-		}
-		return obj;
-	}
-	,write: function(value,writer) {
-		return m3.serialization.Serializer.get_instance().toJson(value);
-	}
-	,__class__: agentui.model.ContentHandler
-};
-agentui.model.ContentFactory = function() { };
-$hxClasses["agentui.model.ContentFactory"] = agentui.model.ContentFactory;
-agentui.model.ContentFactory.__name__ = ["agentui","model","ContentFactory"];
-agentui.model.ContentFactory.create = function(contentType,data) {
-	var ret = null;
-	switch(contentType[1]) {
-	case 0:
-		var ac = new agentui.model.AudioContent();
-		ac.props.audioSrc = js.Boot.__cast(data , String);
-		ret = ac;
-		break;
-	case 1:
-		var ic = new agentui.model.ImageContent();
-		ic.props.imgSrc = js.Boot.__cast(data , String);
-		ret = ic;
-		break;
-	case 3:
-		var mc = new agentui.model.MessageContent();
-		mc.props.text = js.Boot.__cast(data , String);
-		ret = mc;
-		break;
-	case 2:
-		var uc = new agentui.model.UrlContent();
-		uc.props.url = js.Boot.__cast(data , String);
-		ret = uc;
-		break;
-	case 4:
-		var uc1 = new agentui.model.VerificationContent();
-		uc1.props.text = js.Boot.__cast(data , String);
-		ret = uc1;
-		break;
-	}
-	return ret;
-};
-agentui.model.LabeledContent = function(contentIid,labelIid) {
-	agentui.model.ModelObjWithIid.call(this);
-	this.contentIid = contentIid;
-	this.labelIid = labelIid;
-};
-$hxClasses["agentui.model.LabeledContent"] = agentui.model.LabeledContent;
-agentui.model.LabeledContent.__name__ = ["agentui","model","LabeledContent"];
-agentui.model.LabeledContent.identifier = function(l) {
-	return l.iid;
-};
-agentui.model.LabeledContent.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.LabeledContent.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	__class__: agentui.model.LabeledContent
-});
-agentui.model.ContentData = function() {
-};
-$hxClasses["agentui.model.ContentData"] = agentui.model.ContentData;
-agentui.model.ContentData.__name__ = ["agentui","model","ContentData"];
-agentui.model.ContentData.prototype = {
-	__class__: agentui.model.ContentData
-};
-agentui.model.ContentVerification = function() { };
-$hxClasses["agentui.model.ContentVerification"] = agentui.model.ContentVerification;
-agentui.model.ContentVerification.__name__ = ["agentui","model","ContentVerification"];
-agentui.model.ContentVerification.prototype = {
-	__class__: agentui.model.ContentVerification
-};
-agentui.model.VerifiedContentMetaData = function() { };
-$hxClasses["agentui.model.VerifiedContentMetaData"] = agentui.model.VerifiedContentMetaData;
-agentui.model.VerifiedContentMetaData.__name__ = ["agentui","model","VerifiedContentMetaData"];
-agentui.model.VerifiedContentMetaData.prototype = {
-	__class__: agentui.model.VerifiedContentMetaData
-};
-agentui.model.ContentMetaData = function() {
-	this.verifications = new Array();
-};
-$hxClasses["agentui.model.ContentMetaData"] = agentui.model.ContentMetaData;
-agentui.model.ContentMetaData.__name__ = ["agentui","model","ContentMetaData"];
-agentui.model.ContentMetaData.prototype = {
-	__class__: agentui.model.ContentMetaData
-};
-agentui.model.ImageContentData = function() {
-	agentui.model.ContentData.call(this);
-};
-$hxClasses["agentui.model.ImageContentData"] = agentui.model.ImageContentData;
-agentui.model.ImageContentData.__name__ = ["agentui","model","ImageContentData"];
-agentui.model.ImageContentData.__super__ = agentui.model.ContentData;
-agentui.model.ImageContentData.prototype = $extend(agentui.model.ContentData.prototype,{
-	__class__: agentui.model.ImageContentData
-});
-agentui.model.ImageContent = function() {
-	agentui.model.Content.call(this,agentui.model.ContentType.IMAGE,agentui.model.ImageContentData);
-};
-$hxClasses["agentui.model.ImageContent"] = agentui.model.ImageContent;
-agentui.model.ImageContent.__name__ = ["agentui","model","ImageContent"];
-agentui.model.ImageContent.__super__ = agentui.model.Content;
-agentui.model.ImageContent.prototype = $extend(agentui.model.Content.prototype,{
-	__class__: agentui.model.ImageContent
-});
-agentui.model.AudioContentData = function() {
-	agentui.model.ContentData.call(this);
-};
-$hxClasses["agentui.model.AudioContentData"] = agentui.model.AudioContentData;
-agentui.model.AudioContentData.__name__ = ["agentui","model","AudioContentData"];
-agentui.model.AudioContentData.__super__ = agentui.model.ContentData;
-agentui.model.AudioContentData.prototype = $extend(agentui.model.ContentData.prototype,{
-	__class__: agentui.model.AudioContentData
-});
-agentui.model.AudioContent = function() {
-	agentui.model.Content.call(this,agentui.model.ContentType.AUDIO,agentui.model.AudioContentData);
-};
-$hxClasses["agentui.model.AudioContent"] = agentui.model.AudioContent;
-agentui.model.AudioContent.__name__ = ["agentui","model","AudioContent"];
-agentui.model.AudioContent.__super__ = agentui.model.Content;
-agentui.model.AudioContent.prototype = $extend(agentui.model.Content.prototype,{
-	__class__: agentui.model.AudioContent
-});
-agentui.model.MessageContentData = function() {
-	agentui.model.ContentData.call(this);
-};
-$hxClasses["agentui.model.MessageContentData"] = agentui.model.MessageContentData;
-agentui.model.MessageContentData.__name__ = ["agentui","model","MessageContentData"];
-agentui.model.MessageContentData.__super__ = agentui.model.ContentData;
-agentui.model.MessageContentData.prototype = $extend(agentui.model.ContentData.prototype,{
-	__class__: agentui.model.MessageContentData
-});
-agentui.model.MessageContent = function() {
-	agentui.model.Content.call(this,agentui.model.ContentType.TEXT,agentui.model.MessageContentData);
-};
-$hxClasses["agentui.model.MessageContent"] = agentui.model.MessageContent;
-agentui.model.MessageContent.__name__ = ["agentui","model","MessageContent"];
-agentui.model.MessageContent.__super__ = agentui.model.Content;
-agentui.model.MessageContent.prototype = $extend(agentui.model.Content.prototype,{
-	__class__: agentui.model.MessageContent
-});
-agentui.model.UrlContentData = function() {
-	agentui.model.ContentData.call(this);
-};
-$hxClasses["agentui.model.UrlContentData"] = agentui.model.UrlContentData;
-agentui.model.UrlContentData.__name__ = ["agentui","model","UrlContentData"];
-agentui.model.UrlContentData.__super__ = agentui.model.ContentData;
-agentui.model.UrlContentData.prototype = $extend(agentui.model.ContentData.prototype,{
-	__class__: agentui.model.UrlContentData
-});
-agentui.model.UrlContent = function() {
-	agentui.model.Content.call(this,agentui.model.ContentType.URL,agentui.model.UrlContentData);
-};
-$hxClasses["agentui.model.UrlContent"] = agentui.model.UrlContent;
-agentui.model.UrlContent.__name__ = ["agentui","model","UrlContent"];
-agentui.model.UrlContent.__super__ = agentui.model.Content;
-agentui.model.UrlContent.prototype = $extend(agentui.model.Content.prototype,{
-	__class__: agentui.model.UrlContent
-});
-agentui.model.VerificationContentData = function() {
-	agentui.model.ContentData.call(this);
-};
-$hxClasses["agentui.model.VerificationContentData"] = agentui.model.VerificationContentData;
-agentui.model.VerificationContentData.__name__ = ["agentui","model","VerificationContentData"];
-agentui.model.VerificationContentData.__super__ = agentui.model.ContentData;
-agentui.model.VerificationContentData.prototype = $extend(agentui.model.ContentData.prototype,{
-	__class__: agentui.model.VerificationContentData
-});
-agentui.model.VerificationContent = function() {
-	agentui.model.Content.call(this,agentui.model.ContentType.VERIFICATION,agentui.model.VerificationContentData);
-};
-$hxClasses["agentui.model.VerificationContent"] = agentui.model.VerificationContent;
-agentui.model.VerificationContent.__name__ = ["agentui","model","VerificationContent"];
-agentui.model.VerificationContent.__super__ = agentui.model.Content;
-agentui.model.VerificationContent.prototype = $extend(agentui.model.Content.prototype,{
-	__class__: agentui.model.VerificationContent
-});
-agentui.model.NotificationHandler = function() {
-};
-$hxClasses["agentui.model.NotificationHandler"] = agentui.model.NotificationHandler;
-agentui.model.NotificationHandler.__name__ = ["agentui","model","NotificationHandler"];
-agentui.model.NotificationHandler.__interfaces__ = [m3.serialization.TypeHandler];
-agentui.model.NotificationHandler.prototype = {
-	read: function(fromJson,reader,instance) {
-		var obj = null;
-		var _g = Type.createEnum(agentui.model.NotificationKind,fromJson.kind,null);
-		switch(_g[1]) {
-		case 0:
-			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.IntroductionRequestNotification);
-			break;
-		case 1:
-			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.VerificationRequestNotification);
-			break;
-		case 2:
-			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.VerificationResponseNotification);
-			break;
-		}
-		return obj;
-	}
-	,write: function(value,writer) {
-		return m3.serialization.Serializer.get_instance().toJson(value);
-	}
-	,__class__: agentui.model.NotificationHandler
-};
-agentui.model.NotificationKind = $hxClasses["agentui.model.NotificationKind"] = { __ename__ : ["agentui","model","NotificationKind"], __constructs__ : ["IntroductionRequest","VerificationRequest","VerificationResponse"] };
-agentui.model.NotificationKind.IntroductionRequest = ["IntroductionRequest",0];
-agentui.model.NotificationKind.IntroductionRequest.toString = $estr;
-agentui.model.NotificationKind.IntroductionRequest.__enum__ = agentui.model.NotificationKind;
-agentui.model.NotificationKind.VerificationRequest = ["VerificationRequest",1];
-agentui.model.NotificationKind.VerificationRequest.toString = $estr;
-agentui.model.NotificationKind.VerificationRequest.__enum__ = agentui.model.NotificationKind;
-agentui.model.NotificationKind.VerificationResponse = ["VerificationResponse",2];
-agentui.model.NotificationKind.VerificationResponse.toString = $estr;
-agentui.model.NotificationKind.VerificationResponse.__enum__ = agentui.model.NotificationKind;
-agentui.model.NotificationKind.__empty_constructs__ = [agentui.model.NotificationKind.IntroductionRequest,agentui.model.NotificationKind.VerificationRequest,agentui.model.NotificationKind.VerificationResponse];
-agentui.model.Notification = function(kind,type) {
-	agentui.model.ModelObjWithIid.call(this);
-	this.kind = kind;
-	this.data = { };
-	this.type = type;
-	this.props = Type.createInstance(type,[]);
-};
-$hxClasses["agentui.model.Notification"] = agentui.model.Notification;
-agentui.model.Notification.__name__ = ["agentui","model","Notification"];
-agentui.model.Notification.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.Notification.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	objectType: function() {
-		return "notification";
-	}
-	,readResolve: function() {
-		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
-	}
-	,writeResolve: function() {
-		this.data = m3.serialization.Serializer.get_instance().toJson(this.props);
-	}
-	,__class__: agentui.model.Notification
-});
-agentui.model.IntroductionState = $hxClasses["agentui.model.IntroductionState"] = { __ename__ : ["agentui","model","IntroductionState"], __constructs__ : ["NotResponded","Accepted","Rejected"] };
-agentui.model.IntroductionState.NotResponded = ["NotResponded",0];
-agentui.model.IntroductionState.NotResponded.toString = $estr;
-agentui.model.IntroductionState.NotResponded.__enum__ = agentui.model.IntroductionState;
-agentui.model.IntroductionState.Accepted = ["Accepted",1];
-agentui.model.IntroductionState.Accepted.toString = $estr;
-agentui.model.IntroductionState.Accepted.__enum__ = agentui.model.IntroductionState;
-agentui.model.IntroductionState.Rejected = ["Rejected",2];
-agentui.model.IntroductionState.Rejected.toString = $estr;
-agentui.model.IntroductionState.Rejected.__enum__ = agentui.model.IntroductionState;
-agentui.model.IntroductionState.__empty_constructs__ = [agentui.model.IntroductionState.NotResponded,agentui.model.IntroductionState.Accepted,agentui.model.IntroductionState.Rejected];
-agentui.model.IntroductionRequest = function() {
-	agentui.model.ModelObjWithIid.call(this);
-};
-$hxClasses["agentui.model.IntroductionRequest"] = agentui.model.IntroductionRequest;
-agentui.model.IntroductionRequest.__name__ = ["agentui","model","IntroductionRequest"];
-agentui.model.IntroductionRequest.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.IntroductionRequest.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	__class__: agentui.model.IntroductionRequest
-});
-agentui.model.Introduction = function() {
-	agentui.model.ModelObjWithIid.call(this);
-};
-$hxClasses["agentui.model.Introduction"] = agentui.model.Introduction;
-agentui.model.Introduction.__name__ = ["agentui","model","Introduction"];
-agentui.model.Introduction.__super__ = agentui.model.ModelObjWithIid;
-agentui.model.Introduction.prototype = $extend(agentui.model.ModelObjWithIid.prototype,{
-	__class__: agentui.model.Introduction
-});
-agentui.model.IntroductionRequestNotification = function() {
-	agentui.model.Notification.call(this,agentui.model.NotificationKind.IntroductionRequest,agentui.model.IntroductionRequestData);
-};
-$hxClasses["agentui.model.IntroductionRequestNotification"] = agentui.model.IntroductionRequestNotification;
-agentui.model.IntroductionRequestNotification.__name__ = ["agentui","model","IntroductionRequestNotification"];
-agentui.model.IntroductionRequestNotification.__super__ = agentui.model.Notification;
-agentui.model.IntroductionRequestNotification.prototype = $extend(agentui.model.Notification.prototype,{
-	__class__: agentui.model.IntroductionRequestNotification
-});
-agentui.model.IntroductionRequestData = function() { };
-$hxClasses["agentui.model.IntroductionRequestData"] = agentui.model.IntroductionRequestData;
-agentui.model.IntroductionRequestData.__name__ = ["agentui","model","IntroductionRequestData"];
-agentui.model.IntroductionRequestData.prototype = {
-	__class__: agentui.model.IntroductionRequestData
-};
-agentui.model.VerificationRequestNotification = function() {
-	agentui.model.Notification.call(this,agentui.model.NotificationKind.VerificationRequest,agentui.model.VerificationRequestData);
-};
-$hxClasses["agentui.model.VerificationRequestNotification"] = agentui.model.VerificationRequestNotification;
-agentui.model.VerificationRequestNotification.__name__ = ["agentui","model","VerificationRequestNotification"];
-agentui.model.VerificationRequestNotification.__super__ = agentui.model.Notification;
-agentui.model.VerificationRequestNotification.prototype = $extend(agentui.model.Notification.prototype,{
-	__class__: agentui.model.VerificationRequestNotification
-});
-agentui.model.VerificationRequestData = function() { };
-$hxClasses["agentui.model.VerificationRequestData"] = agentui.model.VerificationRequestData;
-agentui.model.VerificationRequestData.__name__ = ["agentui","model","VerificationRequestData"];
-agentui.model.VerificationRequestData.prototype = {
-	getContent: function() {
-		try {
-			var fromJson = { iid : this.contentIid, contentType : Std.string(this.contentType), data : this.contentData, created : (function($this) {
-				var $r;
-				var _this = new Date();
-				$r = HxOverrides.dateStr(_this);
-				return $r;
-			}(this)), modified : (function($this) {
-				var $r;
-				var _this1 = new Date();
-				$r = HxOverrides.dateStr(_this1);
-				return $r;
-			}(this)), createdByAliasIid : "Chewbaca", modifiedByAliasIid : "PizzaTheHut"};
-			return m3.serialization.Serializer.get_instance().fromJsonX(fromJson,agentui.model.Content);
-		} catch( e ) {
-			m3.log.Logga.get_DEFAULT().error(e);
-			throw e;
-		}
-	}
-	,__class__: agentui.model.VerificationRequestData
-};
-agentui.model.VerificationResponseNotification = function() {
-	agentui.model.Notification.call(this,agentui.model.NotificationKind.VerificationResponse,agentui.model.VerificationResponseData);
-};
-$hxClasses["agentui.model.VerificationResponseNotification"] = agentui.model.VerificationResponseNotification;
-agentui.model.VerificationResponseNotification.__name__ = ["agentui","model","VerificationResponseNotification"];
-agentui.model.VerificationResponseNotification.__super__ = agentui.model.Notification;
-agentui.model.VerificationResponseNotification.prototype = $extend(agentui.model.Notification.prototype,{
-	__class__: agentui.model.VerificationResponseNotification
-});
-agentui.model.VerificationResponseData = function() { };
-$hxClasses["agentui.model.VerificationResponseData"] = agentui.model.VerificationResponseData;
-agentui.model.VerificationResponseData.__name__ = ["agentui","model","VerificationResponseData"];
-agentui.model.VerificationResponseData.prototype = {
-	__class__: agentui.model.VerificationResponseData
-};
-agentui.model.Login = function() {
-	agentui.model.ModelObj.call(this);
-};
-$hxClasses["agentui.model.Login"] = agentui.model.Login;
-agentui.model.Login.__name__ = ["agentui","model","Login"];
-agentui.model.Login.__super__ = agentui.model.ModelObj;
-agentui.model.Login.prototype = $extend(agentui.model.ModelObj.prototype,{
-	__class__: agentui.model.Login
-});
-agentui.model.NewUser = function() {
-	agentui.model.ModelObj.call(this);
-};
-$hxClasses["agentui.model.NewUser"] = agentui.model.NewUser;
-agentui.model.NewUser.__name__ = ["agentui","model","NewUser"];
-agentui.model.NewUser.__super__ = agentui.model.ModelObj;
-agentui.model.NewUser.prototype = $extend(agentui.model.ModelObj.prototype,{
-	__class__: agentui.model.NewUser
-});
-agentui.model.EditLabelData = function(label,parentIid,newParentId) {
-	this.label = label;
-	this.parentIid = parentIid;
-	this.newParentId = newParentId;
-};
-$hxClasses["agentui.model.EditLabelData"] = agentui.model.EditLabelData;
-agentui.model.EditLabelData.__name__ = ["agentui","model","EditLabelData"];
-agentui.model.EditLabelData.prototype = {
-	__class__: agentui.model.EditLabelData
-};
-agentui.model.EditContentData = function(content,labelIids) {
-	this.content = content;
-	if(labelIids == null) labelIids = new Array();
-	this.labelIids = labelIids;
-};
-$hxClasses["agentui.model.EditContentData"] = agentui.model.EditContentData;
-agentui.model.EditContentData.__name__ = ["agentui","model","EditContentData"];
-agentui.model.EditContentData.prototype = {
-	__class__: agentui.model.EditContentData
-};
-agentui.model.VerificationRequest = function(contentIid,connectionIids,message) {
-	this.message = message;
-	this.contentIid = contentIid;
-	this.connectionIids = connectionIids;
-};
-$hxClasses["agentui.model.VerificationRequest"] = agentui.model.VerificationRequest;
-agentui.model.VerificationRequest.__name__ = ["agentui","model","VerificationRequest"];
-agentui.model.VerificationRequest.prototype = {
-	__class__: agentui.model.VerificationRequest
-};
-agentui.model.VerificationResponse = function(notificationIid,verificationContent) {
-	this.notificationIid = notificationIid;
-	this.verificationContent = verificationContent;
-};
-$hxClasses["agentui.model.VerificationResponse"] = agentui.model.VerificationResponse;
-agentui.model.VerificationResponse.__name__ = ["agentui","model","VerificationResponse"];
-agentui.model.VerificationResponse.prototype = {
-	__class__: agentui.model.VerificationResponse
-};
-agentui.model.Verification = function() { };
-$hxClasses["agentui.model.Verification"] = agentui.model.Verification;
-agentui.model.Verification.__name__ = ["agentui","model","Verification"];
-agentui.model.Verification.prototype = {
-	__class__: agentui.model.Verification
 };
 agentui.model.Node = function(type) {
 	this.type = "ROOT";
@@ -3370,58 +2721,6 @@ m3.widget.Widgets.getSelfElement = function() {
 m3.widget.Widgets.getWidgetClasses = function() {
 	return " ui-widget";
 };
-m3.util.UidGenerator = function() { };
-$hxClasses["m3.util.UidGenerator"] = m3.util.UidGenerator;
-m3.util.UidGenerator.__name__ = ["m3","util","UidGenerator"];
-m3.util.UidGenerator.get_chars = function() {
-	return "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
-};
-m3.util.UidGenerator.get_nums = function() {
-	return "0123456789";
-};
-m3.util.UidGenerator.create = function(length) {
-	if(length == null) length = 20;
-	var str = new Array();
-	var charsLength = m3.util.UidGenerator.get_chars().length;
-	while(str.length == 0) {
-		var ch = m3.util.UidGenerator.randomChar();
-		if(m3.util.UidGenerator.isLetter(ch)) str.push(ch);
-	}
-	while(str.length < length) {
-		var ch1 = m3.util.UidGenerator.randomChar();
-		str.push(ch1);
-	}
-	return str.join("");
-};
-m3.util.UidGenerator.isLetter = function($char) {
-	var _g1 = 0;
-	var _g = m3.util.UidGenerator.get_chars().length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(m3.util.UidGenerator.get_chars().charAt(i) == $char) return true;
-	}
-	return false;
-};
-m3.util.UidGenerator.randomNum = function() {
-	var max = m3.util.UidGenerator.get_chars().length - 1;
-	var min = 0;
-	return min + Math.round(Math.random() * (max - min) + 1);
-};
-m3.util.UidGenerator.randomIndex = function(str) {
-	var max = str.length - 1;
-	var min = 0;
-	return min + Math.round(Math.random() * (max - min) + 1);
-};
-m3.util.UidGenerator.randomChar = function() {
-	var i = 0;
-	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_chars())) >= m3.util.UidGenerator.get_chars().length) continue;
-	return m3.util.UidGenerator.get_chars().charAt(i);
-};
-m3.util.UidGenerator.randomNumChar = function() {
-	var i = 0;
-	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
-	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
-};
 m3.observable.FilteredSet = function(source,filter) {
 	var _g = this;
 	m3.observable.AbstractSet.call(this);
@@ -3481,194 +2780,6 @@ m3.observable.FilteredSet.prototype = $extend(m3.observable.AbstractSet.prototyp
 		return a;
 	}
 	,__class__: m3.observable.FilteredSet
-});
-m3.log = {};
-m3.log.Logga = function(logLevel) {
-	this.initialized = false;
-	this.loggerLevel = logLevel;
-};
-$hxClasses["m3.log.Logga"] = m3.log.Logga;
-m3.log.Logga.__name__ = ["m3","log","Logga"];
-m3.log.Logga.get_DEFAULT = function() {
-	if(m3.log.Logga.DEFAULT == null) m3.log.Logga.DEFAULT = new m3.log.RemoteLogga(m3.log.LogLevel.DEBUG,m3.log.LogLevel.DEBUG);
-	return m3.log.Logga.DEFAULT;
-};
-m3.log.Logga.getExceptionInst = function(err) {
-	if(js.Boot.__instanceof(err,m3.exception.Exception)) return err; else return new m3.exception.Exception(err);
-};
-m3.log.Logga.prototype = {
-	doOverrides: function() {
-		this.overrideConsoleError();
-		this.overrideConsoleTrace();
-		this.overrideConsoleLog();
-		window.onerror = function(message,url,lineNumber) {
-			LOGGER.error("WindowError | " + url + " (" + lineNumber + ") | " + message);
-			return false;
-		};
-	}
-	,_getLogger: function() {
-		this.console = window.console;
-		this.initialized = true;
-	}
-	,overrideConsoleError: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.preservedConsoleError = ($_=this.console,$bind($_,$_.error));
-			this.console.error = function() {
-				_g.error(arguments[0]);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.error");
-		}
-	}
-	,overrideConsoleTrace: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.preservedConsoleTrace = ($_=this.console,$bind($_,$_.trace));
-			this.console.trace = function() {
-				_g.preservedConsoleTrace.apply(_g.console);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.trace");
-		}
-	}
-	,overrideConsoleLog: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.console.log("prime console.log");
-			this.preservedConsoleLog = ($_=this.console,$bind($_,$_.log));
-			this.console.log = function() {
-				_g.warn(arguments[0]);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.log");
-		}
-	}
-	,setStatementPrefix: function(prefix) {
-		this.statementPrefix = prefix;
-	}
-	,log: function(statement,level,exception) {
-		if(!this.initialized) this._getLogger();
-		if(level == null) level = m3.log.LogLevel.INFO;
-		try {
-			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
-		} catch( err ) {
-			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
-		}
-		if(m3.helper.StringHelper.isBlank(statement)) {
-			this.console.error("empty log statement");
-			this.console.trace();
-		}
-		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
-		if(this.logsAtLevel(level) && this.console != null) try {
-			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
-				this.preservedConsoleError.apply(this.console,[statement]);
-				this.console.trace();
-			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
-				this.console.error(statement);
-				this.console.trace();
-			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
-		} catch( err1 ) {
-			if(this.console != null && Object.prototype.hasOwnProperty.call(this.console,"error")) this.console.error(err1);
-		}
-	}
-	,logsAtLevel: function(level) {
-		return this.loggerLevel[1] <= level[1];
-	}
-	,setLogLevel: function(logLevel) {
-		this.loggerLevel = logLevel;
-	}
-	,trace: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.TRACE,exception);
-	}
-	,debug: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.DEBUG,exception);
-	}
-	,info: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.INFO,exception);
-	}
-	,warn: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.WARN,exception);
-	}
-	,error: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.ERROR,exception);
-	}
-	,__class__: m3.log.Logga
-};
-m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
-m3.log.LogLevel.TRACE = ["TRACE",0];
-m3.log.LogLevel.TRACE.toString = $estr;
-m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.DEBUG = ["DEBUG",1];
-m3.log.LogLevel.DEBUG.toString = $estr;
-m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.INFO = ["INFO",2];
-m3.log.LogLevel.INFO.toString = $estr;
-m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.WARN = ["WARN",3];
-m3.log.LogLevel.WARN.toString = $estr;
-m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.ERROR = ["ERROR",4];
-m3.log.LogLevel.ERROR.toString = $estr;
-m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
-m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
-	m3.log.Logga.call(this,consoleLevel);
-	this.remoteLogLevel = remoteLevel;
-	this.logs = [];
-	this.sessionUid = m3.util.UidGenerator.create(32);
-	this.log("SessionUid: " + this.sessionUid);
-};
-$hxClasses["m3.log.RemoteLogga"] = m3.log.RemoteLogga;
-m3.log.RemoteLogga.__name__ = ["m3","log","RemoteLogga"];
-m3.log.RemoteLogga.pauseRemoteLogging = function() {
-	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
-		var rl = m3.log.Logga.get_DEFAULT();
-		rl.pause();
-	}
-};
-m3.log.RemoteLogga.unpauseRemoteLogging = function() {
-	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
-		var rl = m3.log.Logga.get_DEFAULT();
-		rl.unpause();
-	}
-};
-m3.log.RemoteLogga.__super__ = m3.log.Logga;
-m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
-	log: function(statement,level,exception) {
-		if(level == null) level = m3.log.LogLevel.INFO;
-		m3.log.Logga.prototype.log.call(this,statement,level,exception);
-		if(this.timer != null && this.remoteLogsAtLevel(level)) {
-			try {
-				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
-			} catch( err ) {
-			}
-			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
-			if(this.logs.length > 50) this.timer.run();
-		}
-	}
-	,remoteLogsAtLevel: function(level) {
-		return this.remoteLogLevel[1] <= level[1];
-	}
-	,setRemoteLoggingFcn: function(remoteLogFcn) {
-		var _g = this;
-		if(this.timer != null) this.timer.stop();
-		if(remoteLogFcn != null) this.timer = new m3.log._RemoteLogga.RemoteLoggingTimer(remoteLogFcn,function() {
-			var saved = _g.logs;
-			_g.logs = [];
-			return saved;
-		});
-	}
-	,pause: function() {
-		if(this.timer != null) this.timer.pause();
-	}
-	,unpause: function() {
-		if(this.timer != null) this.timer.unpause();
-	}
-	,__class__: m3.log.RemoteLogga
 });
 agentui.widget.DialogManager = $hx_exports.agentui.widget.DialogManager = function() { };
 $hxClasses["agentui.widget.DialogManager"] = agentui.widget.DialogManager;
@@ -4021,6 +3132,30 @@ js.Boot.__instanceof = function(o,cl) {
 js.Boot.__cast = function(o,t) {
 	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
 };
+qoid.model.Alias = function() {
+	qoid.model.ModelObjWithIid.call(this);
+	this.profile = new qoid.model.Profile();
+	this.data = new qoid.model.AliasData();
+};
+$hxClasses["qoid.model.Alias"] = qoid.model.Alias;
+qoid.model.Alias.__name__ = ["qoid","model","Alias"];
+qoid.model.Alias.identifier = function(alias) {
+	return alias.iid;
+};
+qoid.model.Alias.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Alias.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Alias
+});
+qoid.model.AliasData = function() {
+	qoid.model.ModelObj.call(this);
+	this.isDefault = false;
+};
+$hxClasses["qoid.model.AliasData"] = qoid.model.AliasData;
+qoid.model.AliasData.__name__ = ["qoid","model","AliasData"];
+qoid.model.AliasData.__super__ = qoid.model.ModelObj;
+qoid.model.AliasData.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.AliasData
+});
 m3.util.JqueryUtil = $hx_exports.m3.util.JqueryUtil = function() { };
 $hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
 m3.util.JqueryUtil.__name__ = ["m3","util","JqueryUtil"];
@@ -4297,6 +3432,23 @@ m3.jq.JQDialogHelper.close = function(d) {
 m3.jq.JQDialogHelper.open = function(d) {
 	d.dialog("open");
 };
+qoid.model.ContentType = $hxClasses["qoid.model.ContentType"] = { __ename__ : ["qoid","model","ContentType"], __constructs__ : ["AUDIO","IMAGE","URL","TEXT","VERIFICATION"] };
+qoid.model.ContentType.AUDIO = ["AUDIO",0];
+qoid.model.ContentType.AUDIO.toString = $estr;
+qoid.model.ContentType.AUDIO.__enum__ = qoid.model.ContentType;
+qoid.model.ContentType.IMAGE = ["IMAGE",1];
+qoid.model.ContentType.IMAGE.toString = $estr;
+qoid.model.ContentType.IMAGE.__enum__ = qoid.model.ContentType;
+qoid.model.ContentType.URL = ["URL",2];
+qoid.model.ContentType.URL.toString = $estr;
+qoid.model.ContentType.URL.__enum__ = qoid.model.ContentType;
+qoid.model.ContentType.TEXT = ["TEXT",3];
+qoid.model.ContentType.TEXT.toString = $estr;
+qoid.model.ContentType.TEXT.__enum__ = qoid.model.ContentType;
+qoid.model.ContentType.VERIFICATION = ["VERIFICATION",4];
+qoid.model.ContentType.VERIFICATION.toString = $estr;
+qoid.model.ContentType.VERIFICATION.__enum__ = qoid.model.ContentType;
+qoid.model.ContentType.__empty_constructs__ = [qoid.model.ContentType.AUDIO,qoid.model.ContentType.IMAGE,qoid.model.ContentType.URL,qoid.model.ContentType.TEXT,qoid.model.ContentType.VERIFICATION];
 m3.helper.ArrayHelper = $hx_exports.m3.helper.ArrayHelper = function() { };
 $hxClasses["m3.helper.ArrayHelper"] = m3.helper.ArrayHelper;
 m3.helper.ArrayHelper.__name__ = ["m3","helper","ArrayHelper"];
@@ -4519,6 +3671,16 @@ m3.jq.M3DialogHelper.open = function(dlg) {
 m3.jq.M3DialogHelper.isOpen = function(dlg) {
 	return dlg.m3dialog("isOpen");
 };
+qoid.model.LabelData = function() {
+	qoid.model.ModelObj.call(this);
+	this.color = m3.util.ColorProvider.getNextColor();
+};
+$hxClasses["qoid.model.LabelData"] = qoid.model.LabelData;
+qoid.model.LabelData.__name__ = ["qoid","model","LabelData"];
+qoid.model.LabelData.__super__ = qoid.model.ModelObj;
+qoid.model.LabelData.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.LabelData
+});
 m3.util.FixedSizeArray = function(maxSize) {
 	this._maxSize = maxSize;
 	this._delegate = new Array();
@@ -4557,6 +3719,16 @@ agentui.widget.LabelCompHelper.getLabel = function(l) {
 agentui.widget.LabelCompHelper.parentIid = function(l) {
 	return l.labelComp("option","parentIid");
 };
+qoid.model.EditLabelData = function(label,parentIid,newParentId) {
+	this.label = label;
+	this.parentIid = parentIid;
+	this.newParentId = newParentId;
+};
+$hxClasses["qoid.model.EditLabelData"] = qoid.model.EditLabelData;
+qoid.model.EditLabelData.__name__ = ["qoid","model","EditLabelData"];
+qoid.model.EditLabelData.prototype = {
+	__class__: qoid.model.EditLabelData
+};
 agentui.widget.ChatOrientation = $hxClasses["agentui.widget.ChatOrientation"] = { __ename__ : ["agentui","widget","ChatOrientation"], __constructs__ : ["chatRight","chatLeft"] };
 agentui.widget.ChatOrientation.chatRight = ["chatRight",0];
 agentui.widget.ChatOrientation.chatRight.toString = $estr;
@@ -4580,6 +3752,17 @@ agentui.widget.ConnectionCompHelper.addNotification = function(c) {
 agentui.widget.ConnectionCompHelper.deleteNotification = function(c) {
 	return c.connectionComp("deleteNotification");
 };
+qoid.model.IntroductionState = $hxClasses["qoid.model.IntroductionState"] = { __ename__ : ["qoid","model","IntroductionState"], __constructs__ : ["NotResponded","Accepted","Rejected"] };
+qoid.model.IntroductionState.NotResponded = ["NotResponded",0];
+qoid.model.IntroductionState.NotResponded.toString = $estr;
+qoid.model.IntroductionState.NotResponded.__enum__ = qoid.model.IntroductionState;
+qoid.model.IntroductionState.Accepted = ["Accepted",1];
+qoid.model.IntroductionState.Accepted.toString = $estr;
+qoid.model.IntroductionState.Accepted.__enum__ = qoid.model.IntroductionState;
+qoid.model.IntroductionState.Rejected = ["Rejected",2];
+qoid.model.IntroductionState.Rejected.toString = $estr;
+qoid.model.IntroductionState.Rejected.__enum__ = qoid.model.IntroductionState;
+qoid.model.IntroductionState.__empty_constructs__ = [qoid.model.IntroductionState.NotResponded,qoid.model.IntroductionState.Accepted,qoid.model.IntroductionState.Rejected];
 agentui.widget.ConnectionListHelper = function() { };
 $hxClasses["agentui.widget.ConnectionListHelper"] = agentui.widget.ConnectionListHelper;
 agentui.widget.ConnectionListHelper.__name__ = ["agentui","widget","ConnectionListHelper"];
@@ -4607,6 +3790,16 @@ agentui.widget.UploadCompHelper.clear = function(m) {
 agentui.widget.UploadCompHelper.setPreviewImage = function(m,src) {
 	m.uploadComp("setPreviewImage",src);
 };
+qoid.model.EditContentData = function(content,labelIids) {
+	this.content = content;
+	if(labelIids == null) labelIids = new Array();
+	this.labelIids = labelIids;
+};
+$hxClasses["qoid.model.EditContentData"] = qoid.model.EditContentData;
+qoid.model.EditContentData.__name__ = ["qoid","model","EditContentData"];
+qoid.model.EditContentData.prototype = {
+	__class__: qoid.model.EditContentData
+};
 agentui.widget.UrlCompHelper = function() { };
 $hxClasses["agentui.widget.UrlCompHelper"] = agentui.widget.UrlCompHelper;
 agentui.widget.UrlCompHelper.__name__ = ["agentui","widget","UrlCompHelper"];
@@ -4628,6 +3821,15 @@ m3.jq.PlaceHolderUtil.setFocusBehavior = function(input,placeholder) {
 		}
 	});
 };
+qoid.model.NewUser = function() {
+	qoid.model.ModelObj.call(this);
+};
+$hxClasses["qoid.model.NewUser"] = qoid.model.NewUser;
+qoid.model.NewUser.__name__ = ["qoid","model","NewUser"];
+qoid.model.NewUser.__super__ = qoid.model.ModelObj;
+qoid.model.NewUser.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.NewUser
+});
 agentui.widget.FilterCompHelper = function() { };
 $hxClasses["agentui.widget.FilterCompHelper"] = agentui.widget.FilterCompHelper;
 agentui.widget.FilterCompHelper.__name__ = ["agentui","widget","FilterCompHelper"];
@@ -4646,9 +3848,185 @@ agentui.widget.LabelsListHelper.__name__ = ["agentui","widget","LabelsListHelper
 agentui.widget.LabelsListHelper.getSelected = function(l) {
 	return l.labelsList("getSelected");
 };
+qoid.model.Login = function() {
+	qoid.model.ModelObj.call(this);
+};
+$hxClasses["qoid.model.Login"] = qoid.model.Login;
+qoid.model.Login.__name__ = ["qoid","model","Login"];
+qoid.model.Login.__super__ = qoid.model.ModelObj;
+qoid.model.Login.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.Login
+});
+qoid.model.ContentFactory = function() { };
+$hxClasses["qoid.model.ContentFactory"] = qoid.model.ContentFactory;
+qoid.model.ContentFactory.__name__ = ["qoid","model","ContentFactory"];
+qoid.model.ContentFactory.create = function(contentType,data) {
+	var ret = null;
+	switch(contentType[1]) {
+	case 0:
+		var ac = new qoid.model.AudioContent();
+		ac.props.audioSrc = js.Boot.__cast(data , String);
+		ret = ac;
+		break;
+	case 1:
+		var ic = new qoid.model.ImageContent();
+		ic.props.imgSrc = js.Boot.__cast(data , String);
+		ret = ic;
+		break;
+	case 3:
+		var mc = new qoid.model.MessageContent();
+		mc.props.text = js.Boot.__cast(data , String);
+		ret = mc;
+		break;
+	case 2:
+		var uc = new qoid.model.UrlContent();
+		uc.props.url = js.Boot.__cast(data , String);
+		ret = uc;
+		break;
+	case 4:
+		var uc1 = new qoid.model.VerificationContent();
+		uc1.props.text = js.Boot.__cast(data , String);
+		ret = uc1;
+		break;
+	}
+	return ret;
+};
+qoid.model.AudioContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.AUDIO,qoid.model.AudioContentData);
+};
+$hxClasses["qoid.model.AudioContent"] = qoid.model.AudioContent;
+qoid.model.AudioContent.__name__ = ["qoid","model","AudioContent"];
+qoid.model.AudioContent.__super__ = qoid.model.Content;
+qoid.model.AudioContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.AudioContent
+});
+qoid.model.ContentData = function() {
+};
+$hxClasses["qoid.model.ContentData"] = qoid.model.ContentData;
+qoid.model.ContentData.__name__ = ["qoid","model","ContentData"];
+qoid.model.ContentData.prototype = {
+	__class__: qoid.model.ContentData
+};
+qoid.model.AudioContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.AudioContentData"] = qoid.model.AudioContentData;
+qoid.model.AudioContentData.__name__ = ["qoid","model","AudioContentData"];
+qoid.model.AudioContentData.__super__ = qoid.model.ContentData;
+qoid.model.AudioContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.AudioContentData
+});
+qoid.model.ContentMetaData = function() {
+	this.verifications = new Array();
+};
+$hxClasses["qoid.model.ContentMetaData"] = qoid.model.ContentMetaData;
+qoid.model.ContentMetaData.__name__ = ["qoid","model","ContentMetaData"];
+qoid.model.ContentMetaData.prototype = {
+	__class__: qoid.model.ContentMetaData
+};
+qoid.model.ImageContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.IMAGE,qoid.model.ImageContentData);
+};
+$hxClasses["qoid.model.ImageContent"] = qoid.model.ImageContent;
+qoid.model.ImageContent.__name__ = ["qoid","model","ImageContent"];
+qoid.model.ImageContent.__super__ = qoid.model.Content;
+qoid.model.ImageContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.ImageContent
+});
+qoid.model.ImageContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.ImageContentData"] = qoid.model.ImageContentData;
+qoid.model.ImageContentData.__name__ = ["qoid","model","ImageContentData"];
+qoid.model.ImageContentData.__super__ = qoid.model.ContentData;
+qoid.model.ImageContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.ImageContentData
+});
+qoid.model.MessageContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.TEXT,qoid.model.MessageContentData);
+};
+$hxClasses["qoid.model.MessageContent"] = qoid.model.MessageContent;
+qoid.model.MessageContent.__name__ = ["qoid","model","MessageContent"];
+qoid.model.MessageContent.__super__ = qoid.model.Content;
+qoid.model.MessageContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.MessageContent
+});
+qoid.model.MessageContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.MessageContentData"] = qoid.model.MessageContentData;
+qoid.model.MessageContentData.__name__ = ["qoid","model","MessageContentData"];
+qoid.model.MessageContentData.__super__ = qoid.model.ContentData;
+qoid.model.MessageContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.MessageContentData
+});
+qoid.model.UrlContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.URL,qoid.model.UrlContentData);
+};
+$hxClasses["qoid.model.UrlContent"] = qoid.model.UrlContent;
+qoid.model.UrlContent.__name__ = ["qoid","model","UrlContent"];
+qoid.model.UrlContent.__super__ = qoid.model.Content;
+qoid.model.UrlContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.UrlContent
+});
+qoid.model.UrlContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.UrlContentData"] = qoid.model.UrlContentData;
+qoid.model.UrlContentData.__name__ = ["qoid","model","UrlContentData"];
+qoid.model.UrlContentData.__super__ = qoid.model.ContentData;
+qoid.model.UrlContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.UrlContentData
+});
+qoid.model.VerificationContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.VERIFICATION,qoid.model.VerificationContentData);
+};
+$hxClasses["qoid.model.VerificationContent"] = qoid.model.VerificationContent;
+qoid.model.VerificationContent.__name__ = ["qoid","model","VerificationContent"];
+qoid.model.VerificationContent.__super__ = qoid.model.Content;
+qoid.model.VerificationContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.VerificationContent
+});
+qoid.model.VerificationContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.VerificationContentData"] = qoid.model.VerificationContentData;
+qoid.model.VerificationContentData.__name__ = ["qoid","model","VerificationContentData"];
+qoid.model.VerificationContentData.__super__ = qoid.model.ContentData;
+qoid.model.VerificationContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.VerificationContentData
+});
+qoid.model.IntroductionRequest = function() {
+	qoid.model.ModelObjWithIid.call(this);
+};
+$hxClasses["qoid.model.IntroductionRequest"] = qoid.model.IntroductionRequest;
+qoid.model.IntroductionRequest.__name__ = ["qoid","model","IntroductionRequest"];
+qoid.model.IntroductionRequest.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.IntroductionRequest.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.IntroductionRequest
+});
 agentui.widget.RespondToVerificationRequestDialogHelper = function() { };
 $hxClasses["agentui.widget.RespondToVerificationRequestDialogHelper"] = agentui.widget.RespondToVerificationRequestDialogHelper;
 agentui.widget.RespondToVerificationRequestDialogHelper.__name__ = ["agentui","widget","RespondToVerificationRequestDialogHelper"];
+qoid.model.VerificationResponse = function(notificationIid,verificationContent) {
+	this.notificationIid = notificationIid;
+	this.verificationContent = verificationContent;
+};
+$hxClasses["qoid.model.VerificationResponse"] = qoid.model.VerificationResponse;
+qoid.model.VerificationResponse.__name__ = ["qoid","model","VerificationResponse"];
+qoid.model.VerificationResponse.prototype = {
+	__class__: qoid.model.VerificationResponse
+};
+qoid.model.VerificationRequest = function(contentIid,connectionIids,message) {
+	this.message = message;
+	this.contentIid = contentIid;
+	this.connectionIids = connectionIids;
+};
+$hxClasses["qoid.model.VerificationRequest"] = qoid.model.VerificationRequest;
+qoid.model.VerificationRequest.__name__ = ["qoid","model","VerificationRequest"];
+qoid.model.VerificationRequest.prototype = {
+	__class__: qoid.model.VerificationRequest
+};
 agentui.widget.score = {};
 agentui.widget.score.ContentTimeLine = function(paper,profile,startTime,endTime,initialWidth) {
 	this.paper = paper;
@@ -4732,7 +4110,7 @@ agentui.widget.score.ContentTimeLine.prototype = {
 		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * this.initialWidth + this.time_line_x + agentui.widget.score.ContentTimeLine.width;
 		var y = this.time_line_y + agentui.widget.score.ContentTimeLine.height / 2;
 		var ele;
-		if(content.contentType == agentui.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , agentui.model.MessageContent),x,y,40,40)); else if(content.contentType == agentui.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , agentui.model.ImageContent),x,y,40,40)); else if(content.contentType == agentui.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , agentui.model.UrlContent),x,y,20)); else if(content.contentType == agentui.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , agentui.model.AudioContent),x,y,20,20));
+		if(content.contentType == qoid.model.ContentType.TEXT) this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , qoid.model.MessageContent),x,y,40,40)); else if(content.contentType == qoid.model.ContentType.IMAGE) this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , qoid.model.ImageContent),x,y,40,40)); else if(content.contentType == qoid.model.ContentType.URL) this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , qoid.model.UrlContent),x,y,20)); else if(content.contentType == qoid.model.ContentType.AUDIO) this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , qoid.model.AudioContent),x,y,20,20));
 	}
 	,cloneElement: function(ele) {
 		var clone = ele.clone();
@@ -4758,7 +4136,7 @@ agentui.widget.score.ContentTimeLine.prototype = {
 					ele1 = _g.paper.ellipse(cx,cy,bbox.width / 2,bbox.height / 2).attr({ 'class' : "audioEllipse"});
 					break;
 				case "IMAGE":
-					ele1 = _g.paper.image((js.Boot.__cast(content , agentui.model.ImageContent)).props.imgSrc,bbox.x,bbox.y,bbox.width,bbox.height);
+					ele1 = _g.paper.image((js.Boot.__cast(content , qoid.model.ImageContent)).props.imgSrc,bbox.x,bbox.y,bbox.width,bbox.height);
 					break;
 				case "URL":
 					ele1 = agentui.widget.score.Shapes.createHexagon(_g.paper,cx,cy,bbox.width / 2).attr({ 'class' : "urlContent"});
@@ -4781,13 +4159,13 @@ agentui.widget.score.ContentTimeLine.prototype = {
 				});
 				switch(g_type) {
 				case "AUDIO":
-					agentui.widget.score.ForeignObject.appendAudioContent(g_id,bbox,(js.Boot.__cast(content , agentui.model.AudioContent)).props);
+					agentui.widget.score.ForeignObject.appendAudioContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.AudioContent)).props);
 					break;
 				case "URL":
-					agentui.widget.score.ForeignObject.appendUrlContent(g_id,bbox,(js.Boot.__cast(content , agentui.model.UrlContent)).props);
+					agentui.widget.score.ForeignObject.appendUrlContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.UrlContent)).props);
 					break;
 				case "TEXT":
-					agentui.widget.score.ForeignObject.appendMessageContent(g_id,bbox,(js.Boot.__cast(content , agentui.model.MessageContent)).props);
+					agentui.widget.score.ForeignObject.appendMessageContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.MessageContent)).props);
 					break;
 				}
 			};
@@ -5865,6 +5243,12 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 	}
 	throw "Unexpected end";
 };
+js.Lib = function() { };
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
+};
 js.d3 = {};
 js.d3._D3 = {};
 js.d3._D3.InitPriority = function() { };
@@ -5893,6 +5277,9 @@ m3.CrossMojo.prettyPrintString = function(json) {
 m3.CrossMojo.prettyPrint = function(json) {
 	return JSON.stringify(json, undefined, 2);
 };
+m3.comm.ChannelRequest = function() { };
+$hxClasses["m3.comm.ChannelRequest"] = m3.comm.ChannelRequest;
+m3.comm.ChannelRequest.__name__ = ["m3","comm","ChannelRequest"];
 m3.comm.LongPollingRequest = function(channel,successFcn,errorFcn,ajaxOpts,baseUrl) {
 	this.timeout = 30000;
 	this.delayNextPoll = false;
@@ -5954,7 +5341,7 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 		}
 	}
 	,getUrl: function() {
-		return this.baseUrl + "?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
+		return this.baseUrl + "?timeoutMillis=" + Std.string(this.timeout);
 	}
 	,poll: function() {
 		if(this.running) {
@@ -6093,89 +5480,6 @@ m3.observable.EventType.prototype = {
 	}
 	,__class__: m3.observable.EventType
 };
-m3.observable.GroupedSet = function(source,groupingFn) {
-	var _g = this;
-	m3.observable.AbstractSet.call(this);
-	this._source = source;
-	this._groupingFn = groupingFn;
-	this._groupedSets = new haxe.ds.StringMap();
-	this._identityToGrouping = new haxe.ds.StringMap();
-	source.listen(function(t,type) {
-		var groupingKey = groupingFn(t);
-		var previousGroupingKey = _g._identityToGrouping.get(groupingKey);
-		if(type.isAddOrUpdate()) {
-			if(previousGroupingKey != groupingKey) {
-				_g["delete"](t,false);
-				_g.add(t);
-			}
-		} else _g["delete"](t);
-	});
-};
-$hxClasses["m3.observable.GroupedSet"] = m3.observable.GroupedSet;
-m3.observable.GroupedSet.__name__ = ["m3","observable","GroupedSet"];
-m3.observable.GroupedSet.__super__ = m3.observable.AbstractSet;
-m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
-	'delete': function(t,deleteEmptySet) {
-		if(deleteEmptySet == null) deleteEmptySet = true;
-		var id = (this._source.identifier())(t);
-		var key = this._identityToGrouping.get(id);
-		if(key != null) {
-			this._identityToGrouping.remove(id);
-			var groupedSet = this._groupedSets.get(key);
-			if(groupedSet != null) {
-				groupedSet["delete"](t);
-				if(groupedSet.isEmpty() && deleteEmptySet) {
-					this._groupedSets.remove(key);
-					this.fire(groupedSet,m3.observable.EventType.Delete);
-				} else this.fire(groupedSet,m3.observable.EventType.Update);
-			} else {
-			}
-		} else {
-		}
-	}
-	,add: function(t) {
-		var id = (this._source.identifier())(t);
-		var key = this._identityToGrouping.get(id);
-		if(key != null) throw new m3.exception.Exception("cannot add it is already in the list" + id + " -- " + key);
-		key = this._groupingFn(t);
-		this._identityToGrouping.set(id,key);
-		var groupedSet = this._groupedSets.get(key);
-		if(groupedSet == null) {
-			groupedSet = this.addEmptyGroup(key);
-			groupedSet.addOrUpdate(t);
-			this.fire(groupedSet,m3.observable.EventType.Add);
-		} else {
-			groupedSet.addOrUpdate(t);
-			this.fire(groupedSet,m3.observable.EventType.Update);
-		}
-	}
-	,addEmptyGroup: function(key) {
-		if(this._groupedSets.get(key) == null) {
-			var groupedSet = new m3.observable.ObservableSet(this._source.identifier());
-			groupedSet.visualId = key;
-			this._groupedSets.set(key,groupedSet);
-		}
-		return this._groupedSets.get(key);
-	}
-	,identifier: function() {
-		return $bind(this,this.identify);
-	}
-	,identify: function(set) {
-		var keys = this._groupedSets.keys();
-		while(keys.hasNext()) {
-			var key = keys.next();
-			if(this._groupedSets.get(key) == set) return key;
-		}
-		throw new m3.exception.Exception("unable to find identity for " + Std.string(set));
-	}
-	,iterator: function() {
-		return this._groupedSets.iterator();
-	}
-	,delegate: function() {
-		return this._groupedSets;
-	}
-	,__class__: m3.observable.GroupedSet
-});
 m3.serialization.ArrayHandler = function(parms,serializer) {
 	this._parms = parms;
 	this._serializer = serializer;
@@ -6750,6 +6054,273 @@ m3.util.M.exprs = function(exprDefs,pos) {
 	});
 	return arr;
 };
+qoid.AuthenticationResponse = function() { };
+$hxClasses["qoid.AuthenticationResponse"] = qoid.AuthenticationResponse;
+qoid.AuthenticationResponse.__name__ = ["qoid","AuthenticationResponse"];
+qoid.AuthenticationResponse.prototype = {
+	__class__: qoid.AuthenticationResponse
+};
+qoid.ResponseProcessor = function() { };
+$hxClasses["qoid.ResponseProcessor"] = qoid.ResponseProcessor;
+qoid.ResponseProcessor.__name__ = ["qoid","ResponseProcessor"];
+qoid.ResponseProcessor.processResponse = function(dataArr) {
+	Lambda.iter(dataArr,function(data) {
+		if(data.success == false) {
+			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
+			m3.log.Logga.get_DEFAULT().error(data.error.stacktrace);
+		} else {
+			var context = data.context;
+			if(StringTools.startsWith(context,"initialDataLoad")) {
+				var result = data.result;
+				if(result != null) {
+					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else qoid.Synchronizer.processResponse(data);
+				}
+			} else if(context == "verificationContent") {
+				var result1 = data.result;
+				qoid.ResponseProcessor.updateModelObject(result1.type,result1.action,result1.results);
+			} else {
+				var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context);
+				m3.event.EventManager.get_instance().change(eventId);
+			}
+		}
+	});
+};
+qoid.ResponseProcessor.processModelObject = function(set,type,action,data) {
+	var _g = 0;
+	var _g1;
+	_g1 = js.Boot.__cast(data , Array);
+	while(_g < _g1.length) {
+		var datum = _g1[_g];
+		++_g;
+		var obj = m3.serialization.Serializer.get_instance().fromJsonX(datum,type);
+		if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
+	}
+};
+qoid.ResponseProcessor.updateModelObject = function(type,action,data) {
+	var type1 = type.toLowerCase();
+	switch(type1) {
+	case "alias":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.aliases,qoid.model.Alias,action,data);
+		break;
+	case "connection":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.connections,qoid.model.Connection,action,data);
+		break;
+	case "content":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.verificationContent,qoid.model.Content,action,data);
+		break;
+	case "introduction":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.introductions,qoid.model.Introduction,action,data);
+		break;
+	case "label":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labels,qoid.model.Label,action,data);
+		break;
+	case "labelacl":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelAcls,qoid.model.LabelAcl,action,data);
+		break;
+	case "labelchild":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelChildren,qoid.model.LabelChild,action,data);
+		break;
+	case "labeledcontent":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labeledContent,qoid.model.LabeledContent,action,data);
+		break;
+	case "notification":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.notifications,qoid.model.Notification,action,data);
+		break;
+	case "profile":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.profiles,qoid.model.Profile,action,data);
+		break;
+	default:
+		m3.log.Logga.get_DEFAULT().error("Unknown type: " + type1);
+	}
+};
+qoid.SynchronizationParms = function() {
+	this.aliases = new Array();
+	this.connections = new Array();
+	this.introductions = new Array();
+	this.labels = new Array();
+	this.labelAcls = new Array();
+	this.labelChildren = new Array();
+	this.labeledContent = new Array();
+	this.notifications = new Array();
+	this.profiles = new Array();
+};
+$hxClasses["qoid.SynchronizationParms"] = qoid.SynchronizationParms;
+qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
+qoid.SynchronizationParms.prototype = {
+	__class__: qoid.SynchronizationParms
+};
+qoid.Synchronizer = function(context,numResponsesExpected,oncomplete) {
+	this.context = context;
+	this.numResponsesExpected = numResponsesExpected;
+	this.oncomplete = oncomplete;
+	this.parms = new qoid.SynchronizationParms();
+	qoid.Synchronizer.synchronizers.set(context,this);
+};
+$hxClasses["qoid.Synchronizer"] = qoid.Synchronizer;
+qoid.Synchronizer.__name__ = ["qoid","Synchronizer"];
+qoid.Synchronizer.processResponse = function(data) {
+	var context = data.context.split("-")[0];
+	var synchronizer = qoid.Synchronizer.synchronizers.get(context);
+	synchronizer.dataReceived(context,data.result);
+};
+qoid.Synchronizer.remove = function(iid) {
+	qoid.Synchronizer.synchronizers.remove(iid);
+};
+qoid.Synchronizer.prototype = {
+	processDataReceived: function(list,type,data) {
+		var _g = 0;
+		var _g1;
+		_g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var datum = _g1[_g];
+			++_g;
+			list.push(m3.serialization.Serializer.get_instance().fromJsonX(datum,type));
+		}
+	}
+	,dataReceived: function(c,dataObj) {
+		var data = dataObj.results;
+		var type = dataObj.type.toLowerCase();
+		if(data != null) switch(type) {
+		case "alias":
+			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
+			break;
+		case "connection":
+			this.processDataReceived(this.parms.connections,qoid.model.Connection,data);
+			break;
+		case "introduction":
+			this.processDataReceived(this.parms.introductions,qoid.model.Introduction,data);
+			break;
+		case "label":
+			this.processDataReceived(this.parms.labels,qoid.model.Label,data);
+			break;
+		case "labelacl":
+			this.processDataReceived(this.parms.labelAcls,qoid.model.LabelAcl,data);
+			break;
+		case "labelchild":
+			this.processDataReceived(this.parms.labelChildren,qoid.model.LabelChild,data);
+			break;
+		case "labeledcontent":
+			this.processDataReceived(this.parms.labeledContent,qoid.model.LabeledContent,data);
+			break;
+		case "notification":
+			this.processDataReceived(this.parms.notifications,qoid.model.Notification,data);
+			break;
+		case "profile":
+			this.processDataReceived(this.parms.profiles,qoid.model.Profile,data);
+			break;
+		default:
+			m3.log.Logga.get_DEFAULT().error("Unknown data type: " + Std.string(dataObj.type));
+		}
+		this.numResponsesExpected -= 1;
+		if(this.numResponsesExpected == 0) {
+			this.oncomplete(this.parms);
+			qoid.Synchronizer.remove(this.context);
+		}
+	}
+	,__class__: qoid.Synchronizer
+};
+qoid.model.ContentVerification = function() { };
+$hxClasses["qoid.model.ContentVerification"] = qoid.model.ContentVerification;
+qoid.model.ContentVerification.__name__ = ["qoid","model","ContentVerification"];
+qoid.model.ContentVerification.prototype = {
+	__class__: qoid.model.ContentVerification
+};
+qoid.model.VerifiedContentMetaData = function() { };
+$hxClasses["qoid.model.VerifiedContentMetaData"] = qoid.model.VerifiedContentMetaData;
+qoid.model.VerifiedContentMetaData.__name__ = ["qoid","model","VerifiedContentMetaData"];
+qoid.model.VerifiedContentMetaData.prototype = {
+	__class__: qoid.model.VerifiedContentMetaData
+};
+qoid.model.NotificationKind = $hxClasses["qoid.model.NotificationKind"] = { __ename__ : ["qoid","model","NotificationKind"], __constructs__ : ["IntroductionRequest","VerificationRequest","VerificationResponse"] };
+qoid.model.NotificationKind.IntroductionRequest = ["IntroductionRequest",0];
+qoid.model.NotificationKind.IntroductionRequest.toString = $estr;
+qoid.model.NotificationKind.IntroductionRequest.__enum__ = qoid.model.NotificationKind;
+qoid.model.NotificationKind.VerificationRequest = ["VerificationRequest",1];
+qoid.model.NotificationKind.VerificationRequest.toString = $estr;
+qoid.model.NotificationKind.VerificationRequest.__enum__ = qoid.model.NotificationKind;
+qoid.model.NotificationKind.VerificationResponse = ["VerificationResponse",2];
+qoid.model.NotificationKind.VerificationResponse.toString = $estr;
+qoid.model.NotificationKind.VerificationResponse.__enum__ = qoid.model.NotificationKind;
+qoid.model.NotificationKind.__empty_constructs__ = [qoid.model.NotificationKind.IntroductionRequest,qoid.model.NotificationKind.VerificationRequest,qoid.model.NotificationKind.VerificationResponse];
+qoid.model.Introduction = function() {
+	qoid.model.ModelObjWithIid.call(this);
+};
+$hxClasses["qoid.model.Introduction"] = qoid.model.Introduction;
+qoid.model.Introduction.__name__ = ["qoid","model","Introduction"];
+qoid.model.Introduction.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Introduction.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Introduction
+});
+qoid.model.IntroductionRequestNotification = function() {
+	qoid.model.Notification.call(this,qoid.model.NotificationKind.IntroductionRequest,qoid.model.IntroductionRequestData);
+};
+$hxClasses["qoid.model.IntroductionRequestNotification"] = qoid.model.IntroductionRequestNotification;
+qoid.model.IntroductionRequestNotification.__name__ = ["qoid","model","IntroductionRequestNotification"];
+qoid.model.IntroductionRequestNotification.__super__ = qoid.model.Notification;
+qoid.model.IntroductionRequestNotification.prototype = $extend(qoid.model.Notification.prototype,{
+	__class__: qoid.model.IntroductionRequestNotification
+});
+qoid.model.IntroductionRequestData = function() { };
+$hxClasses["qoid.model.IntroductionRequestData"] = qoid.model.IntroductionRequestData;
+qoid.model.IntroductionRequestData.__name__ = ["qoid","model","IntroductionRequestData"];
+qoid.model.IntroductionRequestData.prototype = {
+	__class__: qoid.model.IntroductionRequestData
+};
+qoid.model.VerificationRequestNotification = function() {
+	qoid.model.Notification.call(this,qoid.model.NotificationKind.VerificationRequest,qoid.model.VerificationRequestData);
+};
+$hxClasses["qoid.model.VerificationRequestNotification"] = qoid.model.VerificationRequestNotification;
+qoid.model.VerificationRequestNotification.__name__ = ["qoid","model","VerificationRequestNotification"];
+qoid.model.VerificationRequestNotification.__super__ = qoid.model.Notification;
+qoid.model.VerificationRequestNotification.prototype = $extend(qoid.model.Notification.prototype,{
+	__class__: qoid.model.VerificationRequestNotification
+});
+qoid.model.VerificationRequestData = function() { };
+$hxClasses["qoid.model.VerificationRequestData"] = qoid.model.VerificationRequestData;
+qoid.model.VerificationRequestData.__name__ = ["qoid","model","VerificationRequestData"];
+qoid.model.VerificationRequestData.prototype = {
+	getContent: function() {
+		try {
+			var fromJson = { iid : this.contentIid, contentType : Std.string(this.contentType), data : this.contentData, created : (function($this) {
+				var $r;
+				var _this = new Date();
+				$r = HxOverrides.dateStr(_this);
+				return $r;
+			}(this)), modified : (function($this) {
+				var $r;
+				var _this1 = new Date();
+				$r = HxOverrides.dateStr(_this1);
+				return $r;
+			}(this)), createdByAliasIid : "Chewbaca", modifiedByAliasIid : "PizzaTheHut"};
+			return m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.Content);
+		} catch( e ) {
+			m3.log.Logga.get_DEFAULT().error(e);
+			throw e;
+		}
+	}
+	,__class__: qoid.model.VerificationRequestData
+};
+qoid.model.VerificationResponseNotification = function() {
+	qoid.model.Notification.call(this,qoid.model.NotificationKind.VerificationResponse,qoid.model.VerificationResponseData);
+};
+$hxClasses["qoid.model.VerificationResponseNotification"] = qoid.model.VerificationResponseNotification;
+qoid.model.VerificationResponseNotification.__name__ = ["qoid","model","VerificationResponseNotification"];
+qoid.model.VerificationResponseNotification.__super__ = qoid.model.Notification;
+qoid.model.VerificationResponseNotification.prototype = $extend(qoid.model.Notification.prototype,{
+	__class__: qoid.model.VerificationResponseNotification
+});
+qoid.model.VerificationResponseData = function() { };
+$hxClasses["qoid.model.VerificationResponseData"] = qoid.model.VerificationResponseData;
+qoid.model.VerificationResponseData.__name__ = ["qoid","model","VerificationResponseData"];
+qoid.model.VerificationResponseData.prototype = {
+	__class__: qoid.model.VerificationResponseData
+};
+qoid.model.Verification = function() { };
+$hxClasses["qoid.model.Verification"] = qoid.model.Verification;
+qoid.model.Verification.__name__ = ["qoid","model","Verification"];
+qoid.model.Verification.prototype = {
+	__class__: qoid.model.Verification
+};
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
@@ -6798,7 +6369,55 @@ Xml.DocType = "doctype";
 Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
 agentui.model.EM.delegate = m3.event.EventManager.get_instance();
-agentui.model.ContentSource.filteredContent = new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier);
+qoid.QoidAPI.channels = new Array();
+qoid.QoidAPI.set_activeChannel(null);
+qoid.QoidAPI.longPolls = new haxe.ds.StringMap();
+qoid.Qoid.introductions = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+qoid.Qoid.notifications = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+qoid.Qoid.aliases = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+qoid.Qoid.aliases.listen(function(a,evt) {
+	if(evt.isAddOrUpdate()) {
+		var p = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.profiles,a.iid,"aliasIid");
+		if(p != null) a.profile = p;
+		if(evt.isAdd()) m3.event.EventManager.get_instance().change("onAliasCreated",a); else m3.event.EventManager.get_instance().change("onAliasUpdated",a);
+	}
+});
+qoid.Qoid.labels = new m3.observable.ObservableSet(qoid.model.Label.identifier);
+qoid.Qoid.connections = new m3.observable.ObservableSet(qoid.model.Connection.identifier);
+qoid.Qoid.connections.listen(function(c,evt1) {
+	if(evt1.isAdd()) qoid.QoidAPI.getProfile(c.iid);
+});
+qoid.Qoid.groupedConnections = new m3.observable.GroupedSet(qoid.Qoid.connections,function(c1) {
+	return c1.aliasIid;
+});
+qoid.Qoid.labelAcls = new m3.observable.ObservableSet(qoid.model.LabelAcl.identifier);
+qoid.Qoid.groupedLabelAcls = new m3.observable.GroupedSet(qoid.Qoid.labelAcls,function(l) {
+	return l.connectionIid;
+});
+qoid.Qoid.labelChildren = new m3.observable.ObservableSet(qoid.model.LabelChild.identifier);
+qoid.Qoid.groupedLabelChildren = new m3.observable.GroupedSet(qoid.Qoid.labelChildren,function(lc) {
+	return lc.parentIid;
+});
+qoid.Qoid.labeledContent = new m3.observable.ObservableSet(qoid.model.LabeledContent.identifier);
+qoid.Qoid.groupedLabeledContent = new m3.observable.GroupedSet(qoid.Qoid.labeledContent,function(lc1) {
+	return lc1.contentIid;
+});
+qoid.Qoid.profiles = new m3.observable.ObservableSet(qoid.model.Profile.identifier);
+qoid.Qoid.profiles.listen(function(p1,evt2) {
+	if(evt2.isAddOrUpdate()) {
+		var alias = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,p1.aliasIid);
+		if(alias != null) {
+			alias.profile = p1;
+			qoid.Qoid.aliases.addOrUpdate(alias);
+		}
+	}
+});
+qoid.Qoid.verificationContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+m3.serialization.Serializer.get_instance().addHandler(qoid.model.Content,new qoid.model.ContentHandler());
+m3.serialization.Serializer.get_instance().addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
+m3.event.EventManager.get_instance().on(qoid.QE.onInitialDataload,qoid.Qoid.onInitialDataLoadComplete);
+m3.event.EventManager.get_instance().on("onConnectionProfile",qoid.Qoid.processProfile);
+agentui.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 agentui.model.ContentSource.listeners = new Array();
 agentui.model.EM.addListener(agentui.model.EMEvent.AliasLoaded,agentui.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
 agentui.model.EM.addListener(agentui.model.EMEvent.LoadFilteredContent,agentui.model.ContentSource.onLoadFilteredContent,"ContentSource-LoadFilteredContent");
@@ -7006,10 +6625,10 @@ var defineWidget = function() {
 		return clone1.children("img").addClass("connectionDraggingImg");
 	}}, getConnection : function() {
 		var self = this;
-		return m3.helper.OSetHelper.getElement(agentui.AppContext.CONNECTIONS,self.options.connectionIid);
+		return m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self.options.connectionIid);
 	}, getAlias : function() {
 		var self1 = this;
-		return m3.helper.OSetHelper.getElement(agentui.AppContext.ALIASES,self1.options.aliasIid);
+		return m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,self1.options.aliasIid);
 	}, _create : function() {
 		var self2 = this;
 		var selfElement = this.element;
@@ -7021,9 +6640,9 @@ var defineWidget = function() {
 		if(self2.options.aliasIid != null) selfElement.addClass("aliasAvatar");
 		var img = new $("<img class='shadow'/>");
 		selfElement.append(img);
-		self2._updateWidgets(new agentui.model.Profile());
+		self2._updateWidgets(new qoid.model.Profile());
 		if(self2.options.connectionIid != null) {
-			self2.filteredSetConnection = new m3.observable.FilteredSet(agentui.AppContext.CONNECTIONS,function(c) {
+			self2.filteredSetConnection = new m3.observable.FilteredSet(qoid.Qoid.connections,function(c) {
 				return c.iid == self2.options.connectionIid;
 			});
 			self2._onUpdateConnection = function(c1,evt) {
@@ -7034,7 +6653,7 @@ var defineWidget = function() {
 			};
 			self2.filteredSetConnection.listen(self2._onUpdateConnection);
 		} else if(self2.options.aliasIid != null) {
-			self2.filteredSetAlias = new m3.observable.FilteredSet(agentui.AppContext.ALIASES,function(a) {
+			self2.filteredSetAlias = new m3.observable.FilteredSet(qoid.Qoid.aliases,function(a) {
 				return a.iid == self2.options.aliasIid;
 			});
 			self2._onUpdateAlias = function(a1,evt1) {
@@ -7069,7 +6688,7 @@ var defineWidget = function() {
 				if(_ui1.draggable["is"](".labelComp")) {
 					var labelComp;
 					labelComp = js.Boot.__cast(_ui1.draggable , $);
-					var connection = m3.helper.OSetHelper.getElement(agentui.AppContext.CONNECTIONS,self2.options.connectionIid);
+					var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self2.options.connectionIid);
 					agentui.widget.DialogManager.allowAccess(labelComp.labelComp("getLabel"),connection);
 				} else {
 					var filterCombiner = new $("<div></div>");
@@ -7119,7 +6738,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AcceptVerificationResponseDialog must be a div element");
 		selfElement.addClass("acceptVerificationResponseDialog notification-ui container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(agentui.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
+		var conn = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self.options.notification.createdByConnectionIid);
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
@@ -7210,7 +6829,7 @@ var defineWidget = function() {
 		self.userIdTxt = new $("<div class='userIdTxt'></div>");
 		self.container.append(self.userIdTxt);
 		self.userIdTxt.html("...");
-		self._setAlias(new agentui.model.Alias());
+		self._setAlias(new qoid.model.Alias());
 		var changeDiv = new $("<div class='ui-helper-clearfix'></div>");
 		self.container.append(changeDiv);
 		self.switchAliasLink = new $("<a class='aliasToggle'>Aliases</a>");
@@ -7234,8 +6853,7 @@ var defineWidget = function() {
 					dragstopUi.helper.remove();
 					selfElement.removeClass("targetChange");
 					m3.util.JqueryUtil.deleteEffects(dragstopEvt);
-					agentui.AppContext.TARGET = null;
-					self._setAlias(agentui.AppContext.currentAlias);
+					self._setAlias(qoid.Qoid.get_currentAlias());
 				}
 			};
 			selfElement.addClass("targetChange");
@@ -7251,7 +6869,7 @@ var defineWidget = function() {
 			}
 		};
 		self._onupdateProfile = function(p,t1) {
-			var alias2 = m3.helper.OSetHelper.getElement(agentui.AppContext.ALIASES,p.aliasIid);
+			var alias2 = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,p.aliasIid);
 			self._updateAliasWidgets(alias2);
 		};
 	}, _createAliasMenu : function() {
@@ -7261,7 +6879,7 @@ var defineWidget = function() {
 		menu.appendTo(self1.container);
 		var menuOptions = [];
 		var menuOption;
-		var aliases = new m3.observable.SortedSet(agentui.AppContext.ALIASES,function(a) {
+		var aliases = new m3.observable.SortedSet(qoid.Qoid.aliases,function(a) {
 			return a.profile.name.toLowerCase();
 		});
 		var $it0 = aliases.iterator();
@@ -7270,8 +6888,8 @@ var defineWidget = function() {
 			var alias4 = [alias3];
 			menuOption = { label : alias4[0].profile.name, icon : "ui-icon-person", action : (function(alias4) {
 				return function(evt1,m) {
-					if(agentui.model.Alias.identifier(agentui.AppContext.currentAlias) == agentui.model.Alias.identifier(alias4[0])) menu.hide(); else {
-						agentui.AppContext.currentAlias = alias4[0];
+					if(qoid.model.Alias.identifier(qoid.Qoid.get_currentAlias()) == qoid.model.Alias.identifier(alias4[0])) menu.hide(); else {
+						qoid.Qoid.set_currentAlias(alias4[0]);
 						agentui.model.EM.change(agentui.model.EMEvent.AliasLoaded,alias4[0]);
 					}
 				};
@@ -7295,12 +6913,12 @@ var defineWidget = function() {
 		var selfElement1 = this.element;
 		self3._updateAliasWidgets(alias6);
 		if(self3.aliasSet != null) self3.aliasSet.removeListener(self3._onupdate);
-		self3.aliasSet = new m3.observable.FilteredSet(agentui.AppContext.ALIASES,function(a1) {
+		self3.aliasSet = new m3.observable.FilteredSet(qoid.Qoid.aliases,function(a1) {
 			return a1.iid == alias6.iid;
 		});
 		self3.aliasSet.listen(self3._onupdate);
 		if(self3.profileSet != null) self3.profileSet.removeListener(self3._onupdateProfile);
-		self3.profileSet = new m3.observable.FilteredSet(agentui.AppContext.PROFILES,function(p1) {
+		self3.profileSet = new m3.observable.FilteredSet(qoid.Qoid.profiles,function(p1) {
 			return p1.aliasIid == alias6.iid;
 		});
 		self3.profileSet.listen(self3._onupdateProfile);
@@ -7308,7 +6926,6 @@ var defineWidget = function() {
 		var self4 = this;
 		self4.switchAliasLink.hide();
 		self4.userIdTxt.html(conn.data.name);
-		agentui.AppContext.TARGET = conn;
 		agentui.model.EM.change(agentui.model.EMEvent.TargetChange,conn);
 	}, destroy : function() {
 		var self5 = this;
@@ -7435,11 +7052,11 @@ var defineWidget = function() {
 			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
 			return;
 		}
-		if(self2.options.contentType == agentui.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
+		if(self2.options.contentType == qoid.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
 			m3.util.JqueryUtil.alert("Please select an image file.");
 			return;
 		}
-		if(self2.options.contentType == agentui.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
+		if(self2.options.contentType == qoid.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
 			m3.util.JqueryUtil.alert("Please select an audio file.");
 			return;
 		}
@@ -7491,7 +7108,7 @@ var defineWidget = function() {
 		self.rightDiv = new $("<div class='fright ui-corner-all'  id='rightDiv'></div>").appendTo(selfElement);
 		self.rightDiv.append("<h2>Aliases</h2>");
 		var alii_div = new $("<div class='alii'><div>").appendTo(self.rightDiv);
-		self.aliasMap = new m3.observable.MappedSet(agentui.AppContext.ALIASES,function(a) {
+		self.aliasMap = new m3.observable.MappedSet(qoid.Qoid.aliases,function(a) {
 			return new $("<div class='clickable alias_link' id='a_" + a.iid + "'></div>").appendTo(alii_div).click(function(evt) {
 				self._showAliasDetail(a);
 			}).append(a.profile.name);
@@ -7502,7 +7119,7 @@ var defineWidget = function() {
 		self.newAliasButton = new $("<button id='new_alias_button'>New Alias</button>").button().click(function(evt2) {
 			self._showAliasEditor(null);
 		}).appendTo(self.rightDiv);
-		self._showAliasDetail(agentui.AppContext.currentAlias);
+		self._showAliasDetail(qoid.Qoid.get_currentAlias());
 	}, _onAliasDeleted : function(alias,w1) {
 		var self1 = this;
 		w1.remove();
@@ -7513,7 +7130,7 @@ var defineWidget = function() {
 		self2.leftDiv.empty();
 		var imgSrc = "media/default_avatar.jpg";
 		var loadAliasBtn = new $("<button class='fleft'>Use This Alias</button>").appendTo(self2.leftDiv).button().click(function(evt3) {
-			agentui.AppContext.currentAlias = alias1;
+			qoid.Qoid.set_currentAlias(alias1);
 			agentui.model.EM.change(agentui.model.EMEvent.AliasLoaded,alias1);
 			m3.jq.JQDialogHelper.close(selfElement1);
 		});
@@ -7587,10 +7204,10 @@ var defineWidget = function() {
 			if(m3.helper.StringHelper.startsWithAny(profilePic,["media"])) profilePic = "";
 			var applyDlg;
 			if(alias2 == null) {
-				alias2 = new agentui.model.Alias();
+				alias2 = new qoid.model.Alias();
 				alias2.profile.name = name;
 				alias2.profile.imgSrc = profilePic;
-				alias2.rootLabelIid = agentui.AppContext.ROOT_LABEL_ID;
+				alias2.labelIid = qoid.Qoid.get_currentAlias().labelIid;
 				applyDlg = function() {
 					agentui.model.EM.listenOnce(agentui.model.EMEvent.AliasCreated,function(alias3) {
 						haxe.Timer.delay(function() {
@@ -7618,7 +7235,7 @@ var defineWidget = function() {
 	}, _createAliasManager : function() {
 		var self4 = this;
 		var selfElement3 = this.element;
-		var alias5 = new agentui.model.Alias();
+		var alias5 = new qoid.model.Alias();
 		alias5.profile.name = self4.aliasName.val();
 		alias5.profile.name = self4.username.val();
 		if(m3.helper.StringHelper.isBlank(alias5.profile.name) || m3.helper.StringHelper.isBlank(alias5.profile.name)) return;
@@ -7681,7 +7298,7 @@ var defineWidget = function() {
 		while(_g < _g1.length) {
 			var iid = _g1[_g];
 			++_g;
-			var label = m3.helper.OSetHelper.getElement(agentui.AppContext.LABELS,iid);
+			var label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,iid);
 			ret.push(label.name);
 		}
 		return ret;
@@ -7699,7 +7316,7 @@ var defineWidget = function() {
 				selfElement.remove();
 			}
 		};
-		self2.filteredSet = new m3.observable.FilteredSet(agentui.AppContext.LABELS,function(label2) {
+		self2.filteredSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(label2) {
 			return label2.iid == self2.options.labelIid;
 		});
 		self2.filteredSet.listen(self2._onupdate);
@@ -7707,11 +7324,11 @@ var defineWidget = function() {
 		var self3 = this;
 		var selfElement1 = this.element;
 		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelComp must be a div element");
-		self3.label = m3.helper.OSetHelper.getElement(agentui.AppContext.LABELS,self3.options.labelIid);
+		self3.label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,self3.options.labelIid);
 		if(self3.label == null) {
-			self3.label = new agentui.model.Label("-->*<--");
+			self3.label = new qoid.model.Label("-->*<--");
 			self3.label.iid = self3.options.labelIid;
-			agentui.AppContext.LABELS.add(self3.label);
+			qoid.Qoid.labels.add(self3.label);
 		}
 		selfElement1.addClass("label labelComp ").attr("id",StringTools.htmlEscape(self3.label.name) + "_" + m3.util.UidGenerator.create(8));
 		var labelTail = new $("<div class='labelTail'></div>");
@@ -7760,7 +7377,7 @@ var defineWidget = function() {
 			var copyOrMoveLabel = function(event4,_ui5) {
 				var labelComp1;
 				labelComp1 = js.Boot.__cast(_ui5.draggable , $);
-				var eld = new agentui.model.EditLabelData(agentui.widget.LabelCompHelper.getLabel(labelComp1),agentui.widget.LabelCompHelper.parentIid(labelComp1),self3.getLabel().iid);
+				var eld = new qoid.model.EditLabelData(agentui.widget.LabelCompHelper.getLabel(labelComp1),agentui.widget.LabelCompHelper.parentIid(labelComp1),self3.getLabel().iid);
 				if(event4.ctrlKey) agentui.model.EM.change(agentui.model.EMEvent.CopyLabel,eld); else agentui.model.EM.change(agentui.model.EMEvent.MoveLabel,eld);
 			};
 			(js.Boot.__cast(selfElement1 , $)).droppable({ accept : function(d) {
@@ -7877,18 +7494,18 @@ var defineWidget = function() {
 				var _g = notification.kind;
 				switch(_g[1]) {
 				case 0:
-					agentui.widget.DialogManager.respondToIntroduction(js.Boot.__cast(notification , agentui.model.IntroductionRequestNotification));
+					agentui.widget.DialogManager.respondToIntroduction(js.Boot.__cast(notification , qoid.model.IntroductionRequestNotification));
 					break;
 				case 1:
-					agentui.widget.DialogManager.respondToVerificationRequest(js.Boot.__cast(notification , agentui.model.VerificationRequestNotification));
+					agentui.widget.DialogManager.respondToVerificationRequest(js.Boot.__cast(notification , qoid.model.VerificationRequestNotification));
 					break;
 				case 2:
-					agentui.widget.DialogManager.acceptVerificationResponse(js.Boot.__cast(notification , agentui.model.VerificationResponseNotification));
+					agentui.widget.DialogManager.acceptVerificationResponse(js.Boot.__cast(notification , qoid.model.VerificationResponseNotification));
 					break;
 				}
 			}
 		});
-		self.filteredSetConnection = new m3.observable.FilteredSet(agentui.AppContext.CONNECTIONS,function(c) {
+		self.filteredSetConnection = new m3.observable.FilteredSet(qoid.Qoid.connections,function(c) {
 			return c.iid == self.options.connection.iid;
 		});
 		self._onUpdateConnection = function(c1,evt1) {
@@ -7913,7 +7530,7 @@ var defineWidget = function() {
 			var droppee = self.options.connection;
 			if(!dropper.equals(droppee)) {
 				var intro = null;
-				var $it1 = agentui.AppContext.INTRODUCTIONS.iterator();
+				var $it1 = qoid.Qoid.introductions.iterator();
 				while( $it1.hasNext() ) {
 					var i = $it1.next();
 					if(i.aConnectionIid == dropper.iid && i.bConnectionIid == droppee.iid || i.bConnectionIid == dropper.iid && i.aConnectionIid == droppee.iid) {
@@ -7922,12 +7539,12 @@ var defineWidget = function() {
 					}
 				}
 				if(intro != null) {
-					if(intro.bState == agentui.model.IntroductionState.NotResponded || intro.aState == agentui.model.IntroductionState.NotResponded) m3.util.JqueryUtil.alert("There is already a pending introduction between these two aliases"); else if(intro.bState == agentui.model.IntroductionState.Accepted && intro.aState == agentui.model.IntroductionState.Accepted) m3.util.JqueryUtil.alert("These two aliases are already connected");
+					if(intro.bState == qoid.model.IntroductionState.NotResponded || intro.aState == qoid.model.IntroductionState.NotResponded) m3.util.JqueryUtil.alert("There is already a pending introduction between these two aliases"); else if(intro.bState == qoid.model.IntroductionState.Accepted && intro.aState == qoid.model.IntroductionState.Accepted) m3.util.JqueryUtil.alert("These two aliases are already connected");
 				} else agentui.widget.DialogManager.requestIntroduction(dropper,droppee);
 			}
 		}, tolerance : "pointer"});
-		self.notifications = new m3.observable.FilteredSet(agentui.AppContext.NOTIFICATIONS,function(n) {
-			return n.fromConnectionIid == self.options.connection.iid;
+		self.notifications = new m3.observable.FilteredSet(qoid.Qoid.notifications,function(n) {
+			return n.createdByConnectionIid == self.options.connection.iid;
 		});
 		self.notifications.listen(function(i1,evt2) {
 			if(evt2.isAdd()) self.addNotification(); else if(evt2.isDelete()) self.deleteNotification();
@@ -8001,9 +7618,9 @@ var defineWidget = function() {
 		};
 		agentui.model.EM.addListener(agentui.model.EMEvent.AliasLoaded,function(a) {
 			var connections;
-			var this1 = agentui.AppContext.GROUPED_CONNECTIONS.delegate();
+			var this1 = qoid.Qoid.groupedConnections.delegate();
 			connections = this1.get(a.iid);
-			if(connections == null) connections = agentui.AppContext.GROUPED_CONNECTIONS.addEmptyGroup(a.iid);
+			if(connections == null) connections = qoid.Qoid.groupedConnections.addEmptyGroup(a.iid);
 			self._setConnections(connections);
 		});
 	}, _setConnections : function(connections1) {
@@ -8090,20 +7707,20 @@ var defineWidget = function() {
 		var edit_post_comps_tags = new $("#edit_post_comps_tags",selfElement1);
 		if((function($this) {
 			var $r;
-			var this1 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
+			var this1 = qoid.Qoid.groupedLabeledContent.delegate();
 			$r = this1.get(self2.options.content.iid);
 			return $r;
-		}(this)) == null) agentui.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self2.options.content.iid);
+		}(this)) == null) qoid.Qoid.groupedLabeledContent.addEmptyGroup(self2.options.content.iid);
 		self2.onchangeLabelChildren = function(jq,evt) {
 			if(evt.isAdd()) edit_post_comps_tags.append(jq); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) jq.remove();
 		};
 		self2.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this11.get(self2.options.content.iid);
+			var this2 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this2.get(self2.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
-			var connection = agentui.AppContext.connectionFromMetaLabel(lc.labelIid);
+			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
 			if(connection != null) {
 				var ca = new $("<div></div>").connectionAvatar({ connectionIid : connection.iid, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self2._getDragStop()}).appendTo(edit_post_comps_tags).css("position","absolute");
 				ca.position({ my : "left", at : "right", of : of, collision : "flipfit", within : self2.tags});
@@ -8140,29 +7757,29 @@ var defineWidget = function() {
 		var _g = self4.options.content.contentType;
 		switch(_g[1]) {
 		case 3:
-			(js.Boot.__cast(self4.options.content , agentui.model.MessageContent)).props.text = self4.valueElement.val();
+			(js.Boot.__cast(self4.options.content , qoid.model.MessageContent)).props.text = self4.valueElement.val();
 			break;
 		case 2:
-			(js.Boot.__cast(self4.options.content , agentui.model.UrlContent)).props.url = self4.valueElement.val();
+			(js.Boot.__cast(self4.options.content , qoid.model.UrlContent)).props.url = self4.valueElement.val();
 			break;
 		case 1:
-			(js.Boot.__cast(self4.options.content , agentui.model.ImageContent)).props.imgSrc = agentui.widget.UploadCompHelper.value(self4.uploadComp);
+			(js.Boot.__cast(self4.options.content , qoid.model.ImageContent)).props.imgSrc = agentui.widget.UploadCompHelper.value(self4.uploadComp);
 			break;
 		case 0:
-			(js.Boot.__cast(self4.options.content , agentui.model.AudioContent)).props.audioSrc = agentui.widget.UploadCompHelper.value(self4.uploadComp);
+			(js.Boot.__cast(self4.options.content , qoid.model.AudioContent)).props.audioSrc = agentui.widget.UploadCompHelper.value(self4.uploadComp);
 			break;
 		case 4:
 			throw new m3.exception.Exception("VerificationContent should not be displayed");
 			break;
 		}
-		var ecd1 = new agentui.model.EditContentData(self4.options.content);
+		var ecd1 = new qoid.model.EditContentData(self4.options.content);
 		self4.tags.children(".label").each(function(i,dom) {
 			var labelComp = new $(dom);
 			ecd1.labelIids.push(agentui.widget.LabelCompHelper.getLabel(labelComp).iid);
 		});
 		self4.tags.children(".connectionAvatar").each(function(i1,dom1) {
 			var conn = new $(dom1);
-			ecd1.labelIids.push(agentui.widget.ConnectionAvatarHelper.getConnection(conn).metaLabelIid);
+			ecd1.labelIids.push(agentui.widget.ConnectionAvatarHelper.getConnection(conn).labelIid);
 		});
 		return ecd1;
 	}, _create : function() {
@@ -8173,31 +7790,31 @@ var defineWidget = function() {
 		self5._createButtonBlock(self5,selfElement4);
 		var section = new $("<section id='postSection'></section>").appendTo(selfElement4);
 		var tab_class = "";
-		if(self5.options.content.contentType == agentui.model.ContentType.TEXT) {
+		if(self5.options.content.contentType == qoid.model.ContentType.TEXT) {
 			var textInput = new $("<div class='postContainer boxsizingBorder'></div>");
 			textInput.appendTo(section);
 			self5.valueElement = new $("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput).attr("id","textInput_ta");
-			self5.valueElement.val((js.Boot.__cast(self5.options.content , agentui.model.MessageContent)).props.text);
+			self5.valueElement.val((js.Boot.__cast(self5.options.content , qoid.model.MessageContent)).props.text);
 			tab_class = "ui-icon-document";
-		} else if(self5.options.content.contentType == agentui.model.ContentType.URL) {
+		} else if(self5.options.content.contentType == qoid.model.ContentType.URL) {
 			var urlComp = new $("<div class='postContainer boxsizingBorder'></div>").urlComp();
 			self5.valueElement = agentui.widget.UrlCompHelper.urlInput(urlComp);
 			urlComp.appendTo(section);
-			agentui.widget.UrlCompHelper.urlInput(urlComp).val((js.Boot.__cast(self5.options.content , agentui.model.UrlContent)).props.url);
+			agentui.widget.UrlCompHelper.urlInput(urlComp).val((js.Boot.__cast(self5.options.content , qoid.model.UrlContent)).props.url);
 			tab_class = "ui-icon-link";
-		} else if(self5.options.content.contentType == agentui.model.ContentType.IMAGE) {
-			var options = { contentType : agentui.model.ContentType.IMAGE};
+		} else if(self5.options.content.contentType == qoid.model.ContentType.IMAGE) {
+			var options = { contentType : qoid.model.ContentType.IMAGE};
 			var imageInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 			self5.uploadComp = imageInput;
 			imageInput.appendTo(section);
-			agentui.widget.UploadCompHelper.setPreviewImage(imageInput,(js.Boot.__cast(self5.options.content , agentui.model.ImageContent)).props.imgSrc);
+			agentui.widget.UploadCompHelper.setPreviewImage(imageInput,(js.Boot.__cast(self5.options.content , qoid.model.ImageContent)).props.imgSrc);
 			tab_class = "ui-icon-image";
-		} else if(self5.options.content.contentType == agentui.model.ContentType.AUDIO) {
-			var options1 = { contentType : agentui.model.ContentType.AUDIO};
+		} else if(self5.options.content.contentType == qoid.model.ContentType.AUDIO) {
+			var options1 = { contentType : qoid.model.ContentType.AUDIO};
 			var audioInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options1);
 			self5.uploadComp = audioInput;
 			audioInput.appendTo(section);
-			agentui.widget.UploadCompHelper.setPreviewImage(audioInput,(js.Boot.__cast(self5.options.content , agentui.model.AudioContent)).props.audioSrc);
+			agentui.widget.UploadCompHelper.setPreviewImage(audioInput,(js.Boot.__cast(self5.options.content , qoid.model.AudioContent)).props.audioSrc);
 			tab_class = "ui-icon-volume-on";
 		}
 		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
@@ -8247,8 +7864,8 @@ var defineWidget = function() {
 		while(_g < vs.length) {
 			var v = vs[_g];
 			++_g;
-			var p = m3.helper.OSetHelper.getElementComplex(agentui.AppContext.PROFILES,v.verifierId,"sharedId");
-			var msg = m3.helper.OSetHelper.getElement(agentui.AppContext.VERIFICATION_CONTENT,v.verificationIid);
+			var p = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.profiles,v.verifierId,"sharedId");
+			var msg = m3.helper.OSetHelper.getElement(qoid.Qoid.verificationContent,v.verificationIid);
 			var text;
 			if(msg == null) text = "Unable to retrieve verification content."; else text = msg.props.text;
 			vdata.push({ profile : p, message : text});
@@ -8295,7 +7912,7 @@ var defineWidget = function() {
 		switch(_g2[1]) {
 		case 0:
 			var audio;
-			audio = js.Boot.__cast(content , agentui.model.AudioContent);
+			audio = js.Boot.__cast(content , qoid.model.AudioContent);
 			postContent.append(audio.props.title + "<br/>");
 			var audioControls = new $("<audio controls></audio>");
 			postContent.append(audioControls);
@@ -8303,17 +7920,17 @@ var defineWidget = function() {
 			break;
 		case 1:
 			var img;
-			img = js.Boot.__cast(content , agentui.model.ImageContent);
+			img = js.Boot.__cast(content , qoid.model.ImageContent);
 			postContent.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
 			break;
 		case 2:
 			var urlContent;
-			urlContent = js.Boot.__cast(content , agentui.model.UrlContent);
+			urlContent = js.Boot.__cast(content , qoid.model.UrlContent);
 			postContent.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
 			break;
 		case 3:
 			var textContent;
-			textContent = js.Boot.__cast(content , agentui.model.MessageContent);
+			textContent = js.Boot.__cast(content , qoid.model.MessageContent);
 			postContent.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
 			break;
 		case 4:
@@ -8335,13 +7952,13 @@ var defineWidget = function() {
 		var connectionIid = null;
 		if((function($this) {
 			var $r;
-			var this1 = agentui.AppContext.ALIASES.delegate();
+			var this1 = qoid.Qoid.aliases.delegate();
 			$r = this1.get(self1.options.content.aliasIid);
 			return $r;
 		}(this)) != null) aliasIid = self1.options.content.aliasIid; else if((function($this) {
 			var $r;
-			var this11 = agentui.AppContext.CONNECTIONS.delegate();
-			$r = this11.get(self1.options.content.connectionIid);
+			var this2 = qoid.Qoid.connections.delegate();
+			$r = this2.get(self1.options.content.connectionIid);
 			return $r;
 		}(this)) != null) connectionIid = self1.options.content.connectionIid;
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, aliasIid : aliasIid, connectionIid : connectionIid}).appendTo(postCreator);
@@ -8349,10 +7966,10 @@ var defineWidget = function() {
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		if((function($this) {
 			var $r;
-			var this12 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this12.get(self1.options.content.iid);
+			var this3 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this3.get(self1.options.content.iid);
 			return $r;
-		}(this)) == null) agentui.AppContext.GROUPED_LABELEDCONTENT.addEmptyGroup(self1.options.content.iid);
+		}(this)) == null) qoid.Qoid.groupedLabeledContent.addEmptyGroup(self1.options.content.iid);
 		self1.onchangeLabelChildren = function(ele,evt2) {
 			if(evt2.isAdd()) {
 				if(ele["is"](".connectionAvatar")) postConnections.append(ele); else postLabels.append(ele);
@@ -8360,11 +7977,11 @@ var defineWidget = function() {
 		};
 		self1.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this13 = agentui.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this13.get(self1.options.content.iid);
+			var this4 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this4.get(self1.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
-			var connection = agentui.AppContext.connectionFromMetaLabel(lc.labelIid);
+			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
 			if(connection != null) return new $("<div></div>").connectionAvatar({ dndEnabled : false, connectionIid : connection.iid}); else return new $("<div class='small'></div>").labelComp({ dndEnabled : false, labelIid : lc.labelIid});
 		});
 		self1.mappedLabels.listen(self1.onchangeLabelChildren);
@@ -8405,7 +8022,7 @@ var defineWidget = function() {
 			menuOption = { label : "Delete...", icon : "ui-icon-circle-close", action : function(evt5,m1) {
 				evt5.stopPropagation();
 				m3.util.JqueryUtil.confirm("Delete Post","Are you sure you want to delete this content?",function() {
-					var ecd = new agentui.model.EditContentData(self3.options.content);
+					var ecd = new qoid.model.EditContentData(self3.options.content);
 					agentui.model.EM.change(agentui.model.EMEvent.DeleteContent,ecd);
 				});
 			}};
@@ -8511,17 +8128,20 @@ var defineWidget = function() {
 	}, initialized : false, _createNewUser : function() {
 		var self1 = this;
 		var selfElement1 = this.element;
-		var valid = true;
-		var newUser = new agentui.model.NewUser();
+		var newUser = new qoid.model.NewUser();
 		newUser.name = self1.input_n.val();
+		newUser.pwd = self1.input_pw.val();
 		if(m3.helper.StringHelper.isBlank(newUser.name)) {
 			self1.placeholder_n.addClass("ui-state-error");
-			valid = false;
+			return;
 		}
-		if(!valid) return;
+		if(m3.helper.StringHelper.isBlank(newUser.pwd)) {
+			self1.placeholder_pw.addClass("ui-state-error");
+			return;
+		}
 		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
 		agentui.model.EM.change(agentui.model.EMEvent.CreateAgent,newUser);
-		agentui.model.EM.listenOnce(agentui.model.EMEvent.AgentCreated,function(n) {
+		agentui.model.EM.listenOnce(qoid.QE.onAgentCreated,function(n) {
 			selfElement1.dialog("close");
 		},"CreateAgentDialog-UserSignup");
 	}, _buildDialog : function() {
@@ -8629,7 +8249,7 @@ var defineWidget = function() {
 		var root = (selfElement2.children(".rootToggle").data("getNode"))();
 		root.type = "ROOT";
 		var filterables1 = selfElement2.children(".filterable");
-		if(filterables1.length == 0) agentui.model.EM.change(agentui.model.EMEvent.AliasLoaded,agentui.AppContext.currentAlias); else {
+		if(filterables1.length == 0) agentui.model.EM.change(agentui.model.EMEvent.AliasLoaded,qoid.Qoid.get_currentAlias()); else {
 			filterables1.each(function(idx1,el) {
 				var jqEle = new $(el);
 				if(!jqEle["is"](".connectionAvatar")) {
@@ -8666,7 +8286,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of IntroductionNotificationComp must be a div element");
 		selfElement.addClass("introductionNotificationComp notification-ui container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(agentui.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
+		var conn = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self.options.notification.createdByConnectionIid);
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
@@ -8756,13 +8376,13 @@ var defineWidget = function() {
 			var parent = null;
 			if(!isUpdate) {
 				container.append("<label for='labelParent'>Parent: </label> ");
-				parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + agentui.AppContext.currentAlias.rootLabelIid + "'>No Parent</option></select>").appendTo(container);
+				parent = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + qoid.Qoid.get_currentAlias().labelIid + "'>No Parent</option></select>").appendTo(container);
 				parent.click(stopFcn);
-				var aliasLabels = agentui.AppContext.getLabelDescendents(agentui.AppContext.currentAlias.rootLabelIid);
+				var aliasLabels = qoid.Qoid.getLabelDescendents(qoid.Qoid.get_currentAlias().labelIid);
 				var iter = aliasLabels.iterator();
 				while(iter.hasNext()) {
 					var label = iter.next();
-					if(label.iid != agentui.AppContext.currentAlias.rootLabelIid) {
+					if(label.iid != qoid.Qoid.get_currentAlias().labelIid) {
 						var option = "<option value='" + label.iid + "'";
 						if(self1.selectedLabelComp != null && agentui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp).iid == label.iid) option += " SELECTED";
 						option += ">" + label.name + "</option>";
@@ -8788,9 +8408,9 @@ var defineWidget = function() {
 			createLabel = function() {
 				if(input.val().length == 0) return;
 				m3.log.Logga.get_DEFAULT().info("Create new label | " + input.val());
-				var label1 = new agentui.model.Label();
+				var label1 = new qoid.model.Label();
 				label1.name = input.val();
-				var eventData = new agentui.model.EditLabelData(label1,parent.val());
+				var eventData = new qoid.model.EditLabelData(label1,parent.val());
 				agentui.model.EM.change(agentui.model.EMEvent.CreateLabel,eventData);
 				new $("body").click();
 			};
@@ -8799,7 +8419,7 @@ var defineWidget = function() {
 				var label2 = agentui.widget.LabelCompHelper.getLabel(self1.selectedLabelComp);
 				m3.log.Logga.get_DEFAULT().info("Update label | " + label2.iid);
 				label2.name = input.val();
-				var eventData1 = new agentui.model.EditLabelData(label2);
+				var eventData1 = new qoid.model.EditLabelData(label2);
 				agentui.model.EM.change(agentui.model.EMEvent.UpdateLabel,eventData1);
 				new $("body").click();
 			};
@@ -8813,7 +8433,7 @@ var defineWidget = function() {
 		agentui.model.EM.addListener(agentui.model.EMEvent.AliasLoaded,function(alias) {
 			self2.selectedLabelComp = null;
 			selfElement1.children(".labelTree").remove();
-			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.rootLabelIid, labelPath : [alias.rootLabelIid]});
+			var labelTree = new $("<div id='labels' class='labelDT'></div>").labelTree({ parentIid : alias.labelIid, labelPath : [alias.labelIid]});
 			selfElement1.prepend(labelTree);
 		},"LabelsList-Alias");
 		var newLabelButton = new $("<button class='newLabelButton'>New Label</button>");
@@ -8841,7 +8461,7 @@ var defineWidget = function() {
 			return false;
 		}},{ label : "Delete Label", icon : "ui-icon-circle-minus", action : function(evt7,m2) {
 			if(self2.selectedLabelComp != null) m3.util.JqueryUtil.confirm("Delete Label","Are you sure you want to delete this label?",function() {
-				agentui.model.EM.change(agentui.model.EMEvent.DeleteLabel,new agentui.model.EditLabelData(agentui.widget.LabelCompHelper.getLabel(self2.selectedLabelComp),agentui.widget.LabelCompHelper.parentIid(self2.selectedLabelComp)));
+				agentui.model.EM.change(agentui.model.EMEvent.DeleteLabel,new qoid.model.EditLabelData(agentui.widget.LabelCompHelper.getLabel(self2.selectedLabelComp),agentui.widget.LabelCompHelper.parentIid(self2.selectedLabelComp)));
 			});
 		}}], width : 225}).hide();
 		selfElement1.bind("contextmenu",function(evt8) {
@@ -8879,12 +8499,12 @@ var defineWidget = function() {
 		});
 		if((function($this) {
 			var $r;
-			var this1 = agentui.AppContext.GROUPED_LABELCHILDREN.delegate();
+			var this1 = qoid.Qoid.groupedLabelChildren.delegate();
 			$r = this1.get(self.options.labelIid);
 			return $r;
-		}(this)) == null) agentui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.labelIid);
-		var this11 = agentui.AppContext.GROUPED_LABELCHILDREN.delegate();
-		self.children = this11.get(self.options.labelIid);
+		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(self.options.labelIid);
+		var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+		self.children = this2.get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
@@ -8921,17 +8541,17 @@ var defineWidget = function() {
 		selfElement.addClass("labelTree boxsizingBorder " + m3.widget.Widgets.getWidgetClasses());
 		if((function($this) {
 			var $r;
-			var this1 = agentui.AppContext.GROUPED_LABELCHILDREN.delegate();
+			var this1 = qoid.Qoid.groupedLabelChildren.delegate();
 			$r = this1.get(self.options.parentIid);
 			return $r;
-		}(this)) == null) agentui.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(self.options.parentIid);
+		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(self.options.parentIid);
 		self.onchangeLabelChildren = function(labelTreeBranch,evt) {
 			if(evt.isAdd()) selfElement.append(labelTreeBranch); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) labelTreeBranch.remove();
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = agentui.AppContext.GROUPED_LABELCHILDREN.delegate();
-			$r = this11.get(self.options.parentIid);
+			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this2.get(self.options.parentIid);
 			return $r;
 		}(this)),function(labelChild) {
 			var labelPath = self.options.labelPath.slice();
@@ -8969,14 +8589,14 @@ var defineWidget = function() {
 		});
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_un,self.placeholder_un);
 		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
-		agentui.model.EM.addListener(agentui.model.EMEvent.InitialDataLoadComplete,function(n) {
+		agentui.model.EM.addListener(qoid.QE.onInitialDataload,function(n) {
 			selfElement.dialog("close");
 		},"Login-InitialDataLoadComplete");
 	}, initialized : false, _login : function() {
 		var self1 = this;
 		var selfElement1 = this.element;
 		var valid = true;
-		var login = new agentui.model.Login();
+		var login = new qoid.model.Login();
 		login.agentId = self1.input_un.val();
 		if(m3.helper.StringHelper.isBlank(login.agentId)) {
 			self1.placeholder_un.addClass("ui-state-error");
@@ -8999,7 +8619,7 @@ var defineWidget = function() {
 		}, 'I\'m New...' : function() {
 			agentui.widget.DialogManager.showCreateAgent();
 		}}, beforeClose : function(evt1,ui) {
-			if(agentui.AppContext.UBER_ALIAS_ID == null) {
+			if(qoid.Qoid.get_currentAlias() == null) {
 				m3.util.JqueryUtil.alert("A valid login is required to use the app");
 				return false;
 			}
@@ -9048,7 +8668,7 @@ var defineWidget = function() {
 				}
 				return $r;
 			}(this)) + "'></a></li>").appendTo(ul);
-			var chatComp = new $("<div id='" + id + "'></div>").chatComp({ connection : connection, messages : new m3.observable.ObservableSet(agentui.model.ModelObjWithIid.identifier)});
+			var chatComp = new $("<div id='" + id + "'></div>").chatComp({ connection : connection, messages : new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier)});
 			chatComp.appendTo(selfElement);
 			selfElement.tabs("refresh");
 		}, tolerance : "pointer"});
@@ -9068,7 +8688,7 @@ var defineWidget = function() {
 		var doTextPost = function(evt,contentType,value) {
 			m3.log.Logga.get_DEFAULT().debug("Post new text content");
 			evt.preventDefault();
-			var ccd = new agentui.model.EditContentData(agentui.model.ContentFactory.create(contentType,value));
+			var ccd = new qoid.model.EditContentData(qoid.model.ContentFactory.create(contentType,value));
 			addConnectionsAndLabels(ccd);
 			agentui.model.EM.change(agentui.model.EMEvent.CreateContent,ccd);
 		};
@@ -9078,16 +8698,16 @@ var defineWidget = function() {
 		};
 		var textInput = new $("<div class='postContainer'></div>").appendTo(section);
 		var ta = new $("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>").appendTo(textInput).attr("id","textInput_ta").keypress(function(evt2) {
-			if(!(evt2.altKey || evt2.shiftKey || evt2.ctrlKey) && evt2.charCode == 13) doTextPostForElement(evt2,agentui.model.ContentType.TEXT,new $(evt2.target));
+			if(!(evt2.altKey || evt2.shiftKey || evt2.ctrlKey) && evt2.charCode == 13) doTextPostForElement(evt2,qoid.model.ContentType.TEXT,new $(evt2.target));
 		});
 		var urlComp = new $("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		urlComp.appendTo(section).keypress(function(evt3) {
-			if(!(evt3.altKey || evt3.shiftKey || evt3.ctrlKey) && evt3.charCode == 13) doTextPostForElement(evt3,agentui.model.ContentType.URL,new $(evt3.target));
+			if(!(evt3.altKey || evt3.shiftKey || evt3.ctrlKey) && evt3.charCode == 13) doTextPostForElement(evt3,qoid.model.ContentType.URL,new $(evt3.target));
 		});
-		var options = { contentType : agentui.model.ContentType.IMAGE};
+		var options = { contentType : qoid.model.ContentType.IMAGE};
 		var imageInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		imageInput.appendTo(section);
-		options.contentType = agentui.model.ContentType.AUDIO;
+		options.contentType = qoid.model.ContentType.AUDIO;
 		var audioInput = new $("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		audioInput.appendTo(section);
 		var tabs = new $("<aside class='tabs'></aside>").appendTo(section);
@@ -9171,7 +8791,7 @@ var defineWidget = function() {
 			tags.children(".connectionAvatar").each(function(i2,dom2) {
 				var avatar = new $(dom2);
 				var connection = agentui.widget.ConnectionAvatarHelper.getConnection(avatar);
-				ccd1.labelIids.push(connection.metaLabelIid);
+				ccd1.labelIids.push(connection.labelIid);
 			});
 		};
 		var postButton = new $("<button>Post</button>").appendTo(selfElement).button().click(function(evt8) {
@@ -9181,9 +8801,9 @@ var defineWidget = function() {
 			}
 			if(textInput.isVisible()) {
 				var ta1 = new $("#textInput_ta");
-				doTextPostForElement(evt8,agentui.model.ContentType.TEXT,ta1);
-			} else if(urlComp.isVisible()) doTextPostForElement(evt8,agentui.model.ContentType.URL,agentui.widget.UrlCompHelper.urlInput(urlComp)); else {
-				doTextPost(evt8,agentui.model.ContentType.IMAGE,agentui.widget.UploadCompHelper.value(imageInput));
+				doTextPostForElement(evt8,qoid.model.ContentType.TEXT,ta1);
+			} else if(urlComp.isVisible()) doTextPostForElement(evt8,qoid.model.ContentType.URL,agentui.widget.UrlCompHelper.urlInput(urlComp)); else {
+				doTextPost(evt8,qoid.model.ContentType.IMAGE,agentui.widget.UploadCompHelper.value(imageInput));
 				agentui.widget.UploadCompHelper.clear(imageInput);
 			}
 			tags.children(".label").remove();
@@ -9229,7 +8849,7 @@ var defineWidget = function() {
 			}
 		};
 		var divTa1 = new $("<div class='rid_cell' style='height:140px;'></div>").appendTo(ridTa);
-		var from_text2 = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + agentui.AppContext.currentAlias.profile.name);
+		var from_text2 = new $("<textarea class='boxsizingBorder container rid_ta'></textarea>").appendTo(divTa1).attr("id","from_text").keyup(from_text_changed).val("Hi " + toName + " & " + fromName + ",\nHere's an introduction for the two of you to connect.\nwith love,\n" + qoid.Qoid.get_currentAlias().profile.name);
 		var divTa2 = new $("<div class='rid_cell' style='height:140px;text-align:right;padding-left: 7px;'></div>").appendTo(ridTa);
 		var to_text2 = new $("<textarea class='boxsizingBorder container rid_ta' readonly='readonly'></textarea>").appendTo(divTa2).attr("id","to_text").val(from_text2.val());
 	}, _appendConnectionAvatar : function(connection,parent) {
@@ -9238,8 +8858,8 @@ var defineWidget = function() {
 	}, initialized : false, _sendRequest : function() {
 		var self1 = this;
 		var selfElement1 = this.element;
-		var alias = agentui.AppContext.currentAlias.profile.name;
-		var intro = new agentui.model.IntroductionRequest();
+		var alias = qoid.Qoid.get_currentAlias().profile.name;
+		var intro = new qoid.model.IntroductionRequest();
 		intro.aConnectionIid = self1.options.to.iid;
 		intro.bConnectionIid = self1.options.from.iid;
 		intro.aMessage = new $("#to_text").val();
@@ -9281,7 +8901,7 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RespondToVerificationRequestDialog must be a div element");
 		selfElement.addClass("respondToVerificationRequestDialog notification-ui container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(agentui.AppContext.CONNECTIONS,self.options.notification.fromConnectionIid);
+		var conn = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self.options.notification.createdByConnectionIid);
 		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
@@ -9296,7 +8916,7 @@ var defineWidget = function() {
 		switch(_g[1]) {
 		case 0:
 			var audio;
-			audio = js.Boot.__cast(content , agentui.model.AudioContent);
+			audio = js.Boot.__cast(content , qoid.model.AudioContent);
 			contentDiv.append(audio.props.title + "<br/>");
 			var audioControls = new $("<audio controls></audio>");
 			contentDiv.append(audioControls);
@@ -9304,17 +8924,17 @@ var defineWidget = function() {
 			break;
 		case 1:
 			var img;
-			img = js.Boot.__cast(content , agentui.model.ImageContent);
+			img = js.Boot.__cast(content , qoid.model.ImageContent);
 			contentDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
 			break;
 		case 2:
 			var urlContent;
-			urlContent = js.Boot.__cast(content , agentui.model.UrlContent);
+			urlContent = js.Boot.__cast(content , qoid.model.UrlContent);
 			contentDiv.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
 			break;
 		case 3:
 			var textContent;
-			textContent = js.Boot.__cast(content , agentui.model.MessageContent);
+			textContent = js.Boot.__cast(content , qoid.model.MessageContent);
 			contentDiv.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>");
 			break;
 		case 4:
@@ -9327,7 +8947,7 @@ var defineWidget = function() {
 		var selfElement1 = this.element;
 		var text = new $("#responseText").val();
 		if(m3.helper.StringHelper.isBlank(text)) text = "The claim is true";
-		var msg = new agentui.model.VerificationResponse(self1.options.notification.iid,text);
+		var msg = new qoid.model.VerificationResponse(self1.options.notification.iid,text);
 		agentui.model.EM.listenOnce(agentui.model.EMEvent.RespondToVerification_RESPONSE,function(e) {
 			self1.destroy();
 			selfElement1.remove();
@@ -9409,9 +9029,9 @@ var defineWidget = function() {
 		var self1 = this;
 		var selfElement1 = this.element;
 		var lacls;
-		var this1 = agentui.AppContext.GROUPED_LABELACLS.delegate();
+		var this1 = qoid.Qoid.groupedLabelAcls.delegate();
 		lacls = this1.get(self1.options.connection.iid);
-		if(lacls == null) lacls = agentui.AppContext.GROUPED_LABELACLS.addEmptyGroup(self1.options.connection.iid);
+		if(lacls == null) lacls = qoid.Qoid.groupedLabelAcls.addEmptyGroup(self1.options.connection.iid);
 		selfElement1.append("<div style='margin-bottom:4px;'>To revoke access, check the label.</div>");
 		var $it2 = lacls.iterator();
 		while( $it2.hasNext() ) {
@@ -9435,7 +9055,7 @@ var defineWidget = function() {
 			var cb = new $(ele);
 			if(cb.prop("checked") == true) {
 				var id = cb.attr("id").split("-")[1];
-				se.push(m3.helper.OSetHelper.getElement(agentui.AppContext.LABELACLS,id));
+				se.push(m3.helper.OSetHelper.getElement(qoid.Qoid.labelAcls,id));
 			}
 		});
 		if(se.length > 0) agentui.model.EM.change(agentui.model.EMEvent.RevokeAccess,se);
@@ -9467,8 +9087,8 @@ var defineWidget = function() {
 		uberDiv.append(connectionContainer);
 		var $it3 = ((function($this) {
 			var $r;
-			var this1 = agentui.AppContext.GROUPED_CONNECTIONS.delegate();
-			$r = this1.get(agentui.AppContext.currentAlias.iid);
+			var this1 = qoid.Qoid.groupedConnections.delegate();
+			$r = this1.get(qoid.Qoid.get_currentAlias().iid);
 			return $r;
 		}(this))).iterator();
 		while( $it3.hasNext() ) {
@@ -9491,7 +9111,7 @@ var defineWidget = function() {
 			var cb = new $(dom);
 			if(cb.prop("checked")) connectionIids.push(cb.attr("id").split("_")[1]);
 		});
-		var vr = new agentui.model.VerificationRequest(self1.options.content.iid,connectionIids,new $("#vr_message").val());
+		var vr = new qoid.model.VerificationRequest(self1.options.content.iid,connectionIids,new $("#vr_message").val());
 		agentui.model.EM.listenOnce(agentui.model.EMEvent.VerificationRequest_RESPONSE,function(n) {
 			selfElement1.dialog("close");
 		});
@@ -9532,11 +9152,11 @@ var defineWidget = function() {
 			timeline.reposition(self.startTime.getTime(),self.endTime.getTime());
 		}
 	}, _getProfile : function(content) {
-		var alias = m3.helper.OSetHelper.getElement(agentui.AppContext.ALIASES,content.aliasIid);
+		var alias = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,content.aliasIid);
 		if(alias != null) return alias.profile;
-		var connection = m3.helper.OSetHelper.getElement(agentui.AppContext.CONNECTIONS,content.connectionIid);
+		var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,content.connectionIid);
 		if(connection != null) return connection.data;
-		return new agentui.model.Profile();
+		return new qoid.model.Profile();
 	}, _addContent : function(content1) {
 		try {
 			var self1 = this;
@@ -9623,75 +9243,130 @@ var defineWidget = function() {
 $.widget("ui.scoreComp",defineWidget());
 var q = window.jQuery;
 js.JQuery = q;
-agentui.api.ChannelMessage.__rtti = "<class path=\"agentui.api.ChannelMessage\" params=\"\" module=\"agentui.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
-agentui.api.BennuMessage.__rtti = "<class path=\"agentui.api.BennuMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"16\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.DeleteMessage.__rtti = "<class path=\"agentui.api.DeleteMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<extends path=\"agentui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"29\" static=\"1\"><f a=\"object\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<c path=\"agentui.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.api.CrudMessage.__rtti = "<class path=\"agentui.api.CrudMessage\" params=\"\">\n\t<extends path=\"agentui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"52\" static=\"1\"><f a=\"object:?optionals\" v=\":null\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<d/>\n\t<c path=\"agentui.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<parentIid>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</parentIid>\n\t<profileName>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</profileName>\n\t<profileImgSrc>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</profileImgSrc>\n\t<labelIids>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</labelIids>\n\t<new public=\"1\" set=\"method\" line=\"41\"><f a=\"type:instance:?optionals\" v=\"::null\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.api.DeregisterMessage.__rtti = "<class path=\"agentui.api.DeregisterMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<handle public=\"1\"><c path=\"String\"/></handle>\n\t<new public=\"1\" set=\"method\" line=\"61\"><f a=\"handle\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.IntroMessage.__rtti = "<class path=\"agentui.api.IntroMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"73\"><f a=\"i\">\n\t<c path=\"agentui.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.VerificationRequestMessage.__rtti = "<class path=\"agentui.api.VerificationRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<new public=\"1\" set=\"method\" line=\"87\"><f a=\"vr\">\n\t<c path=\"agentui.model.VerificationRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.VerificationResponseMessage.__rtti = "<class path=\"agentui.api.VerificationResponseMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<verificationContent public=\"1\"><c path=\"String\"/></verificationContent>\n\t<new public=\"1\" set=\"method\" line=\"99\"><f a=\"vr\">\n\t<c path=\"agentui.model.VerificationResponse\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.AcceptVerificationMessage.__rtti = "<class path=\"agentui.api.AcceptVerificationMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<new public=\"1\" set=\"method\" line=\"109\"><f a=\"notificationIid\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.IntroResponseMessage.__rtti = "<class path=\"agentui.api.IntroResponseMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"119\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.QueryMessage.__rtti = "<class path=\"agentui.api.QueryMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"153\" static=\"1\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.QueryMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<standing public=\"1\"><x path=\"Bool\"/></standing>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<local public=\"1\"><x path=\"Bool\"/></local>\n\t<new public=\"1\" set=\"method\" line=\"135\"><f a=\"fd:?type:?q\" v=\":null:null\">\n\t<c path=\"agentui.model.FilterData\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.ChannelRequestMessage.__rtti = "<class path=\"agentui.api.ChannelRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.ChannelRequestMessageBundle.__rtti = "<class path=\"agentui.api.ChannelRequestMessageBundle\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"agentui.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"186\"><f a=\"request\">\n\t<c path=\"agentui.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"190\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"177\"><f a=\"?requests_\" v=\"null\">\n\t<c path=\"Array\"><c path=\"agentui.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.api.ProtocolHandler.QUERY = "/api/query";
-agentui.api.ProtocolHandler.UPSERT = "/api/upsert";
-agentui.api.ProtocolHandler.DELETE = "/api/delete";
-agentui.api.ProtocolHandler.INTRODUCE = "/api/introduction/initiate";
-agentui.api.ProtocolHandler.DEREGISTER = "/api/query/deregister";
-agentui.api.ProtocolHandler.INTRO_RESPONSE = "/api/introduction/respond";
-agentui.api.ProtocolHandler.VERIFY = "/api/verification/verify";
-agentui.api.ProtocolHandler.VERIFICATION_ACCEPT = "/api/verification/accept";
-agentui.api.ProtocolHandler.VERIFICATION_REQUEST = "/api/verification/request";
-agentui.api.ProtocolHandler.VERIFICATION_RESPONSE = "/api/verification/respond";
-agentui.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
-agentui.model.ModelObj.__rtti = "<class path=\"agentui.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"26\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.ModelObjWithIid.__rtti = "<class path=\"agentui.model.ModelObjWithIid\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"47\" static=\"1\"><f a=\"t\">\n\t<c path=\"agentui.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByAliasIid public=\"1\"><c path=\"String\"/></createdByAliasIid>\n\t<modifiedByAliasIid public=\"1\"><c path=\"String\"/></modifiedByAliasIid>\n\t<new public=\"1\" set=\"method\" line=\"40\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.api.VerificationRequestMessage.__rtti = "<class path=\"agentui.api.VerificationRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"vr\">\n\t<c path=\"qoid.model.VerificationRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.VerificationResponseMessage.__rtti = "<class path=\"agentui.api.VerificationResponseMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<verificationContent public=\"1\"><c path=\"String\"/></verificationContent>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"vr\">\n\t<c path=\"qoid.model.VerificationResponse\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.AcceptVerificationMessage.__rtti = "<class path=\"agentui.api.AcceptVerificationMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<new public=\"1\" set=\"method\" line=\"33\"><f a=\"notificationIid\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+agentui.api.IntroResponseMessage.__rtti = "<class path=\"agentui.api.IntroResponseMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"45\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByConnectionIid public=\"1\"><c path=\"String\"/></createdByConnectionIid>\n\t<modifiedByConnectionIid public=\"1\"><c path=\"String\"/></modifiedByConnectionIid>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l:?autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet.T\"/>\n</x></f></delegate>\n\t<getVisualId public=\"1\" set=\"method\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.AbstractSet.__rtti = "<class path=\"m3.observable.AbstractSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<implements path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></implements>\n\t<_eventManager public=\"1\"><c path=\"m3.observable.EventManager\"><c path=\"m3.observable.AbstractSet.T\"/></c></_eventManager>\n\t<visualId public=\"1\"><c path=\"String\"/></visualId>\n\t<listen public=\"1\" set=\"method\" line=\"129\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\" line=\"133\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<filter public=\"1\" set=\"method\" line=\"137\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"141\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"145\"><f a=\"t:type\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<getVisualId public=\"1\" set=\"method\" line=\"149\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<identifier public=\"1\" set=\"method\" line=\"153\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"157\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"161\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n</x></f></delegate>\n\t<new set=\"method\" line=\"125\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.ObservableSet.__rtti = "<class path=\"m3.observable.ObservableSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"m3.util.SizedMap\"><c path=\"m3.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"181\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"185\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"193\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"197\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"201\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"213\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"217\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"221\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"229\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"233\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"238\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"242\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"172\"><f a=\"identifier:?tArr\" v=\":null\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.EventManager.__rtti = "<class path=\"m3.observable.EventManager\" params=\"T\" module=\"m3.observable.OSet\">\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"47\"><f a=\"l:autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<remove public=\"1\" set=\"method\" line=\"56\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></remove>\n\t<fire public=\"1\" set=\"method\" line=\"59\"><f a=\"t:type\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<listenerCount public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Int\"/></f></listenerCount>\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.Content.__rtti = "<class path=\"agentui.model.Content\" params=\"T\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><e path=\"agentui.model.ContentType\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"agentui.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"agentui.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"agentui.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"315\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"319\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"323\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"327\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"331\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"304\"><f a=\"contentType:type\">\n\t<e path=\"agentui.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"agentui.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.Profile.__rtti = "<class path=\"agentui.model.Profile\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"65\" static=\"1\"><f a=\"profile\">\n\t<c path=\"agentui.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.AliasData.__rtti = "<class path=\"agentui.model.AliasData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"72\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.Alias.__rtti = "<class path=\"agentui.model.Alias\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"90\" static=\"1\"><f a=\"alias\">\n\t<c path=\"agentui.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<profile public=\"1\">\n\t\t<c path=\"agentui.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"84\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.LabelData.__rtti = "<class path=\"agentui.model.LabelData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"97\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.Label.__rtti = "<class path=\"agentui.model.Label\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"114\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"agentui.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"108\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.LabelChild.__rtti = "<class path=\"agentui.model.LabelChild\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"133\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"124\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.LabelAcl.__rtti = "<class path=\"agentui.model.LabelAcl\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"148\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<new public=\"1\" set=\"method\" line=\"142\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.Connection.__rtti = "<class path=\"agentui.model.Connection\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"161\" static=\"1\"><f a=\"c\">\n\t<c path=\"agentui.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<allowedDegreesOfVisibility public=\"1\"><x path=\"Int\"/></allowedDegreesOfVisibility>\n\t<metaLabelIid public=\"1\"><c path=\"String\"/></metaLabelIid>\n\t<data public=\"1\">\n\t\t<c path=\"agentui.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"170\"><f a=\"c\">\n\t<c path=\"agentui.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"165\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.LabeledContent.__rtti = "<class path=\"agentui.model.LabeledContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"252\" static=\"1\"><f a=\"l\">\n\t<c path=\"agentui.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"256\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.ContentData.__rtti = "<class path=\"agentui.model.ContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"265\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.ContentVerification.__rtti = "<class path=\"agentui.model.ContentVerification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.VerifiedContentMetaData.__rtti = "<class path=\"agentui.model.VerifiedContentMetaData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.ContentMetaData.__rtti = "<class path=\"agentui.model.ContentMetaData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"agentui.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"agentui.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"288\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.ImageContentData.__rtti = "<class path=\"agentui.model.ImageContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"340\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.ImageContent.__rtti = "<class path=\"agentui.model.ImageContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"346\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.AudioContentData.__rtti = "<class path=\"agentui.model.AudioContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"356\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.AudioContent.__rtti = "<class path=\"agentui.model.AudioContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"362\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.MessageContentData.__rtti = "<class path=\"agentui.model.MessageContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"370\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.MessageContent.__rtti = "<class path=\"agentui.model.MessageContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"376\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.UrlContentData.__rtti = "<class path=\"agentui.model.UrlContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"385\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.UrlContent.__rtti = "<class path=\"agentui.model.UrlContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"391\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.VerificationContentData.__rtti = "<class path=\"agentui.model.VerificationContentData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"400\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.VerificationContent.__rtti = "<class path=\"agentui.model.VerificationContent\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Content\"><c path=\"agentui.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"406\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.Notification.__rtti = "<class path=\"agentui.model.Notification\" params=\"T\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"agentui.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"agentui.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"agentui.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"455\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"467\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"471\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"459\"><f a=\"kind:type\">\n\t<e path=\"agentui.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"agentui.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-agentui.model.IntroductionRequest.__rtti = "<class path=\"agentui.model.IntroductionRequest\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"484\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.Introduction.__rtti = "<class path=\"agentui.model.Introduction\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"agentui.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"agentui.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"491\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.IntroductionRequestNotification.__rtti = "<class path=\"agentui.model.IntroductionRequestNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"501\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.IntroductionRequestData.__rtti = "<class path=\"agentui.model.IntroductionRequestData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"agentui.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.VerificationRequestNotification.__rtti = "<class path=\"agentui.model.VerificationRequestNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"514\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.VerificationRequestData.__rtti = "<class path=\"agentui.model.VerificationRequestData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><e path=\"agentui.model.ContentType\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"526\">\n\t\t<f a=\"\"><c path=\"agentui.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.VerificationResponseNotification.__rtti = "<class path=\"agentui.model.VerificationResponseNotification\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.Notification\"><c path=\"agentui.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"546\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.VerificationResponseData.__rtti = "<class path=\"agentui.model.VerificationResponseData\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-agentui.model.Login.__rtti = "<class path=\"agentui.model.Login\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"563\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.model.NewUser.__rtti = "<class path=\"agentui.model.NewUser\" params=\"\" module=\"agentui.model.ModelObj\">\n\t<extends path=\"agentui.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"576\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+agentui.model.EMEvent.FILTER_RUN = "FILTER_RUN";
+agentui.model.EMEvent.FILTER_CHANGE = "FILTER_CHANGE";
+agentui.model.EMEvent.LoadFilteredContent = "LoadFilteredContent";
+agentui.model.EMEvent.AppendFilteredContent = "AppendFilteredContent";
+agentui.model.EMEvent.EditContentClosed = "EditContentClosed";
+agentui.model.EMEvent.CreateAgent = "CreateAgent";
+agentui.model.EMEvent.FitWindow = "FitWindow";
+agentui.model.EMEvent.UserLogin = "UserLogin";
+agentui.model.EMEvent.UserLogout = "UserLogout";
+agentui.model.EMEvent.AliasLoaded = "AliasLoaded";
+agentui.model.EMEvent.AliasCreated = "AliasCreated";
+agentui.model.EMEvent.AliasUpdated = "AliasUpdated";
+agentui.model.EMEvent.CreateAlias = "CreateAlias";
+agentui.model.EMEvent.UpdateAlias = "UpdateAlias";
+agentui.model.EMEvent.DeleteAlias = "DeleteAlias";
+agentui.model.EMEvent.CreateContent = "CreateContent";
+agentui.model.EMEvent.DeleteContent = "DeleteContent";
+agentui.model.EMEvent.UpdateContent = "UpdateContent";
+agentui.model.EMEvent.CreateLabel = "CreateLabel";
+agentui.model.EMEvent.UpdateLabel = "UpdateLabel";
+agentui.model.EMEvent.MoveLabel = "MoveLabel";
+agentui.model.EMEvent.CopyLabel = "CopyLabel";
+agentui.model.EMEvent.DeleteLabel = "DeleteLabel";
+agentui.model.EMEvent.GrantAccess = "GrantAccess";
+agentui.model.EMEvent.AccessGranted = "AccessGranted";
+agentui.model.EMEvent.RevokeAccess = "RevokeAccess";
+agentui.model.EMEvent.DeleteConnection = "DeleteConnection";
+agentui.model.EMEvent.INTRODUCTION_REQUEST = "INTRODUCTION_REQUEST";
+agentui.model.EMEvent.INTRODUCTION_RESPONSE = "INTRODUCTION_RESPONSE";
+agentui.model.EMEvent.RespondToIntroduction = "RespondToIntroduction";
+agentui.model.EMEvent.RespondToIntroduction_RESPONSE = "RespondToIntroduction_RESPONSE";
+agentui.model.EMEvent.TargetChange = "TargetChange";
+agentui.model.EMEvent.VerificationRequest = "VerificationRequest";
+agentui.model.EMEvent.VerificationRequest_RESPONSE = "VerificationRequest_RESPONSE";
+agentui.model.EMEvent.RespondToVerification = "RespondToVerification";
+agentui.model.EMEvent.RespondToVerification_RESPONSE = "RespondToVerification_RESPONSE";
+agentui.model.EMEvent.RejectVerificationRequest = "RejectVerificationRequest";
+agentui.model.EMEvent.RejectVerificationRequest_RESPONSE = "RejectVerificationRequest_RESPONSE";
+agentui.model.EMEvent.AcceptVerification = "AcceptVerification";
+agentui.model.EMEvent.AcceptVerification_RESPONSE = "AcceptVerification_RESPONSE";
+agentui.model.EMEvent.RejectVerification = "RejectVerification";
+agentui.model.EMEvent.RejectVerification_RESPONSE = "RejectVerification_RESPONSE";
+agentui.model.EMEvent.BACKUP = "BACKUP";
+agentui.model.EMEvent.RESTORE = "RESTORE";
+agentui.model.EMEvent.RESTORES_REQUEST = "RESTORES_REQUEST";
+agentui.model.EMEvent.AVAILABLE_BACKUPS = "AVAILABLE_BACKUPS";
+qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><e path=\"qoid.model.ContentType\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"314\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"318\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"322\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"326\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"330\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"303\"><f a=\"contentType:type\">\n\t<e path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"112\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"106\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"160\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"169\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.QoidAPI.AGENT_CREATE = "/api/v1/agent/create";
+qoid.QoidAPI.LOGIN = "/api/v1/login";
+qoid.QoidAPI.LOGOUT = "/api/v1/logout";
+qoid.QoidAPI.SPAWN = "/api/v1/session/spawn";
+qoid.QoidAPI.ALIAS_CREATE = "/api/v1/alias/create";
+qoid.QoidAPI.ALIAS_UPDATE = "/api/v1/alias/update";
+qoid.QoidAPI.ALIAS_DELETE = "/api/v1/alias/delete";
+qoid.QoidAPI.ALIAS_LOGIN_CREATE = "/api/v1/alias/login/create";
+qoid.QoidAPI.ALIAS_LOGIN_UPDATE = "/api/v1/alias/login/update";
+qoid.QoidAPI.ALIAS_LOGIN_DELETE = "/api/v1/alias/login/delete";
+qoid.QoidAPI.ALIAS_PROFILE_UPDATE = "/api/v1/alias/profile/update";
+qoid.QoidAPI.CONNECTION_DELETE = "/api/v1/connection/delete";
+qoid.QoidAPI.CONTENT_CREATE = "/api/v1/content/create";
+qoid.QoidAPI.CONTENT_UPDATE = "/api/v1/content/update";
+qoid.QoidAPI.CONTENT_DELETE = "/api/v1/content/delete";
+qoid.QoidAPI.CONTENT_LABEL_ADD = "/api/v1/content/label/add";
+qoid.QoidAPI.CONTENT_LABEL_REMOVE = "/api/v1/content/label/remove";
+qoid.QoidAPI.LABEL_CREATE = "/api/v1/label/create";
+qoid.QoidAPI.LABEL_UPDATE = "/api/v1/label/update";
+qoid.QoidAPI.LABEL_DELETE = "/api/v1/label/remove";
+qoid.QoidAPI.LABEL_MOVE = "/api/v1/label/move";
+qoid.QoidAPI.LABEL_COPY = "/api/v1/label/copy";
+qoid.QoidAPI.LABEL_ACCESS_GRANT = "/api/v1/label/access/grant";
+qoid.QoidAPI.LABEL_ACCESS_REVOKE = "/api/v1/label/access/revoke";
+qoid.QoidAPI.LABEL_ACCESS_UPDATE = "/api/v1/label/access/update";
+qoid.QoidAPI.NOTIFICATION_CREATE = "/api/v1/notification/create";
+qoid.QoidAPI.NOTIFICATION_CONSUME = "/api/v1/notification/consume";
+qoid.QoidAPI.NOTIFICATION_DELETE = "/api/v1/notification/delete";
+qoid.QoidAPI.INTRODUCTION_INITIATE = "/api/v1/introduction/initiate";
+qoid.QoidAPI.INTRODUCTION_ACCEPT = "/api/v1/introduction/accept";
+qoid.QoidAPI.QUERY = "/api/v1/query";
+qoid.QoidAPI.QUERY_CANCEL = "/api/v1/query/cancel";
+m3.comm.ChannelRequestMessage.__rtti = "<class path=\"m3.comm.ChannelRequestMessage\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+m3.comm.ChannelRequestMessageBundle.__rtti = "<class path=\"m3.comm.ChannelRequestMessageBundle\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c></requests>\n\t<add public=\"1\" set=\"method\" line=\"29\"><f a=\"request\">\n\t<c path=\"m3.comm.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<createAndAdd public=\"1\" set=\"method\" line=\"33\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></createAndAdd>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"channel:requests\">\n\t<c path=\"String\"/>\n\t<c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"437\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"460\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"479\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"488\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"492\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"503\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"417\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"148\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<role public=\"1\"><c path=\"String\"/></role>\n\t<maxDegreesOfVisibility public=\"1\"><x path=\"Int\"/></maxDegreesOfVisibility>\n\t<new public=\"1\" set=\"method\" line=\"142\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"131\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"122\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"251\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"255\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"63\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"57\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<kind public=\"1\"><e path=\"qoid.model.NotificationKind\"/></kind>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"454\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"467\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"471\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"458\"><f a=\"kind:type\">\n\t<e path=\"qoid.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.QE.onAgentCreated = "onAgentCreated";
+qoid.QE.onInitialDataload = "onInitialDataload";
+qoid.QE.onUserLogin = "onUserLogin";
 m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<delegate public=\"1\" set=\"method\" line=\"366\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"370\"><f a=\"t\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"387\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"391\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"395\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.FilteredSet.T\"/></t></f></iterator>\n\t<asArray public=\"1\" set=\"method\" line=\"399\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.FilteredSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"342\"><f a=\"source:filter\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"88\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"82\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"570\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"575\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"593\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"597\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"603\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"607\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"611\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.MappedSet.__rtti = "<class path=\"m3.observable.MappedSet\" params=\"T:U\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<_remapOnUpdate><x path=\"Bool\"/></_remapOnUpdate>\n\t<_mapListeners><c path=\"Array\"><f a=\"::\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_mapListeners>\n\t<_sourceListener set=\"method\" line=\"270\"><f a=\"t:type\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></_sourceListener>\n\t<identifier public=\"1\" set=\"method\" line=\"296\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"300\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"304\"><f a=\"u\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"315\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.MappedSet.U\"/></t></f></iterator>\n\t<mapListen public=\"1\" set=\"method\" line=\"319\"><f a=\"f\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></mapListen>\n\t<removeListeners public=\"1\" set=\"method\" line=\"330\"><f a=\"mapListener\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListeners>\n\t<new public=\"1\" set=\"method\" line=\"260\"><f a=\"source:mapper:?remapOnUpdate\" v=\"::false\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"95\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"576\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"563\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"361\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"264\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"355\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ContentMetaData.__rtti = "<class path=\"qoid.model.ContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"qoid.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"qoid.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"287\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"339\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"375\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"369\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"390\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"384\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"405\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"399\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"484\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 agentui.widget.score.ContentTimeLine.initial_y_pos = 60;
 agentui.widget.score.ContentTimeLine.next_y_pos = agentui.widget.score.ContentTimeLine.initial_y_pos;
 agentui.widget.score.ContentTimeLine.next_x_pos = 10;
@@ -9714,6 +9389,15 @@ m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false,false
 m3.observable.EventType.Update = new m3.observable.EventType("Update",false,true,false);
 m3.observable.EventType.Delete = new m3.observable.EventType("Delete",false,false,false);
 m3.observable.EventType.Clear = new m3.observable.EventType("Clear",false,false,true);
-m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"437\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"460\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"479\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"488\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"492\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"503\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"417\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.Synchronizer.synchronizers = new haxe.ds.StringMap();
+qoid.model.ContentVerification.__rtti = "<class path=\"qoid.model.ContentVerification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerifiedContentMetaData.__rtti = "<class path=\"qoid.model.VerifiedContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"491\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"501\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"qoid.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"514\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><e path=\"qoid.model.ContentType\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"526\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"546\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationResponseData.__rtti = "<class path=\"qoid.model.VerificationResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 agentui.AgentUi.main();
 })(typeof window != "undefined" ? window : exports);

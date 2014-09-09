@@ -22,6 +22,7 @@ class AgentUi {
 
 	public static function main() {
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
+        EventDelegate.init();
     }
 
     public static function start(): Void {

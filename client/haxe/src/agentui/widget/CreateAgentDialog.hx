@@ -7,6 +7,7 @@ import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import agentui.model.EM;
 import m3.exception.Exception;
+import qoid.QE;
 
 using m3.helper.StringHelper;
 
@@ -98,35 +99,23 @@ extern class CreateAgentDialog extends JQ {
 		        	var self: CreateAgentDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-		        	var valid = true;
     				var newUser: NewUser = new NewUser();
-    				// newUser.userName = self.input_un.val();
-    				// if(newUser.userName.isBlank()) {
-    				// 	self.placeholder_un.addClass("ui-state-error");
-    				// 	valid = false;
-    				// }
-    				/*
-    				newUser.pwd = self.input_pw.val();
-    				if(newUser.pwd.isBlank()) {
-    					self.placeholder_pw.addClass("ui-state-error");
-    					valid = false;
-    				}
-    				newUser.email = self.input_em.val();
-    				if(newUser.email.isBlank()) {
-    					self.placeholder_em.addClass("ui-state-error");
-    					valid = false;
-    				}
-    				*/
     				newUser.name = self.input_n.val();
-    				if(newUser.name.isBlank()) {
+    				newUser.pwd  = self.input_pw.val();
+
+    				if (newUser.name.isBlank()) {
     					self.placeholder_n.addClass("ui-state-error");
-    					valid = false;
+    					return;
     				}
-    				if(!valid) return;
+    				if (newUser.pwd.isBlank()) {
+    					self.placeholder_pw.addClass("ui-state-error");
+    					return;
+    				}
+
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
     				EM.change(EMEvent.CreateAgent, newUser);
 
-    				EM.listenOnce(EMEvent.AgentCreated, function(n: {}): Void {
+    				EM.listenOnce(QE.onAgentCreated, function(n: {}): Void {
     					selfElement.dialog("close");
     				}, "CreateAgentDialog-UserSignup");
 	        	},

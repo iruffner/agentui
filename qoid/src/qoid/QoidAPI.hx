@@ -14,23 +14,6 @@ import qoid.Synchronizer;
 typedef ChannelId = String;
 typedef AliasIid  = String;
 
-// Events:
-// onChangeChannel
-// onCreateAgent
-// onAddChannel
-// onDeleteChannel
-
-/*
-enum Foo<T> {
-          A;
-          B;
-          C;
-          SUB_TYPE(value:T); // Use with custom values to extend.
-     }
-
-And then T can for ex
-*/
-
 class AuthenticationResponse {
     public var channelId:String;
     public var aliasIid:String;
@@ -127,47 +110,29 @@ class QoidAPI {
     // AGENT
     public static function createAgent(name:String, password:String):Void {
         var json:Dynamic = {name:name, password:password};
-        new JsonRequest(json, AGENT_CREATE, function(data:Dynamic) {
-            EventManager.instance.change("agentCreated", data);
-        }).start();
+        new JsonRequest(json, AGENT_CREATE, 
+            function(data:Dynamic) {
+                EventManager.instance.change(QE.onAgentCreated, data);
+            },
+            function(exc:AjaxException) {
+                js.Lib.alert(exc);
+            }
+        ).start();
     }
 
     // SESSION
     public static function login(authenticationId:String, password:String):Void {
         var json:Dynamic = {authenticationId:authenticationId, password:password};
-        new JsonRequest(json, LOGIN, function(data:Dynamic) {
-            var auth:AuthenticationResponse = cast(json);
-            onLogin(auth);
-        }).start();
+        new JsonRequest(json, LOGIN, onLogin, onLoginError).start();
     }
 
-    public static function query(type: String, query: String, historical: Bool, standing: Bool, ?route: Array<String>):Void {
-
+    private static function onLoginError(exc:AjaxException) {
+        js.Lib.alert(exc);
     }
 
-    private static function createQueryJson(type: String, query: String="1=1", historical:Bool=true, standing:Bool=true, ?route: Array<String>):Dynamic {
-        var ret:Dynamic = {
-            type:type,
-            query:query,
-            historical:historical,
-            standing: standing
-        }
-        if (route != null) {
-            ret.route = route;
-        }
-        return route;
-    }
+    private static function onLogin(data:Dynamic) {
+        var auth:AuthenticationResponse = cast(data);
 
-    public static function getProfile(connectionIid:String) {
-        var json = createQueryJson("profile", "connectionIid='" + connectionIid + "'");
-        submitRequest(json, QUERY, "connectionProfile");
-    }
-
-    public static function cancelQuery(context:String):Void {
-        submitRequest({}, QUERY_CANCEL, context);
-    }
-
-    private static function onLogin(auth:AuthenticationResponse) {
         QoidAPI.addChannel(auth.channelId);
         QoidAPI.activeChannel = auth.channelId;
 
@@ -180,7 +145,7 @@ class QoidAPI {
             new ChannelRequestMessage(QUERY, context + "-alias", createQueryJson("alias")),
             new ChannelRequestMessage(QUERY, context + "-introduction", createQueryJson("introduction")),
             new ChannelRequestMessage(QUERY, context + "-connection", createQueryJson("connection")),
-            new ChannelRequestMessage(QUERY, context + "-notification", createQueryJson("notification", "consumed='false'")),
+            new ChannelRequestMessage(QUERY, context + "-notification", createQueryJson("notification", "consumed='0'")),
             new ChannelRequestMessage(QUERY, context + "-label", createQueryJson("label")),
             new ChannelRequestMessage(QUERY, context + "-labelAcl", createQueryJson("labelAcl")),
             new ChannelRequestMessage(QUERY, context + "-labeledContent", createQueryJson("labeledContent")),
@@ -188,6 +153,8 @@ class QoidAPI {
             new ChannelRequestMessage(QUERY, context + "-profile", createQueryJson("profile"))
         ];
         new SubmitRequest(activeChannel, requests, onSuccess, onError).requestHeaders(headers).start();
+
+        EventManager.instance.change(QE.onUserLogin);
     }
 
     private static function onInitialDataload(data:SynchronizationParms) {
@@ -211,21 +178,52 @@ class QoidAPI {
             }
         }
 
-        EventManager.instance.change("onInitialDataload");
+        EventManager.instance.change(QE.onInitialDataload);
     }
 
     private static function _startPolling(channelId:String): Void {
         // TODO:  add the ability to set the timeout value
         var timeout = 10000;
         var ajaxOptions:AjaxOptions = {
-            contentType: "",
-            type: "GET"
+            contentType: ""
         };
 
         var lpr = new LongPollingRequest(channelId, ResponseProcessor.processResponse, null, ajaxOptions, "/api/v1/channel/poll");
         lpr.timeout = timeout;
+        lpr.requestHeaders(headers);
         lpr.start();
         QoidAPI.longPolls.set(channelId, lpr);
+    }
+
+    public static function query(type: String, query: String, historical: Bool, standing: Bool, ?route: Array<String>):Void {
+
+    }
+
+    private static function createQueryJson(type: String, query: String="1=1", historical:Bool=true, standing:Bool=true, ?route: Array<String>):Dynamic {
+        var ret:Dynamic = {
+            type:type,
+            query:query,
+            historical:historical,
+            standing: standing
+        }
+        if (route != null) {
+            ret.route = route;
+        }
+        return ret;
+    }
+
+    public static function getProfile(connectionIid:String) {
+        var json = createQueryJson("profile", true, false, [connectionIid]);
+        submitRequest(json, QUERY, "connectionProfile");
+    }
+
+    public static function getVerificationContent(connectionIids:Array<String>, iids:Array<String>) {
+        var json = createQueryJson("content", "iid in (" + iids.join(",") + ")", true, false);
+        submitRequest(json, QUERY, "verificationContent");
+    }
+
+    public static function cancelQuery(context:String):Void {
+        submitRequest({}, QUERY_CANCEL, context);
     }
 
     public static function logout():Void {
@@ -238,275 +236,328 @@ class QoidAPI {
     }
 
     // ALIAS
-    public static function createAlias(route: Array<String>, name: String, profileName: String, ?profileImage: String, ?data: Dynamic):Void {
+    public static function createAlias(profileName: String, ?profileImage: String, ?data: Dynamic, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
-            name :name,
             profileName: profileName,
-            profileImage: profileImage,
-            data: data
+            profileImage: profileImage
         };
 
+        if (route != null) {
+            json.route = route;
+        }
+
+        if (data != null) {
+            json.data = data;
+        }
         submitRequest(json, ALIAS_CREATE, "createAlias");
     }
 
-    public static function updateAlias(route: Array<String>, aliasIid: String, data: Dynamic):Void {
+    public static function updateAlias(aliasIid: String, data: Dynamic, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             aliasIid: aliasIid,
             data: data
         };
 
+        if (route != null) {
+            json.route = route;
+        }
         submitRequest(json, ALIAS_UPDATE, "updateAlias");
     }
 
-    public static function deleteAlias(route: Array<String>, aliasIid: String):Void {
+    public static function deleteAlias(aliasIid: String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             aliasIid: aliasIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, ALIAS_DELETE, "deleteAlias");
     }
 
-    public static function createAliasLogin(route: Array<String>, aliasIid: String, password: String):Void {
+    public static function createAliasLogin(aliasIid: String, password: String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             aliasIid: aliasIid,
             password: password
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, ALIAS_LOGIN_CREATE, "createAliasLogin");
     }
 
-    public static function updateAliasLogin(route: Array<String>, aliasIid: String, password: String):Void {
+    public static function updateAliasLogin(aliasIid: String, password: String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             aliasIid: aliasIid,
             password: password
         };
-
+        if (route != null) {
+            json.route = route;
+        }
         submitRequest(json, ALIAS_LOGIN_UPDATE, "updateAliasLogin");
     }
 
-    public static function deleteAliasLogin(route: Array<String>, aliasIid: String):Void {
+    public static function deleteAliasLogin(aliasIid: String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             aliasIid: aliasIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, ALIAS_LOGIN_DELETE, "deleteAliasLogin");
     }
 
-    public static function updateAliasProfile(route: Array<String>, aliasIid: String, ?profileName:String, ?profileImage:String):Void {
+    public static function updateAliasProfile(aliasIid: String, ?profileName:String, ?profileImage:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             aliasIid: aliasIid,
             profileName: profileName,
             profileImage: profileImage
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, ALIAS_PROFILE_UPDATE, "updateAliasProfile");
     }
 
     // CONNECTION
-    public static function deleteConnection(route: Array<String>, connectionIid:String):Void {
+    public static function deleteConnection(connectionIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             connectionIid: connectionIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, CONNECTION_DELETE, "deleteConnection");
     }
 
     // CONTENT
-    public static function createContent(route: Array<String>, contentType: String, data: Dynamic, labelIids: Array<String>):Void {
+    public static function createContent(contentType: String, data: Dynamic, labelIids: Array<String>, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             contentType: contentType,
             data: data,
             labelIids: labelIids
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, CONTENT_CREATE, "createContent");
     }
 
-    public static function updateContent(route: Array<String>, contentIid:String, data: Dynamic):Void {
+    public static function updateContent(contentIid:String, data: Dynamic, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             contentIid: contentIid,
             data: data
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, CONTENT_UPDATE, "updateContent");
     }
 
-    public static function deleteContent(route: Array<String>, contentIid:String):Void {
+    public static function deleteContent(contentIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             contentIid: contentIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, CONTENT_DELETE, "deleteContent");
     }
 
 
-    public static function addContentLabel(route: Array<String>, contentIid:String, labelIid:String):Void {
+    public static function addContentLabel(contentIid:String, labelIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             contentIid: contentIid,
             labelIid: labelIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, CONTENT_LABEL_ADD, "addContentLabel");
     }
 
-    public static function removeContentLabel(route: Array<String>, contentIid:String, labelIid:String):Void {
+    public static function removeContentLabel(contentIid:String, labelIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             contentIid: contentIid,
             labelIid: labelIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, CONTENT_LABEL_REMOVE, "removeContentLabel");
     }
 
     // LABEL
-    public static function createLabel(route: Array<String>, parentLabelIid: String, name:String, ?data: Dynamic):Void {
+    public static function createLabel(parentLabelIid: String, name:String, ?data: Dynamic, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             parentLabelIid: parentLabelIid,
             name: name,
             data: data
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, LABEL_CREATE, "createLabel");
     }
 
-    public static function updateLabel(route: Array<String>, labelIid:String, ?name:String, ?data: Dynamic):Void {
+    public static function updateLabel(labelIid:String, ?name:String, ?data: Dynamic, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             labelIid: labelIid,
             name: name,
             data: data
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, LABEL_UPDATE, "updateLabel");
     }
 
-    public static function moveLabel(route: Array<String>, labelIid:String, oldParentLabelIid:String, newParentLabelIid: String):Void {
+    public static function moveLabel(labelIid:String, oldParentLabelIid:String, newParentLabelIid: String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             labelIid: labelIid,
             oldParentLabelIid: oldParentLabelIid,
             newParentLabelIid: newParentLabelIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, LABEL_MOVE, "moveLabel");
     }
 
-    public static function copyLabel(route: Array<String>, labelIid:String, newParentLabelIid:String):Void {
+    public static function copyLabel(labelIid:String, newParentLabelIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             labelIid: labelIid,
             newParentLabelIid: newParentLabelIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, LABEL_COPY, "copyLabel");
     }
 
-    public static function deleteLabel(route: Array<String>, labelIid:String, parentLabelIid:String):Void {
+    public static function deleteLabel(labelIid:String, parentLabelIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             labelIid: labelIid,
             parentLabelIid: parentLabelIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, LABEL_DELETE, "deleteLabel");
     }
 
-    public static function grantAccess(route: Array<String>, labelIid:String, connectionIid:String, maxDoV:Int):Void {
+    public static function grantAccess(labelIid:String, connectionIid:String, maxDoV:Int, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             labelIid: labelIid,
             connectionIid: connectionIid,
             maxDoV:maxDoV
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, LABEL_ACCESS_GRANT, "grantAccess");
     }
 
-    public static function revokeAccess(route: Array<String>, labelIid:String, connectionIid:String):Void {
+    public static function revokeAccess(labelIid:String, connectionIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             labelIid: labelIid,
             connectionIid: connectionIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, LABEL_ACCESS_REVOKE, "revokeAccess");
     }
 
-    public static function updateAccess(route: Array<String>, labelIid:String, connectionIid:String, maxDoV:Int):Void {
+    public static function updateAccess(labelIid:String, connectionIid:String, maxDoV:Int, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route: route,
             labelIid: labelIid,
             connectionIid: connectionIid,
             maxDoV:maxDoV
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, LABEL_ACCESS_UPDATE, "updateAccess");
     }
 
 	// Notifications
 
-    public static function createNotification(route: Array<String>, kind:String, ?data:String):Void {
+    public static function createNotification(kind:String, ?data:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route:route,
             kind: kind,
             data: data
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, NOTIFICATION_CREATE, "createNotification");
     }
 
-    public static function consumeNotification(route: Array<String>, notificationIid:String):Void {
+    public static function consumeNotification(notificationIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route:route,
             notificationIid: notificationIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, NOTIFICATION_CONSUME, "consumeNotification");
     }
 
-    public static function deleteNotification(route: Array<String>, notificationIid:String):Void {
+    public static function deleteNotification(notificationIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route:route,
             notificationIid: notificationIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, NOTIFICATION_DELETE, "deleteNotification");
     }
 
 	// Introduction
-    public static function initiateIntroduction(route: Array<String>, 
-                                                aConnectionIid: String, aMessage: String,
-                                                bConnectionIid: String, bMessage: String ):Void {
+    public static function initiateIntroduction(aConnectionIid: String, aMessage: String,
+                                                bConnectionIid: String, bMessage: String, 
+                                                ?route: Array<String> ):Void {
         var json:Dynamic = {
-            route:route,
             aConnectionIid: aConnectionIid,
             aMessage: aMessage,
             bConnectionIid: bConnectionIid,
             bMessage: bMessage
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, INTRODUCTION_INITIATE, "initiateIntroduction");
     }
 
-    public static function acceptIntroduction(route: Array<String>, notificationIid:String):Void {
+    public static function acceptIntroduction(notificationIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            route:route,
             notificationIid: notificationIid
         };
+        if (route != null) {
+            json.route = route;
+        }
 
         submitRequest(json, INTRODUCTION_ACCEPT, "acceptIntroduction");
     }

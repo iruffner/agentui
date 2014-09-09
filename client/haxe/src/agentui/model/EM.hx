@@ -9,87 +9,85 @@ class EM {
 		delegate = EventManager.instance;
 	}
 
-	public static function addListener<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
-		return delegate.addListener(id.getName(), func, listenerName);
+	public static function addListener<T>(id: String, func: T->Void, ?listenerName:String): String {
+		return delegate.addListener(id, func, listenerName);
 	}
 
-	public static function listenOnce<T>(id: EMEvent, func: T->Void, ?listenerName:String): String {
-		return delegate.listenOnce(id.getName(), func, listenerName);
+	public static function listenOnce<T>(id: String, func: T->Void, ?listenerName:String): String {
+		return delegate.listenOnce(id, func, listenerName);
 	}
 	
-	public static function removeListener<T>(id: EMEvent, listenerUid: String):Void {
-		delegate.removeListener(id.getName(), listenerUid);
+	public static function removeListener<T>(id: String, listenerUid: String):Void {
+		delegate.removeListener(id, listenerUid);
 	}
 
-	public static function change<T>(id: EMEvent, ?t: T): Void {
-		delegate.change(id.getName(), t);
+	public static function change<T>(id: String, ?t: T): Void {
+		delegate.change(id, t);
 	}
 }
 
-enum EMEvent {	
-	FILTER_RUN;
-	FILTER_CHANGE;
-	LoadFilteredContent;
-	AppendFilteredContent;
+class EMEvent {
+	public static var FILTER_RUN = "FILTER_RUN";
+	public static var FILTER_CHANGE = "FILTER_CHANGE";
+	public static var LoadFilteredContent = "LoadFilteredContent";
+	public static var AppendFilteredContent = "AppendFilteredContent";
 
-	EditContentClosed;
+	public static var EditContentClosed = "EditContentClosed";
 
-	CreateAgent;
-	AgentCreated;
-	InitialDataLoadComplete;
+	public static var CreateAgent = "CreateAgent";
 
-	FitWindow;
-	UserLogin;
-	UserLogout;
+	public static var FitWindow = "FitWindow";
+	public static var UserLogin = "UserLogin";
+	public static var UserLogout = "UserLogout";
 
-	AliasLoaded;
-	AliasCreated;
-	AliasUpdated;
+	public static var AliasLoaded = "AliasLoaded";
+	public static var AliasCreated = "AliasCreated";
+	public static var AliasUpdated = "AliasUpdated";
 
-	CreateAlias;
-	UpdateAlias;
-	DeleteAlias;
+	public static var CreateAlias = "CreateAlias";
+	public static var UpdateAlias = "UpdateAlias";
+	public static var DeleteAlias = "DeleteAlias";
 
-	CreateContent;
-	DeleteContent;
-	UpdateContent;
+	public static var CreateContent = "CreateContent";
+	public static var DeleteContent = "DeleteContent";
+	public static var UpdateContent = "UpdateContent";
 
-	CreateLabel;
-	UpdateLabel;
-	MoveLabel;
-	CopyLabel;
-	DeleteLabel;
+	public static var CreateLabel = "CreateLabel";
+	public static var UpdateLabel = "UpdateLabel";
+	public static var MoveLabel = "MoveLabel";
+	public static var CopyLabel = "CopyLabel";
+	public static var DeleteLabel = "DeleteLabel";
 
-	GrantAccess;
-	AccessGranted;
-	RevokeAccess;
+	public static var GrantAccess = "GrantAccess";
+	public static var AccessGranted = "AccessGranted";
+	public static var RevokeAccess = "RevokeAccess";
 
-	DeleteConnection;
+	public static var DeleteConnection = "DeleteConnection";
 
-	INTRODUCTION_REQUEST;
-	INTRODUCTION_RESPONSE;
-	RespondToIntroduction;
-	RespondToIntroduction_RESPONSE;
+	public static var INTRODUCTION_REQUEST = "INTRODUCTION_REQUEST";
+	public static var INTRODUCTION_RESPONSE = "INTRODUCTION_RESPONSE";
+	public static var RespondToIntroduction = "RespondToIntroduction";
+	public static var RespondToIntroduction_RESPONSE = "RespondToIntroduction_RESPONSE";
 
-	TargetChange;
+	public static var TargetChange = "TargetChange";
 
-	VerificationRequest;
-	VerificationRequest_RESPONSE;
+	public static var VerificationRequest = "VerificationRequest";
+	public static var VerificationRequest_RESPONSE = "VerificationRequest_RESPONSE";
 
-	RespondToVerification;
-	RespondToVerification_RESPONSE;
+	public static var RespondToVerification = "RespondToVerification";
+	public static var RespondToVerification_RESPONSE = "RespondToVerification_RESPONSE";
 
-	RejectVerificationRequest;
-	RejectVerificationRequest_RESPONSE;
+	public static var RejectVerificationRequest = "RejectVerificationRequest";
+	public static var RejectVerificationRequest_RESPONSE = "RejectVerificationRequest_RESPONSE";
 	
-	AcceptVerification;
-	AcceptVerification_RESPONSE;
+	public static var AcceptVerification = "AcceptVerification";
+	public static var AcceptVerification_RESPONSE = "AcceptVerification_RESPONSE";
 
-	RejectVerification;
-	RejectVerification_RESPONSE;
+	public static var RejectVerification = "RejectVerification";
+	public static var RejectVerification_RESPONSE = "RejectVerification_RESPONSE";
 
-	BACKUP;
-	RESTORE;
-	RESTORES_REQUEST;
-	AVAILABLE_BACKUPS;
+	public static var BACKUP  = "BACKUP";
+	public static var RESTORE = "RESTORE";
+	public static var RESTORES_REQUEST  = "RESTORES_REQUEST";
+	public static var AVAILABLE_BACKUPS = "AVAILABLE_BACKUPS";
 }

@@ -217,7 +217,7 @@ extern class PostComp extends JQ {
 						tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
 							var avatar: ConnectionAvatar = new ConnectionAvatar(dom);
 							var connection = avatar.getConnection();
-							ccd.labelIids.push(connection.metaLabelIid);
+							ccd.labelIids.push(connection.labelIid);
 						});
 					}
 

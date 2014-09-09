@@ -224,7 +224,7 @@ extern class AliasManagerDialog extends JQ {
 		        						alias = new Alias();
 				        				alias.profile.name = name;
 				        				alias.profile.imgSrc = profilePic;
-				        				alias.rootLabelIid = Qoid.currentAlias.rootLabelIid;
+				        				alias.labelIid = Qoid.currentAlias.labelIid;
 		        						function() {
 					        				EM.listenOnce(EMEvent.AliasCreated, function(alias:Alias) {
 						        				Timer.delay(function() {

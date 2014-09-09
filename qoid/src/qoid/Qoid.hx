@@ -118,12 +118,12 @@ class Qoid {
         Serializer.instance.addHandler(Content, new ContentHandler());
         Serializer.instance.addHandler(Notification, new NotificationHandler());
 
-        EventManager.instance.on("onInitialDataLoadComplete", onInitialDataLoadComplete);
+        EventManager.instance.on(QE.onInitialDataload, onInitialDataLoadComplete);
         EventManager.instance.on("onConnectionProfile", processProfile);
     }
 
     static function onInitialDataLoadComplete(nada:{}) {
-        ROOT_LABEL_ID = aliases.getElement(UBER_ALIAS_ID).rootLabelIid;
+        ROOT_LABEL_ID = aliases.getElement(UBER_ALIAS_ID).labelIid;
 
         // Set the current alias
         var a = aliases.getElement(UBER_ALIAS_ID);
@@ -173,10 +173,10 @@ class Qoid {
         return labelDescendents;
     }
 
-    public static function connectionFromMetaLabel(metaLabelIid:String):Connection {
+    public static function connectionFromMetaLabel(labelIid:String):Connection {
         var ret:Connection = null;
         for (connection in connections) {
-            if (connection.metaLabelIid == metaLabelIid) {
+            if (connection.labelIid == labelIid) {
                 ret = connection;
                 break;
             }

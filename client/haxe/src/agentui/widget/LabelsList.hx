@@ -69,13 +69,13 @@ extern class LabelsList extends JQ {
         						var parent: JQ = null;
         						if (!isUpdate) {
 	        						container.append("<label for='labelParent'>Parent: </label> ");
-	        						parent = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + Qoid.currentAlias.rootLabelIid+ "'>No Parent</option></select>").appendTo(container);
+	        						parent = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'><option value='" + Qoid.currentAlias.labelIid+ "'>No Parent</option></select>").appendTo(container);
 	        						parent.click(stopFcn);
-	        						var aliasLabels = Qoid.getLabelDescendents(Qoid.currentAlias.rootLabelIid);
+	        						var aliasLabels = Qoid.getLabelDescendents(Qoid.currentAlias.labelIid);
 	        						var iter: Iterator<Label> = aliasLabels.iterator();
 	        						while(iter.hasNext()) {
 	        							var label: Label = iter.next();
-	        							if (label.iid != Qoid.currentAlias.rootLabelIid) {
+	        							if (label.iid != Qoid.currentAlias.labelIid) {
 		        							var option = "<option value='" + label.iid + "'";
 		        							if (self.selectedLabelComp != null && self.selectedLabelComp.getLabel().iid == label.iid) {
 		        								option += " SELECTED";
@@ -147,8 +147,8 @@ extern class LabelsList extends JQ {
 	        			// Create the top-level label tree
 	        			selfElement.children(".labelTree").remove();
 						var labelTree: LabelTree = new LabelTree("<div id='labels' class='labelDT'></div>").labelTree({
-			                parentIid:alias.rootLabelIid,
-			                labelPath:[alias.rootLabelIid]
+			                parentIid:alias.labelIid,
+			                labelPath:[alias.labelIid]
 			            });
 			        	selfElement.prepend(labelTree);
         			}, "LabelsList-Alias");

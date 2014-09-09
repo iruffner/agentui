@@ -32,8 +32,8 @@ class ModelObjWithIid extends ModelObj {
 	public var iid: String;
 	public var created:Date;
 	public var modified:Date;
-	public var createdByAliasIid:String;
-	public var modifiedByAliasIid:String;
+	public var createdByConnectionIid:String;
+	public var modifiedByConnectionIid:String;
 
 	public function new() {
 		super();
@@ -74,8 +74,8 @@ class AliasData extends ModelObj {
 }
 
 class Alias extends ModelObjWithIid {
-	public var rootLabelIid:String;
-	public var name:String;
+  	public var labelIid: String;
+  	public var connectionIid:String;
 	@:transient public var profile: Profile;
 	@:optional public var data: AliasData;
 
@@ -136,6 +136,8 @@ class LabelChild extends ModelObjWithIid {
 class LabelAcl extends ModelObjWithIid {
 	public var connectionIid: String;
   	public var labelIid: String;
+  	public var role: String;
+  	public var maxDegreesOfVisibility:Int;
 
 	public function new(?connectionIid: String, ?labelIid: String) {
 		super();
@@ -150,10 +152,9 @@ class LabelAcl extends ModelObjWithIid {
 
 class Connection extends ModelObjWithIid {
 	public var aliasIid:String;
+	public var labelIid:String;
 	public var localPeerId: String;
   	public var remotePeerId: String;
-	public var allowedDegreesOfVisibility:Int;
-  	public var metaLabelIid: String;
 	@:optional public var data:Profile;
 
 	public static function identifier(c: Connection): String {
@@ -443,8 +444,8 @@ enum NotificationKind {
 
 class Notification<T> extends ModelObjWithIid {
 	public var consumed: Bool;
-	public var fromConnectionIid: String;  
 	public var kind: NotificationKind;
+	public var route:Array<String>;
 	private var data:Dynamic;
 	@:transient public var props: T;
 
@@ -459,6 +460,7 @@ class Notification<T> extends ModelObjWithIid {
 		this.kind = kind;
 		this.data = {};
 		this.type = type;
+		this.route = new Array<String>();
 		this.props = Type.createInstance(type, []);
 	}
 

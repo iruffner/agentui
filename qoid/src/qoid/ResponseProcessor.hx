@@ -13,6 +13,7 @@ using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 using Lambda;
+using StringTools;
 
 class ResponseProcessor {
 
@@ -23,14 +24,21 @@ class ResponseProcessor {
 				JqueryUtil.alert("ERROR:  " + data.error.message + "     Context: " + data.context);
 	            Logga.DEFAULT.error(data.error.stacktrace);
             } else {
-                if (data.context.startsWith("initialDataLoad")) {
-                    if (data.responseType == "query") {
-                        Synchronizer.processResponse(data);
-                    } else if (data.responseType == "squery") {
-                        updateModelObject(data.type, data.action, data.results);
+                var context:String = data.context;
+                if (context.startsWith("initialDataLoad")) {
+                    var result:Dynamic = data.result;
+                    if (result != null) {
+                        if (result.standing == true) {
+                            updateModelObject(result.type, result.action, result.results);
+                        } else {
+                            Synchronizer.processResponse(data);
+                        }
                     }
+                } else if (context == "verificationContent") {
+                    var result:Dynamic = data.result;
+                    updateModelObject(result.type, result.action, result.results);
                 } else {
-                    var eventId = "on" + data.context.capitalize();
+                    var eventId = "on" + context.capitalizeFirstLetter();
                     EventManager.instance.change(eventId);
                 }
 			}

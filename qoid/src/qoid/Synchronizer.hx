@@ -35,8 +35,9 @@ class Synchronizer {
 	public static var synchronizers = new StringMap<Synchronizer>();
 
     public static function processResponse(data:Dynamic):Void {
-        var synchronizer = Synchronizer.synchronizers.get(data.context);
-        synchronizer.dataReceived(data.context, data);
+        var context:String = data.context.split("-")[0];
+        var synchronizer = Synchronizer.synchronizers.get(context);
+        synchronizer.dataReceived(context, data.result);
     }
 
 	public static function remove(iid:String) {
@@ -64,33 +65,32 @@ class Synchronizer {
 
     public function dataReceived(c:String, dataObj:Dynamic) {
         var data = dataObj.results;
-        if (data == null) {return;}
-
         var type = dataObj.type.toLowerCase();
 
-    	switch (type) {
-    		case "alias":
-                processDataReceived(parms.aliases, Alias, data);
-            case "connection":
-                processDataReceived(parms.connections, Connection, data);
-            case "introduction":
-                processDataReceived(parms.introductions, Introduction, data);
-    		case "label":
-                processDataReceived(parms.labels, Label, data);
-            case "labelacl":
-                processDataReceived(parms.labelAcls, LabelAcl, data);
-    		case "labelchild":
-                processDataReceived(parms.labelChildren, LabelChild, data);
-            case "labeledcontent":
-                processDataReceived(parms.labeledContent, LabeledContent, data);
-            case "notification":
-                processDataReceived(parms.notifications, Notification, data);
-            case "profile":
-                processDataReceived(parms.profiles, Profile, data);
-            default:
-                Logga.DEFAULT.error("Unknown data type: " + dataObj.type);
+        if (data != null) {
+        	switch (type) {
+        		case "alias":
+                    processDataReceived(parms.aliases, Alias, data);
+                case "connection":
+                    processDataReceived(parms.connections, Connection, data);
+                case "introduction":
+                    processDataReceived(parms.introductions, Introduction, data);
+        		case "label":
+                    processDataReceived(parms.labels, Label, data);
+                case "labelacl":
+                    processDataReceived(parms.labelAcls, LabelAcl, data);
+        		case "labelchild":
+                    processDataReceived(parms.labelChildren, LabelChild, data);
+                case "labeledcontent":
+                    processDataReceived(parms.labeledContent, LabeledContent, data);
+                case "notification":
+                    processDataReceived(parms.notifications, Notification, data);
+                case "profile":
+                    processDataReceived(parms.profiles, Profile, data);
+                default:
+                    Logga.DEFAULT.error("Unknown data type: " + dataObj.type);
+            }
         }
-
     	numResponsesExpected -= 1;
     	if (numResponsesExpected == 0) {
             oncomplete(parms);

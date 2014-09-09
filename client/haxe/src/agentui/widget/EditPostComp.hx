@@ -217,7 +217,7 @@ extern class EditPostComp extends JQ {
 					
 					self.tags.children(".connectionAvatar").each(function(i: Int, dom: Element): Void {
 						var conn: ConnectionAvatar = new ConnectionAvatar(dom);
-						ecd.labelIids.push(conn.getConnection().metaLabelIid);
+						ecd.labelIids.push(conn.getConnection().labelIid);
 					});
 
 					return ecd;

@@ -9,6 +9,7 @@ import agentui.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import qoid.Qoid;
+import qoid.QE;
 
 using m3.helper.StringHelper;
 
@@ -77,7 +78,7 @@ extern class LoginDialog extends JQ {
 		        	PlaceHolderUtil.setFocusBehavior(self.input_un, self.placeholder_un);
 		        	PlaceHolderUtil.setFocusBehavior(self.input_pw, self.placeholder_pw);
 
-		        	EM.addListener(EMEvent.InitialDataLoadComplete, function(n: {}): Void {
+		        	EM.addListener(QE.onInitialDataload, function(n: {}): Void {
     						selfElement.dialog("close");
 		        		}, "Login-InitialDataLoadComplete"
 		        	);

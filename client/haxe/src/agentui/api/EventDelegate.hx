@@ -12,14 +12,14 @@ import qoid.QoidAPI;
 
 class EventDelegate {
 	
-	public static function __init__() {
+	public static function init() {
 
 		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {
         	// TODO:  protocolHandler.filter(filterData);
         });
 
         EM.addListener(EMEvent.CreateAlias, function(alias: Alias): Void {
-            QoidAPI.createAlias(alias.name, alias.profile.name, alias.profile.imgSrc);
+            QoidAPI.createAlias(alias.profile.name, alias.profile.imgSrc);
         });
 
         EM.addListener(EMEvent.DeleteAlias, function(alias: Alias): Void {

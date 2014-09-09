@@ -59,7 +59,7 @@ extern class RespondToVerificationRequestDialog extends JQ {
 		        	}
 		        	selfElement.addClass("respondToVerificationRequestDialog notification-ui container boxsizingBorder");
 
-		        	var conn: Connection = Qoid.connections.getElement(self.options.notification.fromConnectionIid);
+		        	var conn: Connection = Qoid.connections.getElement(self.options.notification.createdByConnectionIid);
 
 		        	var intro_table = new JQ("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
 
