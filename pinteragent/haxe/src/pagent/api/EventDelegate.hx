@@ -21,11 +21,10 @@ class EventDelegate {
 	public static function init() {
 
 		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {
-         //    if(filterData.type == "boardConfig") {
-         //        filterData.type = "content";
-         //        QoidAPI.boardConfigs(filterData);
-        	// } else 
-         //        QoidAPI.filter(filterData);
+            if(filterData.type == "boardConfig") {
+                QoidAPI.query("boardConfig", "content", filterData.filter.q, true, true);
+        	} else 
+                QoidAPI.query("filterContent", "content", filterData.filter.q, true, true);
         });
 
         EM.addListener(EMEvent.CreateAgent, function(user: NewUser): Void {
