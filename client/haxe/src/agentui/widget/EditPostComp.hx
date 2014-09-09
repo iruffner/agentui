@@ -196,15 +196,15 @@ extern class EditPostComp extends JQ {
 					var selfElement: JQ = Widgets.getSelfElement();
 
 					switch (self.options.content.contentType) {
-						case ContentType.TEXT:
+						case "TEXT":
 							cast(self.options.content, MessageContent).props.text = self.valueElement.val();
-						case ContentType.URL:
+						case "URL":
 							cast(self.options.content, UrlContent).props.url = self.valueElement.val();
-						case ContentType.IMAGE:
+						case "IMAGE":
 							cast(self.options.content, ImageContent).props.imgSrc = self.uploadComp.value();
-						case ContentType.AUDIO:
+						case "AUDIO":
 							cast(self.options.content, AudioContent).props.audioSrc = self.uploadComp.value();
-						case ContentType.VERIFICATION:
+						case "VERIFICATION":
 		        			throw new Exception("VerificationContent should not be displayed"); 
 					}
 
@@ -237,7 +237,7 @@ extern class EditPostComp extends JQ {
 
 		        	var tab_class:String = "";
 
-		        	if (self.options.content.contentType == ContentType.TEXT) {
+		        	if (self.options.content.contentType == "TEXT") {
 			        	var textInput: JQ = new JQ("<div class='postContainer boxsizingBorder'></div>");
 			        	textInput.appendTo(section);
 			        	self.valueElement = new JQ("<textarea class='boxsizingBorder container' style='resize: none;'></textarea>")
@@ -247,7 +247,7 @@ extern class EditPostComp extends JQ {
 			        	tab_class = "ui-icon-document";
 			        }
 
-		        	else if (self.options.content.contentType == ContentType.URL) {
+		        	else if (self.options.content.contentType == "URL") {
 			        	var urlComp: UrlComp = new UrlComp("<div class='postContainer boxsizingBorder'></div>").urlComp();
 		        		self.valueElement = urlComp.urlInput();
 			        	urlComp.appendTo(section);
@@ -255,8 +255,8 @@ extern class EditPostComp extends JQ {
 			        	tab_class = "ui-icon-link";
 					}
 
-		        	else if (self.options.content.contentType == ContentType.IMAGE) {
-				        var options:UploadCompOptions = {contentType: ContentType.IMAGE};
+		        	else if (self.options.content.contentType == "IMAGE") {
+				        var options:UploadCompOptions = {contentType: "IMAGE"};
 				        var imageInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		        		self.uploadComp = imageInput;
 			        	imageInput.appendTo(section);
@@ -264,8 +264,8 @@ extern class EditPostComp extends JQ {
 			        	tab_class = "ui-icon-image";
 		        	}
 
-		        	else if (self.options.content.contentType == ContentType.AUDIO) {
-				        var options:UploadCompOptions = {contentType: ContentType.AUDIO};
+		        	else if (self.options.content.contentType == "AUDIO") {
+				        var options:UploadCompOptions = {contentType: "AUDIO"};
 			        	var audioInput = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		        		self.uploadComp = audioInput;
 			        	audioInput.appendTo(section);

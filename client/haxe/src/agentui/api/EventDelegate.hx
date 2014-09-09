@@ -39,7 +39,7 @@ class EventDelegate {
         });
 
         EM.addListener(EMEvent.CreateContent, function(data:EditContentData): Void {
-            QoidAPI.createContent(data.content.contentType.getName(), data.content, data.labelIids);
+            QoidAPI.createContent(data.content.contentType, data.content, data.labelIids);
     	});
 
         EM.addListener(EMEvent.UpdateContent, function(data:EditContentData): Void {

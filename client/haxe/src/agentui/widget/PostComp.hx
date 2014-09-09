@@ -76,7 +76,7 @@ extern class PostComp extends JQ {
 		        			.attr("id", "textInput_ta")
 		        			.keypress(function(evt: JQEvent): Void {
 		        					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-		        						doTextPostForElement(evt, ContentType.TEXT, new JQ(evt.target));
+		        						doTextPostForElement(evt, "TEXT", new JQ(evt.target));
 		        					}
 		        				})
 		        			;
@@ -86,15 +86,15 @@ extern class PostComp extends JQ {
 		        		.appendTo(section)
 		        		.keypress(function(evt: JQEvent): Void {
         					if( !(evt.altKey || evt.shiftKey || evt.ctrlKey) && evt.charCode == 13 ) {
-        						doTextPostForElement(evt, ContentType.URL, new JQ(evt.target));
+        						doTextPostForElement(evt, "URL", new JQ(evt.target));
         					}
         				});
 
-		        	var options:UploadCompOptions = {contentType: ContentType.IMAGE};
+		        	var options:UploadCompOptions = {contentType: "IMAGE"};
 		        	var imageInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		        	imageInput.appendTo(section);
 		        	
-		        	options.contentType = ContentType.AUDIO;
+		        	options.contentType = "AUDIO";
 		        	var audioInput: UploadComp = new UploadComp("<div class='postContainer boxsizingBorder'></div>").uploadComp(options);
 		        	audioInput.appendTo(section);
 
@@ -232,11 +232,11 @@ extern class PostComp extends JQ {
 
 		        								if (textInput.isVisible()) {
 		        									var ta = new JQ("#textInput_ta");
-													doTextPostForElement(evt, ContentType.TEXT, ta);
+													doTextPostForElement(evt, "TEXT", ta);
 		        								} else if (urlComp.isVisible()) {
-		        									doTextPostForElement(evt, ContentType.URL, urlComp.urlInput());
+		        									doTextPostForElement(evt, "URL", urlComp.urlInput());
 		        								} else {
-		        									doTextPost(evt, ContentType.IMAGE, imageInput.value());
+		        									doTextPost(evt, "IMAGE", imageInput.value());
 		        									imageInput.clear();
 		        								}
 		        								tags.children(".label").remove();

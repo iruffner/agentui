@@ -175,14 +175,7 @@ class Connection extends ModelObjWithIid {
 // Content
 //-------------------------------------------------------------------------------------
 
-enum ContentType {
-	AUDIO;
-	IMAGE;
-	URL;
-	TEXT;
-	VERIFICATION;
-}
-
+typedef ContentType = String;
 
 class ContentHandler implements TypeHandler {
 	
@@ -192,16 +185,16 @@ class ContentHandler implements TypeHandler {
     public function read(fromJson: {contentType: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
         var obj: Content<Dynamic> = null;
 
-        switch ( ContentType.createByName(fromJson.contentType) ) {
-        	case ContentType.AUDIO:
+        switch (fromJson.contentType) {
+        	case "AUDIO":
         		obj = Serializer.instance.fromJsonX(fromJson, AudioContent);
-        	case ContentType.IMAGE:
+        	case "IMAGE":
         		obj = Serializer.instance.fromJsonX(fromJson, ImageContent);
-        	case ContentType.TEXT:
+        	case "TEXT":
         		obj = Serializer.instance.fromJsonX(fromJson, MessageContent);
-        	case ContentType.URL:
+        	case "URL":
         		obj = Serializer.instance.fromJsonX(fromJson, UrlContent);
-        	case ContentType.VERIFICATION:
+        	case "VERIFICATION":
         		obj = Serializer.instance.fromJsonX(fromJson, VerificationContent);
         }
 
@@ -218,23 +211,23 @@ class ContentFactory {
 		var ret:Content<Dynamic> = null;
 
 		switch (contentType) {
-        	case ContentType.AUDIO:
+        	case "AUDIO":
         		var ac = new AudioContent();
         		ac.props.audioSrc = cast(data, String);
         		ret = ac;
-        	case ContentType.IMAGE:
+        	case "IMAGE":
         		var ic = new ImageContent();
         		ic.props.imgSrc = cast(data, String);
         		ret = ic;
-        	case ContentType.TEXT:
+        	case "TEXT":
         		var mc = new MessageContent();
         		mc.props.text = cast(data, String);
         		ret = mc;
-        	case ContentType.URL:
+        	case "URL":
         		var uc = new UrlContent();
         		uc.props.url = cast(data, String);
         		ret = uc;
-        	case ContentType.VERIFICATION:
+        	case "VERIFICATION":
         		var uc = new VerificationContent();
         		uc.props.text = cast(data, String);
         		ret = uc;
@@ -290,7 +283,7 @@ class ContentMetaData {
 }
 
 class Content<T:(ContentData)> extends ModelObjWithIid {
-	public var contentType: ContentType;
+	public var contentType: String;
 	@:optional public var aliasIid: String;
 	@:optional public var connectionIid: String;
 	@:optional public var metaData:ContentMetaData;
@@ -343,7 +336,7 @@ class ImageContentData extends ContentData {
 
 class ImageContent extends Content<ImageContentData> {
 	public function new () {
-		super(ContentType.IMAGE, ImageContentData);
+		super("IMAGE", ImageContentData);
 	}
 }
 
@@ -359,7 +352,7 @@ class AudioContentData extends ContentData {
 
 class AudioContent extends Content<AudioContentData> {
 	public function new () {
-		super(ContentType.AUDIO, AudioContentData);
+		super("AUDIO", AudioContentData);
 	}
 }
 
@@ -373,7 +366,7 @@ class MessageContentData extends ContentData {
 
 class MessageContent extends Content<MessageContentData> {
 	public function new () {
-		super(ContentType.TEXT, MessageContentData);
+		super("TEXT", MessageContentData);
 	}
 }
 
@@ -388,7 +381,7 @@ class UrlContentData extends ContentData {
 
 class UrlContent extends Content<UrlContentData> {
 	public function new () {
-		super(ContentType.URL, UrlContentData);
+		super("URL", UrlContentData);
 	}
 }
 
@@ -403,7 +396,7 @@ class VerificationContentData extends ContentData {
 
 class VerificationContent extends Content<VerificationContentData> {
 	public function new () {
-		super(ContentType.VERIFICATION, VerificationContentData);
+		super("VERIFICATION", VerificationContentData);
 	}
 }
 
@@ -518,7 +511,7 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
 	@:rtti
 	class VerificationRequestData {
 		public var contentIid:String;
-    	public var contentType:ContentType;
+    	public var contentType:String;
     	public var contentData:Dynamic;
     	public var message:String;
 

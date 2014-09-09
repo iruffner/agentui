@@ -10,7 +10,7 @@ import m3.log.Logga;
 using m3.helper.ArrayHelper;
 
 typedef UploadCompOptions = {
-	 @:optional var contentType: ContentType;
+	 @:optional var contentType: String;
 	 @:optional var onload: String->Void;
 }
 
@@ -131,12 +131,12 @@ extern class UploadComp extends JQ {
 		        		return;
 		        	}
 
-		        	if (self.options.contentType == ContentType.IMAGE && !(~/image/i).match(file.type)) {
+		        	if (self.options.contentType == "IMAGE" && !(~/image/i).match(file.type)) {
 		        		JqueryUtil.alert("Please select an image file.");
 		        		return;
 		        	}
 
-		        	if (self.options.contentType == ContentType.AUDIO && !(~/audio/i).match(file.type)) {
+		        	if (self.options.contentType == "AUDIO" && !(~/audio/i).match(file.type)) {
 		        		JqueryUtil.alert("Please select an audio file.");
 		        		return;
 		        	}

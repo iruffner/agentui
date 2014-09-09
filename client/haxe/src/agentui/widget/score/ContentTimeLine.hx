@@ -114,13 +114,13 @@ class ContentTimeLine {
 		var y:Float = time_line_y  + height/2;
 
 		var ele:SnapElement;
-		if (content.contentType == ContentType.TEXT) {
+		if (content.contentType == "TEXT") {
 			addContentElement(content, createTextElement(cast(content, MessageContent), x, y, 40, 40));
-		} else if (content.contentType == ContentType.IMAGE) {
+		} else if (content.contentType == "IMAGE") {
 			addContentElement(content, createImageElement(cast(content, ImageContent), x, y, 40, 40));
-		} else if (content.contentType == ContentType.URL) {
+		} else if (content.contentType == "URL") {
 			addContentElement(content, createLinkElement(cast(content, UrlContent), x, y, 20));
-		} else if (content.contentType == ContentType.AUDIO) {
+		} else if (content.contentType == "AUDIO") {
 			addContentElement(content, createAudioElement(cast(content, AudioContent), x, y, 20, 20));
 		}
 	}
