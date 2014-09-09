@@ -124,6 +124,7 @@ class ResponseProcessor {
         EM.change(EMEvent.InitialDataLoadComplete);
 	}
 
+    //this is the on-complete function called from the synchronizer
     public static function albumConfigs(data:SynchronizationParms) {
         APhotoContext.ALBUM_CONFIGS.addAll(cast data.content);
     }

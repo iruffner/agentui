@@ -10,6 +10,7 @@ using m3.helper.OSetHelper;
 
 class SynchronizationParms {
     public var aliases:Array<Alias>;
+    public var connections:Array<Connection>;
     public var content:Array<Content<Dynamic>>;
     public var labels:Array<Label>;
     public var labelChildren:Array<LabelChild>;
@@ -20,6 +21,7 @@ class SynchronizationParms {
 
     public function new() {
         aliases = new Array<Alias>();
+        connections = new Array<Connection>();
         content = new Array<Content<Dynamic>>();
         labels  = new Array<Label>();
         labelAcls = new Array<LabelAcl>();
@@ -85,6 +87,8 @@ class Synchronizer {
     	switch (type) {
     		case "alias":
                 processDataReceived(parms.aliases, Alias, data);
+            case "connection":
+                processDataReceived(parms.connections, Connection, data);
             case "content":
                 processDataReceived(parms.content, Content, data);
     		case "label":

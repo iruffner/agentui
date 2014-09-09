@@ -189,6 +189,15 @@ Lambda.array = function(it) {
 	}
 	return a;
 };
+Lambda.map = function(it,f) {
+	var l = new List();
+	var $it0 = $iterator(it)();
+	while( $it0.hasNext() ) {
+		var x = $it0.next();
+		l.add(f(x));
+	}
+	return l;
+};
 Lambda.iter = function(it,f) {
 	var $it0 = $iterator(it)();
 	while( $it0.hasNext() ) {
@@ -4573,13 +4582,26 @@ pagent.AppContext.init = function() {
 		if(evt.isAddOrUpdate()) {
 			var p = m3.helper.OSetHelper.getElementComplex(pagent.AppContext.PROFILES,a1.iid,"aliasIid");
 			if(p != null) a1.profile = p;
-			if(evt.isAdd()) pagent.model.EM.change(pagent.model.EMEvent.AliasCreated,a1); else pagent.model.EM.change(pagent.model.EMEvent.AliasUpdated,a1);
+			if(evt.isAdd()) pagent.model.EM.change("AliasCreated",a1); else pagent.model.EM.change("AliasUpdated",a1);
 		}
 	});
 	pagent.AppContext.LABELS = new m3.observable.ObservableSet(qoid.model.Label.identifier);
+	pagent.AppContext.CONNECTIONS = new m3.observable.ObservableSet(qoid.model.Connection.identifier);
+	pagent.AppContext.CONNECTIONS.listen(function(c,evt1) {
+		if(evt1.isAdd()) {
+			pagent.PinterAgent.PROTOCOL.getProfiles([c.iid]);
+			pagent.PinterAgent.PROTOCOL.getBoards([c.iid]);
+		}
+	});
+	pagent.AppContext.GROUPED_CONNECTIONS = new m3.observable.GroupedSet(pagent.AppContext.CONNECTIONS,function(c1) {
+		return c1.aliasIid;
+	});
 	pagent.AppContext.LABELACLS = new m3.observable.ObservableSet(qoid.model.LabelAcl.identifier);
-	pagent.AppContext.GROUPED_LABELACLS = new m3.observable.GroupedSet(pagent.AppContext.LABELACLS,function(l) {
+	pagent.AppContext.LABELACLS_ByConnection = new m3.observable.GroupedSet(pagent.AppContext.LABELACLS,function(l) {
 		return l.connectionIid;
+	});
+	pagent.AppContext.LABELACLS_ByLabel = new m3.observable.GroupedSet(pagent.AppContext.LABELACLS,function(l1) {
+		return l1.labelIid;
 	});
 	pagent.AppContext.LABELCHILDREN = new m3.observable.ObservableSet(qoid.model.LabelChild.identifier);
 	pagent.AppContext.GROUPED_LABELCHILDREN = new m3.observable.GroupedSet(pagent.AppContext.LABELCHILDREN,function(lc) {
@@ -4590,8 +4612,8 @@ pagent.AppContext.init = function() {
 		return lc1.contentIid;
 	});
 	pagent.AppContext.PROFILES = new m3.observable.ObservableSet(qoid.model.Profile.identifier);
-	pagent.AppContext.PROFILES.listen(function(p1,evt1) {
-		if(evt1.isAddOrUpdate()) {
+	pagent.AppContext.PROFILES.listen(function(p1,evt2) {
+		if(evt2.isAddOrUpdate()) {
 			var alias = m3.helper.OSetHelper.getElement(pagent.AppContext.ALIASES,p1.aliasIid);
 			if(alias != null) {
 				alias.profile = p1;
@@ -4640,8 +4662,8 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 					if(l2.name == pagent.PinterContext.APP_ROOT_LABEL_NAME) {
 						pagent.AppContext.LABELS.removeListener(listener);
 						pagent.PinterContext.set_ROOT_BOARD(l2);
-						pagent.model.EM.change(pagent.model.EMEvent.AliasLoaded,pagent.AppContext.currentAlias);
-						pagent.model.EM.change(pagent.model.EMEvent.APP_INITIALIZED);
+						pagent.model.EM.change("AliasLoaded",pagent.AppContext.currentAlias);
+						pagent.model.EM.change("APP_INITIALIZED");
 					}
 				}
 			};
@@ -4649,7 +4671,7 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 			var label = new qoid.model.Label();
 			label.name = pagent.PinterContext.APP_ROOT_LABEL_NAME;
 			var eventData = new qoid.model.EditLabelData(label,pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS().iid);
-			pagent.model.EM.change(pagent.model.EMEvent.CreateLabel,eventData);
+			pagent.model.EM.change("CreateLabel",eventData);
 		};
 		if(rootLabelOfAllApps == null) {
 			var listener1 = null;
@@ -4666,7 +4688,7 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 			var label1 = new qoid.model.Label();
 			label1.name = pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS;
 			var eventData1 = new qoid.model.EditLabelData(label1,pagent.AppContext.currentAlias.rootLabelIid);
-			pagent.model.EM.change(pagent.model.EMEvent.CreateLabel,eventData1);
+			pagent.model.EM.change("CreateLabel",eventData1);
 		} else {
 			pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
 			createRootLabelOfThisApp(rootLabelOfAllApps);
@@ -4674,16 +4696,16 @@ pagent.AppContext.onInitialDataLoadComplete = function(nada) {
 	} else {
 		pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
 		pagent.PinterContext.set_ROOT_BOARD(rootLabelOfThisApp);
-		pagent.model.EM.change(pagent.model.EMEvent.AliasLoaded,pagent.AppContext.currentAlias);
-		pagent.model.EM.change(pagent.model.EMEvent.APP_INITIALIZED);
+		pagent.model.EM.change("AliasLoaded",pagent.AppContext.currentAlias);
+		pagent.model.EM.change("APP_INITIALIZED");
 	}
 };
 pagent.AppContext.registerGlobalListeners = function() {
 	new $(window).on("unload",function(evt) {
-		pagent.model.EM.change(pagent.model.EMEvent.UserLogout);
+		pagent.model.EM.change("UserLogout");
 	});
-	pagent.model.EM.addListener(pagent.model.EMEvent.InitialDataLoadComplete,pagent.AppContext.onInitialDataLoadComplete,"AppContext-InitialDataLoadComplete");
-	pagent.model.EM.addListener(pagent.model.EMEvent.AliasLoaded,function(a) {
+	pagent.model.EM.addListener("InitialDataLoadComplete",pagent.AppContext.onInitialDataLoadComplete,"AppContext-InitialDataLoadComplete");
+	pagent.model.EM.addListener("AliasLoaded",function(a) {
 		window.document.title = a.profile.name + " | PinterAgent";
 	});
 };
@@ -4730,7 +4752,7 @@ pagent.PinterAgent.start = function() {
 	document.bind("pagebeforecreate",($_=pagent.PinterContext.PAGE_MGR,$bind($_,$_.pageBeforeCreate)));
 	document.bind("pageshow",($_=pagent.PinterContext.PAGE_MGR,$bind($_,$_.pageShow)));
 	document.bind("pagehide",($_=pagent.PinterContext.PAGE_MGR,$bind($_,$_.pageHide)));
-	pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.HOME_SCREEN);
+	pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.SOCIAL_SCREEN);
 	new $("body").click(function(evt) {
 		new $(".nonmodalPopup").hide();
 	});
@@ -4784,7 +4806,7 @@ pagent.PinterContext.init = function() {
 	pagent.PinterContext.PAGE_MGR = pagent.pages.PinterPageMgr.get_get();
 	pagent.AppContext.init();
 	pagent.PinterContext.BOARD_CONFIGS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
-	pagent.model.EM.listenOnce(pagent.model.EMEvent.APP_INITIALIZED,function(n) {
+	pagent.model.EM.listenOnce("APP_INITIALIZED",function(n) {
 		pagent.PinterContext.APP_INITIALIZED = true;
 	},"PinterContext-AppInitialized");
 };
@@ -4805,7 +4827,7 @@ pagent.PinterContext.set_ROOT_BOARD = function(l) {
 	filterData.filter.q = filterData.filter.q + " and contentType = '" + pagent.PinterContext.APP_ROOT_LABEL_NAME + ".config'";
 	filterData.connectionIids = [];
 	filterData.aliasIid = pagent.AppContext.currentAlias.iid;
-	pagent.model.EM.change(pagent.model.EMEvent.FILTER_RUN,filterData);
+	pagent.model.EM.change("FILTER_RUN",filterData);
 	return l;
 };
 pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS = function() {
@@ -4826,87 +4848,87 @@ pagent.api.EventDelegate.__name__ = ["pagent","api","EventDelegate"];
 pagent.api.EventDelegate.prototype = {
 	_setUpEventListeners: function() {
 		var _g = this;
-		pagent.model.EM.addListener(pagent.model.EMEvent.FILTER_RUN,function(filterData) {
-			if(filterData.type == "albumConfig") {
+		pagent.model.EM.addListener("FILTER_RUN",function(filterData) {
+			if(filterData.type == "boardConfig") {
 				filterData.type = "content";
-				_g.protocolHandler.albumConfigs(filterData);
+				_g.protocolHandler.boardConfigs(filterData);
 			} else _g.protocolHandler.filter(filterData);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.CreateAlias,function(alias) {
+		pagent.model.EM.addListener("CreateAlias",function(alias) {
 			_g.protocolHandler.createAlias(alias);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.DeleteAlias,function(alias1) {
+		pagent.model.EM.addListener("DeleteAlias",function(alias1) {
 			_g.protocolHandler.deleteAlias(alias1);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.UpdateAlias,function(alias2) {
+		pagent.model.EM.addListener("UpdateAlias",function(alias2) {
 			_g.protocolHandler.updateAlias(alias2);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.UserLogin,function(login) {
+		pagent.model.EM.addListener("UserLogin",function(login) {
 			_g.protocolHandler.login(login);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.CreateAgent,function(user) {
+		pagent.model.EM.addListener("CreateAgent",function(user) {
 			_g.protocolHandler.createAgent(user);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.CreateContent,function(data) {
+		pagent.model.EM.addListener("CreateContent",function(data) {
 			_g.protocolHandler.createContent(data);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.UpdateContent,function(data1) {
+		pagent.model.EM.addListener("UpdateContent",function(data1) {
 			_g.protocolHandler.updateContent(data1);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.DeleteContent,function(data2) {
+		pagent.model.EM.addListener("DeleteContent",function(data2) {
 			_g.protocolHandler.deleteContent(data2);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.CreateLabel,function(data3) {
+		pagent.model.EM.addListener("CreateLabel",function(data3) {
 			_g.protocolHandler.createLabel(data3);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.UpdateLabel,function(data4) {
+		pagent.model.EM.addListener("UpdateLabel",function(data4) {
 			_g.protocolHandler.updateLabel(data4);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.MoveLabel,function(data5) {
+		pagent.model.EM.addListener("MoveLabel",function(data5) {
 			_g.protocolHandler.moveLabel(data5);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.CopyLabel,function(data6) {
+		pagent.model.EM.addListener("CopyLabel",function(data6) {
 			_g.protocolHandler.copyLabel(data6);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.DeleteLabel,function(data7) {
+		pagent.model.EM.addListener("DeleteLabel",function(data7) {
 			_g.protocolHandler.deleteLabel(data7);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.RespondToIntroduction,function(intro) {
+		pagent.model.EM.addListener("RespondToIntroduction",function(intro) {
 			_g.protocolHandler.confirmIntroduction(intro);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.INTRODUCTION_REQUEST,function(intro1) {
+		pagent.model.EM.addListener("INTRODUCTION_REQUEST",function(intro1) {
 			_g.protocolHandler.beginIntroduction(intro1);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.GrantAccess,function(parms) {
+		pagent.model.EM.addListener("GrantAccess",function(parms) {
 			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.RevokeAccess,function(lacls) {
+		pagent.model.EM.addListener("RevokeAccess",function(lacls) {
 			_g.protocolHandler.revokeAccess(lacls);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.DeleteConnection,function(c) {
+		pagent.model.EM.addListener("DeleteConnection",function(c) {
 			_g.protocolHandler.deleteConnection(c);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.UserLogout,function(c1) {
+		pagent.model.EM.addListener("UserLogout",function(c1) {
 			_g.protocolHandler.deregisterAllSqueries();
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.TargetChange,function(conn) {
+		pagent.model.EM.addListener("TargetChange",function(conn) {
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.BACKUP,function(n) {
+		pagent.model.EM.addListener("BACKUP",function(n) {
 			_g.protocolHandler.backup();
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.RESTORE,function(n1) {
+		pagent.model.EM.addListener("RESTORE",function(n1) {
 			_g.protocolHandler.restore();
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.VerificationRequest,function(vr) {
+		pagent.model.EM.addListener("VerificationRequest",function(vr) {
 			_g.protocolHandler.verificationRequest(vr);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.RespondToVerification,function(vr1) {
+		pagent.model.EM.addListener("RespondToVerification",function(vr1) {
 			_g.protocolHandler.respondToVerificationRequest(vr1);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.AcceptVerification,function(notificationIid) {
+		pagent.model.EM.addListener("AcceptVerification",function(notificationIid) {
 			_g.protocolHandler.acceptVerification(notificationIid);
 		});
-		pagent.model.EM.addListener(pagent.model.EMEvent.RejectVerificationRequest,function(notificationIid1) {
+		pagent.model.EM.addListener("RejectVerificationRequest",function(notificationIid1) {
 			_g.protocolHandler.rejectVerificationRequest(notificationIid1);
 		});
 	}
@@ -4961,7 +4983,7 @@ pagent.api.ProtocolHandler.prototype = {
 	}
 	,createAgent: function(newUser) {
 		var req = new qoid.api.SimpleRequest("/api/agent/create/" + newUser.name,"",function(data) {
-			pagent.model.EM.change(pagent.model.EMEvent.AgentCreated);
+			pagent.model.EM.change("AgentCreated");
 		});
 		req.start();
 	}
@@ -5001,8 +5023,8 @@ pagent.api.ProtocolHandler.prototype = {
 		var requests = [new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,new qoid.api.QueryMessage(filterData))];
 		new qoid.api.SubmitRequest(requests).start();
 	}
-	,albumConfigs: function(filterData) {
-		var context = pagent.api.Synchronizer.createContext(1,"albumConfigs");
+	,boardConfigs: function(filterData) {
+		var context = pagent.api.Synchronizer.createContext(1,"boardConfigs");
 		var requests = [new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,new qoid.api.QueryMessage(filterData))];
 		new qoid.api.SubmitRequest(requests).start();
 	}
@@ -5179,8 +5201,8 @@ pagent.api.ProtocolHandler.prototype = {
 		pagent.AppContext.SUBMIT_CHANNEL = data.channelId;
 		pagent.AppContext.UBER_ALIAS_ID = data.aliasIid;
 		this._startPolling(data.channelId);
-		var context = pagent.api.Synchronizer.createContext(6,"initialDataLoad");
-		var requests = [new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("alias")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("label")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labelAcl")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labeledContent")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labelChild")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("profile"))];
+		var context = pagent.api.Synchronizer.createContext(7,"initialDataLoad");
+		var requests = [new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("alias")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("connection")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("label")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labelAcl")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labeledContent")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labelChild")),new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("profile"))];
 		new qoid.api.SubmitRequest(requests).start();
 	}
 	,_startPolling: function(channelId) {
@@ -5199,6 +5221,14 @@ pagent.api.ProtocolHandler.prototype = {
 	,restores: function() {
 		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
 	}
+	,getBoards: function(connectionIids) {
+		var context = pagent.api.Synchronizer.createContext(1,"connectionBoards");
+		var qm = qoid.api.QueryMessage.create("connectionLabel");
+		qm.q = "(hasParentLabelPath('" + pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + "','" + pagent.PinterContext.APP_ROOT_LABEL_NAME + "'))";
+		qm.connectionIids = connectionIids;
+		qm.local = false;
+		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(pagent.api.ProtocolHandler.QUERY,context,qm)]).start();
+	}
 	,__class__: pagent.api.ProtocolHandler
 };
 pagent.api.ResponseProcessor = function() { };
@@ -5215,11 +5245,14 @@ pagent.api.ResponseProcessor.processResponse = function(dataArr) {
 			var context = new qoid.model.Context(data.context);
 			var _g = context.oncomplete;
 			switch(_g) {
+			case "connectionProfile":
+				pagent.api.ResponseProcessor.processProfile(data);
+				break;
 			case "initialDataLoad":
 				if(data.responseType == "query") pagent.api.Synchronizer.processResponse(data); else if(data.responseType == "squery") pagent.api.ResponseProcessor.updateModelObject(data.type,data.action,data.results); else if(data.result && data.result.handle) pagent.PinterAgent.PROTOCOL.addHandle(data.result.handle);
 				break;
 			case "filterContent":
-				if(data.responseType == "query") pagent.model.EM.change(pagent.model.EMEvent.LoadFilteredContent,data); else if(data.responseType == "squery") pagent.model.EM.change(pagent.model.EMEvent.AppendFilteredContent,data); else if(data.result && data.result.handle) pagent.PinterAgent.PROTOCOL.addHandle(data.result.handle);
+				if(data.responseType == "query") pagent.model.EM.change("LoadFilteredContent",data); else if(data.responseType == "squery") pagent.model.EM.change("AppendFilteredContent",data); else if(data.result && data.result.handle) pagent.PinterAgent.PROTOCOL.addHandle(data.result.handle);
 				break;
 			default:
 				pagent.api.Synchronizer.processResponse(data);
@@ -5243,6 +5276,9 @@ pagent.api.ResponseProcessor.updateModelObject = function(type,action,data) {
 	switch(type1) {
 	case "alias":
 		pagent.api.ResponseProcessor.processModelObject(pagent.AppContext.ALIASES,qoid.model.Alias,action,data);
+		break;
+	case "connection":
+		pagent.api.ResponseProcessor.processModelObject(pagent.AppContext.CONNECTIONS,qoid.model.Connection,action,data);
 		break;
 	case "label":
 		pagent.api.ResponseProcessor.processModelObject(pagent.AppContext.LABELS,qoid.model.Label,action,data);
@@ -5268,6 +5304,7 @@ pagent.api.ResponseProcessor.updateModelObject = function(type,action,data) {
 };
 pagent.api.ResponseProcessor.initialDataLoad = function(data) {
 	pagent.AppContext.ALIASES.addAll(data.aliases);
+	pagent.AppContext.CONNECTIONS.addAll(data.connections);
 	pagent.AppContext.LABELS.addAll(data.labels);
 	pagent.AppContext.LABELCHILDREN.addAll(data.labelChildren);
 	pagent.AppContext.LABELEDCONTENT.addAll(data.labeledContent);
@@ -5285,13 +5322,24 @@ pagent.api.ResponseProcessor.initialDataLoad = function(data) {
 			}
 		}
 	}
-	pagent.model.EM.change(pagent.model.EMEvent.InitialDataLoadComplete);
+	pagent.model.EM.change("InitialDataLoadComplete");
 };
-pagent.api.ResponseProcessor.albumConfigs = function(data) {
+pagent.api.ResponseProcessor.boardConfigs = function(data) {
 	pagent.PinterContext.BOARD_CONFIGS.addAll(data.content);
+};
+pagent.api.ResponseProcessor.processProfile = function(rec) {
+	if(rec.result && rec.result.handle) pagent.PinterAgent.PROTOCOL.addHandle(rec.result.handle); else {
+		var connection = m3.helper.OSetHelper.getElement(pagent.AppContext.CONNECTIONS,rec.connectionIid);
+		var profile = pagent.AppContext.SERIALIZER.fromJsonX(rec.results[0],qoid.model.Profile);
+		profile.connectionIid = rec.connectionIid;
+		connection.data = profile;
+		pagent.AppContext.CONNECTIONS.addOrUpdate(connection);
+		pagent.AppContext.PROFILES.addOrUpdate(profile);
+	}
 };
 pagent.api.SynchronizationParms = function() {
 	this.aliases = new Array();
+	this.connections = new Array();
 	this.content = new Array();
 	this.labels = new Array();
 	this.labelAcls = new Array();
@@ -5348,6 +5396,9 @@ pagent.api.Synchronizer.prototype = {
 		case "alias":
 			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
 			break;
+		case "connection":
+			this.processDataReceived(this.parms.connections,qoid.model.Connection,data);
+			break;
 		case "content":
 			this.processDataReceived(this.parms.content,qoid.model.Content,data);
 			break;
@@ -5386,117 +5437,24 @@ pagent.api.Synchronizer.prototype = {
 	,__class__: pagent.api.Synchronizer
 };
 pagent.model = {};
-pagent.model.EMEvent = function() { };
-$hxClasses["pagent.model.EMEvent"] = pagent.model.EMEvent;
-pagent.model.EMEvent.__name__ = ["pagent","model","EMEvent"];
-pagent.model.EM = function() { };
-$hxClasses["pagent.model.EM"] = pagent.model.EM;
-pagent.model.EM.__name__ = ["pagent","model","EM"];
-pagent.model.EM.addListener = function(id,func,listenerName) {
-	return pagent.model.EM.delegate.addListener(id,func,listenerName);
-};
-pagent.model.EM.listenOnce = function(id,func,listenerName) {
-	return pagent.model.EM.delegate.listenOnce(id,func,listenerName);
-};
-pagent.model.EM.removeListener = function(id,listenerUid) {
-	pagent.model.EM.delegate.removeListener(id,listenerUid);
-};
-pagent.model.EM.change = function(id,t) {
-	pagent.model.EM.delegate.change(id,t);
-};
-pagent.model.Nothing = function() { };
-$hxClasses["pagent.model.Nothing"] = pagent.model.Nothing;
-pagent.model.Nothing.__name__ = ["pagent","model","Nothing"];
-pagent.pages = {};
-pagent.pages.PinterPage = function(opts) {
-	var _g = this;
-	m3.jq.pages.Page.call(this,opts);
-	this.pageBeforeShow = function(screen) {
-		m3.log.Logga.get_DEFAULT().debug("pageBeforeShow " + _g.id);
-		var justReloaded = false;
-		var fcn = function() {
-			try {
-				_g.options.pageBeforeShowFcn(screen);
-			} catch( err ) {
-				m3.log.Logga.get_DEFAULT().error("Error showing " + _g.options.id,m3.log.Logga.getExceptionInst(err));
-				m3.util.JqueryUtil.alert("There was a problem showing this screen.","Error");
-				return;
-			}
-			justReloaded = false;
-		};
-		if(pagent.PinterContext.APP_INITIALIZED) fcn(); else {
-			m3.log.Logga.get_DEFAULT().debug(_g.get_nonCssId() + " is holdingOnInitialization");
-			_g.holdingOnInitialization = true;
-			pagent.model.EM.listenOnce(pagent.model.EMEvent.APP_INITIALIZED,function(n) {
-				justReloaded = true;
-				fcn();
-				_g.holdingOnInitialization = false;
-				pagent.AppContext.LOGGER.debug(_g.get_nonCssId() + " is no longer holdingOnInitialization");
-			},"PageBefore-AppInitialized");
-		}
-	};
-};
-$hxClasses["pagent.pages.PinterPage"] = pagent.pages.PinterPage;
-pagent.pages.PinterPage.__name__ = ["pagent","pages","PinterPage"];
-pagent.pages.PinterPage.__super__ = m3.jq.pages.Page;
-pagent.pages.PinterPage.prototype = $extend(m3.jq.pages.Page.prototype,{
-	initializePageContents: function(pageDiv) {
-		if(pageDiv == null) pageDiv = new $(this.id);
-		m3.jq.pages.Page.prototype.initializePageContents.call(this,pageDiv);
-		var pageContent = new $("<div class='ui-content content'></div>").appendTo(pageDiv);
-	}
-	,__class__: pagent.pages.PinterPage
-});
-pagent.pages.HomeScreen = function() {
-	pagent.pages.PinterPage.call(this,{ id : "#homeScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), reqUser : true, showBackButton : false});
-};
-$hxClasses["pagent.pages.HomeScreen"] = pagent.pages.HomeScreen;
-pagent.pages.HomeScreen.__name__ = ["pagent","pages","HomeScreen"];
-pagent.pages.HomeScreen.__super__ = pagent.pages.PinterPage;
-pagent.pages.HomeScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
-	pageBeforeShowFcn: function(screen) {
-		var content = new $(".content",screen).empty();
-		content.addClass("center");
-		var aliasComp = new $("<div></div>");
-		aliasComp.appendTo(content);
-		aliasComp.aliasComp();
-		var optionBar = new $("<div></div>");
-		optionBar.appendTo(content);
-		optionBar.optionBar();
-		var boardListing = new $("<div></div>");
-		boardListing.appendTo(content);
-		boardListing.boardList();
-	}
-	,__class__: pagent.pages.HomeScreen
-});
-pagent.pages.PinterPageMgr = function() {
-	m3.jq.pages.SinglePageManager.call(this,function() {
-		return pagent.PinterContext.APP_INITIALIZED;
-	},function(fcn) {
-		pagent.model.EM.listenOnce(pagent.model.EMEvent.APP_INITIALIZED,fcn);
+pagent.model.ContentSourceListener = function(mapListener,onBeforeSetContent,widgetCreator,content) {
+	this.mapListener = mapListener;
+	this.onBeforeSetContent = onBeforeSetContent;
+	this.widgetCreator = widgetCreator;
+	this.contentMap = new m3.observable.MappedSet(content,function(content1) {
+		return widgetCreator(content1);
 	});
+	this.contentMap.mapListen(this.mapListener);
+	this.id = m3.util.UidGenerator.create(20);
 };
-$hxClasses["pagent.pages.PinterPageMgr"] = pagent.pages.PinterPageMgr;
-pagent.pages.PinterPageMgr.__name__ = ["pagent","pages","PinterPageMgr"];
-pagent.pages.PinterPageMgr.get_get = function() {
-	if(pagent.pages.PinterPageMgr._instance == null) pagent.pages.PinterPageMgr._instance = new pagent.pages.PinterPageMgr();
-	return pagent.pages.PinterPageMgr._instance;
-};
-pagent.pages.PinterPageMgr.__super__ = m3.jq.pages.SinglePageManager;
-pagent.pages.PinterPageMgr.prototype = $extend(m3.jq.pages.SinglePageManager.prototype,{
-	initClientPages: function() {
-		var pages = this.getScreens();
-		var _g1 = 0;
-		var _g = pages.length;
-		while(_g1 < _g) {
-			var p_ = _g1++;
-			var page = pages[p_];
-			var screen = null;
-			if(!(screen = new $(page.id)).exists()) page.addPageToDom(); else page.initializePageContents(screen);
-		}
+$hxClasses["pagent.model.ContentSourceListener"] = pagent.model.ContentSourceListener;
+pagent.model.ContentSourceListener.__name__ = ["pagent","model","ContentSourceListener"];
+pagent.model.ContentSourceListener.prototype = {
+	destroy: function() {
+		this.contentMap.removeListeners(this.mapListener);
 	}
-	,__class__: pagent.pages.PinterPageMgr
-});
+	,__class__: pagent.model.ContentSourceListener
+};
 var qoid = {};
 qoid.model = {};
 qoid.model.ModelObj = function() {
@@ -5525,6 +5483,354 @@ qoid.model.ModelObjWithIid.identifier = function(t) {
 qoid.model.ModelObjWithIid.__super__ = qoid.model.ModelObj;
 qoid.model.ModelObjWithIid.prototype = $extend(qoid.model.ModelObj.prototype,{
 	__class__: qoid.model.ModelObjWithIid
+});
+pagent.model.EM = function() { };
+$hxClasses["pagent.model.EM"] = pagent.model.EM;
+pagent.model.EM.__name__ = ["pagent","model","EM"];
+pagent.model.EM.addListener = function(id,func,listenerName) {
+	return pagent.model.EM.delegate.addListener(id,func,listenerName);
+};
+pagent.model.EM.listenOnce = function(id,func,listenerName) {
+	return pagent.model.EM.delegate.listenOnce(id,func,listenerName);
+};
+pagent.model.EM.removeListener = function(id,listenerUid) {
+	pagent.model.EM.delegate.removeListener(id,listenerUid);
+};
+pagent.model.EM.change = function(id,t) {
+	pagent.model.EM.delegate.change(id,t);
+};
+qoid.model.Content = function(contentType,type) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.contentType = contentType;
+	if(pagent.AppContext.currentAlias == null) this.aliasIid = null; else this.aliasIid = pagent.AppContext.currentAlias.iid;
+	this.data = { };
+	this.type = type;
+	this.props = Type.createInstance(type,[]);
+	this.metaData = new qoid.model.ContentMetaData();
+};
+$hxClasses["qoid.model.Content"] = qoid.model.Content;
+qoid.model.Content.__name__ = ["qoid","model","Content"];
+qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	setData: function(data) {
+		this.data = data;
+	}
+	,readResolve: function() {
+		this.props = pagent.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
+	}
+	,writeResolve: function() {
+		this.data = pagent.AppContext.SERIALIZER.toJson(this.props);
+	}
+	,getTimestamp: function() {
+		return DateTools.format(this.created,"%Y-%m-%d %T");
+	}
+	,objectType: function() {
+		return "content";
+	}
+	,__class__: qoid.model.Content
+});
+pagent.model.ContentSource = function() { };
+$hxClasses["pagent.model.ContentSource"] = pagent.model.ContentSource;
+pagent.model.ContentSource.__name__ = ["pagent","model","ContentSource"];
+pagent.model.ContentSource.addListener = function(ml,obsc,wc) {
+	var l = new pagent.model.ContentSourceListener(ml,obsc,wc,pagent.model.ContentSource.filteredContent);
+	pagent.model.ContentSource.listeners.push(l);
+	return l.id;
+};
+pagent.model.ContentSource.removeListener = function(id) {
+	var i = m3.helper.ArrayHelper.indexOfComplex(pagent.model.ContentSource.listeners,id,"id");
+	if(i > -1) {
+		pagent.model.ContentSource.listeners[i].destroy();
+		pagent.model.ContentSource.listeners.splice(i,1);
+	}
+};
+pagent.model.ContentSource.addContent = function(results,connectionIid) {
+	var iids = new Array();
+	var connectionIids = new Array();
+	var _g = 0;
+	while(_g < results.length) {
+		var result = results[_g];
+		++_g;
+		var c = pagent.AppContext.SERIALIZER.fromJsonX(result,qoid.model.Content);
+		if(c != null) {
+			if(connectionIid != null) {
+				c.aliasIid = null;
+				c.connectionIid = connectionIid;
+			}
+			pagent.model.ContentSource.filteredContent.addOrUpdate(c);
+		}
+	}
+};
+pagent.model.ContentSource.onLoadFilteredContent = function(data) {
+	if(pagent.model.ContentSource.handle == data.handle) pagent.model.ContentSource.addContent(data.results,data.connectionIid); else {
+		pagent.model.ContentSource.clearQuery();
+		pagent.model.ContentSource.handle = data.handle;
+		pagent.model.ContentSource.beforeSetContent();
+		pagent.model.ContentSource.addContent(data.results,data.connectionIid);
+	}
+};
+pagent.model.ContentSource.clearQuery = function() {
+	if(pagent.model.ContentSource.handle != null) {
+		m3.log.Logga.get_DEFAULT().warn("deregisterSqueries");
+		pagent.model.ContentSource.filteredContent.clear();
+		pagent.model.ContentSource.handle = null;
+	}
+};
+pagent.model.ContentSource.onAppendFilteredContent = function(data) {
+	pagent.model.ContentSource.addContent(data.results,data.connectionIid);
+};
+pagent.model.ContentSource.onAliasLoaded = function(alias) {
+	pagent.model.ContentSource.clearQuery();
+};
+pagent.model.ContentSource.beforeSetContent = function() {
+	var _g = 0;
+	var _g1 = pagent.model.ContentSource.listeners;
+	while(_g < _g1.length) {
+		var l = _g1[_g];
+		++_g;
+		l.onBeforeSetContent();
+	}
+};
+pagent.model.EMEvent = function() { };
+$hxClasses["pagent.model.EMEvent"] = pagent.model.EMEvent;
+pagent.model.EMEvent.__name__ = ["pagent","model","EMEvent"];
+pagent.model.Nothing = function() { };
+$hxClasses["pagent.model.Nothing"] = pagent.model.Nothing;
+pagent.model.Nothing.__name__ = ["pagent","model","Nothing"];
+pagent.pages = {};
+pagent.pages.PinterPage = function(opts) {
+	var _g = this;
+	m3.jq.pages.Page.call(this,opts);
+	this.pageBeforeShow = function(screen) {
+		m3.log.Logga.get_DEFAULT().debug("pageBeforeShow " + _g.id);
+		var justReloaded = false;
+		var fcn = function() {
+			try {
+				_g.options.pageBeforeShowFcn(screen);
+			} catch( err ) {
+				m3.log.Logga.get_DEFAULT().error("Error showing " + _g.options.id,m3.log.Logga.getExceptionInst(err));
+				m3.util.JqueryUtil.alert("There was a problem showing this screen.","Error");
+				return;
+			}
+			justReloaded = false;
+		};
+		if(pagent.PinterContext.APP_INITIALIZED) fcn(); else {
+			m3.log.Logga.get_DEFAULT().debug(_g.get_nonCssId() + " is holdingOnInitialization");
+			_g.holdingOnInitialization = true;
+			pagent.model.EM.listenOnce("APP_INITIALIZED",function(n) {
+				justReloaded = true;
+				fcn();
+				_g.holdingOnInitialization = false;
+				pagent.AppContext.LOGGER.debug(_g.get_nonCssId() + " is no longer holdingOnInitialization");
+			},"PageBefore-AppInitialized");
+		}
+	};
+};
+$hxClasses["pagent.pages.PinterPage"] = pagent.pages.PinterPage;
+pagent.pages.PinterPage.__name__ = ["pagent","pages","PinterPage"];
+pagent.pages.PinterPage.__super__ = m3.jq.pages.Page;
+pagent.pages.PinterPage.prototype = $extend(m3.jq.pages.Page.prototype,{
+	initializePageContents: function(pageDiv) {
+		if(pageDiv == null) pageDiv = new $(this.id);
+		m3.jq.pages.Page.prototype.initializePageContents.call(this,pageDiv);
+		var pageContent = new $("<div class='ui-content content'></div>").appendTo(pageDiv);
+	}
+	,__class__: pagent.pages.PinterPage
+});
+pagent.pages.BoardScreen = function() {
+	pagent.pages.PinterPage.call(this,{ id : "#boardScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), pageHideFcn : $bind(this,this.pageHideFcn), reqUser : true});
+};
+$hxClasses["pagent.pages.BoardScreen"] = pagent.pages.BoardScreen;
+pagent.pages.BoardScreen.__name__ = ["pagent","pages","BoardScreen"];
+pagent.pages.BoardScreen.__super__ = pagent.pages.PinterPage;
+pagent.pages.BoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var _g = this;
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		this.labelSet = new m3.observable.FilteredSet(pagent.AppContext.LABELS,function(l) {
+			return l.iid == pagent.PinterContext.CURRENT_BOARD;
+		});
+		this.labelSetListener = function(label,evt) {
+			if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
+			if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
+		};
+		this.labelSet.listen(this.labelSetListener,true);
+	}
+	,_applyAlbumToScreen: function(screen,label) {
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		var boardDetails = new $("<div></div>");
+		boardDetails.appendTo(content);
+		boardDetails.boardDetails({ label : label, parentIid : pagent.PinterContext.get_ROOT_BOARD().iid, owner : "Isaiah Ruffner"});
+		var root = new qoid.model.Or();
+		root.type = "ROOT";
+		var path = new Array();
+		path.push(m3.helper.OSetHelper.getElement(pagent.AppContext.LABELS,pagent.AppContext.currentAlias.rootLabelIid).name);
+		path.push(pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS().name);
+		path.push(pagent.PinterContext.get_ROOT_BOARD().name);
+		path.push(label.name);
+		root.addNode(new qoid.model.LabelNode(label,path));
+		var filterData = new qoid.model.FilterData("content");
+		filterData.filter = new qoid.model.Filter(root);
+		filterData.connectionIids = [];
+		filterData.aliasIid = pagent.AppContext.currentAlias.iid;
+		pagent.model.EM.change("FILTER_RUN",filterData);
+		var contentFeed = new $("<div></div>");
+		contentFeed.appendTo(content);
+		contentFeed.pinFeed();
+	}
+	,_noLabel: function(screen) {
+	}
+	,pageHideFcn: function(screen) {
+		this.labelSet.removeListener(this.labelSetListener);
+		this.labelSet = null;
+	}
+	,__class__: pagent.pages.BoardScreen
+});
+pagent.pages.ContentScreen = function() {
+	pagent.pages.PinterPage.call(this,{ id : "#contentScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), pageHideFcn : $bind(this,this.pageHideFcn), reqUser : true, showBackButton : true});
+};
+$hxClasses["pagent.pages.ContentScreen"] = pagent.pages.ContentScreen;
+pagent.pages.ContentScreen.__name__ = ["pagent","pages","ContentScreen"];
+pagent.pages.ContentScreen.__super__ = pagent.pages.PinterPage;
+pagent.pages.ContentScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var _g = this;
+		var contentDiv = new $(".content",screen).empty();
+		contentDiv.addClass("center");
+		var contentId = pagent.PinterContext.CURRENT_MEDIA;
+		this.labelSet = new m3.observable.FilteredSet(pagent.AppContext.LABELS,function(l) {
+			return l.iid == pagent.PinterContext.CURRENT_BOARD;
+		});
+		this.labelSetListener = function(label,evt) {
+			if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
+			if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
+		};
+		this.labelSet.listen(this.labelSetListener,true);
+		var mapListener = function(content,contentComp,evt1) {
+			if(content != null && content.iid == contentId) {
+				_g._content = content;
+				if(evt1.isAdd()) contentComp.appendTo(contentDiv); else if(evt1.isUpdate()) pagent.widget.MediaCompHelper.update(contentComp,content); else if(evt1.isDelete()) contentComp.remove();
+			}
+		};
+		var beforeSetContent = $.noop;
+		var widgetCreator = function(content1) {
+			return new $("<div></div>").mediaComp({ content : content1});
+		};
+		var id = pagent.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
+		this._onDestroy = function() {
+			pagent.model.ContentSource.removeListener(id);
+			_g.labelSet.removeListener(_g.labelSetListener);
+			_g.labelSet = null;
+		};
+	}
+	,_applyAlbumToScreen: function(screen,label) {
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		var leftSideOfPage = new $("<div class='leftWrap'></div>").appendTo(content);
+		var albumDetails = new $("<div></div>");
+		albumDetails.appendTo(leftSideOfPage);
+		albumDetails.boardDetails({ label : label, parentIid : pagent.PinterContext.get_ROOT_BOARD().iid, owner : "Isaiah Ruffner"});
+	}
+	,_noLabel: function(screen) {
+	}
+	,pageHideFcn: function(screen) {
+		if(this._onDestroy != null) this._onDestroy();
+	}
+	,__class__: pagent.pages.ContentScreen
+});
+pagent.pages.FollowersScreen = function() {
+	pagent.pages.PinterPage.call(this,{ id : "#followersScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), reqUser : true, showBackButton : true});
+};
+$hxClasses["pagent.pages.FollowersScreen"] = pagent.pages.FollowersScreen;
+pagent.pages.FollowersScreen.__name__ = ["pagent","pages","FollowersScreen"];
+pagent.pages.FollowersScreen.__super__ = pagent.pages.PinterPage;
+pagent.pages.FollowersScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+	}
+	,__class__: pagent.pages.FollowersScreen
+});
+pagent.pages.FollowingScreen = function() {
+	pagent.pages.PinterPage.call(this,{ id : "#followingScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), reqUser : true, showBackButton : true});
+};
+$hxClasses["pagent.pages.FollowingScreen"] = pagent.pages.FollowingScreen;
+pagent.pages.FollowingScreen.__name__ = ["pagent","pages","FollowingScreen"];
+pagent.pages.FollowingScreen.__super__ = pagent.pages.PinterPage;
+pagent.pages.FollowingScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+	}
+	,__class__: pagent.pages.FollowingScreen
+});
+pagent.pages.HomeScreen = function() {
+	pagent.pages.PinterPage.call(this,{ id : "#homeScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), reqUser : true, showBackButton : false});
+};
+$hxClasses["pagent.pages.HomeScreen"] = pagent.pages.HomeScreen;
+pagent.pages.HomeScreen.__name__ = ["pagent","pages","HomeScreen"];
+pagent.pages.HomeScreen.__super__ = pagent.pages.PinterPage;
+pagent.pages.HomeScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		var aliasComp = new $("<div></div>");
+		aliasComp.appendTo(content);
+		aliasComp.aliasComp();
+		var optionBar = new $("<div></div>");
+		optionBar.appendTo(content);
+		optionBar.optionBar();
+		var boardListing = new $("<div></div>");
+		boardListing.appendTo(content);
+		boardListing.boardList();
+	}
+	,__class__: pagent.pages.HomeScreen
+});
+pagent.pages.SocialScreen = function() {
+	pagent.pages.PinterPage.call(this,{ id : "#socialScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), reqUser : true, showBackButton : false});
+};
+$hxClasses["pagent.pages.SocialScreen"] = pagent.pages.SocialScreen;
+pagent.pages.SocialScreen.__name__ = ["pagent","pages","SocialScreen"];
+pagent.pages.SocialScreen.__super__ = pagent.pages.PinterPage;
+pagent.pages.SocialScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		var boardListing = new $("<div></div>");
+		boardListing.appendTo(content);
+		boardListing.boardList();
+	}
+	,__class__: pagent.pages.SocialScreen
+});
+pagent.pages.PinterPageMgr = function() {
+	m3.jq.pages.SinglePageManager.call(this,function() {
+		return pagent.PinterContext.APP_INITIALIZED;
+	},function(fcn) {
+		pagent.model.EM.listenOnce("APP_INITIALIZED",fcn);
+	});
+};
+$hxClasses["pagent.pages.PinterPageMgr"] = pagent.pages.PinterPageMgr;
+pagent.pages.PinterPageMgr.__name__ = ["pagent","pages","PinterPageMgr"];
+pagent.pages.PinterPageMgr.get_get = function() {
+	if(pagent.pages.PinterPageMgr._instance == null) pagent.pages.PinterPageMgr._instance = new pagent.pages.PinterPageMgr();
+	return pagent.pages.PinterPageMgr._instance;
+};
+pagent.pages.PinterPageMgr.__super__ = m3.jq.pages.SinglePageManager;
+pagent.pages.PinterPageMgr.prototype = $extend(m3.jq.pages.SinglePageManager.prototype,{
+	initClientPages: function() {
+		var pages = this.getScreens();
+		var _g1 = 0;
+		var _g = pages.length;
+		while(_g1 < _g) {
+			var p_ = _g1++;
+			var page = pages[p_];
+			var screen = null;
+			if(!(screen = new $(page.id)).exists()) page.addPageToDom(); else page.initializePageContents(screen);
+		}
+	}
+	,__class__: pagent.pages.PinterPageMgr
 });
 qoid.model.Alias = function() {
 	qoid.model.ModelObjWithIid.call(this);
@@ -5572,11 +5878,66 @@ pagent.widget.BoardCompHelper.__name__ = ["pagent","widget","BoardCompHelper"];
 pagent.widget.BoardCompHelper.getLabel = function(l) {
 	return l.boardComp("getLabel");
 };
+qoid.model.EditLabelData = function(label,parentIid,newParentId) {
+	this.label = label;
+	this.parentIid = parentIid;
+	this.newParentId = newParentId;
+};
+$hxClasses["qoid.model.EditLabelData"] = qoid.model.EditLabelData;
+qoid.model.EditLabelData.__name__ = ["qoid","model","EditLabelData"];
+qoid.model.EditLabelData.prototype = {
+	__class__: qoid.model.EditLabelData
+};
+pagent.widget.CommentsCompHelper = function() { };
+$hxClasses["pagent.widget.CommentsCompHelper"] = pagent.widget.CommentsCompHelper;
+pagent.widget.CommentsCompHelper.__name__ = ["pagent","widget","CommentsCompHelper"];
+pagent.widget.CommentsCompHelper.content = function(cc) {
+	return cc.commentsComp("option","content");
+};
+pagent.widget.CommentsCompHelper.update = function(cc,c) {
+	return cc.commentsComp("update",c);
+};
+qoid.model.ContentType = function() { };
+$hxClasses["qoid.model.ContentType"] = qoid.model.ContentType;
+qoid.model.ContentType.__name__ = ["qoid","model","ContentType"];
+qoid.model.EditContentData = function(content,labelIids) {
+	this.content = content;
+	if(labelIids == null) labelIids = new Array();
+	this.labelIids = labelIids;
+};
+$hxClasses["qoid.model.EditContentData"] = qoid.model.EditContentData;
+qoid.model.EditContentData.__name__ = ["qoid","model","EditContentData"];
+qoid.model.EditContentData.prototype = {
+	__class__: qoid.model.EditContentData
+};
+qoid.model.Label = function(name) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.name = name;
+	this.data = new qoid.model.LabelData();
+};
+$hxClasses["qoid.model.Label"] = qoid.model.Label;
+qoid.model.Label.__name__ = ["qoid","model","Label"];
+qoid.model.Label.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.Label.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Label.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Label
+});
 pagent.widget.ConnectionAvatarHelper = function() { };
 $hxClasses["pagent.widget.ConnectionAvatarHelper"] = pagent.widget.ConnectionAvatarHelper;
 pagent.widget.ConnectionAvatarHelper.__name__ = ["pagent","widget","ConnectionAvatarHelper"];
 pagent.widget.ConnectionAvatarHelper.getAlias = function(c) {
 	return c.connectionAvatar("getAlias");
+};
+pagent.widget.ContentCompHelper = function() { };
+$hxClasses["pagent.widget.ContentCompHelper"] = pagent.widget.ContentCompHelper;
+pagent.widget.ContentCompHelper.__name__ = ["pagent","widget","ContentCompHelper"];
+pagent.widget.ContentCompHelper.content = function(cc) {
+	return cc.contentComp("option","content");
+};
+pagent.widget.ContentCompHelper.update = function(cc,c) {
+	return cc.contentComp("update",c);
 };
 pagent.widget.DialogManager = $hx_exports.pagent.widget.DialogManager = function() { };
 $hxClasses["pagent.widget.DialogManager"] = pagent.widget.DialogManager;
@@ -5612,23 +5973,180 @@ pagent.widget.DialogManager.showCreateAgent = function() {
 pagent.widget.DialogManager.showAliasManager = function() {
 	pagent.widget.DialogManager.showDialog("aliasManagerDialog");
 };
+pagent.widget.MediaCompHelper = function() { };
+$hxClasses["pagent.widget.MediaCompHelper"] = pagent.widget.MediaCompHelper;
+pagent.widget.MediaCompHelper.__name__ = ["pagent","widget","MediaCompHelper"];
+pagent.widget.MediaCompHelper.content = function(cc) {
+	return cc.mediaComp("option","content");
+};
+pagent.widget.MediaCompHelper.update = function(cc,c) {
+	return cc.mediaComp("update",c);
+};
+qoid.model.ContentFactory = function() { };
+$hxClasses["qoid.model.ContentFactory"] = qoid.model.ContentFactory;
+qoid.model.ContentFactory.__name__ = ["qoid","model","ContentFactory"];
+qoid.model.ContentFactory.create = function(contentType,data) {
+	var ret = null;
+	switch(contentType) {
+	case qoid.model.ContentType.AUDIO:
+		var ac = new qoid.model.AudioContent();
+		ac.props.audioSrc = js.Boot.__cast(data , String);
+		ret = ac;
+		break;
+	case qoid.model.ContentType.IMAGE:
+		var ic = new qoid.model.ImageContent();
+		ic.props.imgSrc = js.Boot.__cast(data , String);
+		ret = ic;
+		break;
+	case qoid.model.ContentType.TEXT:
+		var mc = new qoid.model.MessageContent();
+		mc.props.text = js.Boot.__cast(data , String);
+		ret = mc;
+		break;
+	case qoid.model.ContentType.URL:
+		var uc = new qoid.model.UrlContent();
+		uc.props.url = js.Boot.__cast(data , String);
+		ret = uc;
+		break;
+	case qoid.model.ContentType.VERIFICATION:
+		var uc1 = new qoid.model.VerificationContent();
+		uc1.props.text = js.Boot.__cast(data , String);
+		ret = uc1;
+		break;
+	case qoid.model.ContentType.CONFIG:
+		var mc1 = new qoid.model.ConfigContent();
+		mc1.props.defaultImg = js.Boot.__cast(data , String);
+		ret = mc1;
+		break;
+	}
+	return ret;
+};
+qoid.model.AudioContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.AUDIO,qoid.model.AudioContentData);
+};
+$hxClasses["qoid.model.AudioContent"] = qoid.model.AudioContent;
+qoid.model.AudioContent.__name__ = ["qoid","model","AudioContent"];
+qoid.model.AudioContent.__super__ = qoid.model.Content;
+qoid.model.AudioContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.AudioContent
+});
+qoid.model.ContentData = function() {
+};
+$hxClasses["qoid.model.ContentData"] = qoid.model.ContentData;
+qoid.model.ContentData.__name__ = ["qoid","model","ContentData"];
+qoid.model.ContentData.prototype = {
+	__class__: qoid.model.ContentData
+};
+qoid.model.AudioContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.AudioContentData"] = qoid.model.AudioContentData;
+qoid.model.AudioContentData.__name__ = ["qoid","model","AudioContentData"];
+qoid.model.AudioContentData.__super__ = qoid.model.ContentData;
+qoid.model.AudioContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.AudioContentData
+});
+qoid.model.ContentMetaData = function() {
+	this.verifications = new Array();
+};
+$hxClasses["qoid.model.ContentMetaData"] = qoid.model.ContentMetaData;
+qoid.model.ContentMetaData.__name__ = ["qoid","model","ContentMetaData"];
+qoid.model.ContentMetaData.prototype = {
+	__class__: qoid.model.ContentMetaData
+};
+qoid.model.ImageContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.IMAGE,qoid.model.ImageContentData);
+};
+$hxClasses["qoid.model.ImageContent"] = qoid.model.ImageContent;
+qoid.model.ImageContent.__name__ = ["qoid","model","ImageContent"];
+qoid.model.ImageContent.__super__ = qoid.model.Content;
+qoid.model.ImageContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.ImageContent
+});
+qoid.model.ImageContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.ImageContentData"] = qoid.model.ImageContentData;
+qoid.model.ImageContentData.__name__ = ["qoid","model","ImageContentData"];
+qoid.model.ImageContentData.__super__ = qoid.model.ContentData;
+qoid.model.ImageContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.ImageContentData
+});
+qoid.model.MessageContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.TEXT,qoid.model.MessageContentData);
+};
+$hxClasses["qoid.model.MessageContent"] = qoid.model.MessageContent;
+qoid.model.MessageContent.__name__ = ["qoid","model","MessageContent"];
+qoid.model.MessageContent.__super__ = qoid.model.Content;
+qoid.model.MessageContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.MessageContent
+});
+qoid.model.MessageContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.MessageContentData"] = qoid.model.MessageContentData;
+qoid.model.MessageContentData.__name__ = ["qoid","model","MessageContentData"];
+qoid.model.MessageContentData.__super__ = qoid.model.ContentData;
+qoid.model.MessageContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.MessageContentData
+});
+qoid.model.UrlContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.URL,qoid.model.UrlContentData);
+};
+$hxClasses["qoid.model.UrlContent"] = qoid.model.UrlContent;
+qoid.model.UrlContent.__name__ = ["qoid","model","UrlContent"];
+qoid.model.UrlContent.__super__ = qoid.model.Content;
+qoid.model.UrlContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.UrlContent
+});
+qoid.model.UrlContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.UrlContentData"] = qoid.model.UrlContentData;
+qoid.model.UrlContentData.__name__ = ["qoid","model","UrlContentData"];
+qoid.model.UrlContentData.__super__ = qoid.model.ContentData;
+qoid.model.UrlContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.UrlContentData
+});
+qoid.model.VerificationContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.VERIFICATION,qoid.model.VerificationContentData);
+};
+$hxClasses["qoid.model.VerificationContent"] = qoid.model.VerificationContent;
+qoid.model.VerificationContent.__name__ = ["qoid","model","VerificationContent"];
+qoid.model.VerificationContent.__super__ = qoid.model.Content;
+qoid.model.VerificationContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.VerificationContent
+});
+qoid.model.VerificationContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.VerificationContentData"] = qoid.model.VerificationContentData;
+qoid.model.VerificationContentData.__name__ = ["qoid","model","VerificationContentData"];
+qoid.model.VerificationContentData.__super__ = qoid.model.ContentData;
+qoid.model.VerificationContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.VerificationContentData
+});
+qoid.model.ConfigContent = function() {
+	qoid.model.Content.call(this,qoid.model.ContentType.CONFIG,qoid.model.ConfigContentData);
+};
+$hxClasses["qoid.model.ConfigContent"] = qoid.model.ConfigContent;
+qoid.model.ConfigContent.__name__ = ["qoid","model","ConfigContent"];
+qoid.model.ConfigContent.__super__ = qoid.model.Content;
+qoid.model.ConfigContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.ConfigContent
+});
+qoid.model.ConfigContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.ConfigContentData"] = qoid.model.ConfigContentData;
+qoid.model.ConfigContentData.__name__ = ["qoid","model","ConfigContentData"];
+qoid.model.ConfigContentData.__super__ = qoid.model.ContentData;
+qoid.model.ConfigContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.ConfigContentData
+});
 pagent.widget.OptionBarHelper = function() { };
 $hxClasses["pagent.widget.OptionBarHelper"] = pagent.widget.OptionBarHelper;
 pagent.widget.OptionBarHelper.__name__ = ["pagent","widget","OptionBarHelper"];
-qoid.model.Label = function(name) {
-	qoid.model.ModelObjWithIid.call(this);
-	this.name = name;
-	this.data = new qoid.model.LabelData();
-};
-$hxClasses["qoid.model.Label"] = qoid.model.Label;
-qoid.model.Label.__name__ = ["qoid","model","Label"];
-qoid.model.Label.identifier = function(l) {
-	return l.iid;
-};
-qoid.model.Label.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Label.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.Label
-});
 qoid.model.LabelData = function() {
 	qoid.model.ModelObj.call(this);
 	this.color = m3.util.ColorProvider.getNextColor();
@@ -5639,16 +6157,6 @@ qoid.model.LabelData.__super__ = qoid.model.ModelObj;
 qoid.model.LabelData.prototype = $extend(qoid.model.ModelObj.prototype,{
 	__class__: qoid.model.LabelData
 });
-qoid.model.EditLabelData = function(label,parentIid,newParentId) {
-	this.label = label;
-	this.parentIid = parentIid;
-	this.newParentId = newParentId;
-};
-$hxClasses["qoid.model.EditLabelData"] = qoid.model.EditLabelData;
-qoid.model.EditLabelData.__name__ = ["qoid","model","EditLabelData"];
-qoid.model.EditLabelData.prototype = {
-	__class__: qoid.model.EditLabelData
-};
 qoid.api = {};
 qoid.api.ChannelMessage = function() { };
 $hxClasses["qoid.api.ChannelMessage"] = qoid.api.ChannelMessage;
@@ -5947,9 +6455,6 @@ qoid.model.Connection.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	}
 	,__class__: qoid.model.Connection
 });
-qoid.model.ContentType = function() { };
-$hxClasses["qoid.model.ContentType"] = qoid.model.ContentType;
-qoid.model.ContentType.__name__ = ["qoid","model","ContentType"];
 qoid.model.ContentHandler = function() {
 };
 $hxClasses["qoid.model.ContentHandler"] = qoid.model.ContentHandler;
@@ -5983,45 +6488,6 @@ qoid.model.ContentHandler.prototype = {
 	}
 	,__class__: qoid.model.ContentHandler
 };
-qoid.model.ContentFactory = function() { };
-$hxClasses["qoid.model.ContentFactory"] = qoid.model.ContentFactory;
-qoid.model.ContentFactory.__name__ = ["qoid","model","ContentFactory"];
-qoid.model.ContentFactory.create = function(contentType,data) {
-	var ret = null;
-	switch(contentType) {
-	case qoid.model.ContentType.AUDIO:
-		var ac = new qoid.model.AudioContent();
-		ac.props.audioSrc = js.Boot.__cast(data , String);
-		ret = ac;
-		break;
-	case qoid.model.ContentType.IMAGE:
-		var ic = new qoid.model.ImageContent();
-		ic.props.imgSrc = js.Boot.__cast(data , String);
-		ret = ic;
-		break;
-	case qoid.model.ContentType.TEXT:
-		var mc = new qoid.model.MessageContent();
-		mc.props.text = js.Boot.__cast(data , String);
-		ret = mc;
-		break;
-	case qoid.model.ContentType.URL:
-		var uc = new qoid.model.UrlContent();
-		uc.props.url = js.Boot.__cast(data , String);
-		ret = uc;
-		break;
-	case qoid.model.ContentType.VERIFICATION:
-		var uc1 = new qoid.model.VerificationContent();
-		uc1.props.text = js.Boot.__cast(data , String);
-		ret = uc1;
-		break;
-	case qoid.model.ContentType.CONFIG:
-		var mc1 = new qoid.model.ConfigContent();
-		mc1.props.defaultImg = js.Boot.__cast(data , String);
-		ret = mc1;
-		break;
-	}
-	return ret;
-};
 qoid.model.LabeledContent = function(contentIid,labelIid) {
 	qoid.model.ModelObjWithIid.call(this);
 	this.contentIid = contentIid;
@@ -6036,13 +6502,6 @@ qoid.model.LabeledContent.__super__ = qoid.model.ModelObjWithIid;
 qoid.model.LabeledContent.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	__class__: qoid.model.LabeledContent
 });
-qoid.model.ContentData = function() {
-};
-$hxClasses["qoid.model.ContentData"] = qoid.model.ContentData;
-qoid.model.ContentData.__name__ = ["qoid","model","ContentData"];
-qoid.model.ContentData.prototype = {
-	__class__: qoid.model.ContentData
-};
 qoid.model.ContentVerification = function() { };
 $hxClasses["qoid.model.ContentVerification"] = qoid.model.ContentVerification;
 qoid.model.ContentVerification.__name__ = ["qoid","model","ContentVerification"];
@@ -6055,152 +6514,6 @@ qoid.model.VerifiedContentMetaData.__name__ = ["qoid","model","VerifiedContentMe
 qoid.model.VerifiedContentMetaData.prototype = {
 	__class__: qoid.model.VerifiedContentMetaData
 };
-qoid.model.ContentMetaData = function() {
-	this.verifications = new Array();
-};
-$hxClasses["qoid.model.ContentMetaData"] = qoid.model.ContentMetaData;
-qoid.model.ContentMetaData.__name__ = ["qoid","model","ContentMetaData"];
-qoid.model.ContentMetaData.prototype = {
-	__class__: qoid.model.ContentMetaData
-};
-qoid.model.Content = function(contentType,type) {
-	qoid.model.ModelObjWithIid.call(this);
-	this.contentType = contentType;
-	if(pagent.AppContext.currentAlias == null) this.aliasIid = null; else this.aliasIid = pagent.AppContext.currentAlias.iid;
-	this.data = { };
-	this.type = type;
-	this.props = Type.createInstance(type,[]);
-	this.metaData = new qoid.model.ContentMetaData();
-};
-$hxClasses["qoid.model.Content"] = qoid.model.Content;
-qoid.model.Content.__name__ = ["qoid","model","Content"];
-qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	setData: function(data) {
-		this.data = data;
-	}
-	,readResolve: function() {
-		this.props = pagent.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
-	}
-	,writeResolve: function() {
-		this.data = pagent.AppContext.SERIALIZER.toJson(this.props);
-	}
-	,getTimestamp: function() {
-		return DateTools.format(this.created,"%Y-%m-%d %T");
-	}
-	,objectType: function() {
-		return "content";
-	}
-	,__class__: qoid.model.Content
-});
-qoid.model.ImageContentData = function() {
-	qoid.model.ContentData.call(this);
-};
-$hxClasses["qoid.model.ImageContentData"] = qoid.model.ImageContentData;
-qoid.model.ImageContentData.__name__ = ["qoid","model","ImageContentData"];
-qoid.model.ImageContentData.__super__ = qoid.model.ContentData;
-qoid.model.ImageContentData.prototype = $extend(qoid.model.ContentData.prototype,{
-	__class__: qoid.model.ImageContentData
-});
-qoid.model.ImageContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.IMAGE,qoid.model.ImageContentData);
-};
-$hxClasses["qoid.model.ImageContent"] = qoid.model.ImageContent;
-qoid.model.ImageContent.__name__ = ["qoid","model","ImageContent"];
-qoid.model.ImageContent.__super__ = qoid.model.Content;
-qoid.model.ImageContent.prototype = $extend(qoid.model.Content.prototype,{
-	__class__: qoid.model.ImageContent
-});
-qoid.model.AudioContentData = function() {
-	qoid.model.ContentData.call(this);
-};
-$hxClasses["qoid.model.AudioContentData"] = qoid.model.AudioContentData;
-qoid.model.AudioContentData.__name__ = ["qoid","model","AudioContentData"];
-qoid.model.AudioContentData.__super__ = qoid.model.ContentData;
-qoid.model.AudioContentData.prototype = $extend(qoid.model.ContentData.prototype,{
-	__class__: qoid.model.AudioContentData
-});
-qoid.model.AudioContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.AUDIO,qoid.model.AudioContentData);
-};
-$hxClasses["qoid.model.AudioContent"] = qoid.model.AudioContent;
-qoid.model.AudioContent.__name__ = ["qoid","model","AudioContent"];
-qoid.model.AudioContent.__super__ = qoid.model.Content;
-qoid.model.AudioContent.prototype = $extend(qoid.model.Content.prototype,{
-	__class__: qoid.model.AudioContent
-});
-qoid.model.MessageContentData = function() {
-	qoid.model.ContentData.call(this);
-};
-$hxClasses["qoid.model.MessageContentData"] = qoid.model.MessageContentData;
-qoid.model.MessageContentData.__name__ = ["qoid","model","MessageContentData"];
-qoid.model.MessageContentData.__super__ = qoid.model.ContentData;
-qoid.model.MessageContentData.prototype = $extend(qoid.model.ContentData.prototype,{
-	__class__: qoid.model.MessageContentData
-});
-qoid.model.MessageContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.TEXT,qoid.model.MessageContentData);
-};
-$hxClasses["qoid.model.MessageContent"] = qoid.model.MessageContent;
-qoid.model.MessageContent.__name__ = ["qoid","model","MessageContent"];
-qoid.model.MessageContent.__super__ = qoid.model.Content;
-qoid.model.MessageContent.prototype = $extend(qoid.model.Content.prototype,{
-	__class__: qoid.model.MessageContent
-});
-qoid.model.ConfigContentData = function() {
-	qoid.model.ContentData.call(this);
-};
-$hxClasses["qoid.model.ConfigContentData"] = qoid.model.ConfigContentData;
-qoid.model.ConfigContentData.__name__ = ["qoid","model","ConfigContentData"];
-qoid.model.ConfigContentData.__super__ = qoid.model.ContentData;
-qoid.model.ConfigContentData.prototype = $extend(qoid.model.ContentData.prototype,{
-	__class__: qoid.model.ConfigContentData
-});
-qoid.model.ConfigContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.CONFIG,qoid.model.ConfigContentData);
-};
-$hxClasses["qoid.model.ConfigContent"] = qoid.model.ConfigContent;
-qoid.model.ConfigContent.__name__ = ["qoid","model","ConfigContent"];
-qoid.model.ConfigContent.__super__ = qoid.model.Content;
-qoid.model.ConfigContent.prototype = $extend(qoid.model.Content.prototype,{
-	__class__: qoid.model.ConfigContent
-});
-qoid.model.UrlContentData = function() {
-	qoid.model.ContentData.call(this);
-};
-$hxClasses["qoid.model.UrlContentData"] = qoid.model.UrlContentData;
-qoid.model.UrlContentData.__name__ = ["qoid","model","UrlContentData"];
-qoid.model.UrlContentData.__super__ = qoid.model.ContentData;
-qoid.model.UrlContentData.prototype = $extend(qoid.model.ContentData.prototype,{
-	__class__: qoid.model.UrlContentData
-});
-qoid.model.UrlContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.URL,qoid.model.UrlContentData);
-};
-$hxClasses["qoid.model.UrlContent"] = qoid.model.UrlContent;
-qoid.model.UrlContent.__name__ = ["qoid","model","UrlContent"];
-qoid.model.UrlContent.__super__ = qoid.model.Content;
-qoid.model.UrlContent.prototype = $extend(qoid.model.Content.prototype,{
-	__class__: qoid.model.UrlContent
-});
-qoid.model.VerificationContentData = function() {
-	qoid.model.ContentData.call(this);
-};
-$hxClasses["qoid.model.VerificationContentData"] = qoid.model.VerificationContentData;
-qoid.model.VerificationContentData.__name__ = ["qoid","model","VerificationContentData"];
-qoid.model.VerificationContentData.__super__ = qoid.model.ContentData;
-qoid.model.VerificationContentData.prototype = $extend(qoid.model.ContentData.prototype,{
-	__class__: qoid.model.VerificationContentData
-});
-qoid.model.VerificationContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.VERIFICATION,qoid.model.VerificationContentData);
-};
-$hxClasses["qoid.model.VerificationContent"] = qoid.model.VerificationContent;
-qoid.model.VerificationContent.__name__ = ["qoid","model","VerificationContent"];
-qoid.model.VerificationContent.__super__ = qoid.model.Content;
-qoid.model.VerificationContent.prototype = $extend(qoid.model.Content.prototype,{
-	__class__: qoid.model.VerificationContent
-});
 qoid.model.NotificationHandler = function() {
 };
 $hxClasses["qoid.model.NotificationHandler"] = qoid.model.NotificationHandler;
@@ -6366,16 +6679,6 @@ qoid.model.NewUser.__super__ = qoid.model.ModelObj;
 qoid.model.NewUser.prototype = $extend(qoid.model.ModelObj.prototype,{
 	__class__: qoid.model.NewUser
 });
-qoid.model.EditContentData = function(content,labelIids) {
-	this.content = content;
-	if(labelIids == null) labelIids = new Array();
-	this.labelIids = labelIids;
-};
-$hxClasses["qoid.model.EditContentData"] = qoid.model.EditContentData;
-qoid.model.EditContentData.__name__ = ["qoid","model","EditContentData"];
-qoid.model.EditContentData.prototype = {
-	__class__: qoid.model.EditContentData
-};
 qoid.model.VerificationRequest = function(contentIid,connectionIids,message) {
 	this.message = message;
 	this.contentIid = contentIid;
@@ -6700,20 +7003,13 @@ m3.util.ColorProvider._COLORS.push("#CCC45C");
 m3.util.ColorProvider._COLORS.push("#CC8C5C");
 m3.util.ColorProvider._LAST_COLORS_USED = new m3.util.FixedSizeArray(10);
 pagent.model.EM.delegate = m3.event.EventManager.get_instance();
+pagent.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+pagent.model.ContentSource.listeners = new Array();
+pagent.model.EM.addListener("AliasLoaded",pagent.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
+pagent.model.EM.addListener("LoadFilteredContent",pagent.model.ContentSource.onLoadFilteredContent,"ContentSource-LoadFilteredContent");
+pagent.model.EM.addListener("AppendFilteredContent",pagent.model.ContentSource.onAppendFilteredContent,"ContentSource-AppendFilteredContent");
 var defineWidget = function() {
-	return { options : { isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
-		if(containment == null) containment = false;
-		if(isDragByHelper == null) isDragByHelper = false;
-		var connectionAvatar;
-		connectionAvatar = js.Boot.__cast(filterableComp , $);
-		if(connectionAvatar.hasClass("clone")) return connectionAvatar;
-		var clone = new $("<div class='clone'></div>");
-		clone.connectionAvatar({ connectionIid : connectionAvatar.connectionAvatar("option","connectionIid"), aliasIid : connectionAvatar.connectionAvatar("option","aliasIid"), isDragByHelper : isDragByHelper, containment : containment, dragstop : dragstop, classes : connectionAvatar.connectionAvatar("option","classes"), cloneFcn : connectionAvatar.connectionAvatar("option","cloneFcn"), dropTargetClass : connectionAvatar.connectionAvatar("option","dropTargetClass"), helperFcn : connectionAvatar.connectionAvatar("option","helperFcn")});
-		return clone;
-	}, dropTargetClass : "connectionDT", helperFcn : function() {
-		var clone1 = $(this).clone();
-		return clone1.children("img").addClass("connectionDraggingImg");
-	}}, getAlias : function() {
+	return { options : { }, getAlias : function() {
 		var self = this;
 		return m3.helper.OSetHelper.getElement(pagent.AppContext.ALIASES,self.options.aliasIid);
 	}, _create : function() {
@@ -6728,12 +7024,23 @@ var defineWidget = function() {
 		var img = new $("<img class=''/>");
 		selfElement.append(img);
 		self1._updateWidgets(new qoid.model.Profile());
-		if(self1.options.aliasIid != null) {
+		if(self1.options.connectionIid != null) {
+			self1.filteredSetConnection = new m3.observable.FilteredSet(pagent.AppContext.CONNECTIONS,function(c) {
+				return c.iid == self1.options.connectionIid;
+			});
+			self1._onUpdateConnection = function(c1,evt) {
+				if(evt.isAddOrUpdate()) self1._updateWidgets(c1.data); else if(evt.isDelete()) {
+					self1.destroy();
+					selfElement.remove();
+				}
+			};
+			self1.filteredSetConnection.listen(self1._onUpdateConnection);
+		} else if(self1.options.aliasIid != null) {
 			self1.filteredSetAlias = new m3.observable.FilteredSet(pagent.AppContext.ALIASES,function(a) {
 				return a.iid == self1.options.aliasIid;
 			});
-			self1._onUpdateAlias = function(a1,evt) {
-				if(evt.isAddOrUpdate()) self1._updateWidgets(a1.profile); else if(evt.isDelete()) {
+			self1._onUpdateAlias = function(a1,evt1) {
+				if(evt1.isAddOrUpdate()) self1._updateWidgets(a1.profile); else if(evt1.isDelete()) {
 					self1.destroy();
 					selfElement.remove();
 				}
@@ -6741,7 +7048,7 @@ var defineWidget = function() {
 			self1.filteredSetAlias.listen(self1._onUpdateAlias);
 		} else pagent.AppContext.LOGGER.warn("AliasIid is not set for Avatar");
 		(js.Boot.__cast(selfElement , $)).tooltip();
-		if(!self1.options.dndEnabled) img.mousedown(function(evt1) {
+		if(!self1.options.dndEnabled) img.mousedown(function(evt2) {
 			return false;;
 		});
 	}, _updateWidgets : function(profile) {
@@ -6767,6 +7074,7 @@ var defineWidget = function() {
 			}
 			return $r;
 		}(this)));
+		if(self2.options.onProfileUpdate != null) self2.options.onProfileUpdate(profile);
 	}, destroy : function() {
 		var self3 = this;
 		if(self3.filteredSetConnection != null) self3.filteredSetConnection.removeListener(self3._onUpdateConnection); else if(self3.filteredSetAlias != null) self3.filteredSetAlias.removeListener(self3._onUpdateAlias);
@@ -6785,7 +7093,7 @@ var defineWidget = function() {
 		selfElement.append(self.userIdTxt);
 		self.userIdTxt.html("...");
 		self._setAlias(new qoid.model.Alias());
-		self.aliasLoadedListener = pagent.model.EM.addListener(pagent.model.EMEvent.AliasLoaded,function(alias) {
+		self.aliasLoadedListener = pagent.model.EM.addListener("AliasLoaded",function(alias) {
 			self._setAlias(alias);
 		},"AliasComp-Alias");
 		self._onupdate = function(alias1,t) {
@@ -6823,7 +7131,7 @@ var defineWidget = function() {
 		var self3 = this;
 		if(self3.aliasSet != null) self3.aliasSet.removeListener(self3._onupdate);
 		if(self3.profileSet != null) self3.profileSet.removeListener(self3._onupdateProfile);
-		pagent.model.EM.removeListener(pagent.model.EMEvent.AliasLoaded,self3.aliasLoadedListener);
+		pagent.model.EM.removeListener("AliasLoaded",self3.aliasLoadedListener);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -6880,6 +7188,198 @@ var defineWidget = function() {
 };
 $.widget("ui.boardComp",defineWidget());
 var defineWidget = function() {
+	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of Popup must be a div element");
+		selfElement.addClass("ocontainer shadow popup");
+		if(!self.options.modal) new $("body").one("click",function(evt) {
+			selfElement.remove();
+			self.destroy();
+		});
+		self.options.createFcn(selfElement);
+		selfElement.position({ my : "left top", at : "right bottom", of : self.options.positionalElement});
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.popup",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AlbumDetails must be a div element");
+		selfElement.addClass("_boardDetails");
+		self.nameDiv = new $("<div class='labelNameWrapper'></div>").appendTo(selfElement);
+		self.nameDiv.append("<span class='boardLabel'>" + self.options.label.name + "</span>");
+		var bar = new $("<div class='optionBar ui-widget-content ui-corner-all'></div>").appendTo(selfElement);
+		bar.append("<div class='fleft boardOwner'>" + self.options.owner + "</div>");
+		var editButton = new $("<button class='center'>Edit Board</button>").appendTo(bar).button().click(function(evt) {
+			evt.stopPropagation();
+			self._showEditPopup($(this));
+		});
+		var dotButton = new $("<button class='center'>1 Degree of Trust</button>").appendTo(bar).button().click(function(evt1) {
+			evt1.stopPropagation();
+			self._showDotPopup($(this));
+		});
+		var accessButton = new $("<button class='center'>Access Control</button>").appendTo(bar).button().click(function(evt2) {
+			evt2.stopPropagation();
+			self._showAccessPopup($(this));
+		});
+		var pins = new $("<div class='fright pinCount'> 0 pins </div>").appendTo(bar);
+	}, _showEditPopup : function(positionalElem) {
+		var self1 = this;
+		var selfElement1 = this.element;
+		var popup = new $("<div class='updateLabelPopup' style='position: absolute;width:300px;'></div>");
+		popup.appendTo(selfElement1);
+		popup = popup.popup({ createFcn : function(el) {
+			var updateLabel = null;
+			var stopFcn = function(evt3) {
+				evt3.stopPropagation();
+			};
+			var enterFcn = function(evt4) {
+				if(evt4.keyCode == 13) updateLabel();
+			};
+			var container = new $("<div class='icontainer'></div>").appendTo(el);
+			container.click(stopFcn).keypress(enterFcn);
+			var parent = null;
+			container.append("<label for='labelName'>Name: </label> ");
+			var input = new $("<input id='labelName' class='ui-corner-all ui-widget-content' style='font-size: 20px;' value='New Label'/>").appendTo(container);
+			input.keypress(enterFcn).click(function(evt5) {
+				evt5.stopPropagation();
+				if($(this).val() == "New Board") $(this).val("");
+			}).focus();
+			var buttonText = "Update Board";
+			input.val(self1.options.label.name);
+			container.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt6) {
+				updateLabel();
+			});
+			new $("<button class='fleft ui-helper-clearfix' style='font-size: .8em;'>Delete Board</button>").button().appendTo(container).click(function(evt7) {
+				m3.util.JqueryUtil.confirm("Delete Board","Are you sure you want to delete this board?",function() {
+					pagent.model.EM.change("DeleteLabel",new qoid.model.EditLabelData(self1.options.label,self1.options.parentIid));
+				});
+			});
+			updateLabel = function() {
+				if(input.val().length == 0) return;
+				var label = self1.options.label;
+				pagent.AppContext.LOGGER.info("Update label | " + label.iid);
+				label.name = input.val();
+				var eventData = new qoid.model.EditLabelData(label);
+				pagent.model.EM.change("UpdateLabel",eventData);
+				new $("body").click();
+			};
+		}, positionalElement : positionalElem});
+	}, _showDotPopup : function(positionalElem1) {
+		var self2 = this;
+		var selfElement2 = this.element;
+		var popup1 = new $("<div class='updateDotPopup' style='position: absolute;width:300px;'></div>");
+		popup1.appendTo(selfElement2);
+		popup1 = popup1.popup({ createFcn : function(el1) {
+			var updateDot = null;
+			var stopFcn1 = function(evt8) {
+				evt8.stopPropagation();
+			};
+			var enterFcn1 = function(evt9) {
+				if(evt9.keyCode == 13) updateDot();
+			};
+			var container1 = new $("<div class='icontainer'></div>").appendTo(el1);
+			container1.click(stopFcn1).keypress(enterFcn1);
+			var parent1 = null;
+			container1.append("<label for='labelName'>Degrees of Trust: </label> ");
+			var input1 = new $("<input id='labelName' type='number' min='1' max='5' class='ui-corner-all ui-widget-content' style='font-size: 20px;' value=''/>").appendTo(container1);
+			input1.keypress(enterFcn1).click(function(evt10) {
+				evt10.stopPropagation();
+				if($(this).val() == "New Board") $(this).val("");
+			}).focus();
+			var buttonText1 = "Update Trust";
+			input1.val(self2.options.label.name);
+			container1.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText1 + "</button>").button().appendTo(container1).click(function(evt11) {
+				updateDot();
+			});
+			updateDot = function() {
+				if(input1.val().length == 0) return;
+				var label1 = self2.options.label;
+				pagent.AppContext.LOGGER.info("Update label | " + label1.iid);
+				label1.name = input1.val();
+				var eventData1 = new qoid.model.EditLabelData(label1);
+				pagent.model.EM.change("UpdateLabel",eventData1);
+				new $("body").click();
+			};
+		}, positionalElement : positionalElem1});
+	}, _showAccessPopup : function(positionalElem2) {
+		var self3 = this;
+		var selfElement3 = this.element;
+		var popup2 = new $("<div class='updateAccessPopup' style='position: absolute;width:300px;'></div>");
+		popup2.appendTo(selfElement3);
+		popup2 = popup2.popup({ createFcn : function(el2) {
+			var updateDot1 = null;
+			var stopFcn2 = function(evt12) {
+				evt12.stopPropagation();
+			};
+			var container2 = new $("<div class='icontainer'></div>").appendTo(el2);
+			container2.click(stopFcn2);
+			container2.append("<label for='' style='font-size: 18px;'>Connections with Access: <br/>(Click to remove)</label> ");
+			var connectionsContainer = new $("<div class='connectionsContainer'></div>").appendTo(el2);
+			new $("<button>Grant Access</button>").button().appendTo(el2).click(function(evt13) {
+				evt13.stopPropagation();
+				window.document.body.click();
+				self3._showAddAccessPopup(positionalElem2);
+			});
+			var labels = m3.helper.OSetHelper.getElement(pagent.AppContext.LABELACLS_ByLabel,pagent.PinterContext.CURRENT_BOARD);
+			if(labels != null) Lambda.iter(labels,function(l) {
+				var connectionDiv = new $("<div class='connectionDiv ui-corner-all ui-state-active'></div>").appendTo(connectionsContainer).click(function(evt14) {
+					var parms = { connectionIid : l.connectionIid, labelIid : self3.options.label.iid};
+					pagent.model.EM.change("RevokeAccess",parms);
+				});
+				var connAvatar = new $("<div></div>");
+				connAvatar.appendTo(connectionDiv);
+				var nameDiv = new $("<div></div>").appendTo(connectionDiv);
+				connAvatar.connectionAvatar({ connectionIid : l.connectionIid, onProfileUpdate : function(p) {
+					nameDiv.empty().append(p.name);
+				}});
+			});
+		}, positionalElement : positionalElem2});
+	}, _showAddAccessPopup : function(positionalElem3) {
+		var self4 = this;
+		var selfElement4 = this.element;
+		var popup3 = new $("<div class='addAccessPopup' style='position: absolute;width:300px;'></div>");
+		popup3.appendTo(selfElement4);
+		popup3 = popup3.popup({ createFcn : function(el3) {
+			var updateDot2 = null;
+			var stopFcn3 = function(evt15) {
+				evt15.stopPropagation();
+			};
+			var container3 = new $("<div class='icontainer'></div>").appendTo(el3);
+			container3.click(stopFcn3);
+			container3.append("<label for='' style='font-size: 18px;'>Click Connection to Grant Access: </label> ");
+			var connectionsContainer1 = new $("<div class='connectionsContainer'></div>").appendTo(el3);
+			var labels1 = m3.helper.OSetHelper.getElement(pagent.AppContext.LABELACLS_ByLabel,pagent.PinterContext.CURRENT_BOARD);
+			var connections = pagent.AppContext.CONNECTIONS.filter(function(c) {
+				return labels1 == null || m3.helper.OSetHelper.getElementComplex(labels1,c.iid,function(l1) {
+					return l1.connectionIid;
+				}) == null;
+			});
+			if(connections != null) Lambda.iter(connections,function(c1) {
+				var connectionDiv1 = new $("<div class='connectionDiv ui-corner-all ui-state-active'></div>").appendTo(connectionsContainer1).click(function(evt16) {
+					var parms1 = { connectionIid : c1.iid, labelIid : self4.options.label.iid};
+					pagent.model.EM.change("GrantAccess",parms1);
+				});
+				var connAvatar1 = new $("<div></div>");
+				connAvatar1.appendTo(connectionDiv1);
+				var nameDiv1 = new $("<div></div>").appendTo(connectionDiv1);
+				connAvatar1.connectionAvatar({ connectionIid : c1.iid, onProfileUpdate : function(p1) {
+					nameDiv1.empty().append(p1.name);
+				}});
+			});
+		}, positionalElement : positionalElem3});
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.boardDetails",defineWidget());
+var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -6907,28 +7407,301 @@ var defineWidget = function() {
 		self.mappedLabels.listen(self.onchangeLabelChildren);
 	}, destroy : function() {
 		var self1 = this;
-		pagent.model.EM.removeListener(pagent.model.EMEvent.AliasLoaded,self1.listenerId);
+		pagent.model.EM.removeListener("AliasLoaded",self1.listenerId);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
 $.widget("ui.boardList",defineWidget());
 var defineWidget = function() {
-	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
+	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of Popup must be a div element");
-		selfElement.addClass("ocontainer shadow popup");
-		if(!self.options.modal) new $("body").one("click",function(evt) {
-			selfElement.remove();
-			self.destroy();
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentComp must be a div element");
+		selfElement.addClass("contentComp ui-corner-all " + m3.widget.Widgets.getWidgetClasses());
+		selfElement.click(function(evt) {
+			pagent.PinterContext.CURRENT_MEDIA = self.options.content.iid;
+			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.CONTENT_SCREEN);
 		});
-		self.options.createFcn(selfElement);
-		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
+		self._createWidgets(selfElement,self);
+		pagent.model.EM.addListener("EditContentClosed",function(content) {
+			if(content.iid == self.options.content.iid) selfElement.show();
+		});
+	}, _createWidgets : function(selfElement1,self1) {
+		selfElement1.empty();
+		var content1 = self1.options.content;
+		var _g = content1.contentType;
+		switch(_g) {
+		case qoid.model.ContentType.IMAGE:
+			var img;
+			img = js.Boot.__cast(content1 , qoid.model.ImageContent);
+			selfElement1.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
+			var captionDiv = new $("<div class='caption ui-corner-bottom'></div>").appendTo(selfElement1);
+			if(m3.helper.StringHelper.isNotBlank(img.props.caption)) captionDiv.append(img.props.caption); else {
+			}
+			break;
+		default:
+			pagent.AppContext.LOGGER.debug("Only image content should be displayed");
+		}
+	}, update : function(content2) {
+		var self2 = this;
+		var selfElement2 = this.element;
+		var showButtonBlock = self2.buttonBlock.isVisible();
+		self2.options.content = content2;
+		self2._createWidgets(selfElement2,self2);
+		if(showButtonBlock) self2.buttonBlock.show();
+		selfElement2.show();
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.popup",defineWidget());
+$.widget("ui.contentComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of CommentsComp must be a div element");
+		selfElement.addClass("_commentsComp " + m3.widget.Widgets.getWidgetClasses());
+		self._createWidgets(selfElement,self);
+	}, _createWidgets : function(selfElement1,self1) {
+		selfElement1.empty();
+		var content = self1.options.content;
+		if(m3.helper.StringHelper.isNotBlank(content.props.caption)) self1._addComment(content.props.caption);
+	}, _addComment : function(str) {
+		var self2 = this;
+		var selfElement2 = this.element;
+	}, _showEditCaptionPopup : function(c,reference) {
+		var self3 = this;
+		var selfElement3 = this.element;
+		var popup = new $("<div class='updateCaptionPopup' style='position: absolute;width:600px;'></div>");
+		popup.appendTo(selfElement3);
+		popup = popup.popup({ createFcn : function(el) {
+			var updateCaption = null;
+			var stopFcn = function(evt) {
+				evt.stopPropagation();
+			};
+			var enterFcn = function(evt1) {
+			};
+			var container = new $("<div class='icontainer'></div>").appendTo(el);
+			container.click(stopFcn).keypress(enterFcn);
+			var parent = null;
+			container.append("<label for='caption'>Caption: </label> ");
+			var input = new $("<textarea id='caption' class='ui-corner-all ui-widget-content' style='font-size: 20px;'></textarea>").appendTo(container);
+			input.focus();
+			var buttonText = "Update Caption";
+			input.val(c.props.caption);
+			container.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt2) {
+				updateCaption();
+			});
+			updateCaption = function() {
+				if(input.val().length == 0) return;
+				pagent.AppContext.LOGGER.info("Update content | " + c.iid);
+				c.props.caption = input.val();
+				var eventData = new qoid.model.EditContentData(c,Lambda.array(Lambda.map(m3.helper.OSetHelper.getElement(pagent.AppContext.GROUPED_LABELEDCONTENT,c.iid),function(laco) {
+					return laco.labelIid;
+				})));
+				pagent.model.EM.change("UpdateContent",eventData);
+				new $("body").click();
+			};
+		}, positionalElement : reference});
+	}, _showEditAlbumsPopup : function(c1,reference1) {
+		var self4 = this;
+		var selfElement4 = this.element;
+		var popup1 = new $("<div class='updateAlbumPopup' style='position: absolute;width:400px;'></div>");
+		popup1.appendTo(selfElement4);
+		popup1 = popup1.popup({ createFcn : function(el1) {
+			var updateLabels = null;
+			var stopFcn1 = function(evt3) {
+				evt3.stopPropagation();
+			};
+			var enterFcn1 = function(evt4) {
+				if(evt4.keyCode == 13) updateLabels();
+			};
+			var container1 = new $("<div class='icontainer'></div>").appendTo(el1);
+			container1.click(stopFcn1).keypress(enterFcn1);
+			container1.append("<label for='labelParent'>Album: </label> ");
+			var select = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container1);
+			select.click(stopFcn1);
+			var aliasLabels = pagent.AppContext.getLabelDescendents(pagent.PinterContext.get_ROOT_BOARD().iid);
+			var iter = aliasLabels.iterator();
+			while(iter.hasNext()) {
+				var label = iter.next();
+				if(label.iid != pagent.PinterContext.CURRENT_BOARD) {
+					var option = "<option value='" + label.iid + "'>" + label.name + "</option>";
+					select.append(option);
+				}
+			}
+			var buttonText1 = "Add to Album";
+			container1.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText1 + "</button>").button().appendTo(container1).click(function(evt5) {
+				updateLabels();
+			});
+			updateLabels = function() {
+				pagent.AppContext.LOGGER.info("Update content | " + c1.iid);
+				var list = Lambda.map(m3.helper.OSetHelper.getElement(pagent.AppContext.GROUPED_LABELEDCONTENT,c1.iid),function(laco1) {
+					return laco1.labelIid;
+				});
+				list.add(select.val());
+				var eventData1 = new qoid.model.EditContentData(c1,Lambda.array(list));
+				pagent.model.EM.change("UpdateContent",eventData1);
+				new $("body").click();
+			};
+		}, positionalElement : reference1});
+	}, update : function(content1) {
+		var self5 = this;
+		var selfElement5 = this.element;
+		self5.options.content = content1;
+		self5._createWidgets(selfElement5,self5);
+		selfElement5.show();
+	}, destroy : function() {
+		var self6 = this;
+		m3.helper.OSetHelper.getElement(pagent.AppContext.GROUPED_LABELEDCONTENT,self6.options.content.iid).removeListener(self6.labelListener);
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.commentsComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of MediaComp must be a div element");
+		selfElement.addClass("_mediaComp " + m3.widget.Widgets.getWidgetClasses());
+		self._createWidgets(selfElement,self);
+	}, _createWidgets : function(selfElement1,self1) {
+		selfElement1.empty();
+		var content = self1.options.content;
+		var _g = content.contentType;
+		switch(_g) {
+		case qoid.model.ContentType.IMAGE:
+			var imgDiv = new $("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement1);
+			new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").commentsComp({ content : content}).appendTo(selfElement1);
+			var img;
+			img = js.Boot.__cast(content , qoid.model.ImageContent);
+			imgDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
+			var captionDiv = new $("<div class='captionDiv'></div>").appendTo(imgDiv);
+			var caption = new $("<div class='caption'></div>").appendTo(captionDiv);
+			var editCaption = new $("<div class='editCaption'></div>").appendTo(captionDiv);
+			if(m3.helper.StringHelper.isNotBlank(img.props.caption)) caption.append(img.props.caption); else caption.append("<i>Add caption</i>");
+			new $("<button class='editButton'>Edit</button").button({ icons : { primary : "ui-icon-pencil"}, text : false}).appendTo(editCaption).click(function(evt) {
+				self1._showEditCaptionPopup(self1.options.content,$(this));
+				evt.stopPropagation();
+			});
+			imgDiv.append("<br/>");
+			imgDiv.append("<br/>");
+			var setDefaultBtn = new $("<button class='setDefaultBtn'>Use as Cover Picture</button>").click(function(evt1) {
+				var config = null;
+				var event = null;
+				Lambda.iter(pagent.PinterContext.BOARD_CONFIGS,function(c) {
+					var match = m3.helper.OSetHelper.getElementComplex(pagent.AppContext.LABELEDCONTENT,c.iid + "_" + pagent.PinterContext.CURRENT_BOARD,function(lc) {
+						return lc.contentIid + "_" + lc.labelIid;
+					});
+					if(match != null) config = c;
+				});
+				if(config == null) {
+					config = qoid.model.ContentFactory.create(qoid.model.ContentType.CONFIG,self1.options.content.props.imgSrc);
+					event = "CreateContent";
+				} else {
+					config.props.defaultImg = self1.options.content.props.imgSrc;
+					event = "UpdateContent";
+				}
+				var ccd = new qoid.model.EditContentData(config);
+				ccd.labelIids.push(pagent.PinterContext.CURRENT_BOARD);
+				pagent.model.EM.change(event,ccd);
+			}).button().appendTo(imgDiv);
+			break;
+		default:
+		}
+	}, _showEditCaptionPopup : function(c1,reference) {
+		var self2 = this;
+		var selfElement2 = this.element;
+		var popup = new $("<div class='updateCaptionPopup' style='position: absolute;width:600px;'></div>");
+		popup.appendTo(selfElement2);
+		popup = popup.popup({ createFcn : function(el) {
+			var updateCaption = null;
+			var stopFcn = function(evt2) {
+				evt2.stopPropagation();
+			};
+			var enterFcn = function(evt3) {
+			};
+			var container = new $("<div class='icontainer'></div>").appendTo(el);
+			container.click(stopFcn).keypress(enterFcn);
+			var parent = null;
+			container.append("<label for='caption'>Caption: </label> ");
+			var input = new $("<textarea id='caption' class='ui-corner-all ui-widget-content' style='font-size: 20px;'></textarea>").appendTo(container);
+			input.focus();
+			var buttonText = "Update Caption";
+			input.val(c1.props.caption);
+			container.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt4) {
+				updateCaption();
+			});
+			updateCaption = function() {
+				if(input.val().length == 0) return;
+				pagent.AppContext.LOGGER.info("Update content | " + c1.iid);
+				c1.props.caption = input.val();
+				var eventData = new qoid.model.EditContentData(c1,Lambda.array(Lambda.map(m3.helper.OSetHelper.getElement(pagent.AppContext.GROUPED_LABELEDCONTENT,c1.iid),function(laco) {
+					return laco.labelIid;
+				})));
+				pagent.model.EM.change("UpdateContent",eventData);
+				new $("body").click();
+			};
+		}, positionalElement : reference});
+	}, _showEditAlbumsPopup : function(c2,reference1) {
+		var self3 = this;
+		var selfElement3 = this.element;
+		var popup1 = new $("<div class='updateAlbumPopup' style='position: absolute;width:400px;'></div>");
+		popup1.appendTo(selfElement3);
+		popup1 = popup1.popup({ createFcn : function(el1) {
+			var updateLabels = null;
+			var stopFcn1 = function(evt5) {
+				evt5.stopPropagation();
+			};
+			var enterFcn1 = function(evt6) {
+				if(evt6.keyCode == 13) updateLabels();
+			};
+			var container1 = new $("<div class='icontainer'></div>").appendTo(el1);
+			container1.click(stopFcn1).keypress(enterFcn1);
+			container1.append("<label for='labelParent'>Album: </label> ");
+			var select = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container1);
+			select.click(stopFcn1);
+			var aliasLabels = pagent.AppContext.getLabelDescendents(pagent.PinterContext.get_ROOT_BOARD().iid);
+			var iter = aliasLabels.iterator();
+			while(iter.hasNext()) {
+				var label = iter.next();
+				if(label.iid != pagent.PinterContext.CURRENT_BOARD) {
+					var option = "<option value='" + label.iid + "'>" + label.name + "</option>";
+					select.append(option);
+				}
+			}
+			var buttonText1 = "Add to Album";
+			container1.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText1 + "</button>").button().appendTo(container1).click(function(evt7) {
+				updateLabels();
+			});
+			updateLabels = function() {
+				pagent.AppContext.LOGGER.info("Update content | " + c2.iid);
+				var list = Lambda.map(m3.helper.OSetHelper.getElement(pagent.AppContext.GROUPED_LABELEDCONTENT,c2.iid),function(laco1) {
+					return laco1.labelIid;
+				});
+				list.add(select.val());
+				var eventData1 = new qoid.model.EditContentData(c2,Lambda.array(list));
+				pagent.model.EM.change("UpdateContent",eventData1);
+				new $("body").click();
+			};
+		}, positionalElement : reference1});
+	}, update : function(content1) {
+		var self4 = this;
+		var selfElement4 = this.element;
+		self4.options.content = content1;
+		self4._createWidgets(selfElement4,self4);
+		selfElement4.show();
+	}, destroy : function() {
+		var self5 = this;
+		m3.helper.OSetHelper.getElement(pagent.AppContext.GROUPED_LABELEDCONTENT,self5.options.content.iid).removeListener(self5.labelListener);
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.mediaComp",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -6940,19 +7713,23 @@ var defineWidget = function() {
 			evt.stopPropagation();
 			self._showNewLabelPopup($(this));
 		});
-		new $("<button>All Pins...</button>").appendTo(selfElement).button();
-		new $("<button class='fright'>Followers</button>").appendTo(selfElement).button();
-		new $("<button class='fright'>Following</button>").appendTo(selfElement).button();
+		new $("<button class='fright'>Followers</button>").appendTo(selfElement).button().click(function(evt1) {
+			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.FOLLOWERS_SCREEN);
+		});
+		new $("<button class='fright'>Following</button>").appendTo(selfElement).button().click(function(evt2) {
+			evt2.stopPropagation();
+			self._showNewLabelPopup($(this));
+		});
 		if((function($this) {
 			var $r;
 			var this1 = pagent.AppContext.GROUPED_LABELCHILDREN.delegate();
 			$r = this1.get(pagent.PinterContext.get_ROOT_BOARD().iid);
 			return $r;
 		}(this)) == null) pagent.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
-		self._onUpdateBoards = function(board,evt1) {
-			if(evt1.isAdd()) {
-			} else if(evt1.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt1.isDelete()) {
-			} else if(evt1.isClear()) {
+		self._onUpdateBoards = function(board,evt3) {
+			if(evt3.isAdd()) {
+			} else if(evt3.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt3.isDelete()) {
+			} else if(evt3.isClear()) {
 			}
 		};
 		self.boards = new m3.observable.MappedSet((function($this) {
@@ -6973,22 +7750,22 @@ var defineWidget = function() {
 		popup = popup.popup({ createFcn : function(el) {
 			var createLabel = null;
 			var updateLabel = null;
-			var stopFcn = function(evt2) {
-				evt2.stopPropagation();
+			var stopFcn = function(evt4) {
+				evt4.stopPropagation();
 			};
-			var enterFcn = function(evt3) {
-				if(evt3.keyCode == 13) createLabel();
+			var enterFcn = function(evt5) {
+				if(evt5.keyCode == 13) createLabel();
 			};
 			var container = new $("<div class='icontainer'></div>").appendTo(el);
 			container.click(stopFcn).keypress(enterFcn);
 			container.append("<br/><label for='labelName'>Name: </label> ");
 			var input = new $("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
-			input.keypress(enterFcn).click(function(evt4) {
-				evt4.stopPropagation();
+			input.keypress(enterFcn).click(function(evt6) {
+				evt6.stopPropagation();
 				if($(this).val() == "New Label") $(this).val("");
 			}).focus();
 			container.append("<br/>");
-			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Board</button>").button().appendTo(container).click(function(evt5) {
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Board</button>").button().appendTo(container).click(function(evt7) {
 				createLabel();
 			});
 			createLabel = function() {
@@ -6997,7 +7774,7 @@ var defineWidget = function() {
 				var label = new qoid.model.Label();
 				label.name = input.val();
 				var eventData = new qoid.model.EditLabelData(label,pagent.PinterContext.get_ROOT_BOARD().iid);
-				pagent.model.EM.change(pagent.model.EMEvent.CreateLabel,eventData);
+				pagent.model.EM.change("CreateLabel",eventData);
 				new $("body").click();
 			};
 		}, positionalElement : reference});
@@ -7008,149 +7785,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.optionBar",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of CreateAgentDialog must be a div element");
-		self._cancelled = false;
-		selfElement.addClass("createAgentDialog").hide();
-		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
-		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
-		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
-		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
-		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
-		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_em = new $("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_em = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		inputs.append("<br/>");
-		inputs.children("input").keypress(function(evt) {
-			if(evt.keyCode == 13) self._createNewUser();
-		});
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_n,self.placeholder_n);
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_em,self.placeholder_em);
-	}, initialized : false, _createNewUser : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var newUser = new qoid.model.NewUser();
-		newUser.name = self1.input_n.val();
-		if(m3.helper.StringHelper.isBlank(newUser.name)) {
-			self1.placeholder_n.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		pagent.model.EM.change(pagent.model.EMEvent.CreateAgent,newUser);
-		pagent.model.EM.listenOnce(pagent.model.EMEvent.AgentCreated,function(n) {
-			selfElement1.dialog("close");
-		},"CreateAgentDialog-UserSignup");
-	}, _buildDialog : function() {
-		var self2 = this;
-		var selfElement2 = this.element;
-		self2.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, modal : true, buttons : { 'Create My Agent' : function() {
-			self2._registered = true;
-			self2._createNewUser();
-		}, Cancel : function() {
-			self2._cancelled = true;
-			$(this).dialog("close");
-		}}, close : function(evt1,ui) {
-			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			pagent.widget.DialogManager.showLogin();
-		}};
-		selfElement2.dialog(dlgOptions);
-	}, open : function() {
-		var self3 = this;
-		var selfElement3 = this.element;
-		self3._cancelled = false;
-		if(!self3.initialized) self3._buildDialog();
-		selfElement3.children("#n_label").focus();
-		self3.input_n.blur();
-		selfElement3.dialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.createAgentDialog",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LoginDialog must be a div element");
-		selfElement.addClass("loginDialog").hide();
-		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
-		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
-		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Agent Id</label></div>");
-		labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
-		self.input_un = new $("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_pw = new $("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new $("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		self.input_un.val("Isaiah");
-		self.input_pw.val("ohyea");
-		inputs.children("input").keypress(function(evt) {
-			if(evt.keyCode == 13) self._login();
-		});
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_un,self.placeholder_un);
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
-		pagent.model.EM.addListener(pagent.model.EMEvent.InitialDataLoadComplete,function(n) {
-			selfElement.dialog("close");
-		},"Login-InitialDataLoadComplete");
-	}, initialized : false, _login : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var login = new qoid.model.Login();
-		login.agentId = self1.input_un.val();
-		if(m3.helper.StringHelper.isBlank(login.agentId)) {
-			self1.placeholder_un.addClass("ui-state-error");
-			valid = false;
-		}
-		login.password = self1.input_pw.val();
-		if(m3.helper.StringHelper.isBlank(login.password)) {
-			self1.placeholder_pw.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		pagent.model.EM.change(pagent.model.EMEvent.UserLogin,login);
-	}, _buildDialog : function() {
-		var self2 = this;
-		var selfElement2 = this.element;
-		self2.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Login", height : 280, width : 400, modal : true, buttons : { Login : function() {
-			self2._login();
-		}, 'I\'m New...' : function() {
-			pagent.widget.DialogManager.showCreateAgent();
-		}}, beforeClose : function(evt1,ui) {
-			if(pagent.AppContext.UBER_ALIAS_ID == null) {
-				m3.util.JqueryUtil.alert("A valid login is required to use the app");
-				return false;
-			}
-			return true;
-		}};
-		selfElement2.dialog(dlgOptions);
-	}, open : function() {
-		var self3 = this;
-		var selfElement3 = this.element;
-		if(!self3.initialized) self3._buildDialog();
-		selfElement3.children("#un_label").focus();
-		self3.input_un.blur();
-		self3.input_pw.blur();
-		selfElement3.dialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.loginDialog",defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -7245,6 +7879,210 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.uploadComp",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of PinFeed must be a div element");
+		selfElement.addClass("_pinFeed " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
+		var div = new $("<div class='wrapper'></div>").appendTo(selfElement);
+		var addPinDiv = new $("<div class='addPinDiv ui-corner-all'></div>").appendTo(div);
+		var uploadButton = new $("<button class='uploadButton'>Add Pin</button>").appendTo(addPinDiv).button({ icons : { primary : "ui-icon-circle-plus"}}).click(function(evt) {
+			var dlg = new $("<div id='profilePictureUploader'></div>");
+			dlg.appendTo(selfElement);
+			var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
+			uploadComp.appendTo(dlg);
+			uploadComp.uploadComp({ onload : function(bytes) {
+				m3.jq.M3DialogHelper.close(dlg);
+				var ccd = new qoid.model.EditContentData(qoid.model.ContentFactory.create(qoid.model.ContentType.IMAGE,bytes));
+				ccd.labelIids.push(pagent.PinterContext.CURRENT_BOARD);
+				pagent.model.EM.change("CreateContent",ccd);
+			}});
+			dlg.m3dialog({ width : 400, height : 305, title : "Pin Picture to Board", buttons : { Cancel : function() {
+				m3.jq.M3DialogHelper.close($(this));
+			}}});
+		});
+		var mapListener = function(content,contentComp,evt1) {
+			if(content != null && qoid.model.ContentType.IMAGE == content.contentType) {
+				if(evt1.isAdd()) {
+					var contentComps = new $(".contentComp");
+					if(contentComps.length == 0) contentComp.insertAfter(addPinDiv); else {
+						var comps = new $(".contentComp");
+						var inserted = false;
+						comps.each(function(i,dom) {
+							var cc = new $(dom);
+							var cmp = m3.helper.StringHelper.compare(pagent.widget.ContentCompHelper.content(contentComp).getTimestamp(),pagent.widget.ContentCompHelper.content(cc).getTimestamp());
+							if(cmp > 0) {
+								cc.before(contentComp);
+								inserted = true;
+								return false;
+							} else return true;
+						});
+						if(!inserted) comps.last().after(contentComp);
+					}
+				} else if(evt1.isUpdate()) pagent.widget.ContentCompHelper.update(contentComp,content); else if(evt1.isDelete()) contentComp.remove();
+			}
+		};
+		var beforeSetContent = function() {
+			selfElement.find(".contentComp").remove();
+		};
+		var widgetCreator = function(content1) {
+			return new $("<div></div>").contentComp({ content : content1});
+		};
+		var id = pagent.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
+		self._onDestroy = function() {
+			pagent.model.ContentSource.removeListener(id);
+		};
+	}, destroy : function() {
+		var self1 = this;
+		self1._onDestroy();
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.pinFeed",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of CreateAgentDialog must be a div element");
+		self._cancelled = false;
+		selfElement.addClass("createAgentDialog").hide();
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
+		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
+		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
+		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
+		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_em = new $("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_em = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		inputs.append("<br/>");
+		inputs.children("input").keypress(function(evt) {
+			if(evt.keyCode == 13) self._createNewUser();
+		});
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_n,self.placeholder_n);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_em,self.placeholder_em);
+	}, initialized : false, _createNewUser : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var newUser = new qoid.model.NewUser();
+		newUser.name = self1.input_n.val();
+		if(m3.helper.StringHelper.isBlank(newUser.name)) {
+			self1.placeholder_n.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		pagent.model.EM.change("CreateAgent",newUser);
+		pagent.model.EM.listenOnce("AgentCreated",function(n) {
+			selfElement1.dialog("close");
+		},"CreateAgentDialog-UserSignup");
+	}, _buildDialog : function() {
+		var self2 = this;
+		var selfElement2 = this.element;
+		self2.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, modal : true, buttons : { 'Create My Agent' : function() {
+			self2._registered = true;
+			self2._createNewUser();
+		}, Cancel : function() {
+			self2._cancelled = true;
+			$(this).dialog("close");
+		}}, close : function(evt1,ui) {
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
+			pagent.widget.DialogManager.showLogin();
+		}};
+		selfElement2.dialog(dlgOptions);
+	}, open : function() {
+		var self3 = this;
+		var selfElement3 = this.element;
+		self3._cancelled = false;
+		if(!self3.initialized) self3._buildDialog();
+		selfElement3.children("#n_label").focus();
+		self3.input_n.blur();
+		selfElement3.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.createAgentDialog",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LoginDialog must be a div element");
+		selfElement.addClass("loginDialog").hide();
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
+		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Agent Id</label></div>");
+		labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
+		self.input_un = new $("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_pw = new $("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		self.input_un.val("dave");
+		self.input_pw.val("ohyea");
+		inputs.children("input").keypress(function(evt) {
+			if(evt.keyCode == 13) self._login();
+		});
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_un,self.placeholder_un);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
+		pagent.model.EM.addListener("InitialDataLoadComplete",function(n) {
+			selfElement.dialog("close");
+		},"Login-InitialDataLoadComplete");
+	}, initialized : false, _login : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var login = new qoid.model.Login();
+		login.agentId = self1.input_un.val();
+		if(m3.helper.StringHelper.isBlank(login.agentId)) {
+			self1.placeholder_un.addClass("ui-state-error");
+			valid = false;
+		}
+		login.password = self1.input_pw.val();
+		if(m3.helper.StringHelper.isBlank(login.password)) {
+			self1.placeholder_pw.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		pagent.model.EM.change("UserLogin",login);
+	}, _buildDialog : function() {
+		var self2 = this;
+		var selfElement2 = this.element;
+		self2.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Login", height : 280, width : 400, modal : true, buttons : { Login : function() {
+			self2._login();
+		}, 'I\'m New...' : function() {
+			pagent.widget.DialogManager.showCreateAgent();
+		}}, beforeClose : function(evt1,ui) {
+			if(pagent.AppContext.UBER_ALIAS_ID == null) {
+				m3.util.JqueryUtil.alert("A valid login is required to use the app");
+				return false;
+			}
+			return true;
+		}};
+		selfElement2.dialog(dlgOptions);
+	}, open : function() {
+		var self3 = this;
+		var selfElement3 = this.element;
+		if(!self3.initialized) self3._buildDialog();
+		selfElement3.children("#un_label").focus();
+		self3.input_un.blur();
+		self3.input_pw.blur();
+		selfElement3.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.loginDialog",defineWidget());
 haxe.xml.Parser.escapes = (function($this) {
 	var $r;
 	var h = new haxe.ds.StringMap();
@@ -7286,15 +8124,78 @@ pagent.api.ProtocolHandler.VERIFICATION_ACCEPT = "/api/verification/accept";
 pagent.api.ProtocolHandler.VERIFICATION_REQUEST = "/api/verification/request";
 pagent.api.ProtocolHandler.VERIFICATION_RESPONSE = "/api/verification/respond";
 pagent.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
-pagent.model.EMEvent.APP_INITIALIZED = "";
+qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"27\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"48\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByAliasIid public=\"1\"><c path=\"String\"/></createdByAliasIid>\n\t<modifiedByAliasIid public=\"1\"><c path=\"String\"/></modifiedByAliasIid>\n\t<new public=\"1\" set=\"method\" line=\"41\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"321\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"325\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"329\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"333\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"337\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"310\"><f a=\"contentType:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+pagent.model.EMEvent.APP_INITIALIZED = "APP_INITIALIZED";
+pagent.model.EMEvent.FILTER_RUN = "FILTER_RUN";
+pagent.model.EMEvent.FILTER_CHANGE = "FILTER_CHANGE";
+pagent.model.EMEvent.LoadFilteredContent = "LoadFilteredContent";
+pagent.model.EMEvent.AppendFilteredContent = "AppendFilteredContent";
+pagent.model.EMEvent.EditContentClosed = "EditContentClosed";
+pagent.model.EMEvent.CreateAgent = "CreateAgent";
+pagent.model.EMEvent.AgentCreated = "AgentCreated";
+pagent.model.EMEvent.InitialDataLoadComplete = "InitialDataLoadComplete";
+pagent.model.EMEvent.UserLogin = "UserLogin";
+pagent.model.EMEvent.UserLogout = "UserLogout";
+pagent.model.EMEvent.AliasLoaded = "AliasLoaded";
+pagent.model.EMEvent.AliasCreated = "AliasCreated";
+pagent.model.EMEvent.AliasUpdated = "AliasUpdated";
+pagent.model.EMEvent.CreateAlias = "CreateAlias";
+pagent.model.EMEvent.UpdateAlias = "UpdateAlias";
+pagent.model.EMEvent.DeleteAlias = "DeleteAlias";
+pagent.model.EMEvent.CreateContent = "CreateContent";
+pagent.model.EMEvent.DeleteContent = "DeleteContent";
+pagent.model.EMEvent.UpdateContent = "UpdateContent";
+pagent.model.EMEvent.CreateLabel = "CreateLabel";
+pagent.model.EMEvent.UpdateLabel = "UpdateLabel";
+pagent.model.EMEvent.MoveLabel = "MoveLabel";
+pagent.model.EMEvent.CopyLabel = "CopyLabel";
+pagent.model.EMEvent.DeleteLabel = "DeleteLabel";
+pagent.model.EMEvent.GrantAccess = "GrantAccess";
+pagent.model.EMEvent.AccessGranted = "AccessGranted";
+pagent.model.EMEvent.RevokeAccess = "RevokeAccess";
+pagent.model.EMEvent.DeleteConnection = "DeleteConnection";
+pagent.model.EMEvent.INTRODUCTION_REQUEST = "INTRODUCTION_REQUEST";
+pagent.model.EMEvent.RespondToIntroduction = "RespondToIntroduction";
+pagent.model.EMEvent.TargetChange = "TargetChange";
+pagent.model.EMEvent.VerificationRequest = "VerificationRequest";
+pagent.model.EMEvent.RespondToVerification = "RespondToVerification";
+pagent.model.EMEvent.RejectVerificationRequest = "RejectVerificationRequest";
+pagent.model.EMEvent.AcceptVerification = "AcceptVerification";
+pagent.model.EMEvent.BACKUP = "BACKUP";
+pagent.model.EMEvent.RESTORE = "RESTORE";
 pagent.pages.PinterPageMgr.HOME_SCREEN = new pagent.pages.HomeScreen();
-qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"26\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"23\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"47\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByAliasIid public=\"1\"><c path=\"String\"/></createdByAliasIid>\n\t<modifiedByAliasIid public=\"1\"><c path=\"String\"/></modifiedByAliasIid>\n\t<new public=\"1\" set=\"method\" line=\"40\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"90\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"84\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"65\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"59\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"72\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"114\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"108\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"97\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+pagent.pages.PinterPageMgr.BOARD_SCREEN = new pagent.pages.BoardScreen();
+pagent.pages.PinterPageMgr.CONTENT_SCREEN = new pagent.pages.ContentScreen();
+pagent.pages.PinterPageMgr.FOLLOWERS_SCREEN = new pagent.pages.FollowersScreen();
+pagent.pages.PinterPageMgr.FOLLOWING_SCREEN = new pagent.pages.FollowingScreen();
+pagent.pages.PinterPageMgr.SOCIAL_SCREEN = new pagent.pages.SocialScreen();
+qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"91\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"85\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"66\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"60\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"73\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ContentType.AUDIO = "AUDIO";
+qoid.model.ContentType.IMAGE = "IMAGE";
+qoid.model.ContentType.URL = "URL";
+qoid.model.ContentType.TEXT = "TEXT";
+qoid.model.ContentType.VERIFICATION = "VERIFICATION";
+qoid.model.ContentType.CONFIG = pagent.PinterContext.APP_ROOT_LABEL_NAME + ".config";
+qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"115\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"109\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"368\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"271\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"362\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ContentMetaData.__rtti = "<class path=\"qoid.model.ContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"qoid.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"qoid.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"294\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"352\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"346\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"382\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"376\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"411\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"405\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"426\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"420\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ConfigContent.__rtti = "<class path=\"qoid.model.ConfigContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ConfigContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"396\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ConfigContentData.__rtti = "<class path=\"qoid.model.ConfigContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<defaultImg public=\"1\"><c path=\"String\"/></defaultImg>\n\t<new public=\"1\" set=\"method\" line=\"390\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"98\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.api.ChannelMessage.__rtti = "<class path=\"qoid.api.ChannelMessage\" params=\"\" module=\"qoid.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
 qoid.api.BennuMessage.__rtti = "<class path=\"qoid.api.BennuMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"16\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.api.DeleteMessage.__rtti = "<class path=\"qoid.api.DeleteMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<extends path=\"qoid.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"29\" static=\"1\"><f a=\"object\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"qoid.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
@@ -7308,43 +8209,22 @@ qoid.api.IntroResponseMessage.__rtti = "<class path=\"qoid.api.IntroResponseMess
 qoid.api.QueryMessage.__rtti = "<class path=\"qoid.api.QueryMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"153\" static=\"1\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.QueryMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<standing public=\"1\"><x path=\"Bool\"/></standing>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<local public=\"1\"><x path=\"Bool\"/></local>\n\t<new public=\"1\" set=\"method\" line=\"135\"><f a=\"fd:?type:?q\" v=\":null:null\">\n\t<c path=\"qoid.model.FilterData\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.api.ChannelRequestMessage.__rtti = "<class path=\"qoid.api.ChannelRequestMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.api.ChannelRequestMessageBundle.__rtti = "<class path=\"qoid.api.ChannelRequestMessageBundle\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"qoid.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"186\"><f a=\"request\">\n\t<c path=\"qoid.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"190\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"177\"><f a=\"?requests_\" v=\"null\">\n\t<c path=\"Array\"><c path=\"qoid.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"133\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"124\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"148\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<new public=\"1\" set=\"method\" line=\"142\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"161\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<allowedDegreesOfVisibility public=\"1\"><x path=\"Int\"/></allowedDegreesOfVisibility>\n\t<metaLabelIid public=\"1\"><c path=\"String\"/></metaLabelIid>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"170\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"165\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ContentType.AUDIO = "AUDIO";
-qoid.model.ContentType.IMAGE = "IMAGE";
-qoid.model.ContentType.URL = "URL";
-qoid.model.ContentType.TEXT = "TEXT";
-qoid.model.ContentType.VERIFICATION = "VERIFICATION";
-qoid.model.ContentType.CONFIG = "com.qoid.apps.aphoto.config";
-qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"257\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"261\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"270\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"134\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"125\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"149\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<new public=\"1\" set=\"method\" line=\"143\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"162\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<allowedDegreesOfVisibility public=\"1\"><x path=\"Int\"/></allowedDegreesOfVisibility>\n\t<metaLabelIid public=\"1\"><c path=\"String\"/></metaLabelIid>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"171\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"166\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"258\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"262\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.ContentVerification.__rtti = "<class path=\"qoid.model.ContentVerification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.VerifiedContentMetaData.__rtti = "<class path=\"qoid.model.VerifiedContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ContentMetaData.__rtti = "<class path=\"qoid.model.ContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"qoid.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"qoid.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"293\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"320\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"324\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"328\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"332\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"336\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"309\"><f a=\"contentType:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"351\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"361\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"367\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"375\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"381\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ConfigContentData.__rtti = "<class path=\"qoid.model.ConfigContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<defaultImg public=\"1\"><c path=\"String\"/></defaultImg>\n\t<new public=\"1\" set=\"method\" line=\"389\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ConfigContent.__rtti = "<class path=\"qoid.model.ConfigContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ConfigContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"395\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"404\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"410\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"419\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"425\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"qoid.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"474\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"486\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"490\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"478\"><f a=\"kind:type\">\n\t<e path=\"qoid.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"503\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"510\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"qoid.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"475\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"487\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"491\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"479\"><f a=\"kind:type\">\n\t<e path=\"qoid.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"504\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"511\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"521\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"qoid.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"533\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"qoid.model.ContentType\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"545\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"565\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"534\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"qoid.model.ContentType\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"546\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"566\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.VerificationResponseData.__rtti = "<class path=\"qoid.model.VerificationResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"582\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"595\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"583\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"596\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 pagent.PinterAgent.main();
 })(typeof window != "undefined" ? window : exports);

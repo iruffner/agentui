@@ -109,15 +109,20 @@ body {
 		}
 
 		._boardList ._boardComp {
-			width: 33.3%;
-			max-width: 33.3%;
-			min-width: 33.3%;
+			width: 31%;
+			max-width: 31%;
+			min-width: 31%;
 			display: inline-block;
 			vertical-align: middle;
 			text-align: center;
 			border: 1px solid gray;
 			padding: 5px;
 		}
+
+			._boardList ._boardComp:nth-child(2n),
+			._boardList ._boardComp:nth-child(3n) {
+				margin-left: 1%;
+			}
 
 			._boardList ._boardComp .labelNameWrapper {
 				text-align: left;
@@ -132,37 +137,43 @@ body {
 	/* ._optionBar
 	-----------------------------------------------------------------------------*/
 
-	._optionBar {
+	._optionBar, .optionBar {
 		padding: 10px;
 		margin-top: 10px;
 	}
 
-	/* ._albumDetails
-	-----------------------------------------------------------------------------*/
-	._albumDetails {
-		text-align: center;
-	}
-		._albumDetails .albumLabel {
-			font-size: 24px;
+		.optionBar .boardOwner,
+		.optionBar .pinCount {
+			font-size: 20px;
+			line-height: 30px;
 		}
 
-		._albumDetails .editButton, ._albumDetails .deleteButton {
+	/* ._boardDetails
+	-----------------------------------------------------------------------------*/
+	._boardDetails {
+		text-align: center;
+	}
+		._boardDetails .boardLabel {
+			font-size: 42px;
+		}
+
+		._boardDetails .editButton, ._boardDetails .deleteButton {
 			float: right;
 			min-height: 24px;
 			width: 24px;
 		}
 
-		._albumDetails .updateLabelPopup {
+		._boardDetails .updateLabelPopup {
 			font-size: 18px
 		}
 
 	/* ._contentFeed
 	-----------------------------------------------------------------------------*/
-	._contentFeed {
+	._pinFeed {
 		padding: 10px;
 		display: inline-block;
 		vertical-align: top;
-		width: 800px;
+		width: 100%;
 		margin-left: 15px;
 		overflow-x: hidden;
 		overflow-y: auto;
@@ -294,31 +305,90 @@ body {
 	white-space: nowrap;
 }
 
-#albumScreen .content {
+#boardScreen .content {
 	text-align: left;
 }
 
-	#albumScreen .leftDiv {
-		display: inline-block;
-		vertical-align: top;
-	}
-
-	#albumScreen .contentComp {
-		width: 33.3%;
-		max-width: 33.3%;
-		min-width: 33.3%;
+	#boardScreen .contentComp,
+	#boardScreen .addPinDiv {
+		width: 31%;
+		max-width: 31%;
+		min-width: 31%;
 		display: inline-block;
 		vertical-align: middle;
 		text-align: center;
+		height: 250px;
+		max-height: 250px;
+		min-height: 250px;
+		border: 1px dotted;
+		padding-bottom: 4px;
 	}
 
-		#albumScreen .contentComp img {
-			max-height: 210px;
+		#boardScreen .wrapper>div {
+			margin-left: 1%;
+			margin-bottom: 5px;
 		}
 
-		#albumScreen .uploadButton {
-			width: 100%;
-			margin-top: 100px;
+		#boardScreen .addPinDiv {
+			background-color: lightgoldenrodyellow;
+			line-height: 200px;
+			font-size: 30px;
+			border: dashed;
+		}
+
+		#boardScreen .contentComp .imgDiv {
+			padding-top: 5px;
+			height: 220px;
+			max-height: 220px;
+			min-height: 220px;
+		}
+
+			#boardScreen .contentComp .imgDiv img {
+				max-height: 210px;
+			}
+		#boardScreen .contentComp .caption {
+			height:28px;
+			line-height: 28px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			border-top: 1px dotted;
+			background-color: lightgrey;
+		}
+
+	#boardScreen .updateAccessPopup .connectionsContainer,
+	#boardScreen .addAccessPopup .connectionsContainer {
+		min-height: 500px;
+		overflow: auto
+	}
+
+	#boardScreen .updateAccessPopup .connectionDiv,
+	#boardScreen .addAccessPopup .connectionDiv {
+		margin: auto;
+		max-width: 80%;
+	}
+		#boardScreen .updateAccessPopup .connectionDiv>div,
+		#boardScreen .addAccessPopup .connectionDiv>div {
+			display: inline-block;
+			vertical-align: middle;
+		}
+
+#contentScreen .content {
+
+}
+
+	#contentScreen ._mediaComp>div {
+		margin-top: 15px;
+		padding: 10px;
+	}
+	
+	#contentScreen .imgDiv {
+		text-align: center;
+	}
+		#contentScreen .imgDiv .captionDiv>div{
+			display: inline-block;
+		}
+		#contentScreen .imgDiv .captionDiv .caption{
 			font-size: 20px;
 		}
 

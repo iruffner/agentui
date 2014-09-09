@@ -33,7 +33,8 @@ class AppContext {
     public static var LABELS:ObservableSet<Label>;
 
     public static var LABELACLS:ObservableSet<LabelAcl>;
-    public static var GROUPED_LABELACLS: GroupedSet<LabelAcl>;
+    public static var LABELACLS_ByConnection: GroupedSet<LabelAcl>;
+    public static var LABELACLS_ByLabel: GroupedSet<LabelAcl>;
     
     public static var LABELCHILDREN:ObservableSet<LabelChild>;
     public static var GROUPED_LABELCHILDREN: GroupedSet<LabelChild>;
@@ -74,8 +75,11 @@ class AppContext {
         LABELS = new ObservableSet<Label>(Label.identifier);
 
         LABELACLS = new ObservableSet<LabelAcl>(LabelAcl.identifier);
-        GROUPED_LABELACLS = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
+        LABELACLS_ByConnection = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
             return l.connectionIid;
+        });
+        LABELACLS_ByLabel = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
+            return l.labelIid;
         });
 
         LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);

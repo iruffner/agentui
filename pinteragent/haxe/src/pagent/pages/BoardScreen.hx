@@ -1,12 +1,11 @@
-package ap.pages;
+package pagent.pages;
 
-import ap.APhotoContext;
 import m3.jq.JQ;
 
-import ap.AppContext;
-import ap.widget.AlbumDetails;
-import ap.widget.ContentFeed;
-import ap.model.EM;
+import pagent.AppContext;
+import pagent.PinterContext;
+import pagent.widget.PinFeed;
+import pagent.model.EM;
 import m3.jq.M3Dialog;
 import m3.observable.OSet.EventType;
 import m3.observable.OSet.FilteredSet;
@@ -19,21 +18,20 @@ import qoid.model.Node;
 import qoid.widget.UploadComp;
 
 using m3.helper.OSetHelper;
-using ap.widget.AlbumList;
 using m3.jq.M3Dialog;
+using pagent.widget.BoardDetails;
 
-class AlbumScreen extends APhotoPage {
+class BoardScreen extends PinterPage {
 
 	var labelSetListener: Label->EventType->Void;
 	var labelSet: FilteredSet<Label>;
 
 	public function new(): Void {
 		super({
-			id: "#albumScreen",
+			id: "#boardScreen",
 			pageBeforeShowFcn: pageBeforeShowFcn, 
 			pageHideFcn: pageHideFcn, 
-			reqUser: true,
-			showBackButton: false
+			reqUser: true
 		});
 	}
 
@@ -42,7 +40,7 @@ class AlbumScreen extends APhotoPage {
 		content.addClass("center");
 
 		labelSet = new FilteredSet(AppContext.LABELS, function(l: Label) {
-				return l.iid == APhotoContext.CURRENT_ALBUM;
+				return l.iid == PinterContext.CURRENT_BOARD;
 			});
 		
 		this.labelSetListener = function(label: Label, evt: EventType) {
@@ -59,56 +57,20 @@ class AlbumScreen extends APhotoPage {
 		var content: JQ = new JQ(".content", screen).empty();
 		content.addClass("center");
 
-		var leftDiv: JQ = new JQ("<div class='leftDiv'></div>").appendTo(content);
-
-		var albumDetails: AlbumDetails = new AlbumDetails("<div></div>");
-		albumDetails.appendTo(leftDiv);
-		albumDetails.albumDetails({
+		var boardDetails: BoardDetails = new BoardDetails("<div></div>");
+		boardDetails.appendTo(content);
+		boardDetails.boardDetails({
 			label: label,
-			parentIid: APhotoContext.ROOT_ALBUM.iid
+			parentIid: PinterContext.ROOT_BOARD.iid,
+			owner: "Isaiah Ruffner"
 		});
-
-		var uploadButton: JQ = new JQ("<button class='uploadButton'>Upload</button>")
-			.appendTo(leftDiv)
-			.button({
-					{
-	                    icons: {
-	                        primary: "ui-icon-circle-plus"
-	                      }
-	                }
-				})
-			.click(function(evt: JQEvent) {
-					var dlg: M3Dialog = new M3Dialog("<div id='profilePictureUploader'></div>");
-					dlg.appendTo(screen);
-					var uploadComp: UploadComp = new UploadComp("<div class='boxsizingBorder' style='height: 150px;'></div>");
-					uploadComp.appendTo(dlg);
-					uploadComp.uploadComp({
-							onload: function(bytes: String): Void {
-								dlg.close();
-								var ccd = new EditContentData(ContentFactory.create(ContentType.IMAGE, bytes));
-								ccd.labelIids.push(APhotoContext.CURRENT_ALBUM);			
-								EM.change(EMEvent.CreateContent, ccd);
-							}
-						});
-					
-					dlg.m3dialog({
-							width: 400,
-							height: 305,
-							title: "Add Picture to Album",
-							buttons: {
-								"Cancel" : function() {
-									M3Dialog.cur.close();
-								}
-							}
-						});
-				});
 
 		var root: Node = new Or();
 		root.type = "ROOT";
 		var path = new Array<String>();
 		path.push(AppContext.LABELS.getElement(AppContext.currentAlias.rootLabelIid).name);
-		path.push(APhotoContext.ROOT_LABEL_OF_ALL_APPS.name);
-		path.push(APhotoContext.ROOT_ALBUM.name);
+		path.push(PinterContext.ROOT_LABEL_OF_ALL_APPS.name);
+		path.push(PinterContext.ROOT_BOARD.name);
 		path.push(label.name);
 		root.addNode(new LabelNode(label, path));
 
@@ -119,9 +81,9 @@ class AlbumScreen extends APhotoPage {
 
 		EM.change(EMEvent.FILTER_RUN, filterData);
 
-		var contentFeed: ContentFeed = new ContentFeed("<div></div>");
+		var contentFeed: PinFeed = new PinFeed("<div></div>");
 		contentFeed.appendTo(content);
-		contentFeed.contentFeed();
+		contentFeed.pinFeed();
 	}
 
 	private function _noLabel(screen: JQ) {

@@ -5,71 +5,71 @@ import m3.event.EventManager;
 
 class EMEvent {	
 	/* aphoto specific */
-	public static var APP_INITIALIZED: String = "";
+	public static inline var APP_INITIALIZED: String = "APP_INITIALIZED";
 
 	/* *************** */
 	
 
-	public static var FILTER_RUN;
-	public static var FILTER_CHANGE;
-	public static var LoadFilteredContent;
-	public static var AppendFilteredContent;
+	public static inline var FILTER_RUN: String = "FILTER_RUN";
+	public static inline var FILTER_CHANGE: String = "FILTER_CHANGE";
+	public static inline var LoadFilteredContent: String = "LoadFilteredContent";
+	public static inline var AppendFilteredContent: String = "AppendFilteredContent";
 
-	public static var EditContentClosed;
+	public static inline var EditContentClosed: String = "EditContentClosed";
 
-	public static var CreateAgent;
-	public static var AgentCreated;
-	public static var InitialDataLoadComplete;
+	public static inline var CreateAgent: String = "CreateAgent";
+	public static inline var AgentCreated: String = "AgentCreated";
+	public static inline var InitialDataLoadComplete: String = "InitialDataLoadComplete";
 
 	// FitWindow;
-	public static var UserLogin;
-	public static var UserLogout;
+	public static inline var UserLogin: String = "UserLogin";
+	public static inline var UserLogout: String = "UserLogout";
 
-	public static var AliasLoaded;
-	public static var AliasCreated;
-	public static var AliasUpdated;
+	public static inline var AliasLoaded: String = "AliasLoaded";
+	public static inline var AliasCreated: String = "AliasCreated";
+	public static inline var AliasUpdated: String = "AliasUpdated";
 
-	public static var CreateAlias;
-	public static var UpdateAlias;
-	public static var DeleteAlias;
+	public static inline var CreateAlias: String = "CreateAlias";
+	public static inline var UpdateAlias: String = "UpdateAlias";
+	public static inline var DeleteAlias: String = "DeleteAlias";
 
-	public static var CreateContent;
-	public static var DeleteContent;
-	public static var UpdateContent;
+	public static inline var CreateContent: String = "CreateContent";
+	public static inline var DeleteContent: String = "DeleteContent";
+	public static inline var UpdateContent: String = "UpdateContent";
 
-	public static var CreateLabel;
-	public static var UpdateLabel;
-	public static var MoveLabel;
-	public static var CopyLabel;
-	public static var DeleteLabel;
+	public static inline var CreateLabel: String = "CreateLabel";
+	public static inline var UpdateLabel: String = "UpdateLabel";
+	public static inline var MoveLabel: String = "MoveLabel";
+	public static inline var CopyLabel: String = "CopyLabel";
+	public static inline var DeleteLabel: String = "DeleteLabel";
 
-	public static var GrantAccess;
-	// AccessGranted;
-	public static var RevokeAccess;
+	public static inline var GrantAccess: String = "GrantAccess";
+	public static inline var AccessGranted: String = "AccessGranted";
+	public static inline var RevokeAccess: String = "RevokeAccess";
 
-	public static var DeleteConnection;
+	public static inline var DeleteConnection: String = "DeleteConnection";
 
-	public static var INTRODUCTION_REQUEST;
+	public static inline var INTRODUCTION_REQUEST: String = "INTRODUCTION_REQUEST";
 	// INTRODUCTION_RESPONSE;
-	public static var RespondToIntroduction;
+	public static inline var RespondToIntroduction: String = "RespondToIntroduction";
 	// RespondToIntroduction_RESPONSE;
 
-	public static var TargetChange;
+	public static inline var TargetChange: String = "TargetChange";
 
-	public static var VerificationRequest;
+	public static inline var VerificationRequest: String = "VerificationRequest";
 	// VerificationRequest_RESPONSE;
 
-	public static var RespondToVerification;
+	public static inline var RespondToVerification: String = "RespondToVerification";
 	// RespondToVerification_RESPONSE;
 
-	public static var RejectVerificationRequest;
+	public static inline var RejectVerificationRequest: String = "RejectVerificationRequest";
 	// RejectVerificationRequest_RESPONSE;
 	
-	public static var AcceptVerification;
+	public static inline var AcceptVerification: String = "AcceptVerification";
 	// AcceptVerification_RESPONSE;
 
-	public static var BACKUP;
-	public static var RESTORE;
+	public static inline var BACKUP: String = "BACKUP";
+	public static inline var RESTORE: String = "RESTORE";
 	// RESTORES_REQUEST;
 	// AVAILABLE_BACKUPS;
 }

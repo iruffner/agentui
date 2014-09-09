@@ -1,14 +1,14 @@
-package ap.pages;
+package pagent.pages;
 
-import ap.APhotoContext;
-import ap.model.ContentSource;
+import pagent.PinterContext;
+import pagent.model.ContentSource;
 import haxe.Json;
 import m3.jq.JQ;
 
-import ap.AppContext;
-import ap.widget.AlbumDetails;
-import ap.widget.ContentFeed;
-import ap.model.EM;
+import pagent.AppContext;
+import pagent.widget.BoardDetails;
+import pagent.widget.PinFeed;
+import pagent.model.EM;
 import m3.observable.OSet.EventType;
 import m3.observable.OSet.FilteredSet;
 import qoid.model.Filter;
@@ -17,10 +17,10 @@ import qoid.model.ModelObj;
 import qoid.model.Node;
 
 using m3.helper.OSetHelper;
-using ap.widget.MediaComp;
+using pagent.widget.MediaComp;
 using Lambda;
 
-class ContentScreen extends APhotoPage {
+class ContentScreen extends PinterPage {
 
 	var _onDestroy: Void->Void;
 	var labelSetListener: Label->EventType->Void;
@@ -41,10 +41,10 @@ class ContentScreen extends APhotoPage {
 		var contentDiv: JQ = new JQ(".content", screen).empty();
 		contentDiv.addClass("center");
 
-		var contentId: String = APhotoContext.CURRENT_MEDIA;
+		var contentId: String = PinterContext.CURRENT_MEDIA;
 
 		labelSet = new FilteredSet(AppContext.LABELS, function(l: Label) {
-				return l.iid == APhotoContext.CURRENT_ALBUM;
+				return l.iid == PinterContext.CURRENT_BOARD;
 			});
 		
 		this.labelSetListener = function(label: Label, evt: EventType) {
@@ -91,38 +91,15 @@ class ContentScreen extends APhotoPage {
 
 		var leftSideOfPage: JQ = new JQ("<div class='leftWrap'></div>").appendTo(content);
 
-		var albumDetails: AlbumDetails = new AlbumDetails("<div></div>");
+		var albumDetails: BoardDetails = new BoardDetails("<div></div>");
 		albumDetails.appendTo(leftSideOfPage);
-		albumDetails.albumDetails({
+		albumDetails.boardDetails({
 			label: label,
-			parentIid: APhotoContext.ROOT_ALBUM.iid
+			parentIid: PinterContext.ROOT_BOARD.iid,
+			owner: "Isaiah Ruffner"
 		});
 
-		var setDefaultBtn: JQ = new JQ("<button class='setDefaultBtn'>Set as Default Picture</button>")
-			.click(function(evt: JQEvent) {
-					//find this config
-					var config: ConfigContent = null;
-					var event: EMEvent = null;
-					APhotoContext.ALBUM_CONFIGS.iter(function(c: ConfigContent) {
-							var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(c.iid+"_"+label.iid, function(lc: LabeledContent): String {
-										return lc.contentIid+"_"+lc.labelIid;
-									});
-							if(match != null) config = c;
-						});
-					if(config == null) {
-						config = cast ContentFactory.create(ContentType.CONFIG, _content.props.imgSrc);
-						event = EMEvent.CreateContent;
-					} else {
-						config.props.defaultImg = _content.props.imgSrc;
-						event = EMEvent.UpdateContent;
-					}
-					
-					var ccd = new EditContentData(config);
-					ccd.labelIids.push(APhotoContext.CURRENT_ALBUM);
-					EM.change(event, ccd);
-				})
-			.button()
-			.appendTo(leftSideOfPage);
+		
 	}
 
 	private function _noLabel(screen: JQ) {

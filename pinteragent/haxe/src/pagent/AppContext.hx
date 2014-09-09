@@ -9,6 +9,7 @@ import m3.observable.OSet;
 import m3.serialization.Serialization;
 
 import pagent.model.EM;
+import pagent.PinterAgent;
 import pagent.PinterAgent.PinterContentHandler;
 import qoid.model.ModelObj;
 
@@ -28,10 +29,14 @@ class AppContext {
     public static var NOTIFICATIONS:FilteredSet<Notification<Dynamic>>;
     public static var MASTER_NOTIFICATIONS: ObservableSet<Notification<Dynamic>>;
 
+    public static var CONNECTIONS: ObservableSet<Connection>;
+    public static var GROUPED_CONNECTIONS: GroupedSet<Connection>;
+
     public static var LABELS:ObservableSet<Label>;
 
     public static var LABELACLS:ObservableSet<LabelAcl>;
-    public static var GROUPED_LABELACLS: GroupedSet<LabelAcl>;
+    public static var LABELACLS_ByConnection: GroupedSet<LabelAcl>;
+    public static var LABELACLS_ByLabel: GroupedSet<LabelAcl>;
     
     public static var LABELCHILDREN:ObservableSet<LabelChild>;
     public static var GROUPED_LABELCHILDREN: GroupedSet<LabelChild>;
@@ -71,9 +76,23 @@ class AppContext {
 
         LABELS = new ObservableSet<Label>(Label.identifier);
 
+        CONNECTIONS = new ObservableSet<Connection>(Connection.identifier);
+        CONNECTIONS.listen(function(c:Connection, evt:EventType): Void {
+            if (evt.isAdd()) {
+                PinterAgent.PROTOCOL.getProfiles([c.iid]);
+                PinterAgent.PROTOCOL.getBoards([c.iid]);
+            }
+        });
+        GROUPED_CONNECTIONS = new GroupedSet<Connection>(CONNECTIONS, function(c:Connection):String {
+            return c.aliasIid;
+        });
+
         LABELACLS = new ObservableSet<LabelAcl>(LabelAcl.identifier);
-        GROUPED_LABELACLS = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
+        LABELACLS_ByConnection = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
             return l.connectionIid;
+        });
+        LABELACLS_ByLabel = new GroupedSet<LabelAcl>(LABELACLS, function(l:LabelAcl):String {
+            return l.labelIid;
         });
 
         LABELCHILDREN = new ObservableSet<LabelChild>(LabelChild.identifier);

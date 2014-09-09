@@ -185,6 +185,8 @@ extern class AlbumDetails extends JQ {
 					},
 
 		        destroy: function() {
+		        	var self: AlbumDetailsWidgetDef = Widgets.getSelf();
+		        	APhotoContext.ALBUM_CONFIGS.removeListener(self._onAlbumConfig);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

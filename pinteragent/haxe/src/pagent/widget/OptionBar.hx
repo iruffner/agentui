@@ -1,6 +1,7 @@
 package pagent.widget;
 
 import pagent.AppContext;
+import pagent.pages.PinterPageMgr;
 import pagent.PinterContext;
 import pagent.model.EM;
 import m3.jq.JQ;
@@ -64,17 +65,24 @@ extern class OptionBar extends JQ {
 			        			self._showNewLabelPopup(JQ.cur);
 		        			});
 
-        			new JQ("<button>All Pins...</button>")
-	        			.appendTo(selfElement)
-	        			.button();
+        			// new JQ("<button>All Pins...</button>")
+	        		// 	.appendTo(selfElement)
+	        		// 	.button();
 
         			new JQ("<button class='fright'>Followers</button>")
 	        			.appendTo(selfElement)
-	        			.button();
+	        			.button()
+	        			.click(function(evt: JQEvent) {
+		        				PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.FOLLOWERS_SCREEN;
+		        			});
 
         			new JQ("<button class='fright'>Following</button>")
 	        			.appendTo(selfElement)
-	        			.button();
+	        			.button()
+	        			.click(function(evt: JQEvent) {
+		        				evt.stopPropagation();
+			        			self._showNewLabelPopup(JQ.cur);
+		        			});
 
 
 		        	if (AppContext.GROUPED_LABELCHILDREN.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {

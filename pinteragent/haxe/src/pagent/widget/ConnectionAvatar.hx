@@ -23,6 +23,7 @@ typedef ConnectionAvatarOptions = {
 	>FilterableCompOptions,
 	@:optional var connectionIid: String;
 	@:optional var aliasIid: String;
+	@:optional var onProfileUpdate: Profile->Void;
 }
 
 typedef ConnectionAvatarWidgetDef = {
@@ -57,33 +58,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		var defineWidget: Void->ConnectionAvatarWidgetDef = function(): ConnectionAvatarWidgetDef {
 			return {
 		        options: {
-		            isDragByHelper: true,
-		            containment: false,
-		            dndEnabled: true,
-		            classes: null,
-		            dragstop: null,
-		            cloneFcn: function(filterableComp: FilterableComponent, ?isDragByHelper: Bool = false, ?containment: Dynamic = false, ?dragstop: JQEvent->UIDraggable->Void): ConnectionAvatar {
-			            	var connectionAvatar: ConnectionAvatar = cast(filterableComp, ConnectionAvatar);
-			            	if(connectionAvatar.hasClass("clone")) return connectionAvatar;
-			            	var clone: ConnectionAvatar = new ConnectionAvatar("<div class='clone'></div>");
-			            	clone.connectionAvatar({
-			                        connectionIid: connectionAvatar.connectionAvatar("option", "connectionIid"),
-			                        aliasIid: connectionAvatar.connectionAvatar("option", "aliasIid"),
-			                        isDragByHelper: isDragByHelper,
-			                        containment: containment,
-			                        dragstop: dragstop,
-			                        classes: connectionAvatar.connectionAvatar("option", "classes"),
-			                        cloneFcn: connectionAvatar.connectionAvatar("option", "cloneFcn"),
-			                        dropTargetClass: connectionAvatar.connectionAvatar("option", "dropTargetClass"),
-			                        helperFcn: connectionAvatar.connectionAvatar("option", "helperFcn")
-			                    });
-			            	return clone;
-		            	},
-					dropTargetClass: "connectionDT",
-					helperFcn: function(): JQ {
-			    			var clone: JQ = JQ.cur.clone();
-			    			return clone.children("img").addClass("connectionDraggingImg");
-	    				}
+		           
 		        },
 
 		        getAlias: function():Alias {
@@ -110,7 +85,20 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		            self._updateWidgets(new Profile());
 
-		        	if (self.options.aliasIid != null){
+		        	if (self.options.connectionIid != null) {
+		        		self.filteredSetConnection = new FilteredSet<Connection>(AppContext.CONNECTIONS,function(c:Connection):Bool{
+		        			return c.iid == self.options.connectionIid;
+		        		});
+		        		self._onUpdateConnection = function(c:Connection, evt:EventType) {
+		        			if (evt.isAddOrUpdate()) {
+		        				self._updateWidgets(c.data);
+		        			} else if (evt.isDelete()) {
+		        				self.destroy();
+		        				selfElement.remove();
+		        			}
+		        		}
+		        		self.filteredSetConnection.listen(self._onUpdateConnection);
+		        	} else if (self.options.aliasIid != null){
 		        		self.filteredSetAlias = new FilteredSet<Alias>(AppContext.ALIASES,function(a:Alias):Bool{
 		        			return a.iid == self.options.aliasIid;
 		        		});
@@ -147,6 +135,9 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		        	selfElement.children("img").attr("src", imgSrc);
 		            selfElement.attr("title", M.getX(profile.name,""));
+		            if(self.options.onProfileUpdate != null) {
+		            	self.options.onProfileUpdate(profile);
+		            }
 	        	},
 
 		        destroy: function() {

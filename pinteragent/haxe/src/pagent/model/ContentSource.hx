@@ -1,7 +1,7 @@
-package ap.model;
+package pagent.model;
 
-import ap.AppContext;
-import ap.model.EM;
+import pagent.AppContext;
+import pagent.model.EM;
 import m3.log.Logga;
 import m3.observable.OSet;
 import m3.util.UidGenerator;
@@ -80,11 +80,13 @@ class ContentSource {
 
 		for (result in results) {
 			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
-			if (connectionIid != null) {
-				c.aliasIid = null;
-				c.connectionIid = connectionIid;
+			if(c != null) { //occurs when there is an unknown content type
+				if (connectionIid != null) {
+					c.aliasIid = null;
+					c.connectionIid = connectionIid;
+				}
+				filteredContent.addOrUpdate(c);
 			}
-			filteredContent.addOrUpdate(c);
 		}
 
 	}
