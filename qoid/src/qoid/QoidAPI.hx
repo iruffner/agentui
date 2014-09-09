@@ -11,9 +11,6 @@ import m3.serialization.Serialization;
 import qoid.Synchronizer;
 
 
-typedef ChannelId = String;
-typedef AliasIid  = String;
-
 class AuthenticationResponse {
     public var channelId:String;
     public var connectionIid:String;
@@ -30,29 +27,29 @@ class QoidAPI {
         longPolls = new StringMap<LongPollingRequest>();
     }
 
-    @:isVar public static var activeChannel(get,set): ChannelId;
-    public static function set_activeChannel(c:ChannelId):ChannelId {
+    @:isVar public static var activeChannel(get,set): String;
+    public static function set_activeChannel(c:String):String {
         activeChannel = c;
         return activeChannel;
     }
-    public static function get_activeChannel():ChannelId {
+    public static function get_activeChannel():String {
         return activeChannel;
     }
 
-    @:isVar public static var activeAlias(get,set): AliasIid;
-    public static function set_activeAlias(a:AliasIid):AliasIid {
+    @:isVar public static var activeAlias(get,set): String;
+    public static function set_activeAlias(a:String):String {
         activeAlias = a;
         return activeAlias;
     }
-    public static function get_activeAlias():AliasIid {
+    public static function get_activeAlias():String {
         return activeAlias;
     }
 
-    private static var channels:Array<ChannelId>;
-    public static function addChannel(c:ChannelId):Void {
+    private static var channels:Array<String>;
+    public static function addChannel(c:String):Void {
         channels.push(c);
     }
-    public static function removeChannel(c:ChannelId):Bool {
+    public static function removeChannel(c:String):Bool {
         return channels.remove(c);
     }
 
@@ -197,6 +194,7 @@ class QoidAPI {
         QoidAPI.longPolls.set(channelId, lpr);
     }
 
+    // TODO:
     public static function query(type: String, query: String, historical: Bool, standing: Bool, ?route: Array<String>):Void {
 
     }

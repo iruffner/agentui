@@ -169,6 +169,7 @@ class Qoid {
         return labelDescendents;
     }
 
+    // TODO:  Change name 
     public static function connectionFromMetaLabel(labelIid:String):Connection {
         var ret:Connection = null;
         for (connection in connections) {

@@ -36,7 +36,7 @@ class ResponseProcessor {
                     }
                 } else if (context == "verificationContent") {
                     updateModelObject(result.type, result.action, result.results);
-                } else {
+                } else if (!Synchronizer.processResponse(data)){
                     if (result != null) {
                         var eventId = "on" + context.capitalizeFirstLetter();
                         EventManager.instance.fire(eventId, result);

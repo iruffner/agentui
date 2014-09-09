@@ -34,10 +34,13 @@ class Synchronizer {
 	// The global list of synchronizers
 	public static var synchronizers = new StringMap<Synchronizer>();
 
-    public static function processResponse(data:Dynamic):Void {
+    public static function processResponse(data:Dynamic):Bool {
         var context:String = data.context.split("-")[0];
         var synchronizer = Synchronizer.synchronizers.get(context);
-        synchronizer.dataReceived(context, data.result);
+        if (synchronizer != null) {
+            synchronizer.dataReceived(context, data.result);
+        }
+        return (synchronizer != null);
     }
 
 	public static function remove(iid:String) {

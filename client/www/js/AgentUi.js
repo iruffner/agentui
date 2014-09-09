@@ -3857,9 +3857,11 @@ qoid.ResponseProcessor.processResponse = function(dataArr) {
 				if(result != null) {
 					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else qoid.Synchronizer.processResponse(data);
 				}
-			} else if(context == "verificationContent") qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else if(result != null) {
-				var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context);
-				m3.event.EventManager.get_instance().fire(eventId,result);
+			} else if(context == "verificationContent") qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else if(!qoid.Synchronizer.processResponse(data)) {
+				if(result != null) {
+					var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context);
+					m3.event.EventManager.get_instance().fire(eventId,result);
+				}
 			}
 		}
 	});
@@ -3933,7 +3935,8 @@ qoid.Synchronizer.__name__ = ["qoid","Synchronizer"];
 qoid.Synchronizer.processResponse = function(data) {
 	var context = data.context.split("-")[0];
 	var synchronizer = qoid.Synchronizer.synchronizers.get(context);
-	synchronizer.dataReceived(context,data.result);
+	if(synchronizer != null) synchronizer.dataReceived(context,data.result);
+	return synchronizer != null;
 };
 qoid.Synchronizer.remove = function(iid) {
 	qoid.Synchronizer.synchronizers.remove(iid);
