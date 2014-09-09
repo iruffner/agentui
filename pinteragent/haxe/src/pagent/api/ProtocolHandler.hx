@@ -7,6 +7,7 @@ import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.observable.OSet;
 
+import pagent.PinterContext;
 import qoid.api.CrudMessage;
 import qoid.api.Requester;
 import qoid.model.ModelObj;
@@ -145,8 +146,8 @@ class ProtocolHandler {
 		new SubmitRequest(requests).start();
 	}
 
-	public function albumConfigs(filterData: FilterData): Void {
-		var context = Synchronizer.createContext(1, "albumConfigs");
+	public function boardConfigs(filterData: FilterData): Void {
+		var context = Synchronizer.createContext(1, "boardConfigs");
 		var requests = [
 			new ChannelRequestMessage(QUERY, context, new QueryMessage(filterData)),
 		];
@@ -357,7 +358,6 @@ class ProtocolHandler {
 		req.start();
 	}
 
-
 	private function onCreateSubmitChannel(data: Dynamic):Void {
 		AppContext.SUBMIT_CHANNEL = data.channelId;
 		AppContext.UBER_ALIAS_ID = data.aliasIid;
@@ -402,5 +402,14 @@ class ProtocolHandler {
 	}
 	public function restores(): Void {
 		throw new Exception("E_NOTIMPLEMENTED"); 
+	}
+
+	public function getBoards(connectionIids: Array<String>) {
+		var context = Synchronizer.createContext(1, "connectionBoards");
+		var qm = QueryMessage.create("connectionLabel");
+		qm.q = "(hasParentLabelPath('" + PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + "','" + PinterContext.APP_ROOT_LABEL_NAME + "'))";
+		qm.connectionIids = connectionIids;
+		qm.local = false;
+		new SubmitRequest([new ChannelRequestMessage(QUERY, context, qm)]).start();
 	}
 }

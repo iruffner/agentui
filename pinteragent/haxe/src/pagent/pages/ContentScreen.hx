@@ -99,31 +99,7 @@ class ContentScreen extends PinterPage {
 			owner: "Isaiah Ruffner"
 		});
 
-		// var setDefaultBtn: JQ = new JQ("<button class='setDefaultBtn'>Use as Cover Picture</button>")
-		// 	.click(function(evt: JQEvent) {
-		// 			//find this config
-		// 			var config: ConfigContent = null;
-		// 			var event: String = null;
-		// 			PinterContext.BOARD_CONFIGS.iter(function(c: ConfigContent) {
-		// 					var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(c.iid+"_"+label.iid, function(lc: LabeledContent): String {
-		// 								return lc.contentIid+"_"+lc.labelIid;
-		// 							});
-		// 					if(match != null) config = c;
-		// 				});
-		// 			if(config == null) {
-		// 				config = cast ContentFactory.create(ContentType.CONFIG, _content.props.imgSrc);
-		// 				event = EMEvent.CreateContent;
-		// 			} else {
-		// 				config.props.defaultImg = _content.props.imgSrc;
-		// 				event = EMEvent.UpdateContent;
-		// 			}
-					
-		// 			var ccd = new EditContentData(config);
-		// 			ccd.labelIids.push(PinterContext.CURRENT_BOARD);
-		// 			EM.change(event, ccd);
-		// 		})
-		// 	.button()
-		// 	.appendTo(leftSideOfPage);
+		
 	}
 
 	private function _noLabel(screen: JQ) {

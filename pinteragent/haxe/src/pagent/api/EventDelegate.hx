@@ -21,9 +21,9 @@ class EventDelegate {
 	private function _setUpEventListeners() {
 
 		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {
-            if(filterData.type == "albumConfig") {
+            if(filterData.type == "boardConfig") {
                 filterData.type = "content";
-                protocolHandler.albumConfigs(filterData);
+                protocolHandler.boardConfigs(filterData);
         	} else 
                 protocolHandler.filter(filterData);
         });

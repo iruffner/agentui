@@ -80,11 +80,13 @@ class ContentSource {
 
 		for (result in results) {
 			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
-			if (connectionIid != null) {
-				c.aliasIid = null;
-				c.connectionIid = connectionIid;
+			if(c != null) { //occurs when there is an unknown content type
+				if (connectionIid != null) {
+					c.aliasIid = null;
+					c.connectionIid = connectionIid;
+				}
+				filteredContent.addOrUpdate(c);
 			}
-			filteredContent.addOrUpdate(c);
 		}
 
 	}

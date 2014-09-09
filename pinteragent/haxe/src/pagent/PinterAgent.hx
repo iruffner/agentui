@@ -47,7 +47,8 @@ class PinterAgent {
         document.bind("pageshow", PinterContext.PAGE_MGR.pageShow);
         document.bind("pagehide", PinterContext.PAGE_MGR.pageHide);
         
-        PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.HOME_SCREEN;
+        // PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.HOME_SCREEN;
+        PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.SOCIAL_SCREEN;
         // EM.change(EMEvent.APP_INITIALIZED);
 
         new JQ("body").click(function(evt: JQEvent): Void {

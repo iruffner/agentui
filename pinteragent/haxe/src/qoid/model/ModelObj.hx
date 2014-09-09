@@ -14,6 +14,7 @@ using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 import DateTools;
+import pagent.PinterContext;
 using StringTools;
 using Lambda;
 
@@ -182,7 +183,7 @@ class ContentType {
 	public static var URL = "URL";
 	public static var TEXT = "TEXT";
 	public static var VERIFICATION = "VERIFICATION";
-	public static var CONFIG = "com.qoid.apps.aphoto.config";
+	public static var CONFIG = PinterContext.APP_ROOT_LABEL_NAME + ".config";
 }
 
 

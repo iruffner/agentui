@@ -80,6 +80,7 @@ class AppContext {
         CONNECTIONS.listen(function(c:Connection, evt:EventType): Void {
             if (evt.isAdd()) {
                 PinterAgent.PROTOCOL.getProfiles([c.iid]);
+                PinterAgent.PROTOCOL.getBoards([c.iid]);
             }
         });
         GROUPED_CONNECTIONS = new GroupedSet<Connection>(CONNECTIONS, function(c:Connection):String {
