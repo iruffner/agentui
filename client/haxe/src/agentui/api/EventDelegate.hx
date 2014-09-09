@@ -18,20 +18,12 @@ class EventDelegate {
         	// TODO:  protocolHandler.filter(filterData);
         });
 
-        EM.addListener(EMEvent.CreateAlias, function(alias: Alias): Void {
-            QoidAPI.createAlias(alias.profile.name, alias.profile.imgSrc);
-        });
-
         EM.addListener(EMEvent.DeleteAlias, function(alias: Alias): Void {
             QoidAPI.deleteAlias(alias.iid);
         });
 
         EM.addListener(EMEvent.UpdateAlias, function(alias: Alias): Void {
             QoidAPI.updateAlias(alias.iid, alias.data);
-        });
-
-        EM.addListener(EMEvent.UserLogin, function(login: Login): Void {
-          	QoidAPI.login(login.agentId, login.password);
         });
 
         EM.addListener(EMEvent.CreateAgent, function(user: NewUser): Void {

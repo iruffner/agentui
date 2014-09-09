@@ -821,17 +821,11 @@ agentui.api.EventDelegate.__name__ = ["agentui","api","EventDelegate"];
 agentui.api.EventDelegate.init = function() {
 	agentui.model.EM.addListener(agentui.model.EMEvent.FILTER_RUN,function(filterData) {
 	});
-	agentui.model.EM.addListener(agentui.model.EMEvent.CreateAlias,function(alias) {
-		qoid.QoidAPI.createAlias(alias.profile.name,alias.profile.imgSrc);
+	agentui.model.EM.addListener(agentui.model.EMEvent.DeleteAlias,function(alias) {
+		qoid.QoidAPI.deleteAlias(alias.iid);
 	});
-	agentui.model.EM.addListener(agentui.model.EMEvent.DeleteAlias,function(alias1) {
-		qoid.QoidAPI.deleteAlias(alias1.iid);
-	});
-	agentui.model.EM.addListener(agentui.model.EMEvent.UpdateAlias,function(alias2) {
-		qoid.QoidAPI.updateAlias(alias2.iid,alias2.data);
-	});
-	agentui.model.EM.addListener(agentui.model.EMEvent.UserLogin,function(login) {
-		qoid.QoidAPI.login(login.agentId,login.password);
+	agentui.model.EM.addListener(agentui.model.EMEvent.UpdateAlias,function(alias1) {
+		qoid.QoidAPI.updateAlias(alias1.iid,alias1.data);
 	});
 	agentui.model.EM.addListener(agentui.model.EMEvent.CreateAgent,function(user) {
 		qoid.QoidAPI.createAgent(user.name,user.pwd);
@@ -1614,7 +1608,7 @@ qoid.QoidAPI.spawnSession = function(aliasIid) {
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.SPAWN,"spawnSession");
 };
 qoid.QoidAPI.createAlias = function(profileName,profileImage,data,route) {
-	var json = { profileName : profileName, profileImage : profileImage};
+	var json = { name : profileName, profileName : profileName, profileImage : profileImage};
 	if(route != null) json.route = route;
 	if(data != null) json.data = data;
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_CREATE,"createAlias");
@@ -3848,6 +3842,254 @@ qoid.model.Login.__super__ = qoid.model.ModelObj;
 qoid.model.Login.prototype = $extend(qoid.model.ModelObj.prototype,{
 	__class__: qoid.model.Login
 });
+qoid.ResponseProcessor = function() { };
+$hxClasses["qoid.ResponseProcessor"] = qoid.ResponseProcessor;
+qoid.ResponseProcessor.__name__ = ["qoid","ResponseProcessor"];
+qoid.ResponseProcessor.processResponse = function(dataArr) {
+	Lambda.iter(dataArr,function(data) {
+		if(data.success == false) {
+			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
+			m3.log.Logga.get_DEFAULT().error(data.error.stacktrace);
+		} else {
+			var context = data.context;
+			var result = data.result;
+			if(StringTools.startsWith(context,"initialDataLoad")) {
+				if(result != null) {
+					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else qoid.Synchronizer.processResponse(data);
+				}
+			} else if(context == "verificationContent") qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else if(result != null) {
+				var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context);
+				m3.event.EventManager.get_instance().fire(eventId,result);
+			}
+		}
+	});
+};
+qoid.ResponseProcessor.processModelObject = function(set,type,action,data) {
+	var _g = 0;
+	var _g1;
+	_g1 = js.Boot.__cast(data , Array);
+	while(_g < _g1.length) {
+		var datum = _g1[_g];
+		++_g;
+		var obj = m3.serialization.Serializer.get_instance().fromJsonX(datum,type);
+		if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
+	}
+};
+qoid.ResponseProcessor.updateModelObject = function(type,action,data) {
+	var type1 = type.toLowerCase();
+	switch(type1) {
+	case "alias":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.aliases,qoid.model.Alias,action,data);
+		break;
+	case "connection":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.connections,qoid.model.Connection,action,data);
+		break;
+	case "content":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.verificationContent,qoid.model.Content,action,data);
+		break;
+	case "introduction":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.introductions,qoid.model.Introduction,action,data);
+		break;
+	case "label":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labels,qoid.model.Label,action,data);
+		break;
+	case "labelacl":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelAcls,qoid.model.LabelAcl,action,data);
+		break;
+	case "labelchild":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelChildren,qoid.model.LabelChild,action,data);
+		break;
+	case "labeledcontent":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labeledContent,qoid.model.LabeledContent,action,data);
+		break;
+	case "notification":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.notifications,qoid.model.Notification,action,data);
+		break;
+	case "profile":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.profiles,qoid.model.Profile,action,data);
+		break;
+	default:
+		m3.log.Logga.get_DEFAULT().error("Unknown type: " + type1);
+	}
+};
+qoid.model.Introduction = function() {
+	qoid.model.ModelObjWithIid.call(this);
+};
+$hxClasses["qoid.model.Introduction"] = qoid.model.Introduction;
+qoid.model.Introduction.__name__ = ["qoid","model","Introduction"];
+qoid.model.Introduction.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Introduction.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Introduction
+});
+qoid.Synchronizer = function(context,numResponsesExpected,oncomplete) {
+	this.context = context;
+	this.numResponsesExpected = numResponsesExpected;
+	this.oncomplete = oncomplete;
+	this.parms = new qoid.SynchronizationParms();
+	qoid.Synchronizer.synchronizers.set(context,this);
+};
+$hxClasses["qoid.Synchronizer"] = qoid.Synchronizer;
+qoid.Synchronizer.__name__ = ["qoid","Synchronizer"];
+qoid.Synchronizer.processResponse = function(data) {
+	var context = data.context.split("-")[0];
+	var synchronizer = qoid.Synchronizer.synchronizers.get(context);
+	synchronizer.dataReceived(context,data.result);
+};
+qoid.Synchronizer.remove = function(iid) {
+	qoid.Synchronizer.synchronizers.remove(iid);
+};
+qoid.Synchronizer.prototype = {
+	processDataReceived: function(list,type,data) {
+		var _g = 0;
+		var _g1;
+		_g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var datum = _g1[_g];
+			++_g;
+			list.push(m3.serialization.Serializer.get_instance().fromJsonX(datum,type));
+		}
+	}
+	,dataReceived: function(c,dataObj) {
+		var data = dataObj.results;
+		var type = dataObj.type.toLowerCase();
+		if(data != null) switch(type) {
+		case "alias":
+			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
+			break;
+		case "connection":
+			this.processDataReceived(this.parms.connections,qoid.model.Connection,data);
+			break;
+		case "introduction":
+			this.processDataReceived(this.parms.introductions,qoid.model.Introduction,data);
+			break;
+		case "label":
+			this.processDataReceived(this.parms.labels,qoid.model.Label,data);
+			break;
+		case "labelacl":
+			this.processDataReceived(this.parms.labelAcls,qoid.model.LabelAcl,data);
+			break;
+		case "labelchild":
+			this.processDataReceived(this.parms.labelChildren,qoid.model.LabelChild,data);
+			break;
+		case "labeledcontent":
+			this.processDataReceived(this.parms.labeledContent,qoid.model.LabeledContent,data);
+			break;
+		case "notification":
+			this.processDataReceived(this.parms.notifications,qoid.model.Notification,data);
+			break;
+		case "profile":
+			this.processDataReceived(this.parms.profiles,qoid.model.Profile,data);
+			break;
+		default:
+			m3.log.Logga.get_DEFAULT().error("Unknown data type: " + Std.string(dataObj.type));
+		}
+		this.numResponsesExpected -= 1;
+		if(this.numResponsesExpected == 0) {
+			this.oncomplete(this.parms);
+			qoid.Synchronizer.remove(this.context);
+		}
+	}
+	,__class__: qoid.Synchronizer
+};
+m3.comm.LongPollingRequest = function(channel,successFcn,errorFcn,ajaxOpts,baseUrl) {
+	this.timeout = 30000;
+	this.delayNextPoll = false;
+	this.running = true;
+	var _g = this;
+	this.channel = channel;
+	if(baseUrl == null) this.baseUrl = "/api/channel/poll"; else this.baseUrl = baseUrl;
+	this.baseOpts = { complete : function(jqXHR,textStatus) {
+		_g.poll();
+	}};
+	if(ajaxOpts != null) $.extend(this.baseOpts,ajaxOpts);
+	var onSuccess = function(data) {
+		if(_g.running) try {
+			successFcn(data);
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
+				m3.log.Logga.get_DEFAULT().error("Error while polling",e);
+			} else throw(e);
+		}
+	};
+	var onError = function(exc) {
+		_g.delayNextPoll = true;
+		m3.log.Logga.get_DEFAULT().error("Error executing ajax call | Response Code: " + Std.string(_g.jqXHR.status) + " | " + Std.string(_g.jqXHR.message));
+		if(errorFcn != null) errorFcn(exc);
+	};
+	m3.comm.BaseRequest.call(this,"",this.getUrl(),onSuccess,onError);
+};
+$hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
+m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
+m3.comm.LongPollingRequest.__super__ = m3.comm.BaseRequest;
+m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
+	pause: function() {
+		this.running = false;
+		this.poll();
+	}
+	,resume: function() {
+		this.running = false;
+		this.poll();
+	}
+	,toggle: function() {
+		this.running = !this.running;
+		m3.log.Logga.get_DEFAULT().debug("Long Polling is running? " + Std.string(this.running));
+		this.poll();
+	}
+	,getChannelId: function() {
+		return this.channel;
+	}
+	,start: function(opts) {
+		this.poll();
+		return this.jqXHR;
+	}
+	,abort: function() {
+		this.running = false;
+		if(this.jqXHR != null) try {
+			this.jqXHR.abort();
+			this.jqXHR = null;
+		} catch( err ) {
+			m3.log.Logga.get_DEFAULT().error("error on poll abort | " + Std.string(err));
+		}
+	}
+	,getUrl: function() {
+		return this.baseUrl + "?timeoutMillis=" + Std.string(this.timeout);
+	}
+	,poll: function() {
+		if(this.running) {
+			if(this.delayNextPoll == true) {
+				this.delayNextPoll = false;
+				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
+			} else {
+				this.baseOpts.url = this.getUrl();
+				this.baseOpts.timeout = this.timeout + 1000;
+				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
+			}
+		}
+	}
+	,__class__: m3.comm.LongPollingRequest
+});
+qoid.SynchronizationParms = function() {
+	this.aliases = new Array();
+	this.connections = new Array();
+	this.introductions = new Array();
+	this.labels = new Array();
+	this.labelAcls = new Array();
+	this.labelChildren = new Array();
+	this.labeledContent = new Array();
+	this.notifications = new Array();
+	this.profiles = new Array();
+};
+$hxClasses["qoid.SynchronizationParms"] = qoid.SynchronizationParms;
+qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
+qoid.SynchronizationParms.prototype = {
+	__class__: qoid.SynchronizationParms
+};
+js.Lib = function() { };
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
+};
 qoid.model.ContentFactory = function() { };
 $hxClasses["qoid.model.ContentFactory"] = qoid.model.ContentFactory;
 qoid.model.ContentFactory.__name__ = ["qoid","model","ContentFactory"];
@@ -5234,12 +5476,6 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 	}
 	throw "Unexpected end";
 };
-js.Lib = function() { };
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
-};
 js.d3 = {};
 js.d3._D3 = {};
 js.d3._D3.InitPriority = function() { };
@@ -5271,83 +5507,6 @@ m3.CrossMojo.prettyPrint = function(json) {
 m3.comm.ChannelRequest = function() { };
 $hxClasses["m3.comm.ChannelRequest"] = m3.comm.ChannelRequest;
 m3.comm.ChannelRequest.__name__ = ["m3","comm","ChannelRequest"];
-m3.comm.LongPollingRequest = function(channel,successFcn,errorFcn,ajaxOpts,baseUrl) {
-	this.timeout = 30000;
-	this.delayNextPoll = false;
-	this.running = true;
-	var _g = this;
-	this.channel = channel;
-	if(baseUrl == null) this.baseUrl = "/api/channel/poll"; else this.baseUrl = baseUrl;
-	this.baseOpts = { complete : function(jqXHR,textStatus) {
-		_g.poll();
-	}};
-	if(ajaxOpts != null) $.extend(this.baseOpts,ajaxOpts);
-	var onSuccess = function(data) {
-		if(_g.running) try {
-			successFcn(data);
-		} catch( e ) {
-			if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
-				m3.log.Logga.get_DEFAULT().error("Error while polling",e);
-			} else throw(e);
-		}
-	};
-	var onError = function(exc) {
-		_g.delayNextPoll = true;
-		m3.log.Logga.get_DEFAULT().error("Error executing ajax call | Response Code: " + Std.string(_g.jqXHR.status) + " | " + Std.string(_g.jqXHR.message));
-		if(errorFcn != null) errorFcn(exc);
-	};
-	m3.comm.BaseRequest.call(this,"",this.getUrl(),onSuccess,onError);
-};
-$hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
-m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
-m3.comm.LongPollingRequest.__super__ = m3.comm.BaseRequest;
-m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
-	pause: function() {
-		this.running = false;
-		this.poll();
-	}
-	,resume: function() {
-		this.running = false;
-		this.poll();
-	}
-	,toggle: function() {
-		this.running = !this.running;
-		m3.log.Logga.get_DEFAULT().debug("Long Polling is running? " + Std.string(this.running));
-		this.poll();
-	}
-	,getChannelId: function() {
-		return this.channel;
-	}
-	,start: function(opts) {
-		this.poll();
-		return this.jqXHR;
-	}
-	,abort: function() {
-		this.running = false;
-		if(this.jqXHR != null) try {
-			this.jqXHR.abort();
-			this.jqXHR = null;
-		} catch( err ) {
-			m3.log.Logga.get_DEFAULT().error("error on poll abort | " + Std.string(err));
-		}
-	}
-	,getUrl: function() {
-		return this.baseUrl + "?timeoutMillis=" + Std.string(this.timeout);
-	}
-	,poll: function() {
-		if(this.running) {
-			if(this.delayNextPoll == true) {
-				this.delayNextPoll = false;
-				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
-			} else {
-				this.baseOpts.url = this.getUrl();
-				this.baseOpts.timeout = this.timeout + 1000;
-				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
-			}
-		}
-	}
-	,__class__: m3.comm.LongPollingRequest
-});
 m3.event.EMListener = function(fcn,name) {
 	this.fcn = fcn;
 	this.uid = m3.util.UidGenerator.create(20);
@@ -6051,162 +6210,6 @@ qoid.AuthenticationResponse.__name__ = ["qoid","AuthenticationResponse"];
 qoid.AuthenticationResponse.prototype = {
 	__class__: qoid.AuthenticationResponse
 };
-qoid.ResponseProcessor = function() { };
-$hxClasses["qoid.ResponseProcessor"] = qoid.ResponseProcessor;
-qoid.ResponseProcessor.__name__ = ["qoid","ResponseProcessor"];
-qoid.ResponseProcessor.processResponse = function(dataArr) {
-	Lambda.iter(dataArr,function(data) {
-		if(data.success == false) {
-			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
-			m3.log.Logga.get_DEFAULT().error(data.error.stacktrace);
-		} else {
-			var context = data.context;
-			var result = data.result;
-			if(StringTools.startsWith(context,"initialDataLoad")) {
-				if(result != null) {
-					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else qoid.Synchronizer.processResponse(data);
-				}
-			} else if(context == "verificationContent") qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else if(result != null) {
-				var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context);
-				m3.event.EventManager.get_instance().fire(eventId,result);
-			}
-		}
-	});
-};
-qoid.ResponseProcessor.processModelObject = function(set,type,action,data) {
-	var _g = 0;
-	var _g1;
-	_g1 = js.Boot.__cast(data , Array);
-	while(_g < _g1.length) {
-		var datum = _g1[_g];
-		++_g;
-		var obj = m3.serialization.Serializer.get_instance().fromJsonX(datum,type);
-		if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
-	}
-};
-qoid.ResponseProcessor.updateModelObject = function(type,action,data) {
-	var type1 = type.toLowerCase();
-	switch(type1) {
-	case "alias":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.aliases,qoid.model.Alias,action,data);
-		break;
-	case "connection":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.connections,qoid.model.Connection,action,data);
-		break;
-	case "content":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.verificationContent,qoid.model.Content,action,data);
-		break;
-	case "introduction":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.introductions,qoid.model.Introduction,action,data);
-		break;
-	case "label":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labels,qoid.model.Label,action,data);
-		break;
-	case "labelacl":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelAcls,qoid.model.LabelAcl,action,data);
-		break;
-	case "labelchild":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelChildren,qoid.model.LabelChild,action,data);
-		break;
-	case "labeledcontent":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labeledContent,qoid.model.LabeledContent,action,data);
-		break;
-	case "notification":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.notifications,qoid.model.Notification,action,data);
-		break;
-	case "profile":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.profiles,qoid.model.Profile,action,data);
-		break;
-	default:
-		m3.log.Logga.get_DEFAULT().error("Unknown type: " + type1);
-	}
-};
-qoid.SynchronizationParms = function() {
-	this.aliases = new Array();
-	this.connections = new Array();
-	this.introductions = new Array();
-	this.labels = new Array();
-	this.labelAcls = new Array();
-	this.labelChildren = new Array();
-	this.labeledContent = new Array();
-	this.notifications = new Array();
-	this.profiles = new Array();
-};
-$hxClasses["qoid.SynchronizationParms"] = qoid.SynchronizationParms;
-qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
-qoid.SynchronizationParms.prototype = {
-	__class__: qoid.SynchronizationParms
-};
-qoid.Synchronizer = function(context,numResponsesExpected,oncomplete) {
-	this.context = context;
-	this.numResponsesExpected = numResponsesExpected;
-	this.oncomplete = oncomplete;
-	this.parms = new qoid.SynchronizationParms();
-	qoid.Synchronizer.synchronizers.set(context,this);
-};
-$hxClasses["qoid.Synchronizer"] = qoid.Synchronizer;
-qoid.Synchronizer.__name__ = ["qoid","Synchronizer"];
-qoid.Synchronizer.processResponse = function(data) {
-	var context = data.context.split("-")[0];
-	var synchronizer = qoid.Synchronizer.synchronizers.get(context);
-	synchronizer.dataReceived(context,data.result);
-};
-qoid.Synchronizer.remove = function(iid) {
-	qoid.Synchronizer.synchronizers.remove(iid);
-};
-qoid.Synchronizer.prototype = {
-	processDataReceived: function(list,type,data) {
-		var _g = 0;
-		var _g1;
-		_g1 = js.Boot.__cast(data , Array);
-		while(_g < _g1.length) {
-			var datum = _g1[_g];
-			++_g;
-			list.push(m3.serialization.Serializer.get_instance().fromJsonX(datum,type));
-		}
-	}
-	,dataReceived: function(c,dataObj) {
-		var data = dataObj.results;
-		var type = dataObj.type.toLowerCase();
-		if(data != null) switch(type) {
-		case "alias":
-			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
-			break;
-		case "connection":
-			this.processDataReceived(this.parms.connections,qoid.model.Connection,data);
-			break;
-		case "introduction":
-			this.processDataReceived(this.parms.introductions,qoid.model.Introduction,data);
-			break;
-		case "label":
-			this.processDataReceived(this.parms.labels,qoid.model.Label,data);
-			break;
-		case "labelacl":
-			this.processDataReceived(this.parms.labelAcls,qoid.model.LabelAcl,data);
-			break;
-		case "labelchild":
-			this.processDataReceived(this.parms.labelChildren,qoid.model.LabelChild,data);
-			break;
-		case "labeledcontent":
-			this.processDataReceived(this.parms.labeledContent,qoid.model.LabeledContent,data);
-			break;
-		case "notification":
-			this.processDataReceived(this.parms.notifications,qoid.model.Notification,data);
-			break;
-		case "profile":
-			this.processDataReceived(this.parms.profiles,qoid.model.Profile,data);
-			break;
-		default:
-			m3.log.Logga.get_DEFAULT().error("Unknown data type: " + Std.string(dataObj.type));
-		}
-		this.numResponsesExpected -= 1;
-		if(this.numResponsesExpected == 0) {
-			this.oncomplete(this.parms);
-			qoid.Synchronizer.remove(this.context);
-		}
-	}
-	,__class__: qoid.Synchronizer
-};
 qoid.model.ContentVerification = function() { };
 $hxClasses["qoid.model.ContentVerification"] = qoid.model.ContentVerification;
 qoid.model.ContentVerification.__name__ = ["qoid","model","ContentVerification"];
@@ -6230,15 +6233,6 @@ qoid.model.NotificationKind.VerificationResponse = ["VerificationResponse",2];
 qoid.model.NotificationKind.VerificationResponse.toString = $estr;
 qoid.model.NotificationKind.VerificationResponse.__enum__ = qoid.model.NotificationKind;
 qoid.model.NotificationKind.__empty_constructs__ = [qoid.model.NotificationKind.IntroductionRequest,qoid.model.NotificationKind.VerificationRequest,qoid.model.NotificationKind.VerificationResponse];
-qoid.model.Introduction = function() {
-	qoid.model.ModelObjWithIid.call(this);
-};
-$hxClasses["qoid.model.Introduction"] = qoid.model.Introduction;
-qoid.model.Introduction.__name__ = ["qoid","model","Introduction"];
-qoid.model.Introduction.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Introduction.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.Introduction
-});
 qoid.model.IntroductionRequestNotification = function() {
 	qoid.model.Notification.call(this,qoid.model.NotificationKind.IntroductionRequest,qoid.model.IntroductionRequestData);
 };
@@ -7201,7 +7195,7 @@ var defineWidget = function() {
 							self3._showAliasDetail(alias3);
 						},100);
 					});
-					agentui.model.EM.change(agentui.model.EMEvent.CreateAlias,alias2);
+					qoid.QoidAPI.createAlias(alias2.profile.name,alias2.profile.imgSrc);
 				};
 			} else {
 				alias2.profile.name = name;
@@ -7219,28 +7213,19 @@ var defineWidget = function() {
 			self3._showAliasDetail(alias2);
 		});
 		self3.newAliasButton.hide();
-	}, _createAliasManager : function() {
+	}, _buildDialog : function() {
 		var self4 = this;
 		var selfElement3 = this.element;
-		var alias5 = new qoid.model.Alias();
-		alias5.profile.name = self4.aliasName.val();
-		alias5.profile.name = self4.username.val();
-		if(m3.helper.StringHelper.isBlank(alias5.profile.name) || m3.helper.StringHelper.isBlank(alias5.profile.name)) return;
-		selfElement3.find(".ui-state-error").removeClass("ui-state-error");
-		agentui.model.EM.change(agentui.model.EMEvent.CreateAlias,alias5);
-	}, _buildDialog : function() {
+		self4.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Alias Manager", height : 440, width : 550, buttons : { }, close : function(evt10,ui) {
+			selfElement3.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement3.dialog(dlgOptions);
+	}, open : function() {
 		var self5 = this;
 		var selfElement4 = this.element;
-		self5.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Alias Manager", height : 440, width : 550, buttons : { }, close : function(evt10,ui) {
-			selfElement4.find(".placeholder").removeClass("ui-state-error");
-		}};
-		selfElement4.dialog(dlgOptions);
-	}, open : function() {
-		var self6 = this;
-		var selfElement5 = this.element;
-		if(!self6.initialized) self6._buildDialog();
-		m3.jq.JQDialogHelper.open(selfElement5);
+		if(!self5.initialized) self5._buildDialog();
+		m3.jq.JQDialogHelper.open(selfElement4);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -8596,7 +8581,7 @@ var defineWidget = function() {
 		}
 		if(!valid) return;
 		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		agentui.model.EM.change(agentui.model.EMEvent.UserLogin,login);
+		qoid.QoidAPI.login(login.agentId,login.password);
 	}, _buildDialog : function() {
 		var self2 = this;
 		var selfElement2 = this.element;
@@ -9253,9 +9238,7 @@ agentui.model.EMEvent.AppendFilteredContent = "AppendFilteredContent";
 agentui.model.EMEvent.EditContentClosed = "EditContentClosed";
 agentui.model.EMEvent.CreateAgent = "CreateAgent";
 agentui.model.EMEvent.FitWindow = "FitWindow";
-agentui.model.EMEvent.UserLogin = "UserLogin";
 agentui.model.EMEvent.UserLogout = "UserLogout";
-agentui.model.EMEvent.CreateAlias = "CreateAlias";
 agentui.model.EMEvent.UpdateAlias = "UpdateAlias";
 agentui.model.EMEvent.DeleteAlias = "DeleteAlias";
 agentui.model.EMEvent.CreateContent = "CreateContent";
@@ -9341,6 +9324,8 @@ qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" 
 m3.util.ColorProvider._INDEX = 0;
 qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"569\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"556\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"484\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.Synchronizer.synchronizers = new haxe.ds.StringMap();
 qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"354\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"257\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"348\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
@@ -9376,10 +9361,8 @@ m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false,false
 m3.observable.EventType.Update = new m3.observable.EventType("Update",false,true,false);
 m3.observable.EventType.Delete = new m3.observable.EventType("Delete",false,false,false);
 m3.observable.EventType.Clear = new m3.observable.EventType("Clear",false,false,true);
-qoid.Synchronizer.synchronizers = new haxe.ds.StringMap();
 qoid.model.ContentVerification.__rtti = "<class path=\"qoid.model.ContentVerification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.VerifiedContentMetaData.__rtti = "<class path=\"qoid.model.VerifiedContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"484\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"494\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"qoid.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"507\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";

@@ -240,6 +240,7 @@ class QoidAPI {
     // ALIAS
     public static function createAlias(profileName: String, ?profileImage: String, ?data: Dynamic, ?route: Array<String>):Void {
         var json:Dynamic = {
+            name: profileName,
             profileName: profileName,
             profileImage: profileImage
         };

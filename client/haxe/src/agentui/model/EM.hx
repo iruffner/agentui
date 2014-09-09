@@ -37,10 +37,8 @@ class EMEvent {
 	public static var CreateAgent = "CreateAgent";
 
 	public static var FitWindow = "FitWindow";
-	public static var UserLogin = "UserLogin";
 	public static var UserLogout = "UserLogout";
 
-	public static var CreateAlias = "CreateAlias";
 	public static var UpdateAlias = "UpdateAlias";
 	public static var DeleteAlias = "DeleteAlias";
 

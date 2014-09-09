@@ -8,6 +8,7 @@ import m3.observable.OSet;
 import m3.util.M;
 import qoid.model.ModelObj;
 import agentui.model.EM;
+import qoid.QoidAPI;
 import qoid.Qoid;
 import qoid.QE;
 
@@ -24,7 +25,6 @@ typedef AliasManagerDialogWidgetDef = {
 	@:optional var options: AliasManagerDialogOptions;
 
 	@:optional var aliasName: JQ;
-	@:optional var username: JQ;
 
 	@:optional var leftDiv: JQ;
 	@:optional var rightDiv: JQ;
@@ -35,7 +35,7 @@ typedef AliasManagerDialogWidgetDef = {
 
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
-	var _createAliasManager: Void->Void;
+	//var _createAliasManager: Void->Void;
 	var _showAliasDetail: Alias->Void;
 	var _showAliasEditor: Alias->Void;
 	var _onAliasDeleted:  Alias->JQ->Void;
@@ -232,7 +232,7 @@ extern class AliasManagerDialog extends JQ {
 							        				self._showAliasDetail(alias);
 							        			}, 100); 
 					        				});
-		        							EM.change(EMEvent.CreateAlias, alias);
+					        				QoidAPI.createAlias(alias.profile.name, alias.profile.imgSrc);
 		        						};
 		        					} else {
 				        				alias.profile.name   = name;
@@ -257,22 +257,21 @@ extern class AliasManagerDialog extends JQ {
 
 					self.newAliasButton.hide();
 	        	},
-
+/*
 		        _createAliasManager: function(): Void {
 		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
     				var alias: Alias = new Alias();
     				alias.profile.name = self.aliasName.val();
-    				alias.profile.name = self.username.val();
-					if (alias.profile.name.isBlank() || alias.profile.name.isBlank()) {
+					if (alias.profile.name.isBlank()) {
 						return;
 					}
 
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-    				EM.change(EMEvent.CreateAlias, alias);
+       				QoidAPI.createAlias(alias.profile.name, alias.profile.imgSrc);
 	        	},
-
+*/
 		        _buildDialog: function(): Void {
 		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();

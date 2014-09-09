@@ -8,6 +8,7 @@ import qoid.model.ModelObj;
 import agentui.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
+import qoid.QoidAPI;
 import qoid.Qoid;
 import qoid.QE;
 
@@ -108,7 +109,7 @@ extern class LoginDialog extends JQ {
 
     				selfElement.find(".ui-state-error").removeClass("ui-state-error");
 
-    				EM.change(EMEvent.UserLogin, login);
+          			QoidAPI.login(login.agentId, login.password);
 	        	},
 
 		        _buildDialog: function(): Void {
