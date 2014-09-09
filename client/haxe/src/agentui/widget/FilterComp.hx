@@ -11,6 +11,7 @@ import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 import qoid.Qoid;
+import qoid.QE;
 
 import qoid.model.ModelObj;
 import agentui.model.Node;
@@ -107,7 +108,7 @@ extern class FilterComp extends JQ {
 				      	}
 				    });
 
-		        	EM.addListener(EMEvent.AliasLoaded, function(alias: Alias): Void {
+		        	EM.addListener(QE.onAliasLoaded, function(alias: Alias): Void {
 		        		self.clearFilter();
 		        		}, "FilterComp-AliasLoaded"
 		        	);
@@ -134,7 +135,7 @@ extern class FilterComp extends JQ {
 		        	var filterables: JQ = selfElement.children(".filterable");
 
 		        	if (filterables.length == 0) {
-						EM.change(EMEvent.AliasLoaded, Qoid.currentAlias);
+						EM.change(QE.onAliasLoaded, Qoid.currentAlias);
 		        	} else {
 			        	filterables.each(function (idx: Int, el: Element): Void {
 			        		var jqEle = new JQ(el);

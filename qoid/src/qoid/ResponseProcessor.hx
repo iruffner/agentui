@@ -25,8 +25,8 @@ class ResponseProcessor {
 	            Logga.DEFAULT.error(data.error.stacktrace);
             } else {
                 var context:String = data.context;
+                var result:Dynamic = data.result;
                 if (context.startsWith("initialDataLoad")) {
-                    var result:Dynamic = data.result;
                     if (result != null) {
                         if (result.standing == true) {
                             updateModelObject(result.type, result.action, result.results);
@@ -35,11 +35,12 @@ class ResponseProcessor {
                         }
                     }
                 } else if (context == "verificationContent") {
-                    var result:Dynamic = data.result;
                     updateModelObject(result.type, result.action, result.results);
                 } else {
-                    var eventId = "on" + context.capitalizeFirstLetter();
-                    EventManager.instance.change(eventId);
+                    if (result != null) {
+                        var eventId = "on" + context.capitalizeFirstLetter();
+                        EventManager.instance.fire(eventId, result);
+                    }
                 }
 			}
 		});

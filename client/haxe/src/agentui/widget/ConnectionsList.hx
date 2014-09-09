@@ -8,6 +8,7 @@ import m3.observable.OSet;
 import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 import qoid.Qoid;
+import qoid.QE;
 
 import agentui.model.EM;
 import qoid.model.ModelObj;
@@ -125,7 +126,7 @@ extern class ConnectionsList extends JQ {
 						EM.change(EMEvent.FitWindow);
 	            	};
 
-	            	EM.addListener(EMEvent.AliasLoaded,function(a:Alias){
+	            	EM.addListener(QE.onAliasLoaded,function(a:Alias){
 			        	var connections = Qoid.groupedConnections.delegate().get(a.iid);
 	        			if (connections == null) {
 	        				connections = Qoid.groupedConnections.addEmptyGroup(a.iid);

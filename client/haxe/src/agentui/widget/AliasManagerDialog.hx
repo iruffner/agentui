@@ -9,6 +9,7 @@ import m3.util.M;
 import qoid.model.ModelObj;
 import agentui.model.EM;
 import qoid.Qoid;
+import qoid.QE;
 
 using m3.jq.M3Dialog;
 using agentui.widget.UploadComp;
@@ -114,7 +115,7 @@ extern class AliasManagerDialog extends JQ {
 		        		.button()
 		        		.click( function(evt: JQEvent): Void {
 	        				Qoid.currentAlias = alias;
-							EM.change(EMEvent.AliasLoaded, alias);
+							EM.change(QE.onAliasLoaded, alias);
 	        				selfElement.close();
 	        			});
 	        		self.leftDiv.append("<br class='clear'/><br/>");
@@ -226,7 +227,7 @@ extern class AliasManagerDialog extends JQ {
 				        				alias.profile.imgSrc = profilePic;
 				        				alias.labelIid = Qoid.currentAlias.labelIid;
 		        						function() {
-					        				EM.listenOnce(EMEvent.AliasCreated, function(alias:Alias) {
+					        				EM.listenOnce(QE.onAliasCreated, function(alias:Alias) {
 						        				Timer.delay(function() {
 							        				self._showAliasDetail(alias);
 							        			}, 100); 
@@ -237,7 +238,7 @@ extern class AliasManagerDialog extends JQ {
 				        				alias.profile.name   = name;
 				        				alias.profile.imgSrc = profilePic;
 		        						function() {
-					        				EM.listenOnce(EMEvent.AliasUpdated, function(alias:Alias) {
+					        				EM.listenOnce(QE.onAliasUpdated, function(alias:Alias) {
 						        				self._showAliasDetail(alias);
 					        				});
 		        							EM.change(EMEvent.UpdateAlias, alias);

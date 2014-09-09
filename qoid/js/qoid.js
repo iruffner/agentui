@@ -4335,6 +4335,7 @@ qoid.QoidAPI.onLogin = function(data) {
 	var auth = data;
 	qoid.QoidAPI.addChannel(auth.channelId);
 	qoid.QoidAPI.set_activeChannel(auth.channelId);
+	qoid.QoidAPI.set_activeAlias(auth.connectionIid);
 	qoid.QoidAPI._startPolling(auth.channelId);
 	var context = "initialDataLoad";
 	var sychoronizer = new qoid.Synchronizer(context,9,qoid.QoidAPI.onInitialDataload);
@@ -4364,6 +4365,7 @@ qoid.QoidAPI.onInitialDataload = function(data) {
 			}
 		}
 	}
+	qoid.Qoid.onInitialDataLoadComplete(qoid.QoidAPI.get_activeAlias());
 	m3.event.EventManager.get_instance().change(qoid.QE.onInitialDataload);
 };
 qoid.QoidAPI._startPolling = function(channelId) {
@@ -4737,15 +4739,14 @@ $hxClasses["qoid.Qoid"] = qoid.Qoid;
 qoid.Qoid.__name__ = ["qoid","Qoid"];
 qoid.Qoid.set_currentAlias = function(a) {
 	qoid.Qoid.currentAlias = a;
-	m3.event.EventManager.get_instance().change("onAliasLoaded",qoid.Qoid.get_currentAlias());
+	m3.event.EventManager.get_instance().change(qoid.QE.onAliasLoaded,qoid.Qoid.get_currentAlias());
 	return qoid.Qoid.get_currentAlias();
 };
 qoid.Qoid.get_currentAlias = function() {
 	return qoid.Qoid.currentAlias;
 };
-qoid.Qoid.onInitialDataLoadComplete = function(nada) {
-	qoid.Qoid.ROOT_LABEL_ID = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,qoid.Qoid.UBER_ALIAS_ID).labelIid;
-	var a = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,qoid.Qoid.UBER_ALIAS_ID);
+qoid.Qoid.onInitialDataLoadComplete = function(connectionIid) {
+	var a = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.aliases,connectionIid,"connectionIid");
 	var $it0 = qoid.Qoid.aliases.iterator();
 	while( $it0.hasNext() ) {
 		var alias = $it0.next();
@@ -4757,9 +4758,10 @@ qoid.Qoid.onInitialDataLoadComplete = function(nada) {
 	qoid.Qoid.set_currentAlias(a);
 };
 qoid.Qoid.processProfile = function(rec) {
-	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,rec.connectionIid);
+	var connectionIid = rec.route[0];
+	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,connectionIid);
 	var profile = m3.serialization.Serializer.get_instance().fromJsonX(rec.results[0],qoid.model.Profile);
-	profile.connectionIid = rec.connectionIid;
+	profile.connectionIid = connectionIid;
 	connection.data = profile;
 	qoid.Qoid.connections.addOrUpdate(connection);
 	qoid.Qoid.profiles.addOrUpdate(profile);
@@ -4818,17 +4820,14 @@ qoid.ResponseProcessor.processResponse = function(dataArr) {
 			m3.log.Logga.get_DEFAULT().error(data.error.stacktrace);
 		} else {
 			var context = data.context;
+			var result = data.result;
 			if(StringTools.startsWith(context,"initialDataLoad")) {
-				var result = data.result;
 				if(result != null) {
 					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else qoid.Synchronizer.processResponse(data);
 				}
-			} else if(context == "verificationContent") {
-				var result1 = data.result;
-				qoid.ResponseProcessor.updateModelObject(result1.type,result1.action,result1.results);
-			} else {
+			} else if(context == "verificationContent") qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else if(result != null) {
 				var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context);
-				m3.event.EventManager.get_instance().change(eventId);
+				m3.event.EventManager.get_instance().fire(eventId,result);
 			}
 		}
 	});
@@ -5507,7 +5506,7 @@ qoid.Qoid.aliases.listen(function(a,evt) {
 	if(evt.isAddOrUpdate()) {
 		var p = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.profiles,a.iid,"aliasIid");
 		if(p != null) a.profile = p;
-		if(evt.isAdd()) m3.event.EventManager.get_instance().change("onAliasCreated",a); else m3.event.EventManager.get_instance().change("onAliasUpdated",a);
+		if(evt.isAdd()) m3.event.EventManager.get_instance().change(qoid.QE.onAliasCreated,a); else m3.event.EventManager.get_instance().change(qoid.QE.onAliasUpdated,a);
 	}
 });
 qoid.Qoid.labels = new m3.observable.ObservableSet(qoid.model.Label.identifier);
@@ -5543,7 +5542,6 @@ qoid.Qoid.profiles.listen(function(p1,evt2) {
 qoid.Qoid.verificationContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 m3.serialization.Serializer.get_instance().addHandler(qoid.model.Content,new qoid.model.ContentHandler());
 m3.serialization.Serializer.get_instance().addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
-m3.event.EventManager.get_instance().on(qoid.QE.onInitialDataload,qoid.Qoid.onInitialDataLoadComplete);
 m3.event.EventManager.get_instance().on("onConnectionProfile",qoid.Qoid.processProfile);
 haxe.xml.Parser.escapes = (function($this) {
 	var $r;
@@ -5572,9 +5570,12 @@ m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" pa
 m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"437\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"460\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"479\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"488\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"492\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"503\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"417\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"570\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"575\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"593\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"597\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"603\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"607\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"611\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
-qoid.QE.onAgentCreated = "onAgentCreated";
-qoid.QE.onInitialDataload = "onInitialDataload";
-qoid.QE.onUserLogin = "onUserLogin";
+qoid.QE.onAgentCreated = "QE-onAgentCreated";
+qoid.QE.onInitialDataload = "QE-onInitialDataload";
+qoid.QE.onUserLogin = "QE-onUserLogin";
+qoid.QE.onAliasCreated = "QE-onAliasCreated";
+qoid.QE.onAliasUpdated = "QE-onAliasUpdated";
+qoid.QE.onAliasLoaded = "QE-onAliasLoaded";
 qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"45\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByConnectionIid public=\"1\"><c path=\"String\"/></createdByConnectionIid>\n\t<modifiedByConnectionIid public=\"1\"><c path=\"String\"/></modifiedByConnectionIid>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"112\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"106\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";

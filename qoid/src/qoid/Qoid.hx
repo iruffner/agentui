@@ -16,9 +16,6 @@ using m3.helper.StringHelper;
 using m3.helper.OSetHelper;
 
 class Qoid {
-    public static var UBER_ALIAS_ID:String;
-    public static var ROOT_LABEL_ID:String;
-
     public static var aliases:ObservableSet<Alias>;
 
     public static var notifications:ObservableSet<Notification<Dynamic>>;
@@ -44,7 +41,7 @@ class Qoid {
     @:isVar public static var currentAlias(get,set): Alias;
     public static function set_currentAlias(a:Alias):Alias {
         currentAlias = a;
-        EventManager.instance.change("onAliasLoaded", currentAlias);
+        EventManager.instance.change(QE.onAliasLoaded, currentAlias);
         return currentAlias;
     }
 
@@ -67,9 +64,9 @@ class Qoid {
                     a.profile = p;
                 }
                 if (evt.isAdd()) {
-                    EventManager.instance.change("onAliasCreated", a);
+                    EventManager.instance.change(QE.onAliasCreated, a);
                 } else {
-                    EventManager.instance.change("onAliasUpdated", a);
+                    EventManager.instance.change(QE.onAliasUpdated, a);
                 }
             }
         });
@@ -118,15 +115,13 @@ class Qoid {
         Serializer.instance.addHandler(Content, new ContentHandler());
         Serializer.instance.addHandler(Notification, new NotificationHandler());
 
-        EventManager.instance.on(QE.onInitialDataload, onInitialDataLoadComplete);
         EventManager.instance.on("onConnectionProfile", processProfile);
     }
 
-    static function onInitialDataLoadComplete(nada:{}) {
-        ROOT_LABEL_ID = aliases.getElement(UBER_ALIAS_ID).labelIid;
+    public static function onInitialDataLoadComplete(connectionIid:String) {
+        var a = aliases.getElementComplex(connectionIid, "connectionIid");
 
         // Set the current alias
-        var a = aliases.getElement(UBER_ALIAS_ID);
         for (alias in aliases) {
             if (alias.data.isDefault == true) {
                 a = alias;
@@ -137,9 +132,10 @@ class Qoid {
     }
 
     public static function processProfile(rec:Dynamic) {
-        var connection = Qoid.connections.getElement(rec.connectionIid);
+        var connectionIid = rec.route[0];
+        var connection = Qoid.connections.getElement(connectionIid);
         var profile = Serializer.instance.fromJsonX(rec.results[0], Profile);
-        profile.connectionIid = rec.connectionIid;
+        profile.connectionIid = connectionIid;
         connection.data = profile;
         Qoid.connections.addOrUpdate(connection);
         Qoid.profiles.addOrUpdate(profile);

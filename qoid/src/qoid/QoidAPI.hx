@@ -16,7 +16,7 @@ typedef AliasIid  = String;
 
 class AuthenticationResponse {
     public var channelId:String;
-    public var aliasIid:String;
+    public var connectionIid:String;
 }
 
 @:expose
@@ -135,6 +135,7 @@ class QoidAPI {
 
         QoidAPI.addChannel(auth.channelId);
         QoidAPI.activeChannel = auth.channelId;
+        QoidAPI.activeAlias = auth.connectionIid;
 
         // Kick off a long poll and immediately request the model data
         _startPolling(auth.channelId);
@@ -178,6 +179,7 @@ class QoidAPI {
             }
         }
 
+        Qoid.onInitialDataLoadComplete(QoidAPI.activeAlias);
         EventManager.instance.change(QE.onInitialDataload);
     }
 

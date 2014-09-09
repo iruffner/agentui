@@ -40,10 +40,6 @@ class EMEvent {
 	public static var UserLogin = "UserLogin";
 	public static var UserLogout = "UserLogout";
 
-	public static var AliasLoaded = "AliasLoaded";
-	public static var AliasCreated = "AliasCreated";
-	public static var AliasUpdated = "AliasUpdated";
-
 	public static var CreateAlias = "CreateAlias";
 	public static var UpdateAlias = "UpdateAlias";
 	public static var DeleteAlias = "DeleteAlias";

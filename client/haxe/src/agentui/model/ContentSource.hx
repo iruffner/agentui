@@ -6,6 +6,7 @@ import qoid.model.ModelObj;
 import agentui.model.Filter;
 import m3.serialization.Serialization;
 import qoid.Qoid;
+import qoid.QE;
 
 using m3.helper.OSetHelper;
 
@@ -40,7 +41,7 @@ class ContentSource {
 		filteredContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
 		listeners = new Array<ContentSourceListener<Dynamic>>();
 
-    	EM.addListener(EMEvent.AliasLoaded, onAliasLoaded, 
+    	EM.addListener(QE.onAliasLoaded, onAliasLoaded, 
     		                                "ContentSource-AliasLoaded"
     	);
 

@@ -6,10 +6,12 @@ import m3.jq.JQ;
 import m3.log.Logga;
 import m3.log.LogLevel;
 import m3.serialization.Serialization;
-
+import qoid.QE;
 import agentui.widget.*;
 import agentui.widget.score.ScoreComp;
 import agentui.api.EventDelegate;
+import agentui.model.EM;
+import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
 using agentui.widget.ConnectionsList;
@@ -23,6 +25,14 @@ class AgentUi {
 	public static function main() {
         HOT_KEY_ACTIONS = new Array<JQEvent->Void>();
         EventDelegate.init();
+
+        EM.addListener(QE.onAliasLoaded, function(a:Alias){
+            js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
+        });
+
+        EM.addListener(EMEvent.FitWindow, function(n: {}) {
+            untyped __js__("fitWindow()");
+        });
     }
 
     public static function start(): Void {

@@ -11,6 +11,7 @@ import m3.log.Logga;
 
 import qoid.model.ModelObj;
 import qoid.Qoid;
+import qoid.QE;
 import agentui.model.EM;
 import agentui.widget.LabelComp;
 
@@ -141,7 +142,7 @@ extern class LabelsList extends JQ {
 
 		        	selfElement.addClass("icontainer labelsList " + Widgets.getWidgetClasses());
 		        	self.selectedLabelComp = null;
-		        	EM.addListener(EMEvent.AliasLoaded, function(alias: Alias) {
+		        	EM.addListener(QE.onAliasLoaded, function(alias: Alias) {
 		        		self.selectedLabelComp = null;
 
 	        			// Create the top-level label tree

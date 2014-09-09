@@ -16,6 +16,7 @@ import m3.util.M;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import qoid.Qoid;
+import qoid.QE;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -94,7 +95,7 @@ extern class AliasComp extends JQ {
 		        	});
 
 
-		        	EM.addListener(EMEvent.AliasLoaded, function(alias: Alias): Void {
+		        	EM.addListener(QE.onAliasLoaded, function(alias: Alias): Void {
 		        			self._setAlias(alias);
 		        		}, "AliasComp-Alias"
 		        	);
@@ -168,7 +169,7 @@ extern class AliasComp extends JQ {
 									menu.hide();
 								} else {
     								Qoid.currentAlias = alias;
-    								EM.change(EMEvent.AliasLoaded, alias);
+    								EM.change(QE.onAliasLoaded, alias);
     							}
 							}
 						};
