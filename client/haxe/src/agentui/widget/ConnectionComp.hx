@@ -141,9 +141,7 @@ extern class ConnectionComp extends JQ {
 				      				}
 				      			}
 				      			if (intro != null) {
-				      				if (intro.bState == IntroductionState.NotResponded || intro.aState == IntroductionState.NotResponded) {
-					      				m3.util.JqueryUtil.alert("There is already a pending introduction between these two aliases");
-									} else if (intro.bState == IntroductionState.Accepted && intro.aState == IntroductionState.Accepted) {
+									if (intro.bAccepted  && intro.aAccepted) {
 					      				m3.util.JqueryUtil.alert("These two aliases are already connected");
 									}
 				      			} else {

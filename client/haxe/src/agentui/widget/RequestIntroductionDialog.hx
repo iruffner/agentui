@@ -7,6 +7,8 @@ import qoid.model.ModelObj;
 import agentui.model.EM;
 import m3.exception.Exception;
 import qoid.Qoid;
+import qoid.QoidAPI;
+import qoid.QE;
 
 using m3.helper.StringHelper;
 
@@ -130,11 +132,12 @@ extern class RequestIntroductionDialog extends JQ {
 					intro.aMessage = new JQ("#to_text").val();
 					intro.bMessage = new JQ("#from_text").val();
 
-    				EM.addListener(EMEvent.INTRODUCTION_RESPONSE, function(n: {}): Void {
+    				EM.addListener(QE.onInitiateIntroduction, function(n: {}): Void {
     					selfElement.dialog("close");
     				}, "RequestIntroductionDialog-Introduction-Response");
 
-    				EM.change(EMEvent.INTRODUCTION_REQUEST, intro);
+		        	QoidAPI.initiateIntroduction(intro.aConnectionIid, intro.aMessage, 
+                                         		 intro.bConnectionIid, intro.bMessage);
 	        	},
 
 

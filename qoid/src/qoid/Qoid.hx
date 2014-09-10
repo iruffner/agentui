@@ -55,7 +55,19 @@ class Qoid {
         introductions = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
 
         notifications = new ObservableSet<Notification<Dynamic>>(ModelObjWithIid.identifier);
-
+/*
+        notifications.listen(function(n:Notification<Dynamic>, evt:EventType) {
+            if (evt.isAddOrUpdate()) {
+                if (n.kind == NotificationKind.IntroductionRequest) {
+                    var introRequest:IntroductionRequestNotification = cast(n);
+                    var p = profiles.getElementComplex(introRequest.props.connectionIid, "connectionIid");
+                    if (p != null) {
+                        introRequest.props.profile = p;
+                    }
+                }
+            }
+        });
+*/
         aliases = new ObservableSet<Alias>(ModelObjWithIid.identifier);
         aliases.listen(function(a:Alias, evt:EventType):Void {
             if (evt.isAddOrUpdate()) {
@@ -76,7 +88,7 @@ class Qoid {
         connections = new ObservableSet<Connection>(Connection.identifier);
         connections.listen(function(c:Connection, evt:EventType): Void {
             if (evt.isAdd()) {
-                QoidAPI.getProfile(c.iid);
+                QoidAPI.getProfile([c.iid]);
             }
         });
         groupedConnections = new GroupedSet<Connection>(connections, function(c:Connection):String {
