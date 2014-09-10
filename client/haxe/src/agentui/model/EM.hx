@@ -58,7 +58,6 @@ class EMEvent {
 
 	public static inline var DeleteConnection = "DeleteConnection";
 
-	public static inline var INTRODUCTION_REQUEST = "INTRODUCTION_REQUEST";
 	public static inline var INTRODUCTION_RESPONSE = "INTRODUCTION_RESPONSE";
 	public static inline var RespondToIntroduction = "RespondToIntroduction";
 	public static inline var RespondToIntroduction_RESPONSE = "RespondToIntroduction_RESPONSE";

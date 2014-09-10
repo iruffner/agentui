@@ -424,7 +424,7 @@ class NotificationHandler implements TypeHandler {
     public function read(fromJson: {kind: String}, reader: JsonReader<Dynamic>, ?instance: Dynamic): Dynamic {
         var obj: Notification<Dynamic> = null;
 
-        switch (NotificationKind.createByName(fromJson.kind) ) {
+        switch (fromJson.kind) {
         	case NotificationKind.IntroductionRequest:
         		obj = Serializer.instance.fromJsonX(fromJson, IntroductionRequestNotification);
         	case NotificationKind.VerificationRequest:
@@ -441,15 +441,15 @@ class NotificationHandler implements TypeHandler {
     }
 }
 
-enum NotificationKind {
-    IntroductionRequest;
-    VerificationRequest;
-    VerificationResponse;
+class NotificationKind {
+	public static var IntroductionRequest = "IntroductionRequest";
+	public static var VerificationRequest = "VerificationRequest";
+	public static var VerificationResponse = "VerificationResponse";
 }
 
 class Notification<T> extends ModelObjWithIid {
 	public var consumed: Bool;
-	public var kind: NotificationKind;
+	public var kind: String;
 	public var route:Array<String>;
 	private var data:Dynamic;
 	@:transient public var props: T;
@@ -460,7 +460,7 @@ class Notification<T> extends ModelObjWithIid {
 		return "notification";
 	}
 
-	public function new (kind:NotificationKind, type: Class<T>) {
+	public function new (kind:String, type: Class<T>) {
 		super();
 		this.kind = kind;
 		this.data = {};
@@ -478,14 +478,6 @@ class Notification<T> extends ModelObjWithIid {
 	}
 }
 
-
-
-enum IntroductionState {
-	NotResponded;
-    Accepted;
-    Rejected;
-}
-
 class IntroductionRequest extends ModelObjWithIid {
 	public var aConnectionIid: String;
 	public var bConnectionIid: String;
@@ -496,8 +488,8 @@ class IntroductionRequest extends ModelObjWithIid {
 class Introduction extends ModelObjWithIid {
 	public var aConnectionIid: String;
 	public var bConnectionIid: String;
-	public var aState: IntroductionState;
-	public var bState: IntroductionState;
+	public var aAccepted: Bool;
+	public var bAccepted: Bool;
 	public var recordVersion:Int;
 }
 
@@ -511,8 +503,8 @@ class IntroductionRequestNotification extends Notification<IntroductionRequestDa
 	class IntroductionRequestData {
 		public var introductionIid: String;
 		public var message: String;
-		public var profile: Profile;
-		@:optional public var accepted:Bool;
+		public var connectionIid: String;
+		@:transient public var profile: Profile;
 	}
 
 class VerificationRequestNotification extends Notification<VerificationRequestData> {

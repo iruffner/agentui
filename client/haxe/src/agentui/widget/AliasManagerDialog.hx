@@ -35,7 +35,6 @@ typedef AliasManagerDialogWidgetDef = {
 
 	var _buildDialog: Void->Void;
 	var open: Void->Void;
-	//var _createAliasManager: Void->Void;
 	var _showAliasDetail: Alias->Void;
 	var _showAliasEditor: Alias->Void;
 	var _onAliasDeleted:  Alias->JQ->Void;
@@ -257,21 +256,7 @@ extern class AliasManagerDialog extends JQ {
 
 					self.newAliasButton.hide();
 	        	},
-/*
-		        _createAliasManager: function(): Void {
-		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JQDialog = Widgets.getSelfElement();
 
-    				var alias: Alias = new Alias();
-    				alias.profile.name = self.aliasName.val();
-					if (alias.profile.name.isBlank()) {
-						return;
-					}
-
-    				selfElement.find(".ui-state-error").removeClass("ui-state-error");
-       				QoidAPI.createAlias(alias.profile.name, alias.profile.imgSrc);
-	        	},
-*/
 		        _buildDialog: function(): Void {
 		        	var self: AliasManagerDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
@@ -284,12 +269,6 @@ extern class AliasManagerDialog extends JQ {
 		        		height: 440,
 		        		width: 550,
 		        		buttons: {
-		        			// "Create New Alias": function() {
-		        			// 	self._createAliasManager();
-		        			// },
-		        			// "Cancel": function() {
-		        			// 	JQDialog.cur.dialog("close");
-		        			// }
 		        		},
 		        		close: function(evt: JQEvent, ui: UIJQDialog): Void {
 		        			selfElement.find(".placeholder").removeClass("ui-state-error");

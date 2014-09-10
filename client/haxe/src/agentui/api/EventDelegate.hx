@@ -70,10 +70,6 @@ class EventDelegate {
             // TODO:  protocolHandler.confirmIntroduction(intro);
         });
 
-        EM.addListener(EMEvent.INTRODUCTION_REQUEST, function(intro: IntroductionRequest):Void{
-        	// TODO:  protocolHandler.beginIntroduction(intro);
-        });
-
         // TODO:  Add DOV
         EM.addListener(EMEvent.GrantAccess, function(parms:Dynamic):Void{
             QoidAPI.grantAccess(parms.labelIid, parms.connectionIid, 1);

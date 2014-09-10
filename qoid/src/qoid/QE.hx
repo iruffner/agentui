@@ -1,10 +1,12 @@
 package qoid;
 
 class QE {
-	public static var onAgentCreated    = "QE-onAgentCreated";
-	public static var onInitialDataload = "QE-onInitialDataload";
-	public static var onUserLogin       = "QE-onUserLogin";
-	public static var onAliasCreated    = "QE-onAliasCreated";
-	public static var onAliasUpdated    = "QE-onAliasUpdated";
-	public static var onAliasLoaded     = "QE-onAliasLoaded";
+	public static var onAliasCreated         = "onAliasCreated";
+	public static var onAliasLoaded          = "onAliasLoaded";
+	public static var onAliasUpdated         = "onAliasUpdated";
+	public static var onAgentCreated         = "onAgentCreated";
+	public static var onConnectionProfile    = "onConnectionProfile";
+	public static var onInitialDataload      = "onInitialDataload";
+	public static var onInitiateIntroduction = "onInitiateIntroduction";
+	public static var onUserLogin            = "onUserLogin";
 }
