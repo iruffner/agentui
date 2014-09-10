@@ -29,6 +29,14 @@ class EventDelegate {
                 QoidAPI.query(new RequestContext("filteredContent", UidGenerator.create(12)), "content", filterData.filter.q, true, true);
         });
 
+        // EM.addListener(EMEvent.GetConnectionBoards, function(connectionIid: String): Void {
+           
+        //     // public static function getProfile(connectionIid:String) {
+        //     //         var json = createQueryJson("profile", true, false, [connectionIid]);
+        //     //         submitRequest(json, QUERY, new RequestContext("connectionProfile"));
+        //     //     }
+        // });
+
         EM.addListener(EMEvent.CreateAgent, function(user: NewUser): Void {
             QoidAPI.createAgent(user.name, user.pwd);
         });

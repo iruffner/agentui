@@ -51,8 +51,8 @@ extern class Popup extends JQ {
 		        	}
 		        	self.options.createFcn(selfElement);
 		        	selfElement.position({
-		        			my: "left",
-		        			at: "right",
+		        			my: "left top",
+		        			at: "right bottom",
 		        			of: self.options.positionalElement
 		        		});
 		        },

@@ -229,7 +229,10 @@ extern class BoardDetails extends JQ {
                                         self._showAddAccessPopup(positionalElem);
                                     });
 
-        						var labels: OSet<LabelAcl> = PinterContext.LABELACLS_ByLabel.getElement(pagent.PinterContext.CURRENT_BOARD);
+        						var labels: OSet<LabelAcl> = PinterContext.LABELACLS_ByLabel.getElement(PinterContext.CURRENT_BOARD);
+                                if (labels == null) {
+                                    labels = PinterContext.LABELACLS_ByLabel.addEmptyGroup(PinterContext.CURRENT_BOARD);
+                                }
         						if(labels != null)
                                     Lambda.iter(labels,
         								function(l: LabelAcl) {

@@ -12,6 +12,7 @@ import qoid.model.ModelObj;
 import pagent.model.PinterModel;
 import qoid.Qoid;
 import qoid.QE;
+import qoid.QoidAPI;
 
 using m3.helper.OSetHelper;
 using m3.helper.ArrayHelper;
@@ -97,6 +98,20 @@ class PinterContext {
     static function registerListeners(): Void {
         EM.listenOnce(QE.onInitialDataload, _onInitialDataLoadComplete, "PinterContext-onInitialDataLoad");
         EM.addListener(EMEvent.OnBoardConfig, _onBoardConfig , "PinterContext-onBoardConfig");
+
+        Qoid.connections.listen(
+            function(c: Connection, evt: EventType): Void {
+                    if (evt.isAdd()) {
+                         QoidAPI.query(
+                            new RequestContext("connectionBoards"), 
+                            "label", 
+                            "(hasParentLabelPath('" + PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + "','" + PinterContext.APP_ROOT_LABEL_NAME + "'))", 
+                            true,
+                            true,
+                            [c.iid]
+                        );
+                    }
+                });
     }
 
     static function _onInitialDataLoadComplete(n: {}) {
