@@ -51,12 +51,8 @@ class ContentSource {
     		                                "ContentSource-AliasLoaded"
     	);
 
-    	EM.addListener(EMEvent.LoadFilteredContent, onLoadFilteredContent, 
-    		                                        "ContentSource-LoadFilteredContent"
-    	);
-
-    	EM.addListener(EMEvent.AppendFilteredContent, onAppendFilteredContent, 
-    		                                        "ContentSource-AppendFilteredContent"
+    	EM.addListener(EMEvent.OnFilteredContent, onLoadFilteredContent, 
+    		                                        "ContentSource-OnFilteredContent"
     	);
 	}
 
@@ -78,28 +74,28 @@ class ContentSource {
 	private static function addContent(results:Array<Dynamic>, connectionIid:String) {
 		var iids = new Array<String>();
 		var connectionIids = new Array<String>();
-
-		for (result in results) {
-			var c = Serializer.instance.fromJsonX(result, Content);
-			if(c != null) { //occurs when there is an unknown content type
-				if (connectionIid != null) {
-					c.aliasIid = null;
-					c.connectionIid = connectionIid;
+		if(results.hasValues())
+			for (result in results) {
+				var c = Serializer.instance.fromJsonX(result, Content);
+				if(c != null) { //occurs when there is an unknown content type
+					if (connectionIid != null) {
+						c.aliasIid = null;
+						c.connectionIid = connectionIid;
+					}
+					filteredContent.addOrUpdate(c);
 				}
-				filteredContent.addOrUpdate(c);
 			}
-		}
 
 	}
 
-	private static function onLoadFilteredContent(data:Dynamic): Void {
-		if (handle == data.handle) {
-			addContent(data.results, data.connectionIid);
+	private static function onLoadFilteredContent(data:{context: {context: String, handle: String}, result: {standing: Bool, results: Array<Dynamic>}, connectionIid: String}): Void {
+		if (data.result.standing || handle == data.context.handle) {
+			addContent(data.result.results, data.connectionIid);
 		} else {
 			clearQuery();
-			handle = data.handle;
+			handle = data.context.handle;
 			beforeSetContent();
-			addContent(data.results, data.connectionIid);
+			addContent(data.result.results, data.connectionIid);
 		}
     }
 
@@ -112,9 +108,6 @@ class ContentSource {
 		}
     }
 
-    private static function onAppendFilteredContent(data:Dynamic) {
-		addContent(data.results, data.connectionIid);
-    }
 
 	private static function onAliasLoaded(alias:Alias) {
 		clearQuery();

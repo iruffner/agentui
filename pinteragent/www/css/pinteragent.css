@@ -392,6 +392,16 @@ body {
 			font-size: 20px;
 		}
 
+	#contentScreen ._mediaComp .updateCaptionPopup label,
+	#contentScreen ._mediaComp .updateCaptionPopup textarea {
+		display: inline-block;
+		vertical-align: middle;
+		font-size: 20px;
+	}
+	#contentScreen ._mediaComp .updateCaptionPopup textarea {
+		width: 500px;
+	}
+
 /* Other
 -----------------------------------------------------------------------------*/
 .clear {

@@ -131,10 +131,10 @@ class Qoid {
         currentAlias = a;
     }
 
-    public static function processProfile(rec:Dynamic) {
-        var connectionIid = rec.route[0];
+    public static function processProfile(rec:{result:Dynamic}) {
+        var connectionIid = rec.result.route[0];
         var connection = Qoid.connections.getElement(connectionIid);
-        var profile = Serializer.instance.fromJsonX(rec.results[0], Profile);
+        var profile = Serializer.instance.fromJsonX(rec.result.results[0], Profile);
         profile.connectionIid = connectionIid;
         connection.data = profile;
         Qoid.connections.addOrUpdate(connection);

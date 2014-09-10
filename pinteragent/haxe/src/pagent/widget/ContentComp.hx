@@ -26,7 +26,6 @@ typedef ContentCompOptions = {
 
 typedef ContentCompWidgetDef = {
 	@:optional var options: ContentCompOptions;
-	@:optional var buttonBlock: JQ;
 	@:optional var menu:M3Menu;
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
@@ -109,13 +108,8 @@ extern class ContentComp extends JQ {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-					var showButtonBlock = self.buttonBlock.isVisible();
-
 					self.options.content = content;
         			self._createWidgets(selfElement, self);
-        			if (showButtonBlock) {
-	        			self.buttonBlock.show();
-	        		}
         			selfElement.show();
 		        },
 

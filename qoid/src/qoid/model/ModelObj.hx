@@ -262,6 +262,10 @@ class LabeledContent extends ModelObjWithIid {
 
 @:rtti
 class ContentData {
+	// public var iid: String;
+	// public var created:Date;
+	// public var modified:Date;
+	
 	public function new() {
 	}
 }

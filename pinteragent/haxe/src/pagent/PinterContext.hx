@@ -2,6 +2,7 @@ package pagent;
 
 import m3.observable.OSet;
 
+import m3.serialization.Serialization.Serializer;
 import pagent.pages.PinterPageMgr;
 import pagent.model.EM;
 
@@ -13,6 +14,7 @@ import qoid.Qoid;
 import qoid.QE;
 
 using m3.helper.OSetHelper;
+using m3.helper.ArrayHelper;
 
 class PinterContext {
 	public static var PAGE_MGR: PinterPageMgr;
@@ -94,6 +96,7 @@ class PinterContext {
 
     static function registerListeners(): Void {
         EM.listenOnce(QE.onInitialDataload, _onInitialDataLoadComplete, "PinterContext-onInitialDataLoad");
+        EM.addListener(EMEvent.OnBoardConfig, _onBoardConfig , "PinterContext-onBoardConfig");
     }
 
     static function _onInitialDataLoadComplete(n: {}) {
@@ -156,5 +159,15 @@ class PinterContext {
             EM.change(QE.onAliasLoaded, Qoid.currentAlias);
             EM.change(EMEvent.APP_INITIALIZED);
         }
+    }
+
+    static function _onBoardConfig(data:{result: {standing: Bool, results: Array<Dynamic>}}) {
+        if(data.result.results.hasValues())
+            for (result in data.result.results) {
+                var c = Serializer.instance.fromJsonX(result, ConfigContent);
+                if(c != null) { //occurs when there is an unknown content type
+                    BOARD_CONFIGS.addOrUpdate(c);
+                }
+            }
     }
 }

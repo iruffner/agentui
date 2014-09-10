@@ -4,6 +4,8 @@ import m3.jq.JQ;
 
 import agentui.api.CrudMessage;
 import agentui.model.Filter;
+import m3.serialization.Serialization.Serializer;
+import m3.util.UidGenerator;
 import pagent.model.EM;
 import qoid.QoidAPI;
 import qoid.model.ModelObj;
@@ -22,9 +24,9 @@ class EventDelegate {
 
 		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {
             if(filterData.type == "boardConfig") {
-                QoidAPI.query("boardConfig", "content", filterData.filter.q, true, true);
+                QoidAPI.query(new RequestContext("boardConfig"), "content", filterData.filter.q, true, true);
         	} else 
-                QoidAPI.query("filterContent", "content", filterData.filter.q, true, true);
+                QoidAPI.query(new RequestContext("filteredContent", UidGenerator.create(12)), "content", filterData.filter.q, true, true);
         });
 
         EM.addListener(EMEvent.CreateAgent, function(user: NewUser): Void {
@@ -32,11 +34,13 @@ class EventDelegate {
         });
 
         EM.addListener(EMEvent.CreateContent, function(data:EditContentData): Void {
-        	QoidAPI.createContent(data.content.contentType, data.content, data.labelIids);
+            //make sure we use our Serializer to process the content, or it will send transient fields to the server
+        	QoidAPI.createContent(data.content.contentType, Serializer.instance.toJson(data.content).data, data.labelIids);
     	});
 
         EM.addListener(EMEvent.UpdateContent, function(data:EditContentData): Void {
-            QoidAPI.updateContent(data.content.iid, data.content);
+            //make sure we use our Serializer to process the content, or it will send transient fields to the server
+            QoidAPI.updateContent(data.content.iid, Serializer.instance.toJson(data.content).data);
         });
 
         EM.addListener(EMEvent.DeleteContent, function(data:EditContentData): Void {

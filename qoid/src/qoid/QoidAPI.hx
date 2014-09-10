@@ -16,6 +16,17 @@ class AuthenticationResponse {
     public var connectionIid:String;
 }
 
+@:rtti
+class RequestContext {
+    public var context: String;
+    @:optional public var handle: String;
+
+    public function new(?context: String, ?handle: String) {
+        this.context = context;
+        this.handle = handle;
+    }
+}
+
 @:expose
 class QoidAPI {
 	public static function main() {
@@ -140,15 +151,15 @@ class QoidAPI {
         var context = "initialDataLoad";
         var sychoronizer = new qoid.Synchronizer(context, 9, onInitialDataload);
         var requests = [
-            new ChannelRequestMessage(QUERY, context + "-alias", createQueryJson("alias")),
-            new ChannelRequestMessage(QUERY, context + "-introduction", createQueryJson("introduction")),
-            new ChannelRequestMessage(QUERY, context + "-connection", createQueryJson("connection")),
-            new ChannelRequestMessage(QUERY, context + "-notification", createQueryJson("notification", "consumed='0'")),
-            new ChannelRequestMessage(QUERY, context + "-label", createQueryJson("label")),
-            new ChannelRequestMessage(QUERY, context + "-labelAcl", createQueryJson("labelAcl")),
-            new ChannelRequestMessage(QUERY, context + "-labeledContent", createQueryJson("labeledContent")),
-            new ChannelRequestMessage(QUERY, context + "-labelChild", createQueryJson("labelChild")),
-            new ChannelRequestMessage(QUERY, context + "-profile", createQueryJson("profile"))
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "alias"), createQueryJson("alias")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "introduction"), createQueryJson("introduction")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "notification"), createQueryJson("notification", "consumed='0'")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "label"), createQueryJson("label")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "labelAcl"), createQueryJson("labelAcl")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "labeledContent"), createQueryJson("labeledContent")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "labelChild"), createQueryJson("labelChild")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "profile"), createQueryJson("profile"))
         ];
         new SubmitRequest(activeChannel, requests, onSuccess, onError).requestHeaders(headers).start();
 
@@ -195,7 +206,7 @@ class QoidAPI {
     }
 
     // TODO:
-    public static function query(context: String, type: String, query: String, historical: Bool, standing: Bool, ?route: Array<String>):Void {
+    public static function query(context: RequestContext, type: String, query: String, historical: Bool, standing: Bool, ?route: Array<String>):Void {
         var q = createQueryJson(type, query, historical, standing, route);
         submitRequest( q , QUERY, context);
 
@@ -216,15 +227,15 @@ class QoidAPI {
 
     public static function getProfile(connectionIid:String) {
         var json = createQueryJson("profile", true, false, [connectionIid]);
-        submitRequest(json, QUERY, "connectionProfile");
+        submitRequest(json, QUERY, new RequestContext("connectionProfile"));
     }
 
     public static function getVerificationContent(connectionIids:Array<String>, iids:Array<String>) {
         var json = createQueryJson("content", "iid in (" + iids.join(",") + ")", true, false);
-        submitRequest(json, QUERY, "verificationContent");
+        submitRequest(json, QUERY, new RequestContext("verificationContent"));
     }
 
-    public static function cancelQuery(context:String):Void {
+    public static function cancelQuery(context:RequestContext):Void {
         submitRequest({}, QUERY_CANCEL, context);
     }
 
@@ -234,7 +245,7 @@ class QoidAPI {
 
     public static function spawnSession(aliasIid:String):Void {
         var json:Dynamic = {authenticationId:aliasIid};
-        submitRequest(json, SPAWN, "spawnSession");
+        submitRequest(json, SPAWN, new RequestContext("spawnSession"));
     }
 
     // ALIAS
@@ -252,7 +263,7 @@ class QoidAPI {
         if (data != null) {
             json.data = data;
         }
-        submitRequest(json, ALIAS_CREATE, "createAlias");
+        submitRequest(json, ALIAS_CREATE, new RequestContext("createAlias"));
     }
 
     public static function updateAlias(aliasIid: String, data: Dynamic, ?route: Array<String>):Void {
@@ -264,7 +275,7 @@ class QoidAPI {
         if (route != null) {
             json.route = route;
         }
-        submitRequest(json, ALIAS_UPDATE, "updateAlias");
+        submitRequest(json, ALIAS_UPDATE, new RequestContext("updateAlias"));
     }
 
     public static function deleteAlias(aliasIid: String, ?route: Array<String>):Void {
@@ -275,7 +286,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, ALIAS_DELETE, "deleteAlias");
+        submitRequest(json, ALIAS_DELETE, new RequestContext("deleteAlias"));
     }
 
     public static function createAliasLogin(aliasIid: String, password: String, ?route: Array<String>):Void {
@@ -287,7 +298,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, ALIAS_LOGIN_CREATE, "createAliasLogin");
+        submitRequest(json, ALIAS_LOGIN_CREATE, new RequestContext("createAliasLogin"));
     }
 
     public static function updateAliasLogin(aliasIid: String, password: String, ?route: Array<String>):Void {
@@ -298,7 +309,7 @@ class QoidAPI {
         if (route != null) {
             json.route = route;
         }
-        submitRequest(json, ALIAS_LOGIN_UPDATE, "updateAliasLogin");
+        submitRequest(json, ALIAS_LOGIN_UPDATE, new RequestContext("updateAliasLogin"));
     }
 
     public static function deleteAliasLogin(aliasIid: String, ?route: Array<String>):Void {
@@ -309,7 +320,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, ALIAS_LOGIN_DELETE, "deleteAliasLogin");
+        submitRequest(json, ALIAS_LOGIN_DELETE, new RequestContext("deleteAliasLogin"));
     }
 
     public static function updateAliasProfile(aliasIid: String, ?profileName:String, ?profileImage:String, ?route: Array<String>):Void {
@@ -322,7 +333,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, ALIAS_PROFILE_UPDATE, "updateAliasProfile");
+        submitRequest(json, ALIAS_PROFILE_UPDATE, new RequestContext("updateAliasProfile"));
     }
 
     // CONNECTION
@@ -334,7 +345,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, CONNECTION_DELETE, "deleteConnection");
+        submitRequest(json, CONNECTION_DELETE, new RequestContext("deleteConnection"));
     }
 
     // CONTENT
@@ -348,7 +359,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, CONTENT_CREATE, "createContent");
+        submitRequest(json, CONTENT_CREATE, new RequestContext("createContent"));
     }
 
     public static function updateContent(contentIid:String, data: Dynamic, ?route: Array<String>):Void {
@@ -360,7 +371,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, CONTENT_UPDATE, "updateContent");
+        submitRequest(json, CONTENT_UPDATE, new RequestContext("updateContent"));
     }
 
     public static function deleteContent(contentIid:String, ?route: Array<String>):Void {
@@ -371,7 +382,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, CONTENT_DELETE, "deleteContent");
+        submitRequest(json, CONTENT_DELETE, new RequestContext("deleteContent"));
     }
 
 
@@ -384,7 +395,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, CONTENT_LABEL_ADD, "addContentLabel");
+        submitRequest(json, CONTENT_LABEL_ADD, new RequestContext("addContentLabel"));
     }
 
     public static function removeContentLabel(contentIid:String, labelIid:String, ?route: Array<String>):Void {
@@ -396,7 +407,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, CONTENT_LABEL_REMOVE, "removeContentLabel");
+        submitRequest(json, CONTENT_LABEL_REMOVE, new RequestContext("removeContentLabel"));
     }
 
     // LABEL
@@ -410,7 +421,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, LABEL_CREATE, "createLabel");
+        submitRequest(json, LABEL_CREATE, new RequestContext("createLabel"));
     }
 
     public static function updateLabel(labelIid:String, ?name:String, ?data: Dynamic, ?route: Array<String>):Void {
@@ -423,7 +434,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, LABEL_UPDATE, "updateLabel");
+        submitRequest(json, LABEL_UPDATE, new RequestContext("updateLabel"));
     }
 
     public static function moveLabel(labelIid:String, oldParentLabelIid:String, newParentLabelIid: String, ?route: Array<String>):Void {
@@ -436,7 +447,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, LABEL_MOVE, "moveLabel");
+        submitRequest(json, LABEL_MOVE, new RequestContext("moveLabel"));
     }
 
     public static function copyLabel(labelIid:String, newParentLabelIid:String, ?route: Array<String>):Void {
@@ -448,7 +459,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, LABEL_COPY, "copyLabel");
+        submitRequest(json, LABEL_COPY, new RequestContext("copyLabel"));
     }
 
     public static function deleteLabel(labelIid:String, parentLabelIid:String, ?route: Array<String>):Void {
@@ -460,7 +471,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, LABEL_DELETE, "deleteLabel");
+        submitRequest(json, LABEL_DELETE, new RequestContext("deleteLabel"));
     }
 
     public static function grantAccess(labelIid:String, connectionIid:String, maxDoV:Int, ?route: Array<String>):Void {
@@ -473,7 +484,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, LABEL_ACCESS_GRANT, "grantAccess");
+        submitRequest(json, LABEL_ACCESS_GRANT, new RequestContext("grantAccess"));
     }
 
     public static function revokeAccess(labelIid:String, connectionIid:String, ?route: Array<String>):Void {
@@ -485,7 +496,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, LABEL_ACCESS_REVOKE, "revokeAccess");
+        submitRequest(json, LABEL_ACCESS_REVOKE, new RequestContext("revokeAccess"));
     }
 
     public static function updateAccess(labelIid:String, connectionIid:String, maxDoV:Int, ?route: Array<String>):Void {
@@ -498,7 +509,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, LABEL_ACCESS_UPDATE, "updateAccess");
+        submitRequest(json, LABEL_ACCESS_UPDATE, new RequestContext("updateAccess"));
     }
 
 	// Notifications
@@ -512,7 +523,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, NOTIFICATION_CREATE, "createNotification");
+        submitRequest(json, NOTIFICATION_CREATE, new RequestContext("createNotification"));
     }
 
     public static function consumeNotification(notificationIid:String, ?route: Array<String>):Void {
@@ -523,7 +534,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, NOTIFICATION_CONSUME, "consumeNotification");
+        submitRequest(json, NOTIFICATION_CONSUME, new RequestContext("consumeNotification"));
     }
 
     public static function deleteNotification(notificationIid:String, ?route: Array<String>):Void {
@@ -534,7 +545,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, NOTIFICATION_DELETE, "deleteNotification");
+        submitRequest(json, NOTIFICATION_DELETE, new RequestContext("deleteNotification"));
     }
 
 	// Introduction
@@ -551,7 +562,7 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, INTRODUCTION_INITIATE, "initiateIntroduction");
+        submitRequest(json, INTRODUCTION_INITIATE, new RequestContext("initiateIntroduction"));
     }
 
     public static function acceptIntroduction(notificationIid:String, ?route: Array<String>):Void {
@@ -562,10 +573,10 @@ class QoidAPI {
             json.route = route;
         }
 
-        submitRequest(json, INTRODUCTION_ACCEPT, "acceptIntroduction");
+        submitRequest(json, INTRODUCTION_ACCEPT, new RequestContext("acceptIntroduction"));
     }
 
-    private static function submitRequest(json:Dynamic, path:String, context:String):Void {
+    private static function submitRequest(json:Dynamic, path:String, context: RequestContext):Void {
         var msg = new ChannelRequestMessage(path, context, json);
         new SubmitRequest(activeChannel, [msg], onSuccess, onError).requestHeaders(headers).start();
     }

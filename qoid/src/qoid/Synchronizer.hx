@@ -3,6 +3,7 @@ import haxe.ds.StringMap;
 import qoid.model.ModelObj;
 import m3.serialization.Serialization;
 import m3.log.Logga;
+import qoid.QoidAPI.RequestContext;
 
 using m3.helper.OSetHelper;
 
@@ -34,8 +35,8 @@ class Synchronizer {
 	// The global list of synchronizers
 	public static var synchronizers = new StringMap<Synchronizer>();
 
-    public static function processResponse(data:Dynamic):Bool {
-        var context:String = data.context.split("-")[0];
+    public static function processResponse(context: RequestContext, data:{success: Bool, error: Dynamic, result: Dynamic}):Bool {
+        var context:String = context.context;
         var synchronizer = Synchronizer.synchronizers.get(context);
         if (synchronizer != null) {
             synchronizer.dataReceived(context, data.result);

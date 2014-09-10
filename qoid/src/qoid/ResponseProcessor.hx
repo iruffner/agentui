@@ -1,11 +1,14 @@
 package qoid;
 
+import haxe.Json;
+import m3.serialization.Serialization.Serializer;
 import qoid.Qoid;
 import m3.util.JqueryUtil;
 import m3.observable.OSet;
 import m3.event.EventManager;
 import m3.log.Logga;
 import m3.serialization.Serialization;
+import qoid.QoidAPI.RequestContext;
 import qoid.Synchronizer;
 import qoid.model.ModelObj;
 
@@ -19,27 +22,27 @@ class ResponseProcessor {
 
 	public static function processResponse(dataArr: Array<Dynamic>):Void {
 
-		dataArr.iter(function(data:Dynamic): Void {
-			if (data.success == false) {
+		dataArr.iter(function(data:{context: String, success: Bool, error: Dynamic, result: Dynamic}): Void {
+			if (!data.success) {
 				JqueryUtil.alert("ERROR:  " + data.error.message + "     Context: " + data.context);
 	            Logga.DEFAULT.error(data.error.stacktrace);
             } else {
-                var context:String = data.context;
+                var context:RequestContext = Serializer.instance.fromJsonX(data.context, RequestContext);
                 var result:Dynamic = data.result;
-                if (context.startsWith("initialDataLoad")) {
+                if (context.context == "initialDataLoad") {
                     if (result != null) {
                         if (result.standing == true) {
                             updateModelObject(result.type, result.action, result.results);
                         } else {
-                            Synchronizer.processResponse(data);
+                            Synchronizer.processResponse(context, data);
                         }
                     }
-                } else if (context == "verificationContent") {
+                } else if (context.context == "verificationContent") {
                     updateModelObject(result.type, result.action, result.results);
-                } else if (!Synchronizer.processResponse(data)){
+                } else if (!Synchronizer.processResponse(context, data)){
                     if (result != null) {
-                        var eventId = "on" + context.capitalizeFirstLetter();
-                        EventManager.instance.fire(eventId, result);
+                        var eventId = "on" + context.context.capitalizeFirstLetter();
+                        EventManager.instance.fire(eventId, data);
                     }
                 }
 			}

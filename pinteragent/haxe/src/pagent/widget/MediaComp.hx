@@ -13,7 +13,6 @@ import m3.jq.M3Menu;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import m3.observable.OSet;
-// import pagent.widget.LabelComp;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import agentui.widget.Popup;
@@ -129,12 +128,12 @@ extern class MediaComp extends ContentComp {
 													if(match != null) config = c;
 												});
 											if(config == null) {
-												config = cast ContentFactory.create(PinterContentTypes.CONFIG, self.options.content.props.imgSrc);
+												config = new ConfigContent();
 												event = EMEvent.CreateContent;
 											} else {
-												config.props.defaultImg = self.options.content.props.imgSrc;
 												event = EMEvent.UpdateContent;
 											}
+											config.props.defaultImg = self.options.content.props.imgSrc;
 											
 											var ccd = new EditContentData(config);
 											ccd.labelIids.push(PinterContext.CURRENT_BOARD);
@@ -168,7 +167,7 @@ extern class MediaComp extends ContentComp {
         						container.click(stopFcn).keypress(enterFcn);
         						var parent: JQ = null;
         						container.append("<label for='caption'>Caption: </label> ");
-        						var input: JQ = new JQ("<textarea id='caption' class='ui-corner-all ui-widget-content' style='font-size: 20px;'></textarea>").appendTo(container);
+        						var input: JQ = new JQ("<textarea id='caption' class='ui-corner-all ui-widget-content' style=''></textarea>").appendTo(container);
         						input
         				// 			.keypress(enterFcn).click(function(evt: JQEvent): Void {
         				// 				evt.stopPropagation();

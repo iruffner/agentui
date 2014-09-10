@@ -1,11 +1,12 @@
 package pagent.model;
 
+import pagent.PinterContext;
 import qoid.model.ModelObj;
 
 class PinterModel {}
 
 class PinterContentTypes {
-	public static var CONFIG: ContentType = "";
+	public static var CONFIG: ContentType =  PinterContext.APP_ROOT_LABEL_NAME + ".config";
 }
 
 class ConfigContentData extends ContentData {

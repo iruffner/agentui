@@ -12,8 +12,9 @@ class EMEvent {
 
 	public static inline var FILTER_RUN: String = "FILTER_RUN";
 	public static inline var FILTER_CHANGE: String = "FILTER_CHANGE";
-	public static inline var LoadFilteredContent: String = "LoadFilteredContent";
-	public static inline var AppendFilteredContent: String = "AppendFilteredContent";
+	public static inline var OnFilteredContent: String = "onFilteredContent";
+	public static inline var OnBoardConfig: String = "onBoardConfig";
+	// public static inline var AppendFilteredContent: String = "AppendFilteredContent";
 
 	public static inline var EditContentClosed: String = "EditContentClosed";
 
