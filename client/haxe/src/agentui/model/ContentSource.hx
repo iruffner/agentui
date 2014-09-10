@@ -2,6 +2,7 @@ package agentui.model;
 
 import m3.observable.OSet;
 import agentui.model.EM;
+import m3.util.UidGenerator;
 import qoid.model.ModelObj;
 import agentui.model.Filter;
 import m3.serialization.Serialization;
@@ -9,12 +10,14 @@ import qoid.Qoid;
 import qoid.QE;
 
 using m3.helper.OSetHelper;
+using m3.helper.ArrayHelper;
 
 class ContentSourceListener<T> {
 	var contentMap: MappedSet<Content<Dynamic>, T>;
 	var mapListener: Content<Dynamic>->T->EventType->Void;
 	var widgetCreator:Content<Dynamic>->T;
 	public var onBeforeSetContent:Void->Void;
+	public var id: String;
 
 	public function new(mapListener:Content<Dynamic>->T->EventType->Void, 
 		               onBeforeSetContent:Void->Void,
@@ -28,7 +31,12 @@ class ContentSourceListener<T> {
 			return widgetCreator(content);
 		});
     	this.contentMap.mapListen(this.mapListener);
+    	this.id = UidGenerator.create(20);
 	}
+
+	public function destroy() {
+		this.contentMap.removeListeners(this.mapListener);
+ 	}
 }
 
 class ContentSource {
@@ -45,54 +53,55 @@ class ContentSource {
     		                                "ContentSource-AliasLoaded"
     	);
 
-    	EM.addListener(EMEvent.LoadFilteredContent, onLoadFilteredContent, 
-    		                                        "ContentSource-LoadFilteredContent"
-    	);
-
-    	EM.addListener(EMEvent.AppendFilteredContent, onAppendFilteredContent, 
-    		                                        "ContentSource-AppendFilteredContent"
-    	);
+    	EM.addListener(EMEvent.OnFilteredContent, onLoadFilteredContent, 
+    		                                        "ContentSource-OnFilteredContent"
+     	);
 	}
 
 	public static function addListener<T>(ml: Content<Dynamic>->T->EventType->Void,
-								          obsc : Void->Void, wc : Content<Dynamic>->T) {
+								          obsc : Void->Void, wc : Content<Dynamic>->T): String {
 		var l = new ContentSourceListener<T>(ml, obsc, wc, filteredContent);
 		listeners.push(l);
+		return l.id;
 	}
 
 	private static function addContent(results:Array<Dynamic>, connectionIid:String) {
 		var iids = new Array<String>();
 		var connectionIids = new Array<String>();
 
-		for (result in results) {
-			var c = Serializer.instance.fromJsonX(result, Content);
-			if (connectionIid != null) {
-				c.aliasIid = null;
-				c.connectionIid = connectionIid;
-			}
-			filteredContent.addOrUpdate(c);
+		if(results.hasValues()) {
+			for (result in results) {
+				var c = Serializer.instance.fromJsonX(result, Content);
+				if(c != null) { //occurs when there is an unknown content type
+					if (connectionIid != null) {
+						c.aliasIid = null;
+						c.connectionIid = connectionIid;
+					}
+					filteredContent.addOrUpdate(c);
 
-			for (v in c.metaData.verifications) {
-				var p = Qoid.profiles.getElementComplex(v.verifierId, "sharedId");
-				if (connectionIids.indexOf(p.connectionIid) == -1) {
-					connectionIids.push(p.connectionIid);
+					for (v in c.metaData.verifications) {
+						var p = Qoid.profiles.getElementComplex(v.verifierId, "sharedId");
+						if (connectionIids.indexOf(p.connectionIid) == -1) {
+							connectionIids.push(p.connectionIid);
+						}
+
+						iids.push("'" + v.verificationIid + "'");
+					}
 				}
-
-				iids.push("'" + v.verificationIid + "'");
 			}
 		}
 
 		qoid.QoidAPI.getVerificationContent(connectionIids, iids);
 	}
 
-	private static function onLoadFilteredContent(data:Dynamic): Void {
-		if (handle == data.handle) {
-			addContent(data.results, data.connectionIid);
+	private static function onLoadFilteredContent(data:{context: {context: String, handle: String}, result: {standing: Bool, results: Array<Dynamic>}, connectionIid: String}): Void {
+		if (data.result.standing || handle == data.context.handle) {
+			addContent(data.result.results, data.connectionIid);
 		} else {
 			clearQuery();
-			handle = data.handle;
+			data.context.handle;
 			beforeSetContent();
-			addContent(data.results, data.connectionIid);
+			addContent(data.result.results, data.connectionIid);
 		}
     }
 
@@ -105,11 +114,7 @@ class ContentSource {
 		}
     }
 
-    private static function onAppendFilteredContent(data:Dynamic) {
-		addContent(data.results, data.connectionIid);
-    }
-
-	private static function onAliasLoaded(alias:Alias) {
+   	private static function onAliasLoaded(alias:Alias) {
 		clearQuery();
 	}
 

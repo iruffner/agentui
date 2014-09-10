@@ -37,7 +37,7 @@ class ResponseProcessor {
                             Synchronizer.processResponse(context, data);
                         }
                     }
-                } else if (context.context == "verificationContent") {
+                } else if (context.context == "verificationContent" && result != null) {
                     updateModelObject(result.type, result.action, result.results);
                 } else if (!Synchronizer.processResponse(context, data)){
                     if (result != null) {
