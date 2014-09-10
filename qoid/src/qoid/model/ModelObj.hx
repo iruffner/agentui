@@ -496,8 +496,8 @@ class IntroductionRequest extends ModelObjWithIid {
 class Introduction extends ModelObjWithIid {
 	public var aConnectionIid: String;
 	public var bConnectionIid: String;
-	public var aState: IntroductionState;
-	public var bState: IntroductionState;
+	public var aAccepted: Bool;
+	public var bAccepted: Bool;
 	public var recordVersion:Int;
 }
 
@@ -510,8 +510,9 @@ class IntroductionRequestNotification extends Notification<IntroductionRequestDa
 	@:rtti
 	class IntroductionRequestData {
 		public var introductionIid: String;
+		public var connectionIid: String;
 		public var message: String;
-		public var profile: Profile;
+		// public var profile: Profile;
 		@:optional public var accepted:Bool;
 	}
 

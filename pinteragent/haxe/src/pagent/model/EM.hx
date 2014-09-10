@@ -4,17 +4,17 @@ import m3.log.Logga;
 import m3.event.EventManager;
 
 class EMEvent {	
-	/* aphoto specific */
+	/* pinteragent specific */
 	public static inline var APP_INITIALIZED: String = "APP_INITIALIZED";
 
+	public static inline var OnBoardConfig: String = "onBoardConfig";
+	public static inline var OnConnectionBoards: String = "onConnectionBoards";
 	/* *************** */
 	
 
 	public static inline var FILTER_RUN: String = "FILTER_RUN";
 	public static inline var FILTER_CHANGE: String = "FILTER_CHANGE";
 	public static inline var OnFilteredContent: String = "onFilteredContent";
-	public static inline var OnBoardConfig: String = "onBoardConfig";
-	// public static inline var AppendFilteredContent: String = "AppendFilteredContent";
 
 	public static inline var EditContentClosed: String = "EditContentClosed";
 

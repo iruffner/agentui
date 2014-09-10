@@ -2,12 +2,12 @@ package pagent.pages;
 
 import m3.jq.JQ;
 
+import pagent.PinterContext;
 import pagent.widget.AliasComp;
 import pagent.widget.BoardList;
 import pagent.widget.OptionBar;
 
 using m3.helper.OSetHelper;
-// using pagent.widget.AlbumList;
 
 class SocialScreen extends PinterPage {
 
@@ -26,7 +26,9 @@ class SocialScreen extends PinterPage {
 
 		var boardListing: BoardList = new BoardList("<div></div>");
 		boardListing.appendTo(content);
-		boardListing.boardList();
+		boardListing.boardList({
+				boardList: PinterContext.sharedBoards
+			});
 	}
 	
 }

@@ -21,7 +21,10 @@ class PinterContext {
 	public static var PAGE_MGR: PinterPageMgr;
     public static var APP_INITIALIZED: Bool = false;
 
-    public static var LABELACLS_ByLabel: GroupedSet<LabelAcl>;
+    public static var labelAclsByLabel: GroupedSet<LabelAcl>;
+    public static var sharedBoards: ObservableSet<Label>;
+    public static var sharedBoardsByConnection: GroupedSet<Label>;
+
 
     public static var CURRENT_BOARD: String;
     public static var CURRENT_MEDIA: String;
@@ -41,10 +44,13 @@ class PinterContext {
 
         registerListeners();
     	
-        // AppContext.init();
-
-        LABELACLS_ByLabel = new GroupedSet<LabelAcl>(Qoid.labelAcls, function(l:LabelAcl):String {
+        labelAclsByLabel = new GroupedSet<LabelAcl>(Qoid.labelAcls, function(l:LabelAcl):String {
             return l.labelIid;
+        });
+
+        sharedBoards = new ObservableSet<Label>(Label.identifier);
+        sharedBoardsByConnection = new GroupedSet<Label>(sharedBoards, function(l:Label):String {
+            return l.createdByConnectionIid;
         });
 
         BOARD_CONFIGS = new ObservableSet<ConfigContent>(ModelObjWithIid.identifier);
@@ -98,6 +104,7 @@ class PinterContext {
     static function registerListeners(): Void {
         EM.listenOnce(QE.onInitialDataload, _onInitialDataLoadComplete, "PinterContext-onInitialDataLoad");
         EM.addListener(EMEvent.OnBoardConfig, _onBoardConfig , "PinterContext-onBoardConfig");
+        EM.addListener(EMEvent.OnConnectionBoards, _onSharedBoard , "PinterContext-onConnectionBoards");
 
         Qoid.connections.listen(
             function(c: Connection, evt: EventType): Void {
@@ -182,6 +189,16 @@ class PinterContext {
                 var c = Serializer.instance.fromJsonX(result, ConfigContent);
                 if(c != null) { //occurs when there is an unknown content type
                     BOARD_CONFIGS.addOrUpdate(c);
+                }
+            }
+    }
+
+    static function _onSharedBoard(data:{result: {standing: Bool, results: Array<Dynamic>}}) {
+        if(data.result.results.hasValues())
+            for (result in data.result.results) {
+                var c = Serializer.instance.fromJsonX(result, Label);
+                if(c != null) { //occurs when there is an unknown content type
+                    sharedBoards.addOrUpdate(c);
                 }
             }
     }

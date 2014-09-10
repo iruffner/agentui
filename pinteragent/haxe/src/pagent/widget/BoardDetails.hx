@@ -229,9 +229,9 @@ extern class BoardDetails extends JQ {
                                         self._showAddAccessPopup(positionalElem);
                                     });
 
-        						var labels: OSet<LabelAcl> = PinterContext.LABELACLS_ByLabel.getElement(PinterContext.CURRENT_BOARD);
+        						var labels: OSet<LabelAcl> = PinterContext.labelAclsByLabel.getElement(PinterContext.CURRENT_BOARD);
                                 if (labels == null) {
-                                    labels = PinterContext.LABELACLS_ByLabel.addEmptyGroup(PinterContext.CURRENT_BOARD);
+                                    labels = PinterContext.labelAclsByLabel.addEmptyGroup(PinterContext.CURRENT_BOARD);
                                 }
         						if(labels != null)
                                     Lambda.iter(labels,
@@ -279,7 +279,7 @@ extern class BoardDetails extends JQ {
                                 var connectionsContainer: JQ = new JQ("<div class='connectionsContainer'></div>").appendTo(el);
                                 
 
-                                var labels: OSet<LabelAcl> = PinterContext.LABELACLS_ByLabel.getElement(pagent.PinterContext.CURRENT_BOARD);
+                                var labels: OSet<LabelAcl> = PinterContext.labelAclsByLabel.getElement(pagent.PinterContext.CURRENT_BOARD);
                                 var connections: OSet<Connection> = Qoid.connections.filter(
                                     function(c: Connection): Bool {
                                             return labels == null || labels.getElementComplex(c.iid, function(l: LabelAcl) { return l.connectionIid; }) == null;

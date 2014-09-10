@@ -5779,6 +5779,9 @@ pagent.PinterAgent.main = function() {
 	pagent.PinterAgent.HOT_KEY_ACTIONS = m3.util.HotKeyManager.get_get();
 };
 pagent.PinterAgent.start = function() {
+	new $("#navHomeButton").button({ icons : { primary : "ui-icon-home"}}).click(function() {
+		pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.SOCIAL_SCREEN);
+	});
 	pagent.PinterContext.PAGE_MGR.setBackButton(new $("#navBackButton").button({ icons : { primary : "ui-icon-arrowthick-1-w"}}));
 	pagent.PinterContext.PAGE_MGR.initClientPages();
 	var document = new $(window.document);
@@ -5786,10 +5789,11 @@ pagent.PinterAgent.start = function() {
 	document.bind("pagebeforecreate",($_=pagent.PinterContext.PAGE_MGR,$bind($_,$_.pageBeforeCreate)));
 	document.bind("pageshow",($_=pagent.PinterContext.PAGE_MGR,$bind($_,$_.pageShow)));
 	document.bind("pagehide",($_=pagent.PinterContext.PAGE_MGR,$bind($_,$_.pageHide)));
-	pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.HOME_SCREEN);
+	pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.SOCIAL_SCREEN);
 	new $("body").click(function(evt) {
 		new $(".nonmodalPopup").hide();
 	});
+	new $("#userBar").userBar();
 	pagent.widget.DialogManager.showLogin();
 };
 pagent.PinterContentHandler = function() {
@@ -5839,8 +5843,12 @@ pagent.PinterContext.__name__ = ["pagent","PinterContext"];
 pagent.PinterContext.init = function() {
 	pagent.PinterContext.PAGE_MGR = pagent.pages.PinterPageMgr.get_get();
 	pagent.PinterContext.registerListeners();
-	pagent.PinterContext.LABELACLS_ByLabel = new m3.observable.GroupedSet(qoid.Qoid.labelAcls,function(l) {
+	pagent.PinterContext.labelAclsByLabel = new m3.observable.GroupedSet(qoid.Qoid.labelAcls,function(l) {
 		return l.labelIid;
+	});
+	pagent.PinterContext.sharedBoards = new m3.observable.ObservableSet(qoid.model.Label.identifier);
+	pagent.PinterContext.sharedBoardsByConnection = new m3.observable.GroupedSet(pagent.PinterContext.sharedBoards,function(l1) {
+		return l1.createdByConnectionIid;
 	});
 	pagent.PinterContext.BOARD_CONFIGS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 	pagent.model.EM.listenOnce("APP_INITIALIZED",function(n) {
@@ -5877,6 +5885,7 @@ pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS = function(l) {
 pagent.PinterContext.registerListeners = function() {
 	pagent.model.EM.listenOnce(qoid.QE.onInitialDataload,pagent.PinterContext._onInitialDataLoadComplete,"PinterContext-onInitialDataLoad");
 	pagent.model.EM.addListener("onBoardConfig",pagent.PinterContext._onBoardConfig,"PinterContext-onBoardConfig");
+	pagent.model.EM.addListener("onConnectionBoards",pagent.PinterContext._onSharedBoard,"PinterContext-onConnectionBoards");
 	qoid.Qoid.connections.listen(function(c,evt) {
 		if(evt.isAdd()) qoid.QoidAPI.query(new qoid.RequestContext("connectionBoards"),"label","(hasParentLabelPath('" + pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + "','" + pagent.PinterContext.APP_ROOT_LABEL_NAME + "'))",true,true,[c.iid]);
 	});
@@ -5943,6 +5952,18 @@ pagent.PinterContext._onBoardConfig = function(data) {
 			++_g;
 			var c = m3.serialization.Serializer.get_instance().fromJsonX(result,pagent.model.ConfigContent);
 			if(c != null) pagent.PinterContext.BOARD_CONFIGS.addOrUpdate(c);
+		}
+	}
+};
+pagent.PinterContext._onSharedBoard = function(data) {
+	if(m3.helper.ArrayHelper.hasValues(data.result.results)) {
+		var _g = 0;
+		var _g1 = data.result.results;
+		while(_g < _g1.length) {
+			var result = _g1[_g];
+			++_g;
+			var c = m3.serialization.Serializer.get_instance().fromJsonX(result,qoid.model.Label);
+			if(c != null) pagent.PinterContext.sharedBoards.addOrUpdate(c);
 		}
 	}
 };
@@ -6313,7 +6334,7 @@ pagent.pages.SocialScreen.prototype = $extend(pagent.pages.PinterPage.prototype,
 		content.addClass("center");
 		var boardListing = new $("<div></div>");
 		boardListing.appendTo(content);
-		boardListing.boardList();
+		boardListing.boardList({ boardList : pagent.PinterContext.sharedBoards});
 	}
 	,__class__: pagent.pages.SocialScreen
 });
@@ -6559,6 +6580,9 @@ qoid.model.VerificationContentData.__super__ = qoid.model.ContentData;
 qoid.model.VerificationContentData.prototype = $extend(qoid.model.ContentData.prototype,{
 	__class__: qoid.model.VerificationContentData
 });
+pagent.widget.UserBarHelper = function() { };
+$hxClasses["pagent.widget.UserBarHelper"] = pagent.widget.UserBarHelper;
+pagent.widget.UserBarHelper.__name__ = ["pagent","widget","UserBarHelper"];
 qoid.AuthenticationResponse = function() { };
 $hxClasses["qoid.AuthenticationResponse"] = qoid.AuthenticationResponse;
 qoid.AuthenticationResponse.__name__ = ["qoid","AuthenticationResponse"];
@@ -7493,8 +7517,8 @@ var defineWidget = function() {
 				window.document.body.click();
 				self3._showAddAccessPopup(positionalElem2);
 			});
-			var labels = m3.helper.OSetHelper.getElement(pagent.PinterContext.LABELACLS_ByLabel,pagent.PinterContext.CURRENT_BOARD);
-			if(labels == null) labels = pagent.PinterContext.LABELACLS_ByLabel.addEmptyGroup(pagent.PinterContext.CURRENT_BOARD);
+			var labels = m3.helper.OSetHelper.getElement(pagent.PinterContext.labelAclsByLabel,pagent.PinterContext.CURRENT_BOARD);
+			if(labels == null) labels = pagent.PinterContext.labelAclsByLabel.addEmptyGroup(pagent.PinterContext.CURRENT_BOARD);
 			if(labels != null) Lambda.iter(labels,function(l) {
 				var connectionDiv = new $("<div class='connectionDiv ui-corner-all ui-state-active'></div>").appendTo(connectionsContainer).click(function(evt14) {
 					var parms = { connectionIid : l.connectionIid, labelIid : self3.options.label.iid};
@@ -7522,7 +7546,7 @@ var defineWidget = function() {
 			container3.click(stopFcn3);
 			container3.append("<label for='' style='font-size: 18px;'>Click Connection to Grant Access: </label> ");
 			var connectionsContainer1 = new $("<div class='connectionsContainer'></div>").appendTo(el3);
-			var labels1 = m3.helper.OSetHelper.getElement(pagent.PinterContext.LABELACLS_ByLabel,pagent.PinterContext.CURRENT_BOARD);
+			var labels1 = m3.helper.OSetHelper.getElement(pagent.PinterContext.labelAclsByLabel,pagent.PinterContext.CURRENT_BOARD);
 			var connections = qoid.Qoid.connections.filter(function(c) {
 				return labels1 == null || m3.helper.OSetHelper.getElementComplex(labels1,c.iid,function(l1) {
 					return l1.connectionIid;
@@ -7553,27 +7577,37 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of BoardList must be a div element");
 		selfElement.addClass("_boardList");
 		if(m3.helper.StringHelper.isNotBlank(self.options.title)) new $("<h2>" + self.options.title + "</h2>").appendTo(selfElement);
-		if((function($this) {
-			var $r;
-			var this1 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this1.get(pagent.PinterContext.get_ROOT_BOARD().iid);
-			return $r;
-		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
 		self.onchangeLabelChildren = function(BoardComp,evt) {
 			if(evt.isAdd()) selfElement.append(BoardComp); else if(evt.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt.isDelete()) BoardComp.remove();
 		};
-		self.mappedLabels = new m3.observable.MappedSet((function($this) {
-			var $r;
-			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this11.get(pagent.PinterContext.get_ROOT_BOARD().iid);
-			return $r;
-		}(this)),function(labelChild) {
-			return new $("<div></div>").boardComp({ board : m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid)});
-		});
-		self.mappedLabels.visualId = "root_map";
-		self.mappedLabels.listen(self.onchangeLabelChildren);
+		if(self.options.boardList == null) {
+			if((function($this) {
+				var $r;
+				var this1 = qoid.Qoid.groupedLabelChildren.delegate();
+				$r = this1.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+				return $r;
+			}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
+			self.mappedLabelChilds = new m3.observable.MappedSet((function($this) {
+				var $r;
+				var this11 = qoid.Qoid.groupedLabelChildren.delegate();
+				$r = this11.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+				return $r;
+			}(this)),function(labelChild) {
+				return new $("<div></div>").boardComp({ board : m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid)});
+			});
+			self.mappedLabelChilds.visualId = "root_map";
+			self.mappedLabelChilds.listen(self.onchangeLabelChildren);
+		} else {
+			self.mappedLabels = new m3.observable.MappedSet(self.options.boardList,function(label) {
+				return new $("<div></div>").boardComp({ board : label});
+			});
+			self.mappedLabels.visualId = "boardList_map";
+			self.mappedLabels.listen(self.onchangeLabelChildren);
+		}
 	}, destroy : function() {
 		var self1 = this;
+		if(self1.mappedLabelChilds != null && self1.onchangeLabelChildren != null) self1.mappedLabelChilds.removeListener(self1.onchangeLabelChildren);
+		if(self1.mappedLabels != null && self1.onchangeLabelChildren != null) self1.mappedLabels.removeListener(self1.onchangeLabelChildren);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -8008,6 +8042,62 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.pinFeed",defineWidget());
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UserBar must be a div element");
+		selfElement.addClass("_userBar");
+		self.avatar = new $("<div></div>").appendTo(selfElement);
+		self.userIdTxt = new $("<div class='userIdTxt ui-widget-content'></div>");
+		selfElement.append(self.userIdTxt);
+		self.userIdTxt.html("...").click(function() {
+			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.HOME_SCREEN);
+		});
+		self._setAlias(new qoid.model.Alias());
+		self.aliasLoadedListener = pagent.model.EM.addListener(qoid.QE.onAliasLoaded,function(alias) {
+			self._setAlias(alias);
+		},"AliasComp-Alias");
+		self._onupdate = function(alias1,t) {
+			if(t.isAddOrUpdate()) self._updateAliasWidgets(alias1); else if(t.isDelete()) {
+				self.destroy();
+				selfElement.remove();
+			}
+		};
+		self._onupdateProfile = function(p,t1) {
+			var alias2 = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,p.aliasIid);
+			self._updateAliasWidgets(alias2);
+		};
+		if(qoid.Qoid.get_currentAlias() != null) self._setAlias(qoid.Qoid.get_currentAlias());
+	}, _updateAliasWidgets : function(alias3) {
+		var self1 = this;
+		var avatar = new $("<div class='avatar' style=''></div>").connectionAvatar({ aliasIid : alias3.iid, dndEnabled : true, isDragByHelper : true, containment : false});
+		self1.avatar.replaceWith(avatar);
+		self1.avatar = avatar;
+		new $(".userIdTxt").html(alias3.profile.name);
+	}, _setAlias : function(alias4) {
+		var self2 = this;
+		var selfElement1 = this.element;
+		self2._updateAliasWidgets(alias4);
+		if(self2.aliasSet != null) self2.aliasSet.removeListener(self2._onupdate);
+		self2.aliasSet = new m3.observable.FilteredSet(qoid.Qoid.aliases,function(a) {
+			return a.iid == alias4.iid;
+		});
+		self2.aliasSet.listen(self2._onupdate);
+		if(self2.profileSet != null) self2.profileSet.removeListener(self2._onupdateProfile);
+		self2.profileSet = new m3.observable.FilteredSet(qoid.Qoid.profiles,function(p1) {
+			return p1.aliasIid == alias4.iid;
+		});
+		self2.profileSet.listen(self2._onupdateProfile);
+	}, destroy : function() {
+		var self3 = this;
+		if(self3.aliasSet != null) self3.aliasSet.removeListener(self3._onupdate);
+		if(self3.profileSet != null) self3.profileSet.removeListener(self3._onupdateProfile);
+		pagent.model.EM.removeListener(qoid.QE.onAliasLoaded,self3.aliasLoadedListener);
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.userBar",defineWidget());
 agentui.api.ChannelMessage.__rtti = "<class path=\"agentui.api.ChannelMessage\" params=\"\" module=\"agentui.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
 agentui.api.BennuMessage.__rtti = "<class path=\"agentui.api.BennuMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"13\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 agentui.api.DeleteMessage.__rtti = "<class path=\"agentui.api.DeleteMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<extends path=\"agentui.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"24\" static=\"1\"><f a=\"object\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"agentui.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
@@ -8021,14 +8111,14 @@ agentui.api.IntroResponseMessage.__rtti = "<class path=\"agentui.api.IntroRespon
 agentui.api.QueryMessage.__rtti = "<class path=\"agentui.api.QueryMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<implements path=\"agentui.api.ChannelMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"48\" static=\"1\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.QueryMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<standing public=\"1\"><x path=\"Bool\"/></standing>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<local public=\"1\"><x path=\"Bool\"/></local>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"fd:?type:?q\" v=\":null:null\">\n\t<c path=\"agentui.model.FilterData\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 agentui.api.ChannelRequestMessage.__rtti = "<class path=\"agentui.api.ChannelRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"48\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"agentui.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"581\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"582\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.QE.onAgentCreated = "QE-onAgentCreated";
 qoid.QE.onInitialDataload = "QE-onInitialDataload";
 qoid.QE.onUserLogin = "QE-onUserLogin";
 qoid.QE.onAliasCreated = "QE-onAliasCreated";
 qoid.QE.onAliasUpdated = "QE-onAliasUpdated";
 qoid.QE.onAliasLoaded = "QE-onAliasLoaded";
-qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"568\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"569\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.QoidAPI.AGENT_CREATE = "/api/v1/agent/create";
 qoid.QoidAPI.LOGIN = "/api/v1/login";
 qoid.QoidAPI.LOGOUT = "/api/v1/logout";
@@ -8079,7 +8169,7 @@ qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" modu
 qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"319\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"323\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"327\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"331\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"335\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"308\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<kind public=\"1\"><e path=\"qoid.model.NotificationKind\"/></kind>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"459\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"472\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"476\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"463\"><f a=\"kind:type\">\n\t<e path=\"qoid.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"88\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"82\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"496\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aAccepted public=\"1\"><x path=\"Bool\"/></aAccepted>\n\t<bAccepted public=\"1\"><x path=\"Bool\"/></bAccepted>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"496\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.Synchronizer.synchronizers = new haxe.ds.StringMap();
 qoid.model.ContentTypes.AUDIO = "AUDIO";
 qoid.model.ContentTypes.IMAGE = "IMAGE";
@@ -8112,10 +8202,11 @@ pagent.PinterContext.APP_INITIALIZED = false;
 pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS = "com.qoid.apps";
 pagent.PinterContext.APP_ROOT_LABEL_NAME = pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + ".pinteragent";
 pagent.model.EMEvent.APP_INITIALIZED = "APP_INITIALIZED";
+pagent.model.EMEvent.OnBoardConfig = "onBoardConfig";
+pagent.model.EMEvent.OnConnectionBoards = "onConnectionBoards";
 pagent.model.EMEvent.FILTER_RUN = "FILTER_RUN";
 pagent.model.EMEvent.FILTER_CHANGE = "FILTER_CHANGE";
 pagent.model.EMEvent.OnFilteredContent = "onFilteredContent";
-pagent.model.EMEvent.OnBoardConfig = "onBoardConfig";
 pagent.model.EMEvent.EditContentClosed = "EditContentClosed";
 pagent.model.EMEvent.CreateAgent = "CreateAgent";
 pagent.model.EMEvent.UserLogout = "UserLogout";
@@ -8170,10 +8261,10 @@ qoid.model.ContentVerification.__rtti = "<class path=\"qoid.model.ContentVerific
 qoid.model.VerifiedContentMetaData.__rtti = "<class path=\"qoid.model.VerifiedContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"489\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"506\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"qoid.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"519\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"531\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"551\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"532\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"552\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.VerificationResponseData.__rtti = "<class path=\"qoid.model.VerificationResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 pagent.PinterAgent.main();
 })(typeof window != "undefined" ? window : exports);

@@ -12,6 +12,7 @@ import pagent.pages.PinterPageMgr;
 import pagent.model.EM;
 import pagent.widget.DialogManager;
 import pagent.model.PinterModel;
+import pagent.widget.UserBar;
 import qoid.model.ModelObj;
 import qoid.QE;
 
@@ -35,6 +36,17 @@ class PinterAgent {
     }
 
     public static function start(): Void {
+        new JQ("#navHomeButton").button(
+                {
+                    icons: {
+                        primary: "ui-icon-home"
+                      }
+                }
+            )
+            .click(function() {
+                    PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.SOCIAL_SCREEN;
+                });
+
         PinterContext.PAGE_MGR.setBackButton(new JQ("#navBackButton").button(
                 {
                     icons: {
@@ -52,13 +64,15 @@ class PinterAgent {
         document.bind("pageshow", PinterContext.PAGE_MGR.pageShow);
         document.bind("pagehide", PinterContext.PAGE_MGR.pageHide);
         
-        PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.HOME_SCREEN;
-        // PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.SOCIAL_SCREEN;
+        // PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.HOME_SCREEN;
+        PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.SOCIAL_SCREEN;
         // EM.change(EMEvent.APP_INITIALIZED);
 
         new JQ("body").click(function(evt: JQEvent): Void {
             new JQ(".nonmodalPopup").hide();
         });
+
+        new UserBar("#userBar").userBar();
 
         DialogManager.showLogin();
     }

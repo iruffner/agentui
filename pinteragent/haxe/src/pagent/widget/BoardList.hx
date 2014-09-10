@@ -19,7 +19,8 @@ using agentui.widget.UploadComp;
 using pagent.widget.ConnectionAvatar;
 
 typedef BoardListOptions = {
-	var title: String;
+	@:optional var title: String;
+	@:optional var boardList: ObservableSet<Label>;
 }
 
 typedef BoardListWidgetDef = {
@@ -27,11 +28,10 @@ typedef BoardListWidgetDef = {
 	var _create: Void->Void;
 	var destroy: Void->Void;
 
-	@:optional var mappedLabels: MappedSet<LabelChild, BoardComp>;
+	@:optional var mappedLabelChilds: MappedSet<LabelChild, BoardComp>;
+	@:optional var mappedLabels: MappedSet<Label, BoardComp>;
 	@:optional var onchangeLabelChildren: BoardComp->EventType->Void;
 	
-	// var _showNewLabelPopup: JQ->Void;
-
 	@:optional var listenerId: String;
 }
 
@@ -58,17 +58,6 @@ extern class BoardList extends JQ {
 		        	if(self.options.title.isNotBlank())
 		        		new JQ("<h2>" + self.options.title + "</h2>").appendTo(selfElement);
 
-		        	// new JQ("<button class='newBoardButton'>+</button>")
-		        	// 	.appendTo(selfElement)
-		        	// 	.button()
-		        	// 	.click(function(evt: JQEvent) {
-		        	// 			evt.stopPropagation();
-			        // 			self._showNewLabelPopup(JQ.cur);
-		        	// 		});
-					if (Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {
-	        			Qoid.groupedLabelChildren.addEmptyGroup(PinterContext.ROOT_BOARD.iid);
-    				}
-
 			        self.onchangeLabelChildren = function(BoardComp: BoardComp, evt: EventType): Void {
 	            		if(evt.isAdd()) {
 	            			selfElement.append(BoardComp);
@@ -79,71 +68,41 @@ extern class BoardList extends JQ {
 	            		}
 	            	};
 
-            		self.mappedLabels = new MappedSet<LabelChild, BoardComp>(Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid), 
-		        		function(labelChild: LabelChild): BoardComp {
-		        			return new BoardComp("<div></div>").boardComp({
-		        				board: Qoid.labels.getElementComplex(labelChild.childIid)
-		        			});
-	        		});
-		        	self.mappedLabels.visualId = "root_map";
+		        	if(self.options.boardList == null) {
+						if (Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {
+		        			Qoid.groupedLabelChildren.addEmptyGroup(PinterContext.ROOT_BOARD.iid);
+	    				}
 
-		        	self.mappedLabels.listen(self.onchangeLabelChildren);
+	            		self.mappedLabelChilds = new MappedSet<LabelChild, BoardComp>(Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid), 
+			        		function(labelChild: LabelChild): BoardComp {
+			        			return new BoardComp("<div></div>").boardComp({
+			        				board: Qoid.labels.getElementComplex(labelChild.childIid)
+			        			});
+		        		});
+			        	self.mappedLabelChilds.visualId = "root_map";
+
+			        	self.mappedLabelChilds.listen(self.onchangeLabelChildren);
+		        	} else {
+		        		self.mappedLabels = new MappedSet<Label, BoardComp>(self.options.boardList, 
+			        		function(label: Label): BoardComp {
+			        			return new BoardComp("<div></div>").boardComp({
+			        				board: label
+			        			});
+		        		});
+
+		        		self.mappedLabels.visualId = "boardList_map";
+
+			        	self.mappedLabels.listen(self.onchangeLabelChildren);
+		        		
+		        	}
 		        },
-
-		   //     	_showNewLabelPopup: function(reference: JQ): Void {
-					// var self: BoardListWidgetDef = Widgets.getSelf();
-					// var selfElement: JQ = Widgets.getSelfElement();
-
-     //    			var popup: Popup = new Popup("<div class='newLabelPopup' style='position: absolute;width:300px;'></div>");
-     //    			popup.appendTo(selfElement);
-     //    			popup = popup.popup({
-     //    					createFcn: function(el: JQ): Void {
-     //    						var createLabel: Void->Void = null;
-     //    						var updateLabel: Void->Void = null;
-     //    						var stopFcn: JQEvent->Void = function (evt: JQEvent): Void { evt.stopPropagation(); };
-     //    						var enterFcn: JQEvent->Void = function (evt: JQEvent): Void { 
-     //    							if(evt.keyCode == 13) {
-     //    								createLabel();
-    	// 							}
-     //    						};
-
-     //    						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
-     //    						container.click(stopFcn).keypress(enterFcn);
-        						
-     //    						container.append("<br/><label for='labelName'>Name: </label> ");
-     //    						var input: JQ = new JQ("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
-     //    						input.keypress(enterFcn).click(function(evt: JQEvent): Void {
-     //    								evt.stopPropagation();
-     //    								if(JQ.cur.val() == "New Label") {
-     //    									JQ.cur.val("");
-     //    								}
-    	// 							}).focus();
-     //    						container.append("<br/>");
-     //    						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Label</button>")
-     //    							.button()
-     //    							.appendTo(container)
-     //    							.click(function(evt: JQEvent): Void {
-     //    								createLabel();
-     //    							});
-
-     //    						createLabel = function(): Void {
-					// 				if (input.val().length == 0) {return;}
-					// 				AppContext.LOGGER.info("Create new label | " + input.val());
-					// 				var label: Label = new Label();
-					// 				label.name = input.val();
-  			// 						var eventData = new EditLabelData(label, PinterContext.ROOT_BOARD.iid);
-  			// 						EM.change(EMEvent.CreateLabel, eventData);
-					// 				new JQ("body").click();
-     //    						};
-     //    					},
-     //    					positionalElement: reference
-     //    				});
-
-					// },
 
 		        destroy: function() {
 		        	var self: BoardListWidgetDef = Widgets.getSelf();
-		        	// EM.removeListener(QE.onAliasLoaded, self.listenerId);
+		        	if(self.mappedLabelChilds != null && self.onchangeLabelChildren != null) 
+		        		self.mappedLabelChilds.removeListener(self.onchangeLabelChildren);
+	        		if(self.mappedLabels != null && self.onchangeLabelChildren != null) 
+	        			self.mappedLabels.removeListener(self.onchangeLabelChildren);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };
