@@ -1,7 +1,7 @@
 package ap.api;
 
 import ap.APhotoContext;
-import ap.AppContext;
+
 import ap.APhoto;
 
 import haxe.ds.StringMap;

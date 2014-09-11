@@ -3,20 +3,18 @@ package ap.pages;
 import ap.APhotoContext;
 import m3.jq.JQ;
 
-import ap.AppContext;
+
 import ap.widget.AlbumDetails;
 import ap.widget.ContentFeed;
 import ap.model.EM;
 import m3.jq.M3Dialog;
 import m3.observable.OSet.EventType;
 import m3.observable.OSet.FilteredSet;
-import qoid.model.Filter;
-import qoid.model.ModelObj.ContentFactory;
-import qoid.model.ModelObj.ContentType;
-import qoid.model.ModelObj.EditContentData;
-import qoid.model.ModelObj.Label;
-import qoid.model.Node;
-import qoid.widget.UploadComp;
+import agentui.model.Filter;
+import qoid.model.ModelObj;
+import agentui.model.Node;
+import agentui.widget.UploadComp;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using ap.widget.AlbumList;
@@ -41,7 +39,7 @@ class AlbumScreen extends APhotoPage {
 		var content: JQ = new JQ(".content", screen).empty();
 		content.addClass("center");
 
-		labelSet = new FilteredSet(AppContext.LABELS, function(l: Label) {
+		labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
 				return l.iid == APhotoContext.CURRENT_ALBUM;
 			});
 		
@@ -85,7 +83,7 @@ class AlbumScreen extends APhotoPage {
 					uploadComp.uploadComp({
 							onload: function(bytes: String): Void {
 								dlg.close();
-								var ccd = new EditContentData(ContentFactory.create(ContentType.IMAGE, bytes));
+								var ccd = new EditContentData(ContentFactory.create(ContentTypes.IMAGE, bytes));
 								ccd.labelIids.push(APhotoContext.CURRENT_ALBUM);			
 								EM.change(EMEvent.CreateContent, ccd);
 							}
@@ -106,7 +104,7 @@ class AlbumScreen extends APhotoPage {
 		var root: Node = new Or();
 		root.type = "ROOT";
 		var path = new Array<String>();
-		path.push(AppContext.LABELS.getElement(AppContext.currentAlias.rootLabelIid).name);
+		path.push(Qoid.labels.getElement(Qoid.currentAlias.labelIid).name);
 		path.push(APhotoContext.ROOT_LABEL_OF_ALL_APPS.name);
 		path.push(APhotoContext.ROOT_ALBUM.name);
 		path.push(label.name);
@@ -115,7 +113,7 @@ class AlbumScreen extends APhotoPage {
 		var filterData = new FilterData("content");
 		filterData.filter = new Filter(root);
 		filterData.connectionIids = [];
-		filterData.aliasIid       = AppContext.currentAlias.iid;
+		filterData.aliasIid       = Qoid.currentAlias.iid;
 
 		EM.change(EMEvent.FILTER_RUN, filterData);
 

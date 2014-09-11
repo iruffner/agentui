@@ -1,12 +1,14 @@
 package ap.model;
 
-import ap.AppContext;
+
 import ap.model.EM;
 import m3.log.Logga;
 import m3.observable.OSet;
+import m3.serialization.Serialization.Serializer;
 import m3.util.UidGenerator;
 import qoid.model.ModelObj;
-import qoid.model.Filter;
+import agentui.model.Filter;
+import qoid.QE;
 
 using m3.helper.OSetHelper;
 using m3.helper.ArrayHelper;
@@ -46,16 +48,12 @@ class ContentSource {
 		filteredContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
 		listeners = new Array<ContentSourceListener<Dynamic>>();
 
-    	EM.addListener(EMEvent.AliasLoaded, onAliasLoaded, 
+    	EM.addListener(QE.onAliasLoaded, onAliasLoaded, 
     		                                "ContentSource-AliasLoaded"
     	);
 
-    	EM.addListener(EMEvent.LoadFilteredContent, onLoadFilteredContent, 
+    	EM.addListener(EMEvent.OnFilteredContent, onLoadFilteredContent, 
     		                                        "ContentSource-LoadFilteredContent"
-    	);
-
-    	EM.addListener(EMEvent.AppendFilteredContent, onAppendFilteredContent, 
-    		                                        "ContentSource-AppendFilteredContent"
     	);
 	}
 
@@ -79,7 +77,7 @@ class ContentSource {
 		var connectionIids = new Array<String>();
 
 		for (result in results) {
-			var c = AppContext.SERIALIZER.fromJsonX(result, Content);
+			var c = Serializer.instance.fromJsonX(result, Content);
 			if(c != null) {
 				if (connectionIid != null) {
 					c.aliasIid = null;
@@ -91,14 +89,14 @@ class ContentSource {
 
 	}
 
-	private static function onLoadFilteredContent(data:Dynamic): Void {
-		if (handle == data.handle) {
-			addContent(data.results, data.connectionIid);
+	private static function onLoadFilteredContent(data:{context: {context: String, handle: String}, result: {standing: Bool, results: Array<Dynamic>}, connectionIid: String}): Void {
+		if (data.result.standing || handle == data.context.handle) {
+			addContent(data.result.results, data.connectionIid);
 		} else {
 			clearQuery();
-			handle = data.handle;
+			handle = data.context.handle;
 			beforeSetContent();
-			addContent(data.results, data.connectionIid);
+			addContent(data.result.results, data.connectionIid);
 		}
     }
 
@@ -109,10 +107,6 @@ class ContentSource {
 			filteredContent.clear();
 			handle = null;
 		}
-    }
-
-    private static function onAppendFilteredContent(data:Dynamic) {
-		addContent(data.results, data.connectionIid);
     }
 
 	private static function onAliasLoaded(alias:Alias) {

@@ -1,20 +1,22 @@
 package ap.widget;
 
-import ap.AppContext;
+
+import ap.model.APhotoModel.ConfigContent;
 import ap.model.EM;
 import m3.jq.JQ;
+import m3.log.Logga;
 import m3.widget.Widgets;
 import m3.observable.OSet;
 import m3.util.M;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import qoid.model.ModelObj;
-import qoid.widget.Popup;
-import qoid.widget.UploadComp;
+import agentui.widget.Popup;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using qoid.widget.UploadComp;
+using agentui.widget.UploadComp;
 
 typedef AlbumDetailsOptions = {
 	var label: Label;
@@ -118,14 +120,14 @@ extern class AlbumDetails extends JQ {
 					// self.filteredSet.listen(self._onupdate);
 
 					self._onAlbumConfig = function(mc: ConfigContent, evt: EventType) {
-						var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(mc.iid+"_"+self.options.label.iid, function(lc: LabeledContent): String {
+						var match: LabeledContent = Qoid.labeledContent.getElementComplex(mc.iid+"_"+self.options.label.iid, function(lc: LabeledContent): String {
 								return lc.contentIid+"_"+lc.labelIid;
 							});
 						if(match != null) {
 							try {
 								self.img.attr("src", mc.props.defaultImg);
 							} catch (err: Dynamic) {
-								AppContext.LOGGER.error("problem using the default img");
+								Logga.DEFAULT.error("problem using the default img");
 							}
 						}
 					}
@@ -172,7 +174,7 @@ extern class AlbumDetails extends JQ {
         						updateLabel = function(): Void {
 									if (input.val().length == 0) {return;}
 									var label = self.options.label;
-									AppContext.LOGGER.info("Update label | " + label.iid);
+									Logga.DEFAULT.info("Update label | " + label.iid);
 									label.name = input.val();
   									var eventData = new EditLabelData(label);
   									EM.change(EMEvent.UpdateLabel, eventData);

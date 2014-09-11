@@ -1,7 +1,7 @@
 package ap.widget;
 
 import ap.APhotoContext;
-import ap.AppContext;
+
 import ap.pages.APhotoPage;
 import ap.pages.APhotoPageMgr;
 import ap.model.EM;
@@ -9,13 +9,15 @@ import js.Browser;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.M3Menu;
+import m3.log.Logga;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import m3.observable.OSet;
 import ap.widget.LabelComp;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
-import qoid.widget.Popup;
+import agentui.widget.Popup;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -86,7 +88,7 @@ extern class MediaComp extends ContentComp {
 					var content: Content<Dynamic> = self.options.content;
 
 		        	switch(content.contentType) {
-		        		case ContentType.IMAGE:
+		        		case ContentTypes.IMAGE:
 		        			var imgDiv: JQ = new JQ("<div class='imgDiv'></div>").appendTo(selfElement);
 		        			var captionDiv: JQ = new JQ("<div class='captionDiv'></div>").appendTo(selfElement);
 		        			var labelsDiv: JQ = new JQ("<div class='labelsDiv'></div>").appendTo(selfElement);
@@ -131,13 +133,13 @@ extern class MediaComp extends ContentComp {
 				        				evt.stopPropagation();
 				        			});
 
-			        		var labels: OSet<LabeledContent> = AppContext.GROUPED_LABELEDCONTENT.getElement(content.iid);
+			        		var labels: OSet<LabeledContent> = Qoid.groupedLabeledContent.getElement(content.iid);
 			        		self.labelListener = function(lc: LabeledContent, evt: EventType): Void {
 			        			if(lc != null && lc.labelIid != APhotoContext.CURRENT_ALBUM) {
 				        			if(evt.isAdd()) {
-				        				new JQ("<div id='otherAlbum" + lc.labelIid + "' class='album'>" + AppContext.LABELS.getElementComplex(lc.labelIid).name + "</div>").appendTo(labelsDiv);
+				        				new JQ("<div id='otherAlbum" + lc.labelIid + "' class='album'>" + Qoid.labels.getElementComplex(lc.labelIid).name + "</div>").appendTo(labelsDiv);
 				        			} else if(evt.isUpdate()) {
-				        				new JQ("#otherAlbum" + lc.labelIid, labelsDiv).text(AppContext.LABELS.getElementComplex(lc.labelIid).name);
+				        				new JQ("#otherAlbum" + lc.labelIid, labelsDiv).text(Qoid.labels.getElementComplex(lc.labelIid).name);
 				        			} else if(evt.isDelete()) {
 				        				new JQ("#otherAlbum" + lc.labelIid, labelsDiv).remove();
 				        			} else if(evt.isClear()) {
@@ -193,9 +195,9 @@ extern class MediaComp extends ContentComp {
 
         						updateCaption = function(): Void {
 									if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Update content | " + c.iid);
+									Logga.DEFAULT.info("Update content | " + c.iid);
 									c.props.caption = input.val();
-  									var eventData = new EditContentData(c, AppContext.GROUPED_LABELEDCONTENT.getElement(c.iid).map(
+  									var eventData = new EditContentData(c, Qoid.groupedLabeledContent.getElement(c.iid).map(
   											function(laco: LabeledContent): String {
   													return laco.labelIid;
   												}  
@@ -230,7 +232,7 @@ extern class MediaComp extends ContentComp {
     							container.append("<label for='labelParent'>Album: </label> ");
         						var select: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container);
         						select.click(stopFcn);
-        						var aliasLabels = AppContext.getLabelDescendents(APhotoContext.ROOT_ALBUM.iid);
+        						var aliasLabels = Qoid.getLabelDescendents(APhotoContext.ROOT_ALBUM.iid);
         						var iter: Iterator<Label> = aliasLabels.iterator();
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
@@ -251,9 +253,9 @@ extern class MediaComp extends ContentComp {
 
         						updateLabels = function(): Void {
 									// if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Update content | " + c.iid);
+									Logga.DEFAULT.info("Update content | " + c.iid);
 									// [APhotoContext.CURRENT_ALBUM, select.val()]
-									var list = AppContext.GROUPED_LABELEDCONTENT.getElement(c.iid).map(
+									var list = Qoid.groupedLabeledContent.getElement(c.iid).map(
   											function(laco: LabeledContent): String {
   													return laco.labelIid;
   												}  
@@ -282,7 +284,7 @@ extern class MediaComp extends ContentComp {
 
 		        destroy: function() {
 		        	var self: MediaCompWidgetDef = Widgets.getSelf();
-		        	AppContext.GROUPED_LABELEDCONTENT.getElement(self.options.content.iid).removeListener(self.labelListener);
+		        	Qoid.groupedLabeledContent.getElement(self.options.content.iid).removeListener(self.labelListener);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

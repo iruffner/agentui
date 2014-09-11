@@ -2,9 +2,10 @@
 $hx_exports.m3 = $hx_exports.m3 || {};
 $hx_exports.m3.helper = $hx_exports.m3.helper || {};
 ;$hx_exports.m3.util = $hx_exports.m3.util || {};
+$hx_exports.qoid = $hx_exports.qoid || {};
 $hx_exports.ap = $hx_exports.ap || {};
 $hx_exports.ap.widget = $hx_exports.ap.widget || {};
-var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
+var $hxClasses = {};
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -395,27 +396,20 @@ StringTools.fastCodeAt = function(s,index) {
 };
 var ValueType = $hxClasses["ValueType"] = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
 ValueType.TNull = ["TNull",0];
-ValueType.TNull.toString = $estr;
 ValueType.TNull.__enum__ = ValueType;
 ValueType.TInt = ["TInt",1];
-ValueType.TInt.toString = $estr;
 ValueType.TInt.__enum__ = ValueType;
 ValueType.TFloat = ["TFloat",2];
-ValueType.TFloat.toString = $estr;
 ValueType.TFloat.__enum__ = ValueType;
 ValueType.TBool = ["TBool",3];
-ValueType.TBool.toString = $estr;
 ValueType.TBool.__enum__ = ValueType;
 ValueType.TObject = ["TObject",4];
-ValueType.TObject.toString = $estr;
 ValueType.TObject.__enum__ = ValueType;
 ValueType.TFunction = ["TFunction",5];
-ValueType.TFunction.toString = $estr;
 ValueType.TFunction.__enum__ = ValueType;
-ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
-ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
+ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; return $x; };
+ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; return $x; };
 ValueType.TUnknown = ["TUnknown",8];
-ValueType.TUnknown.toString = $estr;
 ValueType.TUnknown.__enum__ = ValueType;
 ValueType.__empty_constructs__ = [ValueType.TNull,ValueType.TInt,ValueType.TFloat,ValueType.TBool,ValueType.TObject,ValueType.TFunction,ValueType.TUnknown];
 var Type = function() { };
@@ -731,1950 +725,158 @@ Xml.prototype = {
 	}
 	,__class__: Xml
 };
-var ap = {};
-ap.APhoto = $hx_exports.ap.APhoto = function() { };
-$hxClasses["ap.APhoto"] = ap.APhoto;
-ap.APhoto.__name__ = ["ap","APhoto"];
-ap.APhoto.main = function() {
-	ap.APhotoContext.init();
-	ap.APhoto.PROTOCOL = new ap.api.ProtocolHandler();
-	ap.APhoto.HOT_KEY_ACTIONS = m3.util.HotKeyManager.get_get();
-};
-ap.APhoto.start = function() {
-	new $("#navHomeButton").button({ icons : { primary : "ui-icon-home"}}).click(function() {
-		ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.HOME_SCREEN);
-	});
-	ap.APhotoContext.PAGE_MGR.setBackButton(new $("#navBackButton").button({ icons : { primary : "ui-icon-arrowthick-1-w"}}));
-	ap.APhotoContext.PAGE_MGR.initClientPages();
-	var document = new $(window.document);
-	document.bind("pagebeforeshow",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.beforePageShow)));
-	document.bind("pagebeforecreate",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.pageBeforeCreate)));
-	document.bind("pageshow",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.pageShow)));
-	document.bind("pagehide",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.pageHide)));
-	ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.HOME_SCREEN);
-	new $("body").click(function() {
-		new $(".nonmodalPopup").hide();
-	});
-	ap.widget.DialogManager.showLogin();
-};
-var m3 = {};
-m3.serialization = {};
-m3.serialization.TypeHandler = function() { };
-$hxClasses["m3.serialization.TypeHandler"] = m3.serialization.TypeHandler;
-m3.serialization.TypeHandler.__name__ = ["m3","serialization","TypeHandler"];
-m3.serialization.TypeHandler.prototype = {
-	__class__: m3.serialization.TypeHandler
-};
-ap.AphotoContentHandler = function() {
-};
-$hxClasses["ap.AphotoContentHandler"] = ap.AphotoContentHandler;
-ap.AphotoContentHandler.__name__ = ["ap","AphotoContentHandler"];
-ap.AphotoContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
-ap.AphotoContentHandler.prototype = {
-	read: function(fromJson,reader,instance) {
-		var obj = null;
-		try {
-			var _g = fromJson.contentType;
-			switch(_g) {
-			case qoid.model.ContentType.AUDIO:
-				obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.AudioContent);
-				break;
-			case qoid.model.ContentType.IMAGE:
-				obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.ImageContent);
-				break;
-			case qoid.model.ContentType.URL:
-				obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.UrlContent);
-				break;
-			case qoid.model.ContentType.VERIFICATION:
-				obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.VerificationContent);
-				break;
-			case qoid.model.ContentType.TEXT:
-				obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.MessageContent);
-				break;
-			case qoid.model.ContentType.CONFIG:
-				obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.ConfigContent);
-				break;
-			}
-		} catch( err ) {
-			fromJson.contentType = qoid.model.ContentType.TEXT;
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.MessageContent);
-		}
-		return obj;
-	}
-	,write: function(value,writer) {
-		return ap.AppContext.SERIALIZER.toJson(value);
-	}
-	,__class__: ap.AphotoContentHandler
-};
-ap.APhotoContext = function() { };
-$hxClasses["ap.APhotoContext"] = ap.APhotoContext;
-ap.APhotoContext.__name__ = ["ap","APhotoContext"];
-ap.APhotoContext.init = function() {
-	ap.APhotoContext.PAGE_MGR = ap.pages.APhotoPageMgr.get_get();
-	ap.AppContext.init();
-	ap.APhotoContext.ALBUM_CONFIGS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
-	ap.model.EM.listenOnce("APP_INITIALIZED",function(n) {
-		ap.APhotoContext.APP_INITIALIZED = true;
-	},"APhotoContext-AppInitialized");
-};
-ap.APhotoContext.get_ROOT_ALBUM = function() {
-	return ap.APhotoContext.ROOT_ALBUM;
-};
-ap.APhotoContext.set_ROOT_ALBUM = function(l) {
-	ap.APhotoContext.ROOT_ALBUM = l;
-	var root = new qoid.model.Or();
-	root.type = "ROOT";
-	var path = new Array();
-	path.push(m3.helper.OSetHelper.getElement(ap.AppContext.LABELS,ap.AppContext.currentAlias.rootLabelIid).name);
-	path.push(ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS().name);
-	path.push(ap.APhotoContext.get_ROOT_ALBUM().name);
-	root.addNode(new qoid.model.LabelNode(l,path));
-	var filterData = new qoid.model.FilterData("albumConfig");
-	filterData.filter = new qoid.model.Filter(root);
-	filterData.filter.q = filterData.filter.q + " and contentType = '" + ap.APhotoContext.APP_ROOT_LABEL_NAME + ".config'";
-	filterData.connectionIids = [];
-	filterData.aliasIid = ap.AppContext.currentAlias.iid;
-	ap.model.EM.change("FILTER_RUN",filterData);
-	return l;
-};
-ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS = function() {
-	return ap.APhotoContext.ROOT_LABEL_OF_ALL_APPS;
-};
-ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS = function(l) {
-	ap.APhotoContext.ROOT_LABEL_OF_ALL_APPS = l;
-	return l;
-};
-ap.AppContext = function() { };
-$hxClasses["ap.AppContext"] = ap.AppContext;
-ap.AppContext.__name__ = ["ap","AppContext"];
-ap.AppContext.init = function() {
-	ap.AppContext.LOGGER = new m3.log.Logga(m3.log.LogLevel.DEBUG);
-	ap.AppContext.MASTER_NOTIFICATIONS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
-	ap.AppContext.NOTIFICATIONS = new m3.observable.FilteredSet(ap.AppContext.MASTER_NOTIFICATIONS,function(a) {
-		return !a.consumed;
-	});
-	ap.AppContext.ALIASES = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
-	ap.AppContext.ALIASES.listen(function(a1,evt) {
-		if(evt.isAddOrUpdate()) {
-			var p = m3.helper.OSetHelper.getElementComplex(ap.AppContext.PROFILES,a1.iid,"aliasIid");
-			if(p != null) a1.profile = p;
-			if(evt.isAdd()) ap.model.EM.change("AliasCreated",a1); else ap.model.EM.change("AliasUpdated",a1);
-		}
-	});
-	ap.AppContext.LABELS = new m3.observable.ObservableSet(qoid.model.Label.identifier);
-	ap.AppContext.LABELACLS = new m3.observable.ObservableSet(qoid.model.LabelAcl.identifier);
-	ap.AppContext.LABELACLS_ByConnection = new m3.observable.GroupedSet(ap.AppContext.LABELACLS,function(l) {
-		return l.connectionIid;
-	});
-	ap.AppContext.LABELACLS_ByLabel = new m3.observable.GroupedSet(ap.AppContext.LABELACLS,function(l1) {
-		return l1.labelIid;
-	});
-	ap.AppContext.LABELCHILDREN = new m3.observable.ObservableSet(qoid.model.LabelChild.identifier);
-	ap.AppContext.GROUPED_LABELCHILDREN = new m3.observable.GroupedSet(ap.AppContext.LABELCHILDREN,function(lc) {
-		return lc.parentIid;
-	});
-	ap.AppContext.LABELEDCONTENT = new m3.observable.ObservableSet(qoid.model.LabeledContent.identifier);
-	ap.AppContext.GROUPED_LABELEDCONTENT = new m3.observable.GroupedSet(ap.AppContext.LABELEDCONTENT,function(lc1) {
-		return lc1.contentIid;
-	});
-	ap.AppContext.PROFILES = new m3.observable.ObservableSet(qoid.model.Profile.identifier);
-	ap.AppContext.PROFILES.listen(function(p1,evt1) {
-		if(evt1.isAddOrUpdate()) {
-			var alias = m3.helper.OSetHelper.getElement(ap.AppContext.ALIASES,p1.aliasIid);
-			if(alias != null) {
-				alias.profile = p1;
-				ap.AppContext.ALIASES.addOrUpdate(alias);
-			}
-		}
-	});
-	ap.AppContext.SERIALIZER = new m3.serialization.Serializer();
-	ap.AppContext.SERIALIZER.addHandler(qoid.model.Content,new ap.AphotoContentHandler());
-	ap.AppContext.SERIALIZER.addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
-	ap.AppContext.registerGlobalListeners();
-};
-ap.AppContext.isAliasRootLabel = function(iid) {
-	var $it0 = ap.AppContext.ALIASES.iterator();
-	while( $it0.hasNext() ) {
-		var alias = $it0.next();
-		if(alias.rootLabelIid == iid) return true;
-	}
-	return false;
-};
-ap.AppContext.getUberLabelIid = function() {
-	return m3.helper.OSetHelper.getElement(ap.AppContext.ALIASES,ap.AppContext.UBER_ALIAS_ID).rootLabelIid;
-};
-ap.AppContext.onInitialDataLoadComplete = function(nada) {
-	ap.AppContext.ROOT_LABEL_ID = m3.helper.OSetHelper.getElement(ap.AppContext.ALIASES,ap.AppContext.UBER_ALIAS_ID).rootLabelIid;
-	ap.AppContext.currentAlias = m3.helper.OSetHelper.getElement(ap.AppContext.ALIASES,ap.AppContext.UBER_ALIAS_ID);
-	var $it0 = ap.AppContext.ALIASES.iterator();
-	while( $it0.hasNext() ) {
-		var alias = $it0.next();
-		if(alias.data.isDefault == true) {
-			ap.AppContext.currentAlias = alias;
-			break;
-		}
-	}
-	var rootLabelOfThisApp = m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELS,ap.APhotoContext.APP_ROOT_LABEL_NAME,function(l) {
-		return l.name;
-	});
-	var rootLabelOfAllApps = m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELS,ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS,function(l1) {
-		return l1.name;
-	});
-	if(rootLabelOfThisApp == null) {
-		var createRootLabelOfThisApp = function(theRootLabelOfAllApps) {
-			var listener = null;
-			listener = function(l2,evtType) {
-				if(evtType.isAdd()) {
-					if(l2.name == ap.APhotoContext.APP_ROOT_LABEL_NAME) {
-						ap.AppContext.LABELS.removeListener(listener);
-						ap.APhotoContext.set_ROOT_ALBUM(l2);
-						ap.model.EM.change("AliasLoaded",ap.AppContext.currentAlias);
-						ap.model.EM.change("APP_INITIALIZED");
-					}
-				}
-			};
-			ap.AppContext.LABELS.listen(listener,false);
-			var label = new qoid.model.Label();
-			label.name = ap.APhotoContext.APP_ROOT_LABEL_NAME;
-			var eventData = new qoid.model.EditLabelData(label,ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS().iid);
-			ap.model.EM.change("CreateLabel",eventData);
-		};
-		if(rootLabelOfAllApps == null) {
-			var listener1 = null;
-			listener1 = function(l3,evtType1) {
-				if(evtType1.isAdd()) {
-					if(l3.name == ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
-						ap.AppContext.LABELS.removeListener(listener1);
-						ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(l3);
-						createRootLabelOfThisApp(l3);
-					}
-				}
-			};
-			ap.AppContext.LABELS.listen(listener1,false);
-			var label1 = new qoid.model.Label();
-			label1.name = ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS;
-			var eventData1 = new qoid.model.EditLabelData(label1,ap.AppContext.currentAlias.rootLabelIid);
-			ap.model.EM.change("CreateLabel",eventData1);
-		} else {
-			ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
-			createRootLabelOfThisApp(rootLabelOfAllApps);
-		}
-	} else {
-		ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
-		ap.APhotoContext.set_ROOT_ALBUM(rootLabelOfThisApp);
-		ap.model.EM.change("AliasLoaded",ap.AppContext.currentAlias);
-		ap.model.EM.change("APP_INITIALIZED");
-	}
-};
-ap.AppContext.registerGlobalListeners = function() {
-	new $(window).on("unload",function(evt) {
-		ap.model.EM.change("UserLogout");
-	});
-	ap.model.EM.addListener("InitialDataLoadComplete",ap.AppContext.onInitialDataLoadComplete,"AppContext-InitialDataLoadComplete");
-	ap.model.EM.addListener("AliasLoaded",function(a) {
-		window.document.title = a.profile.name + " | aPhoto";
-	});
-};
-ap.AppContext.getLabelDescendents = function(parentIid) {
-	var labelDescendents = new m3.observable.ObservableSet(qoid.model.Label.identifier);
-	var getDescendentIids;
-	getDescendentIids = function(iid,iidList) {
-		iidList.splice(0,0,iid);
-		var children = new m3.observable.FilteredSet(ap.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == iid;
-		}).asArray();
-		var _g1 = 0;
-		var _g = children.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			getDescendentIids(children[i].childIid,iidList);
-		}
-	};
-	var iid_list = new Array();
-	getDescendentIids(parentIid,iid_list);
-	HxOverrides.remove(iid_list,parentIid);
-	var _g2 = 0;
-	while(_g2 < iid_list.length) {
-		var iid_ = iid_list[_g2];
-		++_g2;
-		var label = m3.helper.OSetHelper.getElement(ap.AppContext.LABELS,iid_);
-		if(label == null) ap.AppContext.LOGGER.error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
-	}
-	return labelDescendents;
-};
-ap.api = {};
-ap.api.EventDelegate = function(protocolHandler) {
-	this.filterIsRunning = false;
-	this.protocolHandler = protocolHandler;
-	this._setUpEventListeners();
-};
-$hxClasses["ap.api.EventDelegate"] = ap.api.EventDelegate;
-ap.api.EventDelegate.__name__ = ["ap","api","EventDelegate"];
-ap.api.EventDelegate.prototype = {
-	_setUpEventListeners: function() {
-		var _g = this;
-		ap.model.EM.addListener("FILTER_RUN",function(filterData) {
-			if(filterData.type == "albumConfig") {
-				filterData.type = "content";
-				_g.protocolHandler.albumConfigs(filterData);
-			} else _g.protocolHandler.filter(filterData);
-		});
-		ap.model.EM.addListener("CreateAlias",function(alias) {
-			_g.protocolHandler.createAlias(alias);
-		});
-		ap.model.EM.addListener("DeleteAlias",function(alias1) {
-			_g.protocolHandler.deleteAlias(alias1);
-		});
-		ap.model.EM.addListener("UpdateAlias",function(alias2) {
-			_g.protocolHandler.updateAlias(alias2);
-		});
-		ap.model.EM.addListener("UserLogin",function(login) {
-			_g.protocolHandler.login(login);
-		});
-		ap.model.EM.addListener("CreateAgent",function(user) {
-			_g.protocolHandler.createAgent(user);
-		});
-		ap.model.EM.addListener("CreateContent",function(data) {
-			_g.protocolHandler.createContent(data);
-		});
-		ap.model.EM.addListener("UpdateContent",function(data1) {
-			_g.protocolHandler.updateContent(data1);
-		});
-		ap.model.EM.addListener("DeleteContent",function(data2) {
-			_g.protocolHandler.deleteContent(data2);
-		});
-		ap.model.EM.addListener("CreateLabel",function(data3) {
-			_g.protocolHandler.createLabel(data3);
-		});
-		ap.model.EM.addListener("UpdateLabel",function(data4) {
-			_g.protocolHandler.updateLabel(data4);
-		});
-		ap.model.EM.addListener("MoveLabel",function(data5) {
-			_g.protocolHandler.moveLabel(data5);
-		});
-		ap.model.EM.addListener("CopyLabel",function(data6) {
-			_g.protocolHandler.copyLabel(data6);
-		});
-		ap.model.EM.addListener("DeleteLabel",function(data7) {
-			_g.protocolHandler.deleteLabel(data7);
-		});
-		ap.model.EM.addListener("RespondToIntroduction",function(intro) {
-			_g.protocolHandler.confirmIntroduction(intro);
-		});
-		ap.model.EM.addListener("INTRODUCTION_REQUEST",function(intro1) {
-			_g.protocolHandler.beginIntroduction(intro1);
-		});
-		ap.model.EM.addListener("GrantAccess",function(parms) {
-			_g.protocolHandler.grantAccess(parms.connectionIid,parms.labelIid);
-		});
-		ap.model.EM.addListener("RevokeAccess",function(lacls) {
-			_g.protocolHandler.revokeAccess(lacls);
-		});
-		ap.model.EM.addListener("DeleteConnection",function(c) {
-			_g.protocolHandler.deleteConnection(c);
-		});
-		ap.model.EM.addListener("UserLogout",function(c1) {
-			_g.protocolHandler.deregisterAllSqueries();
-		});
-		ap.model.EM.addListener("TargetChange",function(conn) {
-		});
-		ap.model.EM.addListener("BACKUP",function(n) {
-			_g.protocolHandler.backup();
-		});
-		ap.model.EM.addListener("RESTORE",function(n1) {
-			_g.protocolHandler.restore();
-		});
-		ap.model.EM.addListener("VerificationRequest",function(vr) {
-			_g.protocolHandler.verificationRequest(vr);
-		});
-		ap.model.EM.addListener("RespondToVerification",function(vr1) {
-			_g.protocolHandler.respondToVerificationRequest(vr1);
-		});
-		ap.model.EM.addListener("AcceptVerification",function(notificationIid) {
-			_g.protocolHandler.acceptVerification(notificationIid);
-		});
-		ap.model.EM.addListener("RejectVerificationRequest",function(notificationIid1) {
-			_g.protocolHandler.rejectVerificationRequest(notificationIid1);
-		});
-	}
-	,__class__: ap.api.EventDelegate
-};
-ap.api.ProtocolHandler = function() {
-	this.eventDelegate = new ap.api.EventDelegate(this);
-	this.registeredHandles = new Array();
-};
-$hxClasses["ap.api.ProtocolHandler"] = ap.api.ProtocolHandler;
-ap.api.ProtocolHandler.__name__ = ["ap","api","ProtocolHandler"];
-ap.api.ProtocolHandler.prototype = {
-	createChannel: function(aliasName,successFunc) {
-		new qoid.api.SimpleRequest("/api/channel/create/" + aliasName,"",successFunc).start();
-	}
-	,addHandle: function(handle) {
-		this.registeredHandles.push(handle);
-	}
-	,deregisterAllSqueries: function() {
-		if(this.registeredHandles.length > 0) this.deregisterSqueries(this.registeredHandles.slice());
-	}
-	,deregisterSqueries: function(handles) {
-		var context = ap.api.Synchronizer.createContext(handles.length,"deregisterSqueriesResponse");
-		var requests = new Array();
+var agentui = {};
+agentui.model = {};
+agentui.model.Filter = function(node) {
+	this.rootNode = node;
+	this.nodes = new Array();
+	if(node.hasChildren()) {
 		var _g = 0;
-		while(_g < handles.length) {
-			var handle = handles[_g];
-			++_g;
-			requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DEREGISTER,context,new qoid.api.DeregisterMessage(handle)));
-			HxOverrides.remove(this.registeredHandles,handle);
-		}
-		new qoid.api.SubmitRequest(requests).start({ async : false});
-	}
-	,getProfiles: function(connectionIids) {
-		var context = ap.api.Synchronizer.createContext(1,"connectionProfile");
-		var qm = qoid.api.QueryMessage.create("profile");
-		qm.connectionIids = connectionIids;
-		qm.local = false;
-		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,qm)]).start();
-	}
-	,getVerificationContent: function(connectionIids,iids) {
-		var context = ap.api.Synchronizer.createContext(1,"verificationContent");
-		var qm = qoid.api.QueryMessage.create("content");
-		qm.connectionIids = connectionIids;
-		qm.q = "iid in (" + iids.join(",") + ")";
-		qm.local = false;
-		qm.standing = false;
-		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,qm)]).start();
-	}
-	,login: function(login) {
-		this.createChannel(login.agentId,$bind(this,this.onCreateSubmitChannel));
-	}
-	,createAgent: function(newUser) {
-		var req = new qoid.api.SimpleRequest("/api/agent/create/" + newUser.name,"",function(data) {
-			ap.model.EM.change("AgentCreated");
-		});
-		req.start();
-	}
-	,beginIntroduction: function(intro) {
-		var context = ap.api.Synchronizer.createContext(1,"beginIntroduction");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.INTRODUCE,context,new qoid.api.IntroMessage(intro))]);
-		req.start();
-	}
-	,confirmIntroduction: function(confirmation) {
-		var context = ap.api.Synchronizer.createContext(1,"confirmIntroduction");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.INTRO_RESPONSE,context,confirmation)]);
-		req.start();
-	}
-	,deleteConnection: function(c) {
-		var context = ap.api.Synchronizer.createContext(1,"connectionDeleted");
-		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DELETE,context,qoid.api.DeleteMessage.create(c))]).start();
-	}
-	,grantAccess: function(connectionIid,labelIid) {
-		var acl = new qoid.model.LabelAcl(connectionIid,labelIid);
-		var context = ap.api.Synchronizer.createContext(1,"grantAccess");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(acl))]);
-		req.start();
-	}
-	,revokeAccess: function(lacls) {
-		var context = ap.api.Synchronizer.createContext(1,"accessRevoked");
-		var requests = new Array();
-		var _g = 0;
-		while(_g < lacls.length) {
-			var lacl = lacls[_g];
-			++_g;
-			requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DELETE,context,qoid.api.DeleteMessage.create(lacl)));
-		}
-		new qoid.api.SubmitRequest(requests).start();
-	}
-	,filter: function(filterData) {
-		var context = ap.api.Synchronizer.createContext(1,"filterContent");
-		var requests = [new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,new qoid.api.QueryMessage(filterData))];
-		new qoid.api.SubmitRequest(requests).start();
-	}
-	,albumConfigs: function(filterData) {
-		var context = ap.api.Synchronizer.createContext(1,"albumConfigs");
-		var requests = [new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,new qoid.api.QueryMessage(filterData))];
-		new qoid.api.SubmitRequest(requests).start();
-	}
-	,createAlias: function(alias) {
-		alias.name = alias.profile.name;
-		var options = { profileName : alias.profile.name, profileImgSrc : alias.profile.imgSrc, parentIid : ap.AppContext.ROOT_LABEL_ID};
-		var context = ap.api.Synchronizer.createContext(1,"aliasCreated");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(alias,options))]);
-		req.start();
-	}
-	,updateAlias: function(alias) {
-		alias.name = alias.profile.name;
-		var context = ap.api.Synchronizer.createContext(1,"aliasUpdated");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(alias)),new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(alias.profile))]);
-		req.start();
-	}
-	,deleteAlias: function(alias) {
-		var context = ap.api.Synchronizer.createContext(1,"aliasDeleted");
-		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DELETE,context,qoid.api.DeleteMessage.create(alias))]).start();
-	}
-	,createContent: function(data) {
-		if(data.content == null) {
-			ap.AppContext.LOGGER.error("CONTENT IS NULL");
-			return;
-		}
-		var context = ap.api.Synchronizer.createContext(1 + data.labelIids.length,"contentCreated");
-		var requests = new Array();
-		requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(data.content)));
-		var _g = 0;
-		var _g1 = data.labelIids;
+		var _g1 = node.nodes;
 		while(_g < _g1.length) {
-			var iid = _g1[_g];
+			var childNode = _g1[_g];
 			++_g;
-			var labeledContent = new qoid.model.LabeledContent(data.content.iid,iid);
-			requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(labeledContent)));
-		}
-		new qoid.api.SubmitRequest(requests).start();
-	}
-	,updateContent: function(data) {
-		var currentLabels;
-		var this1 = ap.AppContext.GROUPED_LABELEDCONTENT.delegate();
-		currentLabels = this1.get(data.content.iid);
-		var labelsToDelete = new Array();
-		var $it0 = currentLabels.iterator();
-		while( $it0.hasNext() ) {
-			var labeledContent = $it0.next();
-			var found = false;
-			var _g = 0;
-			var _g1 = data.labelIids;
-			while(_g < _g1.length) {
-				var iid = _g1[_g];
-				++_g;
-				if(iid == labeledContent.labelIid) {
-					found = true;
-					break;
-				}
-			}
-			if(!found) labelsToDelete.push(labeledContent);
-		}
-		var labelsToAdd = new Array();
-		var _g2 = 0;
-		var _g11 = data.labelIids;
-		while(_g2 < _g11.length) {
-			var iid1 = _g11[_g2];
-			++_g2;
-			var found1 = false;
-			var $it1 = currentLabels.iterator();
-			while( $it1.hasNext() ) {
-				var labeledContent1 = $it1.next();
-				if(iid1 == labeledContent1.labelIid) {
-					found1 = true;
-					break;
-				}
-			}
-			if(!found1) labelsToAdd.push(new qoid.model.LabeledContent(data.content.iid,iid1));
-		}
-		var context = ap.api.Synchronizer.createContext(1 + labelsToAdd.length + labelsToDelete.length,"contentUpdated");
-		var requests = new Array();
-		requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(data.content)));
-		var _g3 = 0;
-		while(_g3 < labelsToDelete.length) {
-			var lc = labelsToDelete[_g3];
-			++_g3;
-			requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DELETE,context,qoid.api.DeleteMessage.create(lc)));
-		}
-		var _g4 = 0;
-		while(_g4 < labelsToAdd.length) {
-			var lc1 = labelsToAdd[_g4];
-			++_g4;
-			requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(lc1)));
-		}
-		new qoid.api.SubmitRequest(requests).start();
-	}
-	,deleteContent: function(data) {
-		var context = ap.api.Synchronizer.createContext(1 + data.labelIids.length,"contentDeleted");
-		var requests = new Array();
-		requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DELETE,context,qoid.api.DeleteMessage.create(data.content)));
-		var $it0 = ((function($this) {
-			var $r;
-			var this1 = ap.AppContext.GROUPED_LABELEDCONTENT.delegate();
-			$r = this1.get(data.content.iid);
-			return $r;
-		}(this))).iterator();
-		while( $it0.hasNext() ) {
-			var lc = $it0.next();
-			requests.push(new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DELETE,context,qoid.api.DeleteMessage.create(lc)));
-		}
-		new qoid.api.SubmitRequest(requests).start();
-	}
-	,createLabel: function(data) {
-		var context = ap.api.Synchronizer.createContext(1,"labelCreated");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(data.label,{ parentIid : data.parentIid}))]);
-		req.start();
-	}
-	,updateLabel: function(data) {
-		var context = ap.api.Synchronizer.createContext(1,"labelUpdated");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(data.label))]);
-		req.start();
-	}
-	,getExistingLabelChild: function(parentIid,childIid) {
-		var lcs = new m3.observable.FilteredSet(ap.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == parentIid && lc.childIid == childIid;
-		});
-		return lcs.iterator().next();
-	}
-	,moveLabel: function(data) {
-		var lcs = new m3.observable.FilteredSet(ap.AppContext.LABELCHILDREN,function(lc) {
-			return lc.parentIid == data.parentIid && lc.childIid == data.label.iid;
-		});
-		var lcToRemove = this.getExistingLabelChild(data.parentIid,data.label.iid);
-		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.iid);
-		if(lcToAdd == null) lcToAdd = new qoid.model.LabelChild(data.newParentId,data.label.iid);
-		var context = ap.api.Synchronizer.createContext(2,"labelMoved");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DELETE,context,qoid.api.DeleteMessage.create(lcToRemove)),new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(lcToAdd))]);
-		req.start();
-	}
-	,copyLabel: function(data) {
-		var lcToAdd = this.getExistingLabelChild(data.newParentId,data.label.iid);
-		if(lcToAdd == null) lcToAdd = new qoid.model.LabelChild(data.newParentId,data.label.iid);
-		var context = ap.api.Synchronizer.createContext(1,"labelCopied");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(lcToAdd))]);
-		req.start();
-	}
-	,deleteLabel: function(data) {
-		var lc = m3.helper.OSetHelper.getElementComplex2(ap.AppContext.LABELCHILDREN,function(lc1) {
-			return lc1.parentIid == data.parentIid && lc1.childIid == data.label.iid;
-		});
-		var context = ap.api.Synchronizer.createContext(1,"labelDeleted");
-		new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.DELETE,context,qoid.api.DeleteMessage.create(lc))]).start();
-	}
-	,verificationRequest: function(vr) {
-		var context = ap.api.Synchronizer.createContext(1,"verificationRequest");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.VERIFICATION_REQUEST,context,new qoid.api.VerificationRequestMessage(vr))]);
-		req.start();
-	}
-	,respondToVerificationRequest: function(vr) {
-		var context = ap.api.Synchronizer.createContext(1,"respondToVerificationRequest");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.VERIFICATION_RESPONSE,context,new qoid.api.VerificationResponseMessage(vr))]);
-		req.start();
-	}
-	,rejectVerificationRequest: function(notificationIid) {
-		var notification = m3.helper.OSetHelper.getElement(ap.AppContext.NOTIFICATIONS,notificationIid);
-		notification.consumed = true;
-		var context = ap.api.Synchronizer.createContext(1,"verificationRequestRejected");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.UPSERT,context,qoid.api.CrudMessage.create(notification))]);
-		req.start();
-	}
-	,acceptVerification: function(notificationIid) {
-		var context = ap.api.Synchronizer.createContext(1,"acceptVerification");
-		var req = new qoid.api.SubmitRequest([new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.VERIFICATION_ACCEPT,context,new qoid.api.AcceptVerificationMessage(notificationIid))]);
-		req.start();
-	}
-	,onCreateSubmitChannel: function(data) {
-		ap.AppContext.SUBMIT_CHANNEL = data.channelId;
-		ap.AppContext.UBER_ALIAS_ID = data.aliasIid;
-		this._startPolling(data.channelId);
-		var context = ap.api.Synchronizer.createContext(6,"initialDataLoad");
-		var requests = [new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("alias")),new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("label")),new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labelAcl")),new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labeledContent")),new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("labelChild")),new qoid.api.ChannelRequestMessage(ap.api.ProtocolHandler.QUERY,context,qoid.api.QueryMessage.create("profile"))];
-		new qoid.api.SubmitRequest(requests).start();
-	}
-	,_startPolling: function(channelId) {
-		var timeout = 10000;
-		var ajaxOptions = { contentType : "", type : "GET"};
-		this.listeningChannel = new m3.comm.LongPollingRequest(channelId,"",ap.AppContext.LOGGER,ap.api.ResponseProcessor.processResponse,null,ajaxOptions);
-		this.listeningChannel.timeout = timeout;
-		this.listeningChannel.start();
-	}
-	,backup: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,restore: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,restores: function() {
-		throw new m3.exception.Exception("E_NOTIMPLEMENTED");
-	}
-	,__class__: ap.api.ProtocolHandler
-};
-ap.api.ResponseProcessor = function() { };
-$hxClasses["ap.api.ResponseProcessor"] = ap.api.ResponseProcessor;
-ap.api.ResponseProcessor.__name__ = ["ap","api","ResponseProcessor"];
-ap.api.ResponseProcessor.processResponse = function(dataArr) {
-	if(dataArr == null || dataArr.length == 0) return;
-	Lambda.iter(dataArr,function(data) {
-		if(data.success == false) {
-			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + Std.string(data.context));
-			ap.AppContext.LOGGER.error(data.error.stacktrace);
-		} else {
-			if(data.context == null) return;
-			var context = new qoid.model.Context(data.context);
-			var _g = context.oncomplete;
-			switch(_g) {
-			case "initialDataLoad":
-				if(data.responseType == "query") ap.api.Synchronizer.processResponse(data); else if(data.responseType == "squery") ap.api.ResponseProcessor.updateModelObject(data.type,data.action,data.results); else if(data.result && data.result.handle) ap.APhoto.PROTOCOL.addHandle(data.result.handle);
-				break;
-			case "filterContent":
-				if(data.responseType == "query") ap.model.EM.change("LoadFilteredContent",data); else if(data.responseType == "squery") ap.model.EM.change("AppendFilteredContent",data); else if(data.result && data.result.handle) ap.APhoto.PROTOCOL.addHandle(data.result.handle);
-				break;
-			default:
-				ap.api.Synchronizer.processResponse(data);
-			}
-		}
-	});
-};
-ap.api.ResponseProcessor.processModelObject = function(set,type,action,data) {
-	var _g = 0;
-	var _g1;
-	_g1 = js.Boot.__cast(data , Array);
-	while(_g < _g1.length) {
-		var datum = _g1[_g];
-		++_g;
-		var obj = ap.AppContext.SERIALIZER.fromJsonX(datum,type);
-		if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
-	}
-};
-ap.api.ResponseProcessor.updateModelObject = function(type,action,data) {
-	var type1 = type.toLowerCase();
-	switch(type1) {
-	case "alias":
-		ap.api.ResponseProcessor.processModelObject(ap.AppContext.ALIASES,qoid.model.Alias,action,data);
-		break;
-	case "label":
-		ap.api.ResponseProcessor.processModelObject(ap.AppContext.LABELS,qoid.model.Label,action,data);
-		break;
-	case "labelacl":
-		ap.api.ResponseProcessor.processModelObject(ap.AppContext.LABELACLS,qoid.model.LabelAcl,action,data);
-		break;
-	case "labelchild":
-		ap.api.ResponseProcessor.processModelObject(ap.AppContext.LABELCHILDREN,qoid.model.LabelChild,action,data);
-		break;
-	case "labeledcontent":
-		ap.api.ResponseProcessor.processModelObject(ap.AppContext.LABELEDCONTENT,qoid.model.LabeledContent,action,data);
-		break;
-	case "notification":
-		ap.api.ResponseProcessor.processModelObject(ap.AppContext.MASTER_NOTIFICATIONS,qoid.model.Notification,action,data);
-		break;
-	case "profile":
-		ap.api.ResponseProcessor.processModelObject(ap.AppContext.PROFILES,qoid.model.Profile,action,data);
-		break;
-	default:
-		ap.AppContext.LOGGER.error("Unknown type: " + type1);
-	}
-};
-ap.api.ResponseProcessor.initialDataLoad = function(data) {
-	ap.AppContext.ALIASES.addAll(data.aliases);
-	ap.AppContext.LABELS.addAll(data.labels);
-	ap.AppContext.LABELCHILDREN.addAll(data.labelChildren);
-	ap.AppContext.LABELEDCONTENT.addAll(data.labeledContent);
-	ap.AppContext.LABELACLS.addAll(data.labelAcls);
-	ap.AppContext.PROFILES.addAll(data.profiles);
-	var $it0 = ap.AppContext.ALIASES.iterator();
-	while( $it0.hasNext() ) {
-		var alias_ = $it0.next();
-		var $it1 = ap.AppContext.PROFILES.iterator();
-		while( $it1.hasNext() ) {
-			var profile_ = $it1.next();
-			if(profile_.aliasIid == alias_.iid) {
-				alias_.profile = profile_;
-				ap.AppContext.ALIASES.update(alias_);
-			}
+			this.nodes.push(childNode);
 		}
 	}
-	ap.model.EM.change("InitialDataLoadComplete");
+	this.q = this.getQuery();
 };
-ap.api.ResponseProcessor.albumConfigs = function(data) {
-	ap.APhotoContext.ALBUM_CONFIGS.addAll(data.content);
-};
-ap.api.SynchronizationParms = function() {
-	this.aliases = new Array();
-	this.content = new Array();
-	this.labels = new Array();
-	this.labelAcls = new Array();
-	this.labelChildren = new Array();
-	this.labeledContent = new Array();
-	this.profiles = new Array();
-};
-$hxClasses["ap.api.SynchronizationParms"] = ap.api.SynchronizationParms;
-ap.api.SynchronizationParms.__name__ = ["ap","api","SynchronizationParms"];
-ap.api.SynchronizationParms.prototype = {
-	__class__: ap.api.SynchronizationParms
-};
-var haxe = {};
-haxe.ds = {};
-haxe.ds.StringMap = function() {
-	this.h = { };
-};
-$hxClasses["haxe.ds.StringMap"] = haxe.ds.StringMap;
-haxe.ds.StringMap.__name__ = ["haxe","ds","StringMap"];
-haxe.ds.StringMap.__interfaces__ = [IMap];
-haxe.ds.StringMap.prototype = {
-	set: function(key,value) {
-		this.h["$" + key] = value;
+$hxClasses["agentui.model.Filter"] = agentui.model.Filter;
+agentui.model.Filter.__name__ = ["agentui","model","Filter"];
+agentui.model.Filter.prototype = {
+	getQuery: function() {
+		return this._queryify(this.nodes,this.rootNode.getQuery());
 	}
-	,get: function(key) {
-		return this.h["$" + key];
-	}
-	,exists: function(key) {
-		return this.h.hasOwnProperty("$" + key);
-	}
-	,remove: function(key) {
-		key = "$" + key;
-		if(!this.h.hasOwnProperty(key)) return false;
-		delete(this.h[key]);
-		return true;
-	}
-	,keys: function() {
-		var a = [];
-		for( var key in this.h ) {
-		if(this.h.hasOwnProperty(key)) a.push(key.substr(1));
-		}
-		return HxOverrides.iter(a);
-	}
-	,iterator: function() {
-		return { ref : this.h, it : this.keys(), hasNext : function() {
-			return this.it.hasNext();
-		}, next : function() {
-			var i = this.it.next();
-			return this.ref["$" + i];
-		}};
-	}
-	,__class__: haxe.ds.StringMap
-};
-ap.api.Synchronizer = function(iid,numResponsesExpected,oncomplete) {
-	this.iid = iid;
-	this.numResponsesExpected = numResponsesExpected;
-	this.oncomplete = oncomplete;
-	this.parms = new ap.api.SynchronizationParms();
-};
-$hxClasses["ap.api.Synchronizer"] = ap.api.Synchronizer;
-ap.api.Synchronizer.__name__ = ["ap","api","Synchronizer"];
-ap.api.Synchronizer.createContext = function(numResponsesExpected,oncomplete) {
-	return m3.util.UidGenerator.create(32) + "-" + (numResponsesExpected == null?"null":"" + numResponsesExpected) + "-" + oncomplete;
-};
-ap.api.Synchronizer.processResponse = function(data) {
-	var context = new qoid.model.Context(data.context);
-	var synchronizer = ap.api.Synchronizer.synchronizers.get(context.iid);
-	if(synchronizer == null) synchronizer = ap.api.Synchronizer.add(context);
-	synchronizer.dataReceived(context,data);
-};
-ap.api.Synchronizer.add = function(c) {
-	var synchronizer = new ap.api.Synchronizer(c.iid,c.numResponsesExpected,c.oncomplete);
-	ap.api.Synchronizer.synchronizers.set(c.iid,synchronizer);
-	return synchronizer;
-};
-ap.api.Synchronizer.remove = function(iid) {
-	ap.api.Synchronizer.synchronizers.remove(iid);
-};
-ap.api.Synchronizer.prototype = {
-	processDataReceived: function(list,type,data) {
-		var _g = 0;
-		var _g1;
-		_g1 = js.Boot.__cast(data , Array);
-		while(_g < _g1.length) {
-			var datum = _g1[_g];
-			++_g;
-			list.push(ap.AppContext.SERIALIZER.fromJsonX(datum,type));
-		}
-	}
-	,dataReceived: function(c,dataObj) {
-		var data = dataObj.results;
-		if(data == null) return;
-		var type = dataObj.type.toLowerCase();
-		switch(type) {
-		case "alias":
-			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
-			break;
-		case "content":
-			this.processDataReceived(this.parms.content,qoid.model.Content,data);
-			break;
-		case "label":
-			this.processDataReceived(this.parms.labels,qoid.model.Label,data);
-			break;
-		case "labelacl":
-			this.processDataReceived(this.parms.labelAcls,qoid.model.LabelAcl,data);
-			break;
-		case "labelchild":
-			this.processDataReceived(this.parms.labelChildren,qoid.model.LabelChild,data);
-			break;
-		case "labeledcontent":
-			this.processDataReceived(this.parms.labeledContent,qoid.model.LabeledContent,data);
-			break;
-		case "profile":
-			this.processDataReceived(this.parms.profiles,qoid.model.Profile,data);
-			break;
-		default:
-			ap.AppContext.LOGGER.error("Unknown data type: " + Std.string(dataObj.type));
-		}
-		this.numResponsesExpected -= 1;
-		if(this.numResponsesExpected == 0) {
-			var func = Reflect.field(ap.api.ResponseProcessor,this.oncomplete);
-			if(func == null) ap.AppContext.LOGGER.info("Missing oncomplete function: " + this.oncomplete); else func.apply(ap.api.ResponseProcessor,[this.parms]);
-			ap.api.Synchronizer.remove(this.iid);
-			var length = 0;
-			var $it0 = ap.api.Synchronizer.synchronizers.keys();
-			while( $it0.hasNext() ) {
-				var key = $it0.next();
-				length += 1;
-			}
-			ap.AppContext.LOGGER.info("Number Synchronizers: " + length);
-		}
-	}
-	,__class__: ap.api.Synchronizer
-};
-ap.model = {};
-ap.model.ContentSourceListener = function(mapListener,onBeforeSetContent,widgetCreator,content) {
-	this.mapListener = mapListener;
-	this.onBeforeSetContent = onBeforeSetContent;
-	this.widgetCreator = widgetCreator;
-	this.contentMap = new m3.observable.MappedSet(content,function(content1) {
-		return widgetCreator(content1);
-	});
-	this.contentMap.mapListen(this.mapListener);
-	this.id = m3.util.UidGenerator.create(20);
-};
-$hxClasses["ap.model.ContentSourceListener"] = ap.model.ContentSourceListener;
-ap.model.ContentSourceListener.__name__ = ["ap","model","ContentSourceListener"];
-ap.model.ContentSourceListener.prototype = {
-	destroy: function() {
-		this.contentMap.removeListeners(this.mapListener);
-	}
-	,__class__: ap.model.ContentSourceListener
-};
-var qoid = {};
-qoid.model = {};
-qoid.model.ModelObj = function() {
-};
-$hxClasses["qoid.model.ModelObj"] = qoid.model.ModelObj;
-qoid.model.ModelObj.__name__ = ["qoid","model","ModelObj"];
-qoid.model.ModelObj.prototype = {
-	objectType: function() {
-		var className = m3.serialization.TypeTools.classname(m3.serialization.TypeTools.clazz(this)).toLowerCase();
-		var parts = className.split(".");
-		return parts[parts.length - 1];
-	}
-	,__class__: qoid.model.ModelObj
-};
-qoid.model.ModelObjWithIid = function() {
-	qoid.model.ModelObj.call(this);
-	this.iid = m3.util.UidGenerator.create(32);
-	this.created = new Date();
-	this.modified = new Date();
-};
-$hxClasses["qoid.model.ModelObjWithIid"] = qoid.model.ModelObjWithIid;
-qoid.model.ModelObjWithIid.__name__ = ["qoid","model","ModelObjWithIid"];
-qoid.model.ModelObjWithIid.identifier = function(t) {
-	return t.iid;
-};
-qoid.model.ModelObjWithIid.__super__ = qoid.model.ModelObj;
-qoid.model.ModelObjWithIid.prototype = $extend(qoid.model.ModelObj.prototype,{
-	__class__: qoid.model.ModelObjWithIid
-});
-m3.observable = {};
-m3.observable.OSet = function() { };
-$hxClasses["m3.observable.OSet"] = m3.observable.OSet;
-m3.observable.OSet.__name__ = ["m3","observable","OSet"];
-m3.observable.OSet.prototype = {
-	__class__: m3.observable.OSet
-};
-m3.observable.AbstractSet = function() {
-	this._eventManager = new m3.observable.EventManager(this);
-};
-$hxClasses["m3.observable.AbstractSet"] = m3.observable.AbstractSet;
-m3.observable.AbstractSet.__name__ = ["m3","observable","AbstractSet"];
-m3.observable.AbstractSet.__interfaces__ = [m3.observable.OSet];
-m3.observable.AbstractSet.prototype = {
-	listen: function(l,autoFire) {
-		if(autoFire == null) autoFire = true;
-		this._eventManager.add(l,autoFire);
-	}
-	,removeListener: function(l) {
-		this._eventManager.remove(l);
-	}
-	,filter: function(f) {
-		return new m3.observable.FilteredSet(this,f);
-	}
-	,map: function(f) {
-		return new m3.observable.MappedSet(this,f);
-	}
-	,fire: function(t,type) {
-		this._eventManager.fire(t,type);
-	}
-	,getVisualId: function() {
-		return this.visualId;
-	}
-	,identifier: function() {
-		throw new m3.exception.Exception("implement me");
-	}
-	,iterator: function() {
-		throw new m3.exception.Exception("implement me");
-	}
-	,delegate: function() {
-		throw new m3.exception.Exception("implement me");
-	}
-	,__class__: m3.observable.AbstractSet
-};
-m3.observable.ObservableSet = function(identifier,tArr) {
-	m3.observable.AbstractSet.call(this);
-	this._identifier = identifier;
-	this._delegate = new m3.util.SizedMap();
-	if(tArr != null) this.addAll(tArr);
-};
-$hxClasses["m3.observable.ObservableSet"] = m3.observable.ObservableSet;
-m3.observable.ObservableSet.__name__ = ["m3","observable","ObservableSet"];
-m3.observable.ObservableSet.__super__ = m3.observable.AbstractSet;
-m3.observable.ObservableSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
-	add: function(t) {
-		this.addOrUpdate(t);
-	}
-	,addAll: function(tArr) {
-		if(tArr != null && tArr.length > 0) {
+	,_queryify: function(nodes,joinWith) {
+		var str = "";
+		if(m3.helper.ArrayHelper.hasValues(nodes)) {
+			str += "(";
+			var iteration = 0;
 			var _g1 = 0;
-			var _g = tArr.length;
+			var _g = nodes.length;
 			while(_g1 < _g) {
-				var t_ = _g1++;
-				this.addOrUpdate(tArr[t_]);
+				var ln_ = _g1++;
+				if(iteration++ > 0) str += joinWith;
+				str += nodes[ln_].getQuery();
+				if(nodes[ln_].hasChildren()) str += this._queryify(nodes[ln_].nodes,nodes[ln_].getQuery());
 			}
+			str += ")";
 		}
+		return str;
 	}
-	,iterator: function() {
-		return this._delegate.iterator();
-	}
-	,isEmpty: function() {
-		return Lambda.empty(this._delegate);
-	}
-	,addOrUpdate: function(t) {
-		var key = (this.identifier())(t);
-		var type;
-		if(this._delegate.exists(key)) type = m3.observable.EventType.Update; else type = m3.observable.EventType.Add;
-		this._delegate.set(key,t);
-		this.fire(t,type);
-	}
-	,delegate: function() {
-		return this._delegate;
-	}
-	,update: function(t) {
-		this.addOrUpdate(t);
-	}
-	,'delete': function(t) {
-		var key = (this.identifier())(t);
-		if(this._delegate.exists(key)) {
-			this._delegate.remove(key);
-			this.fire(t,m3.observable.EventType.Delete);
-		}
-	}
-	,identifier: function() {
-		return this._identifier;
-	}
-	,clear: function() {
-		this._delegate = new m3.util.SizedMap();
-		this.fire(null,m3.observable.EventType.Clear);
-	}
-	,size: function() {
-		return this._delegate.size;
-	}
-	,asArray: function() {
-		var a = new Array();
-		var iter = this.iterator();
-		while(iter.hasNext()) a.push(iter.next());
-		return a;
-	}
-	,__class__: m3.observable.ObservableSet
-});
-m3.util = {};
-m3.util.SizedMap = function() {
-	haxe.ds.StringMap.call(this);
-	this.size = 0;
+	,__class__: agentui.model.Filter
 };
-$hxClasses["m3.util.SizedMap"] = m3.util.SizedMap;
-m3.util.SizedMap.__name__ = ["m3","util","SizedMap"];
-m3.util.SizedMap.__super__ = haxe.ds.StringMap;
-m3.util.SizedMap.prototype = $extend(haxe.ds.StringMap.prototype,{
-	set: function(key,val) {
-		if(!this.exists(key)) this.size++;
-		haxe.ds.StringMap.prototype.set.call(this,key,val);
-	}
-	,remove: function(key) {
-		if(this.exists(key)) this.size--;
-		return haxe.ds.StringMap.prototype.remove.call(this,key);
-	}
-	,__class__: m3.util.SizedMap
-});
-m3.observable.EventManager = function(set) {
-	this._set = set;
-	this._listeners = [];
-};
-$hxClasses["m3.observable.EventManager"] = m3.observable.EventManager;
-m3.observable.EventManager.__name__ = ["m3","observable","EventManager"];
-m3.observable.EventManager.prototype = {
-	add: function(l,autoFire) {
-		if(autoFire) Lambda.iter(this._set,function(it) {
-			return l(it,m3.observable.EventType.Add);
-		});
-		this._listeners.push(l);
-	}
-	,remove: function(l) {
-		HxOverrides.remove(this._listeners,l);
-	}
-	,fire: function(t,type) {
-		var _g = this;
-		Lambda.iter(this._listeners,function(l) {
-			try {
-				l(t,type);
-			} catch( err ) {
-				m3.log.Logga.get_DEFAULT().error("Error processing listener on " + _g._set.getVisualId(),m3.log.Logga.getExceptionInst(err));
-			}
-		});
-	}
-	,listenerCount: function() {
-		return this._listeners.length;
-	}
-	,__class__: m3.observable.EventManager
-};
-m3.event = {};
-m3.event.EventManager = function() {
-	this.hash = new haxe.ds.StringMap();
-	this.oneTimers = new Array();
-};
-$hxClasses["m3.event.EventManager"] = m3.event.EventManager;
-m3.event.EventManager.__name__ = ["m3","event","EventManager"];
-m3.event.EventManager.get_instance = function() {
-	if(m3.event.EventManager.instance == null) m3.event.EventManager.instance = new m3.event.EventManager();
-	return m3.event.EventManager.instance;
-};
-m3.event.EventManager.prototype = {
-	on: function(id,func,listenerName) {
-		return this.addListener(id,func,listenerName);
-	}
-	,addListener: function(id,func,listenerName) {
-		var listener = new m3.event.EMListener(func,listenerName);
-		return this.addListenerInternal(id,listener);
-	}
-	,addListenerInternal: function(id,listener) {
-		var map = this.hash.get(id);
-		if(map == null) {
-			map = new haxe.ds.StringMap();
-			this.hash.set(id,map);
-		}
-		var key = listener.get_uid();
-		map.set(key,listener);
-		return listener.get_uid();
-	}
-	,listenOnce: function(id,func,listenerName) {
-		var listener = new m3.event.EMListener(func,listenerName);
-		this.oneTimers.push(listener.get_uid());
-		return this.addListenerInternal(id,listener);
-	}
-	,removeListener: function(id,listenerUid) {
-		var map = this.hash.get(id);
-		if(map == null) m3.log.Logga.get_DEFAULT().warn("removeListener called for unknown uuid"); else {
-			HxOverrides.remove(this.oneTimers,listenerUid);
-			map.remove(listenerUid);
-		}
-	}
-	,change: function(id,t) {
-		var logger = m3.log.Logga.get_DEFAULT();
-		logger.debug("EVENTMODEL: Change to " + id);
-		var map = this.hash.get(id);
-		if(map == null) {
-			logger.warn("No listeners for event " + id);
-			return;
-		}
-		var iter = map.iterator();
-		while(iter.hasNext()) {
-			var listener = iter.next();
-			logger.debug("Notifying " + listener.get_name() + " of " + id + " event");
-			try {
-				listener.change(t);
-				if((function($this) {
-					var $r;
-					var x = listener.get_uid();
-					$r = HxOverrides.remove($this.oneTimers,x);
-					return $r;
-				}(this))) {
-					var key = listener.get_uid();
-					map.remove(key);
-				}
-			} catch( err ) {
-				logger.error("Error executing " + listener.get_name() + " of " + id + " event",m3.log.Logga.getExceptionInst(err));
-			}
-		}
-	}
-	,__class__: m3.event.EventManager
-};
-ap.model.EM = function() { };
-$hxClasses["ap.model.EM"] = ap.model.EM;
-ap.model.EM.__name__ = ["ap","model","EM"];
-ap.model.EM.addListener = function(id,func,listenerName) {
-	return ap.model.EM.delegate.addListener(id,func,listenerName);
-};
-ap.model.EM.listenOnce = function(id,func,listenerName) {
-	return ap.model.EM.delegate.listenOnce(id,func,listenerName);
-};
-ap.model.EM.removeListener = function(id,listenerUid) {
-	ap.model.EM.delegate.removeListener(id,listenerUid);
-};
-ap.model.EM.change = function(id,t) {
-	ap.model.EM.delegate.change(id,t);
-};
-m3.log = {};
-m3.log.Logga = function(logLevel) {
-	this.initialized = false;
-	this.loggerLevel = logLevel;
-};
-$hxClasses["m3.log.Logga"] = m3.log.Logga;
-m3.log.Logga.__name__ = ["m3","log","Logga"];
-m3.log.Logga.get_DEFAULT = function() {
-	if(m3.log.Logga.DEFAULT == null) m3.log.Logga.DEFAULT = new m3.log.RemoteLogga(m3.log.LogLevel.DEBUG,m3.log.LogLevel.DEBUG);
-	return m3.log.Logga.DEFAULT;
-};
-m3.log.Logga.getExceptionInst = function(err) {
-	if(js.Boot.__instanceof(err,m3.exception.Exception)) return err; else return new m3.exception.Exception(err);
-};
-m3.log.Logga.prototype = {
-	doOverrides: function() {
-		this.overrideConsoleError();
-		this.overrideConsoleTrace();
-		this.overrideConsoleLog();
-		window.onerror = function(message,url,lineNumber) {
-			LOGGER.error("WindowError | " + url + " (" + lineNumber + ") | " + message);
-			return false;
-		};
-	}
-	,_getLogger: function() {
-		this.console = window.console;
-		this.initialized = true;
-	}
-	,overrideConsoleError: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.preservedConsoleError = ($_=this.console,$bind($_,$_.error));
-			this.console.error = function() {
-				_g.error(arguments[0]);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.error");
-		}
-	}
-	,overrideConsoleTrace: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.preservedConsoleTrace = ($_=this.console,$bind($_,$_.trace));
-			this.console.trace = function() {
-				_g.preservedConsoleTrace.apply(_g.console);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.trace");
-		}
-	}
-	,overrideConsoleLog: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.console.log("prime console.log");
-			this.preservedConsoleLog = ($_=this.console,$bind($_,$_.log));
-			this.console.log = function() {
-				_g.warn(arguments[0]);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.log");
-		}
-	}
-	,setStatementPrefix: function(prefix) {
-		this.statementPrefix = prefix;
-	}
-	,log: function(statement,level,exception) {
-		if(!this.initialized) this._getLogger();
-		if(level == null) level = m3.log.LogLevel.INFO;
-		try {
-			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
-		} catch( err ) {
-			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
-		}
-		if(m3.helper.StringHelper.isBlank(statement)) {
-			this.console.error("empty log statement");
-			this.console.trace();
-		}
-		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
-		if(this.logsAtLevel(level) && this.console != null) try {
-			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
-				this.preservedConsoleError.apply(this.console,[statement]);
-				this.console.trace();
-			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
-				this.console.error(statement);
-				this.console.trace();
-			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
-		} catch( err1 ) {
-			if(this.console != null && Object.prototype.hasOwnProperty.call(this.console,"error")) this.console.error(err1);
-		}
-	}
-	,logsAtLevel: function(level) {
-		return this.loggerLevel[1] <= level[1];
-	}
-	,setLogLevel: function(logLevel) {
-		this.loggerLevel = logLevel;
-	}
-	,trace: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.TRACE,exception);
-	}
-	,debug: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.DEBUG,exception);
-	}
-	,info: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.INFO,exception);
-	}
-	,warn: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.WARN,exception);
-	}
-	,error: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.ERROR,exception);
-	}
-	,__class__: m3.log.Logga
-};
-m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
-m3.log.LogLevel.TRACE = ["TRACE",0];
-m3.log.LogLevel.TRACE.toString = $estr;
-m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.DEBUG = ["DEBUG",1];
-m3.log.LogLevel.DEBUG.toString = $estr;
-m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.INFO = ["INFO",2];
-m3.log.LogLevel.INFO.toString = $estr;
-m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.WARN = ["WARN",3];
-m3.log.LogLevel.WARN.toString = $estr;
-m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.ERROR = ["ERROR",4];
-m3.log.LogLevel.ERROR.toString = $estr;
-m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
-m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
-	m3.log.Logga.call(this,consoleLevel);
-	this.remoteLogLevel = remoteLevel;
-	this.logs = [];
-	this.sessionUid = m3.util.UidGenerator.create(32);
-	this.log("SessionUid: " + this.sessionUid);
-};
-$hxClasses["m3.log.RemoteLogga"] = m3.log.RemoteLogga;
-m3.log.RemoteLogga.__name__ = ["m3","log","RemoteLogga"];
-m3.log.RemoteLogga.pauseRemoteLogging = function() {
-	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
-		var rl = m3.log.Logga.get_DEFAULT();
-		rl.pause();
-	}
-};
-m3.log.RemoteLogga.unpauseRemoteLogging = function() {
-	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
-		var rl = m3.log.Logga.get_DEFAULT();
-		rl.unpause();
-	}
-};
-m3.log.RemoteLogga.__super__ = m3.log.Logga;
-m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
-	log: function(statement,level,exception) {
-		if(level == null) level = m3.log.LogLevel.INFO;
-		m3.log.Logga.prototype.log.call(this,statement,level,exception);
-		if(this.timer != null && this.remoteLogsAtLevel(level)) {
-			try {
-				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
-			} catch( err ) {
-			}
-			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
-			if(this.logs.length > 50) this.timer.run();
-		}
-	}
-	,remoteLogsAtLevel: function(level) {
-		return this.remoteLogLevel[1] <= level[1];
-	}
-	,setRemoteLoggingFcn: function(remoteLogFcn) {
-		var _g = this;
-		if(this.timer != null) this.timer.stop();
-		if(remoteLogFcn != null) this.timer = new m3.log._RemoteLogga.RemoteLoggingTimer(remoteLogFcn,function() {
-			var saved = _g.logs;
-			_g.logs = [];
-			return saved;
-		});
-	}
-	,pause: function() {
-		if(this.timer != null) this.timer.pause();
-	}
-	,unpause: function() {
-		if(this.timer != null) this.timer.unpause();
-	}
-	,__class__: m3.log.RemoteLogga
-});
-m3.util.UidGenerator = function() { };
-$hxClasses["m3.util.UidGenerator"] = m3.util.UidGenerator;
-m3.util.UidGenerator.__name__ = ["m3","util","UidGenerator"];
-m3.util.UidGenerator.get_chars = function() {
-	return "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
-};
-m3.util.UidGenerator.get_nums = function() {
-	return "0123456789";
-};
-m3.util.UidGenerator.create = function(length) {
-	if(length == null) length = 20;
-	var str = new Array();
-	var charsLength = m3.util.UidGenerator.get_chars().length;
-	while(str.length == 0) {
-		var ch = m3.util.UidGenerator.randomChar();
-		if(m3.util.UidGenerator.isLetter(ch)) str.push(ch);
-	}
-	while(str.length < length) {
-		var ch1 = m3.util.UidGenerator.randomChar();
-		str.push(ch1);
-	}
-	return str.join("");
-};
-m3.util.UidGenerator.isLetter = function($char) {
-	var _g1 = 0;
-	var _g = m3.util.UidGenerator.get_chars().length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(m3.util.UidGenerator.get_chars().charAt(i) == $char) return true;
-	}
-	return false;
-};
-m3.util.UidGenerator.randomNum = function() {
-	var max = m3.util.UidGenerator.get_chars().length - 1;
-	var min = 0;
-	return min + Math.round(Math.random() * (max - min) + 1);
-};
-m3.util.UidGenerator.randomIndex = function(str) {
-	var max = str.length - 1;
-	var min = 0;
-	return min + Math.round(Math.random() * (max - min) + 1);
-};
-m3.util.UidGenerator.randomChar = function() {
-	var i = 0;
-	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_chars())) >= m3.util.UidGenerator.get_chars().length) continue;
-	return m3.util.UidGenerator.get_chars().charAt(i);
-};
-m3.util.UidGenerator.randomNumChar = function() {
-	var i = 0;
-	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
-	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
-};
-qoid.model.Content = function(contentType,type) {
-	qoid.model.ModelObjWithIid.call(this);
-	this.contentType = contentType;
-	if(ap.AppContext.currentAlias == null) this.aliasIid = null; else this.aliasIid = ap.AppContext.currentAlias.iid;
-	this.data = { };
+agentui.model.FilterData = function(type) {
 	this.type = type;
-	this.props = Type.createInstance(type,[]);
-	this.metaData = new qoid.model.ContentMetaData();
+	this.aliasIid = null;
+	this.connectionIids = new Array();
 };
-$hxClasses["qoid.model.Content"] = qoid.model.Content;
-qoid.model.Content.__name__ = ["qoid","model","Content"];
-qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	setData: function(data) {
-		this.data = data;
+$hxClasses["agentui.model.FilterData"] = agentui.model.FilterData;
+agentui.model.FilterData.__name__ = ["agentui","model","FilterData"];
+agentui.model.FilterData.prototype = {
+	__class__: agentui.model.FilterData
+};
+agentui.model.FilterResponse = function(filterIid,content) {
+	this.filterIid = filterIid;
+	this.content = content;
+};
+$hxClasses["agentui.model.FilterResponse"] = agentui.model.FilterResponse;
+agentui.model.FilterResponse.__name__ = ["agentui","model","FilterResponse"];
+agentui.model.FilterResponse.prototype = {
+	__class__: agentui.model.FilterResponse
+};
+agentui.model.Node = function(type) {
+	this.type = "ROOT";
+	if(type != null) this.type = type;
+};
+$hxClasses["agentui.model.Node"] = agentui.model.Node;
+agentui.model.Node.__name__ = ["agentui","model","Node"];
+agentui.model.Node.prototype = {
+	addNode: function(n) {
+		this.nodes.push(n);
 	}
-	,readResolve: function() {
-		this.props = ap.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
+	,hasChildren: function() {
+		return m3.helper.ArrayHelper.hasValues(this.nodes);
 	}
-	,writeResolve: function() {
-		this.data = ap.AppContext.SERIALIZER.toJson(this.props);
+	,getQuery: function() {
+		return "";
 	}
-	,getTimestamp: function() {
-		return DateTools.format(this.created,"%Y-%m-%d %T");
+	,__class__: agentui.model.Node
+};
+agentui.model.And = function() {
+	agentui.model.Node.call(this,"AND");
+	this.nodes = new Array();
+};
+$hxClasses["agentui.model.And"] = agentui.model.And;
+agentui.model.And.__name__ = ["agentui","model","And"];
+agentui.model.And.__super__ = agentui.model.Node;
+agentui.model.And.prototype = $extend(agentui.model.Node.prototype,{
+	getQuery: function() {
+		return " AND ";
 	}
-	,objectType: function() {
-		return "content";
-	}
-	,__class__: qoid.model.Content
+	,__class__: agentui.model.And
 });
-ap.model.ContentSource = function() { };
-$hxClasses["ap.model.ContentSource"] = ap.model.ContentSource;
-ap.model.ContentSource.__name__ = ["ap","model","ContentSource"];
-ap.model.ContentSource.addListener = function(ml,obsc,wc) {
-	var l = new ap.model.ContentSourceListener(ml,obsc,wc,ap.model.ContentSource.filteredContent);
-	ap.model.ContentSource.listeners.push(l);
-	return l.id;
+agentui.model.Or = function() {
+	agentui.model.Node.call(this,"OR");
+	this.nodes = new Array();
 };
-ap.model.ContentSource.removeListener = function(id) {
-	var i = m3.helper.ArrayHelper.indexOfComplex(ap.model.ContentSource.listeners,id,"id");
-	if(i > -1) {
-		ap.model.ContentSource.listeners[i].destroy();
-		ap.model.ContentSource.listeners.splice(i,1);
+$hxClasses["agentui.model.Or"] = agentui.model.Or;
+agentui.model.Or.__name__ = ["agentui","model","Or"];
+agentui.model.Or.__super__ = agentui.model.Node;
+agentui.model.Or.prototype = $extend(agentui.model.Node.prototype,{
+	getQuery: function() {
+		return " OR ";
 	}
-};
-ap.model.ContentSource.addContent = function(results,connectionIid) {
-	var iids = new Array();
-	var connectionIids = new Array();
-	var _g = 0;
-	while(_g < results.length) {
-		var result = results[_g];
-		++_g;
-		var c = ap.AppContext.SERIALIZER.fromJsonX(result,qoid.model.Content);
-		if(c != null) {
-			if(connectionIid != null) {
-				c.aliasIid = null;
-				c.connectionIid = connectionIid;
-			}
-			ap.model.ContentSource.filteredContent.addOrUpdate(c);
-		}
-	}
-};
-ap.model.ContentSource.onLoadFilteredContent = function(data) {
-	if(ap.model.ContentSource.handle == data.handle) ap.model.ContentSource.addContent(data.results,data.connectionIid); else {
-		ap.model.ContentSource.clearQuery();
-		ap.model.ContentSource.handle = data.handle;
-		ap.model.ContentSource.beforeSetContent();
-		ap.model.ContentSource.addContent(data.results,data.connectionIid);
-	}
-};
-ap.model.ContentSource.clearQuery = function() {
-	if(ap.model.ContentSource.handle != null) {
-		m3.log.Logga.get_DEFAULT().warn("deregisterSqueries");
-		ap.model.ContentSource.filteredContent.clear();
-		ap.model.ContentSource.handle = null;
-	}
-};
-ap.model.ContentSource.onAppendFilteredContent = function(data) {
-	ap.model.ContentSource.addContent(data.results,data.connectionIid);
-};
-ap.model.ContentSource.onAliasLoaded = function(alias) {
-	ap.model.ContentSource.clearQuery();
-};
-ap.model.ContentSource.beforeSetContent = function() {
-	var _g = 0;
-	var _g1 = ap.model.ContentSource.listeners;
-	while(_g < _g1.length) {
-		var l = _g1[_g];
-		++_g;
-		l.onBeforeSetContent();
-	}
-};
-ap.model.EMEvent = function() { };
-$hxClasses["ap.model.EMEvent"] = ap.model.EMEvent;
-ap.model.EMEvent.__name__ = ["ap","model","EMEvent"];
-ap.model.Nothing = function() { };
-$hxClasses["ap.model.Nothing"] = ap.model.Nothing;
-ap.model.Nothing.__name__ = ["ap","model","Nothing"];
-m3.jq = {};
-m3.jq.pages = {};
-m3.jq.pages.Page = function(opts) {
-	this.holdingOnInitialization = false;
-	this.showBackButton = true;
-	var _g = this;
-	if(!m3.jq.pages.SinglePageManager.SCREEN_MAP.exists(opts.id)) m3.jq.pages.SinglePageManager.SCREEN_MAP.set(opts.id,this); else throw new m3.exception.Exception("Page with this ID already exists! | " + opts.id);
-	this.options = opts;
-	this.applyDefaults();
-	this.id = this.options.id;
-	this.showBackButton = this.options.showBackButton;
-	this.pageBeforeCreate = function(screen) {
-		_g.options.pageBeforeCreateFcn(screen);
-	};
-	this.pageShow = function(screen1) {
-		m3.log.Logga.get_DEFAULT().debug("pageShow " + _g.id);
-		_g.options.pageShowFcn(screen1);
-	};
-	this.pageHide = function(screen2) {
-		m3.log.Logga.get_DEFAULT().debug("pageHide " + _g.id);
-		_g.options.pageHideFcn(screen2);
-	};
-	if(this.options.customReloadFcn == null) this.reshow = function(screen3) {
-		if(_g.holdingOnInitialization) {
-			m3.log.Logga.get_DEFAULT().debug("don't reshow b/c we're holding on initialization");
-			return;
-		}
-		_g.options.pageBeforeShowFcn(screen3);
-	}; else this.reshow = function(screen4) {
-		if(_g.holdingOnInitialization) {
-			m3.log.Logga.get_DEFAULT().debug("don't reshow b/c we're holding on initialization");
-			return;
-		}
-		_g.options.customReloadFcn(screen4);
-	};
-};
-$hxClasses["m3.jq.pages.Page"] = m3.jq.pages.Page;
-m3.jq.pages.Page.__name__ = ["m3","jq","pages","Page"];
-m3.jq.pages.Page.noOp = function(jq) {
-};
-m3.jq.pages.Page.prototype = {
-	getDefaults: function() {
-		return { id : null, pageBeforeCreateFcn : m3.jq.pages.Page.noOp, pageBeforeShowFcn : m3.jq.pages.Page.noOp, pageHideFcn : m3.jq.pages.Page.noOp, pageShowFcn : m3.jq.pages.Page.noOp, reqUser : true, reloadUserOnShow : false, showBackButton : this.showBackButton, usesKeyboard : false};
-	}
-	,applyDefaults: function() {
-		this.options = $.extend(this.getDefaults(),this.options);
-	}
-	,addPageToDom: function() {
-		var pageDiv = new $("<div class='page' id='" + this.get_nonCssId() + "'></div>").appendTo(new $(window.document.body));
-		this.initializePageContents(pageDiv);
-	}
-	,initializePageContents: function(pageDiv) {
-		if(pageDiv != null) pageDiv.trigger("pagebeforecreate");
-	}
-	,get_pageBeforeCreate: function() {
-		return this.pageBeforeCreate;
-	}
-	,get_pageBeforeShow: function() {
-		return this.pageBeforeShow;
-	}
-	,get_pageShow: function() {
-		return this.pageShow;
-	}
-	,get_pageHide: function() {
-		return this.pageHide;
-	}
-	,get_reshow: function() {
-		return this.reshow;
-	}
-	,get_screen: function() {
-		if(this.screen == null) this.set_screen(new $(this.id));
-		return this.screen;
-	}
-	,set_screen: function(screen) {
-		this.screen = screen;
-		return this.get_screen();
-	}
-	,get_nonCssId: function() {
-		return this.id.substring(1);
-	}
-	,__class__: m3.jq.pages.Page
-};
-ap.pages = {};
-ap.pages.APhotoPage = function(opts) {
-	var _g = this;
-	m3.jq.pages.Page.call(this,opts);
-	this.pageBeforeShow = function(screen) {
-		m3.log.Logga.get_DEFAULT().debug("pageBeforeShow " + _g.id);
-		var justReloaded = false;
-		var fcn = function() {
-			try {
-				_g.options.pageBeforeShowFcn(screen);
-			} catch( err ) {
-				m3.log.Logga.get_DEFAULT().error("Error showing " + _g.options.id,m3.log.Logga.getExceptionInst(err));
-				m3.util.JqueryUtil.alert("There was a problem showing this screen.","Error");
-				return;
-			}
-			justReloaded = false;
-		};
-		if(ap.APhotoContext.APP_INITIALIZED) fcn(); else {
-			m3.log.Logga.get_DEFAULT().debug(_g.get_nonCssId() + " is holdingOnInitialization");
-			_g.holdingOnInitialization = true;
-			ap.model.EM.listenOnce("APP_INITIALIZED",function(n) {
-				justReloaded = true;
-				fcn();
-				_g.holdingOnInitialization = false;
-				ap.AppContext.LOGGER.debug(_g.get_nonCssId() + " is no longer holdingOnInitialization");
-			},"PageBefore-AppInitialized");
-		}
-	};
-};
-$hxClasses["ap.pages.APhotoPage"] = ap.pages.APhotoPage;
-ap.pages.APhotoPage.__name__ = ["ap","pages","APhotoPage"];
-ap.pages.APhotoPage.__super__ = m3.jq.pages.Page;
-ap.pages.APhotoPage.prototype = $extend(m3.jq.pages.Page.prototype,{
-	initializePageContents: function(pageDiv) {
-		if(pageDiv == null) pageDiv = new $(this.id);
-		m3.jq.pages.Page.prototype.initializePageContents.call(this,pageDiv);
-		var pageContent = new $("<div class='ui-content content'></div>").appendTo(pageDiv);
-	}
-	,__class__: ap.pages.APhotoPage
+	,__class__: agentui.model.Or
 });
-m3.jq.pages.SinglePageManager = function(isAppInitialized,onAppInitialized) {
-	this.history = new Array();
-	this.isAppInitialized = isAppInitialized;
+agentui.model.ContentNode = function(type,content) {
+	agentui.model.Node.call(this,type);
+	this.content = content;
 };
-$hxClasses["m3.jq.pages.SinglePageManager"] = m3.jq.pages.SinglePageManager;
-m3.jq.pages.SinglePageManager.__name__ = ["m3","jq","pages","SinglePageManager"];
-m3.jq.pages.SinglePageManager.prototype = {
-	get_CURRENT_PAGE: function() {
-		return this.getScreen(new $(".activePage").attr("id"));
+$hxClasses["agentui.model.ContentNode"] = agentui.model.ContentNode;
+agentui.model.ContentNode.__name__ = ["agentui","model","ContentNode"];
+agentui.model.ContentNode.__super__ = agentui.model.Node;
+agentui.model.ContentNode.prototype = $extend(agentui.model.Node.prototype,{
+	hasChildren: function() {
+		return false;
 	}
-	,set_CURRENT_PAGE: function(page) {
-		m3.log.Logga.get_DEFAULT().debug("set current page to " + page.get_nonCssId());
-		if(page == this.get_CURRENT_PAGE()) m3.log.Logga.get_DEFAULT().debug("already on page " + page.get_nonCssId()); else this.changePage(page,false);
-		return page;
-	}
-	,changePage: function(page,isBack) {
-		var currentPage = this.get_CURRENT_PAGE();
-		if(currentPage != null) {
-			currentPage.get_screen().hide(0,function() {
-				currentPage.get_screen().trigger("pagehide");
-			});
-			currentPage.get_screen().removeClass("activePage");
-			if(!isBack) this.history.push(currentPage);
-		}
-		page.get_screen().trigger("pagebeforeshow");
-		page.get_screen().addClass("activePage");
-		page.get_screen().show(0,function() {
-			page.get_screen().trigger("pageshow");
-		});
-		if(this.backBtn != null) {
-			if(Lambda.empty(this.history)) this.backBtn.hide(); else this.backBtn.show();
-		}
-	}
-	,setBackButton: function(backButton) {
-		var _g = this;
-		this.backBtn = backButton;
-		this.backBtn.click(function(evt) {
-			_g.back();
-		});
-	}
-	,back: function() {
-		if(!Lambda.empty(this.history)) {
-			var page = this.history.pop();
-			this.changePage(page,true);
-			window.history.back();
-		}
-		if(this.backBtn != null) {
-		}
-	}
-	,getScreen: function(id) {
-		if(m3.helper.StringHelper.isBlank(id)) return null;
-		if(id.charAt(0) != "#") id = "#" + id;
-		return m3.jq.pages.SinglePageManager.SCREEN_MAP.get(id);
-	}
-	,getScreens: function() {
-		return Lambda.array(m3.jq.pages.SinglePageManager.SCREEN_MAP);
-	}
-	,beforePageShow: function(evt) {
-		try {
-			if(evt != null && evt.target != null) {
-				var target = new $(evt.target);
-				var page = null;
-				if((page = this.getScreen(target.attr("id"))) != null) (page.get_pageBeforeShow())(target);
-			}
-		} catch( $e0 ) {
-			if( js.Boot.__instanceof($e0,m3.exception.RedirectionException) ) {
-				var err = $e0;
-				m3.log.Logga.get_DEFAULT().error("Redirecting to " + err.location.id + " because " + err.message);
-				this.changePage(this.getScreen(err.location.id),false);
-			} else {
-			var err1 = $e0;
-			var page1;
-			if(evt != null && evt.target != null) page1 = new $(evt.target).attr("id"); else page1 = "";
-			m3.log.Logga.get_DEFAULT().error("Error showing page " + page1,m3.log.Logga.getExceptionInst(err1));
-			}
-		}
-	}
-	,pageBeforeCreate: function(evt) {
-		try {
-			if(evt != null && evt.target != null) {
-				var target = new $(evt.target);
-				if(!target.exists()) js.Lib.alert("target page does not exist");
-				var page = null;
-				if((page = this.getScreen(target.attr("id"))) != null) (page.get_pageBeforeCreate())(target);
-			}
-		} catch( err ) {
-			var page1;
-			if(evt != null && evt.target != null) page1 = new $(evt.target).attr("id"); else page1 = "";
-			m3.log.Logga.get_DEFAULT().error("Error showing page " + page1,m3.log.Logga.getExceptionInst(err));
-		}
-	}
-	,pageShow: function(evt) {
-		try {
-			if(evt != null && evt.target != null) {
-				var target = new $(evt.target);
-				if(!target.exists()) js.Lib.alert("target page does not exist");
-				var page = null;
-				if((page = this.getScreen(target.attr("id"))) != null) (page.get_pageShow())(target);
-			}
-		} catch( err ) {
-			var page1;
-			if(evt != null && evt.target != null) page1 = new $(evt.target).attr("id"); else page1 = "";
-			m3.log.Logga.get_DEFAULT().error("Error showing page " + page1,m3.log.Logga.getExceptionInst(err));
-		}
-	}
-	,pageHide: function(evt) {
-		try {
-			if(evt != null && evt.target != null) {
-				var target = new $(evt.target);
-				if(!target.exists()) js.Lib.alert("target page does not exist");
-				var page = null;
-				if((page = this.getScreen(target.attr("id"))) != null) (page.get_pageHide())(target);
-			}
-		} catch( err ) {
-			var page1;
-			if(evt != null && evt.target != null) page1 = new $(evt.target).attr("id"); else page1 = "";
-			m3.log.Logga.get_DEFAULT().error("Error hiding page " + page1,m3.log.Logga.getExceptionInst(err));
-		}
-	}
-	,__class__: m3.jq.pages.SinglePageManager
-};
-ap.pages.AlbumScreen = function() {
-	ap.pages.APhotoPage.call(this,{ id : "#albumScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), pageHideFcn : $bind(this,this.pageHideFcn), reqUser : true, showBackButton : false});
-};
-$hxClasses["ap.pages.AlbumScreen"] = ap.pages.AlbumScreen;
-ap.pages.AlbumScreen.__name__ = ["ap","pages","AlbumScreen"];
-ap.pages.AlbumScreen.__super__ = ap.pages.APhotoPage;
-ap.pages.AlbumScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
-	pageBeforeShowFcn: function(screen) {
-		var _g = this;
-		var content = new $(".content",screen).empty();
-		content.addClass("center");
-		this.labelSet = new m3.observable.FilteredSet(ap.AppContext.LABELS,function(l) {
-			return l.iid == ap.APhotoContext.CURRENT_ALBUM;
-		});
-		this.labelSetListener = function(label,evt) {
-			if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
-			if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
-		};
-		this.labelSet.listen(this.labelSetListener,true);
-	}
-	,_applyAlbumToScreen: function(screen,label) {
-		var content = new $(".content",screen).empty();
-		content.addClass("center");
-		var leftDiv = new $("<div class='leftDiv'></div>").appendTo(content);
-		var albumDetails = new $("<div></div>");
-		albumDetails.appendTo(leftDiv);
-		albumDetails.albumDetails({ label : label, parentIid : ap.APhotoContext.get_ROOT_ALBUM().iid});
-		var uploadButton = new $("<button class='uploadButton'>Upload</button>").appendTo(leftDiv).button({ icons : { primary : "ui-icon-circle-plus"}}).click(function(evt) {
-			var dlg = new $("<div id='profilePictureUploader'></div>");
-			dlg.appendTo(screen);
-			var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
-			uploadComp.appendTo(dlg);
-			uploadComp.uploadComp({ onload : function(bytes) {
-				m3.jq.M3DialogHelper.close(dlg);
-				var ccd = new qoid.model.EditContentData(qoid.model.ContentFactory.create(qoid.model.ContentType.IMAGE,bytes));
-				ccd.labelIids.push(ap.APhotoContext.CURRENT_ALBUM);
-				ap.model.EM.change("CreateContent",ccd);
-			}});
-			dlg.m3dialog({ width : 400, height : 305, title : "Add Picture to Album", buttons : { Cancel : function() {
-				m3.jq.M3DialogHelper.close($(this));
-			}}});
-		});
-		var root = new qoid.model.Or();
-		root.type = "ROOT";
-		var path = new Array();
-		path.push(m3.helper.OSetHelper.getElement(ap.AppContext.LABELS,ap.AppContext.currentAlias.rootLabelIid).name);
-		path.push(ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS().name);
-		path.push(ap.APhotoContext.get_ROOT_ALBUM().name);
-		path.push(label.name);
-		root.addNode(new qoid.model.LabelNode(label,path));
-		var filterData = new qoid.model.FilterData("content");
-		filterData.filter = new qoid.model.Filter(root);
-		filterData.connectionIids = [];
-		filterData.aliasIid = ap.AppContext.currentAlias.iid;
-		ap.model.EM.change("FILTER_RUN",filterData);
-		var contentFeed = new $("<div></div>");
-		contentFeed.appendTo(content);
-		contentFeed.contentFeed();
-	}
-	,_noLabel: function(screen) {
-	}
-	,pageHideFcn: function(screen) {
-		this.labelSet.removeListener(this.labelSetListener);
-		this.labelSet = null;
-	}
-	,__class__: ap.pages.AlbumScreen
+	,__class__: agentui.model.ContentNode
 });
-var js = {};
-js.Boot = function() { };
-$hxClasses["js.Boot"] = js.Boot;
-js.Boot.__name__ = ["js","Boot"];
-js.Boot.getClass = function(o) {
-	if((o instanceof Array) && o.__enum__ == null) return Array; else return o.__class__;
+agentui.model.LabelNode = function(label,labelPath) {
+	agentui.model.ContentNode.call(this,"LABEL",label);
+	this.labelPath = labelPath;
 };
-js.Boot.__string_rec = function(o,s) {
-	if(o == null) return "null";
-	if(s.length >= 5) return "<...>";
-	var t = typeof(o);
-	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
-	switch(t) {
-	case "object":
-		if(o instanceof Array) {
-			if(o.__enum__) {
-				if(o.length == 2) return o[0];
-				var str = o[0] + "(";
-				s += "\t";
-				var _g1 = 2;
-				var _g = o.length;
-				while(_g1 < _g) {
-					var i = _g1++;
-					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
-				}
-				return str + ")";
-			}
-			var l = o.length;
-			var i1;
-			var str1 = "[";
-			s += "\t";
-			var _g2 = 0;
-			while(_g2 < l) {
-				var i2 = _g2++;
-				str1 += (i2 > 0?",":"") + js.Boot.__string_rec(o[i2],s);
-			}
-			str1 += "]";
-			return str1;
-		}
-		var tostr;
-		try {
-			tostr = o.toString;
-		} catch( e ) {
-			return "???";
-		}
-		if(tostr != null && tostr != Object.toString) {
-			var s2 = o.toString();
-			if(s2 != "[object Object]") return s2;
-		}
-		var k = null;
-		var str2 = "{\n";
-		s += "\t";
-		var hasp = o.hasOwnProperty != null;
-		for( var k in o ) {
-		if(hasp && !o.hasOwnProperty(k)) {
-			continue;
-		}
-		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
-			continue;
-		}
-		if(str2.length != 2) str2 += ", \n";
-		str2 += s + k + " : " + js.Boot.__string_rec(o[k],s);
-		}
-		s = s.substring(1);
-		str2 += "\n" + s + "}";
-		return str2;
-	case "function":
-		return "<function>";
-	case "string":
-		return o;
-	default:
-		return String(o);
-	}
-};
-js.Boot.__interfLoop = function(cc,cl) {
-	if(cc == null) return false;
-	if(cc == cl) return true;
-	var intf = cc.__interfaces__;
-	if(intf != null) {
-		var _g1 = 0;
-		var _g = intf.length;
+$hxClasses["agentui.model.LabelNode"] = agentui.model.LabelNode;
+agentui.model.LabelNode.__name__ = ["agentui","model","LabelNode"];
+agentui.model.LabelNode.__super__ = agentui.model.ContentNode;
+agentui.model.LabelNode.prototype = $extend(agentui.model.ContentNode.prototype,{
+	getQuery: function() {
+		var ret = "hasLabelPath(";
+		var _g1 = 1;
+		var _g = this.labelPath.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			var i1 = intf[i];
-			if(i1 == cl || js.Boot.__interfLoop(i1,cl)) return true;
+			ret += "'" + StringTools.replace(this.labelPath[i],"'","\\'") + "'";
+			if(i < this.labelPath.length - 1) ret += ",";
 		}
+		ret += ")";
+		return ret;
 	}
-	return js.Boot.__interfLoop(cc.__super__,cl);
+	,__class__: agentui.model.LabelNode
+});
+agentui.model.ConnectionNode = function(connection) {
+	agentui.model.ContentNode.call(this,"CONNECTION",connection);
 };
-js.Boot.__instanceof = function(o,cl) {
-	if(cl == null) return false;
-	switch(cl) {
-	case Int:
-		return (o|0) === o;
-	case Float:
-		return typeof(o) == "number";
-	case Bool:
-		return typeof(o) == "boolean";
-	case String:
-		return typeof(o) == "string";
-	case Array:
-		return (o instanceof Array) && o.__enum__ == null;
-	case Dynamic:
-		return true;
-	default:
-		if(o != null) {
-			if(typeof(cl) == "function") {
-				if(o instanceof cl) return true;
-				if(js.Boot.__interfLoop(js.Boot.getClass(o),cl)) return true;
-			}
-		} else return false;
-		if(cl == Class && o.__name__ != null) return true;
-		if(cl == Enum && o.__ename__ != null) return true;
-		return o.__enum__ == cl;
+$hxClasses["agentui.model.ConnectionNode"] = agentui.model.ConnectionNode;
+agentui.model.ConnectionNode.__name__ = ["agentui","model","ConnectionNode"];
+agentui.model.ConnectionNode.__super__ = agentui.model.ContentNode;
+agentui.model.ConnectionNode.prototype = $extend(agentui.model.ContentNode.prototype,{
+	getQuery: function() {
+		return "";
 	}
-};
-js.Boot.__cast = function(o,t) {
-	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
-};
+	,__class__: agentui.model.ConnectionNode
+});
+var m3 = {};
 m3.exception = {};
 m3.exception.Exception = function(message,cause) {
 	this.message = message;
@@ -2731,6 +933,7 @@ m3.exception.Exception.prototype = {
 	}
 	,__class__: m3.exception.Exception
 };
+var haxe = {};
 haxe.CallStack = function() { };
 $hxClasses["haxe.CallStack"] = haxe.CallStack;
 haxe.CallStack.__name__ = ["haxe","CallStack"];
@@ -2776,523 +979,29 @@ haxe.CallStack.makeStack = function(s) {
 };
 haxe.StackItem = $hxClasses["haxe.StackItem"] = { __ename__ : ["haxe","StackItem"], __constructs__ : ["CFunction","Module","FilePos","Method","LocalFunction"] };
 haxe.StackItem.CFunction = ["CFunction",0];
-haxe.StackItem.CFunction.toString = $estr;
 haxe.StackItem.CFunction.__enum__ = haxe.StackItem;
-haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.LocalFunction = function(v) { var $x = ["LocalFunction",4,v]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
+haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.LocalFunction = function(v) { var $x = ["LocalFunction",4,v]; $x.__enum__ = haxe.StackItem; return $x; };
 haxe.StackItem.__empty_constructs__ = [haxe.StackItem.CFunction];
-m3.util.JqueryUtil = $hx_exports.m3.util.JqueryUtil = function() { };
-$hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
-m3.util.JqueryUtil.__name__ = ["m3","util","JqueryUtil"];
-m3.util.JqueryUtil.isAttached = function(elem) {
-	return elem.parents("body").length > 0;
-};
-m3.util.JqueryUtil.labelSelect = function(elem,str) {
-	try {
-		m3.CrossMojo.jq("option",elem).filter(function() {
-			return $(this).text() == str;
-		})[0].selected = true;
-	} catch( err ) {
-	}
-};
-m3.util.JqueryUtil.getOrCreateDialog = function(selector,dlgOptions,createdFcn) {
-	if(m3.helper.StringHelper.isBlank(selector)) selector = "dlg" + m3.util.UidGenerator.create(10);
-	var dialog = new $(selector);
-	if(dlgOptions == null) dlgOptions = { autoOpen : false, height : 380, width : 320, modal : true};
-	if(!dialog.exists()) {
-		dialog = new $("<div id=" + HxOverrides.substr(selector,1,null) + " style='display:none;'></div>");
-		if(Reflect.isFunction(createdFcn)) createdFcn(dialog);
-		new $("body").append(dialog);
-		dialog.m3dialog(dlgOptions);
-	} else if(!dialog["is"](":data(dialog)")) dialog.m3dialog(dlgOptions);
-	return dialog;
-};
-m3.util.JqueryUtil.deleteEffects = function(dragstopEvt,width,duration,src) {
-	if(src == null) src = "media/cloud.gif";
-	if(duration == null) duration = 800;
-	if(width == null) width = "70px";
-	var img = new $("<img/>");
-	img.appendTo("body");
-	img.css("width",width);
-	img.position({ my : "center", at : "center", of : dragstopEvt, collision : "fit"});
-	img.attr("src",src);
-	haxe.Timer.delay(function() {
-		img.remove();
-	},duration);
-};
-m3.util.JqueryUtil.confirm = function(title,question,action) {
-	var dlg = new $("<div id=\"confirm-dialog\"></div>");
-	var content = new $("<div style=\"width: 500px;text-align:left;\">" + question + "</div>");
-	dlg.append(content);
-	dlg.appendTo("body");
-	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, width : "auto", resizable : false, buttons : { Yes : function() {
-		action();
-		$(this).dialog("close");
-	}, No : function() {
-		$(this).dialog("close");
-	}}, close : function(event,ui) {
-		$(this).remove();
-	}};
-	dlg.dialog(dlgOptions);
-};
-m3.util.JqueryUtil.alert = function(statement,title,action) {
-	if(title == null) title = "Alert";
-	var dlg = new $("<div id=\"alert-dialog\"></div>");
-	var content = new $("<div style=\"width: 500px;text-align:left;\">" + statement + "</div>");
-	dlg.append(content);
-	dlg.appendTo("body");
-	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, width : "auto", resizable : false, buttons : { OK : function() {
-		$(this).dialog("close");
-	}}, close : function(event,ui) {
-		if(action != null) action();
-		$(this).remove();
-	}};
-	dlg.dialog(dlgOptions);
-};
-m3.util.JqueryUtil.getWindowWidth = function() {
-	return new $(window).width();
-};
-m3.util.JqueryUtil.getWindowHeight = function() {
-	return new $(window).height();
-};
-m3.util.JqueryUtil.getDocumentWidth = function() {
-	return new $(window.document).width();
-};
-m3.util.JqueryUtil.getDocumentHeight = function() {
-	return new $(window.document).height();
-};
-m3.util.JqueryUtil.getEmptyDiv = function() {
-	return new $("<div></div>");
-};
-m3.util.JqueryUtil.getEmptyTable = function() {
-	return new $("<table style='margin:auto; text-align: center; width: 100%;'></table>");
-};
-m3.util.JqueryUtil.getEmptyRow = function() {
-	return new $("<tr></tr>");
-};
-m3.util.JqueryUtil.getEmptyCell = function() {
-	return new $("<td></td>");
-};
-ap.pages.ContentScreen = function() {
-	ap.pages.APhotoPage.call(this,{ id : "#contentScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), pageHideFcn : $bind(this,this.pageHideFcn), reqUser : true, showBackButton : true});
-};
-$hxClasses["ap.pages.ContentScreen"] = ap.pages.ContentScreen;
-ap.pages.ContentScreen.__name__ = ["ap","pages","ContentScreen"];
-ap.pages.ContentScreen.__super__ = ap.pages.APhotoPage;
-ap.pages.ContentScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
-	pageBeforeShowFcn: function(screen) {
-		var _g = this;
-		var contentDiv = new $(".content",screen).empty();
-		contentDiv.addClass("center");
-		var contentId = ap.APhotoContext.CURRENT_MEDIA;
-		this.labelSet = new m3.observable.FilteredSet(ap.AppContext.LABELS,function(l) {
-			return l.iid == ap.APhotoContext.CURRENT_ALBUM;
-		});
-		this.labelSetListener = function(label,evt) {
-			if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
-			if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
-		};
-		this.labelSet.listen(this.labelSetListener,true);
-		var mapListener = function(content,contentComp,evt1) {
-			if(content != null && content.iid == contentId) {
-				_g._content = content;
-				if(evt1.isAdd()) contentComp.appendTo(contentDiv); else if(evt1.isUpdate()) ap.widget.MediaCompHelper.update(contentComp,content); else if(evt1.isDelete()) contentComp.remove();
-			}
-		};
-		var beforeSetContent = $.noop;
-		var widgetCreator = function(content1) {
-			return new $("<div></div>").mediaComp({ content : content1});
-		};
-		var id = ap.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
-		this._onDestroy = function() {
-			ap.model.ContentSource.removeListener(id);
-			_g.labelSet.removeListener(_g.labelSetListener);
-			_g.labelSet = null;
-		};
-	}
-	,_applyAlbumToScreen: function(screen,label) {
-		var _g = this;
-		var content = new $(".content",screen).empty();
-		content.addClass("center");
-		var leftSideOfPage = new $("<div class='leftWrap'></div>").appendTo(content);
-		var albumDetails = new $("<div></div>");
-		albumDetails.appendTo(leftSideOfPage);
-		albumDetails.albumDetails({ label : label, parentIid : ap.APhotoContext.get_ROOT_ALBUM().iid});
-		var setDefaultBtn = new $("<button class='setDefaultBtn'>Set as Default Picture</button>").click(function(evt) {
-			var config = null;
-			var event = null;
-			Lambda.iter(ap.APhotoContext.ALBUM_CONFIGS,function(c) {
-				var match = m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELEDCONTENT,c.iid + "_" + label.iid,function(lc) {
-					return lc.contentIid + "_" + lc.labelIid;
-				});
-				if(match != null) config = c;
-			});
-			if(config == null) {
-				config = qoid.model.ContentFactory.create(qoid.model.ContentType.CONFIG,_g._content.props.imgSrc);
-				event = "CreateContent";
-			} else {
-				config.props.defaultImg = _g._content.props.imgSrc;
-				event = "UpdateContent";
-			}
-			var ccd = new qoid.model.EditContentData(config);
-			ccd.labelIids.push(ap.APhotoContext.CURRENT_ALBUM);
-			ap.model.EM.change(event,ccd);
-		}).button().appendTo(leftSideOfPage);
-	}
-	,_noLabel: function(screen) {
-	}
-	,pageHideFcn: function(screen) {
-		if(this._onDestroy != null) this._onDestroy();
-	}
-	,__class__: ap.pages.ContentScreen
-});
-ap.pages.HomeScreen = function() {
-	ap.pages.APhotoPage.call(this,{ id : "#homeScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), reqUser : true, showBackButton : false});
-};
-$hxClasses["ap.pages.HomeScreen"] = ap.pages.HomeScreen;
-ap.pages.HomeScreen.__name__ = ["ap","pages","HomeScreen"];
-ap.pages.HomeScreen.__super__ = ap.pages.APhotoPage;
-ap.pages.HomeScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
-	pageBeforeShowFcn: function(screen) {
-		var content = new $(".content",screen).empty();
-		content.addClass("center");
-		var notificationsDiv = new $("<div class='notificationsDiv'></div>").appendTo(content);
-		var aliasComp = new $("<div></div>");
-		aliasComp.appendTo(notificationsDiv);
-		aliasComp.aliasComp();
-		var albumListing = new $("<div style='margin-left: 50px;'></div>");
-		albumListing.appendTo(content);
-		albumListing.albumList({ title : "My Albums"});
-	}
-	,__class__: ap.pages.HomeScreen
-});
-ap.pages.APhotoPageMgr = function() {
-	m3.jq.pages.SinglePageManager.call(this,function() {
-		return ap.APhotoContext.APP_INITIALIZED;
-	},function(fcn) {
-		ap.model.EM.listenOnce("APP_INITIALIZED",fcn);
+m3.jq = {};
+m3.jq.PlaceHolderUtil = function() { };
+$hxClasses["m3.jq.PlaceHolderUtil"] = m3.jq.PlaceHolderUtil;
+m3.jq.PlaceHolderUtil.__name__ = ["m3","jq","PlaceHolderUtil"];
+m3.jq.PlaceHolderUtil.setFocusBehavior = function(input,placeholder) {
+	placeholder.focus(function(evt) {
+		placeholder.hide();
+		input.show().focus();
 	});
-};
-$hxClasses["ap.pages.APhotoPageMgr"] = ap.pages.APhotoPageMgr;
-ap.pages.APhotoPageMgr.__name__ = ["ap","pages","APhotoPageMgr"];
-ap.pages.APhotoPageMgr.get_get = function() {
-	if(ap.pages.APhotoPageMgr._instance == null) ap.pages.APhotoPageMgr._instance = new ap.pages.APhotoPageMgr();
-	return ap.pages.APhotoPageMgr._instance;
-};
-ap.pages.APhotoPageMgr.__super__ = m3.jq.pages.SinglePageManager;
-ap.pages.APhotoPageMgr.prototype = $extend(m3.jq.pages.SinglePageManager.prototype,{
-	initClientPages: function() {
-		var pages = this.getScreens();
-		var _g1 = 0;
-		var _g = pages.length;
-		while(_g1 < _g) {
-			var p_ = _g1++;
-			var page = pages[p_];
-			var screen = null;
-			if(!(screen = new $(page.id)).exists()) page.addPageToDom(); else page.initializePageContents(screen);
-		}
-	}
-	,__class__: ap.pages.APhotoPageMgr
-});
-ap.widget = {};
-ap.widget.AlbumCompHelper = function() { };
-$hxClasses["ap.widget.AlbumCompHelper"] = ap.widget.AlbumCompHelper;
-ap.widget.AlbumCompHelper.__name__ = ["ap","widget","AlbumCompHelper"];
-ap.widget.AlbumCompHelper.getLabel = function(l) {
-	return l.albumComp("getLabel");
-};
-m3.observable.FilteredSet = function(source,filter) {
-	var _g = this;
-	m3.observable.AbstractSet.call(this);
-	this._filteredSet = new haxe.ds.StringMap();
-	this._source = source;
-	this._filter = filter;
-	this._source.listen(function(t,type) {
-		if(type.isAddOrUpdate()) _g.apply(t); else if(type.isDelete()) {
-			var key = (_g.identifier())(t);
-			if(_g._filteredSet.exists(key)) {
-				_g._filteredSet.remove(key);
-				_g.fire(t,type);
-			}
-		} else if(type.isClear()) {
-			_g._filteredSet = new haxe.ds.StringMap();
-			_g.fire(t,type);
+	input.blur(function(evt1) {
+		if(m3.helper.StringHelper.isBlank(input.val())) {
+			placeholder.show();
+			input.hide();
 		}
 	});
 };
-$hxClasses["m3.observable.FilteredSet"] = m3.observable.FilteredSet;
-m3.observable.FilteredSet.__name__ = ["m3","observable","FilteredSet"];
-m3.observable.FilteredSet.__super__ = m3.observable.AbstractSet;
-m3.observable.FilteredSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
-	delegate: function() {
-		return this._filteredSet;
-	}
-	,apply: function(t) {
-		var key = (this._source.identifier())(t);
-		var f = this._filter(t);
-		var exists = this._filteredSet.exists(key);
-		if(f != exists) {
-			if(f) {
-				this._filteredSet.set(key,t);
-				this.fire(t,m3.observable.EventType.Add);
-			} else {
-				this._filteredSet.remove(key);
-				this.fire(t,m3.observable.EventType.Delete);
-			}
-		} else if(exists) this.fire(t,m3.observable.EventType.Update);
-	}
-	,refilter: function() {
-		var _g = this;
-		Lambda.iter(this._source,function(it) {
-			return _g.apply(it);
-		});
-	}
-	,identifier: function() {
-		return this._source.identifier();
-	}
-	,iterator: function() {
-		return this._filteredSet.iterator();
-	}
-	,asArray: function() {
-		var a = new Array();
-		var iter = this.iterator();
-		while(iter.hasNext()) a.push(iter.next());
-		return a;
-	}
-	,__class__: m3.observable.FilteredSet
-});
 m3.helper = {};
-m3.helper.OSetHelper = function() { };
-$hxClasses["m3.helper.OSetHelper"] = m3.helper.OSetHelper;
-m3.helper.OSetHelper.__name__ = ["m3","helper","OSetHelper"];
-m3.helper.OSetHelper.getElement = function(oset,value,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	return m3.helper.OSetHelper.getElementComplex(oset,value,null,startingIndex);
-};
-m3.helper.OSetHelper.getElementComplex = function(oset,value,propOrFcn,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(oset == null) return null;
-	if(propOrFcn == null) propOrFcn = oset.identifier();
-	var result = null;
-	var index_ = -1;
-	var iter = oset.iterator();
-	while(iter.hasNext()) if(startingIndex > ++index_) continue; else {
-		var comparisonT = iter.next();
-		var comparisonValue;
-		if(typeof(propOrFcn) == "string") comparisonValue = Reflect.field(comparisonT,propOrFcn); else comparisonValue = propOrFcn(comparisonT);
-		if(value == comparisonValue) {
-			result = comparisonT;
-			break;
-		}
-	}
-	return result;
-};
-m3.helper.OSetHelper.getElementComplex2 = function(oset,criteriaFunc) {
-	if(oset == null) return null;
-	if(criteriaFunc == null) return null;
-	var result = null;
-	var iter = oset.iterator();
-	while(iter.hasNext()) {
-		var comparisonT = iter.next();
-		if(criteriaFunc(comparisonT)) {
-			result = comparisonT;
-			break;
-		}
-	}
-	return result;
-};
-m3.helper.OSetHelper.hasValues = function(oset) {
-	return oset != null && oset.iterator().hasNext();
-};
-m3.helper.OSetHelper.joinX = function(oset,sep,getString) {
-	if(getString == null) getString = oset.identifier();
-	var s = "";
-	var iter = oset.iterator();
-	var index = 0;
-	while(iter.hasNext()) {
-		var t = iter.next();
-		var tmp = getString(t);
-		if(m3.helper.StringHelper.isNotBlank(tmp)) tmp = StringTools.trim(tmp);
-		if(m3.helper.StringHelper.isNotBlank(tmp) && index > 0 && s.length > 0) s += sep;
-		s += getString(t);
-		index++;
-	}
-	return s;
-};
-m3.helper.OSetHelper.strIdentifier = function(str) {
-	return str;
-};
-qoid.model.EditLabelData = function(label,parentIid,newParentId) {
-	this.label = label;
-	this.parentIid = parentIid;
-	this.newParentId = newParentId;
-};
-$hxClasses["qoid.model.EditLabelData"] = qoid.model.EditLabelData;
-qoid.model.EditLabelData.__name__ = ["qoid","model","EditLabelData"];
-qoid.model.EditLabelData.prototype = {
-	__class__: qoid.model.EditLabelData
-};
-m3.observable.MappedSet = function(source,mapper,remapOnUpdate) {
-	if(remapOnUpdate == null) remapOnUpdate = false;
-	m3.observable.AbstractSet.call(this);
-	this._mappedSet = new haxe.ds.StringMap();
-	this._mapListeners = new Array();
-	this._source = source;
-	this._remapOnUpdate = remapOnUpdate;
-	this._mapper = mapper;
-	this._source.listen($bind(this,this._sourceListener));
-};
-$hxClasses["m3.observable.MappedSet"] = m3.observable.MappedSet;
-m3.observable.MappedSet.__name__ = ["m3","observable","MappedSet"];
-m3.observable.MappedSet.__super__ = m3.observable.AbstractSet;
-m3.observable.MappedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
-	_sourceListener: function(t,type) {
-		var mappedValue;
-		if(type.isClear()) {
-			this._mappedSet = new haxe.ds.StringMap();
-			mappedValue = null;
-		} else {
-			var key = (this._source.identifier())(t);
-			if(type.isAdd() || this._remapOnUpdate && type.isUpdate()) {
-				mappedValue = this._mapper(t);
-				this._mappedSet.set(key,mappedValue);
-			} else if(type.isUpdate()) mappedValue = this._mappedSet.get(key); else {
-				mappedValue = this._mappedSet.get(key);
-				this._mappedSet.remove(key);
-			}
-		}
-		this.fire(mappedValue,type);
-		Lambda.iter(this._mapListeners,function(it) {
-			return it(t,mappedValue,type);
-		});
-	}
-	,identifier: function() {
-		return $bind(this,this.identify);
-	}
-	,delegate: function() {
-		return this._mappedSet;
-	}
-	,identify: function(u) {
-		var keys = this._mappedSet.keys();
-		while(keys.hasNext()) {
-			var key = keys.next();
-			if(this._mappedSet.get(key) == u) return key;
-		}
-		throw new m3.exception.Exception("unable to find identity for " + Std.string(u));
-	}
-	,iterator: function() {
-		return this._mappedSet.iterator();
-	}
-	,mapListen: function(f) {
-		var iter = this._mappedSet.keys();
-		while(iter.hasNext()) {
-			var key = iter.next();
-			var t = m3.helper.OSetHelper.getElement(this._source,key);
-			var u = this._mappedSet.get(key);
-			f(t,u,m3.observable.EventType.Add);
-		}
-		this._mapListeners.push(f);
-	}
-	,removeListeners: function(mapListener) {
-		HxOverrides.remove(this._mapListeners,mapListener);
-		this._source.removeListener($bind(this,this._sourceListener));
-	}
-	,__class__: m3.observable.MappedSet
-});
-qoid.model.Label = function(name) {
-	qoid.model.ModelObjWithIid.call(this);
-	this.name = name;
-	this.data = new qoid.model.LabelData();
-};
-$hxClasses["qoid.model.Label"] = qoid.model.Label;
-qoid.model.Label.__name__ = ["qoid","model","Label"];
-qoid.model.Label.identifier = function(l) {
-	return l.iid;
-};
-qoid.model.Label.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Label.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.Label
-});
-qoid.model.LabelData = function() {
-	qoid.model.ModelObj.call(this);
-	this.color = m3.util.ColorProvider.getNextColor();
-};
-$hxClasses["qoid.model.LabelData"] = qoid.model.LabelData;
-qoid.model.LabelData.__name__ = ["qoid","model","LabelData"];
-qoid.model.LabelData.__super__ = qoid.model.ModelObj;
-qoid.model.LabelData.prototype = $extend(qoid.model.ModelObj.prototype,{
-	__class__: qoid.model.LabelData
-});
-m3.util.FixedSizeArray = function(maxSize) {
-	this._maxSize = maxSize;
-	this._delegate = new Array();
-};
-$hxClasses["m3.util.FixedSizeArray"] = m3.util.FixedSizeArray;
-m3.util.FixedSizeArray.__name__ = ["m3","util","FixedSizeArray"];
-m3.util.FixedSizeArray.prototype = {
-	push: function(t) {
-		if(this._delegate.length >= this._maxSize) this._delegate.shift();
-		this._delegate.push(t);
-	}
-	,contains: function(t) {
-		return m3.helper.ArrayHelper.contains(this._delegate,t);
-	}
-	,__class__: m3.util.FixedSizeArray
-};
-m3.util.ColorProvider = function() { };
-$hxClasses["m3.util.ColorProvider"] = m3.util.ColorProvider;
-m3.util.ColorProvider.__name__ = ["m3","util","ColorProvider"];
-m3.util.ColorProvider.getNextColor = function() {
-	if(m3.util.ColorProvider._INDEX >= m3.util.ColorProvider._COLORS.length) m3.util.ColorProvider._INDEX = 0;
-	return m3.util.ColorProvider._COLORS[m3.util.ColorProvider._INDEX++];
-};
-m3.util.ColorProvider.getRandomColor = function() {
-	var index;
-	do index = Std.random(m3.util.ColorProvider._COLORS.length); while(m3.util.ColorProvider._LAST_COLORS_USED.contains(index));
-	m3.util.ColorProvider._LAST_COLORS_USED.push(index);
-	return m3.util.ColorProvider._COLORS[index];
-};
-qoid.model.Alias = function() {
-	qoid.model.ModelObjWithIid.call(this);
-	this.profile = new qoid.model.Profile();
-	this.data = new qoid.model.AliasData();
-};
-$hxClasses["qoid.model.Alias"] = qoid.model.Alias;
-qoid.model.Alias.__name__ = ["qoid","model","Alias"];
-qoid.model.Alias.identifier = function(alias) {
-	return alias.iid;
-};
-qoid.model.Alias.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Alias.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.Alias
-});
-qoid.model.Profile = function(name,imgSrc,aliasIid) {
-	qoid.model.ModelObjWithIid.call(this);
-	if(name == null) this.name = "Unknown"; else this.name = name;
-	if(imgSrc == null) this.imgSrc = "media/koi.jpg"; else this.imgSrc = imgSrc;
-	this.aliasIid = aliasIid;
-};
-$hxClasses["qoid.model.Profile"] = qoid.model.Profile;
-qoid.model.Profile.__name__ = ["qoid","model","Profile"];
-qoid.model.Profile.identifier = function(profile) {
-	return profile.iid;
-};
-qoid.model.Profile.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Profile.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.Profile
-});
-qoid.model.AliasData = function() {
-	qoid.model.ModelObj.call(this);
-	this.isDefault = false;
-};
-$hxClasses["qoid.model.AliasData"] = qoid.model.AliasData;
-qoid.model.AliasData.__name__ = ["qoid","model","AliasData"];
-qoid.model.AliasData.__super__ = qoid.model.ModelObj;
-qoid.model.AliasData.prototype = $extend(qoid.model.ModelObj.prototype,{
-	__class__: qoid.model.AliasData
-});
 m3.helper.StringHelper = function() { };
 $hxClasses["m3.helper.StringHelper"] = m3.helper.StringHelper;
 m3.helper.StringHelper.__name__ = ["m3","helper","StringHelper"];
@@ -3454,78 +1163,164 @@ m3.helper.StringHelper.toBool = function(str) {
 	if(str == null) return false;
 	return str.toLowerCase() == "true";
 };
-m3.observable.SortedSet = function(source,sortByFn) {
-	var _g = this;
-	m3.observable.AbstractSet.call(this);
-	this._source = source;
-	if(sortByFn == null) this._sortByFn = source.identifier(); else this._sortByFn = sortByFn;
-	this._sorted = new Array();
-	this._dirty = true;
-	this._comparisonFn = function(l,r) {
-		var l0 = _g._sortByFn(l);
-		var r0 = _g._sortByFn(r);
-		var cmp = m3.helper.StringHelper.compare(l0,r0);
-		if(cmp != 0) return cmp;
-		var li = (_g.identifier())(l);
-		var ri = (_g.identifier())(r);
-		return m3.helper.StringHelper.compare(li,ri);
-	};
-	source.listen(function(t,type) {
-		if(type.isDelete()) _g["delete"](t); else if(type.isUpdate()) {
-			_g["delete"](t);
-			_g.add(t);
-		} else if(type.isAdd()) _g.add(t); else if(type.isClear()) {
-			_g._sorted = new Array();
-			_g.fire(t,type);
-		}
-	});
+var qoid = {};
+qoid.model = {};
+qoid.model.ModelObj = function() {
 };
-$hxClasses["m3.observable.SortedSet"] = m3.observable.SortedSet;
-m3.observable.SortedSet.__name__ = ["m3","observable","SortedSet"];
-m3.observable.SortedSet.__super__ = m3.observable.AbstractSet;
-m3.observable.SortedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
-	sorted: function() {
-		if(this._dirty) {
-			this._sorted.sort(this._comparisonFn);
-			this._dirty = false;
+$hxClasses["qoid.model.ModelObj"] = qoid.model.ModelObj;
+qoid.model.ModelObj.__name__ = ["qoid","model","ModelObj"];
+qoid.model.ModelObj.prototype = {
+	objectType: function() {
+		var className = m3.serialization.TypeTools.classname(m3.serialization.TypeTools.clazz(this)).toLowerCase();
+		var parts = className.split(".");
+		return parts[parts.length - 1];
+	}
+	,__class__: qoid.model.ModelObj
+};
+qoid.model.NewUser = function() {
+	qoid.model.ModelObj.call(this);
+};
+$hxClasses["qoid.model.NewUser"] = qoid.model.NewUser;
+qoid.model.NewUser.__name__ = ["qoid","model","NewUser"];
+qoid.model.NewUser.__super__ = qoid.model.ModelObj;
+qoid.model.NewUser.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.NewUser
+});
+m3.event = {};
+m3.event.EventManager = function() {
+	this.hash = new haxe.ds.StringMap();
+	this.oneTimers = new Array();
+};
+$hxClasses["m3.event.EventManager"] = m3.event.EventManager;
+m3.event.EventManager.__name__ = ["m3","event","EventManager"];
+m3.event.EventManager.get_instance = function() {
+	if(m3.event.EventManager.instance == null) m3.event.EventManager.instance = new m3.event.EventManager();
+	return m3.event.EventManager.instance;
+};
+m3.event.EventManager.prototype = {
+	on: function(id,func,listenerName) {
+		return this.addListener(id,func,listenerName);
+	}
+	,addListener: function(id,func,listenerName) {
+		var listener = new m3.event.EMListener(func,listenerName);
+		return this.addListenerInternal(id,listener);
+	}
+	,addListenerInternal: function(id,listener) {
+		var map = this.hash.get(id);
+		if(map == null) {
+			map = new haxe.ds.StringMap();
+			this.hash.set(id,map);
 		}
-		return this._sorted;
+		var key = listener.get_uid();
+		map.set(key,listener);
+		return listener.get_uid();
 	}
-	,indexOf: function(t) {
-		this.sorted();
-		return this.binarySearch(t,this._sortByFn(t),0,this._sorted.length - 1);
+	,listenOnce: function(id,func,listenerName) {
+		var listener = new m3.event.EMListener(func,listenerName);
+		this.oneTimers.push(listener.get_uid());
+		return this.addListenerInternal(id,listener);
 	}
-	,binarySearch: function(value,sortBy,startIndex,endIndex) {
-		var middleIndex = startIndex + endIndex >> 1;
-		if(startIndex < endIndex) {
-			var middleValue = this._sorted[middleIndex];
-			var middleSortBy = this._sortByFn(middleValue);
-			if(middleSortBy == sortBy) return middleIndex; else if(middleSortBy > sortBy) return this.binarySearch(value,sortBy,startIndex,middleIndex); else return this.binarySearch(value,sortBy,middleIndex + 1,endIndex);
+	,removeListener: function(id,listenerUid) {
+		var map = this.hash.get(id);
+		if(map == null) m3.log.Logga.get_DEFAULT().warn("removeListener called for unknown uuid"); else {
+			HxOverrides.remove(this.oneTimers,listenerUid);
+			map.remove(listenerUid);
 		}
-		return -1;
 	}
-	,'delete': function(t) {
-		HxOverrides.remove(this._sorted,t);
-		this.fire(t,m3.observable.EventType.Delete);
+	,fire: function(id,t) {
+		this.change(id,t);
 	}
-	,add: function(t) {
-		this._sorted.push(t);
-		this._dirty = true;
-		this.fire(t,m3.observable.EventType.Add);
+	,change: function(id,t) {
+		var logger = m3.log.Logga.get_DEFAULT();
+		logger.debug("EVENTMODEL: Change to " + id);
+		var map = this.hash.get(id);
+		if(map == null) {
+			logger.warn("No listeners for event " + id);
+			return;
+		}
+		var iter = map.iterator();
+		while(iter.hasNext()) {
+			var listener = iter.next();
+			logger.debug("Notifying " + listener.get_name() + " of " + id + " event");
+			try {
+				listener.change(t);
+				if((function($this) {
+					var $r;
+					var x = listener.get_uid();
+					$r = HxOverrides.remove($this.oneTimers,x);
+					return $r;
+				}(this))) {
+					var key = listener.get_uid();
+					map.remove(key);
+				}
+			} catch( err ) {
+				logger.error("Error executing " + listener.get_name() + " of " + id + " event",m3.log.Logga.getExceptionInst(err));
+			}
+		}
 	}
-	,identifier: function() {
-		return this._source.identifier();
+	,__class__: m3.event.EventManager
+};
+haxe.ds = {};
+haxe.ds.StringMap = function() {
+	this.h = { };
+};
+$hxClasses["haxe.ds.StringMap"] = haxe.ds.StringMap;
+haxe.ds.StringMap.__name__ = ["haxe","ds","StringMap"];
+haxe.ds.StringMap.__interfaces__ = [IMap];
+haxe.ds.StringMap.prototype = {
+	set: function(key,value) {
+		this.h["$" + key] = value;
+	}
+	,get: function(key) {
+		return this.h["$" + key];
+	}
+	,exists: function(key) {
+		return this.h.hasOwnProperty("$" + key);
+	}
+	,remove: function(key) {
+		key = "$" + key;
+		if(!this.h.hasOwnProperty(key)) return false;
+		delete(this.h[key]);
+		return true;
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) a.push(key.substr(1));
+		}
+		return HxOverrides.iter(a);
 	}
 	,iterator: function() {
-		var _this = this.sorted();
-		return HxOverrides.iter(_this);
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref["$" + i];
+		}};
 	}
-	,delegate: function() {
-		throw new m3.exception.Exception("not implemented");
-		return null;
-	}
-	,__class__: m3.observable.SortedSet
-});
+	,__class__: haxe.ds.StringMap
+};
+var ap = {};
+ap.model = {};
+ap.model.EM = function() { };
+$hxClasses["ap.model.EM"] = ap.model.EM;
+ap.model.EM.__name__ = ["ap","model","EM"];
+ap.model.EM.addListener = function(id,func,listenerName) {
+	return ap.model.EM.delegate.addListener(id,func,listenerName);
+};
+ap.model.EM.listenOnce = function(id,func,listenerName) {
+	return ap.model.EM.delegate.listenOnce(id,func,listenerName);
+};
+ap.model.EM.removeListener = function(id,listenerUid) {
+	ap.model.EM.delegate.removeListener(id,listenerUid);
+};
+ap.model.EM.change = function(id,t) {
+	ap.model.EM.delegate.change(id,t);
+};
+qoid.QE = function() { };
+$hxClasses["qoid.QE"] = qoid.QE;
+qoid.QE.__name__ = ["qoid","QE"];
+ap.widget = {};
 ap.widget.DialogManager = $hx_exports.ap.widget.DialogManager = function() { };
 $hxClasses["ap.widget.DialogManager"] = ap.widget.DialogManager;
 ap.widget.DialogManager.__name__ = ["ap","widget","DialogManager"];
@@ -3560,6 +1355,1851 @@ ap.widget.DialogManager.showCreateAgent = function() {
 ap.widget.DialogManager.showAliasManager = function() {
 	ap.widget.DialogManager.showDialog("aliasManagerDialog");
 };
+qoid.model.Login = function() {
+	qoid.model.ModelObj.call(this);
+};
+$hxClasses["qoid.model.Login"] = qoid.model.Login;
+qoid.model.Login.__name__ = ["qoid","model","Login"];
+qoid.model.Login.__super__ = qoid.model.ModelObj;
+qoid.model.Login.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.Login
+});
+qoid.QoidAPI = $hx_exports.qoid.QoidAPI = function() { };
+$hxClasses["qoid.QoidAPI"] = qoid.QoidAPI;
+qoid.QoidAPI.__name__ = ["qoid","QoidAPI"];
+qoid.QoidAPI.main = function() {
+};
+qoid.QoidAPI.set_activeChannel = function(c) {
+	qoid.QoidAPI.activeChannel = c;
+	return qoid.QoidAPI.get_activeChannel();
+};
+qoid.QoidAPI.get_activeChannel = function() {
+	return qoid.QoidAPI.activeChannel;
+};
+qoid.QoidAPI.set_activeAlias = function(a) {
+	qoid.QoidAPI.activeAlias = a;
+	return qoid.QoidAPI.get_activeAlias();
+};
+qoid.QoidAPI.get_activeAlias = function() {
+	return qoid.QoidAPI.activeAlias;
+};
+qoid.QoidAPI.addChannel = function(c) {
+	qoid.QoidAPI.channels.push(c);
+};
+qoid.QoidAPI.removeChannel = function(c) {
+	return HxOverrides.remove(qoid.QoidAPI.channels,c);
+};
+qoid.QoidAPI.get_headers = function() {
+	var ret = new haxe.ds.StringMap();
+	ret.set("Qoid-ChannelId",qoid.QoidAPI.get_activeChannel());
+	return ret;
+};
+qoid.QoidAPI.createAgent = function(name,password) {
+	var json = { name : name, password : password};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.AGENT_CREATE,function(data) {
+		m3.event.EventManager.get_instance().change(qoid.QE.onAgentCreated,data);
+	},function(exc) {
+		js.Lib.alert(exc);
+	}).start();
+};
+qoid.QoidAPI.login = function(authenticationId,password) {
+	var json = { authenticationId : authenticationId, password : password};
+	new m3.comm.JsonRequest(json,qoid.QoidAPI.LOGIN,qoid.QoidAPI.onLogin,qoid.QoidAPI.onLoginError).start();
+};
+qoid.QoidAPI.onLoginError = function(exc) {
+	js.Lib.alert(exc);
+};
+qoid.QoidAPI.onLogin = function(data) {
+	var auth = data;
+	qoid.QoidAPI.addChannel(auth.channelId);
+	qoid.QoidAPI.set_activeChannel(auth.channelId);
+	qoid.QoidAPI.set_activeAlias(auth.connectionIid);
+	qoid.QoidAPI._startPolling(auth.channelId);
+	var context = "initialDataLoad";
+	var sychoronizer = new qoid.Synchronizer(context,9,qoid.QoidAPI.onInitialDataload);
+	var requests = [new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"alias"),qoid.QoidAPI.createQueryJson("alias")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"introduction"),qoid.QoidAPI.createQueryJson("introduction")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"connection"),qoid.QoidAPI.createQueryJson("connection")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"notification"),qoid.QoidAPI.createQueryJson("notification","consumed='0'")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"label"),qoid.QoidAPI.createQueryJson("label")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labelAcl"),qoid.QoidAPI.createQueryJson("labelAcl")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labeledContent"),qoid.QoidAPI.createQueryJson("labeledContent")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labelChild"),qoid.QoidAPI.createQueryJson("labelChild")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"profile"),qoid.QoidAPI.createQueryJson("profile"))];
+	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
+	m3.event.EventManager.get_instance().change(qoid.QE.onUserLogin);
+};
+qoid.QoidAPI.onInitialDataload = function(data) {
+	qoid.Qoid.aliases.addAll(data.aliases);
+	qoid.Qoid.connections.addAll(data.connections);
+	qoid.Qoid.labels.addAll(data.labels);
+	qoid.Qoid.labelChildren.addAll(data.labelChildren);
+	qoid.Qoid.introductions.addAll(data.introductions);
+	qoid.Qoid.notifications.addAll(data.notifications);
+	qoid.Qoid.labeledContent.addAll(data.labeledContent);
+	qoid.Qoid.labelAcls.addAll(data.labelAcls);
+	qoid.Qoid.profiles.addAll(data.profiles);
+	var $it0 = qoid.Qoid.aliases.iterator();
+	while( $it0.hasNext() ) {
+		var alias_ = $it0.next();
+		var $it1 = qoid.Qoid.profiles.iterator();
+		while( $it1.hasNext() ) {
+			var profile_ = $it1.next();
+			if(profile_.aliasIid == alias_.iid) {
+				alias_.profile = profile_;
+				qoid.Qoid.aliases.update(alias_);
+			}
+		}
+	}
+	qoid.Qoid.onInitialDataLoadComplete(qoid.QoidAPI.get_activeAlias());
+	m3.event.EventManager.get_instance().change(qoid.QE.onInitialDataload);
+};
+qoid.QoidAPI._startPolling = function(channelId) {
+	var timeout = 10000;
+	var ajaxOptions = { contentType : ""};
+	var lpr = new m3.comm.LongPollingRequest(channelId,qoid.ResponseProcessor.processResponse,null,ajaxOptions,"/api/v1/channel/poll");
+	lpr.timeout = timeout;
+	lpr.requestHeaders(qoid.QoidAPI.get_headers());
+	lpr.start();
+	qoid.QoidAPI.longPolls.set(channelId,lpr);
+};
+qoid.QoidAPI.query = function(context,type,query,historical,standing,route) {
+	var q = qoid.QoidAPI.createQueryJson(type,query,historical,standing,route);
+	qoid.QoidAPI.submitRequest(q,qoid.QoidAPI.QUERY,context);
+};
+qoid.QoidAPI.createQueryJson = function(type,query,historical,standing,route) {
+	if(standing == null) standing = true;
+	if(historical == null) historical = true;
+	if(query == null) query = "1=1";
+	var ret = { type : type, query : query, historical : historical, standing : standing};
+	if(route != null) ret.route = route;
+	return ret;
+};
+qoid.QoidAPI.getProfile = function(connectionIids) {
+	var json = qoid.QoidAPI.createQueryJson("profile",null,true,false,connectionIids);
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,new qoid.RequestContext("connectionProfile"));
+};
+qoid.QoidAPI.getVerificationContent = function(connectionIids,iids) {
+	var json = qoid.QoidAPI.createQueryJson("content","iid in (" + iids.join(",") + ")",true,false);
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,new qoid.RequestContext("verificationContent"));
+};
+qoid.QoidAPI.cancelQuery = function(context) {
+	qoid.QoidAPI.submitRequest({ },qoid.QoidAPI.QUERY_CANCEL,context);
+};
+qoid.QoidAPI.logout = function() {
+	new m3.comm.JsonRequest({ },qoid.QoidAPI.LOGOUT).start();
+};
+qoid.QoidAPI.spawnSession = function(aliasIid) {
+	var json = { authenticationId : aliasIid};
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.SPAWN,new qoid.RequestContext("spawnSession"));
+};
+qoid.QoidAPI.createAlias = function(profileName,profileImage,data,route) {
+	var json = { name : profileName, profileName : profileName, profileImage : profileImage};
+	if(route != null) json.route = route;
+	if(data != null) json.data = data;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_CREATE,new qoid.RequestContext("createAlias"));
+};
+qoid.QoidAPI.updateAlias = function(aliasIid,data,route) {
+	var json = { aliasIid : aliasIid, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_UPDATE,new qoid.RequestContext("updateAlias"));
+};
+qoid.QoidAPI.deleteAlias = function(aliasIid,route) {
+	var json = { aliasIid : aliasIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_DELETE,new qoid.RequestContext("deleteAlias"));
+};
+qoid.QoidAPI.createAliasLogin = function(aliasIid,password,route) {
+	var json = { aliasIid : aliasIid, password : password};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_LOGIN_CREATE,new qoid.RequestContext("createAliasLogin"));
+};
+qoid.QoidAPI.updateAliasLogin = function(aliasIid,password,route) {
+	var json = { aliasIid : aliasIid, password : password};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_LOGIN_UPDATE,new qoid.RequestContext("updateAliasLogin"));
+};
+qoid.QoidAPI.deleteAliasLogin = function(aliasIid,route) {
+	var json = { aliasIid : aliasIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_LOGIN_DELETE,new qoid.RequestContext("deleteAliasLogin"));
+};
+qoid.QoidAPI.updateAliasProfile = function(aliasIid,profileName,profileImage,route) {
+	var json = { aliasIid : aliasIid, profileName : profileName, profileImage : profileImage};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.ALIAS_PROFILE_UPDATE,new qoid.RequestContext("updateAliasProfile"));
+};
+qoid.QoidAPI.deleteConnection = function(connectionIid,route) {
+	var json = { connectionIid : connectionIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONNECTION_DELETE,new qoid.RequestContext("deleteConnection"));
+};
+qoid.QoidAPI.createContent = function(contentType,data,labelIids,route) {
+	var json = { contentType : contentType, data : data, labelIids : labelIids};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_CREATE,new qoid.RequestContext("createContent"));
+};
+qoid.QoidAPI.updateContent = function(contentIid,data,route) {
+	var json = { contentIid : contentIid, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_UPDATE,new qoid.RequestContext("updateContent"));
+};
+qoid.QoidAPI.deleteContent = function(contentIid,route) {
+	var json = { contentIid : contentIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_DELETE,new qoid.RequestContext("deleteContent"));
+};
+qoid.QoidAPI.addContentLabel = function(contentIid,labelIid,route) {
+	var json = { contentIid : contentIid, labelIid : labelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_LABEL_ADD,new qoid.RequestContext("addContentLabel"));
+};
+qoid.QoidAPI.removeContentLabel = function(contentIid,labelIid,route) {
+	var json = { contentIid : contentIid, labelIid : labelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_LABEL_REMOVE,new qoid.RequestContext("removeContentLabel"));
+};
+qoid.QoidAPI.createLabel = function(parentLabelIid,name,data,route) {
+	var json = { parentLabelIid : parentLabelIid, name : name, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_CREATE,new qoid.RequestContext("createLabel"));
+};
+qoid.QoidAPI.updateLabel = function(labelIid,name,data,route) {
+	var json = { labelIid : labelIid, name : name, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_UPDATE,new qoid.RequestContext("updateLabel"));
+};
+qoid.QoidAPI.moveLabel = function(labelIid,oldParentLabelIid,newParentLabelIid,route) {
+	var json = { labelIid : labelIid, oldParentLabelIid : oldParentLabelIid, newParentLabelIid : newParentLabelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_MOVE,new qoid.RequestContext("moveLabel"));
+};
+qoid.QoidAPI.copyLabel = function(labelIid,newParentLabelIid,route) {
+	var json = { labelIid : labelIid, newParentLabelIid : newParentLabelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_COPY,new qoid.RequestContext("copyLabel"));
+};
+qoid.QoidAPI.deleteLabel = function(labelIid,parentLabelIid,route) {
+	var json = { labelIid : labelIid, parentLabelIid : parentLabelIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_DELETE,new qoid.RequestContext("deleteLabel"));
+};
+qoid.QoidAPI.grantAccess = function(labelIid,connectionIid,maxDoV,route) {
+	var json = { labelIid : labelIid, connectionIid : connectionIid, maxDoV : maxDoV};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_ACCESS_GRANT,new qoid.RequestContext("grantAccess"));
+};
+qoid.QoidAPI.revokeAccess = function(labelIid,connectionIid,route) {
+	var json = { labelIid : labelIid, connectionIid : connectionIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_ACCESS_REVOKE,new qoid.RequestContext("revokeAccess"));
+};
+qoid.QoidAPI.updateAccess = function(labelIid,connectionIid,maxDoV,route) {
+	var json = { labelIid : labelIid, connectionIid : connectionIid, maxDoV : maxDoV};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.LABEL_ACCESS_UPDATE,new qoid.RequestContext("updateAccess"));
+};
+qoid.QoidAPI.createNotification = function(kind,data,route) {
+	var json = { kind : kind, data : data};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_CREATE,new qoid.RequestContext("createNotification"));
+};
+qoid.QoidAPI.consumeNotification = function(notificationIid,route) {
+	var json = { notificationIid : notificationIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_CONSUME,new qoid.RequestContext("consumeNotification"));
+};
+qoid.QoidAPI.deleteNotification = function(notificationIid,route) {
+	var json = { notificationIid : notificationIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_DELETE,new qoid.RequestContext("deleteNotification"));
+};
+qoid.QoidAPI.initiateIntroduction = function(aConnectionIid,aMessage,bConnectionIid,bMessage,route) {
+	var json = { aConnectionIid : aConnectionIid, aMessage : aMessage, bConnectionIid : bConnectionIid, bMessage : bMessage};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.INTRODUCTION_INITIATE,new qoid.RequestContext("initiateIntroduction"));
+};
+qoid.QoidAPI.acceptIntroduction = function(notificationIid,route) {
+	var json = { notificationIid : notificationIid};
+	if(route != null) json.route = route;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.INTRODUCTION_ACCEPT,new qoid.RequestContext("acceptIntroduction"));
+};
+qoid.QoidAPI.submitRequest = function(json,path,context) {
+	var msg = new m3.comm.ChannelRequestMessage(path,context,json);
+	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),[msg],qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
+};
+qoid.QoidAPI.onSuccess = function(data) {
+	if(data.context == "spawnSession") {
+		var auth = data.results[0];
+		qoid.QoidAPI.addChannel(auth.channelId);
+		qoid.QoidAPI.set_activeChannel(auth.channelId);
+		m3.event.EventManager.get_instance().change("sessionSpawned",auth);
+	}
+};
+qoid.QoidAPI.onError = function(ae) {
+	m3.log.Logga.get_DEFAULT().error("QoidAPI Error",ae);
+};
+qoid.ResponseProcessor = function() { };
+$hxClasses["qoid.ResponseProcessor"] = qoid.ResponseProcessor;
+qoid.ResponseProcessor.__name__ = ["qoid","ResponseProcessor"];
+qoid.ResponseProcessor.processResponse = function(dataArr) {
+	Lambda.iter(dataArr,function(data) {
+		if(!data.success) {
+			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + data.context);
+			m3.log.Logga.get_DEFAULT().error(data.error.stacktrace);
+		} else {
+			var context = m3.serialization.Serializer.get_instance().fromJsonX(data.context,qoid.RequestContext);
+			var result = data.result;
+			if(context.context == "initialDataLoad") {
+				if(result != null) {
+					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else qoid.Synchronizer.processResponse(context,data);
+				}
+			} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else if(!qoid.Synchronizer.processResponse(context,data)) {
+				if(result != null) {
+					var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
+					m3.event.EventManager.get_instance().fire(eventId,data);
+				}
+			}
+		}
+	});
+};
+qoid.ResponseProcessor.processModelObject = function(set,type,action,data) {
+	var _g = 0;
+	var _g1;
+	_g1 = js.Boot.__cast(data , Array);
+	while(_g < _g1.length) {
+		var datum = _g1[_g];
+		++_g;
+		var obj = m3.serialization.Serializer.get_instance().fromJsonX(datum,type);
+		if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
+	}
+};
+qoid.ResponseProcessor.updateModelObject = function(type,action,data) {
+	var type1 = type.toLowerCase();
+	switch(type1) {
+	case "alias":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.aliases,qoid.model.Alias,action,data);
+		break;
+	case "connection":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.connections,qoid.model.Connection,action,data);
+		break;
+	case "content":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.verificationContent,qoid.model.Content,action,data);
+		break;
+	case "introduction":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.introductions,qoid.model.Introduction,action,data);
+		break;
+	case "label":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labels,qoid.model.Label,action,data);
+		break;
+	case "labelacl":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelAcls,qoid.model.LabelAcl,action,data);
+		break;
+	case "labelchild":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelChildren,qoid.model.LabelChild,action,data);
+		break;
+	case "labeledcontent":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labeledContent,qoid.model.LabeledContent,action,data);
+		break;
+	case "notification":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.notifications,qoid.model.Notification,action,data);
+		break;
+	case "profile":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.profiles,qoid.model.Profile,action,data);
+		break;
+	default:
+		m3.log.Logga.get_DEFAULT().error("Unknown type: " + type1);
+	}
+};
+m3.util = {};
+m3.util.JqueryUtil = $hx_exports.m3.util.JqueryUtil = function() { };
+$hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
+m3.util.JqueryUtil.__name__ = ["m3","util","JqueryUtil"];
+m3.util.JqueryUtil.isAttached = function(elem) {
+	return elem.parents("body").length > 0;
+};
+m3.util.JqueryUtil.labelSelect = function(elem,str) {
+	try {
+		m3.CrossMojo.jq("option",elem).filter(function() {
+			return $(this).text() == str;
+		})[0].selected = true;
+	} catch( err ) {
+	}
+};
+m3.util.JqueryUtil.getOrCreateDialog = function(selector,dlgOptions,createdFcn) {
+	if(m3.helper.StringHelper.isBlank(selector)) selector = "dlg" + m3.util.UidGenerator.create(10);
+	var dialog = new $(selector);
+	if(dlgOptions == null) dlgOptions = { autoOpen : false, height : 380, width : 320, modal : true};
+	if(!dialog.exists()) {
+		dialog = new $("<div id=" + HxOverrides.substr(selector,1,null) + " style='display:none;'></div>");
+		if(Reflect.isFunction(createdFcn)) createdFcn(dialog);
+		new $("body").append(dialog);
+		dialog.m3dialog(dlgOptions);
+	} else if(!dialog["is"](":data(dialog)")) dialog.m3dialog(dlgOptions);
+	return dialog;
+};
+m3.util.JqueryUtil.deleteEffects = function(dragstopEvt,width,duration,src) {
+	if(src == null) src = "media/cloud.gif";
+	if(duration == null) duration = 800;
+	if(width == null) width = "70px";
+	var img = new $("<img/>");
+	img.appendTo("body");
+	img.css("width",width);
+	img.position({ my : "center", at : "center", of : dragstopEvt, collision : "fit"});
+	img.attr("src",src);
+	haxe.Timer.delay(function() {
+		img.remove();
+	},duration);
+};
+m3.util.JqueryUtil.confirm = function(title,question,action) {
+	var dlg = new $("<div id=\"confirm-dialog\"></div>");
+	var content = new $("<div style=\"width: 500px;text-align:left;\">" + question + "</div>");
+	dlg.append(content);
+	dlg.appendTo("body");
+	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, width : "auto", resizable : false, buttons : { Yes : function() {
+		action();
+		$(this).dialog("close");
+	}, No : function() {
+		$(this).dialog("close");
+	}}, close : function(event,ui) {
+		$(this).remove();
+	}};
+	dlg.dialog(dlgOptions);
+};
+m3.util.JqueryUtil.alert = function(statement,title,action) {
+	if(title == null) title = "Alert";
+	var dlg = new $("<div id=\"alert-dialog\"></div>");
+	var content = new $("<div style=\"width: 500px;text-align:left;\">" + statement + "</div>");
+	dlg.append(content);
+	dlg.appendTo("body");
+	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, width : "auto", resizable : false, buttons : { OK : function() {
+		$(this).dialog("close");
+	}}, close : function(event,ui) {
+		if(action != null) action();
+		$(this).remove();
+	}};
+	dlg.dialog(dlgOptions);
+};
+m3.util.JqueryUtil.getWindowWidth = function() {
+	return new $(window).width();
+};
+m3.util.JqueryUtil.getWindowHeight = function() {
+	return new $(window).height();
+};
+m3.util.JqueryUtil.getDocumentWidth = function() {
+	return new $(window.document).width();
+};
+m3.util.JqueryUtil.getDocumentHeight = function() {
+	return new $(window.document).height();
+};
+m3.util.JqueryUtil.getEmptyDiv = function() {
+	return new $("<div></div>");
+};
+m3.util.JqueryUtil.getEmptyTable = function() {
+	return new $("<table style='margin:auto; text-align: center; width: 100%;'></table>");
+};
+m3.util.JqueryUtil.getEmptyRow = function() {
+	return new $("<tr></tr>");
+};
+m3.util.JqueryUtil.getEmptyCell = function() {
+	return new $("<td></td>");
+};
+var js = {};
+js.Boot = function() { };
+$hxClasses["js.Boot"] = js.Boot;
+js.Boot.__name__ = ["js","Boot"];
+js.Boot.getClass = function(o) {
+	if((o instanceof Array) && o.__enum__ == null) return Array; else return o.__class__;
+};
+js.Boot.__string_rec = function(o,s) {
+	if(o == null) return "null";
+	if(s.length >= 5) return "<...>";
+	var t = typeof(o);
+	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
+	switch(t) {
+	case "object":
+		if(o instanceof Array) {
+			if(o.__enum__) {
+				if(o.length == 2) return o[0];
+				var str = o[0] + "(";
+				s += "\t";
+				var _g1 = 2;
+				var _g = o.length;
+				while(_g1 < _g) {
+					var i = _g1++;
+					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
+				}
+				return str + ")";
+			}
+			var l = o.length;
+			var i1;
+			var str1 = "[";
+			s += "\t";
+			var _g2 = 0;
+			while(_g2 < l) {
+				var i2 = _g2++;
+				str1 += (i2 > 0?",":"") + js.Boot.__string_rec(o[i2],s);
+			}
+			str1 += "]";
+			return str1;
+		}
+		var tostr;
+		try {
+			tostr = o.toString;
+		} catch( e ) {
+			return "???";
+		}
+		if(tostr != null && tostr != Object.toString) {
+			var s2 = o.toString();
+			if(s2 != "[object Object]") return s2;
+		}
+		var k = null;
+		var str2 = "{\n";
+		s += "\t";
+		var hasp = o.hasOwnProperty != null;
+		for( var k in o ) {
+		if(hasp && !o.hasOwnProperty(k)) {
+			continue;
+		}
+		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
+			continue;
+		}
+		if(str2.length != 2) str2 += ", \n";
+		str2 += s + k + " : " + js.Boot.__string_rec(o[k],s);
+		}
+		s = s.substring(1);
+		str2 += "\n" + s + "}";
+		return str2;
+	case "function":
+		return "<function>";
+	case "string":
+		return o;
+	default:
+		return String(o);
+	}
+};
+js.Boot.__interfLoop = function(cc,cl) {
+	if(cc == null) return false;
+	if(cc == cl) return true;
+	var intf = cc.__interfaces__;
+	if(intf != null) {
+		var _g1 = 0;
+		var _g = intf.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var i1 = intf[i];
+			if(i1 == cl || js.Boot.__interfLoop(i1,cl)) return true;
+		}
+	}
+	return js.Boot.__interfLoop(cc.__super__,cl);
+};
+js.Boot.__instanceof = function(o,cl) {
+	if(cl == null) return false;
+	switch(cl) {
+	case Int:
+		return (o|0) === o;
+	case Float:
+		return typeof(o) == "number";
+	case Bool:
+		return typeof(o) == "boolean";
+	case String:
+		return typeof(o) == "string";
+	case Array:
+		return (o instanceof Array) && o.__enum__ == null;
+	case Dynamic:
+		return true;
+	default:
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(o instanceof cl) return true;
+				if(js.Boot.__interfLoop(js.Boot.getClass(o),cl)) return true;
+			}
+		} else return false;
+		if(cl == Class && o.__name__ != null) return true;
+		if(cl == Enum && o.__ename__ != null) return true;
+		return o.__enum__ == cl;
+	}
+};
+js.Boot.__cast = function(o,t) {
+	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
+};
+m3.log = {};
+m3.log.Logga = function(logLevel) {
+	this.initialized = false;
+	this.loggerLevel = logLevel;
+};
+$hxClasses["m3.log.Logga"] = m3.log.Logga;
+m3.log.Logga.__name__ = ["m3","log","Logga"];
+m3.log.Logga.get_DEFAULT = function() {
+	if(m3.log.Logga.DEFAULT == null) m3.log.Logga.DEFAULT = new m3.log.RemoteLogga(m3.log.LogLevel.DEBUG,m3.log.LogLevel.DEBUG);
+	return m3.log.Logga.DEFAULT;
+};
+m3.log.Logga.getExceptionInst = function(err) {
+	if(js.Boot.__instanceof(err,m3.exception.Exception)) return err; else return new m3.exception.Exception(err);
+};
+m3.log.Logga.prototype = {
+	doOverrides: function() {
+		this.overrideConsoleError();
+		this.overrideConsoleTrace();
+		this.overrideConsoleLog();
+		window.onerror = function(message,url,lineNumber) {
+			LOGGER.error("WindowError | " + url + " (" + lineNumber + ") | " + message);
+			return false;
+		};
+	}
+	,_getLogger: function() {
+		this.console = window.console;
+		this.initialized = true;
+	}
+	,overrideConsoleError: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.preservedConsoleError = ($_=this.console,$bind($_,$_.error));
+			this.console.error = function() {
+				_g.error(arguments[0]);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.error");
+		}
+	}
+	,overrideConsoleTrace: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.preservedConsoleTrace = ($_=this.console,$bind($_,$_.trace));
+			this.console.trace = function() {
+				_g.preservedConsoleTrace.apply(_g.console);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.trace");
+		}
+	}
+	,overrideConsoleLog: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.console.log("prime console.log");
+			this.preservedConsoleLog = ($_=this.console,$bind($_,$_.log));
+			this.console.log = function() {
+				_g.warn(arguments[0]);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.log");
+		}
+	}
+	,setStatementPrefix: function(prefix) {
+		this.statementPrefix = prefix;
+	}
+	,log: function(statement,level,exception) {
+		if(!this.initialized) this._getLogger();
+		if(level == null) level = m3.log.LogLevel.INFO;
+		try {
+			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
+		} catch( err ) {
+			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
+		}
+		if(m3.helper.StringHelper.isBlank(statement)) {
+			this.console.error("empty log statement");
+			this.console.trace();
+		}
+		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
+		if(this.logsAtLevel(level) && this.console != null) try {
+			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
+				this.preservedConsoleError.apply(this.console,[statement]);
+				this.console.trace();
+			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
+				this.console.error(statement);
+				this.console.trace();
+			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
+		} catch( err1 ) {
+			if(this.console != null && Object.prototype.hasOwnProperty.call(this.console,"error")) this.console.error(err1);
+		}
+	}
+	,logsAtLevel: function(level) {
+		return this.loggerLevel[1] <= level[1];
+	}
+	,setLogLevel: function(logLevel) {
+		this.loggerLevel = logLevel;
+	}
+	,trace: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.TRACE,exception);
+	}
+	,debug: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.DEBUG,exception);
+	}
+	,info: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.INFO,exception);
+	}
+	,warn: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.WARN,exception);
+	}
+	,error: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.ERROR,exception);
+	}
+	,__class__: m3.log.Logga
+};
+m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
+m3.log.LogLevel.TRACE = ["TRACE",0];
+m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.DEBUG = ["DEBUG",1];
+m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.INFO = ["INFO",2];
+m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.WARN = ["WARN",3];
+m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.ERROR = ["ERROR",4];
+m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
+m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
+	m3.log.Logga.call(this,consoleLevel);
+	this.remoteLogLevel = remoteLevel;
+	this.logs = [];
+	this.sessionUid = m3.util.UidGenerator.create(32);
+	this.log("SessionUid: " + this.sessionUid);
+};
+$hxClasses["m3.log.RemoteLogga"] = m3.log.RemoteLogga;
+m3.log.RemoteLogga.__name__ = ["m3","log","RemoteLogga"];
+m3.log.RemoteLogga.pauseRemoteLogging = function() {
+	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
+		var rl = m3.log.Logga.get_DEFAULT();
+		rl.pause();
+	}
+};
+m3.log.RemoteLogga.unpauseRemoteLogging = function() {
+	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
+		var rl = m3.log.Logga.get_DEFAULT();
+		rl.unpause();
+	}
+};
+m3.log.RemoteLogga.__super__ = m3.log.Logga;
+m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
+	log: function(statement,level,exception) {
+		if(level == null) level = m3.log.LogLevel.INFO;
+		m3.log.Logga.prototype.log.call(this,statement,level,exception);
+		if(this.timer != null && this.remoteLogsAtLevel(level)) {
+			try {
+				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
+			} catch( err ) {
+			}
+			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
+			if(this.logs.length > 50) this.timer.run();
+		}
+	}
+	,remoteLogsAtLevel: function(level) {
+		return this.remoteLogLevel[1] <= level[1];
+	}
+	,setRemoteLoggingFcn: function(remoteLogFcn) {
+		var _g = this;
+		if(this.timer != null) this.timer.stop();
+		if(remoteLogFcn != null) this.timer = new m3.log._RemoteLogga.RemoteLoggingTimer(remoteLogFcn,function() {
+			var saved = _g.logs;
+			_g.logs = [];
+			return saved;
+		});
+	}
+	,pause: function() {
+		if(this.timer != null) this.timer.pause();
+	}
+	,unpause: function() {
+		if(this.timer != null) this.timer.unpause();
+	}
+	,__class__: m3.log.RemoteLogga
+});
+m3.util.UidGenerator = function() { };
+$hxClasses["m3.util.UidGenerator"] = m3.util.UidGenerator;
+m3.util.UidGenerator.__name__ = ["m3","util","UidGenerator"];
+m3.util.UidGenerator.get_chars = function() {
+	return "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
+};
+m3.util.UidGenerator.get_nums = function() {
+	return "0123456789";
+};
+m3.util.UidGenerator.create = function(length) {
+	if(length == null) length = 20;
+	var str = new Array();
+	var charsLength = m3.util.UidGenerator.get_chars().length;
+	while(str.length == 0) {
+		var ch = m3.util.UidGenerator.randomChar();
+		if(m3.util.UidGenerator.isLetter(ch)) str.push(ch);
+	}
+	while(str.length < length) {
+		var ch1 = m3.util.UidGenerator.randomChar();
+		str.push(ch1);
+	}
+	return str.join("");
+};
+m3.util.UidGenerator.isLetter = function($char) {
+	var _g1 = 0;
+	var _g = m3.util.UidGenerator.get_chars().length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(m3.util.UidGenerator.get_chars().charAt(i) == $char) return true;
+	}
+	return false;
+};
+m3.util.UidGenerator.randomNum = function() {
+	var max = m3.util.UidGenerator.get_chars().length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
+};
+m3.util.UidGenerator.randomIndex = function(str) {
+	var max = str.length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
+};
+m3.util.UidGenerator.randomChar = function() {
+	var i = 0;
+	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_chars())) >= m3.util.UidGenerator.get_chars().length) continue;
+	return m3.util.UidGenerator.get_chars().charAt(i);
+};
+m3.util.UidGenerator.randomNumChar = function() {
+	var i = 0;
+	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
+	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
+};
+m3.serialization = {};
+m3.serialization.Serializer = function(defaultToStrict) {
+	if(defaultToStrict == null) defaultToStrict = true;
+	this._defaultToStrict = defaultToStrict;
+	this._handlersMap = new haxe.ds.StringMap();
+	this.addHandlerViaName("Array<Dynamic>",new m3.serialization.DynamicArrayHandler());
+};
+$hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
+m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
+m3.serialization.Serializer.get_instance = function() {
+	if(m3.serialization.Serializer.instance == null) m3.serialization.Serializer.instance = new m3.serialization.Serializer();
+	return m3.serialization.Serializer.instance;
+};
+m3.serialization.Serializer.prototype = {
+	addHandler: function(clazz,handler) {
+		var typename = Type.getClassName(clazz);
+		this._handlersMap.set(typename,handler);
+	}
+	,addHandlerViaName: function(typename,handler) {
+		this._handlersMap.set(typename,handler);
+	}
+	,load: function(fromJson,instance,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,Type.getClass(instance),instance);
+		return reader;
+	}
+	,fromJsonX: function(fromJson,clazz,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,clazz);
+		return reader.instance;
+	}
+	,fromJson: function(fromJson,clazz,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,clazz);
+		return reader;
+	}
+	,toJson: function(value) {
+		return this.createWriter().write(value);
+	}
+	,toJsonString: function(value) {
+		return JSON.stringify(this.toJson(value));
+	}
+	,createReader: function(strict) {
+		if(strict == null) strict = true;
+		return new m3.serialization.JsonReader(this,strict);
+	}
+	,createWriter: function() {
+		return new m3.serialization.JsonWriter(this);
+	}
+	,getHandlerViaClass: function(clazz) {
+		var typename = m3.serialization.TypeTools.classname(clazz);
+		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
+	}
+	,getHandler: function(type) {
+		var typename = m3.serialization.CTypeTools.typename(type);
+		var handler = this._handlersMap.get(typename);
+		if(handler == null) {
+			handler = this.createHandler(type);
+			this._handlersMap.set(typename,handler);
+		}
+		return handler;
+	}
+	,createHandler: function(type) {
+		switch(type[1]) {
+		case 1:
+			var parms = type[3];
+			var path = type[2];
+			if(path == "Bool") return new m3.serialization.BoolHandler(); else return new m3.serialization.EnumHandler(path,parms);
+			break;
+		case 2:
+			var parms1 = type[3];
+			var path1 = type[2];
+			switch(path1) {
+			case "Bool":
+				return new m3.serialization.BoolHandler();
+			case "Float":
+				return new m3.serialization.FloatHandler();
+			case "String":
+				return new m3.serialization.StringHandler();
+			case "Int":
+				return new m3.serialization.IntHandler();
+			case "Array":
+				return new m3.serialization.ArrayHandler(parms1,this);
+			case "Date":
+				return new m3.serialization.DateHandler();
+			default:
+				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
+			}
+			break;
+		case 7:
+			var parms1 = type[3];
+			var path1 = type[2];
+			switch(path1) {
+			case "Bool":
+				return new m3.serialization.BoolHandler();
+			case "Float":
+				return new m3.serialization.FloatHandler();
+			case "String":
+				return new m3.serialization.StringHandler();
+			case "Int":
+				return new m3.serialization.IntHandler();
+			case "Array":
+				return new m3.serialization.ArrayHandler(parms1,this);
+			case "Date":
+				return new m3.serialization.DateHandler();
+			default:
+				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
+			}
+			break;
+		case 6:
+			return new m3.serialization.DynamicHandler();
+		case 4:
+			var ret = type[3];
+			var args = type[2];
+			return new m3.serialization.FunctionHandler();
+		default:
+			throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
+		}
+	}
+	,__class__: m3.serialization.Serializer
+};
+m3.serialization.TypeHandler = function() { };
+$hxClasses["m3.serialization.TypeHandler"] = m3.serialization.TypeHandler;
+m3.serialization.TypeHandler.__name__ = ["m3","serialization","TypeHandler"];
+m3.serialization.TypeHandler.prototype = {
+	__class__: m3.serialization.TypeHandler
+};
+m3.serialization.DynamicArrayHandler = function() {
+};
+$hxClasses["m3.serialization.DynamicArrayHandler"] = m3.serialization.DynamicArrayHandler;
+m3.serialization.DynamicArrayHandler.__name__ = ["m3","serialization","DynamicArrayHandler"];
+m3.serialization.DynamicArrayHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.DynamicArrayHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var classname = m3.serialization.ValueTypeTools.getClassname(Type["typeof"](fromJson));
+		if(classname == "Array") return fromJson; else return reader.error("expected an array got a " + classname);
+	}
+	,write: function(value,writer) {
+		return value;
+	}
+	,__class__: m3.serialization.DynamicArrayHandler
+};
+qoid.RequestContext = function(context,handle) {
+	this.context = context;
+	this.handle = handle;
+};
+$hxClasses["qoid.RequestContext"] = qoid.RequestContext;
+qoid.RequestContext.__name__ = ["qoid","RequestContext"];
+qoid.RequestContext.prototype = {
+	__class__: qoid.RequestContext
+};
+qoid.model.ModelObjWithIid = function() {
+	qoid.model.ModelObj.call(this);
+	this.iid = m3.util.UidGenerator.create(32);
+	this.created = new Date();
+	this.modified = new Date();
+};
+$hxClasses["qoid.model.ModelObjWithIid"] = qoid.model.ModelObjWithIid;
+qoid.model.ModelObjWithIid.__name__ = ["qoid","model","ModelObjWithIid"];
+qoid.model.ModelObjWithIid.identifier = function(t) {
+	return t.iid;
+};
+qoid.model.ModelObjWithIid.__super__ = qoid.model.ModelObj;
+qoid.model.ModelObjWithIid.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.ModelObjWithIid
+});
+m3.observable = {};
+m3.observable.OSet = function() { };
+$hxClasses["m3.observable.OSet"] = m3.observable.OSet;
+m3.observable.OSet.__name__ = ["m3","observable","OSet"];
+m3.observable.OSet.prototype = {
+	__class__: m3.observable.OSet
+};
+m3.observable.AbstractSet = function() {
+	this._eventManager = new m3.observable.EventManager(this);
+};
+$hxClasses["m3.observable.AbstractSet"] = m3.observable.AbstractSet;
+m3.observable.AbstractSet.__name__ = ["m3","observable","AbstractSet"];
+m3.observable.AbstractSet.__interfaces__ = [m3.observable.OSet];
+m3.observable.AbstractSet.prototype = {
+	listen: function(l,autoFire) {
+		if(autoFire == null) autoFire = true;
+		this._eventManager.add(l,autoFire);
+	}
+	,removeListener: function(l) {
+		this._eventManager.remove(l);
+	}
+	,filter: function(f) {
+		return new m3.observable.FilteredSet(this,f);
+	}
+	,map: function(f) {
+		return new m3.observable.MappedSet(this,f);
+	}
+	,fire: function(t,type) {
+		this._eventManager.fire(t,type);
+	}
+	,getVisualId: function() {
+		return this.visualId;
+	}
+	,identifier: function() {
+		throw new m3.exception.Exception("implement me");
+	}
+	,iterator: function() {
+		throw new m3.exception.Exception("implement me");
+	}
+	,delegate: function() {
+		throw new m3.exception.Exception("implement me");
+	}
+	,__class__: m3.observable.AbstractSet
+};
+m3.observable.ObservableSet = function(identifier,tArr) {
+	m3.observable.AbstractSet.call(this);
+	this._identifier = identifier;
+	this._delegate = new m3.util.SizedMap();
+	if(tArr != null) this.addAll(tArr);
+};
+$hxClasses["m3.observable.ObservableSet"] = m3.observable.ObservableSet;
+m3.observable.ObservableSet.__name__ = ["m3","observable","ObservableSet"];
+m3.observable.ObservableSet.__super__ = m3.observable.AbstractSet;
+m3.observable.ObservableSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
+	add: function(t) {
+		this.addOrUpdate(t);
+	}
+	,addAll: function(tArr) {
+		if(tArr != null && tArr.length > 0) {
+			var _g1 = 0;
+			var _g = tArr.length;
+			while(_g1 < _g) {
+				var t_ = _g1++;
+				this.addOrUpdate(tArr[t_]);
+			}
+		}
+	}
+	,iterator: function() {
+		return this._delegate.iterator();
+	}
+	,isEmpty: function() {
+		return Lambda.empty(this._delegate);
+	}
+	,addOrUpdate: function(t) {
+		var key = (this.identifier())(t);
+		var type;
+		if(this._delegate.exists(key)) type = m3.observable.EventType.Update; else type = m3.observable.EventType.Add;
+		this._delegate.set(key,t);
+		this.fire(t,type);
+	}
+	,delegate: function() {
+		return this._delegate;
+	}
+	,update: function(t) {
+		this.addOrUpdate(t);
+	}
+	,'delete': function(t) {
+		var key = (this.identifier())(t);
+		if(this._delegate.exists(key)) {
+			this._delegate.remove(key);
+			this.fire(t,m3.observable.EventType.Delete);
+		}
+	}
+	,identifier: function() {
+		return this._identifier;
+	}
+	,clear: function() {
+		this._delegate = new m3.util.SizedMap();
+		this.fire(null,m3.observable.EventType.Clear);
+	}
+	,size: function() {
+		return this._delegate.size;
+	}
+	,asArray: function() {
+		var a = new Array();
+		var iter = this.iterator();
+		while(iter.hasNext()) a.push(iter.next());
+		return a;
+	}
+	,__class__: m3.observable.ObservableSet
+});
+m3.util.SizedMap = function() {
+	haxe.ds.StringMap.call(this);
+	this.size = 0;
+};
+$hxClasses["m3.util.SizedMap"] = m3.util.SizedMap;
+m3.util.SizedMap.__name__ = ["m3","util","SizedMap"];
+m3.util.SizedMap.__super__ = haxe.ds.StringMap;
+m3.util.SizedMap.prototype = $extend(haxe.ds.StringMap.prototype,{
+	set: function(key,val) {
+		if(!this.exists(key)) this.size++;
+		haxe.ds.StringMap.prototype.set.call(this,key,val);
+	}
+	,remove: function(key) {
+		if(this.exists(key)) this.size--;
+		return haxe.ds.StringMap.prototype.remove.call(this,key);
+	}
+	,__class__: m3.util.SizedMap
+});
+m3.observable.EventManager = function(set) {
+	this._set = set;
+	this._listeners = [];
+};
+$hxClasses["m3.observable.EventManager"] = m3.observable.EventManager;
+m3.observable.EventManager.__name__ = ["m3","observable","EventManager"];
+m3.observable.EventManager.prototype = {
+	add: function(l,autoFire) {
+		if(autoFire) Lambda.iter(this._set,function(it) {
+			return l(it,m3.observable.EventType.Add);
+		});
+		this._listeners.push(l);
+	}
+	,remove: function(l) {
+		HxOverrides.remove(this._listeners,l);
+	}
+	,fire: function(t,type) {
+		var _g = this;
+		Lambda.iter(this._listeners,function(l) {
+			try {
+				l(t,type);
+			} catch( err ) {
+				m3.log.Logga.get_DEFAULT().error("Error processing listener on " + _g._set.getVisualId(),m3.log.Logga.getExceptionInst(err));
+			}
+		});
+	}
+	,listenerCount: function() {
+		return this._listeners.length;
+	}
+	,__class__: m3.observable.EventManager
+};
+m3.helper.OSetHelper = function() { };
+$hxClasses["m3.helper.OSetHelper"] = m3.helper.OSetHelper;
+m3.helper.OSetHelper.__name__ = ["m3","helper","OSetHelper"];
+m3.helper.OSetHelper.getElement = function(oset,value,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	return m3.helper.OSetHelper.getElementComplex(oset,value,null,startingIndex);
+};
+m3.helper.OSetHelper.getElementComplex = function(oset,value,propOrFcn,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(oset == null) return null;
+	if(propOrFcn == null) propOrFcn = oset.identifier();
+	var result = null;
+	var index_ = -1;
+	var iter = oset.iterator();
+	while(iter.hasNext()) if(startingIndex > ++index_) continue; else {
+		var comparisonT = iter.next();
+		var comparisonValue;
+		if(typeof(propOrFcn) == "string") comparisonValue = Reflect.field(comparisonT,propOrFcn); else comparisonValue = propOrFcn(comparisonT);
+		if(value == comparisonValue) {
+			result = comparisonT;
+			break;
+		}
+	}
+	return result;
+};
+m3.helper.OSetHelper.getElementComplex2 = function(oset,criteriaFunc) {
+	if(oset == null) return null;
+	if(criteriaFunc == null) return null;
+	var result = null;
+	var iter = oset.iterator();
+	while(iter.hasNext()) {
+		var comparisonT = iter.next();
+		if(criteriaFunc(comparisonT)) {
+			result = comparisonT;
+			break;
+		}
+	}
+	return result;
+};
+m3.helper.OSetHelper.hasValues = function(oset) {
+	return oset != null && oset.iterator().hasNext();
+};
+m3.helper.OSetHelper.joinX = function(oset,sep,getString) {
+	if(getString == null) getString = oset.identifier();
+	var s = "";
+	var iter = oset.iterator();
+	var index = 0;
+	while(iter.hasNext()) {
+		var t = iter.next();
+		var tmp = getString(t);
+		if(m3.helper.StringHelper.isNotBlank(tmp)) tmp = StringTools.trim(tmp);
+		if(m3.helper.StringHelper.isNotBlank(tmp) && index > 0 && s.length > 0) s += sep;
+		s += getString(t);
+		index++;
+	}
+	return s;
+};
+m3.helper.OSetHelper.strIdentifier = function(str) {
+	return str;
+};
+qoid.model.Label = function(name) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.name = name;
+	this.data = new qoid.model.LabelData();
+};
+$hxClasses["qoid.model.Label"] = qoid.model.Label;
+qoid.model.Label.__name__ = ["qoid","model","Label"];
+qoid.model.Label.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.Label.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Label.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Label
+});
+qoid.model.Connection = function() {
+	qoid.model.ModelObjWithIid.call(this);
+	this.data = new qoid.model.Profile("-->*<--","");
+};
+$hxClasses["qoid.model.Connection"] = qoid.model.Connection;
+qoid.model.Connection.__name__ = ["qoid","model","Connection"];
+qoid.model.Connection.identifier = function(c) {
+	return c.iid;
+};
+qoid.model.Connection.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Connection.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	equals: function(c) {
+		return this.iid == c.iid;
+	}
+	,__class__: qoid.model.Connection
+});
+m3.comm = {};
+m3.comm.ChannelRequestMessage = function(path,context,parms) {
+	this.path = path;
+	this.context = context;
+	this.parms = parms;
+};
+$hxClasses["m3.comm.ChannelRequestMessage"] = m3.comm.ChannelRequestMessage;
+m3.comm.ChannelRequestMessage.__name__ = ["m3","comm","ChannelRequestMessage"];
+m3.comm.ChannelRequestMessage.prototype = {
+	__class__: m3.comm.ChannelRequestMessage
+};
+m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
+	this.requestData = requestData;
+	this._url = url;
+	this.onSuccess = successFcn;
+	this.onError = errorFcn;
+	this.onAccessDenied = accessDeniedFcn;
+	this._requestHeaders = new haxe.ds.StringMap();
+};
+$hxClasses["m3.comm.BaseRequest"] = m3.comm.BaseRequest;
+m3.comm.BaseRequest.__name__ = ["m3","comm","BaseRequest"];
+m3.comm.BaseRequest.prototype = {
+	ajaxOpts: function(opts) {
+		if(opts == null) return this.baseOpts; else {
+			this.baseOpts = opts;
+			return this;
+		}
+	}
+	,requestHeaders: function(headers) {
+		if(headers == null) return this._requestHeaders; else {
+			this._requestHeaders = headers;
+			return this;
+		}
+	}
+	,beforeSend: function(jqXHR,settings) {
+		var $it0 = this._requestHeaders.keys();
+		while( $it0.hasNext() ) {
+			var key = $it0.next();
+			if(this._requestHeaders.get(key) != null) jqXHR.setRequestHeader(key,this._requestHeaders.get(key));
+		}
+	}
+	,start: function(opts) {
+		var _g = this;
+		if(opts == null) opts = { };
+		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", url : this._url, success : function(data,textStatus,jqXHR) {
+			if(jqXHR.getResponseHeader("Content-Length") == "0") data = [];
+			if(_g.onSuccess != null) _g.onSuccess(data);
+		}, error : function(jqXHR1,textStatus1,errorThrown) {
+			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
+			var errorMessage = null;
+			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) errorMessage = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") errorMessage = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") errorMessage = errorThrown; else errorMessage = errorThrown.message;
+			if(m3.helper.StringHelper.isBlank(errorMessage)) errorMessage = "Error, but no error msg from server";
+			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + errorMessage);
+			var exc = new m3.exception.AjaxException(errorMessage,null,jqXHR1.status);
+			if(_g.onError != null) _g.onError(exc); else throw exc;
+		}};
+		$.extend(ajaxOpts,this.baseOpts);
+		$.extend(ajaxOpts,opts);
+		return $.ajax(ajaxOpts);
+	}
+	,abort: function() {
+	}
+	,__class__: m3.comm.BaseRequest
+};
+m3.comm.JsonRequest = function(requestJson,url,successFcn,errorFcn,accessDeniedFcn) {
+	m3.comm.BaseRequest.call(this,JSON.stringify(requestJson),url,successFcn,errorFcn,accessDeniedFcn);
+};
+$hxClasses["m3.comm.JsonRequest"] = m3.comm.JsonRequest;
+m3.comm.JsonRequest.__name__ = ["m3","comm","JsonRequest"];
+m3.comm.JsonRequest.__super__ = m3.comm.BaseRequest;
+m3.comm.JsonRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
+	__class__: m3.comm.JsonRequest
+});
+qoid.SubmitRequest = function(channel,msgs,successFcn,errorFcn) {
+	this.baseOpts = { dataType : "text"};
+	var bundle = new m3.comm.ChannelRequestMessageBundle(channel,msgs);
+	var data = m3.serialization.Serializer.get_instance().toJson(bundle);
+	m3.comm.JsonRequest.call(this,data,"/api/v1/channel/submit",successFcn,errorFcn);
+};
+$hxClasses["qoid.SubmitRequest"] = qoid.SubmitRequest;
+qoid.SubmitRequest.__name__ = ["qoid","SubmitRequest"];
+qoid.SubmitRequest.__super__ = m3.comm.JsonRequest;
+qoid.SubmitRequest.prototype = $extend(m3.comm.JsonRequest.prototype,{
+	__class__: qoid.SubmitRequest
+});
+m3.comm.ChannelRequestMessageBundle = function(channel,requests) {
+	this.channel = channel;
+	this.requests = requests;
+};
+$hxClasses["m3.comm.ChannelRequestMessageBundle"] = m3.comm.ChannelRequestMessageBundle;
+m3.comm.ChannelRequestMessageBundle.__name__ = ["m3","comm","ChannelRequestMessageBundle"];
+m3.comm.ChannelRequestMessageBundle.prototype = {
+	add: function(request) {
+		this.requests.push(request);
+	}
+	,createAndAdd: function(path,context,parms) {
+		var request = new m3.comm.ChannelRequestMessage(path,context,parms);
+		this.add(request);
+	}
+	,__class__: m3.comm.ChannelRequestMessageBundle
+};
+m3.observable.GroupedSet = function(source,groupingFn) {
+	var _g = this;
+	m3.observable.AbstractSet.call(this);
+	this._source = source;
+	this._groupingFn = groupingFn;
+	this._groupedSets = new haxe.ds.StringMap();
+	this._identityToGrouping = new haxe.ds.StringMap();
+	source.listen(function(t,type) {
+		var groupingKey = groupingFn(t);
+		var previousGroupingKey = _g._identityToGrouping.get(groupingKey);
+		if(type.isAddOrUpdate()) {
+			if(previousGroupingKey != groupingKey) {
+				_g["delete"](t,false);
+				_g.add(t);
+			}
+		} else _g["delete"](t);
+	});
+};
+$hxClasses["m3.observable.GroupedSet"] = m3.observable.GroupedSet;
+m3.observable.GroupedSet.__name__ = ["m3","observable","GroupedSet"];
+m3.observable.GroupedSet.__super__ = m3.observable.AbstractSet;
+m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
+	'delete': function(t,deleteEmptySet) {
+		if(deleteEmptySet == null) deleteEmptySet = true;
+		var id = (this._source.identifier())(t);
+		var key = this._identityToGrouping.get(id);
+		if(key != null) {
+			this._identityToGrouping.remove(id);
+			var groupedSet = this._groupedSets.get(key);
+			if(groupedSet != null) {
+				groupedSet["delete"](t);
+				if(groupedSet.isEmpty() && deleteEmptySet) {
+					this._groupedSets.remove(key);
+					this.fire(groupedSet,m3.observable.EventType.Delete);
+				} else this.fire(groupedSet,m3.observable.EventType.Update);
+			} else {
+			}
+		} else {
+		}
+	}
+	,add: function(t) {
+		var id = (this._source.identifier())(t);
+		var key = this._identityToGrouping.get(id);
+		if(key != null) throw new m3.exception.Exception("cannot add it is already in the list" + id + " -- " + key);
+		key = this._groupingFn(t);
+		this._identityToGrouping.set(id,key);
+		var groupedSet = this._groupedSets.get(key);
+		if(groupedSet == null) {
+			groupedSet = this.addEmptyGroup(key);
+			groupedSet.addOrUpdate(t);
+			this.fire(groupedSet,m3.observable.EventType.Add);
+		} else {
+			groupedSet.addOrUpdate(t);
+			this.fire(groupedSet,m3.observable.EventType.Update);
+		}
+	}
+	,addEmptyGroup: function(key) {
+		if(this._groupedSets.get(key) == null) {
+			var groupedSet = new m3.observable.ObservableSet(this._source.identifier());
+			groupedSet.visualId = key;
+			this._groupedSets.set(key,groupedSet);
+		}
+		return this._groupedSets.get(key);
+	}
+	,identifier: function() {
+		return $bind(this,this.identify);
+	}
+	,identify: function(set) {
+		var keys = this._groupedSets.keys();
+		while(keys.hasNext()) {
+			var key = keys.next();
+			if(this._groupedSets.get(key) == set) return key;
+		}
+		throw new m3.exception.Exception("unable to find identity for " + Std.string(set));
+	}
+	,iterator: function() {
+		return this._groupedSets.iterator();
+	}
+	,delegate: function() {
+		return this._groupedSets;
+	}
+	,__class__: m3.observable.GroupedSet
+});
+qoid.model.LabelAcl = function(connectionIid,labelIid) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.connectionIid = connectionIid;
+	this.labelIid = labelIid;
+};
+$hxClasses["qoid.model.LabelAcl"] = qoid.model.LabelAcl;
+qoid.model.LabelAcl.__name__ = ["qoid","model","LabelAcl"];
+qoid.model.LabelAcl.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.LabelAcl.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabelAcl.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabelAcl
+});
+qoid.model.LabelChild = function(parentIid,childIid) {
+	if(parentIid != null && childIid != null && parentIid == childIid) throw new m3.exception.Exception("parentIid and childIid of LabelChild must be different");
+	qoid.model.ModelObjWithIid.call(this);
+	this.parentIid = parentIid;
+	this.childIid = childIid;
+};
+$hxClasses["qoid.model.LabelChild"] = qoid.model.LabelChild;
+qoid.model.LabelChild.__name__ = ["qoid","model","LabelChild"];
+qoid.model.LabelChild.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.LabelChild.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabelChild.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabelChild
+});
+qoid.model.LabeledContent = function(contentIid,labelIid) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.contentIid = contentIid;
+	this.labelIid = labelIid;
+};
+$hxClasses["qoid.model.LabeledContent"] = qoid.model.LabeledContent;
+qoid.model.LabeledContent.__name__ = ["qoid","model","LabeledContent"];
+qoid.model.LabeledContent.identifier = function(l) {
+	return l.iid;
+};
+qoid.model.LabeledContent.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.LabeledContent.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.LabeledContent
+});
+qoid.model.Profile = function(name,imgSrc,aliasIid) {
+	qoid.model.ModelObjWithIid.call(this);
+	if(name == null) this.name = "Unknown"; else this.name = name;
+	if(imgSrc == null) this.imgSrc = "media/koi.jpg"; else this.imgSrc = imgSrc;
+	this.aliasIid = aliasIid;
+};
+$hxClasses["qoid.model.Profile"] = qoid.model.Profile;
+qoid.model.Profile.__name__ = ["qoid","model","Profile"];
+qoid.model.Profile.identifier = function(profile) {
+	return profile.iid;
+};
+qoid.model.Profile.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Profile.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Profile
+});
+qoid.model.Content = function(contentType,type) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.contentType = contentType;
+	if(qoid.Qoid.get_currentAlias() == null) this.aliasIid = null; else this.aliasIid = qoid.Qoid.get_currentAlias().iid;
+	this.data = { };
+	this.type = type;
+	this.props = Type.createInstance(type,[]);
+	this.metaData = new qoid.model.ContentMetaData();
+};
+$hxClasses["qoid.model.Content"] = qoid.model.Content;
+qoid.model.Content.__name__ = ["qoid","model","Content"];
+qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	setData: function(data) {
+		this.data = data;
+	}
+	,readResolve: function() {
+		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
+	}
+	,writeResolve: function() {
+		this.data = m3.serialization.Serializer.get_instance().toJson(this.props);
+	}
+	,getTimestamp: function() {
+		return DateTools.format(this.created,"%Y-%m-%d %T");
+	}
+	,objectType: function() {
+		return "content";
+	}
+	,__class__: qoid.model.Content
+});
+qoid.model.ContentHandler = function() {
+};
+$hxClasses["qoid.model.ContentHandler"] = qoid.model.ContentHandler;
+qoid.model.ContentHandler.__name__ = ["qoid","model","ContentHandler"];
+qoid.model.ContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
+qoid.model.ContentHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var obj = null;
+		var _g = fromJson.contentType;
+		switch(_g) {
+		case qoid.model.ContentTypes.AUDIO:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.AudioContent);
+			break;
+		case qoid.model.ContentTypes.IMAGE:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.ImageContent);
+			break;
+		case qoid.model.ContentTypes.TEXT:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.MessageContent);
+			break;
+		case qoid.model.ContentTypes.URL:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.UrlContent);
+			break;
+		case qoid.model.ContentTypes.VERIFICATION:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.VerificationContent);
+			break;
+		}
+		return obj;
+	}
+	,write: function(value,writer) {
+		return m3.serialization.Serializer.get_instance().toJson(value);
+	}
+	,__class__: qoid.model.ContentHandler
+};
+qoid.model.Notification = function(kind,type) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.kind = kind;
+	this.data = { };
+	this.type = type;
+	this.route = new Array();
+	this.props = Type.createInstance(type,[]);
+};
+$hxClasses["qoid.model.Notification"] = qoid.model.Notification;
+qoid.model.Notification.__name__ = ["qoid","model","Notification"];
+qoid.model.Notification.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Notification.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	objectType: function() {
+		return "notification";
+	}
+	,readResolve: function() {
+		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
+	}
+	,writeResolve: function() {
+		this.data = m3.serialization.Serializer.get_instance().toJson(this.props);
+	}
+	,__class__: qoid.model.Notification
+});
+qoid.model.NotificationHandler = function() {
+};
+$hxClasses["qoid.model.NotificationHandler"] = qoid.model.NotificationHandler;
+qoid.model.NotificationHandler.__name__ = ["qoid","model","NotificationHandler"];
+qoid.model.NotificationHandler.__interfaces__ = [m3.serialization.TypeHandler];
+qoid.model.NotificationHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var obj = null;
+		var _g = fromJson.kind;
+		switch(_g) {
+		case qoid.model.NotificationKind.IntroductionRequest:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.IntroductionRequestNotification);
+			break;
+		case qoid.model.NotificationKind.VerificationRequest:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.VerificationRequestNotification);
+			break;
+		case qoid.model.NotificationKind.VerificationResponse:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.VerificationResponseNotification);
+			break;
+		}
+		return obj;
+	}
+	,write: function(value,writer) {
+		return m3.serialization.Serializer.get_instance().toJson(value);
+	}
+	,__class__: qoid.model.NotificationHandler
+};
+qoid.Qoid = function() { };
+$hxClasses["qoid.Qoid"] = qoid.Qoid;
+qoid.Qoid.__name__ = ["qoid","Qoid"];
+qoid.Qoid.set_currentAlias = function(a) {
+	qoid.Qoid.currentAlias = a;
+	m3.event.EventManager.get_instance().change(qoid.QE.onAliasLoaded,qoid.Qoid.get_currentAlias());
+	return qoid.Qoid.get_currentAlias();
+};
+qoid.Qoid.get_currentAlias = function() {
+	return qoid.Qoid.currentAlias;
+};
+qoid.Qoid.onInitialDataLoadComplete = function(connectionIid) {
+	var a = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.aliases,connectionIid,"connectionIid");
+	var $it0 = qoid.Qoid.aliases.iterator();
+	while( $it0.hasNext() ) {
+		var alias = $it0.next();
+		if(alias.data.isDefault == true) {
+			a = alias;
+			break;
+		}
+	}
+	qoid.Qoid.set_currentAlias(a);
+};
+qoid.Qoid.processProfile = function(rec) {
+	var connectionIid = rec.result.route[0];
+	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,connectionIid);
+	var profile = m3.serialization.Serializer.get_instance().fromJsonX(rec.result.results[0],qoid.model.Profile);
+	profile.connectionIid = connectionIid;
+	connection.data = profile;
+	qoid.Qoid.connections.addOrUpdate(connection);
+	qoid.Qoid.profiles.addOrUpdate(profile);
+};
+qoid.Qoid.getLabelDescendents = function(iid) {
+	var labelDescendents = new m3.observable.ObservableSet(qoid.model.Label.identifier);
+	var getDescendentIids;
+	getDescendentIids = function(iid1,iidList) {
+		iidList.splice(0,0,iid1);
+		var children = new m3.observable.FilteredSet(qoid.Qoid.labelChildren,function(lc) {
+			return lc.parentIid == iid1;
+		}).asArray();
+		var _g1 = 0;
+		var _g = children.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			getDescendentIids(children[i].childIid,iidList);
+		}
+	};
+	var iid_list = new Array();
+	getDescendentIids(iid,iid_list);
+	var _g2 = 0;
+	while(_g2 < iid_list.length) {
+		var iid_ = iid_list[_g2];
+		++_g2;
+		var label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,iid_);
+		if(label == null) m3.log.Logga.get_DEFAULT().error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
+	}
+	return labelDescendents;
+};
+qoid.Qoid.connectionFromMetaLabel = function(labelIid) {
+	var ret = null;
+	var $it0 = qoid.Qoid.connections.iterator();
+	while( $it0.hasNext() ) {
+		var connection = $it0.next();
+		if(connection.labelIid == labelIid) {
+			ret = connection;
+			break;
+		}
+	}
+	return ret;
+};
+qoid.model.Alias = function() {
+	qoid.model.ModelObjWithIid.call(this);
+	this.profile = new qoid.model.Profile();
+	this.data = new qoid.model.AliasData();
+};
+$hxClasses["qoid.model.Alias"] = qoid.model.Alias;
+qoid.model.Alias.__name__ = ["qoid","model","Alias"];
+qoid.model.Alias.identifier = function(alias) {
+	return alias.iid;
+};
+qoid.model.Alias.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Alias.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Alias
+});
+qoid.model.Introduction = function() {
+	qoid.model.ModelObjWithIid.call(this);
+};
+$hxClasses["qoid.model.Introduction"] = qoid.model.Introduction;
+qoid.model.Introduction.__name__ = ["qoid","model","Introduction"];
+qoid.model.Introduction.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Introduction.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Introduction
+});
+qoid.Synchronizer = function(context,numResponsesExpected,oncomplete) {
+	this.context = context;
+	this.numResponsesExpected = numResponsesExpected;
+	this.oncomplete = oncomplete;
+	this.parms = new qoid.SynchronizationParms();
+	qoid.Synchronizer.synchronizers.set(context,this);
+};
+$hxClasses["qoid.Synchronizer"] = qoid.Synchronizer;
+qoid.Synchronizer.__name__ = ["qoid","Synchronizer"];
+qoid.Synchronizer.processResponse = function(context,data) {
+	var context1 = context.context;
+	var synchronizer = qoid.Synchronizer.synchronizers.get(context1);
+	if(synchronizer != null) synchronizer.dataReceived(context1,data.result);
+	return synchronizer != null;
+};
+qoid.Synchronizer.remove = function(iid) {
+	qoid.Synchronizer.synchronizers.remove(iid);
+};
+qoid.Synchronizer.prototype = {
+	processDataReceived: function(list,type,data) {
+		var _g = 0;
+		var _g1;
+		_g1 = js.Boot.__cast(data , Array);
+		while(_g < _g1.length) {
+			var datum = _g1[_g];
+			++_g;
+			list.push(m3.serialization.Serializer.get_instance().fromJsonX(datum,type));
+		}
+	}
+	,dataReceived: function(c,dataObj) {
+		var data = dataObj.results;
+		var type = dataObj.type.toLowerCase();
+		if(data != null) switch(type) {
+		case "alias":
+			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
+			break;
+		case "connection":
+			this.processDataReceived(this.parms.connections,qoid.model.Connection,data);
+			break;
+		case "introduction":
+			this.processDataReceived(this.parms.introductions,qoid.model.Introduction,data);
+			break;
+		case "label":
+			this.processDataReceived(this.parms.labels,qoid.model.Label,data);
+			break;
+		case "labelacl":
+			this.processDataReceived(this.parms.labelAcls,qoid.model.LabelAcl,data);
+			break;
+		case "labelchild":
+			this.processDataReceived(this.parms.labelChildren,qoid.model.LabelChild,data);
+			break;
+		case "labeledcontent":
+			this.processDataReceived(this.parms.labeledContent,qoid.model.LabeledContent,data);
+			break;
+		case "notification":
+			this.processDataReceived(this.parms.notifications,qoid.model.Notification,data);
+			break;
+		case "profile":
+			this.processDataReceived(this.parms.profiles,qoid.model.Profile,data);
+			break;
+		default:
+			m3.log.Logga.get_DEFAULT().error("Unknown data type: " + Std.string(dataObj.type));
+		}
+		this.numResponsesExpected -= 1;
+		if(this.numResponsesExpected == 0) {
+			this.oncomplete(this.parms);
+			qoid.Synchronizer.remove(this.context);
+		}
+	}
+	,__class__: qoid.Synchronizer
+};
+m3.comm.LongPollingRequest = function(channel,successFcn,errorFcn,ajaxOpts,baseUrl) {
+	this.timeout = 30000;
+	this.delayNextPoll = false;
+	this.running = true;
+	var _g = this;
+	this.channel = channel;
+	if(baseUrl == null) this.baseUrl = "/api/channel/poll?channel=" + channel; else this.baseUrl = baseUrl;
+	this.baseOpts = { complete : function(jqXHR,textStatus) {
+		_g.poll();
+	}};
+	if(ajaxOpts != null) $.extend(this.baseOpts,ajaxOpts);
+	var onSuccess = function(data) {
+		if(_g.running) try {
+			successFcn(data);
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
+				m3.log.Logga.get_DEFAULT().error("Error while polling",e);
+			} else throw(e);
+		}
+	};
+	var onError = function(exc) {
+		_g.delayNextPoll = true;
+		m3.log.Logga.get_DEFAULT().error("Error executing ajax call | Response Code: " + Std.string(_g.jqXHR.status) + " | " + Std.string(_g.jqXHR.message));
+		if(errorFcn != null) errorFcn(exc);
+	};
+	m3.comm.BaseRequest.call(this,"",this.getUrl(),onSuccess,onError);
+};
+$hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
+m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
+m3.comm.LongPollingRequest.__super__ = m3.comm.BaseRequest;
+m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
+	pause: function() {
+		this.running = false;
+		this.poll();
+	}
+	,resume: function() {
+		this.running = false;
+		this.poll();
+	}
+	,toggle: function() {
+		this.running = !this.running;
+		m3.log.Logga.get_DEFAULT().debug("Long Polling is running? " + Std.string(this.running));
+		this.poll();
+	}
+	,getChannelId: function() {
+		return this.channel;
+	}
+	,start: function(opts) {
+		this.poll();
+		return this.jqXHR;
+	}
+	,abort: function() {
+		this.running = false;
+		if(this.jqXHR != null) try {
+			this.jqXHR.abort();
+			this.jqXHR = null;
+		} catch( err ) {
+			m3.log.Logga.get_DEFAULT().error("error on poll abort | " + Std.string(err));
+		}
+	}
+	,getUrl: function() {
+		return this.baseUrl + "?timeoutMillis=" + Std.string(this.timeout);
+	}
+	,poll: function() {
+		if(this.running) {
+			if(this.delayNextPoll == true) {
+				this.delayNextPoll = false;
+				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
+			} else {
+				this.baseOpts.url = this.getUrl();
+				this.baseOpts.timeout = this.timeout + 1000;
+				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
+			}
+		}
+	}
+	,__class__: m3.comm.LongPollingRequest
+});
+qoid.SynchronizationParms = function() {
+	this.aliases = new Array();
+	this.connections = new Array();
+	this.introductions = new Array();
+	this.labels = new Array();
+	this.labelAcls = new Array();
+	this.labelChildren = new Array();
+	this.labeledContent = new Array();
+	this.notifications = new Array();
+	this.profiles = new Array();
+};
+$hxClasses["qoid.SynchronizationParms"] = qoid.SynchronizationParms;
+qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
+qoid.SynchronizationParms.prototype = {
+	__class__: qoid.SynchronizationParms
+};
+js.Lib = function() { };
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
+};
+agentui.widget = {};
+agentui.widget.UploadCompHelper = function() { };
+$hxClasses["agentui.widget.UploadCompHelper"] = agentui.widget.UploadCompHelper;
+agentui.widget.UploadCompHelper.__name__ = ["agentui","widget","UploadCompHelper"];
+agentui.widget.UploadCompHelper.value = function(m) {
+	return m.uploadComp("value");
+};
+agentui.widget.UploadCompHelper.clear = function(m) {
+	m.uploadComp("clear");
+};
+agentui.widget.UploadCompHelper.setPreviewImage = function(m,src) {
+	m.uploadComp("setPreviewImage",src);
+};
 m3.widget = {};
 m3.widget.Widgets = function() { };
 $hxClasses["m3.widget.Widgets"] = m3.widget.Widgets;
@@ -3573,24 +3213,9 @@ m3.widget.Widgets.getSelfElement = function() {
 m3.widget.Widgets.getWidgetClasses = function() {
 	return " ui-widget";
 };
-ap.widget.ConnectionAvatarHelper = function() { };
-$hxClasses["ap.widget.ConnectionAvatarHelper"] = ap.widget.ConnectionAvatarHelper;
-ap.widget.ConnectionAvatarHelper.__name__ = ["ap","widget","ConnectionAvatarHelper"];
-ap.widget.ConnectionAvatarHelper.getAlias = function(c) {
-	return c.connectionAvatar("getAlias");
-};
-ap.widget.ContentCompHelper = function() { };
-$hxClasses["ap.widget.ContentCompHelper"] = ap.widget.ContentCompHelper;
-ap.widget.ContentCompHelper.__name__ = ["ap","widget","ContentCompHelper"];
-ap.widget.ContentCompHelper.content = function(cc) {
-	return cc.contentComp("option","content");
-};
-ap.widget.ContentCompHelper.update = function(cc,c) {
-	return cc.contentComp("update",c);
-};
-qoid.model.ContentType = function() { };
-$hxClasses["qoid.model.ContentType"] = qoid.model.ContentType;
-qoid.model.ContentType.__name__ = ["qoid","model","ContentType"];
+qoid.model.ContentTypes = function() { };
+$hxClasses["qoid.model.ContentTypes"] = qoid.model.ContentTypes;
+qoid.model.ContentTypes.__name__ = ["qoid","model","ContentTypes"];
 m3.helper.ArrayHelper = $hx_exports.m3.helper.ArrayHelper = function() { };
 $hxClasses["m3.helper.ArrayHelper"] = m3.helper.ArrayHelper;
 m3.helper.ArrayHelper.__name__ = ["m3","helper","ArrayHelper"];
@@ -3801,6 +3426,963 @@ m3.helper.ArrayHelper.joinX = function(array,sep) {
 	}
 	return s;
 };
+ap.APhoto = $hx_exports.ap.APhoto = function() { };
+$hxClasses["ap.APhoto"] = ap.APhoto;
+ap.APhoto.__name__ = ["ap","APhoto"];
+ap.APhoto.main = function() {
+	ap.api.EventDelegate.init();
+	ap.APhotoContext.init();
+	ap.APhoto.HOT_KEY_ACTIONS = m3.util.HotKeyManager.get_get();
+};
+ap.APhoto.start = function() {
+	new $("#navHomeButton").button({ icons : { primary : "ui-icon-home"}}).click(function() {
+		ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.HOME_SCREEN);
+	});
+	ap.APhotoContext.PAGE_MGR.setBackButton(new $("#navBackButton").button({ icons : { primary : "ui-icon-arrowthick-1-w"}}));
+	ap.APhotoContext.PAGE_MGR.initClientPages();
+	var document = new $(window.document);
+	document.bind("pagebeforeshow",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.beforePageShow)));
+	document.bind("pagebeforecreate",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.pageBeforeCreate)));
+	document.bind("pageshow",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.pageShow)));
+	document.bind("pagehide",($_=ap.APhotoContext.PAGE_MGR,$bind($_,$_.pageHide)));
+	ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.HOME_SCREEN);
+	new $("body").click(function() {
+		new $(".nonmodalPopup").hide();
+	});
+	ap.widget.DialogManager.showLogin();
+};
+ap.AphotoContentHandler = function() {
+};
+$hxClasses["ap.AphotoContentHandler"] = ap.AphotoContentHandler;
+ap.AphotoContentHandler.__name__ = ["ap","AphotoContentHandler"];
+ap.AphotoContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
+ap.AphotoContentHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var obj = null;
+		try {
+			var _g = fromJson.contentType;
+			switch(_g) {
+			case qoid.model.ContentTypes.AUDIO:
+				obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.AudioContent);
+				break;
+			case qoid.model.ContentTypes.IMAGE:
+				obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.ImageContent);
+				break;
+			case qoid.model.ContentTypes.URL:
+				obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.UrlContent);
+				break;
+			case qoid.model.ContentTypes.VERIFICATION:
+				obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.VerificationContent);
+				break;
+			case qoid.model.ContentTypes.TEXT:
+				obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.MessageContent);
+				break;
+			case ap.model.APhotoContentTypes.CONFIG:
+				obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,ap.model.ConfigContent);
+				break;
+			}
+		} catch( err ) {
+			fromJson.contentType = qoid.model.ContentTypes.TEXT;
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.MessageContent);
+		}
+		return obj;
+	}
+	,write: function(value,writer) {
+		return m3.serialization.Serializer.get_instance().toJson(value);
+	}
+	,__class__: ap.AphotoContentHandler
+};
+ap.APhotoContext = function() { };
+$hxClasses["ap.APhotoContext"] = ap.APhotoContext;
+ap.APhotoContext.__name__ = ["ap","APhotoContext"];
+ap.APhotoContext.init = function() {
+	ap.APhotoContext.PAGE_MGR = ap.pages.APhotoPageMgr.get_get();
+	ap.APhotoContext.registerListeners();
+	ap.APhotoContext.ALBUM_CONFIGS = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+	ap.model.EM.listenOnce("APP_INITIALIZED",function(n) {
+		ap.APhotoContext.APP_INITIALIZED = true;
+	},"APhotoContext-AppInitialized");
+};
+ap.APhotoContext.get_ROOT_ALBUM = function() {
+	return ap.APhotoContext.ROOT_ALBUM;
+};
+ap.APhotoContext.set_ROOT_ALBUM = function(l) {
+	ap.APhotoContext.ROOT_ALBUM = l;
+	var root = new agentui.model.Or();
+	root.type = "ROOT";
+	var path = new Array();
+	path.push(m3.helper.OSetHelper.getElement(qoid.Qoid.labels,qoid.Qoid.get_currentAlias().labelIid).name);
+	path.push(ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS().name);
+	path.push(ap.APhotoContext.get_ROOT_ALBUM().name);
+	root.addNode(new agentui.model.LabelNode(l,path));
+	var filterData = new agentui.model.FilterData("albumConfig");
+	filterData.filter = new agentui.model.Filter(root);
+	filterData.filter.q = filterData.filter.q + " and contentType = '" + ap.APhotoContext.APP_ROOT_LABEL_NAME + ".config'";
+	filterData.connectionIids = [];
+	filterData.aliasIid = qoid.Qoid.get_currentAlias().iid;
+	ap.model.EM.change("FILTER_RUN",filterData);
+	return l;
+};
+ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS = function() {
+	return ap.APhotoContext.ROOT_LABEL_OF_ALL_APPS;
+};
+ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS = function(l) {
+	ap.APhotoContext.ROOT_LABEL_OF_ALL_APPS = l;
+	return l;
+};
+ap.APhotoContext.registerListeners = function() {
+	ap.model.EM.listenOnce(qoid.QE.onInitialDataload,ap.APhotoContext._onInitialDataLoadComplete,"APhotoContext-onInitialDataLoad");
+	ap.model.EM.addListener("onAlbumConfig",ap.APhotoContext._onAlbumConfig,"APhotoContext-onAlbumConfig");
+};
+ap.APhotoContext._onInitialDataLoadComplete = function(n) {
+	var rootLabelOfThisApp = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,ap.APhotoContext.APP_ROOT_LABEL_NAME,function(l) {
+		return l.name;
+	});
+	var rootLabelOfAllApps = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS,function(l1) {
+		return l1.name;
+	});
+	if(rootLabelOfThisApp == null) {
+		var createRootLabelOfThisApp = function(theRootLabelOfAllApps) {
+			var listener = null;
+			listener = function(l2,evtType) {
+				if(evtType.isAdd()) {
+					if(l2.name == ap.APhotoContext.APP_ROOT_LABEL_NAME) {
+						qoid.Qoid.labels.removeListener(listener);
+						ap.APhotoContext.set_ROOT_ALBUM(l2);
+						ap.model.EM.change(qoid.QE.onAliasLoaded,qoid.Qoid.get_currentAlias());
+						ap.model.EM.change("APP_INITIALIZED");
+					}
+				}
+			};
+			qoid.Qoid.labels.listen(listener,false);
+			var label = new qoid.model.Label();
+			label.name = ap.APhotoContext.APP_ROOT_LABEL_NAME;
+			var eventData = new qoid.model.EditLabelData(label,ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS().iid);
+			ap.model.EM.change("CreateLabel",eventData);
+		};
+		if(rootLabelOfAllApps == null) {
+			var listener1 = null;
+			listener1 = function(l3,evtType1) {
+				if(evtType1.isAdd()) {
+					if(l3.name == ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
+						qoid.Qoid.labels.removeListener(listener1);
+						ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(l3);
+						createRootLabelOfThisApp(l3);
+					}
+				}
+			};
+			qoid.Qoid.labels.listen(listener1,false);
+			var label1 = new qoid.model.Label();
+			label1.name = ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS;
+			var eventData1 = new qoid.model.EditLabelData(label1,qoid.Qoid.get_currentAlias().labelIid);
+			ap.model.EM.change("CreateLabel",eventData1);
+		} else {
+			ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
+			createRootLabelOfThisApp(rootLabelOfAllApps);
+		}
+	} else {
+		ap.APhotoContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
+		ap.APhotoContext.set_ROOT_ALBUM(rootLabelOfThisApp);
+		ap.model.EM.change(qoid.QE.onAliasLoaded,qoid.Qoid.get_currentAlias());
+		ap.model.EM.change("APP_INITIALIZED");
+	}
+};
+ap.APhotoContext._onAlbumConfig = function(data) {
+	if(m3.helper.ArrayHelper.hasValues(data.result.results)) {
+		var _g = 0;
+		var _g1 = data.result.results;
+		while(_g < _g1.length) {
+			var result = _g1[_g];
+			++_g;
+			var c = m3.serialization.Serializer.get_instance().fromJsonX(result,ap.model.ConfigContent);
+			if(c != null) ap.APhotoContext.ALBUM_CONFIGS.addOrUpdate(c);
+		}
+	}
+};
+ap.api = {};
+ap.api.EventDelegate = function() { };
+$hxClasses["ap.api.EventDelegate"] = ap.api.EventDelegate;
+ap.api.EventDelegate.__name__ = ["ap","api","EventDelegate"];
+ap.api.EventDelegate.init = function() {
+	ap.model.EM.addListener("FILTER_RUN",function(filterData) {
+		if(filterData.type == "albumConfig") qoid.QoidAPI.query(new qoid.RequestContext("albumConfig"),"content",filterData.filter.q,true,true); else qoid.QoidAPI.query(new qoid.RequestContext("filteredContent",m3.util.UidGenerator.create(12)),"content",filterData.filter.q,true,true);
+	});
+	ap.model.EM.addListener("CreateAgent",function(user) {
+		qoid.QoidAPI.createAgent(user.name,user.pwd);
+	});
+	ap.model.EM.addListener("CreateContent",function(data) {
+		qoid.QoidAPI.createContent(data.content.contentType,m3.serialization.Serializer.get_instance().toJson(data.content).data,data.labelIids);
+	});
+	ap.model.EM.addListener("UpdateContent",function(data1) {
+		qoid.QoidAPI.updateContent(data1.content.iid,m3.serialization.Serializer.get_instance().toJson(data1.content).data);
+	});
+	ap.model.EM.addListener("DeleteContent",function(data2) {
+		qoid.QoidAPI.deleteContent(data2.content.iid);
+	});
+	ap.model.EM.addListener("CreateLabel",function(data3) {
+		qoid.QoidAPI.createLabel(data3.parentIid,data3.label.name,data3.label.data);
+	});
+	ap.model.EM.addListener("UpdateLabel",function(data4) {
+		qoid.QoidAPI.updateLabel(data4.label.iid,data4.label.name,data4.label.data);
+	});
+	ap.model.EM.addListener("DeleteLabel",function(data5) {
+		qoid.QoidAPI.deleteLabel(data5.label.iid,data5.parentIid);
+	});
+	ap.model.EM.addListener("UserLogout",function(c) {
+		qoid.QoidAPI.logout();
+	});
+};
+ap.model.AphotoModel = function() { };
+$hxClasses["ap.model.AphotoModel"] = ap.model.AphotoModel;
+ap.model.AphotoModel.__name__ = ["ap","model","AphotoModel"];
+ap.model.APhotoContentTypes = function() { };
+$hxClasses["ap.model.APhotoContentTypes"] = ap.model.APhotoContentTypes;
+ap.model.APhotoContentTypes.__name__ = ["ap","model","APhotoContentTypes"];
+qoid.model.ContentData = function() {
+};
+$hxClasses["qoid.model.ContentData"] = qoid.model.ContentData;
+qoid.model.ContentData.__name__ = ["qoid","model","ContentData"];
+qoid.model.ContentData.prototype = {
+	__class__: qoid.model.ContentData
+};
+ap.model.ConfigContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["ap.model.ConfigContentData"] = ap.model.ConfigContentData;
+ap.model.ConfigContentData.__name__ = ["ap","model","ConfigContentData"];
+ap.model.ConfigContentData.__super__ = qoid.model.ContentData;
+ap.model.ConfigContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: ap.model.ConfigContentData
+});
+ap.model.ConfigContent = function() {
+	qoid.model.Content.call(this,ap.model.APhotoContentTypes.CONFIG,ap.model.ConfigContentData);
+};
+$hxClasses["ap.model.ConfigContent"] = ap.model.ConfigContent;
+ap.model.ConfigContent.__name__ = ["ap","model","ConfigContent"];
+ap.model.ConfigContent.__super__ = qoid.model.Content;
+ap.model.ConfigContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: ap.model.ConfigContent
+});
+ap.model.ContentSourceListener = function(mapListener,onBeforeSetContent,widgetCreator,content) {
+	this.mapListener = mapListener;
+	this.onBeforeSetContent = onBeforeSetContent;
+	this.widgetCreator = widgetCreator;
+	this.contentMap = new m3.observable.MappedSet(content,function(content1) {
+		return widgetCreator(content1);
+	});
+	this.contentMap.mapListen(this.mapListener);
+	this.id = m3.util.UidGenerator.create(20);
+};
+$hxClasses["ap.model.ContentSourceListener"] = ap.model.ContentSourceListener;
+ap.model.ContentSourceListener.__name__ = ["ap","model","ContentSourceListener"];
+ap.model.ContentSourceListener.prototype = {
+	destroy: function() {
+		this.contentMap.removeListeners(this.mapListener);
+	}
+	,__class__: ap.model.ContentSourceListener
+};
+ap.model.ContentSource = function() { };
+$hxClasses["ap.model.ContentSource"] = ap.model.ContentSource;
+ap.model.ContentSource.__name__ = ["ap","model","ContentSource"];
+ap.model.ContentSource.addListener = function(ml,obsc,wc) {
+	var l = new ap.model.ContentSourceListener(ml,obsc,wc,ap.model.ContentSource.filteredContent);
+	ap.model.ContentSource.listeners.push(l);
+	return l.id;
+};
+ap.model.ContentSource.removeListener = function(id) {
+	var i = m3.helper.ArrayHelper.indexOfComplex(ap.model.ContentSource.listeners,id,"id");
+	if(i > -1) {
+		ap.model.ContentSource.listeners[i].destroy();
+		ap.model.ContentSource.listeners.splice(i,1);
+	}
+};
+ap.model.ContentSource.addContent = function(results,connectionIid) {
+	var iids = new Array();
+	var connectionIids = new Array();
+	var _g = 0;
+	while(_g < results.length) {
+		var result = results[_g];
+		++_g;
+		var c = m3.serialization.Serializer.get_instance().fromJsonX(result,qoid.model.Content);
+		if(c != null) {
+			if(connectionIid != null) {
+				c.aliasIid = null;
+				c.connectionIid = connectionIid;
+			}
+			ap.model.ContentSource.filteredContent.addOrUpdate(c);
+		}
+	}
+};
+ap.model.ContentSource.onLoadFilteredContent = function(data) {
+	if(data.result.standing || ap.model.ContentSource.handle == data.context.handle) ap.model.ContentSource.addContent(data.result.results,data.connectionIid); else {
+		ap.model.ContentSource.clearQuery();
+		ap.model.ContentSource.handle = data.context.handle;
+		ap.model.ContentSource.beforeSetContent();
+		ap.model.ContentSource.addContent(data.result.results,data.connectionIid);
+	}
+};
+ap.model.ContentSource.clearQuery = function() {
+	if(ap.model.ContentSource.handle != null) {
+		m3.log.Logga.get_DEFAULT().warn("deregisterSqueries");
+		ap.model.ContentSource.filteredContent.clear();
+		ap.model.ContentSource.handle = null;
+	}
+};
+ap.model.ContentSource.onAliasLoaded = function(alias) {
+	ap.model.ContentSource.clearQuery();
+};
+ap.model.ContentSource.beforeSetContent = function() {
+	var _g = 0;
+	var _g1 = ap.model.ContentSource.listeners;
+	while(_g < _g1.length) {
+		var l = _g1[_g];
+		++_g;
+		l.onBeforeSetContent();
+	}
+};
+ap.model.EMEvent = function() { };
+$hxClasses["ap.model.EMEvent"] = ap.model.EMEvent;
+ap.model.EMEvent.__name__ = ["ap","model","EMEvent"];
+ap.model.Nothing = function() { };
+$hxClasses["ap.model.Nothing"] = ap.model.Nothing;
+ap.model.Nothing.__name__ = ["ap","model","Nothing"];
+m3.jq.pages = {};
+m3.jq.pages.Page = function(opts) {
+	this.holdingOnInitialization = false;
+	this.showBackButton = true;
+	var _g = this;
+	if(!m3.jq.pages.SinglePageManager.SCREEN_MAP.exists(opts.id)) m3.jq.pages.SinglePageManager.SCREEN_MAP.set(opts.id,this); else throw new m3.exception.Exception("Page with this ID already exists! | " + opts.id);
+	this.options = opts;
+	this.applyDefaults();
+	this.id = this.options.id;
+	this.showBackButton = this.options.showBackButton;
+	this.pageBeforeCreate = function(screen) {
+		_g.options.pageBeforeCreateFcn(screen);
+	};
+	this.pageShow = function(screen1) {
+		m3.log.Logga.get_DEFAULT().debug("pageShow " + _g.id);
+		_g.options.pageShowFcn(screen1);
+	};
+	this.pageHide = function(screen2) {
+		m3.log.Logga.get_DEFAULT().debug("pageHide " + _g.id);
+		_g.options.pageHideFcn(screen2);
+	};
+	if(this.options.customReloadFcn == null) this.reshow = function(screen3) {
+		if(_g.holdingOnInitialization) {
+			m3.log.Logga.get_DEFAULT().debug("don't reshow b/c we're holding on initialization");
+			return;
+		}
+		_g.options.pageBeforeShowFcn(screen3);
+	}; else this.reshow = function(screen4) {
+		if(_g.holdingOnInitialization) {
+			m3.log.Logga.get_DEFAULT().debug("don't reshow b/c we're holding on initialization");
+			return;
+		}
+		_g.options.customReloadFcn(screen4);
+	};
+};
+$hxClasses["m3.jq.pages.Page"] = m3.jq.pages.Page;
+m3.jq.pages.Page.__name__ = ["m3","jq","pages","Page"];
+m3.jq.pages.Page.noOp = function(jq) {
+};
+m3.jq.pages.Page.prototype = {
+	getDefaults: function() {
+		return { id : null, pageBeforeCreateFcn : m3.jq.pages.Page.noOp, pageBeforeShowFcn : m3.jq.pages.Page.noOp, pageHideFcn : m3.jq.pages.Page.noOp, pageShowFcn : m3.jq.pages.Page.noOp, reqUser : true, reloadUserOnShow : false, showBackButton : this.showBackButton, usesKeyboard : false};
+	}
+	,applyDefaults: function() {
+		this.options = $.extend(this.getDefaults(),this.options);
+	}
+	,addPageToDom: function() {
+		var pageDiv = new $("<div class='page' id='" + this.get_nonCssId() + "'></div>").appendTo(new $(window.document.body));
+		this.initializePageContents(pageDiv);
+	}
+	,initializePageContents: function(pageDiv) {
+		if(pageDiv != null) pageDiv.trigger("pagebeforecreate");
+	}
+	,get_pageBeforeCreate: function() {
+		return this.pageBeforeCreate;
+	}
+	,get_pageBeforeShow: function() {
+		return this.pageBeforeShow;
+	}
+	,get_pageShow: function() {
+		return this.pageShow;
+	}
+	,get_pageHide: function() {
+		return this.pageHide;
+	}
+	,get_reshow: function() {
+		return this.reshow;
+	}
+	,get_screen: function() {
+		if(this.screen == null) this.set_screen(new $(this.id));
+		return this.screen;
+	}
+	,set_screen: function(screen) {
+		this.screen = screen;
+		return this.get_screen();
+	}
+	,get_nonCssId: function() {
+		return this.id.substring(1);
+	}
+	,__class__: m3.jq.pages.Page
+};
+ap.pages = {};
+ap.pages.APhotoPage = function(opts) {
+	var _g = this;
+	m3.jq.pages.Page.call(this,opts);
+	this.pageBeforeShow = function(screen) {
+		m3.log.Logga.get_DEFAULT().debug("pageBeforeShow " + _g.id);
+		var justReloaded = false;
+		var fcn = function() {
+			try {
+				_g.options.pageBeforeShowFcn(screen);
+			} catch( err ) {
+				m3.log.Logga.get_DEFAULT().error("Error showing " + _g.options.id,m3.log.Logga.getExceptionInst(err));
+				m3.util.JqueryUtil.alert("There was a problem showing this screen.","Error");
+				return;
+			}
+			justReloaded = false;
+		};
+		if(ap.APhotoContext.APP_INITIALIZED) fcn(); else {
+			m3.log.Logga.get_DEFAULT().debug(_g.get_nonCssId() + " is holdingOnInitialization");
+			_g.holdingOnInitialization = true;
+			ap.model.EM.listenOnce("APP_INITIALIZED",function(n) {
+				justReloaded = true;
+				fcn();
+				_g.holdingOnInitialization = false;
+				m3.log.Logga.get_DEFAULT().debug(_g.get_nonCssId() + " is no longer holdingOnInitialization");
+			},"PageBefore-AppInitialized");
+		}
+	};
+};
+$hxClasses["ap.pages.APhotoPage"] = ap.pages.APhotoPage;
+ap.pages.APhotoPage.__name__ = ["ap","pages","APhotoPage"];
+ap.pages.APhotoPage.__super__ = m3.jq.pages.Page;
+ap.pages.APhotoPage.prototype = $extend(m3.jq.pages.Page.prototype,{
+	initializePageContents: function(pageDiv) {
+		if(pageDiv == null) pageDiv = new $(this.id);
+		m3.jq.pages.Page.prototype.initializePageContents.call(this,pageDiv);
+		var pageContent = new $("<div class='ui-content content'></div>").appendTo(pageDiv);
+	}
+	,__class__: ap.pages.APhotoPage
+});
+m3.jq.pages.SinglePageManager = function(isAppInitialized,onAppInitialized) {
+	this.history = new Array();
+	this.isAppInitialized = isAppInitialized;
+};
+$hxClasses["m3.jq.pages.SinglePageManager"] = m3.jq.pages.SinglePageManager;
+m3.jq.pages.SinglePageManager.__name__ = ["m3","jq","pages","SinglePageManager"];
+m3.jq.pages.SinglePageManager.prototype = {
+	get_CURRENT_PAGE: function() {
+		return this.getScreen(new $(".activePage").attr("id"));
+	}
+	,set_CURRENT_PAGE: function(page) {
+		m3.log.Logga.get_DEFAULT().debug("set current page to " + page.get_nonCssId());
+		if(page == this.get_CURRENT_PAGE()) m3.log.Logga.get_DEFAULT().debug("already on page " + page.get_nonCssId()); else this.changePage(page,false);
+		return page;
+	}
+	,changePage: function(page,isBack) {
+		var currentPage = this.get_CURRENT_PAGE();
+		if(currentPage != null) {
+			currentPage.get_screen().hide(0,function() {
+				currentPage.get_screen().trigger("pagehide");
+			});
+			currentPage.get_screen().removeClass("activePage");
+			if(!isBack) this.history.push(currentPage);
+		}
+		page.get_screen().trigger("pagebeforeshow");
+		page.get_screen().addClass("activePage");
+		page.get_screen().show(0,function() {
+			page.get_screen().trigger("pageshow");
+		});
+		if(this.backBtn != null) {
+			if(Lambda.empty(this.history)) this.backBtn.hide(); else this.backBtn.show();
+		}
+	}
+	,setBackButton: function(backButton) {
+		var _g = this;
+		this.backBtn = backButton;
+		this.backBtn.click(function(evt) {
+			_g.back();
+		});
+	}
+	,back: function() {
+		if(!Lambda.empty(this.history)) {
+			var page = this.history.pop();
+			this.changePage(page,true);
+			window.history.back();
+		}
+		if(this.backBtn != null) {
+		}
+	}
+	,getScreen: function(id) {
+		if(m3.helper.StringHelper.isBlank(id)) return null;
+		if(id.charAt(0) != "#") id = "#" + id;
+		return m3.jq.pages.SinglePageManager.SCREEN_MAP.get(id);
+	}
+	,getScreens: function() {
+		return Lambda.array(m3.jq.pages.SinglePageManager.SCREEN_MAP);
+	}
+	,beforePageShow: function(evt) {
+		try {
+			if(evt != null && evt.target != null) {
+				var target = new $(evt.target);
+				var page = null;
+				if((page = this.getScreen(target.attr("id"))) != null) (page.get_pageBeforeShow())(target);
+			}
+		} catch( $e0 ) {
+			if( js.Boot.__instanceof($e0,m3.exception.RedirectionException) ) {
+				var err = $e0;
+				m3.log.Logga.get_DEFAULT().error("Redirecting to " + err.location.id + " because " + err.message);
+				this.changePage(this.getScreen(err.location.id),false);
+			} else {
+			var err1 = $e0;
+			var page1;
+			if(evt != null && evt.target != null) page1 = new $(evt.target).attr("id"); else page1 = "";
+			m3.log.Logga.get_DEFAULT().error("Error showing page " + page1,m3.log.Logga.getExceptionInst(err1));
+			}
+		}
+	}
+	,pageBeforeCreate: function(evt) {
+		try {
+			if(evt != null && evt.target != null) {
+				var target = new $(evt.target);
+				if(!target.exists()) js.Lib.alert("target page does not exist");
+				var page = null;
+				if((page = this.getScreen(target.attr("id"))) != null) (page.get_pageBeforeCreate())(target);
+			}
+		} catch( err ) {
+			var page1;
+			if(evt != null && evt.target != null) page1 = new $(evt.target).attr("id"); else page1 = "";
+			m3.log.Logga.get_DEFAULT().error("Error showing page " + page1,m3.log.Logga.getExceptionInst(err));
+		}
+	}
+	,pageShow: function(evt) {
+		try {
+			if(evt != null && evt.target != null) {
+				var target = new $(evt.target);
+				if(!target.exists()) js.Lib.alert("target page does not exist");
+				var page = null;
+				if((page = this.getScreen(target.attr("id"))) != null) (page.get_pageShow())(target);
+			}
+		} catch( err ) {
+			var page1;
+			if(evt != null && evt.target != null) page1 = new $(evt.target).attr("id"); else page1 = "";
+			m3.log.Logga.get_DEFAULT().error("Error showing page " + page1,m3.log.Logga.getExceptionInst(err));
+		}
+	}
+	,pageHide: function(evt) {
+		try {
+			if(evt != null && evt.target != null) {
+				var target = new $(evt.target);
+				if(!target.exists()) js.Lib.alert("target page does not exist");
+				var page = null;
+				if((page = this.getScreen(target.attr("id"))) != null) (page.get_pageHide())(target);
+			}
+		} catch( err ) {
+			var page1;
+			if(evt != null && evt.target != null) page1 = new $(evt.target).attr("id"); else page1 = "";
+			m3.log.Logga.get_DEFAULT().error("Error hiding page " + page1,m3.log.Logga.getExceptionInst(err));
+		}
+	}
+	,__class__: m3.jq.pages.SinglePageManager
+};
+ap.pages.AlbumScreen = function() {
+	ap.pages.APhotoPage.call(this,{ id : "#albumScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), pageHideFcn : $bind(this,this.pageHideFcn), reqUser : true, showBackButton : false});
+};
+$hxClasses["ap.pages.AlbumScreen"] = ap.pages.AlbumScreen;
+ap.pages.AlbumScreen.__name__ = ["ap","pages","AlbumScreen"];
+ap.pages.AlbumScreen.__super__ = ap.pages.APhotoPage;
+ap.pages.AlbumScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var _g = this;
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		this.labelSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(l) {
+			return l.iid == ap.APhotoContext.CURRENT_ALBUM;
+		});
+		this.labelSetListener = function(label,evt) {
+			if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
+			if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
+		};
+		this.labelSet.listen(this.labelSetListener,true);
+	}
+	,_applyAlbumToScreen: function(screen,label) {
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		var leftDiv = new $("<div class='leftDiv'></div>").appendTo(content);
+		var albumDetails = new $("<div></div>");
+		albumDetails.appendTo(leftDiv);
+		albumDetails.albumDetails({ label : label, parentIid : ap.APhotoContext.get_ROOT_ALBUM().iid});
+		var uploadButton = new $("<button class='uploadButton'>Upload</button>").appendTo(leftDiv).button({ icons : { primary : "ui-icon-circle-plus"}}).click(function(evt) {
+			var dlg = new $("<div id='profilePictureUploader'></div>");
+			dlg.appendTo(screen);
+			var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
+			uploadComp.appendTo(dlg);
+			uploadComp.uploadComp({ onload : function(bytes) {
+				m3.jq.M3DialogHelper.close(dlg);
+				var ccd = new qoid.model.EditContentData(qoid.model.ContentFactory.create(qoid.model.ContentTypes.IMAGE,bytes));
+				ccd.labelIids.push(ap.APhotoContext.CURRENT_ALBUM);
+				ap.model.EM.change("CreateContent",ccd);
+			}});
+			dlg.m3dialog({ width : 400, height : 305, title : "Add Picture to Album", buttons : { Cancel : function() {
+				m3.jq.M3DialogHelper.close($(this));
+			}}});
+		});
+		var root = new agentui.model.Or();
+		root.type = "ROOT";
+		var path = new Array();
+		path.push(m3.helper.OSetHelper.getElement(qoid.Qoid.labels,qoid.Qoid.get_currentAlias().labelIid).name);
+		path.push(ap.APhotoContext.get_ROOT_LABEL_OF_ALL_APPS().name);
+		path.push(ap.APhotoContext.get_ROOT_ALBUM().name);
+		path.push(label.name);
+		root.addNode(new agentui.model.LabelNode(label,path));
+		var filterData = new agentui.model.FilterData("content");
+		filterData.filter = new agentui.model.Filter(root);
+		filterData.connectionIids = [];
+		filterData.aliasIid = qoid.Qoid.get_currentAlias().iid;
+		ap.model.EM.change("FILTER_RUN",filterData);
+		var contentFeed = new $("<div></div>");
+		contentFeed.appendTo(content);
+		contentFeed.contentFeed();
+	}
+	,_noLabel: function(screen) {
+	}
+	,pageHideFcn: function(screen) {
+		this.labelSet.removeListener(this.labelSetListener);
+		this.labelSet = null;
+	}
+	,__class__: ap.pages.AlbumScreen
+});
+ap.pages.ContentScreen = function() {
+	ap.pages.APhotoPage.call(this,{ id : "#contentScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), pageHideFcn : $bind(this,this.pageHideFcn), reqUser : true, showBackButton : true});
+};
+$hxClasses["ap.pages.ContentScreen"] = ap.pages.ContentScreen;
+ap.pages.ContentScreen.__name__ = ["ap","pages","ContentScreen"];
+ap.pages.ContentScreen.__super__ = ap.pages.APhotoPage;
+ap.pages.ContentScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var _g = this;
+		var contentDiv = new $(".content",screen).empty();
+		contentDiv.addClass("center");
+		var contentId = ap.APhotoContext.CURRENT_MEDIA;
+		this.labelSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(l) {
+			return l.iid == ap.APhotoContext.CURRENT_ALBUM;
+		});
+		this.labelSetListener = function(label,evt) {
+			if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
+			if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
+		};
+		this.labelSet.listen(this.labelSetListener,true);
+		var mapListener = function(content,contentComp,evt1) {
+			if(content != null && content.iid == contentId) {
+				_g._content = content;
+				if(evt1.isAdd()) contentComp.appendTo(contentDiv); else if(evt1.isUpdate()) ap.widget.MediaCompHelper.update(contentComp,content); else if(evt1.isDelete()) contentComp.remove();
+			}
+		};
+		var beforeSetContent = $.noop;
+		var widgetCreator = function(content1) {
+			return new $("<div></div>").mediaComp({ content : content1});
+		};
+		var id = ap.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
+		this._onDestroy = function() {
+			ap.model.ContentSource.removeListener(id);
+			_g.labelSet.removeListener(_g.labelSetListener);
+			_g.labelSet = null;
+		};
+	}
+	,_applyAlbumToScreen: function(screen,label) {
+		var _g = this;
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		var leftSideOfPage = new $("<div class='leftWrap'></div>").appendTo(content);
+		var albumDetails = new $("<div></div>");
+		albumDetails.appendTo(leftSideOfPage);
+		albumDetails.albumDetails({ label : label, parentIid : ap.APhotoContext.get_ROOT_ALBUM().iid});
+		var setDefaultBtn = new $("<button class='setDefaultBtn'>Set as Default Picture</button>").click(function(evt) {
+			var config = null;
+			var event = null;
+			Lambda.iter(ap.APhotoContext.ALBUM_CONFIGS,function(c) {
+				var match = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labeledContent,c.iid + "_" + label.iid,function(lc) {
+					return lc.contentIid + "_" + lc.labelIid;
+				});
+				if(match != null) config = c;
+			});
+			if(config == null) {
+				config = qoid.model.ContentFactory.create(ap.model.APhotoContentTypes.CONFIG,_g._content.props.imgSrc);
+				event = "CreateContent";
+			} else {
+				config.props.defaultImg = _g._content.props.imgSrc;
+				event = "UpdateContent";
+			}
+			var ccd = new qoid.model.EditContentData(config);
+			ccd.labelIids.push(ap.APhotoContext.CURRENT_ALBUM);
+			ap.model.EM.change(event,ccd);
+		}).button().appendTo(leftSideOfPage);
+	}
+	,_noLabel: function(screen) {
+	}
+	,pageHideFcn: function(screen) {
+		if(this._onDestroy != null) this._onDestroy();
+	}
+	,__class__: ap.pages.ContentScreen
+});
+ap.pages.HomeScreen = function() {
+	ap.pages.APhotoPage.call(this,{ id : "#homeScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), reqUser : true, showBackButton : false});
+};
+$hxClasses["ap.pages.HomeScreen"] = ap.pages.HomeScreen;
+ap.pages.HomeScreen.__name__ = ["ap","pages","HomeScreen"];
+ap.pages.HomeScreen.__super__ = ap.pages.APhotoPage;
+ap.pages.HomeScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
+	pageBeforeShowFcn: function(screen) {
+		var content = new $(".content",screen).empty();
+		content.addClass("center");
+		var notificationsDiv = new $("<div class='notificationsDiv'></div>").appendTo(content);
+		var aliasComp = new $("<div></div>");
+		aliasComp.appendTo(notificationsDiv);
+		aliasComp.aliasComp();
+		var albumListing = new $("<div style='margin-left: 50px;'></div>");
+		albumListing.appendTo(content);
+		albumListing.albumList({ title : "My Albums"});
+	}
+	,__class__: ap.pages.HomeScreen
+});
+ap.pages.APhotoPageMgr = function() {
+	m3.jq.pages.SinglePageManager.call(this,function() {
+		return ap.APhotoContext.APP_INITIALIZED;
+	},function(fcn) {
+		ap.model.EM.listenOnce("APP_INITIALIZED",fcn);
+	});
+};
+$hxClasses["ap.pages.APhotoPageMgr"] = ap.pages.APhotoPageMgr;
+ap.pages.APhotoPageMgr.__name__ = ["ap","pages","APhotoPageMgr"];
+ap.pages.APhotoPageMgr.get_get = function() {
+	if(ap.pages.APhotoPageMgr._instance == null) ap.pages.APhotoPageMgr._instance = new ap.pages.APhotoPageMgr();
+	return ap.pages.APhotoPageMgr._instance;
+};
+ap.pages.APhotoPageMgr.__super__ = m3.jq.pages.SinglePageManager;
+ap.pages.APhotoPageMgr.prototype = $extend(m3.jq.pages.SinglePageManager.prototype,{
+	initClientPages: function() {
+		var pages = this.getScreens();
+		var _g1 = 0;
+		var _g = pages.length;
+		while(_g1 < _g) {
+			var p_ = _g1++;
+			var page = pages[p_];
+			var screen = null;
+			if(!(screen = new $(page.id)).exists()) page.addPageToDom(); else page.initializePageContents(screen);
+		}
+	}
+	,__class__: ap.pages.APhotoPageMgr
+});
+ap.widget.AlbumCompHelper = function() { };
+$hxClasses["ap.widget.AlbumCompHelper"] = ap.widget.AlbumCompHelper;
+ap.widget.AlbumCompHelper.__name__ = ["ap","widget","AlbumCompHelper"];
+ap.widget.AlbumCompHelper.getLabel = function(l) {
+	return l.albumComp("getLabel");
+};
+m3.observable.FilteredSet = function(source,filter) {
+	var _g = this;
+	m3.observable.AbstractSet.call(this);
+	this._filteredSet = new haxe.ds.StringMap();
+	this._source = source;
+	this._filter = filter;
+	this._source.listen(function(t,type) {
+		if(type.isAddOrUpdate()) _g.apply(t); else if(type.isDelete()) {
+			var key = (_g.identifier())(t);
+			if(_g._filteredSet.exists(key)) {
+				_g._filteredSet.remove(key);
+				_g.fire(t,type);
+			}
+		} else if(type.isClear()) {
+			_g._filteredSet = new haxe.ds.StringMap();
+			_g.fire(t,type);
+		}
+	});
+};
+$hxClasses["m3.observable.FilteredSet"] = m3.observable.FilteredSet;
+m3.observable.FilteredSet.__name__ = ["m3","observable","FilteredSet"];
+m3.observable.FilteredSet.__super__ = m3.observable.AbstractSet;
+m3.observable.FilteredSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
+	delegate: function() {
+		return this._filteredSet;
+	}
+	,apply: function(t) {
+		var key = (this._source.identifier())(t);
+		var f = this._filter(t);
+		var exists = this._filteredSet.exists(key);
+		if(f != exists) {
+			if(f) {
+				this._filteredSet.set(key,t);
+				this.fire(t,m3.observable.EventType.Add);
+			} else {
+				this._filteredSet.remove(key);
+				this.fire(t,m3.observable.EventType.Delete);
+			}
+		} else if(exists) this.fire(t,m3.observable.EventType.Update);
+	}
+	,refilter: function() {
+		var _g = this;
+		Lambda.iter(this._source,function(it) {
+			return _g.apply(it);
+		});
+	}
+	,identifier: function() {
+		return this._source.identifier();
+	}
+	,iterator: function() {
+		return this._filteredSet.iterator();
+	}
+	,asArray: function() {
+		var a = new Array();
+		var iter = this.iterator();
+		while(iter.hasNext()) a.push(iter.next());
+		return a;
+	}
+	,__class__: m3.observable.FilteredSet
+});
+qoid.model.EditLabelData = function(label,parentIid,newParentId) {
+	this.label = label;
+	this.parentIid = parentIid;
+	this.newParentId = newParentId;
+};
+$hxClasses["qoid.model.EditLabelData"] = qoid.model.EditLabelData;
+qoid.model.EditLabelData.__name__ = ["qoid","model","EditLabelData"];
+qoid.model.EditLabelData.prototype = {
+	__class__: qoid.model.EditLabelData
+};
+m3.observable.MappedSet = function(source,mapper,remapOnUpdate) {
+	if(remapOnUpdate == null) remapOnUpdate = false;
+	m3.observable.AbstractSet.call(this);
+	this._mappedSet = new haxe.ds.StringMap();
+	this._mapListeners = new Array();
+	this._source = source;
+	this._remapOnUpdate = remapOnUpdate;
+	this._mapper = mapper;
+	this._source.listen($bind(this,this._sourceListener));
+};
+$hxClasses["m3.observable.MappedSet"] = m3.observable.MappedSet;
+m3.observable.MappedSet.__name__ = ["m3","observable","MappedSet"];
+m3.observable.MappedSet.__super__ = m3.observable.AbstractSet;
+m3.observable.MappedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
+	_sourceListener: function(t,type) {
+		var mappedValue;
+		if(type.isClear()) {
+			this._mappedSet = new haxe.ds.StringMap();
+			mappedValue = null;
+		} else {
+			var key = (this._source.identifier())(t);
+			if(type.isAdd() || this._remapOnUpdate && type.isUpdate()) {
+				mappedValue = this._mapper(t);
+				this._mappedSet.set(key,mappedValue);
+			} else if(type.isUpdate()) mappedValue = this._mappedSet.get(key); else {
+				mappedValue = this._mappedSet.get(key);
+				this._mappedSet.remove(key);
+			}
+		}
+		this.fire(mappedValue,type);
+		Lambda.iter(this._mapListeners,function(it) {
+			return it(t,mappedValue,type);
+		});
+	}
+	,identifier: function() {
+		return $bind(this,this.identify);
+	}
+	,delegate: function() {
+		return this._mappedSet;
+	}
+	,identify: function(u) {
+		var keys = this._mappedSet.keys();
+		while(keys.hasNext()) {
+			var key = keys.next();
+			if(this._mappedSet.get(key) == u) return key;
+		}
+		throw new m3.exception.Exception("unable to find identity for " + Std.string(u));
+	}
+	,iterator: function() {
+		return this._mappedSet.iterator();
+	}
+	,mapListen: function(f) {
+		var iter = this._mappedSet.keys();
+		while(iter.hasNext()) {
+			var key = iter.next();
+			var t = m3.helper.OSetHelper.getElement(this._source,key);
+			var u = this._mappedSet.get(key);
+			f(t,u,m3.observable.EventType.Add);
+		}
+		this._mapListeners.push(f);
+	}
+	,removeListeners: function(mapListener) {
+		HxOverrides.remove(this._mapListeners,mapListener);
+		this._source.removeListener($bind(this,this._sourceListener));
+	}
+	,__class__: m3.observable.MappedSet
+});
+qoid.model.LabelData = function() {
+	qoid.model.ModelObj.call(this);
+	this.color = m3.util.ColorProvider.getNextColor();
+};
+$hxClasses["qoid.model.LabelData"] = qoid.model.LabelData;
+qoid.model.LabelData.__name__ = ["qoid","model","LabelData"];
+qoid.model.LabelData.__super__ = qoid.model.ModelObj;
+qoid.model.LabelData.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.LabelData
+});
+m3.util.FixedSizeArray = function(maxSize) {
+	this._maxSize = maxSize;
+	this._delegate = new Array();
+};
+$hxClasses["m3.util.FixedSizeArray"] = m3.util.FixedSizeArray;
+m3.util.FixedSizeArray.__name__ = ["m3","util","FixedSizeArray"];
+m3.util.FixedSizeArray.prototype = {
+	push: function(t) {
+		if(this._delegate.length >= this._maxSize) this._delegate.shift();
+		this._delegate.push(t);
+	}
+	,contains: function(t) {
+		return m3.helper.ArrayHelper.contains(this._delegate,t);
+	}
+	,__class__: m3.util.FixedSizeArray
+};
+m3.util.ColorProvider = function() { };
+$hxClasses["m3.util.ColorProvider"] = m3.util.ColorProvider;
+m3.util.ColorProvider.__name__ = ["m3","util","ColorProvider"];
+m3.util.ColorProvider.getNextColor = function() {
+	if(m3.util.ColorProvider._INDEX >= m3.util.ColorProvider._COLORS.length) m3.util.ColorProvider._INDEX = 0;
+	return m3.util.ColorProvider._COLORS[m3.util.ColorProvider._INDEX++];
+};
+m3.util.ColorProvider.getRandomColor = function() {
+	var index;
+	do index = Std.random(m3.util.ColorProvider._COLORS.length); while(m3.util.ColorProvider._LAST_COLORS_USED.contains(index));
+	m3.util.ColorProvider._LAST_COLORS_USED.push(index);
+	return m3.util.ColorProvider._COLORS[index];
+};
+qoid.model.AliasData = function() {
+	qoid.model.ModelObj.call(this);
+	this.isDefault = false;
+};
+$hxClasses["qoid.model.AliasData"] = qoid.model.AliasData;
+qoid.model.AliasData.__name__ = ["qoid","model","AliasData"];
+qoid.model.AliasData.__super__ = qoid.model.ModelObj;
+qoid.model.AliasData.prototype = $extend(qoid.model.ModelObj.prototype,{
+	__class__: qoid.model.AliasData
+});
+ap.widget.ConnectionAvatarHelper = function() { };
+$hxClasses["ap.widget.ConnectionAvatarHelper"] = ap.widget.ConnectionAvatarHelper;
+ap.widget.ConnectionAvatarHelper.__name__ = ["ap","widget","ConnectionAvatarHelper"];
+ap.widget.ConnectionAvatarHelper.getAlias = function(c) {
+	return c.connectionAvatar("getAlias");
+};
+ap.widget.ContentCompHelper = function() { };
+$hxClasses["ap.widget.ContentCompHelper"] = ap.widget.ContentCompHelper;
+ap.widget.ContentCompHelper.__name__ = ["ap","widget","ContentCompHelper"];
+ap.widget.ContentCompHelper.content = function(cc) {
+	return cc.contentComp("option","content");
+};
+ap.widget.ContentCompHelper.update = function(cc,c) {
+	return cc.contentComp("update",c);
+};
 ap.widget.LabelCompHelper = function() { };
 $hxClasses["ap.widget.LabelCompHelper"] = ap.widget.LabelCompHelper;
 ap.widget.LabelCompHelper.__name__ = ["ap","widget","LabelCompHelper"];
@@ -3810,59 +4392,6 @@ ap.widget.LabelCompHelper.getLabel = function(l) {
 ap.widget.LabelCompHelper.parentIid = function(l) {
 	return l.labelComp("option","parentIid");
 };
-qoid.model.Node = function(type) {
-	this.type = "ROOT";
-	if(type != null) this.type = type;
-};
-$hxClasses["qoid.model.Node"] = qoid.model.Node;
-qoid.model.Node.__name__ = ["qoid","model","Node"];
-qoid.model.Node.prototype = {
-	addNode: function(n) {
-		this.nodes.push(n);
-	}
-	,hasChildren: function() {
-		return m3.helper.ArrayHelper.hasValues(this.nodes);
-	}
-	,getQuery: function() {
-		return "";
-	}
-	,__class__: qoid.model.Node
-};
-qoid.model.ContentNode = function(type,content) {
-	qoid.model.Node.call(this,type);
-	this.content = content;
-};
-$hxClasses["qoid.model.ContentNode"] = qoid.model.ContentNode;
-qoid.model.ContentNode.__name__ = ["qoid","model","ContentNode"];
-qoid.model.ContentNode.__super__ = qoid.model.Node;
-qoid.model.ContentNode.prototype = $extend(qoid.model.Node.prototype,{
-	hasChildren: function() {
-		return false;
-	}
-	,__class__: qoid.model.ContentNode
-});
-qoid.model.LabelNode = function(label,labelPath) {
-	qoid.model.ContentNode.call(this,"LABEL",label);
-	this.labelPath = labelPath;
-};
-$hxClasses["qoid.model.LabelNode"] = qoid.model.LabelNode;
-qoid.model.LabelNode.__name__ = ["qoid","model","LabelNode"];
-qoid.model.LabelNode.__super__ = qoid.model.ContentNode;
-qoid.model.LabelNode.prototype = $extend(qoid.model.ContentNode.prototype,{
-	getQuery: function() {
-		var ret = "hasLabelPath(";
-		var _g1 = 1;
-		var _g = this.labelPath.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			ret += "'" + StringTools.replace(this.labelPath[i],"'","\\'") + "'";
-			if(i < this.labelPath.length - 1) ret += ",";
-		}
-		ret += ")";
-		return ret;
-	}
-	,__class__: qoid.model.LabelNode
-});
 ap.widget.MediaCompHelper = function() { };
 $hxClasses["ap.widget.MediaCompHelper"] = ap.widget.MediaCompHelper;
 ap.widget.MediaCompHelper.__name__ = ["ap","widget","MediaCompHelper"];
@@ -3910,183 +4439,148 @@ haxe.Timer.prototype = {
 };
 haxe.macro = {};
 haxe.macro.Constant = $hxClasses["haxe.macro.Constant"] = { __ename__ : ["haxe","macro","Constant"], __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp"] };
-haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
-haxe.macro.Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
-haxe.macro.Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
-haxe.macro.Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
-haxe.macro.Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
+haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe.macro.Constant; return $x; };
 haxe.macro.Constant.__empty_constructs__ = [];
 haxe.macro.Binop = $hxClasses["haxe.macro.Binop"] = { __ename__ : ["haxe","macro","Binop"], __constructs__ : ["OpAdd","OpMult","OpDiv","OpSub","OpAssign","OpEq","OpNotEq","OpGt","OpGte","OpLt","OpLte","OpAnd","OpOr","OpXor","OpBoolAnd","OpBoolOr","OpShl","OpShr","OpUShr","OpMod","OpAssignOp","OpInterval","OpArrow"] };
 haxe.macro.Binop.OpAdd = ["OpAdd",0];
-haxe.macro.Binop.OpAdd.toString = $estr;
 haxe.macro.Binop.OpAdd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpMult = ["OpMult",1];
-haxe.macro.Binop.OpMult.toString = $estr;
 haxe.macro.Binop.OpMult.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpDiv = ["OpDiv",2];
-haxe.macro.Binop.OpDiv.toString = $estr;
 haxe.macro.Binop.OpDiv.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpSub = ["OpSub",3];
-haxe.macro.Binop.OpSub.toString = $estr;
 haxe.macro.Binop.OpSub.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpAssign = ["OpAssign",4];
-haxe.macro.Binop.OpAssign.toString = $estr;
 haxe.macro.Binop.OpAssign.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpEq = ["OpEq",5];
-haxe.macro.Binop.OpEq.toString = $estr;
 haxe.macro.Binop.OpEq.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpNotEq = ["OpNotEq",6];
-haxe.macro.Binop.OpNotEq.toString = $estr;
 haxe.macro.Binop.OpNotEq.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpGt = ["OpGt",7];
-haxe.macro.Binop.OpGt.toString = $estr;
 haxe.macro.Binop.OpGt.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpGte = ["OpGte",8];
-haxe.macro.Binop.OpGte.toString = $estr;
 haxe.macro.Binop.OpGte.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpLt = ["OpLt",9];
-haxe.macro.Binop.OpLt.toString = $estr;
 haxe.macro.Binop.OpLt.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpLte = ["OpLte",10];
-haxe.macro.Binop.OpLte.toString = $estr;
 haxe.macro.Binop.OpLte.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpAnd = ["OpAnd",11];
-haxe.macro.Binop.OpAnd.toString = $estr;
 haxe.macro.Binop.OpAnd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpOr = ["OpOr",12];
-haxe.macro.Binop.OpOr.toString = $estr;
 haxe.macro.Binop.OpOr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpXor = ["OpXor",13];
-haxe.macro.Binop.OpXor.toString = $estr;
 haxe.macro.Binop.OpXor.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpBoolAnd = ["OpBoolAnd",14];
-haxe.macro.Binop.OpBoolAnd.toString = $estr;
 haxe.macro.Binop.OpBoolAnd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpBoolOr = ["OpBoolOr",15];
-haxe.macro.Binop.OpBoolOr.toString = $estr;
 haxe.macro.Binop.OpBoolOr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpShl = ["OpShl",16];
-haxe.macro.Binop.OpShl.toString = $estr;
 haxe.macro.Binop.OpShl.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpShr = ["OpShr",17];
-haxe.macro.Binop.OpShr.toString = $estr;
 haxe.macro.Binop.OpShr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpUShr = ["OpUShr",18];
-haxe.macro.Binop.OpUShr.toString = $estr;
 haxe.macro.Binop.OpUShr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpMod = ["OpMod",19];
-haxe.macro.Binop.OpMod.toString = $estr;
 haxe.macro.Binop.OpMod.__enum__ = haxe.macro.Binop;
-haxe.macro.Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe.macro.Binop; $x.toString = $estr; return $x; };
+haxe.macro.Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe.macro.Binop; return $x; };
 haxe.macro.Binop.OpInterval = ["OpInterval",21];
-haxe.macro.Binop.OpInterval.toString = $estr;
 haxe.macro.Binop.OpInterval.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpArrow = ["OpArrow",22];
-haxe.macro.Binop.OpArrow.toString = $estr;
 haxe.macro.Binop.OpArrow.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.__empty_constructs__ = [haxe.macro.Binop.OpAdd,haxe.macro.Binop.OpMult,haxe.macro.Binop.OpDiv,haxe.macro.Binop.OpSub,haxe.macro.Binop.OpAssign,haxe.macro.Binop.OpEq,haxe.macro.Binop.OpNotEq,haxe.macro.Binop.OpGt,haxe.macro.Binop.OpGte,haxe.macro.Binop.OpLt,haxe.macro.Binop.OpLte,haxe.macro.Binop.OpAnd,haxe.macro.Binop.OpOr,haxe.macro.Binop.OpXor,haxe.macro.Binop.OpBoolAnd,haxe.macro.Binop.OpBoolOr,haxe.macro.Binop.OpShl,haxe.macro.Binop.OpShr,haxe.macro.Binop.OpUShr,haxe.macro.Binop.OpMod,haxe.macro.Binop.OpInterval,haxe.macro.Binop.OpArrow];
 haxe.macro.Unop = $hxClasses["haxe.macro.Unop"] = { __ename__ : ["haxe","macro","Unop"], __constructs__ : ["OpIncrement","OpDecrement","OpNot","OpNeg","OpNegBits"] };
 haxe.macro.Unop.OpIncrement = ["OpIncrement",0];
-haxe.macro.Unop.OpIncrement.toString = $estr;
 haxe.macro.Unop.OpIncrement.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpDecrement = ["OpDecrement",1];
-haxe.macro.Unop.OpDecrement.toString = $estr;
 haxe.macro.Unop.OpDecrement.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNot = ["OpNot",2];
-haxe.macro.Unop.OpNot.toString = $estr;
 haxe.macro.Unop.OpNot.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNeg = ["OpNeg",3];
-haxe.macro.Unop.OpNeg.toString = $estr;
 haxe.macro.Unop.OpNeg.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNegBits = ["OpNegBits",4];
-haxe.macro.Unop.OpNegBits.toString = $estr;
 haxe.macro.Unop.OpNegBits.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.__empty_constructs__ = [haxe.macro.Unop.OpIncrement,haxe.macro.Unop.OpDecrement,haxe.macro.Unop.OpNot,haxe.macro.Unop.OpNeg,haxe.macro.Unop.OpNegBits];
 haxe.macro.ExprDef = $hxClasses["haxe.macro.ExprDef"] = { __ename__ : ["haxe","macro","ExprDef"], __constructs__ : ["EConst","EArray","EBinop","EField","EParenthesis","EObjectDecl","EArrayDecl","ECall","ENew","EUnop","EVars","EFunction","EBlock","EFor","EIn","EIf","EWhile","ESwitch","ETry","EReturn","EBreak","EContinue","EUntyped","EThrow","ECast","EDisplay","EDisplayNew","ETernary","ECheckType","EMeta"] };
-haxe.macro.ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
 haxe.macro.ExprDef.EBreak = ["EBreak",20];
-haxe.macro.ExprDef.EBreak.toString = $estr;
 haxe.macro.ExprDef.EBreak.__enum__ = haxe.macro.ExprDef;
 haxe.macro.ExprDef.EContinue = ["EContinue",21];
-haxe.macro.ExprDef.EContinue.toString = $estr;
 haxe.macro.ExprDef.EContinue.__enum__ = haxe.macro.ExprDef;
-haxe.macro.ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
 haxe.macro.ExprDef.__empty_constructs__ = [haxe.macro.ExprDef.EBreak,haxe.macro.ExprDef.EContinue];
 haxe.macro.ComplexType = $hxClasses["haxe.macro.ComplexType"] = { __ename__ : ["haxe","macro","ComplexType"], __constructs__ : ["TPath","TFunction","TAnonymous","TParent","TExtend","TOptional"] };
-haxe.macro.ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
+haxe.macro.ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
 haxe.macro.ComplexType.__empty_constructs__ = [];
 haxe.macro.TypeParam = $hxClasses["haxe.macro.TypeParam"] = { __ename__ : ["haxe","macro","TypeParam"], __constructs__ : ["TPType","TPExpr"] };
-haxe.macro.TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe.macro.TypeParam; $x.toString = $estr; return $x; };
-haxe.macro.TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe.macro.TypeParam; $x.toString = $estr; return $x; };
+haxe.macro.TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe.macro.TypeParam; return $x; };
+haxe.macro.TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe.macro.TypeParam; return $x; };
 haxe.macro.TypeParam.__empty_constructs__ = [];
 haxe.rtti = {};
 haxe.rtti.CType = $hxClasses["haxe.rtti.CType"] = { __ename__ : ["haxe","rtti","CType"], __constructs__ : ["CUnknown","CEnum","CClass","CTypedef","CFunction","CAnonymous","CDynamic","CAbstract"] };
 haxe.rtti.CType.CUnknown = ["CUnknown",0];
-haxe.rtti.CType.CUnknown.toString = $estr;
 haxe.rtti.CType.CUnknown.__enum__ = haxe.rtti.CType;
-haxe.rtti.CType.CEnum = function(name,params) { var $x = ["CEnum",1,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CClass = function(name,params) { var $x = ["CClass",2,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CTypedef = function(name,params) { var $x = ["CTypedef",3,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CFunction = function(args,ret) { var $x = ["CFunction",4,args,ret]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CAnonymous = function(fields) { var $x = ["CAnonymous",5,fields]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CDynamic = function(t) { var $x = ["CDynamic",6,t]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CAbstract = function(name,params) { var $x = ["CAbstract",7,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
+haxe.rtti.CType.CEnum = function(name,params) { var $x = ["CEnum",1,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CClass = function(name,params) { var $x = ["CClass",2,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CTypedef = function(name,params) { var $x = ["CTypedef",3,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CFunction = function(args,ret) { var $x = ["CFunction",4,args,ret]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CAnonymous = function(fields) { var $x = ["CAnonymous",5,fields]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CDynamic = function(t) { var $x = ["CDynamic",6,t]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CAbstract = function(name,params) { var $x = ["CAbstract",7,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
 haxe.rtti.CType.__empty_constructs__ = [haxe.rtti.CType.CUnknown];
 haxe.rtti.Rights = $hxClasses["haxe.rtti.Rights"] = { __ename__ : ["haxe","rtti","Rights"], __constructs__ : ["RNormal","RNo","RCall","RMethod","RDynamic","RInline"] };
 haxe.rtti.Rights.RNormal = ["RNormal",0];
-haxe.rtti.Rights.RNormal.toString = $estr;
 haxe.rtti.Rights.RNormal.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RNo = ["RNo",1];
-haxe.rtti.Rights.RNo.toString = $estr;
 haxe.rtti.Rights.RNo.__enum__ = haxe.rtti.Rights;
-haxe.rtti.Rights.RCall = function(m) { var $x = ["RCall",2,m]; $x.__enum__ = haxe.rtti.Rights; $x.toString = $estr; return $x; };
+haxe.rtti.Rights.RCall = function(m) { var $x = ["RCall",2,m]; $x.__enum__ = haxe.rtti.Rights; return $x; };
 haxe.rtti.Rights.RMethod = ["RMethod",3];
-haxe.rtti.Rights.RMethod.toString = $estr;
 haxe.rtti.Rights.RMethod.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RDynamic = ["RDynamic",4];
-haxe.rtti.Rights.RDynamic.toString = $estr;
 haxe.rtti.Rights.RDynamic.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RInline = ["RInline",5];
-haxe.rtti.Rights.RInline.toString = $estr;
 haxe.rtti.Rights.RInline.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.__empty_constructs__ = [haxe.rtti.Rights.RNormal,haxe.rtti.Rights.RNo,haxe.rtti.Rights.RMethod,haxe.rtti.Rights.RDynamic,haxe.rtti.Rights.RInline];
 haxe.rtti.TypeTree = $hxClasses["haxe.rtti.TypeTree"] = { __ename__ : ["haxe","rtti","TypeTree"], __constructs__ : ["TPackage","TClassdecl","TEnumdecl","TTypedecl","TAbstractdecl"] };
-haxe.rtti.TypeTree.TPackage = function(name,full,subs) { var $x = ["TPackage",0,name,full,subs]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
-haxe.rtti.TypeTree.TClassdecl = function(c) { var $x = ["TClassdecl",1,c]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
-haxe.rtti.TypeTree.TEnumdecl = function(e) { var $x = ["TEnumdecl",2,e]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
-haxe.rtti.TypeTree.TTypedecl = function(t) { var $x = ["TTypedecl",3,t]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
-haxe.rtti.TypeTree.TAbstractdecl = function(a) { var $x = ["TAbstractdecl",4,a]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
+haxe.rtti.TypeTree.TPackage = function(name,full,subs) { var $x = ["TPackage",0,name,full,subs]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TClassdecl = function(c) { var $x = ["TClassdecl",1,c]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TEnumdecl = function(e) { var $x = ["TEnumdecl",2,e]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TTypedecl = function(t) { var $x = ["TTypedecl",3,t]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TAbstractdecl = function(a) { var $x = ["TAbstractdecl",4,a]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
 haxe.rtti.TypeTree.__empty_constructs__ = [];
 haxe.rtti.XmlParser = function() {
 	this.root = new Array();
@@ -4762,12 +5256,6 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 	}
 	throw "Unexpected end";
 };
-js.Lib = function() { };
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
-};
 m3.CrossMojo = function() { };
 $hxClasses["m3.CrossMojo"] = m3.CrossMojo;
 m3.CrossMojo.__name__ = ["m3","CrossMojo"];
@@ -4791,136 +5279,9 @@ m3.CrossMojo.prettyPrintString = function(json) {
 m3.CrossMojo.prettyPrint = function(json) {
 	return JSON.stringify(json, undefined, 2);
 };
-m3.comm = {};
-m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
-	this.requestData = requestData;
-	this._url = url;
-	this.onSuccess = successFcn;
-	this.onError = errorFcn;
-	this.onAccessDenied = accessDeniedFcn;
-	this._requestHeaders = new haxe.ds.StringMap();
-};
-$hxClasses["m3.comm.BaseRequest"] = m3.comm.BaseRequest;
-m3.comm.BaseRequest.__name__ = ["m3","comm","BaseRequest"];
-m3.comm.BaseRequest.prototype = {
-	ajaxOpts: function(opts) {
-		if(opts == null) return this.baseOpts; else {
-			this.baseOpts = opts;
-			return this;
-		}
-	}
-	,requestHeaders: function(headers) {
-		if(headers == null) return this._requestHeaders; else {
-			this._requestHeaders = headers;
-			return this;
-		}
-	}
-	,beforeSend: function(jqXHR,settings) {
-		var $it0 = this._requestHeaders.keys();
-		while( $it0.hasNext() ) {
-			var key = $it0.next();
-			if(this._requestHeaders.get(key) != null) jqXHR.setRequestHeader(key,this._requestHeaders.get(key));
-		}
-	}
-	,start: function(opts) {
-		var _g = this;
-		if(opts == null) opts = { };
-		var ajaxOpts = { async : true, beforeSend : $bind(this,this.beforeSend), contentType : "application/json", dataType : "json", data : this.requestData, type : "POST", url : this._url, success : function(data,textStatus,jqXHR) {
-			if(jqXHR.getResponseHeader("Content-Length") == "0") data = [];
-			if(_g.onSuccess != null) _g.onSuccess(data);
-		}, error : function(jqXHR1,textStatus1,errorThrown) {
-			if(jqXHR1.status == 403 && _g.onAccessDenied != null) return _g.onAccessDenied();
-			var errorMessage = null;
-			if(m3.helper.StringHelper.isNotBlank(jqXHR1.message)) errorMessage = jqXHR1.message; else if(m3.helper.StringHelper.isNotBlank(jqXHR1.responseText) && jqXHR1.responseText.charAt(0) != "<") errorMessage = jqXHR1.responseText; else if(errorThrown == null || typeof(errorThrown) == "string") errorMessage = errorThrown; else errorMessage = errorThrown.message;
-			if(m3.helper.StringHelper.isBlank(errorMessage)) errorMessage = "Error, but no error msg from server";
-			m3.log.Logga.get_DEFAULT().error("Request Error handler: Status " + jqXHR1.status + " | " + errorMessage);
-			var exc = new m3.exception.AjaxException(errorMessage,null,jqXHR1.status);
-			if(_g.onError != null) _g.onError(exc); else throw exc;
-		}};
-		$.extend(ajaxOpts,this.baseOpts);
-		$.extend(ajaxOpts,opts);
-		return $.ajax(ajaxOpts);
-	}
-	,abort: function() {
-	}
-	,__class__: m3.comm.BaseRequest
-};
-m3.comm.LongPollingRequest = function(channel,requestToRepeat,logga,successFcn,errorFcn,ajaxOpts) {
-	this.timeout = 30000;
-	this.delayNextPoll = false;
-	this.running = true;
-	var _g = this;
-	this.channel = channel;
-	this.logger = logga;
-	this.baseOpts = { complete : function(jqXHR,textStatus) {
-		_g.poll();
-	}};
-	if(ajaxOpts != null) $.extend(this.baseOpts,ajaxOpts);
-	var onSuccess = function(data) {
-		if(_g.running) try {
-			successFcn(data);
-		} catch( e ) {
-			if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
-				_g.logger.error("Error while polling",e);
-			} else throw(e);
-		}
-	};
-	var onError = function(exc) {
-		_g.delayNextPoll = true;
-		if(errorFcn != null) errorFcn(exc);
-	};
-	m3.comm.BaseRequest.call(this,requestToRepeat,this.getUrl(),onSuccess,onError);
-};
-$hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
-m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
-m3.comm.LongPollingRequest.__super__ = m3.comm.BaseRequest;
-m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
-	pause: function() {
-		this.running = false;
-		this.poll();
-	}
-	,resume: function() {
-		this.running = false;
-		this.poll();
-	}
-	,toggle: function() {
-		this.running = !this.running;
-		this.logger.debug("Long Polling is running? " + Std.string(this.running));
-		this.poll();
-	}
-	,getChannelId: function() {
-		return this.channel;
-	}
-	,start: function(opts) {
-		this.poll();
-		return this.jqXHR;
-	}
-	,abort: function() {
-		this.running = false;
-		if(this.jqXHR != null) try {
-			this.jqXHR.abort();
-			this.jqXHR = null;
-		} catch( err ) {
-			this.logger.error("error on poll abort | " + Std.string(err));
-		}
-	}
-	,getUrl: function() {
-		return "/api/channel/poll?channel=" + this.channel + "&timeoutMillis=" + Std.string(this.timeout);
-	}
-	,poll: function() {
-		if(this.running) {
-			if(this.delayNextPoll == true) {
-				this.delayNextPoll = false;
-				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
-			} else {
-				this.baseOpts.url = this.getUrl();
-				this.baseOpts.timeout = this.timeout + 1000;
-				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
-			}
-		}
-	}
-	,__class__: m3.comm.LongPollingRequest
-});
+m3.comm.ChannelRequest = function() { };
+$hxClasses["m3.comm.ChannelRequest"] = m3.comm.ChannelRequest;
+m3.comm.ChannelRequest.__name__ = ["m3","comm","ChannelRequest"];
 m3.event.EMListener = function(fcn,name) {
 	this.fcn = fcn;
 	this.uid = m3.util.UidGenerator.create(20);
@@ -5018,21 +5379,6 @@ m3.jq.M3DialogHelper.open = function(dlg) {
 };
 m3.jq.M3DialogHelper.isOpen = function(dlg) {
 	return dlg.m3dialog("isOpen");
-};
-m3.jq.PlaceHolderUtil = function() { };
-$hxClasses["m3.jq.PlaceHolderUtil"] = m3.jq.PlaceHolderUtil;
-m3.jq.PlaceHolderUtil.__name__ = ["m3","jq","PlaceHolderUtil"];
-m3.jq.PlaceHolderUtil.setFocusBehavior = function(input,placeholder) {
-	placeholder.focus(function(evt) {
-		placeholder.hide();
-		input.show().focus();
-	});
-	input.blur(function(evt1) {
-		if(m3.helper.StringHelper.isBlank(input.val())) {
-			placeholder.show();
-			input.hide();
-		}
-	});
 };
 m3.jqm = {};
 m3.jqm.pages = {};
@@ -5210,208 +5556,78 @@ m3.observable.EventType.prototype = {
 	}
 	,__class__: m3.observable.EventType
 };
-m3.observable.GroupedSet = function(source,groupingFn) {
+m3.observable.SortedSet = function(source,sortByFn) {
 	var _g = this;
 	m3.observable.AbstractSet.call(this);
 	this._source = source;
-	this._groupingFn = groupingFn;
-	this._groupedSets = new haxe.ds.StringMap();
-	this._identityToGrouping = new haxe.ds.StringMap();
+	if(sortByFn == null) this._sortByFn = source.identifier(); else this._sortByFn = sortByFn;
+	this._sorted = new Array();
+	this._dirty = true;
+	this._comparisonFn = function(l,r) {
+		var l0 = _g._sortByFn(l);
+		var r0 = _g._sortByFn(r);
+		var cmp = m3.helper.StringHelper.compare(l0,r0);
+		if(cmp != 0) return cmp;
+		var li = (_g.identifier())(l);
+		var ri = (_g.identifier())(r);
+		return m3.helper.StringHelper.compare(li,ri);
+	};
 	source.listen(function(t,type) {
-		var groupingKey = groupingFn(t);
-		var previousGroupingKey = _g._identityToGrouping.get(groupingKey);
-		if(type.isAddOrUpdate()) {
-			if(previousGroupingKey != groupingKey) {
-				_g["delete"](t,false);
-				_g.add(t);
-			}
-		} else _g["delete"](t);
+		if(type.isDelete()) _g["delete"](t); else if(type.isUpdate()) {
+			_g["delete"](t);
+			_g.add(t);
+		} else if(type.isAdd()) _g.add(t); else if(type.isClear()) {
+			_g._sorted = new Array();
+			_g.fire(t,type);
+		}
 	});
 };
-$hxClasses["m3.observable.GroupedSet"] = m3.observable.GroupedSet;
-m3.observable.GroupedSet.__name__ = ["m3","observable","GroupedSet"];
-m3.observable.GroupedSet.__super__ = m3.observable.AbstractSet;
-m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
-	'delete': function(t,deleteEmptySet) {
-		if(deleteEmptySet == null) deleteEmptySet = true;
-		var id = (this._source.identifier())(t);
-		var key = this._identityToGrouping.get(id);
-		if(key != null) {
-			this._identityToGrouping.remove(id);
-			var groupedSet = this._groupedSets.get(key);
-			if(groupedSet != null) {
-				groupedSet["delete"](t);
-				if(groupedSet.isEmpty() && deleteEmptySet) {
-					this._groupedSets.remove(key);
-					this.fire(groupedSet,m3.observable.EventType.Delete);
-				} else this.fire(groupedSet,m3.observable.EventType.Update);
-			} else {
-			}
-		} else {
+$hxClasses["m3.observable.SortedSet"] = m3.observable.SortedSet;
+m3.observable.SortedSet.__name__ = ["m3","observable","SortedSet"];
+m3.observable.SortedSet.__super__ = m3.observable.AbstractSet;
+m3.observable.SortedSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
+	sorted: function() {
+		if(this._dirty) {
+			this._sorted.sort(this._comparisonFn);
+			this._dirty = false;
 		}
+		return this._sorted;
+	}
+	,indexOf: function(t) {
+		this.sorted();
+		return this.binarySearch(t,this._sortByFn(t),0,this._sorted.length - 1);
+	}
+	,binarySearch: function(value,sortBy,startIndex,endIndex) {
+		var middleIndex = startIndex + endIndex >> 1;
+		if(startIndex < endIndex) {
+			var middleValue = this._sorted[middleIndex];
+			var middleSortBy = this._sortByFn(middleValue);
+			if(middleSortBy == sortBy) return middleIndex; else if(middleSortBy > sortBy) return this.binarySearch(value,sortBy,startIndex,middleIndex); else return this.binarySearch(value,sortBy,middleIndex + 1,endIndex);
+		}
+		return -1;
+	}
+	,'delete': function(t) {
+		HxOverrides.remove(this._sorted,t);
+		this.fire(t,m3.observable.EventType.Delete);
 	}
 	,add: function(t) {
-		var id = (this._source.identifier())(t);
-		var key = this._identityToGrouping.get(id);
-		if(key != null) throw new m3.exception.Exception("cannot add it is already in the list" + id + " -- " + key);
-		key = this._groupingFn(t);
-		this._identityToGrouping.set(id,key);
-		var groupedSet = this._groupedSets.get(key);
-		if(groupedSet == null) {
-			groupedSet = this.addEmptyGroup(key);
-			groupedSet.addOrUpdate(t);
-			this.fire(groupedSet,m3.observable.EventType.Add);
-		} else {
-			groupedSet.addOrUpdate(t);
-			this.fire(groupedSet,m3.observable.EventType.Update);
-		}
-	}
-	,addEmptyGroup: function(key) {
-		if(this._groupedSets.get(key) == null) {
-			var groupedSet = new m3.observable.ObservableSet(this._source.identifier());
-			groupedSet.visualId = key;
-			this._groupedSets.set(key,groupedSet);
-		}
-		return this._groupedSets.get(key);
+		this._sorted.push(t);
+		this._dirty = true;
+		this.fire(t,m3.observable.EventType.Add);
 	}
 	,identifier: function() {
-		return $bind(this,this.identify);
-	}
-	,identify: function(set) {
-		var keys = this._groupedSets.keys();
-		while(keys.hasNext()) {
-			var key = keys.next();
-			if(this._groupedSets.get(key) == set) return key;
-		}
-		throw new m3.exception.Exception("unable to find identity for " + Std.string(set));
+		return this._source.identifier();
 	}
 	,iterator: function() {
-		return this._groupedSets.iterator();
+		var _this = this.sorted();
+		return HxOverrides.iter(_this);
 	}
 	,delegate: function() {
-		return this._groupedSets;
+		throw new m3.exception.Exception("not implemented");
+		return null;
 	}
-	,__class__: m3.observable.GroupedSet
+	,__class__: m3.observable.SortedSet
 });
-m3.serialization.Serializer = function(defaultToStrict) {
-	if(defaultToStrict == null) defaultToStrict = true;
-	this._defaultToStrict = defaultToStrict;
-	this._handlersMap = new haxe.ds.StringMap();
-	this.addHandlerViaName("Array<Dynamic>",new m3.serialization.DynamicArrayHandler());
-};
-$hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
-m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
-m3.serialization.Serializer.prototype = {
-	addHandler: function(clazz,handler) {
-		var typename = Type.getClassName(clazz);
-		this._handlersMap.set(typename,handler);
-	}
-	,addHandlerViaName: function(typename,handler) {
-		this._handlersMap.set(typename,handler);
-	}
-	,load: function(fromJson,instance,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,Type.getClass(instance),instance);
-		return reader;
-	}
-	,fromJsonX: function(fromJson,clazz,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,clazz);
-		return reader.instance;
-	}
-	,fromJson: function(fromJson,clazz,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,clazz);
-		return reader;
-	}
-	,toJson: function(value) {
-		return this.createWriter().write(value);
-	}
-	,toJsonString: function(value) {
-		return JSON.stringify(this.toJson(value));
-	}
-	,createReader: function(strict) {
-		if(strict == null) strict = true;
-		return new m3.serialization.JsonReader(this,strict);
-	}
-	,createWriter: function() {
-		return new m3.serialization.JsonWriter(this);
-	}
-	,getHandlerViaClass: function(clazz) {
-		var typename = m3.serialization.TypeTools.classname(clazz);
-		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
-	}
-	,getHandler: function(type) {
-		var typename = m3.serialization.CTypeTools.typename(type);
-		var handler = this._handlersMap.get(typename);
-		if(handler == null) {
-			handler = this.createHandler(type);
-			this._handlersMap.set(typename,handler);
-		}
-		return handler;
-	}
-	,createHandler: function(type) {
-		switch(type[1]) {
-		case 1:
-			var parms = type[3];
-			var path = type[2];
-			if(path == "Bool") return new m3.serialization.BoolHandler(); else return new m3.serialization.EnumHandler(path,parms);
-			break;
-		case 2:
-			var parms1 = type[3];
-			var path1 = type[2];
-			switch(path1) {
-			case "Bool":
-				return new m3.serialization.BoolHandler();
-			case "Float":
-				return new m3.serialization.FloatHandler();
-			case "String":
-				return new m3.serialization.StringHandler();
-			case "Int":
-				return new m3.serialization.IntHandler();
-			case "Array":
-				return new m3.serialization.ArrayHandler(parms1,this);
-			case "Date":
-				return new m3.serialization.DateHandler();
-			default:
-				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
-			}
-			break;
-		case 7:
-			var parms1 = type[3];
-			var path1 = type[2];
-			switch(path1) {
-			case "Bool":
-				return new m3.serialization.BoolHandler();
-			case "Float":
-				return new m3.serialization.FloatHandler();
-			case "String":
-				return new m3.serialization.StringHandler();
-			case "Int":
-				return new m3.serialization.IntHandler();
-			case "Array":
-				return new m3.serialization.ArrayHandler(parms1,this);
-			case "Date":
-				return new m3.serialization.DateHandler();
-			default:
-				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
-			}
-			break;
-		case 6:
-			return new m3.serialization.DynamicHandler();
-		case 4:
-			var ret = type[3];
-			var args = type[2];
-			return new m3.serialization.FunctionHandler();
-		default:
-			throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
-		}
-	}
-	,__class__: m3.serialization.Serializer
-};
 m3.serialization.ArrayHandler = function(parms,serializer) {
 	this._parms = parms;
 	this._serializer = serializer;
@@ -5515,21 +5731,6 @@ m3.serialization.ValueTypeHandler.prototype = {
 		return value;
 	}
 	,__class__: m3.serialization.ValueTypeHandler
-};
-m3.serialization.DynamicArrayHandler = function() {
-};
-$hxClasses["m3.serialization.DynamicArrayHandler"] = m3.serialization.DynamicArrayHandler;
-m3.serialization.DynamicArrayHandler.__name__ = ["m3","serialization","DynamicArrayHandler"];
-m3.serialization.DynamicArrayHandler.__interfaces__ = [m3.serialization.TypeHandler];
-m3.serialization.DynamicArrayHandler.prototype = {
-	read: function(fromJson,reader,instance) {
-		var classname = m3.serialization.ValueTypeTools.getClassname(Type["typeof"](fromJson));
-		if(classname == "Array") return fromJson; else return reader.error("expected an array got a " + classname);
-	}
-	,write: function(value,writer) {
-		return value;
-	}
-	,__class__: m3.serialization.DynamicArrayHandler
 };
 m3.serialization.DynamicHandler = function() {
 };
@@ -6050,335 +6251,11 @@ m3.util.Tuple.__name__ = ["m3","util","Tuple"];
 m3.util.Tuple.prototype = {
 	__class__: m3.util.Tuple
 };
-qoid.api = {};
-qoid.api.ChannelMessage = function() { };
-$hxClasses["qoid.api.ChannelMessage"] = qoid.api.ChannelMessage;
-qoid.api.ChannelMessage.__name__ = ["qoid","api","ChannelMessage"];
-qoid.api.BennuMessage = function(type) {
-	this.type = type;
-};
-$hxClasses["qoid.api.BennuMessage"] = qoid.api.BennuMessage;
-qoid.api.BennuMessage.__name__ = ["qoid","api","BennuMessage"];
-qoid.api.BennuMessage.__interfaces__ = [qoid.api.ChannelMessage];
-qoid.api.BennuMessage.prototype = {
-	__class__: qoid.api.BennuMessage
-};
-qoid.api.DeleteMessage = function(type,primaryKey) {
-	qoid.api.BennuMessage.call(this,type);
-	this.primaryKey = primaryKey;
-};
-$hxClasses["qoid.api.DeleteMessage"] = qoid.api.DeleteMessage;
-qoid.api.DeleteMessage.__name__ = ["qoid","api","DeleteMessage"];
-qoid.api.DeleteMessage.create = function(object) {
-	return new qoid.api.DeleteMessage(object.objectType(),object.iid);
-};
-qoid.api.DeleteMessage.__super__ = qoid.api.BennuMessage;
-qoid.api.DeleteMessage.prototype = $extend(qoid.api.BennuMessage.prototype,{
-	__class__: qoid.api.DeleteMessage
-});
-qoid.api.CrudMessage = function(type,instance,optionals) {
-	qoid.api.BennuMessage.call(this,type);
-	this.instance = instance;
-	if(optionals != null) {
-		this.parentIid = optionals.parentIid;
-		this.profileName = optionals.profileName;
-		this.profileImgSrc = optionals.profileImgSrc;
-		this.labelIids = optionals.labelIids;
-	}
-};
-$hxClasses["qoid.api.CrudMessage"] = qoid.api.CrudMessage;
-qoid.api.CrudMessage.__name__ = ["qoid","api","CrudMessage"];
-qoid.api.CrudMessage.create = function(object,optionals) {
-	var instance = ap.AppContext.SERIALIZER.toJson(object);
-	return new qoid.api.CrudMessage(object.objectType(),instance,optionals);
-};
-qoid.api.CrudMessage.__super__ = qoid.api.BennuMessage;
-qoid.api.CrudMessage.prototype = $extend(qoid.api.BennuMessage.prototype,{
-	__class__: qoid.api.CrudMessage
-});
-qoid.api.DeregisterMessage = function(handle) {
-	this.handle = handle;
-};
-$hxClasses["qoid.api.DeregisterMessage"] = qoid.api.DeregisterMessage;
-qoid.api.DeregisterMessage.__name__ = ["qoid","api","DeregisterMessage"];
-qoid.api.DeregisterMessage.__interfaces__ = [qoid.api.ChannelMessage];
-qoid.api.DeregisterMessage.prototype = {
-	__class__: qoid.api.DeregisterMessage
-};
-qoid.api.IntroMessage = function(i) {
-	this.aConnectionIid = i.aConnectionIid;
-	this.aMessage = i.aMessage;
-	this.bConnectionIid = i.bConnectionIid;
-	this.bMessage = i.bMessage;
-};
-$hxClasses["qoid.api.IntroMessage"] = qoid.api.IntroMessage;
-qoid.api.IntroMessage.__name__ = ["qoid","api","IntroMessage"];
-qoid.api.IntroMessage.__interfaces__ = [qoid.api.ChannelMessage];
-qoid.api.IntroMessage.prototype = {
-	__class__: qoid.api.IntroMessage
-};
-qoid.api.VerificationRequestMessage = function(vr) {
-	this.contentIid = vr.contentIid;
-	this.connectionIids = vr.connectionIids;
-	this.message = vr.message;
-};
-$hxClasses["qoid.api.VerificationRequestMessage"] = qoid.api.VerificationRequestMessage;
-qoid.api.VerificationRequestMessage.__name__ = ["qoid","api","VerificationRequestMessage"];
-qoid.api.VerificationRequestMessage.__interfaces__ = [qoid.api.ChannelMessage];
-qoid.api.VerificationRequestMessage.prototype = {
-	__class__: qoid.api.VerificationRequestMessage
-};
-qoid.api.VerificationResponseMessage = function(vr) {
-	this.notificationIid = vr.notificationIid;
-	this.verificationContent = vr.verificationContent;
-};
-$hxClasses["qoid.api.VerificationResponseMessage"] = qoid.api.VerificationResponseMessage;
-qoid.api.VerificationResponseMessage.__name__ = ["qoid","api","VerificationResponseMessage"];
-qoid.api.VerificationResponseMessage.__interfaces__ = [qoid.api.ChannelMessage];
-qoid.api.VerificationResponseMessage.prototype = {
-	__class__: qoid.api.VerificationResponseMessage
-};
-qoid.api.AcceptVerificationMessage = function(notificationIid) {
-	this.notificationIid = notificationIid;
-};
-$hxClasses["qoid.api.AcceptVerificationMessage"] = qoid.api.AcceptVerificationMessage;
-qoid.api.AcceptVerificationMessage.__name__ = ["qoid","api","AcceptVerificationMessage"];
-qoid.api.AcceptVerificationMessage.__interfaces__ = [qoid.api.ChannelMessage];
-qoid.api.AcceptVerificationMessage.prototype = {
-	__class__: qoid.api.AcceptVerificationMessage
-};
-qoid.api.IntroResponseMessage = function(notificationIid,accepted) {
-	this.notificationIid = notificationIid;
-	this.accepted = accepted;
-};
-$hxClasses["qoid.api.IntroResponseMessage"] = qoid.api.IntroResponseMessage;
-qoid.api.IntroResponseMessage.__name__ = ["qoid","api","IntroResponseMessage"];
-qoid.api.IntroResponseMessage.__interfaces__ = [qoid.api.ChannelMessage];
-qoid.api.IntroResponseMessage.prototype = {
-	__class__: qoid.api.IntroResponseMessage
-};
-qoid.api.QueryMessage = function(fd,type,q) {
-	if(fd == null) {
-		this.type = type;
-		this.q = q;
-		this.aliasIid = null;
-		this.connectionIids = new Array();
-		this.local = true;
-	} else {
-		this.type = fd.type;
-		this.q = fd.filter.q;
-		this.aliasIid = fd.aliasIid;
-		this.connectionIids = fd.connectionIids;
-		this.local = fd.aliasIid != null;
-	}
-	this.historical = true;
-	this.standing = true;
-};
-$hxClasses["qoid.api.QueryMessage"] = qoid.api.QueryMessage;
-qoid.api.QueryMessage.__name__ = ["qoid","api","QueryMessage"];
-qoid.api.QueryMessage.__interfaces__ = [qoid.api.ChannelMessage];
-qoid.api.QueryMessage.create = function(type) {
-	return new qoid.api.QueryMessage(null,type,"1=1");
-};
-qoid.api.QueryMessage.prototype = {
-	__class__: qoid.api.QueryMessage
-};
-qoid.api.ChannelRequestMessage = function(path,context,msg) {
-	this.path = path;
-	this.context = context;
-	this.parms = ap.AppContext.SERIALIZER.toJson(msg);
-};
-$hxClasses["qoid.api.ChannelRequestMessage"] = qoid.api.ChannelRequestMessage;
-qoid.api.ChannelRequestMessage.__name__ = ["qoid","api","ChannelRequestMessage"];
-qoid.api.ChannelRequestMessage.prototype = {
-	__class__: qoid.api.ChannelRequestMessage
-};
-qoid.api.ChannelRequestMessageBundle = function(requests_) {
-	this.channel = ap.AppContext.SUBMIT_CHANNEL;
-	if(requests_ == null) this.requests = new Array(); else this.requests = requests_;
-};
-$hxClasses["qoid.api.ChannelRequestMessageBundle"] = qoid.api.ChannelRequestMessageBundle;
-qoid.api.ChannelRequestMessageBundle.__name__ = ["qoid","api","ChannelRequestMessageBundle"];
-qoid.api.ChannelRequestMessageBundle.prototype = {
-	addChannelRequest: function(request) {
-		this.requests.push(request);
-	}
-	,addRequest: function(path,context,parms) {
-		var request = new qoid.api.ChannelRequestMessage(path,context,parms);
-		this.addChannelRequest(request);
-	}
-	,__class__: qoid.api.ChannelRequestMessageBundle
-};
-qoid.api.SimpleRequest = function(path,data,successFcn) {
-	m3.comm.BaseRequest.call(this,data,path,successFcn);
-};
-$hxClasses["qoid.api.SimpleRequest"] = qoid.api.SimpleRequest;
-qoid.api.SimpleRequest.__name__ = ["qoid","api","SimpleRequest"];
-qoid.api.SimpleRequest.__super__ = m3.comm.BaseRequest;
-qoid.api.SimpleRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
-	__class__: qoid.api.SimpleRequest
-});
-qoid.api.SubmitRequest = function(msgs,successFcn) {
-	this.baseOpts = { dataType : "text"};
-	if(successFcn == null) successFcn = function(data) {
-	};
-	var bundle = new qoid.api.ChannelRequestMessageBundle(msgs);
-	var data1 = ap.AppContext.SERIALIZER.toJsonString(bundle);
-	m3.comm.BaseRequest.call(this,data1,"/api/channel/submit",successFcn);
-};
-$hxClasses["qoid.api.SubmitRequest"] = qoid.api.SubmitRequest;
-qoid.api.SubmitRequest.__name__ = ["qoid","api","SubmitRequest"];
-qoid.api.SubmitRequest.__super__ = m3.comm.BaseRequest;
-qoid.api.SubmitRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
-	__class__: qoid.api.SubmitRequest
-});
-qoid.model.Context = function(context) {
-	var c = context.split("-");
-	if(c.length != 3) throw new m3.exception.Exception("invalid context");
-	this.iid = c[0];
-	this.numResponsesExpected = Std.parseInt(c[1]);
-	this.oncomplete = c[2];
-};
-$hxClasses["qoid.model.Context"] = qoid.model.Context;
-qoid.model.Context.__name__ = ["qoid","model","Context"];
-qoid.model.Context.prototype = {
-	__class__: qoid.model.Context
-};
-qoid.model.Filter = function(node) {
-	this.rootNode = node;
-	this.nodes = new Array();
-	if(node.hasChildren()) {
-		var _g = 0;
-		var _g1 = node.nodes;
-		while(_g < _g1.length) {
-			var childNode = _g1[_g];
-			++_g;
-			this.nodes.push(childNode);
-		}
-	}
-	this.q = this.getQuery();
-};
-$hxClasses["qoid.model.Filter"] = qoid.model.Filter;
-qoid.model.Filter.__name__ = ["qoid","model","Filter"];
-qoid.model.Filter.prototype = {
-	getQuery: function() {
-		return this._queryify(this.nodes,this.rootNode.getQuery());
-	}
-	,_queryify: function(nodes,joinWith) {
-		var str = "";
-		if(m3.helper.ArrayHelper.hasValues(nodes)) {
-			str += "(";
-			var iteration = 0;
-			var _g1 = 0;
-			var _g = nodes.length;
-			while(_g1 < _g) {
-				var ln_ = _g1++;
-				if(iteration++ > 0) str += joinWith;
-				str += nodes[ln_].getQuery();
-				if(nodes[ln_].hasChildren()) str += this._queryify(nodes[ln_].nodes,nodes[ln_].getQuery());
-			}
-			str += ")";
-		}
-		return str;
-	}
-	,__class__: qoid.model.Filter
-};
-qoid.model.FilterData = function(type) {
-	this.type = type;
-	this.aliasIid = null;
-	this.connectionIids = new Array();
-};
-$hxClasses["qoid.model.FilterData"] = qoid.model.FilterData;
-qoid.model.FilterData.__name__ = ["qoid","model","FilterData"];
-qoid.model.FilterData.prototype = {
-	__class__: qoid.model.FilterData
-};
-qoid.model.FilterResponse = function(filterIid,content) {
-	this.filterIid = filterIid;
-	this.content = content;
-};
-$hxClasses["qoid.model.FilterResponse"] = qoid.model.FilterResponse;
-qoid.model.FilterResponse.__name__ = ["qoid","model","FilterResponse"];
-qoid.model.FilterResponse.prototype = {
-	__class__: qoid.model.FilterResponse
-};
-qoid.model.LabelChild = function(parentIid,childIid) {
-	if(parentIid != null && childIid != null && parentIid == childIid) throw new m3.exception.Exception("parentIid and childIid of LabelChild must be different");
-	qoid.model.ModelObjWithIid.call(this);
-	this.parentIid = parentIid;
-	this.childIid = childIid;
-};
-$hxClasses["qoid.model.LabelChild"] = qoid.model.LabelChild;
-qoid.model.LabelChild.__name__ = ["qoid","model","LabelChild"];
-qoid.model.LabelChild.identifier = function(l) {
-	return l.iid;
-};
-qoid.model.LabelChild.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.LabelChild.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.LabelChild
-});
-qoid.model.LabelAcl = function(connectionIid,labelIid) {
-	qoid.model.ModelObjWithIid.call(this);
-	this.connectionIid = connectionIid;
-	this.labelIid = labelIid;
-};
-$hxClasses["qoid.model.LabelAcl"] = qoid.model.LabelAcl;
-qoid.model.LabelAcl.__name__ = ["qoid","model","LabelAcl"];
-qoid.model.LabelAcl.identifier = function(l) {
-	return l.iid;
-};
-qoid.model.LabelAcl.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.LabelAcl.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.LabelAcl
-});
-qoid.model.Connection = function() {
-	qoid.model.ModelObjWithIid.call(this);
-	this.data = new qoid.model.Profile("-->*<--","");
-};
-$hxClasses["qoid.model.Connection"] = qoid.model.Connection;
-qoid.model.Connection.__name__ = ["qoid","model","Connection"];
-qoid.model.Connection.identifier = function(c) {
-	return c.iid;
-};
-qoid.model.Connection.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Connection.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	equals: function(c) {
-		return this.iid == c.iid;
-	}
-	,__class__: qoid.model.Connection
-});
-qoid.model.ContentHandler = function() {
-};
-$hxClasses["qoid.model.ContentHandler"] = qoid.model.ContentHandler;
-qoid.model.ContentHandler.__name__ = ["qoid","model","ContentHandler"];
-qoid.model.ContentHandler.__interfaces__ = [m3.serialization.TypeHandler];
-qoid.model.ContentHandler.prototype = {
-	read: function(fromJson,reader,instance) {
-		var obj = null;
-		var _g = fromJson.contentType;
-		switch(_g) {
-		case qoid.model.ContentType.AUDIO:
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.AudioContent);
-			break;
-		case qoid.model.ContentType.IMAGE:
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.ImageContent);
-			break;
-		case qoid.model.ContentType.TEXT:
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.MessageContent);
-			break;
-		case qoid.model.ContentType.URL:
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.UrlContent);
-			break;
-		case qoid.model.ContentType.VERIFICATION:
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.VerificationContent);
-			break;
-		}
-		return obj;
-	}
-	,write: function(value,writer) {
-		return ap.AppContext.SERIALIZER.toJson(value);
-	}
-	,__class__: qoid.model.ContentHandler
+qoid.AuthenticationResponse = function() { };
+$hxClasses["qoid.AuthenticationResponse"] = qoid.AuthenticationResponse;
+qoid.AuthenticationResponse.__name__ = ["qoid","AuthenticationResponse"];
+qoid.AuthenticationResponse.prototype = {
+	__class__: qoid.AuthenticationResponse
 };
 qoid.model.ContentFactory = function() { };
 $hxClasses["qoid.model.ContentFactory"] = qoid.model.ContentFactory;
@@ -6386,59 +6263,33 @@ qoid.model.ContentFactory.__name__ = ["qoid","model","ContentFactory"];
 qoid.model.ContentFactory.create = function(contentType,data) {
 	var ret = null;
 	switch(contentType) {
-	case qoid.model.ContentType.AUDIO:
+	case "AUDIO":
 		var ac = new qoid.model.AudioContent();
 		ac.props.audioSrc = js.Boot.__cast(data , String);
 		ret = ac;
 		break;
-	case qoid.model.ContentType.IMAGE:
+	case "IMAGE":
 		var ic = new qoid.model.ImageContent();
 		ic.props.imgSrc = js.Boot.__cast(data , String);
 		ret = ic;
 		break;
-	case qoid.model.ContentType.TEXT:
+	case "TEXT":
 		var mc = new qoid.model.MessageContent();
 		mc.props.text = js.Boot.__cast(data , String);
 		ret = mc;
 		break;
-	case qoid.model.ContentType.URL:
+	case "URL":
 		var uc = new qoid.model.UrlContent();
 		uc.props.url = js.Boot.__cast(data , String);
 		ret = uc;
 		break;
-	case qoid.model.ContentType.VERIFICATION:
+	case "VERIFICATION":
 		var uc1 = new qoid.model.VerificationContent();
 		uc1.props.text = js.Boot.__cast(data , String);
 		ret = uc1;
 		break;
-	case qoid.model.ContentType.CONFIG:
-		var mc1 = new qoid.model.ConfigContent();
-		mc1.props.defaultImg = js.Boot.__cast(data , String);
-		ret = mc1;
-		break;
 	}
 	return ret;
-};
-qoid.model.LabeledContent = function(contentIid,labelIid) {
-	qoid.model.ModelObjWithIid.call(this);
-	this.contentIid = contentIid;
-	this.labelIid = labelIid;
-};
-$hxClasses["qoid.model.LabeledContent"] = qoid.model.LabeledContent;
-qoid.model.LabeledContent.__name__ = ["qoid","model","LabeledContent"];
-qoid.model.LabeledContent.identifier = function(l) {
-	return l.iid;
-};
-qoid.model.LabeledContent.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.LabeledContent.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.LabeledContent
-});
-qoid.model.ContentData = function() {
-};
-$hxClasses["qoid.model.ContentData"] = qoid.model.ContentData;
-qoid.model.ContentData.__name__ = ["qoid","model","ContentData"];
-qoid.model.ContentData.prototype = {
-	__class__: qoid.model.ContentData
 };
 qoid.model.ContentVerification = function() { };
 $hxClasses["qoid.model.ContentVerification"] = qoid.model.ContentVerification;
@@ -6470,7 +6321,7 @@ qoid.model.ImageContentData.prototype = $extend(qoid.model.ContentData.prototype
 	__class__: qoid.model.ImageContentData
 });
 qoid.model.ImageContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.IMAGE,qoid.model.ImageContentData);
+	qoid.model.Content.call(this,"IMAGE",qoid.model.ImageContentData);
 };
 $hxClasses["qoid.model.ImageContent"] = qoid.model.ImageContent;
 qoid.model.ImageContent.__name__ = ["qoid","model","ImageContent"];
@@ -6488,7 +6339,7 @@ qoid.model.AudioContentData.prototype = $extend(qoid.model.ContentData.prototype
 	__class__: qoid.model.AudioContentData
 });
 qoid.model.AudioContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.AUDIO,qoid.model.AudioContentData);
+	qoid.model.Content.call(this,"AUDIO",qoid.model.AudioContentData);
 };
 $hxClasses["qoid.model.AudioContent"] = qoid.model.AudioContent;
 qoid.model.AudioContent.__name__ = ["qoid","model","AudioContent"];
@@ -6506,31 +6357,13 @@ qoid.model.MessageContentData.prototype = $extend(qoid.model.ContentData.prototy
 	__class__: qoid.model.MessageContentData
 });
 qoid.model.MessageContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.TEXT,qoid.model.MessageContentData);
+	qoid.model.Content.call(this,"TEXT",qoid.model.MessageContentData);
 };
 $hxClasses["qoid.model.MessageContent"] = qoid.model.MessageContent;
 qoid.model.MessageContent.__name__ = ["qoid","model","MessageContent"];
 qoid.model.MessageContent.__super__ = qoid.model.Content;
 qoid.model.MessageContent.prototype = $extend(qoid.model.Content.prototype,{
 	__class__: qoid.model.MessageContent
-});
-qoid.model.ConfigContentData = function() {
-	qoid.model.ContentData.call(this);
-};
-$hxClasses["qoid.model.ConfigContentData"] = qoid.model.ConfigContentData;
-qoid.model.ConfigContentData.__name__ = ["qoid","model","ConfigContentData"];
-qoid.model.ConfigContentData.__super__ = qoid.model.ContentData;
-qoid.model.ConfigContentData.prototype = $extend(qoid.model.ContentData.prototype,{
-	__class__: qoid.model.ConfigContentData
-});
-qoid.model.ConfigContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.CONFIG,qoid.model.ConfigContentData);
-};
-$hxClasses["qoid.model.ConfigContent"] = qoid.model.ConfigContent;
-qoid.model.ConfigContent.__name__ = ["qoid","model","ConfigContent"];
-qoid.model.ConfigContent.__super__ = qoid.model.Content;
-qoid.model.ConfigContent.prototype = $extend(qoid.model.Content.prototype,{
-	__class__: qoid.model.ConfigContent
 });
 qoid.model.UrlContentData = function() {
 	qoid.model.ContentData.call(this);
@@ -6542,7 +6375,7 @@ qoid.model.UrlContentData.prototype = $extend(qoid.model.ContentData.prototype,{
 	__class__: qoid.model.UrlContentData
 });
 qoid.model.UrlContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.URL,qoid.model.UrlContentData);
+	qoid.model.Content.call(this,"URL",qoid.model.UrlContentData);
 };
 $hxClasses["qoid.model.UrlContent"] = qoid.model.UrlContent;
 qoid.model.UrlContent.__name__ = ["qoid","model","UrlContent"];
@@ -6560,7 +6393,7 @@ qoid.model.VerificationContentData.prototype = $extend(qoid.model.ContentData.pr
 	__class__: qoid.model.VerificationContentData
 });
 qoid.model.VerificationContent = function() {
-	qoid.model.Content.call(this,qoid.model.ContentType.VERIFICATION,qoid.model.VerificationContentData);
+	qoid.model.Content.call(this,"VERIFICATION",qoid.model.VerificationContentData);
 };
 $hxClasses["qoid.model.VerificationContent"] = qoid.model.VerificationContent;
 qoid.model.VerificationContent.__name__ = ["qoid","model","VerificationContent"];
@@ -6568,77 +6401,9 @@ qoid.model.VerificationContent.__super__ = qoid.model.Content;
 qoid.model.VerificationContent.prototype = $extend(qoid.model.Content.prototype,{
 	__class__: qoid.model.VerificationContent
 });
-qoid.model.NotificationHandler = function() {
-};
-$hxClasses["qoid.model.NotificationHandler"] = qoid.model.NotificationHandler;
-qoid.model.NotificationHandler.__name__ = ["qoid","model","NotificationHandler"];
-qoid.model.NotificationHandler.__interfaces__ = [m3.serialization.TypeHandler];
-qoid.model.NotificationHandler.prototype = {
-	read: function(fromJson,reader,instance) {
-		var obj = null;
-		var _g = Type.createEnum(qoid.model.NotificationKind,fromJson.kind,null);
-		switch(_g[1]) {
-		case 0:
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.IntroductionRequestNotification);
-			break;
-		case 1:
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.VerificationRequestNotification);
-			break;
-		case 2:
-			obj = ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.VerificationResponseNotification);
-			break;
-		}
-		return obj;
-	}
-	,write: function(value,writer) {
-		return ap.AppContext.SERIALIZER.toJson(value);
-	}
-	,__class__: qoid.model.NotificationHandler
-};
-qoid.model.NotificationKind = $hxClasses["qoid.model.NotificationKind"] = { __ename__ : ["qoid","model","NotificationKind"], __constructs__ : ["IntroductionRequest","VerificationRequest","VerificationResponse"] };
-qoid.model.NotificationKind.IntroductionRequest = ["IntroductionRequest",0];
-qoid.model.NotificationKind.IntroductionRequest.toString = $estr;
-qoid.model.NotificationKind.IntroductionRequest.__enum__ = qoid.model.NotificationKind;
-qoid.model.NotificationKind.VerificationRequest = ["VerificationRequest",1];
-qoid.model.NotificationKind.VerificationRequest.toString = $estr;
-qoid.model.NotificationKind.VerificationRequest.__enum__ = qoid.model.NotificationKind;
-qoid.model.NotificationKind.VerificationResponse = ["VerificationResponse",2];
-qoid.model.NotificationKind.VerificationResponse.toString = $estr;
-qoid.model.NotificationKind.VerificationResponse.__enum__ = qoid.model.NotificationKind;
-qoid.model.NotificationKind.__empty_constructs__ = [qoid.model.NotificationKind.IntroductionRequest,qoid.model.NotificationKind.VerificationRequest,qoid.model.NotificationKind.VerificationResponse];
-qoid.model.Notification = function(kind,type) {
-	qoid.model.ModelObjWithIid.call(this);
-	this.kind = kind;
-	this.data = { };
-	this.type = type;
-	this.props = Type.createInstance(type,[]);
-};
-$hxClasses["qoid.model.Notification"] = qoid.model.Notification;
-qoid.model.Notification.__name__ = ["qoid","model","Notification"];
-qoid.model.Notification.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Notification.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	objectType: function() {
-		return "notification";
-	}
-	,readResolve: function() {
-		this.props = ap.AppContext.SERIALIZER.fromJsonX(this.data,this.type);
-	}
-	,writeResolve: function() {
-		this.data = ap.AppContext.SERIALIZER.toJson(this.props);
-	}
-	,__class__: qoid.model.Notification
-});
-qoid.model.IntroductionState = $hxClasses["qoid.model.IntroductionState"] = { __ename__ : ["qoid","model","IntroductionState"], __constructs__ : ["NotResponded","Accepted","Rejected"] };
-qoid.model.IntroductionState.NotResponded = ["NotResponded",0];
-qoid.model.IntroductionState.NotResponded.toString = $estr;
-qoid.model.IntroductionState.NotResponded.__enum__ = qoid.model.IntroductionState;
-qoid.model.IntroductionState.Accepted = ["Accepted",1];
-qoid.model.IntroductionState.Accepted.toString = $estr;
-qoid.model.IntroductionState.Accepted.__enum__ = qoid.model.IntroductionState;
-qoid.model.IntroductionState.Rejected = ["Rejected",2];
-qoid.model.IntroductionState.Rejected.toString = $estr;
-qoid.model.IntroductionState.Rejected.__enum__ = qoid.model.IntroductionState;
-qoid.model.IntroductionState.__empty_constructs__ = [qoid.model.IntroductionState.NotResponded,qoid.model.IntroductionState.Accepted,qoid.model.IntroductionState.Rejected];
+qoid.model.NotificationKind = function() { };
+$hxClasses["qoid.model.NotificationKind"] = qoid.model.NotificationKind;
+qoid.model.NotificationKind.__name__ = ["qoid","model","NotificationKind"];
 qoid.model.IntroductionRequest = function() {
 	qoid.model.ModelObjWithIid.call(this);
 };
@@ -6647,15 +6412,6 @@ qoid.model.IntroductionRequest.__name__ = ["qoid","model","IntroductionRequest"]
 qoid.model.IntroductionRequest.__super__ = qoid.model.ModelObjWithIid;
 qoid.model.IntroductionRequest.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	__class__: qoid.model.IntroductionRequest
-});
-qoid.model.Introduction = function() {
-	qoid.model.ModelObjWithIid.call(this);
-};
-$hxClasses["qoid.model.Introduction"] = qoid.model.Introduction;
-qoid.model.Introduction.__name__ = ["qoid","model","Introduction"];
-qoid.model.Introduction.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Introduction.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.Introduction
 });
 qoid.model.IntroductionRequestNotification = function() {
 	qoid.model.Notification.call(this,qoid.model.NotificationKind.IntroductionRequest,qoid.model.IntroductionRequestData);
@@ -6698,9 +6454,9 @@ qoid.model.VerificationRequestData.prototype = {
 				$r = HxOverrides.dateStr(_this1);
 				return $r;
 			}(this)), createdByAliasIid : "Chewbaca", modifiedByAliasIid : "PizzaTheHut"};
-			return ap.AppContext.SERIALIZER.fromJsonX(fromJson,qoid.model.Content);
+			return m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.Content);
 		} catch( e ) {
-			ap.AppContext.LOGGER.error(e);
+			m3.log.Logga.get_DEFAULT().error(e);
 			throw e;
 		}
 	}
@@ -6721,24 +6477,6 @@ qoid.model.VerificationResponseData.__name__ = ["qoid","model","VerificationResp
 qoid.model.VerificationResponseData.prototype = {
 	__class__: qoid.model.VerificationResponseData
 };
-qoid.model.Login = function() {
-	qoid.model.ModelObj.call(this);
-};
-$hxClasses["qoid.model.Login"] = qoid.model.Login;
-qoid.model.Login.__name__ = ["qoid","model","Login"];
-qoid.model.Login.__super__ = qoid.model.ModelObj;
-qoid.model.Login.prototype = $extend(qoid.model.ModelObj.prototype,{
-	__class__: qoid.model.Login
-});
-qoid.model.NewUser = function() {
-	qoid.model.ModelObj.call(this);
-};
-$hxClasses["qoid.model.NewUser"] = qoid.model.NewUser;
-qoid.model.NewUser.__name__ = ["qoid","model","NewUser"];
-qoid.model.NewUser.__super__ = qoid.model.ModelObj;
-qoid.model.NewUser.prototype = $extend(qoid.model.ModelObj.prototype,{
-	__class__: qoid.model.NewUser
-});
 qoid.model.VerificationRequest = function(contentIid,connectionIids,message) {
 	this.message = message;
 	this.contentIid = contentIid;
@@ -6763,57 +6501,6 @@ $hxClasses["qoid.model.Verification"] = qoid.model.Verification;
 qoid.model.Verification.__name__ = ["qoid","model","Verification"];
 qoid.model.Verification.prototype = {
 	__class__: qoid.model.Verification
-};
-qoid.model.And = function() {
-	qoid.model.Node.call(this,"AND");
-	this.nodes = new Array();
-};
-$hxClasses["qoid.model.And"] = qoid.model.And;
-qoid.model.And.__name__ = ["qoid","model","And"];
-qoid.model.And.__super__ = qoid.model.Node;
-qoid.model.And.prototype = $extend(qoid.model.Node.prototype,{
-	getQuery: function() {
-		return " AND ";
-	}
-	,__class__: qoid.model.And
-});
-qoid.model.Or = function() {
-	qoid.model.Node.call(this,"OR");
-	this.nodes = new Array();
-};
-$hxClasses["qoid.model.Or"] = qoid.model.Or;
-qoid.model.Or.__name__ = ["qoid","model","Or"];
-qoid.model.Or.__super__ = qoid.model.Node;
-qoid.model.Or.prototype = $extend(qoid.model.Node.prototype,{
-	getQuery: function() {
-		return " OR ";
-	}
-	,__class__: qoid.model.Or
-});
-qoid.model.ConnectionNode = function(connection) {
-	qoid.model.ContentNode.call(this,"CONNECTION",connection);
-};
-$hxClasses["qoid.model.ConnectionNode"] = qoid.model.ConnectionNode;
-qoid.model.ConnectionNode.__name__ = ["qoid","model","ConnectionNode"];
-qoid.model.ConnectionNode.__super__ = qoid.model.ContentNode;
-qoid.model.ConnectionNode.prototype = $extend(qoid.model.ContentNode.prototype,{
-	getQuery: function() {
-		return "";
-	}
-	,__class__: qoid.model.ConnectionNode
-});
-qoid.widget = {};
-qoid.widget.UploadCompHelper = function() { };
-$hxClasses["qoid.widget.UploadCompHelper"] = qoid.widget.UploadCompHelper;
-qoid.widget.UploadCompHelper.__name__ = ["qoid","widget","UploadCompHelper"];
-qoid.widget.UploadCompHelper.value = function(m) {
-	return m.uploadComp("value");
-};
-qoid.widget.UploadCompHelper.clear = function(m) {
-	m.uploadComp("clear");
-};
-qoid.widget.UploadCompHelper.setPreviewImage = function(m,src) {
-	m.uploadComp("setPreviewImage",src);
 };
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }
 var $_, $fid = 0;
@@ -6862,12 +6549,6 @@ Xml.Comment = "comment";
 Xml.DocType = "doctype";
 Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
-ap.model.EM.delegate = m3.event.EventManager.get_instance();
-ap.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
-ap.model.ContentSource.listeners = new Array();
-ap.model.EM.addListener("AliasLoaded",ap.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
-ap.model.EM.addListener("LoadFilteredContent",ap.model.ContentSource.onLoadFilteredContent,"ContentSource-LoadFilteredContent");
-ap.model.EM.addListener("AppendFilteredContent",ap.model.ContentSource.onAppendFilteredContent,"ContentSource-AppendFilteredContent");
 $.fn.exists = function() {
 	return $(this).length > 0;
 };
@@ -6892,6 +6573,313 @@ $.fn.intersects = function(el) {
 	if(t_x_0 < i_x_1 && t_x_1 > i_x_0 && t_y_0 < i_y_1 && t_y_1 > i_y_0) intersects = true;
 	return intersects;
 };
+ap.model.EM.delegate = m3.event.EventManager.get_instance();
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of CreateAgentDialog must be a div element");
+		self._cancelled = false;
+		selfElement.addClass("createAgentDialog").hide();
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
+		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
+		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
+		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		inputs.append("<br/>");
+		inputs.children("input").keypress(function(evt) {
+			if(evt.keyCode == 13) self._createNewUser();
+		});
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_n,self.placeholder_n);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
+	}, initialized : false, _createNewUser : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var newUser = new qoid.model.NewUser();
+		newUser.pwd = self1.input_pw.val();
+		if(m3.helper.StringHelper.isBlank(newUser.pwd)) {
+			self1.placeholder_pw.addClass("ui-state-error");
+			valid = false;
+		}
+		newUser.name = self1.input_n.val();
+		if(m3.helper.StringHelper.isBlank(newUser.name)) {
+			self1.placeholder_n.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		ap.model.EM.change("CreateAgent",newUser);
+		ap.model.EM.listenOnce(qoid.QE.onAgentCreated,function(n) {
+			selfElement1.dialog("close");
+		},"CreateAgentDialog-UserSignup");
+	}, _buildDialog : function() {
+		var self2 = this;
+		var selfElement2 = this.element;
+		self2.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, modal : true, buttons : { 'Create My Agent' : function() {
+			self2._registered = true;
+			self2._createNewUser();
+		}, Cancel : function() {
+			self2._cancelled = true;
+			$(this).dialog("close");
+		}}, close : function(evt1,ui) {
+			selfElement2.find(".placeholder").removeClass("ui-state-error");
+			ap.widget.DialogManager.showLogin();
+		}};
+		selfElement2.dialog(dlgOptions);
+	}, open : function() {
+		var self3 = this;
+		var selfElement3 = this.element;
+		self3._cancelled = false;
+		if(!self3.initialized) self3._buildDialog();
+		selfElement3.children("#n_label").focus();
+		self3.input_n.blur();
+		selfElement3.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.createAgentDialog",defineWidget());
+qoid.QoidAPI.channels = new Array();
+qoid.QoidAPI.set_activeChannel(null);
+qoid.QoidAPI.longPolls = new haxe.ds.StringMap();
+qoid.Qoid.introductions = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+qoid.Qoid.notifications = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+qoid.Qoid.aliases = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+qoid.Qoid.aliases.listen(function(a,evt) {
+	if(evt.isAddOrUpdate()) {
+		var p = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.profiles,a.iid,"aliasIid");
+		if(p != null) a.profile = p;
+		if(evt.isAdd()) m3.event.EventManager.get_instance().change(qoid.QE.onAliasCreated,a); else m3.event.EventManager.get_instance().change(qoid.QE.onAliasUpdated,a);
+	}
+});
+qoid.Qoid.labels = new m3.observable.ObservableSet(qoid.model.Label.identifier);
+qoid.Qoid.connections = new m3.observable.ObservableSet(qoid.model.Connection.identifier);
+qoid.Qoid.connections.listen(function(c,evt1) {
+	if(evt1.isAdd()) qoid.QoidAPI.getProfile([c.iid]);
+});
+qoid.Qoid.groupedConnections = new m3.observable.GroupedSet(qoid.Qoid.connections,function(c1) {
+	return c1.aliasIid;
+});
+qoid.Qoid.labelAcls = new m3.observable.ObservableSet(qoid.model.LabelAcl.identifier);
+qoid.Qoid.groupedLabelAcls = new m3.observable.GroupedSet(qoid.Qoid.labelAcls,function(l) {
+	return l.connectionIid;
+});
+qoid.Qoid.labelChildren = new m3.observable.ObservableSet(qoid.model.LabelChild.identifier);
+qoid.Qoid.groupedLabelChildren = new m3.observable.GroupedSet(qoid.Qoid.labelChildren,function(lc) {
+	return lc.parentIid;
+});
+qoid.Qoid.labeledContent = new m3.observable.ObservableSet(qoid.model.LabeledContent.identifier);
+qoid.Qoid.groupedLabeledContent = new m3.observable.GroupedSet(qoid.Qoid.labeledContent,function(lc1) {
+	return lc1.contentIid;
+});
+qoid.Qoid.profiles = new m3.observable.ObservableSet(qoid.model.Profile.identifier);
+qoid.Qoid.profiles.listen(function(p1,evt2) {
+	if(evt2.isAddOrUpdate()) {
+		var alias = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,p1.aliasIid);
+		if(alias != null) {
+			alias.profile = p1;
+			qoid.Qoid.aliases.addOrUpdate(alias);
+		}
+	}
+});
+qoid.Qoid.verificationContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+m3.serialization.Serializer.get_instance().addHandler(qoid.model.Content,new qoid.model.ContentHandler());
+m3.serialization.Serializer.get_instance().addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
+m3.event.EventManager.get_instance().on("onConnectionProfile",qoid.Qoid.processProfile);
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LoginDialog must be a div element");
+		selfElement.addClass("loginDialog").hide();
+		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
+		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
+		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Agent Id</label></div>");
+		labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
+		self.input_un = new $("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
+		self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
+		inputs.append("<br/>");
+		self.input_pw = new $("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
+		self.placeholder_pw = new $("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
+		self.input_un.val("");
+		self.input_pw.val("");
+		inputs.children("input").keypress(function(evt) {
+			if(evt.keyCode == 13) self._login();
+		});
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_un,self.placeholder_un);
+		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
+		ap.model.EM.addListener(qoid.QE.onInitialDataload,function(n) {
+			selfElement.dialog("close");
+		},"Login-InitialDataLoadComplete");
+	}, initialized : false, _login : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		var valid = true;
+		var login = new qoid.model.Login();
+		login.agentId = self1.input_un.val();
+		if(m3.helper.StringHelper.isBlank(login.agentId)) {
+			self1.placeholder_un.addClass("ui-state-error");
+			valid = false;
+		}
+		login.password = self1.input_pw.val();
+		if(m3.helper.StringHelper.isBlank(login.password)) {
+			self1.placeholder_pw.addClass("ui-state-error");
+			valid = false;
+		}
+		if(!valid) return;
+		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
+		qoid.QoidAPI.login(login.agentId,login.password);
+	}, _buildDialog : function() {
+		var self2 = this;
+		var selfElement2 = this.element;
+		self2.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Login", height : 280, width : 400, modal : true, buttons : { Login : function() {
+			self2._login();
+		}, 'I\'m New...' : function() {
+			ap.widget.DialogManager.showCreateAgent();
+		}}, beforeClose : function(evt1,ui) {
+			if(qoid.Qoid.get_currentAlias() == null) {
+				m3.util.JqueryUtil.alert("A valid login is required to use the app");
+				return false;
+			}
+			return true;
+		}};
+		selfElement2.dialog(dlgOptions);
+	}, open : function() {
+		var self3 = this;
+		var selfElement3 = this.element;
+		if(!self3.initialized) self3._buildDialog();
+		selfElement3.children("#un_label").focus();
+		self3.input_un.blur();
+		self3.input_pw.blur();
+		selfElement3.dialog("open");
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.loginDialog",defineWidget());
+var defineWidget = function() {
+	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of Popup must be a div element");
+		selfElement.addClass("ocontainer shadow popup");
+		if(!self.options.modal) new $("body").one("click",function(evt) {
+			selfElement.remove();
+			self.destroy();
+		});
+		self.options.createFcn(selfElement);
+		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.popup",defineWidget());
+if(!Array.indexOf){Array.prototype.indexOf = function(obj){for(var i=0; i<this.length; i++){if(this[i]==obj){return i;}}return -1;}}
+var defineWidget = function() {
+	return { _create : function() {
+		var self = this;
+		var selfElement = this.element;
+		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UploadComp must be a div element");
+		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
+		self._createFileUploadComponent();
+		selfElement.on("dragleave",function(evt,d) {
+			m3.log.Logga.get_DEFAULT().debug("dragleave");
+			var target = evt.target;
+			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
+			evt.preventDefault();
+			evt.stopPropagation();
+		});
+		selfElement.on("dragenter",function(evt1,d1) {
+			m3.log.Logga.get_DEFAULT().debug("dragenter");
+			$(this).addClass("over");
+			evt1.preventDefault();
+			evt1.stopPropagation();
+		});
+		selfElement.on("dragover",function(evt2,d2) {
+			m3.log.Logga.get_DEFAULT().debug("dragover");
+			evt2.preventDefault();
+			evt2.stopPropagation();
+		});
+		selfElement.on("drop",function(evt3,d3) {
+			m3.log.Logga.get_DEFAULT().debug("drop");
+			self._traverseFiles(evt3.originalEvent.dataTransfer.files);
+			$(this).removeClass("drop");
+			evt3.preventDefault();
+			evt3.stopPropagation();
+		});
+	}, _createFileUploadComponent : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		if(self1.inner_element_id != null) new $("#" + self1.inner_element_id).remove();
+		self1.inner_element_id = "files-upload-" + StringTools.hex(Std.random(999999));
+		var filesUpload = new $("<input id='" + self1.inner_element_id + "' class='files-upload' type='file'/>").prependTo(selfElement1);
+		filesUpload.change(function(evt4) {
+			self1._traverseFiles(this.files);
+		});
+	}, _uploadFile : function(file) {
+		var self2 = this;
+		var selfElement2 = this.element;
+		if(typeof FileReader === 'undefined') {
+			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
+			return;
+		}
+		if(self2.options.contentType == qoid.model.ContentTypes.IMAGE && !new EReg("image","i").match(file.type)) {
+			m3.util.JqueryUtil.alert("Please select an image file.");
+			return;
+		}
+		if(self2.options.contentType == qoid.model.ContentTypes.AUDIO && !new EReg("audio","i").match(file.type)) {
+			m3.util.JqueryUtil.alert("Please select an audio file.");
+			return;
+		}
+		m3.log.Logga.get_DEFAULT().debug("upload " + Std.string(file.name));
+		var reader = new FileReader();
+		reader.onload = function(evt5) {
+			self2.setPreviewImage(evt5.target.result);
+			if(self2.options.onload != null) self2.options.onload(evt5.target.result);
+		};
+		reader.readAsDataURL(file);
+	}, setPreviewImage : function(src) {
+		var self3 = this;
+		if(self3.previewImg == null) {
+			var selfElement3 = this.element;
+			self3.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement3);
+		}
+		self3.previewImg.attr("src",src);
+	}, _traverseFiles : function(files) {
+		m3.log.Logga.get_DEFAULT().debug("traverse the files");
+		var self4 = this;
+		if(m3.helper.ArrayHelper.hasValues(files)) {
+			var _g = 0;
+			while(_g < 1) {
+				var i = _g++;
+				self4._uploadFile(files[i]);
+			}
+		} else {
+		}
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}, value : function() {
+		var self5 = this;
+		return self5.previewImg.attr("src");
+	}, clear : function() {
+		var self6 = this;
+		self6.previewImg.remove();
+		self6.previewImg = null;
+		self6._createFileUploadComponent();
+	}};
+};
+$.widget("ui.uploadComp",defineWidget());
+ap.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
+ap.model.ContentSource.listeners = new Array();
+ap.model.EM.addListener(qoid.QE.onAliasLoaded,ap.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");
+ap.model.EM.addListener("onFilteredContent",ap.model.ContentSource.onLoadFilteredContent,"ContentSource-LoadFilteredContent");
 var defineWidget = function() {
 	return { getLabel : function() {
 		var self = this;
@@ -6905,18 +6893,18 @@ var defineWidget = function() {
 				selfElement.remove();
 			}
 		};
-		self1.filteredSet = new m3.observable.FilteredSet(ap.AppContext.LABELS,function(label1) {
+		self1.filteredSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(label1) {
 			return label1.iid == self1.options.album.iid;
 		});
 		self1.filteredSet.listen(self1._onupdate);
 		self1._onAlbumConfig = function(mc,evt) {
-			var match = m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELEDCONTENT,mc.iid + "_" + self1.options.album.iid,function(lc) {
+			var match = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labeledContent,mc.iid + "_" + self1.options.album.iid,function(lc) {
 				return lc.contentIid + "_" + lc.labelIid;
 			});
 			if(match != null) try {
 				self1.img.attr("src",mc.props.defaultImg);
 			} catch( err ) {
-				ap.AppContext.LOGGER.error("problem using the default img");
+				m3.log.Logga.get_DEFAULT().error("problem using the default img");
 			}
 		};
 		ap.APhotoContext.ALBUM_CONFIGS.listen(self1._onAlbumConfig);
@@ -6944,23 +6932,6 @@ var defineWidget = function() {
 };
 $.widget("ui.albumComp",defineWidget());
 var defineWidget = function() {
-	return { options : { createFcn : null, modal : false, positionalElement : null}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of Popup must be a div element");
-		selfElement.addClass("ocontainer shadow popup");
-		if(!self.options.modal) new $("body").one("click",function(evt) {
-			selfElement.remove();
-			self.destroy();
-		});
-		self.options.createFcn(selfElement);
-		selfElement.position({ my : "left", at : "right", of : self.options.positionalElement});
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.popup",defineWidget());
-var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -6984,13 +6955,13 @@ var defineWidget = function() {
 		var self1 = this;
 		var selfElement1 = this.element;
 		self1._onAlbumConfig = function(mc,evt2) {
-			var match = m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELEDCONTENT,mc.iid + "_" + self1.options.label.iid,function(lc) {
+			var match = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labeledContent,mc.iid + "_" + self1.options.label.iid,function(lc) {
 				return lc.contentIid + "_" + lc.labelIid;
 			});
 			if(match != null) try {
 				self1.img.attr("src",mc.props.defaultImg);
 			} catch( err ) {
-				ap.AppContext.LOGGER.error("problem using the default img");
+				m3.log.Logga.get_DEFAULT().error("problem using the default img");
 			}
 		};
 		ap.APhotoContext.ALBUM_CONFIGS.listen(self1._onAlbumConfig);
@@ -7025,7 +6996,7 @@ var defineWidget = function() {
 			updateLabel = function() {
 				if(input.val().length == 0) return;
 				var label = self2.options.label;
-				ap.AppContext.LOGGER.info("Update label | " + label.iid);
+				m3.log.Logga.get_DEFAULT().info("Update label | " + label.iid);
 				label.name = input.val();
 				var eventData = new qoid.model.EditLabelData(label);
 				ap.model.EM.change("UpdateLabel",eventData);
@@ -7070,21 +7041,21 @@ var defineWidget = function() {
 		});
 		if((function($this) {
 			var $r;
-			var this1 = ap.AppContext.GROUPED_LABELCHILDREN.delegate();
+			var this1 = qoid.Qoid.groupedLabelChildren.delegate();
 			$r = this1.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
 			return $r;
-		}(this)) == null) ap.AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(ap.APhotoContext.get_ROOT_ALBUM().iid);
+		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(ap.APhotoContext.get_ROOT_ALBUM().iid);
 		selfElement.append("<br/>");
 		self.onchangeLabelChildren = function(albumComp,evt1) {
 			if(evt1.isAdd()) selfElement.append(albumComp); else if(evt1.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt1.isDelete()) albumComp.remove();
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = ap.AppContext.GROUPED_LABELCHILDREN.delegate();
+			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
 			$r = this11.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
 			return $r;
 		}(this)),function(labelChild) {
-			return new $("<div></div>").albumComp({ album : m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELS,labelChild.childIid)});
+			return new $("<div></div>").albumComp({ album : m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid)});
 		});
 		self.mappedLabels.visualId = "root_map";
 		self.mappedLabels.listen(self.onchangeLabelChildren);
@@ -7116,7 +7087,7 @@ var defineWidget = function() {
 			});
 			createLabel = function() {
 				if(input.val().length == 0) return;
-				ap.AppContext.LOGGER.info("Create new label | " + input.val());
+				m3.log.Logga.get_DEFAULT().info("Create new label | " + input.val());
 				var label = new qoid.model.Label();
 				label.name = input.val();
 				var eventData = new qoid.model.EditLabelData(label,ap.APhotoContext.get_ROOT_ALBUM().iid);
@@ -7126,44 +7097,11 @@ var defineWidget = function() {
 		}, positionalElement : reference});
 	}, destroy : function() {
 		var self2 = this;
-		ap.model.EM.removeListener("AliasLoaded",self2.listenerId);
+		if(self2.mappedLabels != null && self2.onchangeLabelChildren != null) self2.mappedLabels.removeListener(self2.onchangeLabelChildren);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
 $.widget("ui.albumList",defineWidget());
-var defineWidget = function() {
-	return { options : { menuOptions : null, width : 200, classes : ""}, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("ul")) throw new m3.exception.Exception("Root of M3Menu should be a ul");
-		selfElement.css("position","absolute");
-		selfElement.addClass("m3menu nonmodalPopup");
-		if(m3.helper.StringHelper.isNotBlank(self.options.classes)) selfElement.addClass(self.options.classes);
-		selfElement.width(self.options.width);
-		var _g = 0;
-		var _g1 = self.options.menuOptions;
-		while(_g < _g1.length) {
-			var menuOption = [_g1[_g]];
-			++_g;
-			var icon;
-			if(m3.helper.StringHelper.isNotBlank(menuOption[0].icon)) icon = "<span class='ui-icon " + menuOption[0].icon + "'></span>"; else icon = "";
-			new $("<li><a href='#'>" + icon + menuOption[0].label + "</a></li>").appendTo(selfElement).click((function(menuOption) {
-				return function(evt) {
-					menuOption[0].action(evt,selfElement);
-				};
-			})(menuOption));
-		}
-		selfElement.on("contextmenu",function(evt1) {
-			return false;
-		});
-		this._super("create");
-	}, _closeOnDocumentClick : function(evt2) {
-		return true;
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.m3menu",$.ui.menu,defineWidget());
 var defineWidget = function() {
 	return { options : { isDragByHelper : true, containment : false, dndEnabled : true, classes : null, dragstop : null, cloneFcn : function(filterableComp,isDragByHelper,containment,dragstop) {
 		if(containment == null) containment = false;
@@ -7179,7 +7117,7 @@ var defineWidget = function() {
 		return clone1.children("img").addClass("connectionDraggingImg");
 	}}, getAlias : function() {
 		var self = this;
-		return m3.helper.OSetHelper.getElement(ap.AppContext.ALIASES,self.options.aliasIid);
+		return m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,self.options.aliasIid);
 	}, _create : function() {
 		var self1 = this;
 		var selfElement = this.element;
@@ -7193,7 +7131,7 @@ var defineWidget = function() {
 		selfElement.append(img);
 		self1._updateWidgets(new qoid.model.Profile());
 		if(self1.options.aliasIid != null) {
-			self1.filteredSetAlias = new m3.observable.FilteredSet(ap.AppContext.ALIASES,function(a) {
+			self1.filteredSetAlias = new m3.observable.FilteredSet(qoid.Qoid.aliases,function(a) {
 				return a.iid == self1.options.aliasIid;
 			});
 			self1._onUpdateAlias = function(a1,evt) {
@@ -7203,7 +7141,7 @@ var defineWidget = function() {
 				}
 			};
 			self1.filteredSetAlias.listen(self1._onUpdateAlias);
-		} else ap.AppContext.LOGGER.warn("AliasIid is not set for Avatar");
+		} else m3.log.Logga.get_DEFAULT().warn("AliasIid is not set for Avatar");
 		(js.Boot.__cast(selfElement , $)).tooltip();
 		if(!self1.options.dndEnabled) img.mousedown(function(evt1) {
 			return false;;
@@ -7251,7 +7189,7 @@ var defineWidget = function() {
 		self.container.append(self.userIdTxt);
 		self.userIdTxt.html("...");
 		self._setAlias(new qoid.model.Alias());
-		self.aliasLoadedListener = ap.model.EM.addListener("AliasLoaded",function(alias) {
+		self.aliasLoadedListener = ap.model.EM.addListener(qoid.QE.onAliasLoaded,function(alias) {
 			self._setAlias(alias);
 		},"AliasComp-Alias");
 		self._onupdate = function(alias1,t) {
@@ -7261,65 +7199,35 @@ var defineWidget = function() {
 			}
 		};
 		self._onupdateProfile = function(p,t1) {
-			var alias2 = m3.helper.OSetHelper.getElement(ap.AppContext.ALIASES,p.aliasIid);
+			var alias2 = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,p.aliasIid);
 			self._updateAliasWidgets(alias2);
 		};
-		if(ap.AppContext.currentAlias != null) self._setAlias(ap.AppContext.currentAlias);
-	}, _createAliasMenu : function() {
+		if(qoid.Qoid.get_currentAlias() != null) self._setAlias(qoid.Qoid.get_currentAlias());
+	}, _updateAliasWidgets : function(alias3) {
 		var self1 = this;
-		new $("#userAliasMenu").remove();
-		var menu = new $("<ul id='userAliasMenu'></ul>");
-		menu.appendTo(self1.container);
-		var menuOptions = [];
-		var menuOption;
-		var aliases = new m3.observable.SortedSet(ap.AppContext.ALIASES,function(a) {
-			return a.profile.name.toLowerCase();
-		});
-		var $it0 = aliases.iterator();
-		while( $it0.hasNext() ) {
-			var alias3 = $it0.next();
-			var alias4 = [alias3];
-			menuOption = { label : alias4[0].profile.name, icon : "ui-icon-person", action : (function(alias4) {
-				return function(evt,m) {
-					if(qoid.model.Alias.identifier(ap.AppContext.currentAlias) == qoid.model.Alias.identifier(alias4[0])) menu.hide(); else {
-						ap.AppContext.currentAlias = alias4[0];
-						ap.model.EM.change("AliasLoaded",alias4[0]);
-					}
-				};
-			})(alias4)};
-			menuOptions.push(menuOption);
-		}
-		menuOption = { label : "Manage Aliases...", icon : "ui-icon-circle-plus", action : function(evt1,m1) {
-			ap.widget.DialogManager.showAliasManager();
-		}};
-		menuOptions.push(menuOption);
-		menu.m3menu({ menuOptions : menuOptions}).hide();
-		return menu;
-	}, _updateAliasWidgets : function(alias5) {
+		var avatar = new $("<div class='avatar' style=''></div>").connectionAvatar({ aliasIid : alias3.iid, dndEnabled : true, isDragByHelper : true, containment : false});
+		self1.avatar.replaceWith(avatar);
+		self1.avatar = avatar;
+		new $(".userIdTxt").html(alias3.profile.name);
+	}, _setAlias : function(alias4) {
 		var self2 = this;
-		var avatar = new $("<div class='avatar' style=''></div>").connectionAvatar({ aliasIid : alias5.iid, dndEnabled : true, isDragByHelper : true, containment : false});
-		self2.avatar.replaceWith(avatar);
-		self2.avatar = avatar;
-		new $(".userIdTxt").html(alias5.profile.name);
-	}, _setAlias : function(alias6) {
-		var self3 = this;
 		var selfElement1 = this.element;
-		self3._updateAliasWidgets(alias6);
-		if(self3.aliasSet != null) self3.aliasSet.removeListener(self3._onupdate);
-		self3.aliasSet = new m3.observable.FilteredSet(ap.AppContext.ALIASES,function(a1) {
-			return a1.iid == alias6.iid;
+		self2._updateAliasWidgets(alias4);
+		if(self2.aliasSet != null) self2.aliasSet.removeListener(self2._onupdate);
+		self2.aliasSet = new m3.observable.FilteredSet(qoid.Qoid.aliases,function(a) {
+			return a.iid == alias4.iid;
 		});
-		self3.aliasSet.listen(self3._onupdate);
-		if(self3.profileSet != null) self3.profileSet.removeListener(self3._onupdateProfile);
-		self3.profileSet = new m3.observable.FilteredSet(ap.AppContext.PROFILES,function(p1) {
-			return p1.aliasIid == alias6.iid;
+		self2.aliasSet.listen(self2._onupdate);
+		if(self2.profileSet != null) self2.profileSet.removeListener(self2._onupdateProfile);
+		self2.profileSet = new m3.observable.FilteredSet(qoid.Qoid.profiles,function(p1) {
+			return p1.aliasIid == alias4.iid;
 		});
-		self3.profileSet.listen(self3._onupdateProfile);
+		self2.profileSet.listen(self2._onupdateProfile);
 	}, destroy : function() {
-		var self4 = this;
-		if(self4.aliasSet != null) self4.aliasSet.removeListener(self4._onupdate);
-		if(self4.profileSet != null) self4.profileSet.removeListener(self4._onupdateProfile);
-		ap.model.EM.removeListener("AliasLoaded",self4.aliasLoadedListener);
+		var self3 = this;
+		if(self3.aliasSet != null) self3.aliasSet.removeListener(self3._onupdate);
+		if(self3.profileSet != null) self3.profileSet.removeListener(self3._onupdateProfile);
+		ap.model.EM.removeListener(qoid.QE.onAliasLoaded,self3.aliasLoadedListener);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -7343,13 +7251,13 @@ var defineWidget = function() {
 		var content1 = self1.options.content;
 		var _g = content1.contentType;
 		switch(_g) {
-		case qoid.model.ContentType.IMAGE:
+		case qoid.model.ContentTypes.IMAGE:
 			var img;
 			img = js.Boot.__cast(content1 , qoid.model.ImageContent);
 			selfElement1.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
 			break;
 		default:
-			ap.AppContext.LOGGER.debug("Only image content should be displayed");
+			m3.log.Logga.get_DEFAULT().debug("Only image content should be displayed");
 		}
 	}, update : function(content2) {
 		var self2 = this;
@@ -7364,7 +7272,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.contentComp",defineWidget());
-if(!Array.indexOf){Array.prototype.indexOf = function(obj){for(var i=0; i<this.length; i++){if(this[i]==obj){return i;}}return -1;}}
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -7373,7 +7280,7 @@ var defineWidget = function() {
 		selfElement.addClass("_contentFeed " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
 		var div = new $("<div class='wrapper'></div>").appendTo(selfElement);
 		var mapListener = function(content,contentComp,evt) {
-			if(content != null && qoid.model.ContentType.IMAGE == content.contentType) {
+			if(content != null && qoid.model.ContentTypes.IMAGE == content.contentType) {
 				if(evt.isAdd()) {
 					var contentComps = new $(".contentComp");
 					if(contentComps.length == 0) contentComp.appendTo(div); else {
@@ -7431,7 +7338,7 @@ var defineWidget = function() {
 		while(_g < _g1.length) {
 			var iid = _g1[_g];
 			++_g;
-			var label = m3.helper.OSetHelper.getElement(ap.AppContext.LABELS,iid);
+			var label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,iid);
 			ret.push(label.name);
 		}
 		return ret;
@@ -7449,7 +7356,7 @@ var defineWidget = function() {
 				selfElement.remove();
 			}
 		};
-		self2.filteredSet = new m3.observable.FilteredSet(ap.AppContext.LABELS,function(label2) {
+		self2.filteredSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(label2) {
 			return label2.iid == self2.options.labelIid;
 		});
 		self2.filteredSet.listen(self2._onupdate);
@@ -7457,11 +7364,11 @@ var defineWidget = function() {
 		var self3 = this;
 		var selfElement1 = this.element;
 		if(!selfElement1["is"]("div")) throw new m3.exception.Exception("Root of LabelComp must be a div element");
-		self3.label = m3.helper.OSetHelper.getElement(ap.AppContext.LABELS,self3.options.labelIid);
+		self3.label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,self3.options.labelIid);
 		if(self3.label == null) {
 			self3.label = new qoid.model.Label("-->*<--");
 			self3.label.iid = self3.options.labelIid;
-			ap.AppContext.LABELS.add(self3.label);
+			qoid.Qoid.labels.add(self3.label);
 		}
 		selfElement1.addClass("label labelComp ").attr("id",StringTools.htmlEscape(self3.label.name) + "_" + m3.util.UidGenerator.create(8));
 		var labelBox = new $("<div class='labelBox shadowRight'></div>");
@@ -7477,12 +7384,12 @@ var defineWidget = function() {
 			selfElement1.data("clone",self3.options.cloneFcn);
 			selfElement1.data("dropTargetClass",self3.options.dropTargetClass);
 			selfElement1.data("getNode",function() {
-				return new qoid.model.LabelNode(self3.label,self3.getLabelPathNames());
+				return new agentui.model.LabelNode(self3.label,self3.getLabelPathNames());
 			});
 			var helper = "clone";
 			if(!self3.options.isDragByHelper) helper = "original"; else if(self3.options.helperFcn != null && Reflect.isFunction(self3.options.helperFcn)) helper = self3.options.helperFcn;
 			selfElement1.on("dragstop",function(dragstopEvt,_ui) {
-				ap.AppContext.LOGGER.debug("dragstop on label | " + self3.label.name);
+				m3.log.Logga.get_DEFAULT().debug("dragstop on label | " + self3.label.name);
 				if(self3.options.dragstop != null) self3.options.dragstop(dragstopEvt,_ui);
 				new $(window.document).off("keydown keyup");
 				_ui.helper.find("#copyIndicator").remove();
@@ -7530,7 +7437,7 @@ var defineWidget = function() {
 		var content = self1.options.content;
 		var _g = content.contentType;
 		switch(_g) {
-		case qoid.model.ContentType.IMAGE:
+		case qoid.model.ContentTypes.IMAGE:
 			var imgDiv = new $("<div class='imgDiv'></div>").appendTo(selfElement1);
 			var captionDiv = new $("<div class='captionDiv'></div>").appendTo(selfElement1);
 			var labelsDiv = new $("<div class='labelsDiv'></div>").appendTo(selfElement1);
@@ -7549,10 +7456,10 @@ var defineWidget = function() {
 				self1._showEditAlbumsPopup(self1.options.content,$(this));
 				evt1.stopPropagation();
 			});
-			var labels = m3.helper.OSetHelper.getElement(ap.AppContext.GROUPED_LABELEDCONTENT,content.iid);
+			var labels = m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,content.iid);
 			self1.labelListener = function(lc,evt2) {
 				if(lc != null && lc.labelIid != ap.APhotoContext.CURRENT_ALBUM) {
-					if(evt2.isAdd()) new $("<div id='otherAlbum" + lc.labelIid + "' class='album'>" + m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELS,lc.labelIid).name + "</div>").appendTo(labelsDiv); else if(evt2.isUpdate()) new $("#otherAlbum" + lc.labelIid,labelsDiv).text(m3.helper.OSetHelper.getElementComplex(ap.AppContext.LABELS,lc.labelIid).name); else if(evt2.isDelete()) new $("#otherAlbum" + lc.labelIid,labelsDiv).remove(); else if(evt2.isClear()) new $(".album",labelsDiv).remove();
+					if(evt2.isAdd()) new $("<div id='otherAlbum" + lc.labelIid + "' class='album'>" + m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,lc.labelIid).name + "</div>").appendTo(labelsDiv); else if(evt2.isUpdate()) new $("#otherAlbum" + lc.labelIid,labelsDiv).text(m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,lc.labelIid).name); else if(evt2.isDelete()) new $("#otherAlbum" + lc.labelIid,labelsDiv).remove(); else if(evt2.isClear()) new $(".album",labelsDiv).remove();
 				}
 			};
 			labels.listen(self1.labelListener);
@@ -7585,9 +7492,9 @@ var defineWidget = function() {
 			});
 			updateCaption = function() {
 				if(input.val().length == 0) return;
-				ap.AppContext.LOGGER.info("Update content | " + c.iid);
+				m3.log.Logga.get_DEFAULT().info("Update content | " + c.iid);
 				c.props.caption = input.val();
-				var eventData = new qoid.model.EditContentData(c,Lambda.array(Lambda.map(m3.helper.OSetHelper.getElement(ap.AppContext.GROUPED_LABELEDCONTENT,c.iid),function(laco) {
+				var eventData = new qoid.model.EditContentData(c,Lambda.array(Lambda.map(m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,c.iid),function(laco) {
 					return laco.labelIid;
 				})));
 				ap.model.EM.change("UpdateContent",eventData);
@@ -7612,7 +7519,7 @@ var defineWidget = function() {
 			container1.append("<label for='labelParent'>Album: </label> ");
 			var select = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container1);
 			select.click(stopFcn1);
-			var aliasLabels = ap.AppContext.getLabelDescendents(ap.APhotoContext.get_ROOT_ALBUM().iid);
+			var aliasLabels = qoid.Qoid.getLabelDescendents(ap.APhotoContext.get_ROOT_ALBUM().iid);
 			var iter = aliasLabels.iterator();
 			while(iter.hasNext()) {
 				var label = iter.next();
@@ -7627,8 +7534,8 @@ var defineWidget = function() {
 				updateLabels();
 			});
 			updateLabels = function() {
-				ap.AppContext.LOGGER.info("Update content | " + c1.iid);
-				var list = Lambda.map(m3.helper.OSetHelper.getElement(ap.AppContext.GROUPED_LABELEDCONTENT,c1.iid),function(laco1) {
+				m3.log.Logga.get_DEFAULT().info("Update content | " + c1.iid);
+				var list = Lambda.map(m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,c1.iid),function(laco1) {
 					return laco1.labelIid;
 				});
 				list.add(select.val());
@@ -7645,7 +7552,7 @@ var defineWidget = function() {
 		selfElement4.show();
 	}, destroy : function() {
 		var self5 = this;
-		m3.helper.OSetHelper.getElement(ap.AppContext.GROUPED_LABELEDCONTENT,self5.options.content.iid).removeListener(self5.labelListener);
+		m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,self5.options.content.iid).removeListener(self5.labelListener);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -7722,438 +7629,120 @@ var defineWidget = function() {
 };
 $.widget("ui.m3dialog",$.ui.dialog,defineWidget());
 var defineWidget = function() {
-	return { _create : function() {
+	return { options : { menuOptions : null, width : 200, classes : ""}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of UploadComp must be a div element");
-		selfElement.addClass("uploadComp container " + m3.widget.Widgets.getWidgetClasses());
-		self._createFileUploadComponent();
-		selfElement.on("dragleave",function(evt,d) {
-			ap.AppContext.LOGGER.debug("dragleave");
-			var target = evt.target;
-			if(target != null && target == selfElement[0]) $(this).removeClass("drop");
-			evt.preventDefault();
-			evt.stopPropagation();
-		});
-		selfElement.on("dragenter",function(evt1,d1) {
-			ap.AppContext.LOGGER.debug("dragenter");
-			$(this).addClass("over");
-			evt1.preventDefault();
-			evt1.stopPropagation();
-		});
-		selfElement.on("dragover",function(evt2,d2) {
-			ap.AppContext.LOGGER.debug("dragover");
-			evt2.preventDefault();
-			evt2.stopPropagation();
-		});
-		selfElement.on("drop",function(evt3,d3) {
-			ap.AppContext.LOGGER.debug("drop");
-			self._traverseFiles(evt3.originalEvent.dataTransfer.files);
-			$(this).removeClass("drop");
-			evt3.preventDefault();
-			evt3.stopPropagation();
-		});
-	}, _createFileUploadComponent : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		if(self1.inner_element_id != null) new $("#" + self1.inner_element_id).remove();
-		self1.inner_element_id = "files-upload-" + StringTools.hex(Std.random(999999));
-		var filesUpload = new $("<input id='" + self1.inner_element_id + "' class='files-upload' type='file'/>").prependTo(selfElement1);
-		filesUpload.change(function(evt4) {
-			self1._traverseFiles(this.files);
-		});
-	}, _uploadFile : function(file) {
-		var self2 = this;
-		var selfElement2 = this.element;
-		if(typeof FileReader === 'undefined') {
-			m3.util.JqueryUtil.alert("FileUpload is not supported by your browser");
-			return;
-		}
-		if(self2.options.contentType == qoid.model.ContentType.IMAGE && !new EReg("image","i").match(file.type)) {
-			m3.util.JqueryUtil.alert("Please select an image file.");
-			return;
-		}
-		if(self2.options.contentType == qoid.model.ContentType.AUDIO && !new EReg("audio","i").match(file.type)) {
-			m3.util.JqueryUtil.alert("Please select an audio file.");
-			return;
-		}
-		ap.AppContext.LOGGER.debug("upload " + Std.string(file.name));
-		var reader = new FileReader();
-		reader.onload = function(evt5) {
-			self2.setPreviewImage(evt5.target.result);
-			if(self2.options.onload != null) self2.options.onload(evt5.target.result);
-		};
-		reader.readAsDataURL(file);
-	}, setPreviewImage : function(src) {
-		var self3 = this;
-		if(self3.previewImg == null) {
-			var selfElement3 = this.element;
-			self3.previewImg = new $("<img class='file_about_to_be_uploaded'/>").appendTo(selfElement3);
-		}
-		self3.previewImg.attr("src",src);
-	}, _traverseFiles : function(files) {
-		ap.AppContext.LOGGER.debug("traverse the files");
-		var self4 = this;
-		if(m3.helper.ArrayHelper.hasValues(files)) {
-			var _g = 0;
-			while(_g < 1) {
-				var i = _g++;
-				self4._uploadFile(files[i]);
-			}
-		} else {
-		}
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}, value : function() {
-		var self5 = this;
-		return self5.previewImg.attr("src");
-	}, clear : function() {
-		var self6 = this;
-		self6.previewImg.remove();
-		self6.previewImg = null;
-		self6._createFileUploadComponent();
-	}};
-};
-$.widget("ui.uploadComp",defineWidget());
-var defineWidget = function() {
-	return { initialized : false, _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasManagerDialog must be a div element");
-		selfElement.addClass("_aliasManagerDialog").hide();
-		self.leftDiv = new $("<div class='fleft boxsizingBorder' id='leftDiv'></div>").appendTo(selfElement);
-		self.rightDiv = new $("<div class='fright ui-corner-all'  id='rightDiv'></div>").appendTo(selfElement);
-		self.rightDiv.append("<h2>Aliases</h2>");
-		var alii_div = new $("<div class='alii'><div>").appendTo(self.rightDiv);
-		self.aliasMap = new m3.observable.MappedSet(ap.AppContext.ALIASES,function(a) {
-			return new $("<div class='clickable alias_link' id='a_" + a.iid + "'></div>").appendTo(alii_div).click(function(evt) {
-				self._showAliasDetail(a);
-			}).append(a.profile.name);
-		});
-		self.aliasMap.mapListen(function(a1,w,evt1) {
-			if(evt1.isAddOrUpdate()) w.html(a1.profile.name); else if(evt1.isDelete()) self._onAliasDeleted(a1,w);
-		});
-		self.newAliasButton = new $("<button id='new_alias_button'>New Alias</button>").button().click(function(evt2) {
-			self._showAliasEditor(null);
-		}).appendTo(self.rightDiv);
-		self._showAliasDetail(ap.AppContext.currentAlias);
-	}, _onAliasDeleted : function(alias,w1) {
-		var self1 = this;
-		w1.remove();
-		new $(".alias_link")[0].click();
-	}, _showAliasDetail : function(alias1) {
-		var self2 = this;
-		var selfElement1 = this.element;
-		self2.leftDiv.empty();
-		var imgSrc = "media/default_avatar.jpg";
-		var loadAliasBtn = new $("<button class='fleft'>Use This Alias</button>").appendTo(self2.leftDiv).button().click(function(evt3) {
-			ap.AppContext.currentAlias = alias1;
-			ap.model.EM.change("AliasLoaded",alias1);
-			m3.jq.JQDialogHelper.close(selfElement1);
-		});
-		self2.leftDiv.append("<br class='clear'/><br/>");
-		if(m3.helper.StringHelper.isNotBlank((function($this) {
-			var $r;
-			try {
-				$r = alias1.profile.imgSrc;
-			} catch( __e ) {
-				$r = "";
-			}
-			return $r;
-		}(this)))) imgSrc = alias1.profile.imgSrc;
-		self2.leftDiv.append(new $("<img alt='alias' src='" + imgSrc + "' class='userImg shadow'/>"));
-		self2.leftDiv.append(new $("<h2>" + alias1.profile.name + "</h2>"));
-		var btnDiv = new $("<div></div>").appendTo(self2.leftDiv);
-		var setDefaultBtn = new $("<button>Set Default</button>").appendTo(btnDiv).button().click(function(evt4) {
-			alias1.data.isDefault = true;
-			ap.model.EM.change("UpdateAlias",alias1);
-		});
-		var editBtn = new $("<button>Edit</button>").appendTo(btnDiv).button().click(function(evt5) {
-			self2._showAliasEditor(alias1);
-		});
-		var deleteBtn = new $("<button>Delete</button>").appendTo(btnDiv).button().click(function(evt6) {
-			ap.model.EM.change("DeleteAlias",alias1);
-		});
-		self2.newAliasButton.show();
-	}, _showAliasEditor : function(alias2) {
-		var self3 = this;
-		var selfElement2 = this.element;
-		self3.leftDiv.empty();
-		var imgSrc1 = "media/default_avatar.jpg";
-		self3.leftDiv.append("<div id='alias_name_label'>Alias Name:</div>");
-		var aliasName = new $("<input class='ui-corner-all ui-state-active ui-widget-content' id='alias_name_input'/>").appendTo(self3.leftDiv);
-		if(alias2 != null) aliasName.val(alias2.profile.name);
-		self3.leftDiv.append("<br/><br/>");
-		var aliasImg = null;
-		self3.leftDiv.append(new $("<div id='profile_picture_label'>Profile Picture: </div>").append(new $("<a id='change_profile_picture'>Change</a>").click(function(evt7) {
-			var dlg = new $("<div id='profilePictureUploader'></div>");
-			dlg.appendTo(selfElement2);
-			var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
-			uploadComp.appendTo(dlg);
-			uploadComp.uploadComp({ onload : function(bytes) {
-				m3.jq.M3DialogHelper.close(dlg);
-				aliasImg.attr("src",bytes);
-			}});
-			dlg.m3dialog({ width : 600, height : 305, title : "Profile Image Uploader", buttons : { Cancel : function() {
-				m3.jq.M3DialogHelper.close($(this));
-			}}});
-		})));
-		if(m3.helper.StringHelper.isNotBlank((function($this) {
-			var $r;
-			try {
-				$r = alias2.profile.imgSrc;
-			} catch( __e1 ) {
-				$r = "";
-			}
-			return $r;
-		}(this)))) imgSrc1 = alias2.profile.imgSrc;
-		aliasImg = new $("<img alt='alias' src='" + imgSrc1 + "' class='userImg shadow'/>");
-		self3.leftDiv.append(aliasImg);
-		self3.leftDiv.append("<br/><br/>");
-		var btnDiv1 = new $("<div></div>").appendTo(self3.leftDiv);
-		var updateBtn = new $("<button>" + (alias2 != null?"Update":"Create") + "</button>").appendTo(btnDiv1).button().click(function(evt8) {
-			var name = aliasName.val();
-			if(m3.helper.StringHelper.isBlank(name)) {
-				m3.util.JqueryUtil.alert("Alias name cannot be blank.","Error");
-				return;
-			}
-			var profilePic = aliasImg.attr("src");
-			if(m3.helper.StringHelper.startsWithAny(profilePic,["media"])) profilePic = "";
-			var applyDlg;
-			if(alias2 == null) {
-				alias2 = new qoid.model.Alias();
-				alias2.profile.name = name;
-				alias2.profile.imgSrc = profilePic;
-				alias2.rootLabelIid = ap.AppContext.ROOT_LABEL_ID;
-				applyDlg = function() {
-					ap.model.EM.listenOnce("AliasCreated",function(alias3) {
-						haxe.Timer.delay(function() {
-							self3._showAliasDetail(alias3);
-						},100);
-					});
-					ap.model.EM.change("CreateAlias",alias2);
+		if(!selfElement["is"]("ul")) throw new m3.exception.Exception("Root of M3Menu should be a ul");
+		selfElement.css("position","absolute");
+		selfElement.addClass("m3menu nonmodalPopup");
+		if(m3.helper.StringHelper.isNotBlank(self.options.classes)) selfElement.addClass(self.options.classes);
+		selfElement.width(self.options.width);
+		var _g = 0;
+		var _g1 = self.options.menuOptions;
+		while(_g < _g1.length) {
+			var menuOption = [_g1[_g]];
+			++_g;
+			var icon;
+			if(m3.helper.StringHelper.isNotBlank(menuOption[0].icon)) icon = "<span class='ui-icon " + menuOption[0].icon + "'></span>"; else icon = "";
+			new $("<li><a href='#'>" + icon + menuOption[0].label + "</a></li>").appendTo(selfElement).click((function(menuOption) {
+				return function(evt) {
+					menuOption[0].action(evt,selfElement);
 				};
-			} else {
-				alias2.profile.name = name;
-				alias2.profile.imgSrc = profilePic;
-				applyDlg = function() {
-					ap.model.EM.listenOnce("AliasUpdated",function(alias4) {
-						self3._showAliasDetail(alias4);
-					});
-					ap.model.EM.change("UpdateAlias",alias2);
-				};
-			}
-			applyDlg();
+			})(menuOption));
+		}
+		selfElement.on("contextmenu",function(evt1) {
+			return false;
 		});
-		var cancelBtn = new $("<button>Cancel</button>").appendTo(btnDiv1).button().click(function(evt9) {
-			self3._showAliasDetail(alias2);
-		});
-		self3.newAliasButton.hide();
-	}, _createAliasManager : function() {
-		var self4 = this;
-		var selfElement3 = this.element;
-		var alias5 = new qoid.model.Alias();
-		alias5.profile.name = self4.aliasName.val();
-		alias5.profile.name = self4.username.val();
-		if(m3.helper.StringHelper.isBlank(alias5.profile.name) || m3.helper.StringHelper.isBlank(alias5.profile.name)) return;
-		selfElement3.find(".ui-state-error").removeClass("ui-state-error");
-		ap.model.EM.change("CreateAlias",alias5);
-	}, _buildDialog : function() {
-		var self5 = this;
-		var selfElement4 = this.element;
-		self5.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Alias Manager", height : 440, width : 550, buttons : { }, close : function(evt10,ui) {
-			selfElement4.find(".placeholder").removeClass("ui-state-error");
-		}};
-		selfElement4.dialog(dlgOptions);
-	}, open : function() {
-		var self6 = this;
-		var selfElement5 = this.element;
-		if(!self6.initialized) self6._buildDialog();
-		m3.jq.JQDialogHelper.open(selfElement5);
+		this._super("create");
+	}, _closeOnDocumentClick : function(evt2) {
+		return true;
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
-$.widget("ui.aliasManagerDialog",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of CreateAgentDialog must be a div element");
-		self._cancelled = false;
-		selfElement.addClass("createAgentDialog").hide();
-		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
-		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
-		labels.append("<div class='labelDiv'><label id='n_label' for='newu_n'>Name</label></div>");
-		labels.append("<div class='labelDiv'><label id='em_label' for='newu_em'>Email</label></div>");
-		labels.append("<div class='labelDiv'><label id='pw_label' for='newu_pw'>Password</label></div>");
-		self.input_n = new $("<input id='newu_n' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_n = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Name'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_em = new $("<input id='newu_em' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_em = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_pw = new $("<input type='password' id='newu_pw' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new $("<input id='login_pw_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		inputs.append("<br/>");
-		inputs.children("input").keypress(function(evt) {
-			if(evt.keyCode == 13) self._createNewUser();
-		});
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_n,self.placeholder_n);
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_em,self.placeholder_em);
-	}, initialized : false, _createNewUser : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var newUser = new qoid.model.NewUser();
-		newUser.name = self1.input_n.val();
-		if(m3.helper.StringHelper.isBlank(newUser.name)) {
-			self1.placeholder_n.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ap.model.EM.change("CreateAgent",newUser);
-		ap.model.EM.listenOnce("AgentCreated",function(n) {
-			selfElement1.dialog("close");
-		},"CreateAgentDialog-UserSignup");
-	}, _buildDialog : function() {
-		var self2 = this;
-		var selfElement2 = this.element;
-		self2.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Create New Agent", height : 320, width : 400, modal : true, buttons : { 'Create My Agent' : function() {
-			self2._registered = true;
-			self2._createNewUser();
-		}, Cancel : function() {
-			self2._cancelled = true;
-			$(this).dialog("close");
-		}}, close : function(evt1,ui) {
-			selfElement2.find(".placeholder").removeClass("ui-state-error");
-			ap.widget.DialogManager.showLogin();
-		}};
-		selfElement2.dialog(dlgOptions);
-	}, open : function() {
-		var self3 = this;
-		var selfElement3 = this.element;
-		self3._cancelled = false;
-		if(!self3.initialized) self3._buildDialog();
-		selfElement3.children("#n_label").focus();
-		self3.input_n.blur();
-		selfElement3.dialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.createAgentDialog",defineWidget());
-var defineWidget = function() {
-	return { _create : function() {
-		var self = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of LoginDialog must be a div element");
-		selfElement.addClass("loginDialog").hide();
-		var labels = new $("<div class='fleft'></div>").appendTo(selfElement);
-		var inputs = new $("<div class='fleft'></div>").appendTo(selfElement);
-		labels.append("<div class='labelDiv'><label id='un_label' for='login_un'>Agent Id</label></div>");
-		labels.append("<div class='labelDiv'><label for='login_pw'>Password</label></div>");
-		self.input_un = new $("<input id='login_un' style='display: none;' class='ui-corner-all ui-state-active ui-widget-content'>").appendTo(inputs);
-		self.placeholder_un = new $("<input id='login_un_f' class='placeholder ui-corner-all ui-widget-content' value='Please enter Email'>").appendTo(inputs);
-		inputs.append("<br/>");
-		self.input_pw = new $("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
-		self.placeholder_pw = new $("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		self.input_un.val("");
-		self.input_pw.val("ohyea");
-		inputs.children("input").keypress(function(evt) {
-			if(evt.keyCode == 13) self._login();
-		});
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_un,self.placeholder_un);
-		m3.jq.PlaceHolderUtil.setFocusBehavior(self.input_pw,self.placeholder_pw);
-		ap.model.EM.addListener("InitialDataLoadComplete",function(n) {
-			selfElement.dialog("close");
-		},"Login-InitialDataLoadComplete");
-	}, initialized : false, _login : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		var valid = true;
-		var login = new qoid.model.Login();
-		login.agentId = self1.input_un.val();
-		if(m3.helper.StringHelper.isBlank(login.agentId)) {
-			self1.placeholder_un.addClass("ui-state-error");
-			valid = false;
-		}
-		login.password = self1.input_pw.val();
-		if(m3.helper.StringHelper.isBlank(login.password)) {
-			self1.placeholder_pw.addClass("ui-state-error");
-			valid = false;
-		}
-		if(!valid) return;
-		selfElement1.find(".ui-state-error").removeClass("ui-state-error");
-		ap.model.EM.change("UserLogin",login);
-	}, _buildDialog : function() {
-		var self2 = this;
-		var selfElement2 = this.element;
-		self2.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Login", height : 280, width : 400, modal : true, buttons : { Login : function() {
-			self2._login();
-		}, 'I\'m New...' : function() {
-			ap.widget.DialogManager.showCreateAgent();
-		}}, beforeClose : function(evt1,ui) {
-			if(ap.AppContext.UBER_ALIAS_ID == null) {
-				m3.util.JqueryUtil.alert("A valid login is required to use the app");
-				return false;
-			}
-			return true;
-		}};
-		selfElement2.dialog(dlgOptions);
-	}, open : function() {
-		var self3 = this;
-		var selfElement3 = this.element;
-		if(!self3.initialized) self3._buildDialog();
-		selfElement3.children("#un_label").focus();
-		self3.input_un.blur();
-		self3.input_pw.blur();
-		selfElement3.dialog("open");
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.loginDialog",defineWidget());
-ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS = "com.qoid.apps";
-ap.APhotoContext.APP_ROOT_LABEL_NAME = "com.qoid.apps.aphoto";
-ap.api.ProtocolHandler.QUERY = "/api/query";
-ap.api.ProtocolHandler.UPSERT = "/api/upsert";
-ap.api.ProtocolHandler.DELETE = "/api/delete";
-ap.api.ProtocolHandler.INTRODUCE = "/api/introduction/initiate";
-ap.api.ProtocolHandler.DEREGISTER = "/api/query/deregister";
-ap.api.ProtocolHandler.INTRO_RESPONSE = "/api/introduction/respond";
-ap.api.ProtocolHandler.VERIFY = "/api/verification/verify";
-ap.api.ProtocolHandler.VERIFICATION_ACCEPT = "/api/verification/accept";
-ap.api.ProtocolHandler.VERIFICATION_REQUEST = "/api/verification/request";
-ap.api.ProtocolHandler.VERIFICATION_RESPONSE = "/api/verification/respond";
-ap.api.Synchronizer.synchronizers = new haxe.ds.StringMap();
-qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"20\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"45\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByAliasIid public=\"1\"><c path=\"String\"/></createdByAliasIid>\n\t<modifiedByAliasIid public=\"1\"><c path=\"String\"/></modifiedByAliasIid>\n\t<new public=\"1\" set=\"method\" line=\"39\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+$.widget("ui.m3menu",$.ui.menu,defineWidget());
+qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"573\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.QE.onAliasCreated = "onAliasCreated";
+qoid.QE.onAliasLoaded = "onAliasLoaded";
+qoid.QE.onAliasUpdated = "onAliasUpdated";
+qoid.QE.onAgentCreated = "onAgentCreated";
+qoid.QE.onConnectionProfile = "onConnectionProfile";
+qoid.QE.onInitialDataload = "onInitialDataload";
+qoid.QE.onInitiateIntroduction = "onInitiateIntroduction";
+qoid.QE.onUserLogin = "onUserLogin";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"560\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.QoidAPI.AGENT_CREATE = "/api/v1/agent/create";
+qoid.QoidAPI.LOGIN = "/api/v1/login";
+qoid.QoidAPI.LOGOUT = "/api/v1/logout";
+qoid.QoidAPI.SPAWN = "/api/v1/session/spawn";
+qoid.QoidAPI.ALIAS_CREATE = "/api/v1/alias/create";
+qoid.QoidAPI.ALIAS_UPDATE = "/api/v1/alias/update";
+qoid.QoidAPI.ALIAS_DELETE = "/api/v1/alias/delete";
+qoid.QoidAPI.ALIAS_LOGIN_CREATE = "/api/v1/alias/login/create";
+qoid.QoidAPI.ALIAS_LOGIN_UPDATE = "/api/v1/alias/login/update";
+qoid.QoidAPI.ALIAS_LOGIN_DELETE = "/api/v1/alias/login/delete";
+qoid.QoidAPI.ALIAS_PROFILE_UPDATE = "/api/v1/alias/profile/update";
+qoid.QoidAPI.CONNECTION_DELETE = "/api/v1/connection/delete";
+qoid.QoidAPI.CONTENT_CREATE = "/api/v1/content/create";
+qoid.QoidAPI.CONTENT_UPDATE = "/api/v1/content/update";
+qoid.QoidAPI.CONTENT_DELETE = "/api/v1/content/delete";
+qoid.QoidAPI.CONTENT_LABEL_ADD = "/api/v1/content/label/add";
+qoid.QoidAPI.CONTENT_LABEL_REMOVE = "/api/v1/content/label/remove";
+qoid.QoidAPI.LABEL_CREATE = "/api/v1/label/create";
+qoid.QoidAPI.LABEL_UPDATE = "/api/v1/label/update";
+qoid.QoidAPI.LABEL_DELETE = "/api/v1/label/remove";
+qoid.QoidAPI.LABEL_MOVE = "/api/v1/label/move";
+qoid.QoidAPI.LABEL_COPY = "/api/v1/label/copy";
+qoid.QoidAPI.LABEL_ACCESS_GRANT = "/api/v1/label/access/grant";
+qoid.QoidAPI.LABEL_ACCESS_REVOKE = "/api/v1/label/access/revoke";
+qoid.QoidAPI.LABEL_ACCESS_UPDATE = "/api/v1/label/access/update";
+qoid.QoidAPI.NOTIFICATION_CREATE = "/api/v1/notification/create";
+qoid.QoidAPI.NOTIFICATION_CONSUME = "/api/v1/notification/consume";
+qoid.QoidAPI.NOTIFICATION_DELETE = "/api/v1/notification/delete";
+qoid.QoidAPI.INTRODUCTION_INITIATE = "/api/v1/introduction/initiate";
+qoid.QoidAPI.INTRODUCTION_ACCEPT = "/api/v1/introduction/accept";
+qoid.QoidAPI.QUERY = "/api/v1/query";
+qoid.QoidAPI.QUERY_CANCEL = "/api/v1/query/cancel";
+qoid.RequestContext.__rtti = "<class path=\"qoid.RequestContext\" params=\"\" module=\"qoid.QoidAPI\">\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<handle public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</handle>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"?context:?handle\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"45\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByConnectionIid public=\"1\"><c path=\"String\"/></createdByConnectionIid>\n\t<modifiedByConnectionIid public=\"1\"><c path=\"String\"/></modifiedByConnectionIid>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l:?autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet.T\"/>\n</x></f></delegate>\n\t<getVisualId public=\"1\" set=\"method\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.AbstractSet.__rtti = "<class path=\"m3.observable.AbstractSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<implements path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></implements>\n\t<_eventManager public=\"1\"><c path=\"m3.observable.EventManager\"><c path=\"m3.observable.AbstractSet.T\"/></c></_eventManager>\n\t<visualId public=\"1\"><c path=\"String\"/></visualId>\n\t<listen public=\"1\" set=\"method\" line=\"129\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\" line=\"133\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<filter public=\"1\" set=\"method\" line=\"137\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"141\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"145\"><f a=\"t:type\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<getVisualId public=\"1\" set=\"method\" line=\"149\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<identifier public=\"1\" set=\"method\" line=\"153\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"157\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"161\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n</x></f></delegate>\n\t<new set=\"method\" line=\"125\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.ObservableSet.__rtti = "<class path=\"m3.observable.ObservableSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"m3.util.SizedMap\"><c path=\"m3.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"181\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"185\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"193\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"197\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"201\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"213\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"217\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"221\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"229\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"233\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"238\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"242\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"172\"><f a=\"identifier:?tArr\" v=\":null\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.EventManager.__rtti = "<class path=\"m3.observable.EventManager\" params=\"T\" module=\"m3.observable.OSet\">\n\t<_listeners><c path=\"Array\"><f a=\":\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_listeners>\n\t<_set><c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c></_set>\n\t<add public=\"1\" set=\"method\" line=\"47\"><f a=\"l:autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<remove public=\"1\" set=\"method\" line=\"56\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.EventManager.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></remove>\n\t<fire public=\"1\" set=\"method\" line=\"59\"><f a=\"t:type\">\n\t<c path=\"m3.observable.EventManager.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<listenerCount public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Int\"/></f></listenerCount>\n\t<new public=\"1\" set=\"method\" line=\"43\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.EventManager.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"317\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"321\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"326\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"330\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"334\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"306\"><f a=\"contentType:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"112\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"106\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"160\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"169\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+m3.comm.ChannelRequestMessage.__rtti = "<class path=\"m3.comm.ChannelRequestMessage\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<path><c path=\"String\"/></path>\n\t<context><d/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+m3.comm.ChannelRequestMessageBundle.__rtti = "<class path=\"m3.comm.ChannelRequestMessageBundle\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c></requests>\n\t<add public=\"1\" set=\"method\" line=\"29\"><f a=\"request\">\n\t<c path=\"m3.comm.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<createAndAdd public=\"1\" set=\"method\" line=\"33\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></createAndAdd>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"channel:requests\">\n\t<c path=\"String\"/>\n\t<c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"437\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"460\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"479\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"488\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"492\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"503\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"417\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"148\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<role public=\"1\"><c path=\"String\"/></role>\n\t<maxDegreesOfVisibility public=\"1\"><x path=\"Int\"/></maxDegreesOfVisibility>\n\t<new public=\"1\" set=\"method\" line=\"142\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"131\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"122\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"252\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"256\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"63\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"57\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"319\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"323\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"327\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"331\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"335\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"308\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<kind public=\"1\"><c path=\"String\"/></kind>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"459\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"472\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"476\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"463\"><f a=\"kind:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"88\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"82\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aAccepted public=\"1\"><x path=\"Bool\"/></aAccepted>\n\t<bAccepted public=\"1\"><x path=\"Bool\"/></bAccepted>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"488\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.Synchronizer.synchronizers = new haxe.ds.StringMap();
+qoid.model.ContentTypes.AUDIO = "AUDIO";
+qoid.model.ContentTypes.IMAGE = "IMAGE";
+qoid.model.ContentTypes.TEXT = "TEXT";
+qoid.model.ContentTypes.URL = "URL";
+qoid.model.ContentTypes.VERIFICATION = "VERIFICATION";
+ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS = "com.qoid.apps";
+ap.APhotoContext.APP_ROOT_LABEL_NAME = ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS + ".aphoto";
+ap.model.APhotoContentTypes.CONFIG = ap.APhotoContext.APP_ROOT_LABEL_NAME + ".config";
+qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"269\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+ap.model.ConfigContentData.__rtti = "<class path=\"ap.model.ConfigContentData\" params=\"\" module=\"ap.model.APhotoModel\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<defaultImg public=\"1\"><c path=\"String\"/></defaultImg>\n\t<new public=\"1\" set=\"method\" line=\"16\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+ap.model.ConfigContent.__rtti = "<class path=\"ap.model.ConfigContent\" params=\"\" module=\"ap.model.APhotoModel\">\n\t<extends path=\"qoid.model.Content\"><c path=\"ap.model.ConfigContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ap.model.EMEvent.APP_INITIALIZED = "APP_INITIALIZED";
-ap.model.EMEvent.ALBUM_CONFIGS = "ALBUM_CONFIGS";
+ap.model.EMEvent.ALBUM_CONFIGS = "onAlbumConfig";
 ap.model.EMEvent.FILTER_RUN = "FILTER_RUN";
 ap.model.EMEvent.FILTER_CHANGE = "FILTER_CHANGE";
-ap.model.EMEvent.LoadFilteredContent = "LoadFilteredContent";
-ap.model.EMEvent.AppendFilteredContent = "AppendFilteredContent";
+ap.model.EMEvent.OnFilteredContent = "onFilteredContent";
 ap.model.EMEvent.EditContentClosed = "EditContentClosed";
 ap.model.EMEvent.CreateAgent = "CreateAgent";
-ap.model.EMEvent.AgentCreated = "AgentCreated";
-ap.model.EMEvent.InitialDataLoadComplete = "InitialDataLoadComplete";
-ap.model.EMEvent.UserLogin = "UserLogin";
 ap.model.EMEvent.UserLogout = "UserLogout";
-ap.model.EMEvent.AliasLoaded = "AliasLoaded";
-ap.model.EMEvent.AliasCreated = "AliasCreated";
-ap.model.EMEvent.AliasUpdated = "AliasUpdated";
 ap.model.EMEvent.CreateAlias = "CreateAlias";
 ap.model.EMEvent.UpdateAlias = "UpdateAlias";
 ap.model.EMEvent.DeleteAlias = "DeleteAlias";
@@ -8183,19 +7772,9 @@ ap.pages.APhotoPageMgr.ALBUM_SCREEN = new ap.pages.AlbumScreen();
 ap.pages.APhotoPageMgr.CONTENT_SCREEN = new ap.pages.ContentScreen();
 m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<delegate public=\"1\" set=\"method\" line=\"366\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"370\"><f a=\"t\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"387\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"391\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"395\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.FilteredSet.T\"/></t></f></iterator>\n\t<asArray public=\"1\" set=\"method\" line=\"399\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.FilteredSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"342\"><f a=\"source:filter\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.MappedSet.__rtti = "<class path=\"m3.observable.MappedSet\" params=\"T:U\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<_remapOnUpdate><x path=\"Bool\"/></_remapOnUpdate>\n\t<_mapListeners><c path=\"Array\"><f a=\"::\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_mapListeners>\n\t<_sourceListener set=\"method\" line=\"270\"><f a=\"t:type\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></_sourceListener>\n\t<identifier public=\"1\" set=\"method\" line=\"296\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"300\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"304\"><f a=\"u\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"315\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.MappedSet.U\"/></t></f></iterator>\n\t<mapListen public=\"1\" set=\"method\" line=\"319\"><f a=\"f\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></mapListen>\n\t<removeListeners public=\"1\" set=\"method\" line=\"330\"><f a=\"mapListener\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListeners>\n\t<new public=\"1\" set=\"method\" line=\"260\"><f a=\"source:mapper:?remapOnUpdate\" v=\"::false\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"112\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"107\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"96\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"95\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
-qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"88\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<rootLabelIid public=\"1\"><c path=\"String\"/></rootLabelIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"83\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"64\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"58\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"72\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"570\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"575\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"593\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"597\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"603\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"607\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"611\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.ContentType.AUDIO = "AUDIO";
-qoid.model.ContentType.IMAGE = "IMAGE";
-qoid.model.ContentType.URL = "URL";
-qoid.model.ContentType.TEXT = "TEXT";
-qoid.model.ContentType.VERIFICATION = "VERIFICATION";
-qoid.model.ContentType.CONFIG = "com.qoid.apps.aphoto.config";
+qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 haxe.xml.Parser.escapes = (function($this) {
 	var $r;
 	var h = new haxe.ds.StringMap();
@@ -8213,50 +7792,29 @@ m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false,false
 m3.observable.EventType.Update = new m3.observable.EventType("Update",false,true,false);
 m3.observable.EventType.Delete = new m3.observable.EventType("Delete",false,false,false);
 m3.observable.EventType.Clear = new m3.observable.EventType("Clear",false,false,true);
-m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"437\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"460\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"479\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"488\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"492\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"503\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"417\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.api.ChannelMessage.__rtti = "<class path=\"qoid.api.ChannelMessage\" params=\"\" module=\"qoid.api.CrudMessage\" interface=\"1\"><meta><m n=\":rtti\"/></meta></class>";
-qoid.api.BennuMessage.__rtti = "<class path=\"qoid.api.BennuMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<new public=\"1\" set=\"method\" line=\"16\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.DeleteMessage.__rtti = "<class path=\"qoid.api.DeleteMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<extends path=\"qoid.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"29\" static=\"1\"><f a=\"object\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"qoid.api.DeleteMessage\"/>\n</f></create>\n\t<primaryKey><c path=\"String\"/></primaryKey>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"type:primaryKey\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.api.CrudMessage.__rtti = "<class path=\"qoid.api.CrudMessage\" params=\"\">\n\t<extends path=\"qoid.api.BennuMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"52\" static=\"1\"><f a=\"object:?optionals\" v=\":null\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<d/>\n\t<c path=\"qoid.api.CrudMessage\"/>\n</f></create>\n\t<instance><d/></instance>\n\t<parentIid>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</parentIid>\n\t<profileName>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</profileName>\n\t<profileImgSrc>\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</profileImgSrc>\n\t<labelIids>\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</labelIids>\n\t<new public=\"1\" set=\"method\" line=\"41\"><f a=\"type:instance:?optionals\" v=\"::null\">\n\t<c path=\"String\"/>\n\t<d/>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.api.DeregisterMessage.__rtti = "<class path=\"qoid.api.DeregisterMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<handle public=\"1\"><c path=\"String\"/></handle>\n\t<new public=\"1\" set=\"method\" line=\"61\"><f a=\"handle\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.IntroMessage.__rtti = "<class path=\"qoid.api.IntroMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"73\"><f a=\"i\">\n\t<c path=\"qoid.model.IntroductionRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.VerificationRequestMessage.__rtti = "<class path=\"qoid.api.VerificationRequestMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<new public=\"1\" set=\"method\" line=\"87\"><f a=\"vr\">\n\t<c path=\"qoid.model.VerificationRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.VerificationResponseMessage.__rtti = "<class path=\"qoid.api.VerificationResponseMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<verificationContent public=\"1\"><c path=\"String\"/></verificationContent>\n\t<new public=\"1\" set=\"method\" line=\"99\"><f a=\"vr\">\n\t<c path=\"qoid.model.VerificationResponse\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.AcceptVerificationMessage.__rtti = "<class path=\"qoid.api.AcceptVerificationMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<new public=\"1\" set=\"method\" line=\"109\"><f a=\"notificationIid\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.IntroResponseMessage.__rtti = "<class path=\"qoid.api.IntroResponseMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"119\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.QueryMessage.__rtti = "<class path=\"qoid.api.QueryMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<implements path=\"qoid.api.ChannelMessage\"/>\n\t<create public=\"1\" set=\"method\" line=\"153\" static=\"1\"><f a=\"type\">\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.QueryMessage\"/>\n</f></create>\n\t<type public=\"1\"><c path=\"String\"/></type>\n\t<q public=\"1\"><c path=\"String\"/></q>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<standing public=\"1\"><x path=\"Bool\"/></standing>\n\t<historical public=\"1\"><x path=\"Bool\"/></historical>\n\t<local public=\"1\"><x path=\"Bool\"/></local>\n\t<new public=\"1\" set=\"method\" line=\"135\"><f a=\"fd:?type:?q\" v=\":null:null\">\n\t<c path=\"qoid.model.FilterData\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.ChannelRequestMessage.__rtti = "<class path=\"qoid.api.ChannelRequestMessage\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<path><c path=\"String\"/></path>\n\t<context><c path=\"String\"/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"path:context:msg\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.ChannelMessage\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.api.ChannelRequestMessageBundle.__rtti = "<class path=\"qoid.api.ChannelRequestMessageBundle\" params=\"\" module=\"qoid.api.CrudMessage\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"qoid.api.ChannelRequestMessage\"/></c></requests>\n\t<addChannelRequest public=\"1\" set=\"method\" line=\"186\"><f a=\"request\">\n\t<c path=\"qoid.api.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></addChannelRequest>\n\t<addRequest public=\"1\" set=\"method\" line=\"190\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"qoid.api.BennuMessage\"/>\n\t<x path=\"Void\"/>\n</f></addRequest>\n\t<new public=\"1\" set=\"method\" line=\"177\"><f a=\"?requests_\" v=\"null\">\n\t<c path=\"Array\"><c path=\"qoid.api.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"131\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"123\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"146\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<new public=\"1\" set=\"method\" line=\"141\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"160\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<allowedDegreesOfVisibility public=\"1\"><x path=\"Int\"/></allowedDegreesOfVisibility>\n\t<metaLabelIid public=\"1\"><c path=\"String\"/></metaLabelIid>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"168\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"162\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"256\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"258\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"265\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"570\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"575\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"593\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"597\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"603\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"607\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"611\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.ContentVerification.__rtti = "<class path=\"qoid.model.ContentVerification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.VerifiedContentMetaData.__rtti = "<class path=\"qoid.model.VerifiedContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.ContentMetaData.__rtti = "<class path=\"qoid.model.ContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"qoid.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"qoid.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"292\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"343\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"351\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"359\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"367\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"373\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"381\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ConfigContentData.__rtti = "<class path=\"qoid.model.ConfigContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<defaultImg public=\"1\"><c path=\"String\"/></defaultImg>\n\t<new public=\"1\" set=\"method\" line=\"387\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ConfigContent.__rtti = "<class path=\"qoid.model.ConfigContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ConfigContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"395\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"402\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"410\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"418\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"425\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<fromConnectionIid public=\"1\"><c path=\"String\"/></fromConnectionIid>\n\t<kind public=\"1\"><e path=\"qoid.model.NotificationKind\"/></kind>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"472\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"484\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"488\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"475\"><f a=\"kind:type\">\n\t<e path=\"qoid.model.NotificationKind\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"498\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></aState>\n\t<bState public=\"1\"><e path=\"qoid.model.IntroductionState\"/></bState>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"507\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<profile public=\"1\"><c path=\"qoid.model.Profile\"/></profile>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"533\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"qoid.model.ContentType\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"543\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"565\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"344\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"350\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"360\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"366\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"374\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"380\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"389\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"395\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"404\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"410\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.NotificationKind.IntroductionRequest = "IntroductionRequest";
+qoid.model.NotificationKind.VerificationRequest = "VerificationRequest";
+qoid.model.NotificationKind.VerificationResponse = "VerificationResponse";
+qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"481\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"498\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"511\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"523\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"543\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.VerificationResponseData.__rtti = "<class path=\"qoid.model.VerificationResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"580\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"593\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ap.APhoto.main();
 })(typeof window != "undefined" ? window : exports);

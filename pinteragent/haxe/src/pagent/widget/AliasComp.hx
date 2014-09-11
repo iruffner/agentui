@@ -3,16 +3,11 @@ package pagent.widget;
 import pagent.widget.DialogManager;
 import pagent.model.EM;
 import m3.jq.JQ;
-import m3.jq.M3Menu;
-import m3.jq.M3Dialog;
-import m3.jq.JQDroppable;
-import m3.jq.JQDraggable;
 import m3.observable.OSet;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import m3.util.M;
 import m3.exception.Exception;
-import m3.util.JqueryUtil;
 import qoid.Qoid;
 import qoid.QE;
 

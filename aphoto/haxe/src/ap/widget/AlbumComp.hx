@@ -1,21 +1,24 @@
 package ap.widget;
 
 import ap.APhotoContext;
-import ap.AppContext;
+
+import ap.model.APhotoModel.ConfigContent;
 import ap.pages.APhotoPageMgr;
 import haxe.Json;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
+import m3.log.Logga;
 import m3.widget.Widgets;
 import m3.observable.OSet;
 import m3.exception.Exception;
 import m3.util.UidGenerator;
 
-import qoid.widget.FilterableComponent;
+import agentui.widget.FilterableComponent;
 import qoid.model.ModelObj;
-import qoid.model.Node;
+import agentui.model.Node;
 import ap.model.EM;
+import qoid.Qoid;
 
 using ap.widget.AlbumComp;
 using m3.helper.OSetHelper;
@@ -75,20 +78,20 @@ extern class AlbumComp extends JQ {
 				        }
 		        	};
 		        
-		        	self.filteredSet = new FilteredSet<Label>(AppContext.LABELS, function(label:Label):Bool {
+		        	self.filteredSet = new FilteredSet<Label>(Qoid.labels, function(label:Label):Bool {
 		        		return label.iid == self.options.album.iid;
 		        	});
 					self.filteredSet.listen(self._onupdate);
 
 					self._onAlbumConfig = function(mc: ConfigContent, evt: EventType) {
-						var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(mc.iid+"_"+self.options.album.iid, function(lc: LabeledContent): String {
+						var match: LabeledContent = Qoid.labeledContent.getElementComplex(mc.iid+"_"+self.options.album.iid, function(lc: LabeledContent): String {
 								return lc.contentIid+"_"+lc.labelIid;
 							});
 						if(match != null) {
 							try {
 								self.img.attr("src", mc.props.defaultImg);
 							} catch (err: Dynamic) {
-								AppContext.LOGGER.error("problem using the default img");
+								Logga.DEFAULT.error("problem using the default img");
 							}
 						}
 					}

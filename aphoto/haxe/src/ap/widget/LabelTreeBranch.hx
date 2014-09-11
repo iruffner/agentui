@@ -1,7 +1,7 @@
 package ap.widget;
 
 import ap.APhotoContext;
-import ap.AppContext;
+
 import ap.model.EM;
 import ap.pages.APhotoPageMgr;
 import m3.jq.JQ;

@@ -47,7 +47,7 @@ extern class ContentFeed extends JQ {
 		        	var div: JQ = new JQ("<div class='wrapper'></div>").appendTo(selfElement);
 
 		        	var mapListener = function(content: Content<Dynamic>, contentComp:ContentComp, evt: EventType): Void {
-		        		if(content != null && ContentType.IMAGE == content.contentType) {
+		        		if(content != null && ContentTypes.IMAGE == content.contentType) {
 		            		if(evt.isAdd()) {
 		            			var contentComps = new JQ(".contentComp");
 		            			if (contentComps.length == 0) {

@@ -1,7 +1,7 @@
 package ap.widget;
 
 import ap.APhotoContext;
-import ap.AppContext;
+
 import ap.pages.APhotoPage;
 import ap.pages.APhotoPageMgr;
 import haxe.Json;
@@ -9,6 +9,7 @@ import js.Browser;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.M3Menu;
+import m3.log.Logga;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import m3.observable.OSet;
@@ -92,11 +93,11 @@ extern class ContentComp extends JQ {
 					var content:Content<Dynamic> = self.options.content;
 
 		        	switch(content.contentType) {
-		        		case ContentType.IMAGE:
+		        		case ContentTypes.IMAGE:
 		        			var img: ImageContent = cast(content, ImageContent);
 		        			selfElement.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");// + img.caption);
 		        		case _:
-		        			AppContext.LOGGER.debug("Only image content should be displayed"); 
+		        			Logga.DEFAULT.debug("Only image content should be displayed"); 
 		        	}
 				},
 		        

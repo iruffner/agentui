@@ -1,6 +1,6 @@
 package ap.widget;
 
-import ap.AppContext;
+
 import m3.jq.JQ;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;

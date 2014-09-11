@@ -1,20 +1,22 @@
 package ap.pages;
 
 import ap.APhotoContext;
+import ap.model.APhotoModel.APhotoContentTypes;
+import ap.model.APhotoModel.ConfigContent;
 import ap.model.ContentSource;
 import haxe.Json;
 import m3.jq.JQ;
 
-import ap.AppContext;
+
 import ap.widget.AlbumDetails;
 import ap.widget.ContentFeed;
 import ap.model.EM;
 import m3.observable.OSet.EventType;
 import m3.observable.OSet.FilteredSet;
-import qoid.model.Filter;
+import agentui.model.Filter;
 import qoid.model.ModelObj;
-import qoid.model.ModelObj;
-import qoid.model.Node;
+import agentui.model.Node;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using ap.widget.MediaComp;
@@ -43,7 +45,7 @@ class ContentScreen extends APhotoPage {
 
 		var contentId: String = APhotoContext.CURRENT_MEDIA;
 
-		labelSet = new FilteredSet(AppContext.LABELS, function(l: Label) {
+		labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
 				return l.iid == APhotoContext.CURRENT_ALBUM;
 			});
 		
@@ -104,13 +106,13 @@ class ContentScreen extends APhotoPage {
 					var config: ConfigContent = null;
 					var event: String = null;
 					APhotoContext.ALBUM_CONFIGS.iter(function(c: ConfigContent) {
-							var match: LabeledContent = AppContext.LABELEDCONTENT.getElementComplex(c.iid+"_"+label.iid, function(lc: LabeledContent): String {
+							var match: LabeledContent = Qoid.labeledContent.getElementComplex(c.iid+"_"+label.iid, function(lc: LabeledContent): String {
 										return lc.contentIid+"_"+lc.labelIid;
 									});
 							if(match != null) config = c;
 						});
 					if(config == null) {
-						config = cast ContentFactory.create(ContentType.CONFIG, _content.props.imgSrc);
+						config = cast ContentFactory.create(APhotoContentTypes.CONFIG, _content.props.imgSrc);
 						event = EMEvent.CreateContent;
 					} else {
 						config.props.defaultImg = _content.props.imgSrc;

@@ -1,6 +1,7 @@
 package ap.widget;
 
-import ap.AppContext;
+
+import m3.log.Logga;
 import m3.util.M;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
@@ -10,10 +11,11 @@ import m3.observable.OSet;
 import m3.widget.Widgets;
 import ap.widget.DialogManager;
 import qoid.model.ModelObj;
-import qoid.model.Node;
+import agentui.model.Node;
 import m3.observable.OSet.ObservableSet;
-import qoid.widget.FilterableComponent;
+import agentui.widget.FilterableComponent;
 import m3.exception.Exception;
+import qoid.Qoid;
 
 using StringTools;
 using m3.helper.OSetHelper;
@@ -89,7 +91,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		        getAlias: function():Alias {
 		        	var self: ConnectionAvatarWidgetDef = Widgets.getSelf();
-		        	return AppContext.ALIASES.getElement(self.options.aliasIid);
+		        	return Qoid.aliases.getElement(self.options.aliasIid);
 		        },
 
 		        _create: function(): Void {
@@ -112,7 +114,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		            self._updateWidgets(new Profile());
 
 		        	if (self.options.aliasIid != null){
-		        		self.filteredSetAlias = new FilteredSet<Alias>(AppContext.ALIASES,function(a:Alias):Bool{
+		        		self.filteredSetAlias = new FilteredSet<Alias>(Qoid.aliases,function(a:Alias):Bool{
 		        			return a.iid == self.options.aliasIid;
 		        		});
 		        		self._onUpdateAlias = function(a:Alias, evt:EventType) {
@@ -125,7 +127,7 @@ extern class ConnectionAvatar extends FilterableComponent {
 		        		}
 		        		self.filteredSetAlias.listen(self._onUpdateAlias);
 		        	} else {
-		        		AppContext.LOGGER.warn("AliasIid is not set for Avatar");
+		        		Logga.DEFAULT.warn("AliasIid is not set for Avatar");
 		        	}
 
 		            cast(selfElement, JQTooltip).tooltip();

@@ -6,28 +6,20 @@ import m3.event.EventManager;
 class EMEvent {	
 	/* aphoto specific */
 	public static inline var APP_INITIALIZED: String = "APP_INITIALIZED";
-	public static inline var ALBUM_CONFIGS: String = "ALBUM_CONFIGS";
+	public static inline var ALBUM_CONFIGS: String = "onAlbumConfig";
 	/* *************** */
 	
 
 	public static inline var FILTER_RUN: String = "FILTER_RUN";
 	public static inline var FILTER_CHANGE: String = "FILTER_CHANGE";
-	public static inline var LoadFilteredContent: String = "LoadFilteredContent";
-	public static inline var AppendFilteredContent: String = "AppendFilteredContent";
+	public static inline var OnFilteredContent: String = "onFilteredContent";
 
 	public static inline var EditContentClosed: String = "EditContentClosed";
 
 	public static inline var CreateAgent: String = "CreateAgent";
-	public static inline var AgentCreated: String = "AgentCreated";
-	public static inline var InitialDataLoadComplete: String = "InitialDataLoadComplete";
 
 	// FitWindow;
-	public static inline var UserLogin: String = "UserLogin";
 	public static inline var UserLogout: String = "UserLogout";
-
-	public static inline var AliasLoaded: String = "AliasLoaded";
-	public static inline var AliasCreated: String = "AliasCreated";
-	public static inline var AliasUpdated: String = "AliasUpdated";
 
 	public static inline var CreateAlias: String = "CreateAlias";
 	public static inline var UpdateAlias: String = "UpdateAlias";

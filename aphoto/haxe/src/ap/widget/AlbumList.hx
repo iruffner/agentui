@@ -1,21 +1,23 @@
 package ap.widget;
 
 import ap.APhotoContext;
-import ap.AppContext;
+
 import ap.model.EM;
 import m3.jq.JQ;
 import m3.jq.M3Menu;
 import m3.jq.M3Dialog;
+import m3.log.Logga;
 import m3.observable.OSet;
 import m3.widget.Widgets;
 import m3.exception.Exception;
 
 import qoid.model.ModelObj;
-import qoid.widget.Popup;
+import agentui.widget.Popup;
+import qoid.Qoid;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
-using qoid.widget.UploadComp;
+using agentui.widget.UploadComp;
 using ap.widget.ConnectionAvatar;
 
 typedef AlbumListOptions = {
@@ -31,8 +33,6 @@ typedef AlbumListWidgetDef = {
 	@:optional var onchangeLabelChildren: AlbumComp->EventType->Void;
 	
 	var _showNewLabelPopup: JQ->Void;
-
-	@:optional var listenerId: String;
 }
 
 @:native("$")
@@ -64,8 +64,8 @@ extern class AlbumList extends JQ {
 		        				evt.stopPropagation();
 			        			self._showNewLabelPopup(JQ.cur);
 		        			});
-					if (AppContext.GROUPED_LABELCHILDREN.delegate().get(APhotoContext.ROOT_ALBUM.iid) == null) {
-	        			AppContext.GROUPED_LABELCHILDREN.addEmptyGroup(APhotoContext.ROOT_ALBUM.iid);
+					if (Qoid.groupedLabelChildren.delegate().get(APhotoContext.ROOT_ALBUM.iid) == null) {
+	        			Qoid.groupedLabelChildren.addEmptyGroup(APhotoContext.ROOT_ALBUM.iid);
     				}
 
     				selfElement.append("<br/>");
@@ -79,10 +79,10 @@ extern class AlbumList extends JQ {
 	            		}
 	            	};
 
-            		self.mappedLabels = new MappedSet<LabelChild, AlbumComp>(AppContext.GROUPED_LABELCHILDREN.delegate().get(APhotoContext.ROOT_ALBUM.iid), 
+            		self.mappedLabels = new MappedSet<LabelChild, AlbumComp>(Qoid.groupedLabelChildren.delegate().get(APhotoContext.ROOT_ALBUM.iid), 
 		        		function(labelChild: LabelChild): AlbumComp {
 		        			return new AlbumComp("<div></div>").albumComp({
-		        				album: AppContext.LABELS.getElementComplex(labelChild.childIid)
+		        				album: Qoid.labels.getElementComplex(labelChild.childIid)
 		        			});
 	        		});
 		        	self.mappedLabels.visualId = "root_map";
@@ -128,7 +128,7 @@ extern class AlbumList extends JQ {
 
         						createLabel = function(): Void {
 									if (input.val().length == 0) {return;}
-									AppContext.LOGGER.info("Create new label | " + input.val());
+									Logga.DEFAULT.info("Create new label | " + input.val());
 									var label: Label = new Label();
 									label.name = input.val();
   									var eventData = new EditLabelData(label, APhotoContext.ROOT_ALBUM.iid);
@@ -143,7 +143,8 @@ extern class AlbumList extends JQ {
 
 		        destroy: function() {
 		        	var self: AlbumListWidgetDef = Widgets.getSelf();
-		        	EM.removeListener(EMEvent.AliasLoaded, self.listenerId);
+	        		if(self.mappedLabels != null && self.onchangeLabelChildren != null) 
+	        			self.mappedLabels.removeListener(self.onchangeLabelChildren);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

@@ -1,8 +1,6 @@
 package pagent.api;
 
-import m3.jq.JQ;
 
-import agentui.api.CrudMessage;
 import agentui.model.Filter;
 import m3.serialization.Serialization.Serializer;
 import m3.util.UidGenerator;
@@ -12,14 +10,6 @@ import qoid.model.ModelObj;
 
 class EventDelegate {
 	
-	// private var QoidAPI:QoidAPI;
-	// private var filterIsRunning: Bool = false;
-
-	// public function new(QoidAPI:QoidAPI) {
-	// 	this.QoidAPI = QoidAPI;
-	// 	this._setUpEventListeners();
-	// }
-
 	public static function init() {
 
 		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {

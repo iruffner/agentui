@@ -31,8 +31,6 @@ typedef BoardListWidgetDef = {
 	@:optional var mappedLabelChilds: MappedSet<LabelChild, BoardComp>;
 	@:optional var mappedLabels: MappedSet<Label, BoardComp>;
 	@:optional var onchangeLabelChildren: BoardComp->EventType->Void;
-	
-	@:optional var listenerId: String;
 }
 
 @:native("$")
