@@ -9,6 +9,7 @@ class EMEvent {
 
 	public static inline var OnBoardConfig: String = "onBoardConfig";
 	public static inline var OnConnectionBoards: String = "onConnectionBoards";
+	public static inline var OnConnectionBoardConfigs: String = "onConnectionBoardConfigs";
 	/* *************** */
 	
 

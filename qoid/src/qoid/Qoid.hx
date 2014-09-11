@@ -130,17 +130,8 @@ class Qoid {
         EventManager.instance.on("onConnectionProfile", processProfile);
     }
 
-    public static function onInitialDataLoadComplete(connectionIid:String) {
-        var a = aliases.getElementComplex(connectionIid, "connectionIid");
-
-        // Set the current alias
-        for (alias in aliases) {
-            if (alias.data.isDefault == true) {
-                a = alias;
-                break;
-            }
-        }
-        currentAlias = a;
+    public static function onInitialDataLoadComplete(alias: Alias) {
+        currentAlias = alias;
     }
 
     public static function processProfile(rec:{result:Dynamic}) {

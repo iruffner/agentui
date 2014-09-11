@@ -8,12 +8,12 @@ import m3.log.Logga;
 import m3.event.EventManager;
 import m3.exception.Exception;
 import m3.serialization.Serialization;
+import qoid.model.ModelObj.Alias;
 import qoid.Synchronizer;
-
 
 class AuthenticationResponse {
     public var channelId:String;
-    public var connectionIid:String;
+    public var alias:Dynamic;
 }
 
 @:rtti
@@ -47,12 +47,12 @@ class QoidAPI {
         return activeChannel;
     }
 
-    @:isVar public static var activeAlias(get,set): String;
-    public static function set_activeAlias(a:String):String {
+    @:isVar public static var activeAlias(get,set): Alias;
+    public static function set_activeAlias(a:Alias):Alias {
         activeAlias = a;
         return activeAlias;
     }
-    public static function get_activeAlias():String {
+    public static function get_activeAlias():Alias {
         return activeAlias;
     }
 
@@ -138,15 +138,15 @@ class QoidAPI {
         js.Lib.alert(exc);
     }
 
-    private static function onLogin(data:Dynamic) {
-        var auth:AuthenticationResponse = cast(data);
+    private static function onLogin(data: AuthenticationResponse) {
+        // var auth:AuthenticationResponse = cast(data);
 
-        QoidAPI.addChannel(auth.channelId);
-        QoidAPI.activeChannel = auth.channelId;
-        QoidAPI.activeAlias = auth.connectionIid;
+        QoidAPI.addChannel(data.channelId);
+        QoidAPI.activeChannel = data.channelId;
+        QoidAPI.activeAlias = Serializer.instance.fromJsonX(data.alias, Alias);
 
         // Kick off a long poll and immediately request the model data
-        _startPolling(auth.channelId);
+        _startPolling(data.channelId);
 
         var context = "initialDataLoad";
         var sychoronizer = new qoid.Synchronizer(context, 9, onInitialDataload);

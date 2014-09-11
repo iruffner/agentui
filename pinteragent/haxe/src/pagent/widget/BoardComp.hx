@@ -94,7 +94,7 @@ extern class BoardComp extends JQ {
 							}
 						}
 					}
-					PinterContext.BOARD_CONFIGS.listen(self._onBoardConfig);
+					PinterContext.boardConfigs.listen(self._onBoardConfig);
 		        },
 		        
 		        _create: function(): Void {
@@ -109,7 +109,7 @@ extern class BoardComp extends JQ {
 		        	self.nameDiv = new JQ("<div class='labelNameWrapper'></div>").appendTo(selfElement);
 		        	self.nameDiv.append("<span class='boardLabel'>" + self.options.board.name + "</span>");
 		        	selfElement.append("<br/>");
-		        	self.img = new JQ("<img src='" + "media/boards-icon.jpg" + "' />").appendTo(selfElement);
+		        	self.img = new JQ("<img src='" + "media/board.jpg" + "' />").appendTo(selfElement);
 		        	
 		        	self._registerListeners();
 
@@ -127,7 +127,7 @@ extern class BoardComp extends JQ {
 		        destroy: function() {
 		        	var self: BoardCompWidgetDef = Widgets.getSelf();
 		        	self.filteredSet.removeListener(self._onupdate);
-		        	PinterContext.BOARD_CONFIGS.removeListener(self._onBoardConfig);
+		        	PinterContext.boardConfigs.removeListener(self._onBoardConfig);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

@@ -121,7 +121,7 @@ extern class MediaComp extends ContentComp {
 											//find this config
 											var config: ConfigContent = null;
 											var event: String = null;
-											PinterContext.BOARD_CONFIGS.iter(function(c: ConfigContent) {
+											PinterContext.boardConfigs.iter(function(c: ConfigContent) {
 													var match: LabeledContent = Qoid.labeledContent.getElementComplex(c.iid+"_"+PinterContext.CURRENT_BOARD, function(lc: LabeledContent): String {
 																return lc.contentIid+"_"+lc.labelIid;
 															});

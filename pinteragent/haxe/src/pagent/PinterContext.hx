@@ -24,7 +24,7 @@ class PinterContext {
     public static var labelAclsByLabel: GroupedSet<LabelAcl>;
     public static var sharedBoards: ObservableSet<Label>;
     public static var sharedBoardsByConnection: GroupedSet<Label>;
-
+    public static var sharedBoardConfigs: ObservableSet<ConfigContent>;
 
     public static var CURRENT_BOARD: String;
     public static var CURRENT_MEDIA: String;
@@ -37,7 +37,7 @@ class PinterContext {
     //this is a child of the current alias' root label
     @:isVar public static var ROOT_BOARD(get,set): Label;
 
-    public static var BOARD_CONFIGS: ObservableSet<ConfigContent>;
+    public static var boardConfigs: ObservableSet<ConfigContent>;
 
     public static function init() {
         PAGE_MGR = PinterPageMgr.get;
@@ -53,7 +53,8 @@ class PinterContext {
             return l.createdByConnectionIid;
         });
 
-        BOARD_CONFIGS = new ObservableSet<ConfigContent>(ModelObjWithIid.identifier);
+        boardConfigs = new ObservableSet<ConfigContent>(ModelObjWithIid.identifier);
+        sharedBoardConfigs = new ObservableSet<ConfigContent>(ModelObjWithIid.identifier);
 
         EM.listenOnce(
             EMEvent.APP_INITIALIZED,
@@ -83,7 +84,7 @@ class PinterContext {
 
         var filterData = new FilterData("boardConfig");
         filterData.filter = new Filter(root);
-        filterData.filter.q = filterData.filter.q + " and contentType = '" + APP_ROOT_LABEL_NAME + ".config'";
+        filterData.filter.q = filterData.filter.q + " and contentType = '" + PinterContentTypes.CONFIG + "'";
         filterData.connectionIids = [];
         filterData.aliasIid       = Qoid.currentAlias.iid;
 
@@ -105,6 +106,7 @@ class PinterContext {
         EM.listenOnce(QE.onInitialDataload, _onInitialDataLoadComplete, "PinterContext-onInitialDataLoad");
         EM.addListener(EMEvent.OnBoardConfig, _onBoardConfig , "PinterContext-onBoardConfig");
         EM.addListener(EMEvent.OnConnectionBoards, _onSharedBoard , "PinterContext-onConnectionBoards");
+        EM.addListener(EMEvent.OnConnectionBoardConfigs, _onSharedBoardConfigs , "PinterContext-onConnectionBoardConfigs");
 
         Qoid.connections.listen(
             function(c: Connection, evt: EventType): Void {
@@ -113,6 +115,14 @@ class PinterContext {
                             new RequestContext("connectionBoards"), 
                             "label", 
                             "(hasParentLabelPath('" + PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + "','" + PinterContext.APP_ROOT_LABEL_NAME + "'))", 
+                            true,
+                            true,
+                            [c.iid]
+                        );
+                        QoidAPI.query(
+                            new RequestContext("connectionBoardConfigs"), 
+                            "content", 
+                            "(hasLabelPath('" + PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + "','" + PinterContext.APP_ROOT_LABEL_NAME + "')) and contentType = '" + PinterContentTypes.CONFIG + "'", 
                             true,
                             true,
                             [c.iid]
@@ -188,7 +198,7 @@ class PinterContext {
             for (result in data.result.results) {
                 var c = Serializer.instance.fromJsonX(result, ConfigContent);
                 if(c != null) { //occurs when there is an unknown content type
-                    BOARD_CONFIGS.addOrUpdate(c);
+                    boardConfigs.addOrUpdate(c);
                 }
             }
     }
@@ -199,6 +209,16 @@ class PinterContext {
                 var c = Serializer.instance.fromJsonX(result, Label);
                 if(c != null) { //occurs when there is an unknown content type
                     sharedBoards.addOrUpdate(c);
+                }
+            }
+    }
+
+    static function _onSharedBoardConfigs(data:{result: {standing: Bool, results: Array<Dynamic>}}) {
+        if(data.result.results.hasValues())
+            for (result in data.result.results) {
+                var c = Serializer.instance.fromJsonX(result, ConfigContent);
+                if(c != null) { //occurs when there is an unknown content type
+                    sharedBoardConfigs.addOrUpdate(c);
                 }
             }
     }
