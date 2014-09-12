@@ -153,7 +153,7 @@ class QoidAPI {
         var requests = [
             new ChannelRequestMessage(QUERY, new RequestContext(context, "alias"), createQueryJson("alias")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "introduction"), createQueryJson("introduction")),
-            new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "' and iid <> '" + QoidAPI.activeAlias.connectionIid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "notification"), createQueryJson("notification", "consumed='0'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "label"), createQueryJson("label")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "labelAcl"), createQueryJson("labelAcl")),
