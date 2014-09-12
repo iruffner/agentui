@@ -134,6 +134,7 @@ extern class MediaComp extends ContentComp {
 												event = EMEvent.UpdateContent;
 											}
 											config.props.defaultImg = self.options.content.props.imgSrc;
+											config.props.boardIid = PinterContext.CURRENT_BOARD;
 											
 											var ccd = new EditContentData(config);
 											ccd.labelIids.push(PinterContext.CURRENT_BOARD);

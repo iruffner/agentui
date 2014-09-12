@@ -7220,16 +7220,21 @@ var defineWidget = function() {
 		});
 		self1.filteredSet.listen(self1._onupdate);
 		self1._onBoardConfig = function(mc,evt) {
-			var match = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labeledContent,mc.iid + "_" + self1.options.board.iid,function(lc) {
-				return lc.contentIid + "_" + lc.labelIid;
-			});
-			if(match != null) try {
+			if(mc.props.boardIid == self1.options.board.iid) try {
 				self1.img.attr("src",mc.props.defaultImg);
 			} catch( err ) {
 				m3.log.Logga.get_DEFAULT().error("problem using the default img");
 			}
 		};
+		self1._onSharedBoardConfig = function(mc1,evt1) {
+			if(mc1.props.boardIid == self1.options.board.iid) try {
+				self1.img.attr("src",mc1.props.defaultImg);
+			} catch( err1 ) {
+				m3.log.Logga.get_DEFAULT().error("problem using the default img");
+			}
+		};
 		pagent.PinterContext.boardConfigs.listen(self1._onBoardConfig);
+		pagent.PinterContext.sharedBoardConfigs.listen(self1._onSharedBoardConfig);
 	}, _create : function() {
 		var self2 = this;
 		var selfElement1 = this.element;
@@ -7240,7 +7245,7 @@ var defineWidget = function() {
 		selfElement1.append("<br/>");
 		self2.img = new $("<img src='" + "media/board.jpg" + "' />").appendTo(selfElement1);
 		self2._registerListeners();
-		selfElement1.click(function(evt1) {
+		selfElement1.click(function(evt2) {
 			pagent.PinterContext.CURRENT_BOARD = self2.options.board.iid;
 			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.BOARD_SCREEN);
 			window.history.pushState({ },self2.options.board.iid,"index.html?board=" + self2.options.board.iid);
@@ -7249,6 +7254,7 @@ var defineWidget = function() {
 		var self3 = this;
 		self3.filteredSet.removeListener(self3._onupdate);
 		pagent.PinterContext.boardConfigs.removeListener(self3._onBoardConfig);
+		pagent.PinterContext.sharedBoardConfigs.removeListener(self3._onSharedBoardConfig);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -7659,6 +7665,7 @@ var defineWidget = function() {
 					event = "CreateContent";
 				} else event = "UpdateContent";
 				config.props.defaultImg = self1.options.content.props.imgSrc;
+				config.props.boardIid = pagent.PinterContext.CURRENT_BOARD;
 				var ccd = new qoid.model.EditContentData(config);
 				ccd.labelIids.push(pagent.PinterContext.CURRENT_BOARD);
 				pagent.model.EM.change(event,ccd);
@@ -8089,8 +8096,8 @@ pagent.model.EMEvent.BACKUP = "BACKUP";
 pagent.model.EMEvent.RESTORE = "RESTORE";
 pagent.model.PinterContentTypes.CONFIG = pagent.PinterContext.APP_ROOT_LABEL_NAME + ".config";
 qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"269\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-pagent.model.ConfigContentData.__rtti = "<class path=\"pagent.model.ConfigContentData\" params=\"\" module=\"pagent.model.PinterModel\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<defaultImg public=\"1\"><c path=\"String\"/></defaultImg>\n\t<new public=\"1\" set=\"method\" line=\"15\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-pagent.model.ConfigContent.__rtti = "<class path=\"pagent.model.ConfigContent\" params=\"\" module=\"pagent.model.PinterModel\">\n\t<extends path=\"qoid.model.Content\"><c path=\"pagent.model.ConfigContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+pagent.model.ConfigContentData.__rtti = "<class path=\"pagent.model.ConfigContentData\" params=\"\" module=\"pagent.model.PinterModel\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<defaultImg public=\"1\"><c path=\"String\"/></defaultImg>\n\t<boardIid public=\"1\"><c path=\"String\"/></boardIid>\n\t<new public=\"1\" set=\"method\" line=\"16\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+pagent.model.ConfigContent.__rtti = "<class path=\"pagent.model.ConfigContent\" params=\"\" module=\"pagent.model.PinterModel\">\n\t<extends path=\"qoid.model.Content\"><c path=\"pagent.model.ConfigContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 pagent.pages.PinterPageMgr.HOME_SCREEN = new pagent.pages.HomeScreen();
 pagent.pages.PinterPageMgr.BOARD_SCREEN = new pagent.pages.BoardScreen();
 pagent.pages.PinterPageMgr.CONTENT_SCREEN = new pagent.pages.ContentScreen();

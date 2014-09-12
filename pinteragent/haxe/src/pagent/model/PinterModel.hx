@@ -11,6 +11,7 @@ class PinterContentTypes {
 
 class ConfigContentData extends ContentData {
 	public var defaultImg: String;
+	public var boardIid: String;
 
 	public function new () {
 		super();

@@ -35,6 +35,7 @@ typedef BoardCompWidgetDef = {
 	@:optional var _super: Void->Void;
 	@:optional var _onupdate: Label->EventType->Void;
 	@:optional var _onBoardConfig: ConfigContent->EventType->Void;
+	@:optional var _onSharedBoardConfig: ConfigContent->EventType->Void;
 	var destroy: Void->Void;
 	var getLabel:Void->Label;
 
@@ -83,10 +84,7 @@ extern class BoardComp extends JQ {
 					self.filteredSet.listen(self._onupdate);
 
 					self._onBoardConfig = function(mc: ConfigContent, evt: EventType) {
-						var match: LabeledContent = Qoid.labeledContent.getElementComplex(mc.iid+"_"+self.options.board.iid, function(lc: LabeledContent): String {
-								return lc.contentIid+"_"+lc.labelIid;
-							});
-						if(match != null) {
+						if(mc.props.boardIid == self.options.board.iid) {
 							try {
 								self.img.attr("src", mc.props.defaultImg);
 							} catch (err: Dynamic) {
@@ -94,7 +92,19 @@ extern class BoardComp extends JQ {
 							}
 						}
 					}
+
+					self._onSharedBoardConfig = function(mc: ConfigContent, evt: EventType) {
+						if(mc.props.boardIid == self.options.board.iid) {
+							try {
+								self.img.attr("src", mc.props.defaultImg);
+							} catch (err: Dynamic) {
+								Logga.DEFAULT.error("problem using the default img");
+							}
+						}
+					}
+
 					PinterContext.boardConfigs.listen(self._onBoardConfig);
+					PinterContext.sharedBoardConfigs.listen(self._onSharedBoardConfig);
 		        },
 		        
 		        _create: function(): Void {
@@ -128,6 +138,7 @@ extern class BoardComp extends JQ {
 		        	var self: BoardCompWidgetDef = Widgets.getSelf();
 		        	self.filteredSet.removeListener(self._onupdate);
 		        	PinterContext.boardConfigs.removeListener(self._onBoardConfig);
+		        	PinterContext.sharedBoardConfigs.removeListener(self._onSharedBoardConfig);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };
