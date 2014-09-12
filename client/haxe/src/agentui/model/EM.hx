@@ -60,7 +60,9 @@ class EMEvent {
 
 	public static inline var INTRODUCTION_RESPONSE = "INTRODUCTION_RESPONSE";
 	public static inline var RespondToIntroduction = "RespondToIntroduction";
-	public static inline var RespondToIntroduction_RESPONSE = "RespondToIntroduction_RESPONSE";
+
+	public static inline var OnConsumeNotification = "onConsumeNotification";
+	public static inline var OnAcceptIntroduction  = "onAcceptIntroduction ";
 
 	public static inline var TargetChange = "TargetChange";
 

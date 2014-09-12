@@ -55,19 +55,16 @@ class Qoid {
         introductions = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
 
         notifications = new ObservableSet<Notification<Dynamic>>(ModelObjWithIid.identifier);
-/*
+
         notifications.listen(function(n:Notification<Dynamic>, evt:EventType) {
             if (evt.isAddOrUpdate()) {
                 if (n.kind == NotificationKind.IntroductionRequest) {
                     var introRequest:IntroductionRequestNotification = cast(n);
-                    var p = profiles.getElementComplex(introRequest.props.connectionIid, "connectionIid");
-                    if (p != null) {
-                        introRequest.props.profile = p;
-                    }
+                    QoidAPI.getProfile([introRequest.props.connectionIid]);
                 }
             }
         });
-*/
+
         aliases = new ObservableSet<Alias>(ModelObjWithIid.identifier);
         aliases.listen(function(a:Alias, evt:EventType):Void {
             if (evt.isAddOrUpdate()) {
@@ -134,7 +131,7 @@ class Qoid {
         currentAlias = alias;
     }
 
-    public static function processProfile(rec:{result:Dynamic}) {
+    public static function processProfile(rec:{result:{route: Array<String>, results: Array<Dynamic>}}) {
         var connectionIid = rec.result.route[0];
         var connection = Qoid.connections.getElement(connectionIid);
         var profile = Serializer.instance.fromJsonX(rec.result.results[0], Profile);

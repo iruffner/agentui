@@ -3,6 +3,7 @@ package agentui.widget;
 import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.jq.PlaceHolderUtil;
+import m3.observable.OSet.EventType;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import agentui.model.EM;
@@ -66,9 +67,21 @@ extern class IntroductionNotificationDialog extends JQ {
 		        	var date  =	new JQ("<div><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
 
-					intro_table.find("td:nth-child(3)").append(
-						"<div>" + self.options.notification.props.profile.name + 
-						"</div><div><img class='intro-profile-img container' src='" + self.options.notification.props.profile.imgSrc + "'/></div>");
+		        	var nameDiv: JQ = new JQ("<div></div>");
+		        	var imgDiv: JQ = new JQ("<div></div>");
+
+		        	var listener = function(p: Profile, evt: EventType) {
+		        		if(evt.isAddOrUpdate()) {
+		        			nameDiv.html(p.name);
+		        			var imgSrc: String = "media/default_avatar.jpg";
+				        	if(m3.util.M.getX(p.imgSrc, "").isNotBlank() ) {
+				        		imgSrc = p.imgSrc;
+				        	}
+		        			imgDiv.empty().append(new JQ("<img class='intro-profile-img container' src='" + imgSrc + "'/>"));
+		        		}
+		        	}
+		        	Qoid.profiles.listen(listener);
+					intro_table.find("td:nth-child(3)").append(nameDiv).append( imgDiv );
 		        },
 
 		        initialized: false,
@@ -77,9 +90,19 @@ extern class IntroductionNotificationDialog extends JQ {
 		        	var self: IntroductionNotificationDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQDialog = Widgets.getSelfElement();
 
-		        	EM.listenOnce(EMEvent.RespondToIntroduction_RESPONSE, function(e:Dynamic) {
+					var listener1: String = null;
+					var listener2: String = null;
+		        	
+		        	listener1 = EM.listenOnce(EMEvent.OnConsumeNotification, function(e:Dynamic) {
 	        			self.destroy();
 	        			selfElement.remove();
+	        			EM.removeListener(EMEvent.OnAcceptIntroduction, listener2);
+		        	});
+
+		        	listener2 = EM.listenOnce(EMEvent.OnAcceptIntroduction, function(e:Dynamic) {
+	        			self.destroy();
+	        			selfElement.remove();
+	        			EM.removeListener(EMEvent.OnConsumeNotification, listener1);
 		        	});
 
         			var confirmation = new IntroResponseMessage(self.options.notification.iid, accepted);

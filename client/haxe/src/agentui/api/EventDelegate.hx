@@ -1,5 +1,6 @@
 package agentui.api;
 
+import agentui.api.CrudMessage.IntroResponseMessage;
 import m3.jq.JQ;
 
 import m3.serialization.Serialization.Serializer;
@@ -66,8 +67,11 @@ class EventDelegate {
             QoidAPI.deleteLabel(data.label.iid, data.parentIid);
         });
 
-        EM.addListener(EMEvent.RespondToIntroduction, function(n:{} /*intro: IntroResponseMessage*/):Void{
-            // TODO:  protocolHandler.confirmIntroduction(intro);
+        EM.addListener(EMEvent.RespondToIntroduction, function(intro: IntroResponseMessage):Void{
+            if(intro.accepted)
+                QoidAPI.acceptIntroduction(intro.notificationIid);
+            else
+                QoidAPI.consumeNotification(intro.notificationIid);
         });
 
         // TODO:  Add DOV
@@ -75,8 +79,8 @@ class EventDelegate {
             QoidAPI.grantAccess(parms.labelIid, parms.connectionIid, 1);
         });
 
-        EM.addListener(EMEvent.RevokeAccess, function(lacls:Array<LabelAcl>):Void{
-            // TODO:  QoidAPI.revokeAccess( labelIid : String , connectionIid : String);
+        EM.addListener(EMEvent.RevokeAccess, function(parms: {connectionIid: String,labelIid: String}):Void{
+            QoidAPI.revokeAccess(parms.labelIid, parms.connectionIid);
         });
 
         EM.addListener(EMEvent.DeleteConnection, function(c:Connection):Void{
