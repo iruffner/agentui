@@ -1,0 +1,212 @@
+
+body {
+	text-align: center;
+	margin-left: 5px;
+	margin-right: 5px;
+	min-width: 800px;
+	font-family: Helvetica,Lucida Grande,Lucida Sans,Arial,sans-serif;
+	font-size:12px;
+}
+
+#spacer {
+	min-height: 10px;
+}
+
+/* Header
+-----------------------------------------------------------------------------*/
+#header {
+	height: 60px;
+	margin-bottom: 25px;
+}
+
+/* Containers
+-----------------------------------------------------------------------------*/
+.ocontainer {
+	background: #333;
+	border-radius: 9px;
+	padding: 5px;
+}
+
+.container {
+	background: white;
+	border-radius: 9px;
+	border: 1px solid #333 !important;
+	padding: 5px;
+}
+
+.icontainer {
+	background: #E6E6E6;
+	border-radius: 9px;
+	border: 1px solid #333 !important;
+}
+
+.popup {
+	z-index: 100;
+}
+
+.m3menu {
+	display: none;
+	position: absolute !important;	
+	z-index: 1000;
+	text-align: left;
+}
+
+/* Login
+-----------------------------------------------------------------------------*/
+.loginDialog, .createAgentDialog {
+	min-width: 400px;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+	.loginDialog .placeholder, .createAgentDialog .placeholder {
+		color: lightgray;
+	}
+
+	.loginDialog input, .createAgentDialog input {
+		min-width: 225px;
+		padding: 4px;
+	}
+
+	.loginDialog .labelDiv, .createAgentDialog .labelDiv {
+		line-height: 1.65em;
+		margin-right: 10px;
+		padding: 4px;
+	}
+
+/* Widgets
+-----------------------------------------------------------------------------*/
+
+	/* UserId
+	-----------------------------------------------------------------------------*/
+	._aliasComp {
+		text-align: center;
+		width: 300px;
+		max-width: 300px;
+		min-width: 300px;
+	}
+
+		._aliasComp.targetChange .userImg {
+			width: 50px !important;
+		}
+
+		._aliasComp .userImg {
+			float: left; 
+			margin-left: 5px; 
+			margin-top: -15px; 
+			border-radius: 50%;
+			width: 100px;
+			border: 1px solid #5c9ccc;
+		}
+
+		._aliasComp .connectionAvatar {
+			/*float: left;*/
+			/*margin-left: 10px;*/
+			/*margin-left: -45px;*/
+		}
+
+			._aliasComp .connectionAvatar img {
+				max-width: 180px;
+			}
+
+		._aliasComp .userIdTxt {
+			font-weight: bold;
+			/*max-width: 100px;*/
+			/*text-align: right;*/
+			/*float: right;*/
+			font-size: 22px;
+		}
+
+		._aliasComp .aliasToggle {
+			color: blue;
+			text-decoration: underline;
+			/*position: absolute;*/
+			/*bottom: 0;
+			right: 5px;*/
+			/*width: 6em;*/
+			/*margin-bottom: 1em;*/
+			cursor: pointer;
+		}
+		._aliasComp .aliasBtn {
+			padding: 2px 6px;
+			width: 100%;
+		}
+			._aliasComp .aliasBtn:last-child {
+				border-bottom-left-radius: 9px;
+				border-bottom-right-radius: 9px;
+			}
+
+			._aliasComp .aliasBtn:first-child {
+				border-top-left-radius: 9px;
+				border-top-right-radius: 9px;
+			}
+
+/* *************************************************
+	                  DIALOGS
+   ************************************************ */
+
+/* Other
+-----------------------------------------------------------------------------*/
+.clear {
+	clear: both;
+}
+
+.fleft {
+	float: left;
+}
+
+.fright {
+	float: right;
+}
+
+.boxsizingBorder {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+.shadow {
+	box-shadow: 0px 3px 10px 2px gray;
+}
+
+.shadowRight {
+	box-shadow: 7px 5px 10px -2px gray	;
+}
+
+.textInput {
+	padding: 3px 3px 3px 5px !important; 
+	border: 2px solid #5c9ccc !important;
+	border-radius: 12px;
+	width: 100%;
+	font-size: .9em !important;
+}
+
+.textInput:focus {
+	outline: none;
+}
+
+.clickable {
+	cursor: pointer;
+}
+
+
+/* jquery ui overrides
+-----------------------------------------------------------------------------*/
+.ui-draggable-dragging {
+	z-index: 10000;
+}
+
+.ui-effects-transfer {
+    border: 1px dotted black;
+    border-radius: 9px;
+}
+
+.ui-tabs-vertical { width: 55em; }
+.ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }
+.ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
+.ui-tabs-vertical .ui-tabs-nav li a { display:block; }
+.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; border-right-width: 1px; }
+.ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}
+
+
