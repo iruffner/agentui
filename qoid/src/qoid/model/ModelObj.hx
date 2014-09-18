@@ -455,7 +455,7 @@ class Notification<T> extends ModelObjWithIid {
 	public var kind: String;
 	public var route:Array<String>;
 	private var data:Dynamic;
-	@:transient public var connectionIid:String;
+	@:transient public var connectionIid(get,null):String;
 	@:transient public var props: T;
 
 	@:transient var type: Class<T>;
@@ -471,6 +471,10 @@ class Notification<T> extends ModelObjWithIid {
 		this.type = type;
 		this.route = new Array<String>();
 		this.props = Type.createInstance(type, []);
+	}
+
+	function get_connectionIid(): String {
+		return route[0];
 	}
 
 	private function readResolve(): Void {

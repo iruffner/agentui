@@ -86,8 +86,8 @@ class Synchronizer {
         if(data.hasValues())
             for (datum in data) {
                 var notification: Notification<T> = Serializer.instance.fromJsonX(datum, Notification);
-                if(result.route.hasValues()) 
-                    notification.connectionIid = result.route[0];
+                // if(result.route.hasValues()) 
+                //     notification.connectionIid = result.route[0];
                 list.push(notification);
             }
     }
