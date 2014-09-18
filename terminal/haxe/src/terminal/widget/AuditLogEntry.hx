@@ -72,8 +72,6 @@ extern class AuditLogEntry extends JQ {
                     var divTimestamp = new JQ("<div class='timestamp'></div>").appendTo(divDetails).append(self.getTimestampHtml());
 
                     var divData = new JQ("<div class='data'></div>").appendTo(selfElement).append(self.getDataHtml());
-
-                    var divClear = new JQ("<div class='clear'></div>").appendTo(selfElement);
                 },
 
                 destroy: function(): Void {

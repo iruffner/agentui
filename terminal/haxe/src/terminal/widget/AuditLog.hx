@@ -36,6 +36,7 @@ extern class AuditLog extends JQ {
                         var contentAuditLogEntry: AuditLogEntry = new AuditLogEntry("<div></div>");
                         contentAuditLogEntry.appendTo(selfElement);
                         contentAuditLogEntry.auditLogEntry({auditLogContent: content});
+                        js.Browser.window.scrollTo( 0, (contentAuditLogEntry.position().top + 76) );
                     }
 
                     TerminalContext.AUDIT_LOGS.listen(self._onAuditLog);

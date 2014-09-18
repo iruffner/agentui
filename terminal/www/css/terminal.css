@@ -148,11 +148,19 @@ body {
 		padding: 5px;
 		margin: 0 0 5px 0;
 		border: solid;
+		white-space: nowrap;
+		overflow-x: auto;
+		text-align: left;
 	}
 
+		._auditLogEntry>div {
+			display: inline-block;
+			vertical-align: top;
+		}
+
 		._auditLogEntry .profile {
-			float: left;
 			width: 70px;
+			text-align: center;
 		}
 
 			._auditLogEntry .profile .profileImage img {
@@ -161,9 +169,7 @@ body {
 			}
 
 		._auditLogEntry .details {
-			float: left;
 			width: 250px;
-			text-align: left;
 		}
 
 			._auditLogEntry .details .kind {
@@ -172,14 +178,7 @@ body {
 			}
 
 		._auditLogEntry .data {
-			float: left;
-			text-align: left;
 		}
-
-		._auditLogEntry .clear {
-			clear: both;
-		}
-
 /* *************************************************
 	                  DIALOGS
    ************************************************ */

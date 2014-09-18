@@ -5849,7 +5849,6 @@ var defineWidget = function() {
 		var divDegreesOfTrust = new $("<div class='degreesOfTrust'></div>").appendTo(divDetails).append(self.getDegreesOfTrustHtml());
 		var divTimestamp = new $("<div class='timestamp'></div>").appendTo(divDetails).append(self.getTimestampHtml());
 		var divData = new $("<div class='data'></div>").appendTo(selfElement).append(self.getDataHtml());
-		var divClear = new $("<div class='clear'></div>").appendTo(selfElement);
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}, getProfile : function() {
@@ -5962,6 +5961,7 @@ var defineWidget = function() {
 			var contentAuditLogEntry = new $("<div></div>");
 			contentAuditLogEntry.appendTo(selfElement);
 			contentAuditLogEntry.auditLogEntry({ auditLogContent : content});
+			window.scrollTo(0,contentAuditLogEntry.position().top + 76);
 		};
 		terminal.TerminalContext.AUDIT_LOGS.listen(self._onAuditLog);
 	}, _create : function() {
