@@ -16,16 +16,8 @@ class EventDelegate {
             if(filterData.type == "boardConfig") {
                 QoidAPI.query(new RequestContext("boardConfig"), "content", filterData.filter.q, true, true);
         	} else 
-                QoidAPI.query(new RequestContext("filteredContent", UidGenerator.create(12)), "content", filterData.filter.q, true, true);
+                QoidAPI.query(new RequestContext("filteredContent", UidGenerator.create(12)), "content", filterData.filter.q, true, true, filterData.connectionIids);
         });
-
-        // EM.addListener(EMEvent.GetConnectionBoards, function(connectionIid: String): Void {
-           
-        //     // public static function getProfile(connectionIid:String) {
-        //     //         var json = createQueryJson("profile", true, false, [connectionIid]);
-        //     //         submitRequest(json, QUERY, new RequestContext("connectionProfile"));
-        //     //     }
-        // });
 
         EM.addListener(EMEvent.CreateAgent, function(user: NewUser): Void {
             QoidAPI.createAgent(user.name, user.pwd);
@@ -33,7 +25,7 @@ class EventDelegate {
 
         EM.addListener(EMEvent.CreateContent, function(data:EditContentData): Void {
             //make sure we use our Serializer to process the content, or it will send transient fields to the server
-        	QoidAPI.createContent(data.content.contentType, Serializer.instance.toJson(data.content).data, data.labelIids);
+        	QoidAPI.createContent(data.content.contentType, Serializer.instance.toJson(data.content).data, data.labelIids, null/*routes*/, data.semanticId);
     	});
 
         EM.addListener(EMEvent.UpdateContent, function(data:EditContentData): Void {
@@ -41,9 +33,9 @@ class EventDelegate {
             QoidAPI.updateContent(data.content.iid, Serializer.instance.toJson(data.content).data);
         });
 
-        EM.addListener(EMEvent.DeleteContent, function(data:EditContentData): Void {
-            QoidAPI.deleteContent(data.content.iid);
-        });
+        // EM.addListener(EMEvent.DeleteContent, function(data:EditContentData): Void {
+        //     QoidAPI.deleteContent(data.content.iid);
+        // });
 
         EM.addListener(EMEvent.CreateLabel, function(data:EditLabelData): Void {
         	QoidAPI.createLabel(data.parentIid, data.label.name, data.label.data);

@@ -35,7 +35,6 @@ typedef MediaCompWidgetDef = {
 	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
 	@:optional var onchangeLabelChildren:JQ->EventType->Void;
 	var _showEditCaptionPopup: ImageContent->JQ->Void;
-	var _showEditAlbumsPopup: ImageContent->JQ->Void;
 	@:optional var labelListener: LabeledContent->EventType->Void;
 }
 
@@ -80,9 +79,16 @@ extern class MediaComp extends ContentComp {
 
 					var content: Content<Dynamic> = self.options.content;
 
+					var currentAliasIsOwner = self.options.content.connectionIid == Qoid.currentAlias.connectionIid;
+
 		        	switch(content.contentType) {
 		        		case ContentTypes.IMAGE:
 		        			var imgDiv: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement);
+		        			new MediaOptionsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
+		        				.mediaOptionsComp({
+		        						content: content
+		        					})
+		        				.appendTo(selfElement);
 		        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
 		        				.commentsComp({
 		        						content: cast content
@@ -92,57 +98,34 @@ extern class MediaComp extends ContentComp {
 		        			imgDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
 		        			var captionDiv: JQ = new JQ("<div class='captionDiv'></div>").appendTo(imgDiv);
 		        			var caption: JQ = new JQ("<div class='caption'></div>").appendTo(captionDiv);
-		        			var editCaption: JQ = new JQ("<div class='editCaption'></div>").appendTo(captionDiv);
 							if(img.props.caption.isNotBlank()) {
 								caption.append(img.props.caption);
-							} else {
+							} else if(currentAliasIsOwner){
 								caption.append("<i>Add caption</i>");
 							}
+		        			
+		        			if(currentAliasIsOwner) {
+			        			var editCaption: JQ = new JQ("<div class='editCaption'></div>").appendTo(captionDiv);
 
-							new JQ("<button class='editButton'>Edit</button")
-				        		.button({
-				        			{
-					                    icons: {
-					                        primary: "ui-icon-pencil"
-					                      },
-				                      	text: false
-					                }
-				        		})
-				        		.appendTo(editCaption)
-				        		.click(function(evt: JQEvent) {
-				        				self._showEditCaptionPopup(cast self.options.content, JQ.cur);
-				        				evt.stopPropagation();
-				        			});
+								new JQ("<button class='editButton'>Edit</button")
+					        		.button({
+					        			{
+						                    icons: {
+						                        primary: "ui-icon-pencil"
+						                      },
+					                      	text: false
+						                }
+					        		})
+					        		.appendTo(editCaption)
+					        		.click(function(evt: JQEvent) {
+					        				self._showEditCaptionPopup(cast self.options.content, JQ.cur);
+					        				evt.stopPropagation();
+					        			});
 
-				        	imgDiv.append("<br/>");
-				        	imgDiv.append("<br/>");
-				        	var setDefaultBtn: JQ = new JQ("<button class='setDefaultBtn'>Use as Cover Picture</button>")
-									.click(function(evt: JQEvent) {
-											//find this config
-											var config: ConfigContent = null;
-											var event: String = null;
-											PinterContext.boardConfigs.iter(function(c: ConfigContent) {
-													var match: LabeledContent = Qoid.labeledContent.getElementComplex(c.iid+"_"+PinterContext.CURRENT_BOARD, function(lc: LabeledContent): String {
-																return lc.contentIid+"_"+lc.labelIid;
-															});
-													if(match != null) config = c;
-												});
-											if(config == null) {
-												config = new ConfigContent();
-												event = EMEvent.CreateContent;
-											} else {
-												event = EMEvent.UpdateContent;
-											}
-											config.props.defaultImg = self.options.content.props.imgSrc;
-											config.props.boardIid = PinterContext.CURRENT_BOARD;
-											
-											var ccd = new EditContentData(config);
-											ccd.labelIids.push(PinterContext.CURRENT_BOARD);
-											EM.change(event, ccd);
-										})
-									.button()
-									.appendTo(imgDiv);
-
+					        	imgDiv.append("<br/>");
+					        	imgDiv.append("<br/>");
+					        	
+							}			
 		        		case _:
 		        			// throw new Exception("Only image content should be displayed"); 
 		        	}
@@ -205,68 +188,7 @@ extern class MediaComp extends ContentComp {
 
 					},
 
-				_showEditAlbumsPopup: function(c: ImageContent, reference: JQ): Void {
-					var self: MediaCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-        			var popup: Popup = new Popup("<div class='updateAlbumPopup' style='position: absolute;width:400px;'></div>");
-        			popup.appendTo(selfElement);
-        			popup = popup.popup({
-        					createFcn: function(el: JQ): Void {
-        						var updateLabels: Void->Void = null;
-        						var stopFcn: JQEvent->Void = function (evt: JQEvent): Void { evt.stopPropagation(); };
-        						var enterFcn: JQEvent->Void = function (evt: JQEvent): Void { 
-        							if(evt.keyCode == 13) {
-        								updateLabels();
-    								}
-        						};
-
-        						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
-        						container.click(stopFcn).keypress(enterFcn);
-    							container.append("<label for='labelParent'>Album: </label> ");
-        						var select: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container);
-        						select.click(stopFcn);
-        						var aliasLabels = Qoid.getLabelDescendents(PinterContext.ROOT_BOARD.iid);
-        						var iter: Iterator<Label> = aliasLabels.iterator();
-        						while(iter.hasNext()) {
-        							var label: Label = iter.next();
-        							if (label.iid != PinterContext.CURRENT_BOARD ) {
-	        							var option = "<option value='" + label.iid + "'>" + label.name + "</option>";
-	        							select.append(option);
-	        						}
-        						}
-        						var buttonText = "Add to Album";
-    							// input.val(c.props.caption);
-        						container.append("<br/>");
-        						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>")
-        							.button()
-        							.appendTo(container)
-        							.click(function(evt: JQEvent): Void {
-        								updateLabels();
-        							});
-
-        						updateLabels = function(): Void {
-									// if (input.val().length == 0) {return;}
-									Logga.DEFAULT.info("Update content | " + c.iid);
-									// [APhotoContext.CURRENT_ALBUM, select.val()]
-									var list = Qoid.groupedLabeledContent.getElement(c.iid).map(
-  											function(laco: LabeledContent): String {
-  													return laco.labelIid;
-  												}  
-										);
-									list.add(select.val());
-  									var eventData = new EditContentData(
-  										c, 
-  										list.array()
-									);
-  									EM.change(EMEvent.UpdateContent, eventData);
-									new JQ("body").click();
-        						};
-        					},
-        					positionalElement: reference
-        				});
-
-					},
+				
 
 		        update: function(content:Content<Dynamic>) : Void {
 		        	var self: MediaCompWidgetDef = Widgets.getSelf();

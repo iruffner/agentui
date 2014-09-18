@@ -35,16 +35,17 @@ typedef BoardCompWidgetDef = {
 	@:optional var _super: Void->Void;
 	@:optional var _onupdate: Label->EventType->Void;
 	@:optional var _onBoardConfig: ConfigContent->EventType->Void;
-	@:optional var _onSharedBoardConfig: ConfigContent->EventType->Void;
+	@:optional var _onBoardCreatorProfile: Profile->EventType->Void;
 	var destroy: Void->Void;
 	var getLabel:Void->Label;
 
 	@:optional var img: JQ;
 	@:optional var nameDiv: JQ;
+	@:optional var creatorDiv: JQ;
 }
 
 class BoardCompHelper {
-	public static function getLabel(l: BoardComp): Label {
+	public static function getBoard(l: BoardComp): Label {
 		return l.boardComp("getLabel");
 	}
 }
@@ -93,18 +94,23 @@ extern class BoardComp extends JQ {
 						}
 					}
 
-					self._onSharedBoardConfig = function(mc: ConfigContent, evt: EventType) {
-						if(mc.props.boardIid == self.options.board.iid) {
-							try {
-								self.img.attr("src", mc.props.defaultImg);
-							} catch (err: Dynamic) {
-								Logga.DEFAULT.error("problem using the default img");
-							}
-						}
-					}
 
 					PinterContext.boardConfigs.listen(self._onBoardConfig);
-					PinterContext.sharedBoardConfigs.listen(self._onSharedBoardConfig);
+					PinterContext.sharedBoardConfigs.listen(self._onBoardConfig);
+
+					self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {
+						if(evt.isAddOrUpdate()) {
+							if(p.connectionIid == self.options.board.connectionIid) {
+								// if(self.options.board.createdByConnectionIid != Qoid.currentAlias.iid) {
+
+								// }
+								self.creatorDiv.empty().append("<i>created by</i> " + p.name);
+
+							}
+
+						}
+					}
+					Qoid.profiles.listen(self._onBoardCreatorProfile);
 		        },
 		        
 		        _create: function(): Void {
@@ -120,12 +126,18 @@ extern class BoardComp extends JQ {
 		        	self.nameDiv.append("<span class='boardLabel'>" + self.options.board.name + "</span>");
 		        	selfElement.append("<br/>");
 		        	self.img = new JQ("<img src='" + "media/board.jpg" + "' />").appendTo(selfElement);
-		        	
+
+		        	self.creatorDiv = new JQ("<div class='creatorDiv' style='margin-top: 10px;'></div>").appendTo(selfElement);
+
 		        	self._registerListeners();
 
 		        	selfElement.click(function(evt: JQEvent) {
+		        			var pg = PinterPageMgr.MY_BOARD_SCREEN;
+		        			if(self.options.board.connectionIid != Qoid.currentAlias.connectionIid) {
+		        				pg = PinterPageMgr.BOARD_SCREEN;
+		        			}
 	            			PinterContext.CURRENT_BOARD = self.options.board.iid;
-		        			PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.BOARD_SCREEN;
+		        			PinterContext.PAGE_MGR.CURRENT_PAGE = pg;
 	            			js.Browser.window.history.pushState(
 	            				{}, 
 	            				self.options.board.iid,
@@ -138,7 +150,8 @@ extern class BoardComp extends JQ {
 		        	var self: BoardCompWidgetDef = Widgets.getSelf();
 		        	self.filteredSet.removeListener(self._onupdate);
 		        	PinterContext.boardConfigs.removeListener(self._onBoardConfig);
-		        	PinterContext.sharedBoardConfigs.removeListener(self._onSharedBoardConfig);
+		        	PinterContext.sharedBoardConfigs.removeListener(self._onBoardConfig);
+		        	Qoid.profiles.removeListener(self._onBoardCreatorProfile);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

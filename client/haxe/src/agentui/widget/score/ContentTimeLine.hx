@@ -38,26 +38,30 @@ class ContentTimeLine {
  	}
 
 	public function new(paper:Snap, profile: Profile, startTime:Float, endTime:Float, initialWidth:Float) {
-		this.paper        = paper;
-		this.profile      = profile;
-		this.startTime    = startTime;
-		this.endTime      = endTime;
-		this.initialWidth = initialWidth;
+		try {
+			this.paper        = paper;
+			this.profile      = profile;
+			this.startTime    = startTime;
+			this.endTime      = endTime;
+			this.initialWidth = initialWidth;
 
-		this.contents        = new Array<Content<Dynamic>>();
-		this.contentElements = new Array<SnapElement>();
+			this.contents        = new Array<Content<Dynamic>>();
+			this.contentElements = new Array<SnapElement>();
 
-		if (ContentTimeLine.next_y_pos > initial_y_pos) {
-			ContentTimeLine.next_y_pos += ContentTimeLine.height + 20;
-		}
-		ContentTimeLine.next_y_pos += 10;
+			if (ContentTimeLine.next_y_pos > initial_y_pos) {
+				ContentTimeLine.next_y_pos += ContentTimeLine.height + 20;
+			}
+			ContentTimeLine.next_y_pos += 10;
 
-	 	time_line_x = ContentTimeLine.next_x_pos;
-	 	time_line_y = ContentTimeLine.next_y_pos;
+		 	time_line_x = ContentTimeLine.next_x_pos;
+		 	time_line_y = ContentTimeLine.next_y_pos;
 
-   		connectionElement = createConnectionElement();
+	   		connectionElement = createConnectionElement();
 
-   		this.timeLineElement = paper.group(paper, [connectionElement]);
+	   		this.timeLineElement = paper.group(paper, [connectionElement]);
+   		} catch (err: Dynamic) {
+   			Logga.DEFAULT.error("there was an error in the ContentTimeLine constructor | " + err);
+   		}
 	}
 
 	public function reposition(startTime:Float, endTime:Float) {
@@ -102,8 +106,12 @@ class ContentTimeLine {
 	}
 
 	public function addContent(content:Content<Dynamic>):Void {
-		contents.push(content);	
-		createContentElement(content);
+		try {
+			contents.push(content);	
+			createContentElement(content);
+		} catch (err: Dynamic) {
+   			Logga.DEFAULT.error("there was an error in ContentTimeLine.addContent | " + err);
+		}
 	}
 
 	private function createContentElement(content:Content<Dynamic>):Void {

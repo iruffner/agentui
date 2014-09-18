@@ -292,7 +292,9 @@ extern class ContentComp extends JQ {
 								JqueryUtil.confirm("Delete Post", "Are you sure you want to delete this content?", 
 									function(){
 										var ecd = new EditContentData(self.options.content);
-										EM.change(EMEvent.DeleteContent, ecd);
+										// EM.change(EMEvent.DeleteContent, ecd);
+										//TODO 
+										throw "Delete content no longer supported";
 									}
 								);
 							}

@@ -1,6 +1,8 @@
 package pagent.widget;
 
 import m3.log.Logga;
+import m3.serialization.Serialization.Serializer;
+import pagent.model.PinterModel.PinterContentTypes;
 import pagent.PinterContext;
 import pagent.pages.PinterPage;
 import pagent.pages.PinterPageMgr;
@@ -16,27 +18,25 @@ import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import agentui.widget.Popup;
 import qoid.Qoid;
+import qoid.QoidAPI;
+import qoid.ResponseProcessor.Response;
 
+using m3.helper.ArrayHelper;
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 using Lambda;
 
 typedef CommentsCompOptions = {
-	var content: ImageContent;
+	var content: Content<Dynamic>;
 }
 
 typedef CommentsCompWidgetDef = {
 	@:optional var options: CommentsCompOptions;
 	var _create: Void->Void;
-	var _createWidgets:JQ->CommentsCompWidgetDef->Void;
-	var _addComment: String->Void;
-	var update: ImageContent->Void;
+	var _addComment: MessageContent->Void;
 	var destroy: Void->Void;
-	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
-	@:optional var onchangeLabelChildren:JQ->EventType->Void;
-	var _showEditCaptionPopup: ImageContent->JQ->Void;
-	var _showEditAlbumsPopup: ImageContent->JQ->Void;
-	@:optional var labelListener: LabeledContent->EventType->Void;
+
+    @:optional var header: JQ;
 }
 
 
@@ -71,157 +71,79 @@ extern class CommentsComp extends ContentComp {
 
 		        	selfElement.addClass("_commentsComp " + Widgets.getWidgetClasses());
 		        	
-		        	self._createWidgets(selfElement, self);
-		        },
+                    self.header = new JQ("<h2>Comments</h2>").appendTo(selfElement);
 
-		        _createWidgets: function(selfElement: JQ, self:CommentsCompWidgetDef): Void {
+					var content: Content<Dynamic> = self.options.content;
 
-					selfElement.empty();
+                    var newCommentDiv: JQ = new JQ("<div class='newComment'></div>").appendTo(selfElement);
+                    var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none; width: 100%;'></textarea>")
+                            .appendTo(newCommentDiv)
+                            .attr("id", "textInput_ta");
+                    newCommentDiv.append("<br/>");
+                    newCommentDiv.append(
+                        new JQ("<button class='ui-helper-clearfix fright'>Add Comment</button>")
+                            .button()
+                            .click(function() {
+                                    var value: String = ta.val();
+                                    if(value.isBlank()) return;
+                                    var ccd = new EditContentData(ContentFactory.create(ContentTypes.TEXT, value));
+                                    ccd.content.contentType = PinterContentTypes.COMMENT;                  
+                                    ccd.labelIids.push(PinterContext.COMMENTS.iid);
+                                    ccd.semanticId = self.options.content.semanticId;
 
-					var content: ImageContent = self.options.content;
+                                    EM.listenOnce(EMEvent.OnCreateContent, function(n: {}) {
+                                            // self._addComment(null);
+                                            ta.val("");
+                                        });
 
-					if(content.props.caption.isNotBlank()) {
-						self._addComment(content.props.caption);
-					}
+                                    EM.change(EMEvent.CreateContent, ccd);
+                                })
+                    );
+                    selfElement.append("<div class='clear'></div>");
+
+                    EM.addListener(EMEvent.OnContentComments, function(data: Response) {
+                            if(data.result.results.hasValues())
+                                for (result in data.result.results) {
+                                    var c: MessageContent = Serializer.instance.fromJsonX(result, MessageContent);
+                                    if(c != null) { //occurs when there is an unknown content type
+                                        if(data.result.route.hasValues())
+                                            c.connectionIid = data.result.route[0];
+                                        self._addComment(c);
+                                    }
+                                }
+                        });
+                    var query: String = 
+                        "hasLabelPath('" + PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS + "', '" + PinterContext.APP_ROOT_LABEL_NAME + "', '" + PinterContext.APP_COMMENTS_LABEL_NAME + "') " + 
+                            "and contentType = '" + PinterContentTypes.COMMENT + "' and semanticId = '" + self.options.content.semanticId + "'";
+                    QoidAPI.query( new RequestContext(EMEvent.ContentComments, content.semanticId+"_"+Qoid.currentAlias.connectionIid), 
+                        "content", 
+                        query,
+                        true, true
+                    );
+                    Qoid.connections.iter(function(c: Connection) {
+                            QoidAPI.query( new RequestContext(EMEvent.ContentComments, content.semanticId+"_"+c.iid), 
+                                "content", 
+                                query,
+                                true, true,
+                                [c.iid]
+                            );
+                        });
 				},
 
-				_addComment: function(str: String) {
+				_addComment: function(comment: MessageContent) {
 					var self: CommentsCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
 
+                    var commentComp: CommentComp = new CommentComp("<div></div>").commentComp({ comment: comment });
+                    commentComp.insertAfter(self.header);
 				},
-
-				_showEditCaptionPopup: function(c: ImageContent, reference: JQ): Void {
-					var self: CommentsCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-        			var popup: Popup = new Popup("<div class='updateCaptionPopup' style='position: absolute;width:600px;'></div>");
-        			popup.appendTo(selfElement);
-        			popup = popup.popup({
-        					createFcn: function(el: JQ): Void {
-        						var updateCaption: Void->Void = null;
-        						var stopFcn: JQEvent->Void = function (evt: JQEvent): Void { evt.stopPropagation(); };
-        						var enterFcn: JQEvent->Void = function (evt: JQEvent): Void { 
-        				// 			if(evt.keyCode == 13) {
-        				// 				updateCaption();
-    								// }
-        						};
-
-        						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
-        						container.click(stopFcn).keypress(enterFcn);
-        						var parent: JQ = null;
-        						container.append("<label for='caption'>Caption: </label> ");
-        						var input: JQ = new JQ("<textarea id='caption' class='ui-corner-all ui-widget-content' style='font-size: 20px;'></textarea>").appendTo(container);
-        						input
-        				// 			.keypress(enterFcn).click(function(evt: JQEvent): Void {
-        				// 				evt.stopPropagation();
-        				// 				if(JQ.cur.val() == "New Label") {
-        				// 					JQ.cur.val("");
-        				// 				}
-    								// })
-    								.focus();
-        						var buttonText = "Update Caption";
-    							input.val(c.props.caption);
-        						container.append("<br/>");
-        						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>")
-        							.button()
-        							.appendTo(container)
-        							.click(function(evt: JQEvent): Void {
-        								updateCaption();
-        							});
-
-        						updateCaption = function(): Void {
-									if (input.val().length == 0) {return;}
-									Logga.DEFAULT.info("Update content | " + c.iid);
-									c.props.caption = input.val();
-  									var eventData = new EditContentData(c, Qoid.groupedLabeledContent.getElement(c.iid).map(
-  											function(laco: LabeledContent): String {
-  													return laco.labelIid;
-  												}  
-										).array());
-  									EM.change(EMEvent.UpdateContent, eventData);
-									new JQ("body").click();
-        						};
-        					},
-        					positionalElement: reference
-        				});
-
-					},
-
-				_showEditAlbumsPopup: function(c: ImageContent, reference: JQ): Void {
-					var self: CommentsCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-        			var popup: Popup = new Popup("<div class='updateAlbumPopup' style='position: absolute;width:400px;'></div>");
-        			popup.appendTo(selfElement);
-        			popup = popup.popup({
-        					createFcn: function(el: JQ): Void {
-        						var updateLabels: Void->Void = null;
-        						var stopFcn: JQEvent->Void = function (evt: JQEvent): Void { evt.stopPropagation(); };
-        						var enterFcn: JQEvent->Void = function (evt: JQEvent): Void { 
-        							if(evt.keyCode == 13) {
-        								updateLabels();
-    								}
-        						};
-
-        						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
-        						container.click(stopFcn).keypress(enterFcn);
-    							container.append("<label for='labelParent'>Album: </label> ");
-        						var select: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container);
-        						select.click(stopFcn);
-        						var aliasLabels = Qoid.getLabelDescendents(PinterContext.ROOT_BOARD.iid);
-        						var iter: Iterator<Label> = aliasLabels.iterator();
-        						while(iter.hasNext()) {
-        							var label: Label = iter.next();
-        							if (label.iid != PinterContext.CURRENT_BOARD ) {
-	        							var option = "<option value='" + label.iid + "'>" + label.name + "</option>";
-	        							select.append(option);
-	        						}
-        						}
-        						var buttonText = "Add to Album";
-    							// input.val(c.props.caption);
-        						container.append("<br/>");
-        						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>")
-        							.button()
-        							.appendTo(container)
-        							.click(function(evt: JQEvent): Void {
-        								updateLabels();
-        							});
-
-        						updateLabels = function(): Void {
-									// if (input.val().length == 0) {return;}
-									Logga.DEFAULT.info("Update content | " + c.iid);
-									// [APhotoContext.CURRENT_ALBUM, select.val()]
-									var list = Qoid.groupedLabeledContent.getElement(c.iid).map(
-  											function(laco: LabeledContent): String {
-  													return laco.labelIid;
-  												}  
-										);
-									list.add(select.val());
-  									var eventData = new EditContentData(
-  										c, 
-  										list.array()
-									);
-  									EM.change(EMEvent.UpdateContent, eventData);
-									new JQ("body").click();
-        						};
-        					},
-        					positionalElement: reference
-        				});
-
-					},
-
-		        update: function(content:ImageContent) : Void {
-		        	var self: CommentsCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-					self.options.content = content;
-        			self._createWidgets(selfElement, self);
-        			selfElement.show();
-		        },
 
 		        destroy: function() {
 		        	var self: CommentsCompWidgetDef = Widgets.getSelf();
-		        	Qoid.groupedLabeledContent.getElement(self.options.content.iid).removeListener(self.labelListener);
+                    QoidAPI.cancelQuery( new RequestContext(EMEvent.ContentComments, self.options.content.semanticId+"_"+Qoid.currentAlias.connectionIid));
+                    Qoid.connections.iter(function(c: Connection) {
+                            QoidAPI.cancelQuery( new RequestContext(EMEvent.ContentComments, self.options.content.semanticId+"_"+c.iid));
+                        });
+		        	
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

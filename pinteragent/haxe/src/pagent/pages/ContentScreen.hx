@@ -95,7 +95,7 @@ class ContentScreen extends PinterPage {
 		albumDetails.boardDetails({
 			label: label,
 			parentIid: PinterContext.ROOT_BOARD.iid,
-			owner: "Isaiah Ruffner"
+			showOptionBar: false
 		});
 
 		

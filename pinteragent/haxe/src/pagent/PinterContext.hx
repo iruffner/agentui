@@ -31,11 +31,16 @@ class PinterContext {
 
     public static var ROOT_LABEL_NAME_OF_ALL_APPS: String = "com.qoid.apps";
     public static var APP_ROOT_LABEL_NAME: String = ROOT_LABEL_NAME_OF_ALL_APPS + ".pinteragent";
+    public static var APP_COMMENTS_LABEL_NAME: String = APP_ROOT_LABEL_NAME + ".comments";
 
+    //this is a child of the current alias' root label
     @:isVar public static var ROOT_LABEL_OF_ALL_APPS(get,set): Label;
     
-    //this is a child of the current alias' root label
+    //this is a child of the root label of all apps
     @:isVar public static var ROOT_BOARD(get,set): Label;
+
+    //this is a child of the root board
+    @:isVar public static var COMMENTS(default,set): Label;
 
     public static var boardConfigs: ObservableSet<ConfigContent>;
 
@@ -50,7 +55,7 @@ class PinterContext {
 
         sharedBoards = new ObservableSet<Label>(Label.identifier);
         sharedBoardsByConnection = new GroupedSet<Label>(sharedBoards, function(l:Label):String {
-            return l.createdByConnectionIid;
+            return l.connectionIid;
         });
 
         boardConfigs = new ObservableSet<ConfigContent>(ModelObjWithIid.identifier);
@@ -63,8 +68,6 @@ class PinterContext {
                 },
             "PinterContext-AppInitialized"
          );
-
-
     }
 
     static function get_ROOT_BOARD(): Label {
@@ -91,6 +94,18 @@ class PinterContext {
         EM.change(EMEvent.FILTER_RUN, filterData);
 
         return l;
+    }
+
+    static function set_COMMENTS(l: Label): Label {
+        COMMENTS = l;
+        Qoid.connections.listen(function(c: Connection, evt: EventType): Void {
+                var parms = {
+                    connectionIid: c.iid,
+                    labelIid: COMMENTS.iid,
+                }
+                EM.change(EMEvent.GrantAccess, parms);
+            });
+        return l;    
     }
 
     static function get_ROOT_LABEL_OF_ALL_APPS(): Label {
@@ -132,92 +147,119 @@ class PinterContext {
     }
 
     static function _onInitialDataLoadComplete(n: {}) {
-        var rootLabelOfThisApp: Label = Qoid.labels.getElementComplex(PinterContext.APP_ROOT_LABEL_NAME, function(l: Label) {
+        var getLabelNameFcn = function(l: Label) {
                 return l.name;
-            });
+            };
+        var rootLabelOfAllApps: Label = Qoid.labels.getElementComplex(PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS, getLabelNameFcn);
+        var rootLabelOfThisApp: Label = Qoid.labels.getElementComplex(PinterContext.APP_ROOT_LABEL_NAME, getLabelNameFcn);
+        var commentsLabel: Label = Qoid.labels.getElementComplex(PinterContext.APP_COMMENTS_LABEL_NAME, getLabelNameFcn);
 
-        var rootLabelOfAllApps: Label = Qoid.labels.getElementComplex(PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS, function(l: Label) {
-            return l.name;
-        });
-
-        if(rootLabelOfThisApp == null) {
-
-            var createRootLabelOfThisApp = function(theRootLabelOfAllApps: Label) {
-                //listen for changes to the labels since the next add event should be our new label
-                var listener: Label->EventType->Void = null;
-                listener = function(l: Label, evtType: EventType) {
-                        if(evtType.isAdd()) {
-                            if(l.name == PinterContext.APP_ROOT_LABEL_NAME) {
-                                Qoid.labels.removeListener(listener);
-                                PinterContext.ROOT_BOARD = l;
-                                EM.change(QE.onAliasLoaded, Qoid.currentAlias);
-                                EM.change(EMEvent.APP_INITIALIZED);
-                            }
-                        }
-                    };
-                Qoid.labels.listen(listener, false);
-                
-                var label: Label = new Label();
-                label.name = PinterContext.APP_ROOT_LABEL_NAME;
-                var eventData = new EditLabelData(label, PinterContext.ROOT_LABEL_OF_ALL_APPS.iid);
-                EM.change(EMEvent.CreateLabel, eventData);
-            }
-
-            if(rootLabelOfAllApps == null) {
-                //listen for changes to the labels since the next add event should be our new label
-                var listener: Label->EventType->Void = null;
-                listener = function(l: Label, evtType: EventType) {
-                        if(evtType.isAdd()) {
-                            if(l.name == PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
-                                Qoid.labels.removeListener(listener);
-                                PinterContext.ROOT_LABEL_OF_ALL_APPS = l;
-                                createRootLabelOfThisApp(l);
-                            }
-                        }
-                    };
-                Qoid.labels.listen(listener, false);
-                
-                var label: Label = new Label();
-                label.name = PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS;
-                var eventData = new EditLabelData(label, Qoid.currentAlias.labelIid);
-                EM.change(EMEvent.CreateLabel, eventData);
-            } else {
-                PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
-                createRootLabelOfThisApp(rootLabelOfAllApps);
-            }
+        if(rootLabelOfAllApps == null) {
+            _processNullRootAppsLabel();
+        } else if(rootLabelOfThisApp == null) {
+            _processNullAppLabel(rootLabelOfAllApps);
+        } else if(commentsLabel == null) {
+            _processNullCommentsLabel(rootLabelOfThisApp);
         } else {
             PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
             PinterContext.ROOT_BOARD = rootLabelOfThisApp;
+            PinterContext.COMMENTS = commentsLabel;
             EM.change(QE.onAliasLoaded, Qoid.currentAlias);
             EM.change(EMEvent.APP_INITIALIZED);
         }
     }
 
-    static function _onBoardConfig(data:{result: {standing: Bool, results: Array<Dynamic>}}) {
+    private static function _processNullRootAppsLabel() {
+        //listen for changes to the labels since the next add event should be our new label
+        var listener: Label->EventType->Void = null;
+        listener = function(l: Label, evtType: EventType) {
+                if(evtType.isAdd()) {
+                    if(l.name == PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
+                        Qoid.labels.removeListener(listener);
+                        PinterContext.ROOT_LABEL_OF_ALL_APPS = l;
+                        _onInitialDataLoadComplete(null);
+                    }
+                }
+            };
+        Qoid.labels.listen(listener, false);
+        
+        var label: Label = new Label();
+        label.name = PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS;
+        var eventData = new EditLabelData(label, Qoid.currentAlias.labelIid);
+        EM.change(EMEvent.CreateLabel, eventData);
+    }
+
+    private static function _processNullAppLabel(rootLabelOfAllApps: Label) {
+        //listen for changes to the labels since the next add event should be our new label
+        var listener: Label->EventType->Void = null;
+        listener = function(l: Label, evtType: EventType) {
+                if(evtType.isAdd()) {
+                    if(l.name == PinterContext.APP_ROOT_LABEL_NAME) {
+                        Qoid.labels.removeListener(listener);
+                        PinterContext.ROOT_BOARD = l;
+                        _onInitialDataLoadComplete(null);
+                    }
+                }
+            };
+        Qoid.labels.listen(listener, false);
+        
+        var label: Label = new Label();
+        label.name = PinterContext.APP_ROOT_LABEL_NAME;
+        var eventData = new EditLabelData(label, rootLabelOfAllApps.iid);
+        EM.change(EMEvent.CreateLabel, eventData);
+    }
+
+    private static function _processNullCommentsLabel(rootLabelOfThisApp: Label) {
+        //listen for changes to the labels since the next add event should be our new label
+        var listener: Label->EventType->Void = null;
+        listener = function(l: Label, evtType: EventType) {
+                if(evtType.isAdd()) {
+                    if(l.name == PinterContext.APP_COMMENTS_LABEL_NAME) {
+                        Qoid.labels.removeListener(listener);
+                        PinterContext.COMMENTS = l;
+                        _onInitialDataLoadComplete(null);
+                    }
+                }
+            };
+        Qoid.labels.listen(listener, false);
+        
+        var label: Label = new Label();
+        label.name = PinterContext.APP_COMMENTS_LABEL_NAME;
+        var eventData = new EditLabelData(label, rootLabelOfThisApp.iid);
+        EM.change(EMEvent.CreateLabel, eventData);
+    }
+
+    static function _onBoardConfig(data:{result: {standing: Bool, results: Array<Dynamic>, route: Array<String>}}) {
         if(data.result.results.hasValues())
             for (result in data.result.results) {
                 var c = Serializer.instance.fromJsonX(result, ConfigContent);
                 if(c != null) { //occurs when there is an unknown content type
+                    if(data.result.route.hasValues())
+                        c.connectionIid = data.result.route[0];
                     boardConfigs.addOrUpdate(c);
                 }
             }
     }
 
-    static function _onSharedBoard(data:{result: {standing: Bool, results: Array<Dynamic>}}) {
+    static function _onSharedBoard(data:{result: {standing: Bool, results: Array<Dynamic>, route: Array<String>}}) {
         if(data.result.results.hasValues())
             for (result in data.result.results) {
                 var c = Serializer.instance.fromJsonX(result, Label);
                 if(c != null) { //occurs when there is an unknown content type
+                    if(data.result.route.hasValues())
+                        c.connectionIid = data.result.route[0];
                     sharedBoards.addOrUpdate(c);
                 }
             }
     }
 
-    static function _onSharedBoardConfigs(data:{result: {standing: Bool, results: Array<Dynamic>}}) {
+    static function _onSharedBoardConfigs(data:{result: {standing: Bool, results: Array<Dynamic>, route: Array<String>}}) {
         if(data.result.results.hasValues())
             for (result in data.result.results) {
                 var c = Serializer.instance.fromJsonX(result, ConfigContent);
                 if(c != null) { //occurs when there is an unknown content type
+                    if(data.result.route.hasValues())
+                        c.connectionIid = data.result.route[0];
                     sharedBoardConfigs.addOrUpdate(c);
                 }
             }

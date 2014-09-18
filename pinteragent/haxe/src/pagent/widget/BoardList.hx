@@ -17,6 +17,7 @@ using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
 using agentui.widget.UploadComp;
 using pagent.widget.ConnectionAvatar;
+using pagent.widget.BoardComp;
 
 typedef BoardListOptions = {
 	@:optional var title: String;
@@ -56,13 +57,13 @@ extern class BoardList extends JQ {
 		        	if(self.options.title.isNotBlank())
 		        		new JQ("<h2>" + self.options.title + "</h2>").appendTo(selfElement);
 
-			        self.onchangeLabelChildren = function(BoardComp: BoardComp, evt: EventType): Void {
-	            		if(evt.isAdd()) {
-	            			selfElement.append(BoardComp);
+			        self.onchangeLabelChildren = function(boardComp: BoardComp, evt: EventType): Void {
+	            		if(evt.isAdd() && boardComp.getBoard().name != PinterContext.APP_COMMENTS_LABEL_NAME) { //don't show the comments label
+	            				selfElement.append(boardComp);
 	            		} else if (evt.isUpdate()) {
 	            			throw new Exception("this should never happen");
 	            		} else if (evt.isDelete()) {
-	            			BoardComp.remove();
+	            			boardComp.remove();
 	            		}
 	            	};
 

@@ -32,8 +32,8 @@ class ModelObjWithIid extends ModelObj {
 	public var iid: String;
 	public var created:Date;
 	public var modified:Date;
-	public var createdByConnectionIid:String;
-	public var modifiedByConnectionIid:String;
+	// public var createdByConnectionIid:String;
+	// public var modifiedByConnectionIid:String;
 
 	public function new() {
 		super();
@@ -102,6 +102,8 @@ class Label extends ModelObjWithIid {
 	public var name: String;
 	@:optional public var data: LabelData;
 	@:transient public var labelChildren:OSet<LabelChild>;
+
+	@:transient public var connectionIid: String;
 
 	public function new(?name: String) {
 		super();
@@ -299,6 +301,7 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	@:optional public var aliasIid: String;
 	@:optional public var connectionIid: String;
 	@:optional public var metaData:ContentMetaData;
+	@:optional public var semanticId:String;
 
 	private var data:Dynamic;
 	@:transient public var props: T;
@@ -452,6 +455,7 @@ class Notification<T> extends ModelObjWithIid {
 	public var kind: String;
 	public var route:Array<String>;
 	private var data:Dynamic;
+	@:transient public var connectionIid:String;
 	@:transient public var props: T;
 
 	@:transient var type: Class<T>;
@@ -590,6 +594,7 @@ class EditLabelData {
 class EditContentData {
 	public var content:Content<Dynamic>;
 	public var labelIids:Array<String>;
+	public var semanticId:String;
 
 	public function new(content:Content<Dynamic>, ?labelIids:Array<String>) {
 		this.content = content;
@@ -628,4 +633,9 @@ class Verification {
     public var contentIid:String;
     public var contentData:Content<Dynamic>;
     public var verificationContent:String;
+}
+
+typedef QueryContext = {
+	var context: String;
+	var handle: String;
 }

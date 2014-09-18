@@ -23,6 +23,8 @@ class BoardScreen extends PinterPage {
 	var labelSetListener: Label->EventType->Void;
 	var labelSet: FilteredSet<Label>;
 
+	var board: String;
+
 	public function new(): Void {
 		super({
 			id: "#boardScreen",
@@ -33,20 +35,24 @@ class BoardScreen extends PinterPage {
 	}
 
 	private function pageBeforeShowFcn(screen: JQ): Void {
-		var content: JQ = new JQ(".content", screen).empty();
-		content.addClass("center");
+		screen.addClass("__boardScreen");
+		if(board != PinterContext.CURRENT_BOARD) {
+			board = PinterContext.CURRENT_BOARD;
+			var content: JQ = new JQ(".content", screen).empty();
+			content.addClass("center");
 
-		labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
-				return l.iid == PinterContext.CURRENT_BOARD;
-			});
-		
-		this.labelSetListener = function(label: Label, evt: EventType) {
-			if(evt.isAddOrUpdate())
-				_applyAlbumToScreen(screen, label);
-			if(evt.isClear() || evt.isDelete())
-				_noLabel(screen);
+			labelSet = new FilteredSet(PinterContext.sharedBoards, function(l: Label) {
+					return l.iid == PinterContext.CURRENT_BOARD;
+				});
+			
+			this.labelSetListener = function(label: Label, evt: EventType) {
+				if(evt.isAddOrUpdate())
+					_applyAlbumToScreen(screen, label);
+				if(evt.isClear() || evt.isDelete())
+					_noLabel(screen);
+			}
 		}
-
+		
 		labelSet.listen(this.labelSetListener, true);
 	}
 
@@ -59,7 +65,7 @@ class BoardScreen extends PinterPage {
 		boardDetails.boardDetails({
 			label: label,
 			parentIid: PinterContext.ROOT_BOARD.iid,
-			owner: "Isaiah Ruffner"
+			showOptionBar: false
 		});
 
 		var root: Node = new Or();
@@ -74,6 +80,9 @@ class BoardScreen extends PinterPage {
 		var filterData = new FilterData("content");
 		filterData.filter = new Filter(root);
 		filterData.connectionIids = [];
+		if(label.connectionIid != Qoid.currentAlias.iid) {
+			filterData.connectionIids.push(label.connectionIid);
+		}
 		filterData.aliasIid       = Qoid.currentAlias.iid;
 
 		EM.change(EMEvent.FILTER_RUN, filterData);
@@ -89,6 +98,5 @@ class BoardScreen extends PinterPage {
 	
 	private function pageHideFcn(screen: JQ): Void {
 		labelSet.removeListener(this.labelSetListener);
-		labelSet = null;
 	}
 }

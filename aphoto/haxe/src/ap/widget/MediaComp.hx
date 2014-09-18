@@ -18,6 +18,7 @@ import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import agentui.widget.Popup;
 import qoid.Qoid;
+import qoid.QoidAPI;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -252,20 +253,8 @@ extern class MediaComp extends ContentComp {
         							});
 
         						updateLabels = function(): Void {
-									// if (input.val().length == 0) {return;}
-									Logga.DEFAULT.info("Update content | " + c.iid);
-									// [APhotoContext.CURRENT_ALBUM, select.val()]
-									var list = Qoid.groupedLabeledContent.getElement(c.iid).map(
-  											function(laco: LabeledContent): String {
-  													return laco.labelIid;
-  												}  
-										);
-									list.add(select.val());
-  									var eventData = new EditContentData(
-  										c, 
-  										list.array()
-									);
-  									EM.change(EMEvent.UpdateContent, eventData);
+									Logga.DEFAULT.info("Add content label | " + c.iid);
+                                    QoidAPI.addContentLabel( c.iid, select.val());
 									new JQ("body").click();
         						};
         					},

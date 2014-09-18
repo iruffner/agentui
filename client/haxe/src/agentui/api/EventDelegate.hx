@@ -43,10 +43,6 @@ class EventDelegate {
             QoidAPI.updateContent(data.content.iid, Serializer.instance.toJson(data.content).data);
         });
 
-        EM.addListener(EMEvent.DeleteContent, function(data:EditContentData): Void {
-            QoidAPI.deleteContent(data.content.iid);
-        });
-
         EM.addListener(EMEvent.CreateLabel, function(data:EditLabelData): Void {
             QoidAPI.createLabel(data.parentIid, data.label.name, data.label.data);
     	});

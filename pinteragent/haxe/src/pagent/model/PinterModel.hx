@@ -7,6 +7,7 @@ class PinterModel {}
 
 class PinterContentTypes {
 	public static var CONFIG: ContentType =  PinterContext.APP_ROOT_LABEL_NAME + ".config";
+	public static var COMMENT: ContentType =  PinterContext.APP_ROOT_LABEL_NAME + ".comment";
 }
 
 class ConfigContentData extends ContentData {

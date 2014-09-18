@@ -26,7 +26,6 @@ class EMEvent {
 	public static inline var DeleteAlias: String = "DeleteAlias";
 
 	public static inline var CreateContent: String = "CreateContent";
-	public static inline var DeleteContent: String = "DeleteContent";
 	public static inline var UpdateContent: String = "UpdateContent";
 
 	public static inline var CreateLabel: String = "CreateLabel";

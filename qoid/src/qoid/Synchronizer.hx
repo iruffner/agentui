@@ -4,8 +4,11 @@ import qoid.model.ModelObj;
 import m3.serialization.Serialization;
 import m3.log.Logga;
 import qoid.QoidAPI.RequestContext;
+import qoid.ResponseProcessor.Response;
+import qoid.ResponseProcessor.ResponseResult;
 
 using m3.helper.OSetHelper;
+using m3.helper.ArrayHelper;
 
 class SynchronizationParms {
     public var aliases:Array<Alias>;
@@ -35,11 +38,10 @@ class Synchronizer {
 	// The global list of synchronizers
 	public static var synchronizers = new StringMap<Synchronizer>();
 
-    public static function processResponse(context: RequestContext, data:{success: Bool, error: Dynamic, result: Dynamic}):Bool {
-        var context:String = context.context;
-        var synchronizer = Synchronizer.synchronizers.get(context);
+    public static function processResponse(context: RequestContext, data: Response):Bool {
+        var synchronizer = Synchronizer.synchronizers.get(context.context);
         if (synchronizer != null) {
-            synchronizer.dataReceived(context, data.result);
+            synchronizer.dataReceived(context, data);
         }
         return (synchronizer != null);
     }
@@ -61,15 +63,38 @@ class Synchronizer {
         synchronizers.set(context, this);
     }
 
-    private function processDataReceived<T>(list:Array<T>, type: Class<T>, data:Dynamic):Void {
-        for (datum in cast(data, Array<Dynamic>)) {
-            list.push(Serializer.instance.fromJsonX(datum, type));
+    private function processDataReceived<T>(list:Array<T>, type: Class<T>, result:ResponseResult):Void {
+        var data = result.results;
+        if(data.hasValues())
+            for (datum in data) {
+                list.push(Serializer.instance.fromJsonX(datum, type));
+            }
+    }
+
+    private function processProfileReceived<T>(list:Array<Profile>, result:ResponseResult):Void {
+        var data = result.results;
+        for (datum in data) {
+            var profile: Profile = Serializer.instance.fromJsonX(datum, Profile);
+            if(result.route.hasValues()) 
+                profile.connectionIid = result.route[0];
+            list.push(profile);
         }
     }
 
-    public function dataReceived(c:String, dataObj:Dynamic) {
-        var data = dataObj.results;
-        var type = dataObj.type.toLowerCase();
+    private function processNotificationReceived<T>(list:Array<Notification<T>>, result:ResponseResult):Void {
+        var data = result.results;
+        if(data.hasValues())
+            for (datum in data) {
+                var notification: Notification<T> = Serializer.instance.fromJsonX(datum, Notification);
+                if(result.route.hasValues()) 
+                    notification.connectionIid = result.route[0];
+                list.push(notification);
+            }
+    }
+
+    public function dataReceived(c:RequestContext, dataObj:Response) {
+        var data: ResponseResult = dataObj.result;
+        var type: String = dataObj.result.type.toLowerCase();
 
         if (data != null) {
         	switch (type) {
@@ -88,11 +113,11 @@ class Synchronizer {
                 case "labeledcontent":
                     processDataReceived(parms.labeledContent, LabeledContent, data);
                 case "notification":
-                    processDataReceived(parms.notifications, Notification, data);
+                    processNotificationReceived(parms.notifications, data);
                 case "profile":
-                    processDataReceived(parms.profiles, Profile, data);
+                    processProfileReceived(parms.profiles, data);
                 default:
-                    Logga.DEFAULT.error("Unknown data type: " + dataObj.type);
+                    Logga.DEFAULT.error("Unknown data type: " + data.type);
             }
         }
     	numResponsesExpected -= 1;

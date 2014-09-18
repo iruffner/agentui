@@ -10,6 +10,8 @@ class EMEvent {
 	public static inline var OnBoardConfig: String = "onBoardConfig";
 	public static inline var OnConnectionBoards: String = "onConnectionBoards";
 	public static inline var OnConnectionBoardConfigs: String = "onConnectionBoardConfigs";
+	public static inline var ContentComments: String = "ContentComments";
+	public static inline var OnContentComments: String = "onContentComments";
 	/* *************** */
 	
 
@@ -28,14 +30,18 @@ class EMEvent {
 	public static inline var DeleteAlias: String = "DeleteAlias";
 
 	public static inline var CreateContent: String = "CreateContent";
-	public static inline var DeleteContent: String = "DeleteContent";
+	public static inline var OnCreateContent: String = "onCreateContent";
 	public static inline var UpdateContent: String = "UpdateContent";
+	public static inline var OnUpdateContent: String = "onUpdateContent";
 
 	public static inline var CreateLabel: String = "CreateLabel";
 	public static inline var UpdateLabel: String = "UpdateLabel";
 	public static inline var MoveLabel: String = "MoveLabel";
 	public static inline var CopyLabel: String = "CopyLabel";
 	public static inline var DeleteLabel: String = "DeleteLabel";
+
+	public static inline var OnRemoveContentLabel: String = "onRemoveContentLabel";	
+	public static inline var OnAddContentLabel: String = "onAddContentLabel";	
 
 	public static inline var GrantAccess: String = "GrantAccess";
 	public static inline var AccessGranted: String = "AccessGranted";

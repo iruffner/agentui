@@ -1,13 +1,12 @@
 package ap.model;
 
-
+import agentui.model.Filter;
 import ap.model.EM;
 import m3.log.Logga;
 import m3.observable.OSet;
 import m3.serialization.Serialization.Serializer;
 import m3.util.UidGenerator;
 import qoid.model.ModelObj;
-import agentui.model.Filter;
 import qoid.QE;
 
 using m3.helper.OSetHelper;
@@ -53,7 +52,7 @@ class ContentSource {
     	);
 
     	EM.addListener(EMEvent.OnFilteredContent, onLoadFilteredContent, 
-    		                                        "ContentSource-LoadFilteredContent"
+    		                                        "ContentSource-OnFilteredContent"
     	);
 	}
 
@@ -75,15 +74,16 @@ class ContentSource {
 	private static function addContent(results:Array<Dynamic>, connectionIid:String) {
 		var iids = new Array<String>();
 		var connectionIids = new Array<String>();
-
-		for (result in results) {
-			var c = Serializer.instance.fromJsonX(result, Content);
-			if(c != null) {
-				if (connectionIid != null) {
-					c.aliasIid = null;
-					c.connectionIid = connectionIid;
+		if(results.hasValues()) {
+			for (result in results) {
+				var c = Serializer.instance.fromJsonX(result, Content);
+				if(c != null) {//occurs when there is an unknown content type
+					if (connectionIid != null) {
+						c.aliasIid = null;
+						c.connectionIid = connectionIid;
+					}
+					filteredContent.addOrUpdate(c);
 				}
-				filteredContent.addOrUpdate(c);
 			}
 		}
 

@@ -122,9 +122,12 @@ body {
 			text-align: center;
 			border: 1px solid gray;
 			padding: 5px;
+			margin-bottom: 10px;
+			text-overflow: ellipsis;
 		}
 
-			._boardList ._boardComp:nth-child(2n),
+			/*._boardList ._boardComp:nth-child(2n),*/
+			._boardList ._boardComp:nth-child(3n + 2),
 			._boardList ._boardComp:nth-child(3n) {
 				margin-left: 1%;
 			}
@@ -304,6 +307,26 @@ body {
 		line-height: 30px;
 		width: 170px;
 	}
+
+._commentsComp {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+	._commentsComp>h2 {
+		margin-top: 0px;
+	}
+		._commentsComp .newCommentDiv {
+			margin-top: 20px;
+		}
+			._commentsComp .newCommentDiv button {
+				float: right;
+			}
+
+		._commentsComp ._commentComp>div {
+			display: inline-block;
+			vertical-align: middle;
+			margin-right: 20px;
+		}
 /* *************************************************
 	                  DIALOGS
    ************************************************ */
@@ -326,13 +349,16 @@ body {
 #homeScreen {
 	white-space: nowrap;
 }
+	#homeScreen ._boardList {
+		white-space: normal;
+	}
 
-#boardScreen .content {
+.__boardScreen .content {
 	text-align: left;
 }
 
-	#boardScreen .contentComp,
-	#boardScreen .addPinDiv {
+	.__boardScreen .contentComp,
+	.__boardScreen .addPinDiv {
 		width: 31%;
 		max-width: 31%;
 		min-width: 31%;
@@ -346,29 +372,29 @@ body {
 		padding-bottom: 4px;
 	}
 
-		#boardScreen .wrapper>div {
+		.__boardScreen .wrapper>div {
 			margin-left: 1%;
 			margin-bottom: 5px;
 		}
 
-		#boardScreen .addPinDiv {
+		.__boardScreen .addPinDiv {
 			background-color: lightgoldenrodyellow;
 			line-height: 200px;
 			font-size: 30px;
 			border: dashed;
 		}
 
-		#boardScreen .contentComp .imgDiv {
+		.__boardScreen .contentComp .imgDiv {
 			padding-top: 5px;
 			height: 220px;
 			max-height: 220px;
 			min-height: 220px;
 		}
 
-			#boardScreen .contentComp .imgDiv img {
+			.__boardScreen .contentComp .imgDiv img {
 				max-height: 210px;
 			}
-		#boardScreen .contentComp .caption {
+		.__boardScreen .contentComp .caption {
 			height:28px;
 			line-height: 28px;
 			white-space: nowrap;
@@ -378,19 +404,19 @@ body {
 			background-color: lightgrey;
 		}
 
-	#boardScreen .updateAccessPopup .connectionsContainer,
-	#boardScreen .addAccessPopup .connectionsContainer {
+	.__boardScreen .updateAccessPopup .connectionsContainer,
+	.__boardScreen .addAccessPopup .connectionsContainer {
 		min-height: 500px;
 		overflow: auto
 	}
 
-	#boardScreen .updateAccessPopup .connectionDiv,
-	#boardScreen .addAccessPopup .connectionDiv {
+	.__boardScreen .updateAccessPopup .connectionDiv,
+	.__boardScreen .addAccessPopup .connectionDiv {
 		margin: auto;
 		max-width: 80%;
 	}
-		#boardScreen .updateAccessPopup .connectionDiv>div,
-		#boardScreen .addAccessPopup .connectionDiv>div {
+		.__boardScreen .updateAccessPopup .connectionDiv>div,
+		.__boardScreen .addAccessPopup .connectionDiv>div {
 			display: inline-block;
 			vertical-align: middle;
 		}
@@ -398,6 +424,12 @@ body {
 #contentScreen .content {
 
 }
+	#contentScreen ._mediaOptionsComp {
+		text-align: center;
+	}
+		#contentScreen ._mediaOptionsComp>button:not(:first-child) {
+			margin-left: 20px;
+		}
 
 	#contentScreen ._mediaComp>div {
 		margin-top: 15px;

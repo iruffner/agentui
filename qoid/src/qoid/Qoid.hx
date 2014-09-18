@@ -42,11 +42,19 @@ class Qoid {
     public static function set_currentAlias(a:Alias):Alias {
         currentAlias = a;
         EventManager.instance.change(QE.onAliasLoaded, currentAlias);
+        labels.removeListener(setConnectionIidOnLabel);
+        labels.listen(setConnectionIidOnLabel);
         return currentAlias;
     }
 
     public static function get_currentAlias():Alias {
         return currentAlias;
+    }
+
+    static function setConnectionIidOnLabel(l: Label, evt: EventType): Void {
+        if (evt.isAdd()) {
+            l.connectionIid = currentAlias.connectionIid;
+        }
     }
 
     public static var verificationContent: ObservableSet<Content<Dynamic>>;

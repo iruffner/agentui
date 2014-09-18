@@ -21,14 +21,15 @@ using agentui.widget.UploadComp;
 typedef BoardDetailsOptions = {
 	var label: Label;
 	var parentIid: String;
-	var owner: String;
+    var showOptionBar: Bool;
 }
 
 typedef BoardDetailsWidgetDef = {
 	@:optional var options: BoardDetailsOptions;
 	
 	@:optional var img: JQ;
-	@:optional var nameDiv: JQ;
+    @:optional var nameDiv: JQ;
+	@:optional var ownerDiv: JQ;
 
 	var _create: Void->Void;
 	var destroy: Void->Void;
@@ -36,6 +37,8 @@ typedef BoardDetailsWidgetDef = {
 	var _showDotPopup: JQ->Void;
     var _showAccessPopup: JQ->Void;
 	var _showAddAccessPopup: JQ->Void;
+
+    @:optional var _profileListener: Profile->EventType->Void;
 }
 
 @:native("$")
@@ -59,34 +62,45 @@ extern class BoardDetails extends JQ {
 		        	self.nameDiv = new JQ("<div class='labelNameWrapper'></div>").appendTo(selfElement);
 		        	self.nameDiv.append("<span class='boardLabel'>" + self.options.label.name + "</span>");
 
-		        	var bar: JQ = new JQ("<div class='optionBar ui-widget-content ui-corner-all'></div>").appendTo(selfElement);
-		        	bar.append("<div class='fleft boardOwner'>" + self.options.owner + "</div>");
+                    if(self.options.showOptionBar && self.options.label.connectionIid == Qoid.currentAlias.connectionIid) {
+    		        	var bar: JQ = new JQ("<div class='optionBar ui-widget-content ui-corner-all'></div>").appendTo(selfElement);
+    		        	self.ownerDiv = new JQ("<div class='fleft boardOwner'>" + Qoid.currentAlias.profile.name + "</div>").appendTo(bar);
 
-		        	var editButton: JQ = new JQ("<button class='center'>Edit Board</button>")
-		        		.appendTo(bar)
-		        		.button()
-		        		.click(function(evt: JQEvent) {
-		        				evt.stopPropagation();
-		        				self._showEditPopup(JQ.cur);
-		        			});
+    		        	var editButton: JQ = new JQ("<button class='center'>Edit Board</button>")
+    		        		.appendTo(bar)
+    		        		.button()
+    		        		.click(function(evt: JQEvent) {
+    		        				evt.stopPropagation();
+    		        				self._showEditPopup(JQ.cur);
+    		        			});
 
-	        		var dotButton: JQ = new JQ("<button class='center'>1 Degree of Trust</button>")
-		        		.appendTo(bar)
-		        		.button()
-		        		.click(function(evt: JQEvent) {
-		        				evt.stopPropagation();
-		        				self._showDotPopup(JQ.cur);
-		        			});
+    	        		var dotButton: JQ = new JQ("<button class='center'>1 Degree of Trust</button>")
+    		        		.appendTo(bar)
+    		        		.button()
+    		        		.click(function(evt: JQEvent) {
+    		        				evt.stopPropagation();
+    		        				self._showDotPopup(JQ.cur);
+    		        			});
 
-	        		var accessButton: JQ = new JQ("<button class='center'>Access Control</button>")
-		        		.appendTo(bar)
-		        		.button()
-		        		.click(function(evt: JQEvent) {
-		        				evt.stopPropagation();
-		        				self._showAccessPopup(JQ.cur);
-		        			});
+    	        		var accessButton: JQ = new JQ("<button class='center'>Access Control</button>")
+    		        		.appendTo(bar)
+    		        		.button()
+    		        		.click(function(evt: JQEvent) {
+    		        				evt.stopPropagation();
+    		        				self._showAccessPopup(JQ.cur);
+    		        			});
 
-	        		var pins: JQ = new JQ("<div class='fright pinCount'> 0 pins </div>").appendTo(bar);
+    	        		var pins: JQ = new JQ("<div class='fright pinCount'> 0 pins </div>").appendTo(bar);
+                    } else {
+                        self.ownerDiv = new JQ("<div class='boardOwner' style='font-size:20px;'></div>").appendTo(selfElement);
+                        self._profileListener = function(p: Profile, evt: EventType) {
+                            if(evt.isAddOrUpdate() && p.connectionIid == self.options.label.connectionIid) {
+                                self.ownerDiv.empty().text(p.name);
+                            }
+                        }
+                        Qoid.profiles.listen(self._profileListener);
+                    }
+
 		        },
 
 		        _showEditPopup: function(positionalElem: JQ): Void {
@@ -290,10 +304,6 @@ extern class BoardDetails extends JQ {
                                             var connectionDiv: JQ = new JQ("<div class='connectionDiv ui-corner-all ui-state-active'></div>")
                                                 .appendTo(connectionsContainer)
                                                 .click(function(evt:JQEvent) {
-                                                        // EM.listenOnce(EMEvent.AccessGranted, function(n: {}): Void {
-                                                        //     selfElement.close();
-                                                        // });
-
                                                         var parms = {
                                                             connectionIid: c.iid,
                                                             labelIid: self.options.label.iid,
@@ -322,6 +332,8 @@ extern class BoardDetails extends JQ {
                     },
 
 		        destroy: function() {
+                    var self: BoardDetailsWidgetDef = Widgets.getSelf();
+                    Qoid.profiles.removeListener(self._profileListener);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

@@ -1,13 +1,14 @@
 package pagent.model;
 
 import agentui.model.Filter;
-import m3.serialization.Serialization.Serializer;
+import pagent.model.EM;
 import m3.log.Logga;
 import m3.observable.OSet;
+import m3.serialization.Serialization.Serializer;
 import m3.util.UidGenerator;
-import pagent.model.EM;
 import qoid.model.ModelObj;
 import qoid.QE;
+import qoid.QoidAPI;
 
 using m3.helper.OSetHelper;
 using m3.helper.ArrayHelper;
@@ -40,7 +41,7 @@ class ContentSourceListener<T> {
 
 class ContentSource {
 	private static var filteredContent: ObservableSet<Content<Dynamic>>;
-	private static var handle:String;
+	private static var context: QueryContext;
 	private static var listeners: Array<ContentSourceListener<Dynamic>>;
 
 	public static function __init__() {
@@ -88,26 +89,25 @@ class ContentSource {
 
 	}
 
-	private static function onLoadFilteredContent(data:{context: {context: String, handle: String}, result: {standing: Bool, results: Array<Dynamic>}, connectionIid: String}): Void {
-		if (data.result.standing || handle == data.context.handle) {
-			addContent(data.result.results, data.connectionIid);
+	private static function onLoadFilteredContent(data:{context: QueryContext, result: {standing: Bool, results: Array<Dynamic>, route: Array<String>}}): Void {
+		if (data.result.standing || (context != null && context.handle == data.context.handle)) {
+			addContent(data.result.results, data.result.route[0]);
 		} else {
 			clearQuery();
-			handle = data.context.handle;
+			context = data.context;
 			beforeSetContent();
-			addContent(data.result.results, data.connectionIid);
+			addContent(data.result.results, data.result.route[0]);
 		}
     }
 
     public static function clearQuery() {
-		if (handle != null) {
+		if (context != null) {
 			Logga.DEFAULT.warn("deregisterSqueries");
-			// AgentUi.PROTOCOL.deregisterSqueries([handle]);
+			QoidAPI.cancelQuery(new RequestContext(context.context, context.handle));
 			filteredContent.clear();
-			handle = null;
+			context = null;
 		}
     }
-
 
 	private static function onAliasLoaded(alias:Alias) {
 		clearQuery();

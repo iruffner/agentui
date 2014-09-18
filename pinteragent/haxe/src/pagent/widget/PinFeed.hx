@@ -4,6 +4,7 @@ import js.html.Element;
 
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
+import m3.util.UidGenerator;
 import pagent.model.EM;
 import pagent.model.ContentSource;
 import qoid.model.ModelObj;
@@ -67,7 +68,8 @@ extern class PinFeed extends JQ {
 										onload: function(bytes: String): Void {
 											dlg.close();
 											var ccd = new EditContentData(ContentFactory.create(ContentTypes.IMAGE, bytes));
-											ccd.labelIids.push(PinterContext.CURRENT_BOARD);			
+											ccd.semanticId = UidGenerator.create(32);
+											ccd.labelIids.push(PinterContext.CURRENT_BOARD);
 											EM.change(EMEvent.CreateContent, ccd);
 										}
 									});
