@@ -1,0 +1,3 @@
+-main terminal.Terminal
+-cp src
+-js ../www/js/terminal.js

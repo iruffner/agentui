@@ -221,23 +221,23 @@ class ContentFactory {
 		var ret:Content<Dynamic> = null;
 
 		switch (contentType) {
-        	case "AUDIO":
+        	case ContentTypes.AUDIO:
         		var ac = new AudioContent();
         		ac.props.audioSrc = cast(data, String);
         		ret = ac;
-        	case "IMAGE":
+        	case ContentTypes.IMAGE:
         		var ic = new ImageContent();
         		ic.props.imgSrc = cast(data, String);
         		ret = ic;
-        	case "TEXT":
+        	case ContentTypes.TEXT:
         		var mc = new MessageContent();
         		mc.props.text = cast(data, String);
         		ret = mc;
-        	case "URL":
+        	case ContentTypes.URL:
         		var uc = new UrlContent();
         		uc.props.url = cast(data, String);
         		ret = uc;
-        	case "VERIFICATION":
+        	case ContentTypes.VERIFICATION:
         		var uc = new VerificationContent();
         		uc.props.text = cast(data, String);
         		ret = uc;
