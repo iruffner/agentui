@@ -250,24 +250,18 @@ extern class BoardDetails extends JQ {
         						if(labels != null)
                                     Lambda.iter(labels,
         								function(l: LabelAcl) {
-                                            var connectionDiv: JQ = new JQ("<div class='connectionDiv ui-corner-all ui-state-active'></div>")
-                                                .appendTo(connectionsContainer)
-                                                .click(function(evt:JQEvent) {
-                                                        var parms = {
-                                                            connectionIid: l.connectionIid,
-                                                            labelIid: self.options.label.iid,
-                                                        }
-                                                        EM.change(EMEvent.RevokeAccess, parms);
-                                                    });
-                                            var connAvatar: ConnectionAvatar = new ConnectionAvatar("<div></div>");
-                                            connAvatar.appendTo(connectionDiv);
-                                            var nameDiv: JQ = new JQ("<div></div>").appendTo(connectionDiv);
-                                            connAvatar.connectionAvatar({
+                                            new ConnectionComp("<div class='ui-corner-all ui-state-active'></div>")
+                                                .connectionComp({
                                                         connectionIid: l.connectionIid,
-                                                        onProfileUpdate: function(p: Profile) {
-                                                            nameDiv.empty().append(p.name);
-                                                        }                                                   
-                                                    });
+                                                        click: function() {
+                                                            var parms = {
+                                                                connectionIid: l.connectionIid,
+                                                                labelIid: self.options.label.iid,
+                                                            }
+                                                            EM.change(EMEvent.RevokeAccess, parms);
+                                                        }
+                                                    })
+                                                .appendTo(connectionsContainer);
         								}
         							);
         					},

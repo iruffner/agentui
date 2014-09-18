@@ -187,67 +187,47 @@ body {
 		overflow-y: auto;
 	}
 
-	/* .connectionsList
+	/* ._connectionsList
 	-----------------------------------------------------------------------------*/
 
-	.connectionsList {
-		margin-top: 10px;
-		padding: 3px !important;
-		min-height: 250px;
+	._connectionsList {
+		overflow: auto;
+		text-align: left;
+		margin-top: 20px;
 	}
 
-		.connectionsList .connection {
-			/*float: left;*/
-			margin: 3px auto;
-			width: 100%;
-			padding: 5px;
-			font-size: .9em !important;
-			position: relative;
+		._connectionsList h2 {
+			display: inline-block;
+			font-size: 28px;
+			vertical-align: top;
 		}
 
-			.connectionsList .connection div.avatar {
-				/*border-radius: 50%; */
-				max-width: 60px;
-				margin-top: -10px;
+		._connectionsList ._connectionComp {
+			width: 31%;
+			max-width: 31%;
+			min-width: 31%;
+			display: inline-block;
+			vertical-align: middle;
+			text-align: center;
+			border: 1px solid gray;
+			padding: 5px;
+			margin-bottom: 10px;
+			text-overflow: ellipsis;
+		}
+
+			._connectionsList ._connectionComp:nth-child(3n + 2),
+			._connectionsList ._connectionComp:nth-child(3n) {
+				margin-left: 1%;
 			}
 
-			.connectionsList .connection div.avatar img, .connectionDraggingImg, .connectionAvatar img {
-				max-width: 60px;
-				border-radius: 10%;
-				border: 1px solid #333;
+			._connectionsList ._connectionComp .labelNameWrapper {
+				text-align: left;
+				font-size: 18px;
+				font-weight: bold;
 			}
-
-			.connectionsList .connection .avatar, .connectionsList .connection .name {
-				margin-top: 20px;
-			}
-
-			.connectionsList .connection:nth-child(odd) div.avatar, .connectionsList .connection:nth-child(even) div.name {
-				float: left;
-			}
-
-			.connectionsList .connection:nth-child(even) div.avatar, .connectionsList .connection:nth-child(odd) div.name {
-				float: right;
-			}
-
-			.connectionsList .connection .notifications {
-				position: absolute;
-				border-radius: 50%;
-				background: red;
-				color: white;
-				min-width: 20px;
-				min-height: 20px;
-				padding: 4px 2px 2px 2px;
-				visibility: hidden;
-			}
-
-			.connectionsList .connection:nth-child(odd) div.notifications {
-				top: -6px;
-				left: 195px;
-			}
-
-			.connectionsList .connection:nth-child(even) div.notifications {
-				top: -6px;
-				left: 0px;
+			._connectionsList ._connectionComp img {
+				max-height: 210px;
+				min-height: 210px;
 			}
 
 	/* UserId
@@ -322,11 +302,23 @@ body {
 				float: right;
 			}
 
-		._commentsComp ._commentComp>div {
-			display: inline-block;
-			vertical-align: middle;
-			margin-right: 20px;
+		._commentsComp ._commentComp {
+			background-image: none !important;
+			padding: 10px;
+			margin-bottom: 10px;
 		}
+			._commentsComp ._commentComp>div {
+				display: inline-block;
+				vertical-align: middle;
+				margin-right: 20px;
+			}
+			._commentsComp ._commentComp ._connectionComp {
+				text-align: center;
+			}
+				._commentsComp ._commentComp  ._connectionComp img {
+					max-height: 100px;
+				}
+
 /* *************************************************
 	                  DIALOGS
    ************************************************ */
@@ -404,19 +396,16 @@ body {
 			background-color: lightgrey;
 		}
 
-	.__boardScreen .updateAccessPopup .connectionsContainer,
-	.__boardScreen .addAccessPopup .connectionsContainer {
+	.__boardScreen .connectionsContainer {
 		min-height: 500px;
 		overflow: auto
 	}
 
-	.__boardScreen .updateAccessPopup .connectionDiv,
-	.__boardScreen .addAccessPopup .connectionDiv {
+	.__boardScreen ._connectionComp {
 		margin: auto;
 		max-width: 80%;
 	}
-		.__boardScreen .updateAccessPopup .connectionDiv>div,
-		.__boardScreen .addAccessPopup .connectionDiv>div {
+		.__boardScreen ._connectionComp>div {
 			display: inline-block;
 			vertical-align: middle;
 		}

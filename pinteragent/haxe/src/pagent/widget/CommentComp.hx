@@ -10,7 +10,7 @@ import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.M3Menu;
 import m3.widget.Widgets;
-import pagent.widget.ConnectionAvatar;
+import pagent.widget.ConnectionComp;
 import qoid.model.ModelObj;
 import m3.observable.OSet;
 import m3.exception.Exception;
@@ -34,8 +34,8 @@ typedef CommentCompWidgetDef = {
 
 
 class CommentCompHelper {
-	public static function content(cc: CommentComp): Content<Dynamic> {
-		return cc.commentComp("option", "content");
+	public static function comment(cc: CommentComp): Content<Dynamic> {
+		return cc.commentComp("option", "comment");
 	}
 
 	public static function update(cc: CommentComp, c:ImageContent): Void {
@@ -62,20 +62,16 @@ extern class CommentComp extends ContentComp {
 		        		throw new Exception("Root of CommentComp must be a div element");
 		        	}
 
-		        	selfElement.addClass("_commentComp " + Widgets.getWidgetClasses());
-                    var props: ConnectionAvatarOptions;
+		        	selfElement.addClass("_commentComp ui-state-highlight " + Widgets.getWidgetClasses());
+                    var props: ConnectionCompOptions;
 		        	if(self.options.comment.connectionIid == Qoid.currentAlias.connectionIid) 
                         props = { aliasIid: Qoid.currentAlias.iid };
                     else
                         props = { connectionIid: self.options.comment.connectionIid };
-                    new ConnectionAvatar("<div></div>")
-                        .connectionAvatar(props)
+                    new ConnectionComp("<div></div>")
+                        .connectionComp(props)
                         .appendTo(selfElement);
                     new JQ("<div>" + self.options.comment.props.text + "</div>").appendTo(selfElement);
-
-                    selfElement.append("<div class='clear'></div>");
-
-
 				},
 
 		        destroy: function() {

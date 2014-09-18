@@ -81,8 +81,7 @@ extern class OptionBar extends JQ {
 	        			.appendTo(selfElement)
 	        			.button()
 	        			.click(function(evt: JQEvent) {
-		        				evt.stopPropagation();
-			        			self._showNewLabelPopup(JQ.cur);
+		        				PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.FOLLOWING_SCREEN;
 		        			});
 
 

@@ -89,7 +89,7 @@ class BoardScreen extends PinterPage {
 
 		var contentFeed: PinFeed = new PinFeed("<div></div>");
 		contentFeed.appendTo(content);
-		contentFeed.pinFeed();
+		contentFeed.pinFeed({ isMyBoard: false });
 	}
 
 	private function _noLabel(screen: JQ) {
