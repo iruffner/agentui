@@ -2,6 +2,7 @@ package terminal;
 
 import m3.jq.JQ;
 import terminal.api.EventDelegate;
+import terminal.widget.AuditLog;
 import terminal.widget.DialogManager;
 
 @:expose
@@ -17,5 +18,10 @@ class Terminal {
         });
 
         DialogManager.showLogin();
+
+        var content: JQ = new JQ(".content");
+        var contentAuditLog: AuditLog = new AuditLog("<div></div>");
+        contentAuditLog.appendTo(content);
+        contentAuditLog.auditLog();
     }
 }
