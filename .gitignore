@@ -5,6 +5,7 @@ proxy/src/main/webapp/client/*
 .DS_Store
 *.sublime-workspace
 client/haxe_src/m3
+client/haxe_src/qoid
 target
 proxy/src/main/webapp/client
 *.tmproj
