@@ -62,37 +62,53 @@ extern class BoardDetails extends JQ {
 		        	self.nameDiv = new JQ("<div class='labelNameWrapper'></div>").appendTo(selfElement);
 		        	self.nameDiv.append("<span class='boardLabel'>" + self.options.label.name + "</span>");
 
-                    if(self.options.showOptionBar && self.options.label.connectionIid == Qoid.currentAlias.connectionIid) {
+                    if(self.options.showOptionBar) {
     		        	var bar: JQ = new JQ("<div class='optionBar ui-widget-content ui-corner-all'></div>").appendTo(selfElement);
-    		        	self.ownerDiv = new JQ("<div class='fleft boardOwner'>" + Qoid.currentAlias.profile.name + "</div>").appendTo(bar);
+    		        	self.ownerDiv = new JQ("<div class='fleft boardOwner'></div>").appendTo(bar);
 
-    		        	var editButton: JQ = new JQ("<button class='center'>Edit Board</button>")
-    		        		.appendTo(bar)
-    		        		.button()
-    		        		.click(function(evt: JQEvent) {
-    		        				evt.stopPropagation();
-    		        				self._showEditPopup(JQ.cur);
-    		        			});
+                        if(self.options.label.connectionIid == Qoid.currentAlias.connectionIid) {
+        		        	var editButton: JQ = new JQ("<button class='center'>Edit Board</button>")
+        		        		.appendTo(bar)
+        		        		.button()
+        		        		.click(function(evt: JQEvent) {
+        		        				evt.stopPropagation();
+        		        				self._showEditPopup(JQ.cur);
+        		        			});
 
-    	        		var dotButton: JQ = new JQ("<button class='center'>1 Degree of Trust</button>")
-    		        		.appendTo(bar)
-    		        		.button()
-    		        		.click(function(evt: JQEvent) {
-    		        				evt.stopPropagation();
-    		        				self._showDotPopup(JQ.cur);
-    		        			});
+        	        		var dotButton: JQ = new JQ("<button class='center'>1 Degree of Trust</button>")
+        		        		.appendTo(bar)
+        		        		.button()
+        		        		.click(function(evt: JQEvent) {
+        		        				evt.stopPropagation();
+        		        				self._showDotPopup(JQ.cur);
+        		        			});
 
-    	        		var accessButton: JQ = new JQ("<button class='center'>Access Control</button>")
-    		        		.appendTo(bar)
-    		        		.button()
-    		        		.click(function(evt: JQEvent) {
-    		        				evt.stopPropagation();
-    		        				self._showAccessPopup(JQ.cur);
-    		        			});
+        	        		var accessButton: JQ = new JQ("<button class='center'>Access Control</button>")
+        		        		.appendTo(bar)
+        		        		.button()
+        		        		.click(function(evt: JQEvent) {
+        		        				evt.stopPropagation();
+        		        				self._showAccessPopup(JQ.cur);
+        		        			});
+                        } else {
+                            var editButton: JQ = new JQ("<button class='center'>Repin Board</button>")
+                                .appendTo(bar)
+                                .button()
+                                .click(function(evt: JQEvent) {
+                                        evt.stopPropagation();
+                                        // self._showEditPopup(JQ.cur);
+                                    });
+                        }
 
     	        		var pins: JQ = new JQ("<div class='fright pinCount'> 0 pins </div>").appendTo(bar);
+                        bar.append("<div class='clear'></div>");
                     } else {
                         self.ownerDiv = new JQ("<div class='boardOwner' style='font-size:20px;'></div>").appendTo(selfElement);
+                    }
+
+                    if(self.options.label.connectionIid == Qoid.currentAlias.connectionIid) {
+                        self.ownerDiv.empty().text(Qoid.currentAlias.profile.name);
+                    } else {
                         self._profileListener = function(p: Profile, evt: EventType) {
                             if(evt.isAddOrUpdate() && p.connectionIid == self.options.label.connectionIid) {
                                 self.ownerDiv.empty().text(p.name);

@@ -65,7 +65,7 @@ class BoardScreen extends PinterPage {
 		boardDetails.boardDetails({
 			label: label,
 			parentIid: PinterContext.ROOT_BOARD.iid,
-			showOptionBar: false
+			showOptionBar: true
 		});
 
 		var root: Node = new Or();
