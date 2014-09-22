@@ -185,6 +185,7 @@ class ContentTypes {
 	public static var TEXT: ContentType = "TEXT";
 	public static var URL: ContentType = "URL";
 	public static var VERIFICATION: ContentType = "VERIFICATION";
+	public static var LINK: ContentType = "LINK";
 }
 
 class ContentHandler implements TypeHandler {
@@ -206,6 +207,8 @@ class ContentHandler implements TypeHandler {
         		obj = Serializer.instance.fromJsonX(fromJson, UrlContent);
         	case ContentTypes.VERIFICATION:
         		obj = Serializer.instance.fromJsonX(fromJson, VerificationContent);
+        	case ContentTypes.LINK:
+        		obj = Serializer.instance.fromJsonX(fromJson, LinkContent);
         }
 
         return obj;
@@ -415,6 +418,20 @@ class VerificationContent extends Content<VerificationContentData> {
 	}
 }
 
+class LinkContentData extends ContentData {
+	public var contentIid: String;
+	public var route: Array<String>;
+
+	public function new () {
+		super();
+	}
+}
+
+class LinkContent extends Content<LinkContentData> {
+	public function new () {
+		super("LINK", LinkContentData);
+	}
+}
 //----------------------------------------------------------------
 // Notifications
 //----------------------------------------------------------------

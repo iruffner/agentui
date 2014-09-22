@@ -1,6 +1,7 @@
 package pagent.widget;
 
 import m3.log.Logga;
+import m3.serialization.Serialization.Serializer;
 import pagent.PinterContext;
 import pagent.pages.PinterPage;
 import pagent.pages.PinterPageMgr;
@@ -16,9 +17,12 @@ import pagent.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import pagent.widget.DialogManager;
+import qoid.QoidAPI;
+import qoid.ResponseProcessor.Response;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
+using m3.helper.ArrayHelper;
 
 typedef ContentCompOptions = {
 	var content: Content<Dynamic>;
@@ -89,19 +93,44 @@ extern class ContentComp extends JQ {
 
 					var content:Content<Dynamic> = self.options.content;
 
-		        	switch(content.contentType) {
-		        		case ContentTypes.IMAGE:
-		        			var img: ImageContent = cast(content, ImageContent);
-		        			selfElement.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
-							var captionDiv: JQ = new JQ("<div class='caption ui-corner-bottom'></div>").appendTo(selfElement);
-							if(img.props.caption.isNotBlank()) {
-								captionDiv.append(img.props.caption);
-							} else {
-								// captionDiv.append( html : String )
-							}
-		        		case _:
-		        			Logga.DEFAULT.debug("Only image content should be displayed"); 
-		        	}
+
+
+					var fcn: Content<Dynamic>->Void = null;
+					fcn = function(content: Content<Dynamic>) {
+						switch(content.contentType) {
+			        		case ContentTypes.IMAGE:
+			        			var img: ImageContent = cast(content, ImageContent);
+			        			selfElement.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
+								var captionDiv: JQ = new JQ("<div class='caption ui-corner-bottom'></div>").appendTo(selfElement);
+								if(img.props.caption.isNotBlank()) {
+									captionDiv.append(img.props.caption);
+								} else {
+									// captionDiv.append( html : String )
+								}
+							case ContentTypes.TEXT:
+								var text: MessageContent = cast(content, MessageContent);
+
+							case ContentTypes.LINK:
+								var link: LinkContent = cast(content, LinkContent);
+								QoidAPI.query(new RequestContext("contentLink_" + link.props.contentIid, link.props.contentIid), "content", "contentIid = '" + link.props.contentIid + "'" , true, true, link.props.route);
+								EM.listenOnce(
+									"onContentLink_" + link.props.contentIid, 
+									function(response: Response){
+										if(response.result.results.hasValues()) {
+											var c: Content<Dynamic> = Serializer.instance.fromJsonX(response.result.results[0], Content);
+											fcn(c);
+											
+										}
+									}, 
+									"ContentComp-Link-" + link.props.contentIid	 
+								);
+	 
+			        		case _:
+			        			Logga.DEFAULT.debug("Unsupported content type"); 
+			        	}
+					}
+
+		        	fcn(content);
 				},
 		        
 		        update: function(content:Content<Dynamic>) : Void {

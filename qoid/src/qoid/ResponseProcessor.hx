@@ -20,7 +20,7 @@ using StringTools;
 
 typedef Response = {
     var success: Bool;
-    var context: String;
+    var context: Dynamic<String>;
     var error: Dynamic;
     var result: ResponseResult;
 }

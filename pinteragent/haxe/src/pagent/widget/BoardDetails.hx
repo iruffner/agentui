@@ -1,6 +1,7 @@
 package pagent.widget;
 
 import m3.log.Logga;
+import pagent.model.ContentSource;
 import pagent.model.EM;
 import m3.jq.JQ;
 import m3.widget.Widgets;
@@ -39,6 +40,7 @@ typedef BoardDetailsWidgetDef = {
 	var _showAddAccessPopup: JQ->Void;
 
     @:optional var _profileListener: Profile->EventType->Void;
+    @:optional var _pinListener: String;
 }
 
 @:native("$")
@@ -91,16 +93,32 @@ extern class BoardDetails extends JQ {
         		        				self._showAccessPopup(JQ.cur);
         		        			});
                         } else {
-                            var editButton: JQ = new JQ("<button class='center'>Repin Board</button>")
-                                .appendTo(bar)
-                                .button()
-                                .click(function(evt: JQEvent) {
-                                        evt.stopPropagation();
-                                        // self._showEditPopup(JQ.cur);
-                                    });
+                            // var editButton: JQ = new JQ("<button class='center'>Repin Board</button>")
+                            //     .appendTo(bar)
+                            //     .button()
+                            //     .click(function(evt: JQEvent) {
+                            //             evt.stopPropagation();
+                            //             // self._showEditPopup(JQ.cur);
+                            //         });
                         }
 
-    	        		var pins: JQ = new JQ("<div class='fright pinCount'> 0 pins </div>").appendTo(bar);
+    	        		var pins: JQ = new JQ("<div class='fright pinCount'> pins</div>").appendTo(bar);
+                        var pinCnt: JQ = new JQ("<span>0</span>").prependTo(pins);
+                        var mapListener = function(content: Content<Dynamic>, contentComp:ContentComp, evt: EventType): Void {
+                            if(content != null) {
+                                if(evt.isAdd()) {
+                                    pinCnt.text( Std.string(Std.parseInt(pinCnt.text()) + 1));
+                                } else if (evt.isDelete()) {
+                                    pinCnt.text( Std.string(Std.parseInt(pinCnt.text()) - 1));
+                                }
+                            } else if (evt.isClear()) {
+                                pinCnt.text("0");
+                            }
+                        };
+                        var widgetCreator = function(content:Content<Dynamic>):ContentComp {
+                            return null;
+                        }
+                        self._pinListener = ContentSource.addListener(mapListener, JQ.noop, widgetCreator);
                         bar.append("<div class='clear'></div>");
                     } else {
                         self.ownerDiv = new JQ("<div class='boardOwner' style='font-size:20px;'></div>").appendTo(selfElement);
@@ -344,6 +362,7 @@ extern class BoardDetails extends JQ {
 		        destroy: function() {
                     var self: BoardDetailsWidgetDef = Widgets.getSelf();
                     Qoid.profiles.removeListener(self._profileListener);
+                    ContentSource.removeListener(self._pinListener);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

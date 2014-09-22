@@ -9,6 +9,7 @@ import m3.util.UidGenerator;
 import qoid.model.ModelObj;
 import qoid.QE;
 import qoid.QoidAPI;
+import qoid.ResponseProcessor.Response;
 
 using m3.helper.OSetHelper;
 using m3.helper.ArrayHelper;
@@ -41,7 +42,7 @@ class ContentSourceListener<T> {
 
 class ContentSource {
 	private static var filteredContent: ObservableSet<Content<Dynamic>>;
-	private static var context: QueryContext;
+	private static var context: RequestContext;
 	private static var listeners: Array<ContentSourceListener<Dynamic>>;
 
 	public static function __init__() {
@@ -89,12 +90,18 @@ class ContentSource {
 
 	}
 
-	private static function onLoadFilteredContent(data:{context: QueryContext, result: {standing: Bool, results: Array<Dynamic>, route: Array<String>}}): Void {
+	private static function onLoadFilteredContent(data: Response): Void {
 		if (data.result.standing || (context != null && context.handle == data.context.handle)) {
 			addContent(data.result.results, data.result.route[0]);
 		} else {
 			clearQuery();
-			context = data.context;
+			context = {
+				if(Std.is(data.context, String)) {
+					Serializer.instance.fromJsonX(haxe.Json.parse(cast data.context), RequestContext);
+				} else {
+					Serializer.instance.fromJsonX(data.context, RequestContext);
+				}
+			};
 			beforeSetContent();
 			addContent(data.result.results, data.result.route[0]);
 		}

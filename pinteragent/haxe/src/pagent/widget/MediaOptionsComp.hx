@@ -200,13 +200,12 @@ extern class MediaOptionsComp extends ContentComp {
         						var iter: Iterator<Label> = aliasLabels.iterator();
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
-        							if (label.iid != PinterContext.CURRENT_BOARD ) {
+        							if (label.iid != PinterContext.CURRENT_BOARD && label.iid != PinterContext.COMMENTS.iid) {
 	        							var option = "<option value='" + label.iid + "'>" + label.name + "</option>";
 	        							select.append(option);
 	        						}
         						}
         						var buttonText = "Pin It";
-    							// input.val(c.props.caption);
         						container.append("<br/>");
         						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>")
         							.button()
@@ -216,8 +215,17 @@ extern class MediaOptionsComp extends ContentComp {
         							});
 
         						updateLabels = function(): Void {
-									Logga.DEFAULT.info("Add content label | " + c.iid);
-                                    QoidAPI.addContentLabel( c.iid, select.val());
+                                    if(c.connectionIid == Qoid.currentAlias.connectionIid) {
+    									Logga.DEFAULT.info("Add content label | " + c.iid);
+                                        QoidAPI.addContentLabel( c.iid, select.val());
+                                    } else {
+                                        Logga.DEFAULT.info("Add content link | " + c.iid);
+                                        var link: LinkContent = new LinkContent();
+                                        link.props.contentIid = c.iid;
+                                        link.props.route = [c.connectionIid];
+                                        var edc: EditContentData = new EditContentData(link, [select.val()]);
+                                        EM.change(EMEvent.CreateContent, edc);
+                                    }
 									new JQ("body").click();
         						};
         					},
