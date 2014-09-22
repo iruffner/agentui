@@ -91,7 +91,7 @@ extern class PinFeed extends JQ {
 					}
 
 		        	var mapListener = function(content: Content<Dynamic>, contentComp:ContentComp, evt: EventType): Void {
-		        		if(content != null && ContentTypes.IMAGE == content.contentType) {
+		        		if(content != null) {
 		            		if(evt.isAdd()) {
 		            			var contentComps = new JQ(".contentComp");
 		            			if (contentComps.length == 0) {

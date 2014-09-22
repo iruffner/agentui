@@ -92,6 +92,21 @@ extern class BoardDetails extends JQ {
         		        				evt.stopPropagation();
         		        				self._showAccessPopup(JQ.cur);
         		        			});
+
+                            var acls: OSet<LabelAcl> = PinterContext.labelAclsByLabel.getElement(PinterContext.CURRENT_BOARD);
+                            if (acls == null) {
+                                acls = PinterContext.labelAclsByLabel.addEmptyGroup(PinterContext.CURRENT_BOARD);
+                            }
+                            if(acls.hasValues()) {
+                               var dot: Int = Lambda.array(acls)[0].maxDegreesOfVisibility;
+                               var str: String = "";
+                               switch(dot) {
+                                    case 1: str = "1 Degree of Trust";
+                                    case _: str = dot + " Degrees of Trust";
+                               }
+                               dotButton.children("span").text(str);
+                            }
+
                         } else {
                             // var editButton: JQ = new JQ("<button class='center'>Repin Board</button>")
                             //     .appendTo(bar)
@@ -101,6 +116,8 @@ extern class BoardDetails extends JQ {
                             //             // self._showEditPopup(JQ.cur);
                             //         });
                         }
+
+
 
     	        		var pins: JQ = new JQ("<div class='fright pinCount'> pins</div>").appendTo(bar);
                         var pinCnt: JQ = new JQ("<span>0</span>").prependTo(pins);

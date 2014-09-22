@@ -2,6 +2,7 @@ package pagent.pages;
 
 import m3.jq.JQ;
 
+import pagent.model.ContentSource;
 import pagent.PinterContext;
 import pagent.widget.PinFeed;
 import pagent.model.EM;
@@ -62,6 +63,8 @@ class MyBoardScreen extends PinterPage {
 			parentIid: PinterContext.ROOT_BOARD.iid,
 			showOptionBar: true
 		});
+
+		ContentSource.clearQuery();
 
 		var root: Node = new Or();
 		root.type = "ROOT";

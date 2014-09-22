@@ -93,8 +93,6 @@ extern class ContentComp extends JQ {
 
 					var content:Content<Dynamic> = self.options.content;
 
-
-
 					var fcn: Content<Dynamic>->Void = null;
 					fcn = function(content: Content<Dynamic>) {
 						switch(content.contentType) {
@@ -112,7 +110,7 @@ extern class ContentComp extends JQ {
 
 							case ContentTypes.LINK:
 								var link: LinkContent = cast(content, LinkContent);
-								QoidAPI.query(new RequestContext("contentLink_" + link.props.contentIid, link.props.contentIid), "content", "contentIid = '" + link.props.contentIid + "'" , true, true, link.props.route);
+								QoidAPI.query(new RequestContext("contentLink_" + link.props.contentIid, link.props.contentIid), "content", "iid = '" + link.props.contentIid + "'" , true, true, link.props.route);
 								EM.listenOnce(
 									"onContentLink_" + link.props.contentIid, 
 									function(response: Response){

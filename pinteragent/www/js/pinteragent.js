@@ -6141,6 +6141,7 @@ pagent.pages.BoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
 		var boardDetails = new $("<div></div>");
 		boardDetails.appendTo(content);
 		boardDetails.boardDetails({ label : label, parentIid : pagent.PinterContext.get_ROOT_BOARD().iid, showOptionBar : true});
+		pagent.model.ContentSource.clearQuery();
 		var root = new agentui.model.Or();
 		root.type = "ROOT";
 		var path = new Array();
@@ -6301,6 +6302,7 @@ pagent.pages.MyBoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 		var boardDetails = new $("<div></div>");
 		boardDetails.appendTo(content);
 		boardDetails.boardDetails({ label : label, parentIid : pagent.PinterContext.get_ROOT_BOARD().iid, showOptionBar : true});
+		pagent.model.ContentSource.clearQuery();
 		var root = new agentui.model.Or();
 		root.type = "ROOT";
 		var path = new Array();
@@ -7480,6 +7482,20 @@ var defineWidget = function() {
 					evt2.stopPropagation();
 					self._showAccessPopup($(this));
 				});
+				var acls = m3.helper.OSetHelper.getElement(pagent.PinterContext.labelAclsByLabel,pagent.PinterContext.CURRENT_BOARD);
+				if(acls == null) acls = pagent.PinterContext.labelAclsByLabel.addEmptyGroup(pagent.PinterContext.CURRENT_BOARD);
+				if(m3.helper.OSetHelper.hasValues(acls)) {
+					var dot = Lambda.array(acls)[0].maxDegreesOfVisibility;
+					var str = "";
+					switch(dot) {
+					case 1:
+						str = "1 Degree of Trust";
+						break;
+					default:
+						str = dot + " Degrees of Trust";
+					}
+					dotButton.children("span").text(str);
+				}
 			} else {
 			}
 			var pins = new $("<div class='fright pinCount'> pins</div>").appendTo(bar);
@@ -7729,7 +7745,7 @@ var defineWidget = function() {
 			case qoid.model.ContentTypes.LINK:
 				var link;
 				link = js.Boot.__cast(content2 , qoid.model.LinkContent);
-				qoid.QoidAPI.query(new qoid.RequestContext("contentLink_" + link.props.contentIid,link.props.contentIid),"content","contentIid = '" + link.props.contentIid + "'",true,true,link.props.route);
+				qoid.QoidAPI.query(new qoid.RequestContext("contentLink_" + link.props.contentIid,link.props.contentIid),"content","iid = '" + link.props.contentIid + "'",true,true,link.props.route);
 				pagent.model.EM.listenOnce("onContentLink_" + link.props.contentIid,function(response) {
 					if(m3.helper.ArrayHelper.hasValues(response.result.results)) {
 						var c = m3.serialization.Serializer.get_instance().fromJsonX(response.result.results[0],qoid.model.Content);
@@ -8185,7 +8201,7 @@ var defineWidget = function() {
 			});
 		}
 		var mapListener = function(content,contentComp,evt1) {
-			if(content != null && qoid.model.ContentTypes.IMAGE == content.contentType) {
+			if(content != null) {
 				if(evt1.isAdd()) {
 					var contentComps = new $(".contentComp");
 					if(contentComps.length == 0) {
