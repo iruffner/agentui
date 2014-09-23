@@ -7604,6 +7604,10 @@ var defineWidget = function() {
 				var acls1 = m3.helper.OSetHelper.getElement(pagent.PinterContext.labelAclsByLabel,pagent.PinterContext.CURRENT_BOARD);
 				if(m3.helper.OSetHelper.hasValues(acls1)) {
 					var dot1 = Std.parseInt(input1.val());
+					if(dot1 < 1) {
+						js.Lib.alert("Cannot set Degrees of Trust less than 1.");
+						return;
+					}
 					Lambda.iter(acls1,function(acl) {
 						acl.maxDegreesOfVisibility = dot1;
 						pagent.model.EM.change("UpdateAccess",acl);

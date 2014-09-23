@@ -260,17 +260,21 @@ extern class BoardDetails extends JQ {
 									var acls: OSet<LabelAcl> = PinterContext.labelAclsByLabel.getElement(PinterContext.CURRENT_BOARD);
                                     if(acls.hasValues()) {
                                        var dot: Int = Std.parseInt(input.val());
+                                        if(dot < 1) {
+                                            js.Lib.alert("Cannot set Degrees of Trust less than 1.");
+                                            return;
+                                        }
                                         Lambda.iter(acls, function(acl: LabelAcl): Void {
                                                 acl.maxDegreesOfVisibility = dot;
                                                 EM.change(EMEvent.UpdateAccess, acl);
                                             });
-                                       var str: String = "";
-                                       switch(dot) {
+                                        var str: String = "";
+                                        switch(dot) {
                                             case 1: str = "1 Degree of Trust";
                                             case _: str = dot + " Degrees of Trust";
-                                       }
-                                       self.dotButton.children("span").text(str);
-                                       EM.listenOnce(EMEvent.OnUpdateAccess, function(n: {}) {
+                                        }
+                                        self.dotButton.children("span").text(str);
+                                        EM.listenOnce(EMEvent.OnUpdateAccess, function(n: {}) {
                                             new JQ("body").click();
                                         });
                                     } else {
