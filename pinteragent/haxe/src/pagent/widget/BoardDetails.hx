@@ -14,6 +14,7 @@ import pagent.widget.ConnectionAvatar;
 import qoid.model.ModelObj;
 import agentui.widget.Popup;
 import qoid.Qoid;
+import qoid.QoidAPI;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -30,7 +31,8 @@ typedef BoardDetailsWidgetDef = {
 	
 	@:optional var img: JQ;
     @:optional var nameDiv: JQ;
-	@:optional var ownerDiv: JQ;
+    @:optional var ownerDiv: JQ;
+	@:optional var dotButton: JQ;
 
 	var _create: Void->Void;
 	var destroy: Void->Void;
@@ -77,7 +79,7 @@ extern class BoardDetails extends JQ {
         		        				self._showEditPopup(JQ.cur);
         		        			});
 
-        	        		var dotButton: JQ = new JQ("<button class='center'>1 Degree of Trust</button>")
+        	        		self.dotButton = new JQ("<button class='center'>1 Degree of Trust</button>")
         		        		.appendTo(bar)
         		        		.button()
         		        		.click(function(evt: JQEvent) {
@@ -104,7 +106,7 @@ extern class BoardDetails extends JQ {
                                     case 1: str = "1 Degree of Trust";
                                     case _: str = dot + " Degrees of Trust";
                                }
-                               dotButton.children("span").text(str);
+                               self.dotButton.children("span").text(str);
                             }
 
                         } else {
@@ -238,7 +240,7 @@ extern class BoardDetails extends JQ {
         						container.click(stopFcn).keypress(enterFcn);
         						var parent: JQ = null;
         						container.append("<label for='labelName'>Degrees of Trust: </label> ");
-        						var input: JQ = new JQ("<input id='labelName' type='number' min='1' max='5' class='ui-corner-all ui-widget-content' style='font-size: 20px;' value=''/>").appendTo(container);
+        						var input: JQ = new JQ("<input id='labelName' type='number' min='1' max='5' class='ui-corner-all ui-widget-content' style='font-size: 20px;' value='" + self.dotButton.children("span").text().split(" ")[0] + "'/>").appendTo(container);
         						input.keypress(enterFcn).click(function(evt: JQEvent): Void {
         								evt.stopPropagation();
         								if(JQ.cur.val() == "New Board") {
@@ -246,7 +248,6 @@ extern class BoardDetails extends JQ {
         								}
     								}).focus();
         						var buttonText = "Update Trust";
-    							input.val(self.options.label.name);
         						container.append("<br/>");
         						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>")
         							.button()
@@ -256,13 +257,25 @@ extern class BoardDetails extends JQ {
         							});
 
         						updateDot = function(): Void {
-									if (input.val().length == 0) {return;}
-									var label = self.options.label;
-									Logga.DEFAULT.info("Update label | " + label.iid);
-									label.name = input.val();
-  									var eventData = new EditLabelData(label);
-  									EM.change(EMEvent.UpdateLabel, eventData);
-									new JQ("body").click();
+									var acls: OSet<LabelAcl> = PinterContext.labelAclsByLabel.getElement(PinterContext.CURRENT_BOARD);
+                                    if(acls.hasValues()) {
+                                       var dot: Int = Std.parseInt(input.val());
+                                        Lambda.iter(acls, function(acl: LabelAcl): Void {
+                                                acl.maxDegreesOfVisibility = dot;
+                                                EM.change(EMEvent.UpdateAccess, acl);
+                                            });
+                                       var str: String = "";
+                                       switch(dot) {
+                                            case 1: str = "1 Degree of Trust";
+                                            case _: str = dot + " Degrees of Trust";
+                                       }
+                                       self.dotButton.children("span").text(str);
+                                       EM.listenOnce(EMEvent.OnUpdateAccess, function(n: {}) {
+                                            new JQ("body").click();
+                                        });
+                                    } else {
+                                        js.Lib.alert("Cannot set Degrees of Trust because this board has not yet been shared.");
+                                    }
         						};
         					},
         					positionalElement: positionalElem

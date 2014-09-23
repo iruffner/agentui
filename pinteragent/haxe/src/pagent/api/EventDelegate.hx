@@ -57,12 +57,16 @@ class EventDelegate {
             QoidAPI.deleteLabel(data.label.iid, data.parentIid);
         });
 
-        EM.addListener(EMEvent.GrantAccess, function(parms:{connectionIid: String,labelIid: String}):Void{
-            QoidAPI.grantAccess(parms.labelIid, parms.connectionIid, 1);
+        EM.addListener(EMEvent.GrantAccess, function(acl: LabelAcl):Void{
+            QoidAPI.grantAccess(acl.labelIid, acl.connectionIid, acl.maxDegreesOfVisibility);
         });
 
         EM.addListener(EMEvent.RevokeAccess, function(parms: {connectionIid: String,labelIid: String}):Void{
             QoidAPI.revokeAccess(parms.labelIid, parms.connectionIid);
+        });
+
+        EM.addListener(EMEvent.UpdateAccess, function(acl: LabelAcl):Void{
+            QoidAPI.updateAccess(acl.labelIid, acl.connectionIid, acl.maxDegreesOfVisibility);
         });
 
         EM.addListener(EMEvent.DeleteConnection, function(c:Connection):Void{

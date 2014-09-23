@@ -71,9 +71,12 @@ class ContentScreen extends PinterPage {
 
     	var beforeSetContent = JQ.noop;
     	var widgetCreator = function(content:Content<Dynamic>): MediaComp {
-    		return new MediaComp("<div></div>").mediaComp({
-				content: content
-			});
+    		if(content != null && content.iid == contentId)
+	    		return new MediaComp("<div></div>").mediaComp({
+					content: content
+				});
+			else
+				return null;
     	}
     	var id: String = ContentSource.addListener(mapListener, beforeSetContent, widgetCreator);
     	this._onDestroy = function() {

@@ -3008,6 +3008,7 @@ qoid.Qoid.getLabelDescendents = function(iid) {
 		var label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,iid_);
 		if(label == null) m3.log.Logga.get_DEFAULT().error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
 	}
+	HxOverrides.remove(iid_list,iid);
 	return labelDescendents;
 };
 qoid.Qoid.connectionFromMetaLabel = function(labelIid) {
@@ -5760,7 +5761,7 @@ pagent.PinterContext.set_ROOT_BOARD = function(l) {
 	root.type = "ROOT";
 	var path = new Array();
 	path.push(m3.helper.OSetHelper.getElement(qoid.Qoid.labels,qoid.Qoid.get_currentAlias().labelIid).name);
-	path.push(pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS().name);
+	path.push(pagent.PinterContext.ROOT_LABEL_OF_ALL_APPS.name);
 	path.push(pagent.PinterContext.get_ROOT_BOARD().name);
 	root.addNode(new agentui.model.LabelNode(l,path));
 	var filterData = new agentui.model.FilterData("boardConfig");
@@ -5774,17 +5775,20 @@ pagent.PinterContext.set_ROOT_BOARD = function(l) {
 pagent.PinterContext.set_COMMENTS = function(l) {
 	pagent.PinterContext.COMMENTS = l;
 	qoid.Qoid.connections.listen(function(c,evt) {
-		var parms = { connectionIid : c.iid, labelIid : pagent.PinterContext.COMMENTS.iid};
+		var parms = { connectionIid : c.iid, labelIid : pagent.PinterContext.COMMENTS.iid, maxDegreesOfVisibility : 1};
 		pagent.model.EM.change("GrantAccess",parms);
 	});
 	return l;
 };
-pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS = function() {
-	return pagent.PinterContext.ROOT_LABEL_OF_ALL_APPS;
+pagent.PinterContext.set_CURRENT_BOARD = function(iid) {
+	pagent.PinterContext.CURRENT_BOARD = iid;
+	m3.log.Logga.get_DEFAULT().debug("CURRENT_BOARD | " + iid);
+	return iid;
 };
-pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS = function(l) {
-	pagent.PinterContext.ROOT_LABEL_OF_ALL_APPS = l;
-	return l;
+pagent.PinterContext.set_CURRENT_MEDIA = function(iid) {
+	pagent.PinterContext.CURRENT_MEDIA = iid;
+	m3.log.Logga.get_DEFAULT().debug("CURRENT_MEDIA | " + iid);
+	return iid;
 };
 pagent.PinterContext.registerListeners = function() {
 	pagent.model.EM.listenOnce(qoid.QE.onInitialDataload,pagent.PinterContext._onInitialDataLoadComplete,"PinterContext-onInitialDataLoad");
@@ -5806,7 +5810,7 @@ pagent.PinterContext._onInitialDataLoadComplete = function(n) {
 	var rootLabelOfThisApp = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,pagent.PinterContext.APP_ROOT_LABEL_NAME,getLabelNameFcn);
 	var commentsLabel = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,pagent.PinterContext.APP_COMMENTS_LABEL_NAME,getLabelNameFcn);
 	if(rootLabelOfAllApps == null) pagent.PinterContext._processNullRootAppsLabel(); else if(rootLabelOfThisApp == null) pagent.PinterContext._processNullAppLabel(rootLabelOfAllApps); else if(commentsLabel == null) pagent.PinterContext._processNullCommentsLabel(rootLabelOfThisApp); else {
-		pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(rootLabelOfAllApps);
+		pagent.PinterContext.ROOT_LABEL_OF_ALL_APPS = rootLabelOfAllApps;
 		pagent.PinterContext.set_ROOT_BOARD(rootLabelOfThisApp);
 		pagent.PinterContext.set_COMMENTS(commentsLabel);
 		pagent.model.EM.change(qoid.QE.onAliasLoaded,qoid.Qoid.get_currentAlias());
@@ -5819,7 +5823,7 @@ pagent.PinterContext._processNullRootAppsLabel = function() {
 		if(evtType.isAdd()) {
 			if(l.name == pagent.PinterContext.ROOT_LABEL_NAME_OF_ALL_APPS) {
 				qoid.Qoid.labels.removeListener(listener);
-				pagent.PinterContext.set_ROOT_LABEL_OF_ALL_APPS(l);
+				pagent.PinterContext.ROOT_LABEL_OF_ALL_APPS = l;
 				pagent.PinterContext._onInitialDataLoadComplete(null);
 			}
 		}
@@ -5941,11 +5945,14 @@ pagent.api.EventDelegate.init = function() {
 	pagent.model.EM.addListener("DeleteLabel",function(data6) {
 		qoid.QoidAPI.deleteLabel(data6.label.iid,data6.parentIid);
 	});
-	pagent.model.EM.addListener("GrantAccess",function(parms) {
-		qoid.QoidAPI.grantAccess(parms.labelIid,parms.connectionIid,1);
+	pagent.model.EM.addListener("GrantAccess",function(acl) {
+		qoid.QoidAPI.grantAccess(acl.labelIid,acl.connectionIid,acl.maxDegreesOfVisibility);
 	});
-	pagent.model.EM.addListener("RevokeAccess",function(parms1) {
-		qoid.QoidAPI.revokeAccess(parms1.labelIid,parms1.connectionIid);
+	pagent.model.EM.addListener("RevokeAccess",function(parms) {
+		qoid.QoidAPI.revokeAccess(parms.labelIid,parms.connectionIid);
+	});
+	pagent.model.EM.addListener("UpdateAccess",function(acl1) {
+		qoid.QoidAPI.updateAccess(acl1.labelIid,acl1.connectionIid,acl1.maxDegreesOfVisibility);
 	});
 	pagent.model.EM.addListener("DeleteConnection",function(c) {
 		qoid.QoidAPI.deleteConnection(c.iid);
@@ -6146,7 +6153,7 @@ pagent.pages.BoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
 		root.type = "ROOT";
 		var path = new Array();
 		path.push(m3.helper.OSetHelper.getElement(qoid.Qoid.labels,qoid.Qoid.get_currentAlias().labelIid).name);
-		path.push(pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS().name);
+		path.push(pagent.PinterContext.ROOT_LABEL_OF_ALL_APPS.name);
 		path.push(pagent.PinterContext.get_ROOT_BOARD().name);
 		path.push(label.name);
 		root.addNode(new agentui.model.LabelNode(label,path));
@@ -6195,7 +6202,7 @@ pagent.pages.ContentScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 		};
 		var beforeSetContent = $.noop;
 		var widgetCreator = function(content1) {
-			return new $("<div></div>").mediaComp({ content : content1});
+			if(content1 != null && content1.iid == contentId) return new $("<div></div>").mediaComp({ content : content1}); else return null;
 		};
 		var id = pagent.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
 		this._onDestroy = function() {
@@ -6263,6 +6270,12 @@ pagent.pages.HomeScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
 	pageBeforeShowFcn: function(screen) {
 		var content = new $(".content",screen).empty();
 		content.addClass("center");
+		if((function($this) {
+			var $r;
+			var this1 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this1.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+			return $r;
+		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
 		var aliasComp = new $("<div></div>");
 		aliasComp.appendTo(content);
 		aliasComp.aliasComp();
@@ -6307,7 +6320,7 @@ pagent.pages.MyBoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 		root.type = "ROOT";
 		var path = new Array();
 		path.push(m3.helper.OSetHelper.getElement(qoid.Qoid.labels,qoid.Qoid.get_currentAlias().labelIid).name);
-		path.push(pagent.PinterContext.get_ROOT_LABEL_OF_ALL_APPS().name);
+		path.push(pagent.PinterContext.ROOT_LABEL_OF_ALL_APPS.name);
 		path.push(pagent.PinterContext.get_ROOT_BOARD().name);
 		path.push(label.name);
 		root.addNode(new agentui.model.LabelNode(label,path));
@@ -7425,7 +7438,7 @@ var defineWidget = function() {
 		selfElement1.click(function(evt2) {
 			var pg = pagent.pages.PinterPageMgr.MY_BOARD_SCREEN;
 			if(self2.options.board.connectionIid != qoid.Qoid.get_currentAlias().connectionIid) pg = pagent.pages.PinterPageMgr.BOARD_SCREEN;
-			pagent.PinterContext.CURRENT_BOARD = self2.options.board.iid;
+			pagent.PinterContext.set_CURRENT_BOARD(self2.options.board.iid);
 			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pg);
 			window.history.pushState({ },self2.options.board.iid,"index.html?board=" + self2.options.board.iid);
 		});
@@ -7474,7 +7487,7 @@ var defineWidget = function() {
 					evt.stopPropagation();
 					self._showEditPopup($(this));
 				});
-				var dotButton = new $("<button class='center'>1 Degree of Trust</button>").appendTo(bar).button().click(function(evt1) {
+				self.dotButton = new $("<button class='center'>1 Degree of Trust</button>").appendTo(bar).button().click(function(evt1) {
 					evt1.stopPropagation();
 					self._showDotPopup($(this));
 				});
@@ -7494,7 +7507,7 @@ var defineWidget = function() {
 					default:
 						str = dot + " Degrees of Trust";
 					}
-					dotButton.children("span").text(str);
+					self.dotButton.children("span").text(str);
 				}
 			} else {
 			}
@@ -7577,25 +7590,37 @@ var defineWidget = function() {
 			container1.click(stopFcn1).keypress(enterFcn1);
 			var parent1 = null;
 			container1.append("<label for='labelName'>Degrees of Trust: </label> ");
-			var input1 = new $("<input id='labelName' type='number' min='1' max='5' class='ui-corner-all ui-widget-content' style='font-size: 20px;' value=''/>").appendTo(container1);
+			var input1 = new $("<input id='labelName' type='number' min='1' max='5' class='ui-corner-all ui-widget-content' style='font-size: 20px;' value='" + self2.dotButton.children("span").text().split(" ")[0] + "'/>").appendTo(container1);
 			input1.keypress(enterFcn1).click(function(evt12) {
 				evt12.stopPropagation();
 				if($(this).val() == "New Board") $(this).val("");
 			}).focus();
 			var buttonText1 = "Update Trust";
-			input1.val(self2.options.label.name);
 			container1.append("<br/>");
 			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText1 + "</button>").button().appendTo(container1).click(function(evt13) {
 				updateDot();
 			});
 			updateDot = function() {
-				if(input1.val().length == 0) return;
-				var label1 = self2.options.label;
-				m3.log.Logga.get_DEFAULT().info("Update label | " + label1.iid);
-				label1.name = input1.val();
-				var eventData1 = new qoid.model.EditLabelData(label1);
-				pagent.model.EM.change("UpdateLabel",eventData1);
-				new $("body").click();
+				var acls1 = m3.helper.OSetHelper.getElement(pagent.PinterContext.labelAclsByLabel,pagent.PinterContext.CURRENT_BOARD);
+				if(m3.helper.OSetHelper.hasValues(acls1)) {
+					var dot1 = Std.parseInt(input1.val());
+					Lambda.iter(acls1,function(acl) {
+						acl.maxDegreesOfVisibility = dot1;
+						pagent.model.EM.change("UpdateAccess",acl);
+					});
+					var str1 = "";
+					switch(dot1) {
+					case 1:
+						str1 = "1 Degree of Trust";
+						break;
+					default:
+						str1 = dot1 + " Degrees of Trust";
+					}
+					self2.dotButton.children("span").text(str1);
+					pagent.model.EM.listenOnce("onUpdateAccess",function(n) {
+						new $("body").click();
+					});
+				} else js.Lib.alert("Cannot set Degrees of Trust because this board has not yet been shared.");
 			};
 		}, positionalElement : positionalElem1});
 	}, _showAccessPopup : function(positionalElem2) {
@@ -7716,7 +7741,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentComp must be a div element");
 		selfElement.addClass("contentComp ui-corner-all " + m3.widget.Widgets.getWidgetClasses());
 		selfElement.click(function(evt) {
-			pagent.PinterContext.CURRENT_MEDIA = self.options.content.iid;
+			pagent.PinterContext.set_CURRENT_MEDIA(self.options.content.iid);
 			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.CONTENT_SCREEN);
 		});
 		self._createWidgets(selfElement,self);
@@ -8097,27 +8122,58 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of OptionBar must be a div element");
 		selfElement.addClass("_optionBar ui-widget-content ui-corner-all");
-		self.boardsBtn = new $("<button>0 Boards</button>").appendTo(selfElement).button();
-		new $("<button>New Board...</button>").appendTo(selfElement).button().click(function(evt) {
+		self.boardsDiv = new $("<div class='fleft boardCount' style='margin-right: 10px;'>0 Boards</div>").appendTo(selfElement);
+		self.boardsCnt = 0;
+		new $("<button class='fleft'>New Board</button>").appendTo(selfElement).button().click(function(evt) {
 			evt.stopPropagation();
 			self._showNewLabelPopup($(this));
 		});
-		new $("<button class='fright'>Followers</button>").appendTo(selfElement).button().click(function(evt1) {
+		new $("<button class='fleft'>Import</button>").appendTo(selfElement).button().click(function(evt1) {
+			evt1.stopPropagation();
+			self._showImportLabelPopup($(this));
+		});
+		new $("<button class='fright'>Followers</button>").appendTo(selfElement).button().click(function(evt2) {
 			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.FOLLOWERS_SCREEN);
 		});
-		new $("<button class='fright'>Following</button>").appendTo(selfElement).button().click(function(evt2) {
+		new $("<button class='fright'>Following</button>").appendTo(selfElement).button().click(function(evt3) {
 			pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.FOLLOWING_SCREEN);
 		});
+		selfElement.append("<div class='clear'></div>");
 		if((function($this) {
 			var $r;
 			var this1 = qoid.Qoid.groupedLabelChildren.delegate();
 			$r = this1.get(pagent.PinterContext.get_ROOT_BOARD().iid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
-		self._onUpdateBoards = function(board,evt3) {
-			if(evt3.isAdd()) {
-			} else if(evt3.isUpdate()) throw new m3.exception.Exception("this should never happen"); else if(evt3.isDelete()) {
-			} else if(evt3.isClear()) {
+		self._onUpdateBoards = function(board,evt4) {
+			if(board != null && board.iid == pagent.PinterContext.COMMENTS.iid) return;
+			if(evt4.isAdd()) {
+				self.boardsCnt += 1;
+				var str = "";
+				var _g = self.boardsCnt;
+				switch(_g) {
+				case 1:
+					str = "1 Board";
+					break;
+				default:
+					str = self.boardsCnt + " Boards";
+				}
+				self.boardsDiv.text(str);
+			} else if(evt4.isDelete()) {
+				self.boardsCnt -= 1;
+				var str1 = "";
+				var _g1 = self.boardsCnt;
+				switch(_g1) {
+				case 1:
+					str1 = "1 Board";
+					break;
+				default:
+					str1 = self.boardsCnt + " Boards";
+				}
+				self.boardsDiv.text(str1);
+			} else if(evt4.isClear()) {
+				self.boardsDiv.text("0 Boards");
+				self.boardsCnt = 0;
 			}
 		};
 		self.boards = new m3.observable.MappedSet((function($this) {
@@ -8138,22 +8194,22 @@ var defineWidget = function() {
 		popup = popup.popup({ createFcn : function(el) {
 			var createLabel = null;
 			var updateLabel = null;
-			var stopFcn = function(evt4) {
-				evt4.stopPropagation();
+			var stopFcn = function(evt5) {
+				evt5.stopPropagation();
 			};
-			var enterFcn = function(evt5) {
-				if(evt5.keyCode == 13) createLabel();
+			var enterFcn = function(evt6) {
+				if(evt6.keyCode == 13) createLabel();
 			};
 			var container = new $("<div class='icontainer'></div>").appendTo(el);
 			container.click(stopFcn).keypress(enterFcn);
 			container.append("<br/><label for='labelName'>Name: </label> ");
 			var input = new $("<input id='labelName' class='ui-corner-all ui-widget-content' value='New Label'/>").appendTo(container);
-			input.keypress(enterFcn).click(function(evt6) {
-				evt6.stopPropagation();
+			input.keypress(enterFcn).click(function(evt7) {
+				evt7.stopPropagation();
 				if($(this).val() == "New Label") $(this).val("");
 			}).focus();
 			container.append("<br/>");
-			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Board</button>").button().appendTo(container).click(function(evt7) {
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>Add Board</button>").button().appendTo(container).click(function(evt8) {
 				createLabel();
 			});
 			createLabel = function() {
@@ -8166,9 +8222,45 @@ var defineWidget = function() {
 				new $("body").click();
 			};
 		}, positionalElement : reference});
-	}, destroy : function() {
+	}, _showImportLabelPopup : function(reference1) {
 		var self2 = this;
-		if(self2.boards != null) self2.boards.removeListener(self2._onUpdateBoards);
+		var selfElement2 = this.element;
+		var popup1 = new $("<div class='updateAlbumPopup' style='position: absolute;width:400px;'></div>");
+		popup1.appendTo(selfElement2);
+		popup1 = popup1.popup({ createFcn : function(el1) {
+			var updateLabels = null;
+			var stopFcn1 = function(evt9) {
+				evt9.stopPropagation();
+			};
+			var enterFcn1 = function(evt10) {
+				if(evt10.keyCode == 13) updateLabels();
+			};
+			var container1 = new $("<div class='icontainer'></div>").appendTo(el1);
+			container1.click(stopFcn1).keypress(enterFcn1);
+			container1.append("<label for='labelParent'>Import: </label> ");
+			var select = new $("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container1);
+			select.click(stopFcn1);
+			var iter = qoid.Qoid.labels.iterator();
+			while(iter.hasNext()) {
+				var label1 = iter.next();
+				var option = "<option value='" + label1.iid + "'>" + label1.name + "</option>";
+				select.append(option);
+			}
+			var buttonText = "Import";
+			container1.append("<br/>");
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container1).click(function(evt11) {
+				updateLabels();
+			});
+			updateLabels = function() {
+				var eld = new qoid.model.EditLabelData(m3.helper.OSetHelper.getElement(qoid.Qoid.labels,select.val()));
+				eld.newParentId = pagent.PinterContext.get_ROOT_BOARD().iid;
+				pagent.model.EM.change("CopyLabel",eld);
+				new $("body").click();
+			};
+		}, positionalElement : reference1});
+	}, destroy : function() {
+		var self3 = this;
+		if(self3.boards != null) self3.boards.removeListener(self3._onUpdateBoards);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -8399,6 +8491,7 @@ pagent.model.EMEvent.OnConnectionBoards = "onConnectionBoards";
 pagent.model.EMEvent.OnConnectionBoardConfigs = "onConnectionBoardConfigs";
 pagent.model.EMEvent.ContentComments = "ContentComments";
 pagent.model.EMEvent.OnContentComments = "onContentComments";
+pagent.model.EMEvent.OnUpdateAccess = "onUpdateAccess";
 pagent.model.EMEvent.FILTER_RUN = "FILTER_RUN";
 pagent.model.EMEvent.FILTER_CHANGE = "FILTER_CHANGE";
 pagent.model.EMEvent.OnFilteredContent = "onFilteredContent";
@@ -8422,6 +8515,7 @@ pagent.model.EMEvent.OnAddContentLabel = "onAddContentLabel";
 pagent.model.EMEvent.GrantAccess = "GrantAccess";
 pagent.model.EMEvent.AccessGranted = "AccessGranted";
 pagent.model.EMEvent.RevokeAccess = "RevokeAccess";
+pagent.model.EMEvent.UpdateAccess = "UpdateAccess";
 pagent.model.EMEvent.DeleteConnection = "DeleteConnection";
 pagent.model.EMEvent.INTRODUCTION_REQUEST = "INTRODUCTION_REQUEST";
 pagent.model.EMEvent.RespondToIntroduction = "RespondToIntroduction";

@@ -174,6 +174,8 @@ class Qoid {
                 labelDescendents.add(label);
             }
         }
+        //edit by isaiah --> remove the parent iid
+        iid_list.remove(iid);
         return labelDescendents;
     }
 

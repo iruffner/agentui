@@ -23,8 +23,10 @@ typedef OptionBarWidgetDef = {
 	var _create: Void->Void;
 	var destroy: Void->Void;
 	var _showNewLabelPopup: JQ->Void;
+	var _showImportLabelPopup: JQ->Void;
 
-	@:optional var boardsBtn: JQ;
+	@:optional var boardsDiv: JQ;
+	@:optional var boardsCnt: Int;
 
 	@:optional var boards:MappedSet<LabelChild, Label>;
 	@:optional var _onUpdateBoards: Label->EventType->Void;
@@ -54,11 +56,11 @@ extern class OptionBar extends JQ {
 
 		        	selfElement.addClass("_optionBar ui-widget-content ui-corner-all");
 
-		        	self.boardsBtn = new JQ("<button>0 Boards</button>")
-		        		.appendTo(selfElement)
-		        		.button();
+		        	self.boardsDiv = new JQ("<div class='fleft boardCount' style='margin-right: 10px;'>0 Boards</div>")
+		        		.appendTo(selfElement);
+	        		self.boardsCnt = 0;
 
-	        		new JQ("<button>New Board...</button>")
+	        		new JQ("<button class='fleft'>New Board</button>")
 	        			.appendTo(selfElement)
 	        			.button()
 	        			.click(function(evt: JQEvent) {
@@ -66,9 +68,13 @@ extern class OptionBar extends JQ {
 			        			self._showNewLabelPopup(JQ.cur);
 		        			});
 
-        			// new JQ("<button>All Pins...</button>")
-	        		// 	.appendTo(selfElement)
-	        		// 	.button();
+	        		new JQ("<button class='fleft'>Import</button>")
+	        			.appendTo(selfElement)
+	        			.button()
+	        			.click(function(evt: JQEvent) {
+		        				evt.stopPropagation();
+			        			self._showImportLabelPopup(JQ.cur);
+		        			});
 
         			new JQ("<button class='fright'>Followers</button>")
 	        			.appendTo(selfElement)
@@ -84,20 +90,34 @@ extern class OptionBar extends JQ {
 		        				PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.FOLLOWING_SCREEN;
 		        			});
 
+        			selfElement.append("<div class='clear'></div>");
+
 
 		        	if (Qoid.groupedLabelChildren.delegate().get(PinterContext.ROOT_BOARD.iid) == null) {
 	        			Qoid.groupedLabelChildren.addEmptyGroup(PinterContext.ROOT_BOARD.iid);
     				}
 		        	
 	        		self._onUpdateBoards = function(board: Label, evt: EventType): Void {
+	        			if(board != null && board.iid == PinterContext.COMMENTS.iid) return;
 	            		if(evt.isAdd()) {
-	            			// selfElement.append(albumComp);
-	            		} else if (evt.isUpdate()) {
-	            			throw new Exception("this should never happen");
+	            			self.boardsCnt += 1;
+							var str: String = "";
+							switch(self.boardsCnt) {
+							    case 1: str = "1 Board";
+							    case _: str = self.boardsCnt + " Boards";
+							}
+							self.boardsDiv.text(str);
 	            		} else if (evt.isDelete()) {
-	            			// albumComp.remove();
+	            			self.boardsCnt -= 1;
+							var str: String = "";
+							switch(self.boardsCnt) {
+							    case 1: str = "1 Board";
+							    case _: str = self.boardsCnt + " Boards";
+							}
+							self.boardsDiv.text(str);
 	            		} else if (evt.isClear()) {
-
+	            			self.boardsDiv.text("0 Boards");
+	            			self.boardsCnt = 0;
 	            		}
 	            	};
 
@@ -154,6 +174,56 @@ extern class OptionBar extends JQ {
 									label.name = input.val();
   									var eventData = new EditLabelData(label, PinterContext.ROOT_BOARD.iid);
   									EM.change(EMEvent.CreateLabel, eventData);
+									new JQ("body").click();
+        						};
+        					},
+        					positionalElement: reference
+        				});
+
+				},
+
+				_showImportLabelPopup: function(reference: JQ): Void {
+					var self: OptionBarWidgetDef = Widgets.getSelf();
+					var selfElement: JQ = Widgets.getSelfElement();
+
+        			var popup: Popup = new Popup("<div class='updateAlbumPopup' style='position: absolute;width:400px;'></div>");
+        			popup.appendTo(selfElement);
+        			popup = popup.popup({
+        					createFcn: function(el: JQ): Void {
+        						var updateLabels: Void->Void = null;
+        						var stopFcn: JQEvent->Void = function (evt: JQEvent): Void { evt.stopPropagation(); };
+        						var enterFcn: JQEvent->Void = function (evt: JQEvent): Void { 
+        							if(evt.keyCode == 13) {
+        								updateLabels();
+    								}
+        						};
+
+        						var container: JQ = new JQ("<div class='icontainer'></div>").appendTo(el);
+        						container.click(stopFcn).keypress(enterFcn);
+    							container.append("<label for='labelParent'>Import: </label> ");
+        						var select: JQ = new JQ("<select id='labelParent' class='ui-corner-left ui-widget-content' style='width: 191px;'></select>").appendTo(container);
+        						select.click(stopFcn);
+        						var iter: Iterator<Label> = Qoid.labels.iterator();
+        						while(iter.hasNext()) {
+        							var label: Label = iter.next();
+        							// if (label.iid != PinterContext.CURRENT_BOARD && label.iid != PinterContext.COMMENTS.iid) {
+	        							var option = "<option value='" + label.iid + "'>" + label.name + "</option>";
+	        							select.append(option);
+	        						// }
+        						}
+        						var buttonText = "Import";
+        						container.append("<br/>");
+        						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>")
+        							.button()
+        							.appendTo(container)
+        							.click(function(evt: JQEvent): Void {
+        								updateLabels();
+        							});
+
+        						updateLabels = function(): Void {
+                                    var eld: EditLabelData = new EditLabelData(Qoid.labels.getElement(select.val()));
+                                    eld.newParentId = PinterContext.ROOT_BOARD.iid;
+                                    EM.change(EMEvent.CopyLabel, eld);
 									new JQ("body").click();
         						};
         					},

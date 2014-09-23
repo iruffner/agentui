@@ -12,6 +12,7 @@ class EMEvent {
 	public static inline var OnConnectionBoardConfigs: String = "onConnectionBoardConfigs";
 	public static inline var ContentComments: String = "ContentComments";
 	public static inline var OnContentComments: String = "onContentComments";
+	public static inline var OnUpdateAccess: String = "onUpdateAccess";
 	/* *************** */
 	
 
@@ -46,6 +47,7 @@ class EMEvent {
 	public static inline var GrantAccess: String = "GrantAccess";
 	public static inline var AccessGranted: String = "AccessGranted";
 	public static inline var RevokeAccess: String = "RevokeAccess";
+	public static inline var UpdateAccess: String = "UpdateAccess";
 
 	public static inline var DeleteConnection: String = "DeleteConnection";
 
