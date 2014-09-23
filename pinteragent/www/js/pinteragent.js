@@ -325,6 +325,9 @@ Std.parseInt = function(x) {
 	if(isNaN(v)) return null;
 	return v;
 };
+Std.parseFloat = function(x) {
+	return parseFloat(x);
+};
 Std.random = function(x) {
 	if(x <= 0) return 0; else return Math.floor(Math.random() * x);
 };
@@ -4401,6 +4404,127 @@ m3.helper.DateHelper.startOfToday = function() {
 	var s = now.getFullYear() + "-" + m3.helper.StringHelper.padLeft("" + (now.getMonth() + 1),2,"0") + "-" + m3.helper.StringHelper.padLeft("" + now.getDate(),2,"0");
 	return HxOverrides.strDate(s);
 };
+m3.helper.StringFormatHelper = function() { };
+$hxClasses["m3.helper.StringFormatHelper"] = m3.helper.StringFormatHelper;
+m3.helper.StringFormatHelper.__name__ = ["m3","helper","StringFormatHelper"];
+m3.helper.StringFormatHelper.toString = function(val) {
+	return Std.string(val);
+};
+m3.helper.StringFormatHelper.nullsAsEmptyStr = function(val) {
+	if(val == null) return ""; else return Std.string(val);
+};
+m3.helper.StringFormatHelper.htmlEscape = function(val) {
+	return StringTools.htmlEscape(Std.string(val));
+};
+m3.helper.StringFormatHelper.toDecimal = function(val,opts) {
+	if(opts == null) opts = { };
+	opts = $.extend({ numberOfDecimals : 2, decimalSeparator : ".", thousandSeparator : ","},opts);
+	return m3.helper.StringFormatHelper.toFormattedNumber(val,opts);
+};
+m3.helper.StringFormatHelper.toCurrency = function(num,decimals,forceNumberOfDecimals) {
+	if(forceNumberOfDecimals == null) forceNumberOfDecimals = true;
+	if(decimals == null) decimals = true;
+	return m3.helper.StringFormatHelper.formatNumber(num,{ numberOfDecimals : decimals?2:0, decimalSeparator : ".", thousandSeparator : ",", symbol : "$", forceNumberOfDecimals : forceNumberOfDecimals});
+};
+m3.helper.StringFormatHelper.toPercentage = function(num) {
+	return m3.helper.StringFormatHelper.formatNumber(num,{ numberOfDecimals : 1, decimalSeparator : ".", thousandSeparator : ",", percentage : true});
+};
+m3.helper.StringFormatHelper.stripNonDigits = function(num,allowDecimal) {
+	var r;
+	if(m3.helper.StringHelper.isBlank(num)) r = num; else {
+		r = new EReg("[^\\d|\\.]","g").replace(num,"");
+		if(!allowDecimal) {
+		}
+	}
+	return r;
+};
+m3.helper.StringFormatHelper.formatNumber = function(numero,params) {
+	if(m3.helper.StringHelper.isBlank(Std.string(numero))) return "";
+	var options = { numberOfDecimals : 2, decimalSeparator : ".", thousandSeparator : ",", symbol : "", percentage : false, forceNumberOfDecimals : true};
+	$.extend(options,params);
+	var number = numero;
+	if(number == null) number = "";
+	var decimals = options.numberOfDecimals;
+	var dec_point = options.decimalSeparator;
+	var thousands_sep = options.thousandSeparator;
+	var currencySymbol = options.symbol;
+	var percentage = options.percentage;
+	var exponent = "";
+	var numberstr = Std.string(number);
+	var eindex = numberstr.indexOf("e");
+	if(eindex > -1) {
+		exponent = numberstr.substring(eindex);
+		number = Std.parseFloat(numberstr.substring(0,eindex));
+	}
+	if(decimals != null) {
+		var temp = Math.pow(10,decimals);
+		number = Math.round(number * temp) / temp;
+	}
+	var sign;
+	if(number < 0) sign = "-"; else sign = "";
+	var integer = Std.string(number > 0?Math.floor(number):Math.abs(Math.ceil(number)));
+	var fractional = Std.string(number).substring(integer.length + sign.length);
+	if(dec_point != null) dec_point = dec_point; else dec_point = ".";
+	if(options.forceNumberOfDecimals || numberstr.indexOf(".") > -1) {
+		if(decimals != null && decimals > 0 || fractional.length > 1) fractional = dec_point + fractional.substring(1); else fractional = "";
+		if(decimals != null && decimals > 0 && options.forceNumberOfDecimals) {
+			var z = decimals;
+			var _g = fractional.length - 1;
+			while(_g < z) {
+				var i = _g++;
+				z = decimals;
+				fractional += "0";
+			}
+		}
+	}
+	if(thousands_sep != dec_point || fractional.length == 0) thousands_sep = thousands_sep; else thousands_sep = null;
+	if(thousands_sep != null && thousands_sep != "") {
+		var i1 = integer.length - 3;
+		while(i1 > 0) {
+			integer = integer.substring(0,i1) + thousands_sep + integer.substring(i1);
+			i1 -= 3;
+		}
+	}
+	if(percentage) return sign + integer + fractional + exponent + "%"; else if(options.symbol == "") return sign + integer + fractional + exponent; else return currencySymbol + "" + sign + integer + fractional + exponent;
+};
+m3.helper.StringFormatHelper.toFormattedPhone = function(num) {
+	var formatted;
+	if(num.length != 10) formatted = num; else {
+		formatted = "(";
+		var ini = num.substring(0,3);
+		formatted += ini + ")";
+		var st = num.substring(3,6);
+		formatted += st + "-";
+		var end = num.substring(6,10);
+		formatted += end;
+	}
+	return formatted;
+};
+m3.helper.StringFormatHelper.toFormattedNumber = function(num,options) {
+	if(options == null) options = { numberOfDecimals : 0, decimalSeparator : ".", thousandSeparator : ","};
+	return m3.helper.StringFormatHelper.formatNumber(num,options);
+};
+m3.helper.StringFormatHelper.toFormattedNumberDyn = function(num) {
+	return m3.helper.StringFormatHelper.toFormattedNumber(num);
+};
+m3.helper.StringFormatHelper.dateYYYY_MM_DD = function(d) {
+	return d.getFullYear() + "-" + m3.helper.StringHelper.padLeft(Std.string(d.getMonth() + 1),2,"0") + "-" + m3.helper.StringHelper.padLeft(Std.string(d.getDate()),2,"0");
+};
+m3.helper.StringFormatHelper.datePretty = function(d) {
+	return m3.helper.StringFormatHelper.MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+};
+m3.helper.StringFormatHelper.dateLongPretty = function(d) {
+	return m3.helper.StringFormatHelper.DAYS_SUNDAYFIRST[d.getDay()] + ", " + m3.helper.StringFormatHelper.MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+};
+m3.helper.StringFormatHelper.dateTimeMM_DD = function(d) {
+	return m3.helper.StringHelper.padLeft(Std.string(d.getMonth() + 1),2,"0") + "-" + m3.helper.StringHelper.padLeft(Std.string(d.getDate()),2,"0") + " " + d.getHours() + ":" + m3.helper.StringHelper.padLeft(Std.string(d.getMinutes()),2,"0") + ":" + m3.helper.StringHelper.padLeft(Std.string(d.getSeconds()),2,"0");
+};
+m3.helper.StringFormatHelper.dateTimeYYYY_MM_DD = function(d) {
+	return d.getFullYear() + "-" + m3.helper.StringHelper.padLeft(Std.string(d.getMonth() + 1),2,"0") + "-" + m3.helper.StringHelper.padLeft(Std.string(d.getDate()),2,"0") + " " + d.getHours() + ":" + m3.helper.StringHelper.padLeft(Std.string(d.getMinutes()),2,"0") + ":" + m3.helper.StringHelper.padLeft(Std.string(d.getSeconds()),2,"0");
+};
+m3.helper.StringFormatHelper.dateTimePretty = function(d) {
+	return m3.helper.StringFormatHelper.MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " " + d.getHours() + ":" + m3.helper.StringHelper.padLeft(Std.string(d.getMinutes()),2,"0") + ":" + m3.helper.StringHelper.padLeft(Std.string(d.getSeconds()),2,"0");
+};
 m3.jq.JQDialogHelper = function() { };
 $hxClasses["m3.jq.JQDialogHelper"] = m3.jq.JQDialogHelper;
 m3.jq.JQDialogHelper.__name__ = ["m3","jq","JQDialogHelper"];
@@ -7808,6 +7932,7 @@ var defineWidget = function() {
 		if(self.options.comment.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) props = { aliasIid : qoid.Qoid.get_currentAlias().iid}; else props = { connectionIid : self.options.comment.connectionIid};
 		new $("<div></div>").connectionComp(props).appendTo(selfElement);
 		new $("<div>" + self.options.comment.props.text + "</div>").appendTo(selfElement);
+		new $("<div class='created'>" + m3.helper.StringFormatHelper.dateTimePretty(self.options.comment.created) + "</div>").appendTo(selfElement);
 	}, destroy : function() {
 		var self1 = this;
 		$.Widget.prototype.destroy.call(this);
@@ -7866,14 +7991,15 @@ var defineWidget = function() {
 		comps.each(function(i,dom) {
 			var cc = new $(dom);
 			var cmp = m3.helper.StringHelper.compare(pagent.widget.CommentCompHelper.comment(commentComp).getTimestamp(),pagent.widget.CommentCompHelper.comment(cc).getTimestamp());
-			if(cmp > 0) {
+			if(cmp < 0) {
 				cc.before(commentComp);
 				inserted = true;
 				return false;
 			} else return true;
 		});
-		if(!inserted) comps.last().after(commentComp);
-		commentComp.insertAfter(self1.header);
+		if(!inserted) {
+			if(comps.length > 0) comps.last().after(commentComp); else commentComp.insertAfter(self1.header);
+		}
 	}, destroy : function() {
 		var self2 = this;
 		qoid.QoidAPI.cancelQuery(new qoid.RequestContext("ContentComments",self2.options.content.semanticId + "_" + qoid.Qoid.get_currentAlias().connectionIid));
@@ -8475,6 +8601,12 @@ haxe.xml.Parser.escapes = (function($this) {
 	$r = h;
 	return $r;
 }(this));
+m3.helper.StringFormatHelper.MONTHS = ["January","Febuary","March","April","May","June","July","August","September","October","November","December"];
+m3.helper.StringFormatHelper.MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+m3.helper.StringFormatHelper.DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+m3.helper.StringFormatHelper.DAYS_SHORT = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+m3.helper.StringFormatHelper.DAYS_SUNDAYFIRST = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+m3.helper.StringFormatHelper.DAYS_SHORT_SUNDAYFIRST = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 m3.jq.pages.SinglePageManager.SCREEN_MAP = new haxe.ds.StringMap();
 m3.jqm.pages.PageManager.SCREEN_MAP = new haxe.ds.StringMap();
 m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false,false);

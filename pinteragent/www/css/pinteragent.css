@@ -313,6 +313,9 @@ body {
 				vertical-align: middle;
 				margin-right: 20px;
 			}
+			._commentsComp ._commentComp .created {
+				float: right;
+			}
 			._commentsComp ._commentComp ._connectionComp {
 				text-align: center;
 			}

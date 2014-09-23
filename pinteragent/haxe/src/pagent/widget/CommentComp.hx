@@ -1,5 +1,6 @@
 package pagent.widget;
 
+import m3.helper.StringFormatHelper;
 import m3.log.Logga;
 import pagent.PinterContext;
 import pagent.pages.PinterPage;
@@ -72,6 +73,7 @@ extern class CommentComp extends ContentComp {
                         .connectionComp(props)
                         .appendTo(selfElement);
                     new JQ("<div>" + self.options.comment.props.text + "</div>").appendTo(selfElement);
+                    new JQ("<div class='created'>" + StringFormatHelper.dateTimePretty(self.options.comment.created) + "</div>").appendTo(selfElement);
 				},
 
 		        destroy: function() {

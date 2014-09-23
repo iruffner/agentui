@@ -131,7 +131,7 @@ extern class CommentsComp extends ContentComp {
                     comps.each(function(i: Int, dom: Element):Dynamic{
                         var cc = new CommentComp(dom);
                         var cmp = StringHelper.compare(commentComp.comment().getTimestamp(), cc.comment().getTimestamp());
-                        if (cmp > 0) {
+                        if (cmp < 0) {
                             cc.before(commentComp);
                             inserted = true;
                             return false;
@@ -141,12 +141,11 @@ extern class CommentsComp extends ContentComp {
                     });
 
                     if (!inserted) {
-                        comps.last().after(commentComp);
+                        if(comps.length > 0)
+                            comps.last().after(commentComp);
+                        else
+                            commentComp.insertAfter(self.header);
                     }
-
-
-
-                    commentComp.insertAfter(self.header);
 				},
 
 		        destroy: function() {
