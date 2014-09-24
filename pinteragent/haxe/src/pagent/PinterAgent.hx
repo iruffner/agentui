@@ -15,6 +15,7 @@ import pagent.model.PinterModel;
 import pagent.widget.UserBar;
 import qoid.model.ModelObj;
 import qoid.QE;
+import qoid.Qoid;
 
 using m3.helper.ArrayHelper;
 using Lambda;
@@ -28,9 +29,19 @@ class PinterAgent {
         EventDelegate.init();
         PinterContext.init();
 
-        EM.addListener(QE.onAliasLoaded, function(a:Alias){
-            js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
-        });
+        EM.addListener(QE.onAliasLoaded, function(a:Alias) {
+            Logga.DEFAULT.debug("loaded alias " + a.iid + "(" + a.objectId + ") | currentAlias " + (Qoid.currentAlias != null? Qoid.currentAlias.iid:null));
+            if(Qoid.currentAlias != null && Qoid.currentAlias.iid == a.iid) {
+                js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
+            }
+        },"PinterAgent-AliasLoaded");
+
+        EM.addListener(QE.onAliasUpdated, function(a:Alias) {
+            Logga.DEFAULT.debug("updated alias " + a.iid + "(" + a.objectId + ") | currentAlias " + (Qoid.currentAlias != null? Qoid.currentAlias.iid:null));
+            if(Qoid.currentAlias != null && Qoid.currentAlias.iid == a.iid) {
+                js.Browser.document.title = a.profile.name + " | Qoid-Bennu";
+            } 
+        },"PinterAgent-AliasUpdated");
 
         HOT_KEY_ACTIONS = HotKeyManager.get;
     }

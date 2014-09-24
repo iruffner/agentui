@@ -18,7 +18,10 @@ using Lambda;
 @:rtti
 class ModelObj {
 
+	@:transient public var objectId: String;
+
 	public function new() {
+		objectId = UidGenerator.create(12);
 	}
 
 	public function objectType():String {

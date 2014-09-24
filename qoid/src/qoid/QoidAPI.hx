@@ -9,6 +9,7 @@ import m3.event.EventManager;
 import m3.exception.Exception;
 import m3.serialization.Serialization;
 import qoid.model.ModelObj.Alias;
+import qoid.Qoid;
 import qoid.Synchronizer;
 
 class AuthenticationResponse {
@@ -50,6 +51,7 @@ class QoidAPI {
 
     @:isVar public static var activeAlias(get,set): Alias;
     public static function set_activeAlias(a:Alias):Alias {
+        Qoid.aliases.add(a);
         activeAlias = a;
         return activeAlias;
     }
@@ -144,7 +146,9 @@ class QoidAPI {
 
         QoidAPI.addChannel(data.channelId);
         QoidAPI.activeChannel = data.channelId;
-        QoidAPI.activeAlias = Serializer.instance.fromJsonX(data.alias, Alias);
+        var alias: Alias = Serializer.instance.fromJsonX(data.alias, Alias);
+        Qoid.aliases.add(alias);
+        QoidAPI.activeAlias = alias;
 
         // Kick off a long poll and immediately request the model data
         _startPolling(data.channelId);
@@ -152,7 +156,7 @@ class QoidAPI {
         var context = "initialDataLoad";
         var sychoronizer = new qoid.Synchronizer(context, 9, onInitialDataload);
         var requests = [
-            new ChannelRequestMessage(QUERY, new RequestContext(context, "alias"), createQueryJson("alias")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "alias"), createQueryJson("alias", "iid <> '" + QoidAPI.activeAlias.iid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "introduction"), createQueryJson("introduction")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "' and iid <> '" + QoidAPI.activeAlias.connectionIid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "notification"), createQueryJson("notification", "consumed='0'")),

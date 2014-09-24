@@ -76,8 +76,10 @@ class Qoid {
         aliases = new ObservableSet<Alias>(ModelObjWithIid.identifier);
         aliases.listen(function(a:Alias, evt:EventType):Void {
             if (evt.isAddOrUpdate()) {
+                Logga.DEFAULT.debug(evt.name() + " | alias " + a.iid + "(" + a.objectId + ")");
                 var p = profiles.getElementComplex(a.iid, "aliasIid");
                 if (p != null) {
+                    Logga.DEFAULT.debug("Assigning profile '" + p.name + "'(" + p.objectId + ") to alias " + a.iid + "(" + a.objectId + ")");
                     a.profile = p;
                 }
                 if (evt.isAdd()) {
@@ -120,6 +122,7 @@ class Qoid {
             if (evt.isAddOrUpdate()) {
                 var alias = aliases.getElement(p.aliasIid);
                 if (alias != null) {
+                    Logga.DEFAULT.debug("Assigning profile '" + p.name + "'(" + p.objectId + ") to alias " + alias.iid + "(" + alias.objectId + ")");
                     alias.profile = p;
                     aliases.addOrUpdate(alias);
                 }
