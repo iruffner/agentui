@@ -144,11 +144,11 @@ extern class BoardDetails extends JQ {
                     }
 
                     if(self.options.label.connectionIid == Qoid.currentAlias.connectionIid) {
-                        self.ownerDiv.empty().text(Qoid.currentAlias.profile.name);
+                        self.ownerDiv.empty().append("<i>created by</i> <b>" + Qoid.currentAlias.profile.name + "</b>");
                     } else {
                         self._profileListener = function(p: Profile, evt: EventType) {
                             if(evt.isAddOrUpdate() && p.connectionIid == self.options.label.connectionIid) {
-                                self.ownerDiv.empty().text(p.name);
+                                self.ownerDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
                             }
                         }
                         Qoid.profiles.listen(self._profileListener);

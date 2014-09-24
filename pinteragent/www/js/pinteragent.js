@@ -5801,10 +5801,6 @@ pagent.PinterAgent.main = function() {
 		m3.log.Logga.get_DEFAULT().debug("loaded alias " + a.iid + "(" + a.objectId + ") | currentAlias " + (qoid.Qoid.get_currentAlias() != null?qoid.Qoid.get_currentAlias().iid:null));
 		if(qoid.Qoid.get_currentAlias() != null && qoid.Qoid.get_currentAlias().iid == a.iid) window.document.title = a.profile.name + " | Qoid-Bennu";
 	},"PinterAgent-AliasLoaded");
-	pagent.model.EM.addListener(qoid.QE.onAliasUpdated,function(a1) {
-		m3.log.Logga.get_DEFAULT().debug("updated alias " + a1.iid + "(" + a1.objectId + ") | currentAlias " + (qoid.Qoid.get_currentAlias() != null?qoid.Qoid.get_currentAlias().iid:null));
-		if(qoid.Qoid.get_currentAlias() != null && qoid.Qoid.get_currentAlias().iid == a1.iid) window.document.title = a1.profile.name + " | Qoid-Bennu";
-	},"PinterAgent-AliasUpdated");
 	pagent.PinterAgent.HOT_KEY_ACTIONS = m3.util.HotKeyManager.get_get();
 };
 pagent.PinterAgent.start = function() {
@@ -7558,7 +7554,7 @@ var defineWidget = function() {
 		pagent.PinterContext.sharedBoardConfigs.listen(self1._onBoardConfig);
 		self1._onBoardCreatorProfile = function(p,evt1) {
 			if(evt1.isAddOrUpdate()) {
-				if(p.connectionIid == self1.options.board.connectionIid) self1.creatorDiv.empty().append("<i>created by</i> " + p.name);
+				if(p.connectionIid == self1.options.board.connectionIid) self1.creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
 			}
 		};
 		qoid.Qoid.profiles.listen(self1._onBoardCreatorProfile);
@@ -7662,9 +7658,9 @@ var defineWidget = function() {
 			self._pinListener = pagent.model.ContentSource.addListener(mapListener,$.noop,widgetCreator);
 			bar.append("<div class='clear'></div>");
 		} else self.ownerDiv = new $("<div class='boardOwner' style='font-size:20px;'></div>").appendTo(selfElement);
-		if(self.options.label.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) self.ownerDiv.empty().text(qoid.Qoid.get_currentAlias().profile.name); else {
+		if(self.options.label.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) self.ownerDiv.empty().append("<i>created by</i> <b>" + qoid.Qoid.get_currentAlias().profile.name + "</b>"); else {
 			self._profileListener = function(p,evt4) {
-				if(evt4.isAddOrUpdate() && p.connectionIid == self.options.label.connectionIid) self.ownerDiv.empty().text(p.name);
+				if(evt4.isAddOrUpdate() && p.connectionIid == self.options.label.connectionIid) self.ownerDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
 			};
 			qoid.Qoid.profiles.listen(self._profileListener);
 		}
@@ -7891,37 +7887,54 @@ var defineWidget = function() {
 			if(content.iid == self.options.content.iid) selfElement.show();
 		});
 	}, _createWidgets : function(selfElement1,self1) {
-		selfElement1.empty();
 		var content1 = self1.options.content;
 		var fcn = null;
 		fcn = function(content2) {
+			selfElement1.empty();
+			var captionDiv = new $("<div class='caption ui-corner-bottom'></div>");
+			var addCptDiv = function() {
+				captionDiv.appendTo(selfElement1);
+				var creatorDiv = new $("<div class='creatorDiv'></div>").insertBefore(captionDiv);
+				self1._onBoardCreatorProfile = function(p,evt1) {
+					if(evt1.isAddOrUpdate()) {
+						if(p.connectionIid == self1.options.content.connectionIid) creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
+					}
+				};
+				qoid.Qoid.profiles.listen(self1._onBoardCreatorProfile);
+			};
 			var _g = content2.contentType;
 			switch(_g) {
 			case qoid.model.ContentTypes.IMAGE:
 				var img;
 				img = js.Boot.__cast(content2 , qoid.model.ImageContent);
 				selfElement1.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
-				var captionDiv = new $("<div class='caption ui-corner-bottom'></div>").appendTo(selfElement1);
 				if(m3.helper.StringHelper.isNotBlank(img.props.caption)) captionDiv.append(img.props.caption); else {
 				}
+				addCptDiv();
 				break;
 			case qoid.model.ContentTypes.TEXT:
 				var text;
 				text = js.Boot.__cast(content2 , qoid.model.MessageContent);
+				selfElement1.append("<div class='msgDiv'>" + text.props.text + "</div>");
+				addCptDiv();
 				break;
 			case qoid.model.ContentTypes.LINK:
 				var link;
 				link = js.Boot.__cast(content2 , qoid.model.LinkContent);
-				qoid.QoidAPI.query(new qoid.RequestContext("contentLink_" + link.props.contentIid,link.props.contentIid),"content","iid = '" + link.props.contentIid + "'",true,true,link.props.route);
-				pagent.model.EM.listenOnce("onContentLink_" + link.props.contentIid,function(response) {
-					if(m3.helper.ArrayHelper.hasValues(response.result.results)) {
+				qoid.QoidAPI.query(new qoid.RequestContext("contentLink_" + link.props.contentIid,"_contentComp"),"content","iid = '" + link.props.contentIid + "'",true,true,link.props.route);
+				self1.linkListener = pagent.model.EM.addListener("onContentLink_" + link.props.contentIid,function(response) {
+					var reqCtx = m3.serialization.Serializer.get_instance().fromJsonX(response.context,qoid.RequestContext);
+					if(reqCtx.handle == "_contentComp" && m3.helper.ArrayHelper.hasValues(response.result.results)) {
 						var c = m3.serialization.Serializer.get_instance().fromJsonX(response.result.results[0],qoid.model.Content);
 						fcn(c);
 					}
 				},"ContentComp-Link-" + link.props.contentIid);
+				self1.removeLinkListener = function() {
+					pagent.model.EM.removeListener("onContentLink_" + link.props.contentIid,self1.linkListener);
+				};
 				break;
 			default:
-				m3.log.Logga.get_DEFAULT().debug("Unsupported content type");
+				m3.log.Logga.get_DEFAULT().warn("Unsupported content type");
 			}
 		};
 		fcn(content1);
@@ -7932,6 +7945,9 @@ var defineWidget = function() {
 		self2._createWidgets(selfElement2,self2);
 		selfElement2.show();
 	}, destroy : function() {
+		var self3 = this;
+		qoid.Qoid.profiles.removeListener(self3._onBoardCreatorProfile);
+		if(m3.helper.StringHelper.isNotBlank(self3.linkListener)) self3.removeLinkListener();
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -8054,25 +8070,27 @@ var defineWidget = function() {
 		selfElement.addClass("_mediaOptionsComp " + m3.widget.Widgets.getWidgetClasses());
 		var content = self.options.content;
 		if(content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) {
-			var setDefaultBtn = new $("<button class='setDefaultBtn'>Use as Cover Picture</button>").click(function(evt) {
-				var config = null;
-				var event = null;
-				Lambda.iter(pagent.PinterContext.boardConfigs,function(c) {
-					var match = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labeledContent,c.iid + "_" + pagent.PinterContext.CURRENT_BOARD,function(lc) {
-						return lc.contentIid + "_" + lc.labelIid;
+			if(content.contentType == qoid.model.ContentTypes.IMAGE) {
+				var setDefaultBtn = new $("<button class='setDefaultBtn'>Use as Cover Picture</button>").click(function(evt) {
+					var config = null;
+					var event = null;
+					Lambda.iter(pagent.PinterContext.boardConfigs,function(c) {
+						var match = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labeledContent,c.iid + "_" + pagent.PinterContext.CURRENT_BOARD,function(lc) {
+							return lc.contentIid + "_" + lc.labelIid;
+						});
+						if(match != null) config = c;
 					});
-					if(match != null) config = c;
-				});
-				if(config == null) {
-					config = new pagent.model.ConfigContent();
-					event = "CreateContent";
-				} else event = "UpdateContent";
-				config.props.defaultImg = self.options.content.props.imgSrc;
-				config.props.boardIid = pagent.PinterContext.CURRENT_BOARD;
-				var ccd = new qoid.model.EditContentData(config);
-				ccd.labelIids.push(pagent.PinterContext.CURRENT_BOARD);
-				pagent.model.EM.change(event,ccd);
-			}).button().appendTo(selfElement);
+					if(config == null) {
+						config = new pagent.model.ConfigContent();
+						event = "CreateContent";
+					} else event = "UpdateContent";
+					config.props.defaultImg = self.options.content.props.imgSrc;
+					config.props.boardIid = pagent.PinterContext.CURRENT_BOARD;
+					var ccd = new qoid.model.EditContentData(config);
+					ccd.labelIids.push(pagent.PinterContext.CURRENT_BOARD);
+					pagent.model.EM.change(event,ccd);
+				}).button().appendTo(selfElement);
+			}
 		}
 		var pinBtn = new $("<button class='pinBtn'>Pin It</button>").click(function(evt1) {
 			self._showEditAlbumsPopup(self.options.content,$(this));
@@ -8186,43 +8204,84 @@ var defineWidget = function() {
 		self._createWidgets(selfElement,self);
 	}, _createWidgets : function(selfElement1,self1) {
 		selfElement1.empty();
-		var content = self1.options.content;
+		var c = self1.options.content;
 		var currentAliasIsOwner = self1.options.content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid;
-		var _g = content.contentType;
-		switch(_g) {
-		case qoid.model.ContentTypes.IMAGE:
-			var imgDiv = new $("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement1);
-			new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content}).appendTo(selfElement1);
-			new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").commentsComp({ content : content}).appendTo(selfElement1);
-			var img;
-			img = js.Boot.__cast(content , qoid.model.ImageContent);
-			imgDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
-			var captionDiv = new $("<div class='captionDiv'></div>").appendTo(imgDiv);
-			var caption = new $("<div class='caption'></div>").appendTo(captionDiv);
-			if(m3.helper.StringHelper.isNotBlank(img.props.caption)) caption.append(img.props.caption); else if(currentAliasIsOwner) caption.append("<i>Add caption</i>");
-			if(currentAliasIsOwner) {
-				var editCaption = new $("<div class='editCaption'></div>").appendTo(captionDiv);
-				new $("<button class='editButton'>Edit</button").button({ icons : { primary : "ui-icon-pencil"}, text : false}).appendTo(editCaption).click(function(evt) {
-					self1._showEditCaptionPopup(self1.options.content,$(this));
-					evt.stopPropagation();
-				});
-				imgDiv.append("<br/>");
-				imgDiv.append("<br/>");
+		var div = null;
+		var fcn = null;
+		fcn = function(content) {
+			var addCreatorDiv = function() {
+				self1.creatorDiv = new $("<div class='creatorDiv' style='margin-top: 10px;'></div>").appendTo(div);
+				self1._onBoardCreatorProfile = function(p,evt) {
+					if(evt.isAddOrUpdate()) {
+						if(p.connectionIid == self1.options.content.connectionIid) self1.creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
+					}
+				};
+				qoid.Qoid.profiles.listen(self1._onBoardCreatorProfile);
+			};
+			var _g = content.contentType;
+			switch(_g) {
+			case qoid.model.ContentTypes.IMAGE:
+				var imgDiv = div = new $("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement1);
+				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content}).appendTo(selfElement1);
+				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").commentsComp({ content : content}).appendTo(selfElement1);
+				var img;
+				img = js.Boot.__cast(content , qoid.model.ImageContent);
+				imgDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
+				var captionDiv = new $("<div class='captionDiv'></div>").appendTo(imgDiv);
+				var caption = new $("<div class='caption'></div>").appendTo(captionDiv);
+				if(m3.helper.StringHelper.isNotBlank(img.props.caption)) caption.append(img.props.caption); else if(currentAliasIsOwner) caption.append("<i>Add caption</i>");
+				if(currentAliasIsOwner) {
+					var editCaption = new $("<div class='editCaption'></div>").appendTo(captionDiv);
+					new $("<button class='editButton'>Edit</button").button({ icons : { primary : "ui-icon-pencil"}, text : false}).appendTo(editCaption).click(function(evt1) {
+						self1._showEditCaptionPopup(self1.options.content,$(this));
+						evt1.stopPropagation();
+					});
+					imgDiv.append("<br/>");
+					imgDiv.append("<br/>");
+				}
+				addCreatorDiv();
+				break;
+			case qoid.model.ContentTypes.TEXT:
+				var msgDiv = div = new $("<div class='ui-widget-content ui-state-active ui-corner-all msgDiv'></div>").appendTo(selfElement1);
+				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content}).appendTo(selfElement1);
+				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").commentsComp({ content : content}).appendTo(selfElement1);
+				var msg;
+				msg = js.Boot.__cast(content , qoid.model.MessageContent);
+				msgDiv.append("<div>" + msg.props.text + "</div>");
+				addCreatorDiv();
+				break;
+			case qoid.model.ContentTypes.LINK:
+				var link;
+				link = js.Boot.__cast(content , qoid.model.LinkContent);
+				qoid.QoidAPI.query(new qoid.RequestContext("contentLink_" + link.props.contentIid,"_mediaComp"),"content","iid = '" + link.props.contentIid + "'",true,true,link.props.route);
+				self1.linkListener = pagent.model.EM.addListener("onContentLink_" + link.props.contentIid,function(response) {
+					if(m3.helper.ArrayHelper.hasValues(response.result.results)) {
+						var reqCtx = m3.serialization.Serializer.get_instance().fromJsonX(response.context,qoid.RequestContext);
+						if(reqCtx.handle == "_mediaComp" && m3.helper.ArrayHelper.hasValues(response.result.results)) {
+							var c1 = m3.serialization.Serializer.get_instance().fromJsonX(response.result.results[0],qoid.model.Content);
+							fcn(c1);
+						}
+					}
+				},"ContentComp-Link-" + link.props.contentIid);
+				self1.removeLinkListener = function() {
+					pagent.model.EM.removeListener("onContentLink_" + link.props.contentIid,self1.linkListener);
+				};
+				break;
+			default:
 			}
-			break;
-		default:
-		}
-	}, _showEditCaptionPopup : function(c,reference) {
+		};
+		fcn(c);
+	}, _showEditCaptionPopup : function(c2,reference) {
 		var self2 = this;
 		var selfElement2 = this.element;
 		var popup = new $("<div class='updateCaptionPopup' style='position: absolute;width:600px;'></div>");
 		popup.appendTo(selfElement2);
 		popup = popup.popup({ createFcn : function(el) {
 			var updateCaption = null;
-			var stopFcn = function(evt1) {
-				evt1.stopPropagation();
+			var stopFcn = function(evt2) {
+				evt2.stopPropagation();
 			};
-			var enterFcn = function(evt2) {
+			var enterFcn = function(evt3) {
 			};
 			var container = new $("<div class='icontainer'></div>").appendTo(el);
 			container.click(stopFcn).keypress(enterFcn);
@@ -8231,16 +8290,16 @@ var defineWidget = function() {
 			var input = new $("<textarea id='caption' class='ui-corner-all ui-widget-content' style=''></textarea>").appendTo(container);
 			input.focus();
 			var buttonText = "Update Caption";
-			input.val(c.props.caption);
+			input.val(c2.props.caption);
 			container.append("<br/>");
-			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt3) {
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt4) {
 				updateCaption();
 			});
 			updateCaption = function() {
 				if(input.val().length == 0) return;
-				m3.log.Logga.get_DEFAULT().info("Update content | " + c.iid);
-				c.props.caption = input.val();
-				var eventData = new qoid.model.EditContentData(c,Lambda.array(Lambda.map(m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,c.iid),function(laco) {
+				m3.log.Logga.get_DEFAULT().info("Update content | " + c2.iid);
+				c2.props.caption = input.val();
+				var eventData = new qoid.model.EditContentData(c2,Lambda.array(Lambda.map(m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,c2.iid),function(laco) {
 					return laco.labelIid;
 				})));
 				pagent.model.EM.change("UpdateContent",eventData);
@@ -8256,6 +8315,8 @@ var defineWidget = function() {
 	}, destroy : function() {
 		var self4 = this;
 		m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,self4.options.content.iid).removeListener(self4.labelListener);
+		qoid.Qoid.profiles.removeListener(self4._onBoardCreatorProfile);
+		if(m3.helper.StringHelper.isNotBlank(self4.linkListener)) self4.removeLinkListener();
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -8420,9 +8481,9 @@ var defineWidget = function() {
 		if(self.options.isMyBoard) {
 			addPinDiv = new $("<div class='addPinDiv ui-corner-all'></div>").appendTo(div);
 			var uploadButton = new $("<button class='uploadButton'>Add Pin</button>").appendTo(addPinDiv).button({ icons : { primary : "ui-icon-circle-plus"}}).click(function(evt) {
-				var dlg = new $("<div id='profilePictureUploader'></div>");
+				var dlg = new $("<div id='pinUploader'></div>");
 				dlg.appendTo(selfElement);
-				var uploadComp = new $("<div class='boxsizingBorder' style='height: 150px;'></div>");
+				var uploadComp = new $("<div class='boxsizingBorder' style='height: 50px;'></div>");
 				uploadComp.appendTo(dlg);
 				uploadComp.uploadComp({ onload : function(bytes) {
 					m3.jq.M3DialogHelper.close(dlg);
@@ -8431,9 +8492,22 @@ var defineWidget = function() {
 					ccd.labelIids.push(pagent.PinterContext.CURRENT_BOARD);
 					pagent.model.EM.change("CreateContent",ccd);
 				}});
-				dlg.m3dialog({ width : 400, height : 305, title : "Pin Picture to Board", buttons : { Cancel : function() {
-					m3.jq.M3DialogHelper.close($(this));
-				}}});
+				dlg.append("<div style='margin-top: 20px;'>Or</div>");
+				var newMessageDiv = new $("<div class='newMessage' style='margin-top: 20px;'></div>").appendTo(dlg);
+				var ta = new $("<textarea class='boxsizingBorder container' style='resize: none; width: 100%;'></textarea>").appendTo(newMessageDiv).attr("id","newMessage_ta");
+				newMessageDiv.append("<br/>");
+				newMessageDiv.append(new $("<button class='ui-helper-clearfix fright'>Add Message</button>").button().click(function() {
+					var value = ta.val();
+					if(m3.helper.StringHelper.isBlank(value)) return;
+					m3.jq.M3DialogHelper.close(dlg);
+					var ccd1 = new qoid.model.EditContentData(qoid.model.ContentFactory.create(qoid.model.ContentTypes.TEXT,value));
+					ccd1.content.contentType = qoid.model.ContentTypes.TEXT;
+					ccd1.semanticId = m3.util.UidGenerator.create(32);
+					ccd1.labelIids.push(pagent.PinterContext.CURRENT_BOARD);
+					pagent.model.EM.change("CreateContent",ccd1);
+				}));
+				selfElement.append("<div class='clear'></div>");
+				dlg.m3dialog({ width : 400, height : 285, title : "New Pin", buttons : { }});
 			});
 		}
 		var mapListener = function(content,contentComp,evt1) {

@@ -76,32 +76,34 @@ extern class MediaOptionsComp extends ContentComp {
 					var content: Content<Dynamic> = self.options.content;
 
                     if(content.connectionIid == Qoid.currentAlias.connectionIid) {
-                        var setDefaultBtn: JQ = new JQ("<button class='setDefaultBtn'>Use as Cover Picture</button>")
-                            .click(function(evt: JQEvent) {
-                                    //find this config
-                                    var config: ConfigContent = null;
-                                    var event: String = null;
-                                    PinterContext.boardConfigs.iter(function(c: ConfigContent) {
-                                            var match: LabeledContent = Qoid.labeledContent.getElementComplex(c.iid+"_"+PinterContext.CURRENT_BOARD, function(lc: LabeledContent): String {
-                                                        return lc.contentIid+"_"+lc.labelIid;
-                                                    });
-                                            if(match != null) config = c;
-                                        });
-                                    if(config == null) {
-                                        config = new ConfigContent();
-                                        event = EMEvent.CreateContent;
-                                    } else {
-                                        event = EMEvent.UpdateContent;
-                                    }
-                                    config.props.defaultImg = self.options.content.props.imgSrc;
-                                    config.props.boardIid = PinterContext.CURRENT_BOARD;
-                                    
-                                    var ccd = new EditContentData(config);
-                                    ccd.labelIids.push(PinterContext.CURRENT_BOARD);
-                                    EM.change(event, ccd);
-                                })
-                            .button()
-                            .appendTo(selfElement);
+                        if(content.contentType == ContentTypes.IMAGE) {
+                            var setDefaultBtn: JQ = new JQ("<button class='setDefaultBtn'>Use as Cover Picture</button>")
+                                .click(function(evt: JQEvent) {
+                                        //find this config
+                                        var config: ConfigContent = null;
+                                        var event: String = null;
+                                        PinterContext.boardConfigs.iter(function(c: ConfigContent) {
+                                                var match: LabeledContent = Qoid.labeledContent.getElementComplex(c.iid+"_"+PinterContext.CURRENT_BOARD, function(lc: LabeledContent): String {
+                                                            return lc.contentIid+"_"+lc.labelIid;
+                                                        });
+                                                if(match != null) config = c;
+                                            });
+                                        if(config == null) {
+                                            config = new ConfigContent();
+                                            event = EMEvent.CreateContent;
+                                        } else {
+                                            event = EMEvent.UpdateContent;
+                                        }
+                                        config.props.defaultImg = self.options.content.props.imgSrc;
+                                        config.props.boardIid = PinterContext.CURRENT_BOARD;
+                                        
+                                        var ccd = new EditContentData(config);
+                                        ccd.labelIids.push(PinterContext.CURRENT_BOARD);
+                                        EM.change(event, ccd);
+                                    })
+                                .button()
+                                .appendTo(selfElement);
+                        }
                     }
 					   
                     var pinBtn: JQ = new JQ("<button class='pinBtn'>Pin It</button>")

@@ -36,13 +36,6 @@ class PinterAgent {
             }
         },"PinterAgent-AliasLoaded");
 
-        EM.addListener(QE.onAliasUpdated, function(a:Alias) {
-            Logga.DEFAULT.debug("updated alias " + a.iid + "(" + a.objectId + ") | currentAlias " + (Qoid.currentAlias != null? Qoid.currentAlias.iid:null));
-            if(Qoid.currentAlias != null && Qoid.currentAlias.iid == a.iid) {
-                js.Browser.document.title = a.profile.name + " | Qoid-Bennu";
-            } 
-        },"PinterAgent-AliasUpdated");
-
         HOT_KEY_ACTIONS = HotKeyManager.get;
     }
 

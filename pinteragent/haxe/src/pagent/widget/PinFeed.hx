@@ -16,6 +16,7 @@ import agentui.widget.UploadComp;
 
 using pagent.widget.ContentComp;
 using m3.jq.M3Dialog;
+using m3.helper.StringHelper;
 
 typedef PinFeedOptions = {
 	var isMyBoard: Bool;
@@ -63,9 +64,9 @@ extern class PinFeed extends JQ {
 					                }
 								})
 							.click(function(evt: JQEvent) {
-									var dlg: M3Dialog = new M3Dialog("<div id='profilePictureUploader'></div>");
+									var dlg: M3Dialog = new M3Dialog("<div id='pinUploader'></div>");
 									dlg.appendTo(selfElement);
-									var uploadComp: UploadComp = new UploadComp("<div class='boxsizingBorder' style='height: 150px;'></div>");
+									var uploadComp: UploadComp = new UploadComp("<div class='boxsizingBorder' style='height: 50px;'></div>");
 									uploadComp.appendTo(dlg);
 									uploadComp.uploadComp({
 											onload: function(bytes: String): Void {
@@ -76,15 +77,37 @@ extern class PinFeed extends JQ {
 												EM.change(EMEvent.CreateContent, ccd);
 											}
 										});
+									dlg.append("<div style='margin-top: 20px;'>Or</div>");
+									var newMessageDiv: JQ = new JQ("<div class='newMessage' style='margin-top: 20px;'></div>").appendTo(dlg);
+				                    var ta: JQ = new JQ("<textarea class='boxsizingBorder container' style='resize: none; width: 100%;'></textarea>")
+				                            .appendTo(newMessageDiv)
+				                            .attr("id", "newMessage_ta");
+				                    newMessageDiv.append("<br/>");
+				                    newMessageDiv.append(
+				                        new JQ("<button class='ui-helper-clearfix fright'>Add Message</button>")
+				                            .button()
+				                            .click(function() {
+				                                    var value: String = ta.val();
+				                                    if(value.isBlank()) return;
+													dlg.close();
+				                                    var ccd = new EditContentData(ContentFactory.create(ContentTypes.TEXT, value));
+				                                    ccd.content.contentType = ContentTypes.TEXT;                  
+				                                    ccd.semanticId = UidGenerator.create(32);
+				                                    ccd.labelIids.push(PinterContext.CURRENT_BOARD);
+
+				                                   	EM.change(EMEvent.CreateContent, ccd);
+				                                })
+				                    );
+				                    selfElement.append("<div class='clear'></div>");
 									
 									dlg.m3dialog({
 											width: 400,
-											height: 305,
-											title: "Pin Picture to Board",
+											height: 285,
+											title: "New Pin",
 											buttons: {
-												"Cancel" : function() {
-													M3Dialog.cur.close();
-												}
+												// "Cancel" : function() {
+												// 	M3Dialog.cur.close();
+												// }
 											}
 										});
 								});

@@ -17,6 +17,7 @@ import pagent.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import pagent.widget.DialogManager;
+import qoid.Qoid;
 import qoid.QoidAPI;
 import qoid.ResponseProcessor.Response;
 
@@ -31,10 +32,15 @@ typedef ContentCompOptions = {
 typedef ContentCompWidgetDef = {
 	@:optional var options: ContentCompOptions;
 	@:optional var menu:M3Menu;
+	
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
+	
+	@:optional var _onBoardCreatorProfile: Profile->EventType->Void;
+	@:optional var linkListener: String;
+	@:optional var removeLinkListener: Void->Void;
 }
 
 class ContentCompHelper {
@@ -89,32 +95,50 @@ extern class ContentComp extends JQ {
 
 				_createWidgets: function(selfElement: JQ, self: ContentCompWidgetDef): Void {
 
-					selfElement.empty();
 
 					var content:Content<Dynamic> = self.options.content;
 
 					var fcn: Content<Dynamic>->Void = null;
 					fcn = function(content: Content<Dynamic>) {
+						selfElement.empty();
+						var captionDiv: JQ = new JQ("<div class='caption ui-corner-bottom'></div>");
+						var addCptDiv = function() {
+							captionDiv.appendTo(selfElement);
+				        	var creatorDiv: JQ = new JQ("<div class='creatorDiv'></div>").insertBefore(captionDiv);
+
+				        	self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {
+								if(evt.isAddOrUpdate()) {
+									if(p.connectionIid == self.options.content.connectionIid) {
+										creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
+									}
+
+								}
+							}
+							Qoid.profiles.listen(self._onBoardCreatorProfile);
+						}
+
 						switch(content.contentType) {
 			        		case ContentTypes.IMAGE:
 			        			var img: ImageContent = cast(content, ImageContent);
 			        			selfElement.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
-								var captionDiv: JQ = new JQ("<div class='caption ui-corner-bottom'></div>").appendTo(selfElement);
 								if(img.props.caption.isNotBlank()) {
 									captionDiv.append(img.props.caption);
 								} else {
 									// captionDiv.append( html : String )
 								}
+								addCptDiv();
 							case ContentTypes.TEXT:
 								var text: MessageContent = cast(content, MessageContent);
-
+								selfElement.append("<div class='msgDiv'>" + text.props.text + "</div>");
+								addCptDiv();
 							case ContentTypes.LINK:
 								var link: LinkContent = cast(content, LinkContent);
-								QoidAPI.query(new RequestContext("contentLink_" + link.props.contentIid, link.props.contentIid), "content", "iid = '" + link.props.contentIid + "'" , true, true, link.props.route);
-								EM.listenOnce(
+								QoidAPI.query(new RequestContext("contentLink_" + link.props.contentIid, "_contentComp"), "content", "iid = '" + link.props.contentIid + "'" , true, true, link.props.route);
+								self.linkListener = EM.addListener(
 									"onContentLink_" + link.props.contentIid, 
 									function(response: Response){
-										if(response.result.results.hasValues()) {
+										var reqCtx: RequestContext = Serializer.instance.fromJsonX(response.context, RequestContext);
+										if(reqCtx.handle == "_contentComp" && response.result.results.hasValues()) {
 											var c: Content<Dynamic> = Serializer.instance.fromJsonX(response.result.results[0], Content);
 											fcn(c);
 											
@@ -122,9 +146,11 @@ extern class ContentComp extends JQ {
 									}, 
 									"ContentComp-Link-" + link.props.contentIid	 
 								);
-	 
+	 							self.removeLinkListener = function() {
+	 								EM.removeListener("onContentLink_" + link.props.contentIid, self.linkListener);
+	 							}
 			        		case _:
-			        			Logga.DEFAULT.debug("Unsupported content type"); 
+			        			Logga.DEFAULT.warn("Unsupported content type"); 
 			        	}
 					}
 
@@ -141,6 +167,11 @@ extern class ContentComp extends JQ {
 		        },
 
 		        destroy: function() {
+		        	var self: ContentCompWidgetDef = Widgets.getSelf();
+		        	Qoid.profiles.removeListener(self._onBoardCreatorProfile);
+		        	if(self.linkListener.isNotBlank()) {
+		        		self.removeLinkListener();
+		        	}
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };
