@@ -3,6 +3,7 @@ package agentui.widget;
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.jq.M3Dialog;
+import m3.util.JqueryUtil;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import agentui.model.EM;
@@ -57,27 +58,35 @@ extern class RestoreWidget extends JQ {
         							var submit: JQ = new JQ("<button>Submit Backup</button>")
         												.appendTo(self.inputContainer)
         												.click(function(evt: JQEvent): Void {
-        													if(m3.CrossMojo.confirm()("Perform Backup?")) {
-        														cast(selfElement, M3Dialog).m3dialog("close");
-        														EM.change(EMEvent.BACKUP);
-        													}
+        													JqueryUtil.confirm(
+        														"", 
+        														"Perform Backup?",
+        														function() {
+	        														cast(selfElement, M3Dialog).m3dialog("close");
+	        														EM.change(EMEvent.BACKUP);
+	        													}
         												// 		if(name.val().isBlank()) {
         												// 			js.Lib.alert("Please specify a name for this backup");
         												// 			return;
         												// 		}
         												// 		cast(selfElement, M3Dialog).m3dialog("close");
 	       												// 		EM.change(EMEvent.BACKUP, name.val());
-        													});
+        													);
+    													});
         						})
         					.appendTo(self.container);
 
         			new JQ("<button>Restore</button>")
         					.button()
         					.click(function(evt: JQEvent): Void {
-        							if(m3.CrossMojo.confirm()("Restore from backup?")) {
-										cast(selfElement, M3Dialog).m3dialog("close");
-										EM.change(EMEvent.RESTORE);
-									}
+        							JqueryUtil.confirm(
+        								"",
+        								"Restore from backup?",
+        								function() {
+											cast(selfElement, M3Dialog).m3dialog("close");
+											EM.change(EMEvent.RESTORE);
+										}
+									);
         							// self.inputContainer.empty();
         							// self.inputContainer.append("<h3>Restore Options</h3>")
         							// 		.append("<label style='text-decoration: underline; font-weight: bold;'>Available Backups</label><br/>");
