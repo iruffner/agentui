@@ -7027,7 +7027,7 @@ var defineWidget = function() {
 			m3.util.JqueryUtil.alert("Please select an audio file.");
 			return;
 		}
-		m3.log.Logga.get_DEFAULT().debug("upload " + Std.string(file.name));
+		m3.log.Logga.get_DEFAULT().debug("upload " + file.name);
 		var reader = new FileReader();
 		reader.onload = function(evt5) {
 			self2.setPreviewImage(evt5.target.result);
@@ -7240,8 +7240,8 @@ var defineWidget = function() {
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this2.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
+			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this11.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
 			return $r;
 		}(this)),function(labelChild) {
 			return new $("<div></div>").albumComp({ album : m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid)});
