@@ -3024,7 +3024,7 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 		}
 	}
 	,getUrl: function() {
-		return this.baseUrl + "&timeoutMillis=" + Std.string(this.timeout);
+		return this.baseUrl + "?timeoutMillis=" + Std.string(this.timeout);
 	}
 	,poll: function() {
 		if(this.running) {

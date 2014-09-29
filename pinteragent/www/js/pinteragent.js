@@ -3209,7 +3209,7 @@ m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
 		}
 	}
 	,getUrl: function() {
-		return this.baseUrl + "&timeoutMillis=" + Std.string(this.timeout);
+		return this.baseUrl + "?timeoutMillis=" + Std.string(this.timeout);
 	}
 	,poll: function() {
 		if(this.running) {
@@ -7899,8 +7899,8 @@ var defineWidget = function() {
 			}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
 			self.mappedLabelChilds = new m3.observable.MappedSet((function($this) {
 				var $r;
-				var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-				$r = this11.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+				var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+				$r = this2.get(pagent.PinterContext.get_ROOT_BOARD().iid);
 				return $r;
 			}(this)),function(labelChild) {
 				return new $("<div></div>").boardComp({ board : m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid)});
@@ -8433,8 +8433,8 @@ var defineWidget = function() {
 		};
 		self.boards = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this11.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this2.get(pagent.PinterContext.get_ROOT_BOARD().iid);
 			return $r;
 		}(this)),function(labelChild) {
 			return m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid);
