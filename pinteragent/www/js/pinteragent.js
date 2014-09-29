@@ -7224,8 +7224,8 @@ var defineWidget = function() {
 		inputs.append("<br/>");
 		self.input_pw = new $("<input type='password' id='login_pw' class='ui-corner-all ui-state-active ui-widget-content'/>").appendTo(inputs);
 		self.placeholder_pw = new $("<input id='login_pw_f' style='display: none;' class='placeholder ui-corner-all ui-widget-content' value='Please enter Password'/>").appendTo(inputs);
-		self.input_un.val("dave");
-		self.input_pw.val("asdf");
+		self.input_un.val("");
+		self.input_pw.val("");
 		inputs.children("input").keypress(function(evt) {
 			if(evt.keyCode == 13) self._login();
 		});
@@ -7899,8 +7899,8 @@ var defineWidget = function() {
 			}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(pagent.PinterContext.get_ROOT_BOARD().iid);
 			self.mappedLabelChilds = new m3.observable.MappedSet((function($this) {
 				var $r;
-				var this2 = qoid.Qoid.groupedLabelChildren.delegate();
-				$r = this2.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+				var this11 = qoid.Qoid.groupedLabelChildren.delegate();
+				$r = this11.get(pagent.PinterContext.get_ROOT_BOARD().iid);
 				return $r;
 			}(this)),function(labelChild) {
 				return new $("<div></div>").boardComp({ board : m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid)});
@@ -8433,8 +8433,8 @@ var defineWidget = function() {
 		};
 		self.boards = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this2.get(pagent.PinterContext.get_ROOT_BOARD().iid);
+			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this11.get(pagent.PinterContext.get_ROOT_BOARD().iid);
 			return $r;
 		}(this)),function(labelChild) {
 			return m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid);
