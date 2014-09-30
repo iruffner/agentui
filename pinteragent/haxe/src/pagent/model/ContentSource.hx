@@ -1,11 +1,11 @@
 package pagent.model;
 
 import agentui.model.Filter;
-import pagent.model.EM;
 import m3.log.Logga;
 import m3.observable.OSet;
-import m3.serialization.Serialization.Serializer;
+import m3.serialization.Serialization;
 import m3.util.UidGenerator;
+import pagent.model.EM;
 import qoid.model.ModelObj;
 import qoid.QE;
 import qoid.QoidAPI;

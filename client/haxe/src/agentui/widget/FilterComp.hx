@@ -1,5 +1,6 @@
 package agentui.widget;
 
+import agentui.model.ContentSource;
 import js.html.Element;
 
 import m3.exception.Exception;
@@ -121,6 +122,7 @@ extern class FilterComp extends JQ {
 		        		var jq = new JQ(ele);
 		        		jq.remove();
 		        	});
+		        	ContentSource.clearQuery();
 		        },
 
 		        fireFilter: function(): Void {
@@ -135,8 +137,9 @@ extern class FilterComp extends JQ {
 		        	var filterables: JQ = selfElement.children(".filterable");
 
 		        	if (filterables.length == 0) {
-						EM.change(QE.onAliasLoaded, Qoid.currentAlias); //why does it do this?
-						
+						if(liveToggle.isLive()) {
+			        		ContentSource.clearQuery();
+			        	}
 		        	} else {
 			        	filterables.each(function (idx: Int, el: Element): Void {
 			        		var jqEle = new JQ(el);

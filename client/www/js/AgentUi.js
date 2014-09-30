@@ -1,8 +1,8 @@
 (function ($hx_exports) { "use strict";
-$hx_exports.qoid = $hx_exports.qoid || {};
 $hx_exports.m3 = $hx_exports.m3 || {};
 $hx_exports.m3.util = $hx_exports.m3.util || {};
 ;$hx_exports.m3.helper = $hx_exports.m3.helper || {};
+$hx_exports.qoid = $hx_exports.qoid || {};
 $hx_exports.agentui = $hx_exports.agentui || {};
 $hx_exports.agentui.widget = $hx_exports.agentui.widget || {};
 var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
@@ -1221,455 +1221,246 @@ agentui.model.EM.change = function(id,t) {
 qoid.QE = function() { };
 $hxClasses["qoid.QE"] = qoid.QE;
 qoid.QE.__name__ = ["qoid","QE"];
-m3.helper = {};
-m3.helper.ArrayHelper = $hx_exports.m3.helper.ArrayHelper = function() { };
-$hxClasses["m3.helper.ArrayHelper"] = m3.helper.ArrayHelper;
-m3.helper.ArrayHelper.__name__ = ["m3","helper","ArrayHelper"];
-m3.helper.ArrayHelper.indexOf = function(array,t) {
-	if(array == null) return -1;
-	var index = -1;
-	var _g1 = 0;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var i_ = _g1++;
-		if(array[i_] == t) {
-			index = i_;
-			break;
+m3.log = {};
+m3.log.Logga = function(logLevel) {
+	this.initialized = false;
+	this.loggerLevel = logLevel;
+};
+$hxClasses["m3.log.Logga"] = m3.log.Logga;
+m3.log.Logga.__name__ = ["m3","log","Logga"];
+m3.log.Logga.get_DEFAULT = function() {
+	if(m3.log.Logga.DEFAULT == null) m3.log.Logga.DEFAULT = new m3.log.RemoteLogga(m3.log.LogLevel.DEBUG,m3.log.LogLevel.DEBUG);
+	return m3.log.Logga.DEFAULT;
+};
+m3.log.Logga.getExceptionInst = function(err) {
+	if(js.Boot.__instanceof(err,m3.exception.Exception)) return err; else return new m3.exception.Exception(err);
+};
+m3.log.Logga.prototype = {
+	doOverrides: function() {
+		this.overrideConsoleError();
+		this.overrideConsoleTrace();
+		this.overrideConsoleLog();
+		window.onerror = function(message,url,lineNumber) {
+			LOGGER.error("WindowError | " + url + " (" + lineNumber + ") | " + message);
+			return false;
+		};
+	}
+	,_getLogger: function() {
+		this.console = window.console;
+		this.initialized = true;
+	}
+	,overrideConsoleError: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.preservedConsoleError = ($_=this.console,$bind($_,$_.error));
+			this.console.error = function() {
+				_g.error(arguments[0]);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.error");
 		}
 	}
-	return index;
+	,overrideConsoleTrace: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.preservedConsoleTrace = ($_=this.console,$bind($_,$_.trace));
+			this.console.trace = function() {
+				_g.preservedConsoleTrace.apply(_g.console);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.trace");
+		}
+	}
+	,overrideConsoleLog: function() {
+		var _g = this;
+		if(!this.initialized) this._getLogger();
+		if(this.console != null) try {
+			this.console.log("prime console.log");
+			this.preservedConsoleLog = ($_=this.console,$bind($_,$_.log));
+			this.console.log = function() {
+				_g.warn(arguments[0]);
+			};
+		} catch( err ) {
+			this.warn("Could not override console.log");
+		}
+	}
+	,setStatementPrefix: function(prefix) {
+		this.statementPrefix = prefix;
+	}
+	,log: function(statement,level,exception) {
+		if(!this.initialized) this._getLogger();
+		if(level == null) level = m3.log.LogLevel.INFO;
+		try {
+			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
+		} catch( err ) {
+			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
+		}
+		if(m3.helper.StringHelper.isBlank(statement)) {
+			this.console.error("empty log statement");
+			this.console.trace();
+		}
+		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
+		if(this.logsAtLevel(level) && this.console != null) try {
+			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
+				this.preservedConsoleError.apply(this.console,[statement]);
+				this.console.trace();
+			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
+				this.console.error(statement);
+				this.console.trace();
+			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
+		} catch( err1 ) {
+			if(this.console != null && Object.prototype.hasOwnProperty.call(this.console,"error")) this.console.error(err1);
+		}
+	}
+	,logsAtLevel: function(level) {
+		return this.loggerLevel[1] <= level[1];
+	}
+	,setLogLevel: function(logLevel) {
+		this.loggerLevel = logLevel;
+	}
+	,trace: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.TRACE,exception);
+	}
+	,debug: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.DEBUG,exception);
+	}
+	,info: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.INFO,exception);
+	}
+	,warn: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.WARN,exception);
+	}
+	,error: function(statement,exception) {
+		this.log(statement,m3.log.LogLevel.ERROR,exception);
+	}
+	,__class__: m3.log.Logga
 };
-m3.helper.ArrayHelper.indexOfComplex = function(array,value,propOrFcn,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(array == null) return -1;
-	var result = -1;
-	if(array != null && array.length > 0) {
-		var _g1 = startingIndex;
-		var _g = array.length;
-		while(_g1 < _g) {
-			var idx_ = _g1++;
-			var comparisonValue;
-			if(typeof(propOrFcn) == "string") comparisonValue = Reflect.field(array[idx_],propOrFcn); else comparisonValue = propOrFcn(array[idx_]);
-			if(value == comparisonValue) {
-				result = idx_;
-				break;
+m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
+m3.log.LogLevel.TRACE = ["TRACE",0];
+m3.log.LogLevel.TRACE.toString = $estr;
+m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.DEBUG = ["DEBUG",1];
+m3.log.LogLevel.DEBUG.toString = $estr;
+m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.INFO = ["INFO",2];
+m3.log.LogLevel.INFO.toString = $estr;
+m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.WARN = ["WARN",3];
+m3.log.LogLevel.WARN.toString = $estr;
+m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.ERROR = ["ERROR",4];
+m3.log.LogLevel.ERROR.toString = $estr;
+m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
+m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
+	m3.log.Logga.call(this,consoleLevel);
+	this.remoteLogLevel = remoteLevel;
+	this.logs = [];
+	this.sessionUid = m3.util.UidGenerator.create(32);
+	this.log("SessionUid: " + this.sessionUid);
+};
+$hxClasses["m3.log.RemoteLogga"] = m3.log.RemoteLogga;
+m3.log.RemoteLogga.__name__ = ["m3","log","RemoteLogga"];
+m3.log.RemoteLogga.pauseRemoteLogging = function() {
+	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
+		var rl = m3.log.Logga.get_DEFAULT();
+		rl.pause();
+	}
+};
+m3.log.RemoteLogga.unpauseRemoteLogging = function() {
+	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
+		var rl = m3.log.Logga.get_DEFAULT();
+		rl.unpause();
+	}
+};
+m3.log.RemoteLogga.__super__ = m3.log.Logga;
+m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
+	log: function(statement,level,exception) {
+		if(level == null) level = m3.log.LogLevel.INFO;
+		m3.log.Logga.prototype.log.call(this,statement,level,exception);
+		if(this.timer != null && this.remoteLogsAtLevel(level)) {
+			try {
+				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
+			} catch( err ) {
 			}
+			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
+			if(this.logs.length > 50) this.timer.run();
 		}
 	}
-	return result;
-};
-m3.helper.ArrayHelper.indexOfComplexInSubArray = function(array,value,subArrayProp,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(array == null) return -1;
-	var result = -1;
-	var _g1 = startingIndex;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var idx_ = _g1++;
-		var subArray = Reflect.field(array[idx_],subArrayProp);
-		if(m3.helper.ArrayHelper.contains(subArray,value)) {
-			result = idx_;
-			break;
-		}
+	,remoteLogsAtLevel: function(level) {
+		return this.remoteLogLevel[1] <= level[1];
 	}
-	return result;
-};
-m3.helper.ArrayHelper.indexOfArrayComparison = function(array,comparison,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	var result = -1;
-	if(array != null) {
-		if(m3.helper.ArrayHelper.hasValues(comparison)) {
-			var base = comparison[0];
-			var baseIndex = m3.helper.ArrayHelper.indexOfComplex(array,base.value,base.propOrFcn,startingIndex);
-			while(baseIndex > -1 && result < 0) {
-				var candidate = array[baseIndex];
-				var breakOut = false;
-				var _g1 = 1;
-				var _g = comparison.length;
-				while(_g1 < _g) {
-					var c_ = _g1++;
-					var comparisonValue;
-					if(typeof(comparison[c_].propOrFcn) == "string") comparisonValue = Reflect.field(candidate,comparison[c_].propOrFcn); else comparisonValue = comparison[c_].propOrFcn(candidate);
-					if(comparison[c_].value == comparisonValue) continue; else {
-						baseIndex = m3.helper.ArrayHelper.indexOfComplex(array,base.value,base.propOrFcn,baseIndex + 1);
-						breakOut = true;
-						break;
-					}
-				}
-				if(breakOut) continue;
-				result = baseIndex;
-			}
-		}
+	,setRemoteLoggingFcn: function(remoteLogFcn) {
+		var _g = this;
+		if(this.timer != null) this.timer.stop();
+		if(remoteLogFcn != null) this.timer = new m3.log._RemoteLogga.RemoteLoggingTimer(remoteLogFcn,function() {
+			var saved = _g.logs;
+			_g.logs = [];
+			return saved;
+		});
 	}
-	return result;
-};
-m3.helper.ArrayHelper.getElementComplex = function(array,value,propOrFcn,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(array == null) return null;
-	var result = null;
-	var _g1 = startingIndex;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var idx_ = _g1++;
-		var comparisonValue;
-		if(typeof(propOrFcn) == "string") comparisonValue = Reflect.field(array[idx_],propOrFcn); else comparisonValue = propOrFcn(array[idx_]);
-		if(value == comparisonValue) {
-			result = array[idx_];
-			break;
-		}
+	,pause: function() {
+		if(this.timer != null) this.timer.pause();
 	}
-	return result;
-};
-m3.helper.ArrayHelper.getElementComplexInSubArray = function(array,value,subArrayProp,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(array == null) return null;
-	var result = null;
-	var _g1 = startingIndex;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var idx_ = _g1++;
-		var subArray = Reflect.field(array[idx_],subArrayProp);
-		if(m3.helper.ArrayHelper.contains(subArray,value)) {
-			result = array[idx_];
-			break;
-		}
+	,unpause: function() {
+		if(this.timer != null) this.timer.unpause();
 	}
-	return result;
-};
-m3.helper.ArrayHelper.getElementArrayComparison = function(array,comparison,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	var result = null;
-	if(array != null) {
-		if(m3.helper.ArrayHelper.hasValues(comparison)) {
-			var base = comparison[0];
-			var baseIndex = m3.helper.ArrayHelper.indexOfComplex(array,base.value,base.propOrFcn,startingIndex);
-			while(baseIndex > -1 && result == null) {
-				var candidate = array[baseIndex];
-				var breakOut = false;
-				var _g1 = 1;
-				var _g = comparison.length;
-				while(_g1 < _g) {
-					var c_ = _g1++;
-					var comparisonValue;
-					if(typeof(comparison[c_].propOrFcn) == "string") comparisonValue = Reflect.field(candidate,comparison[c_].propOrFcn); else comparisonValue = comparison[c_].propOrFcn(candidate);
-					if(comparison[c_].value == comparisonValue) continue; else {
-						baseIndex = m3.helper.ArrayHelper.indexOfComplex(array,base.value,base.propOrFcn,baseIndex + 1);
-						breakOut = true;
-						break;
-					}
-				}
-				if(breakOut) continue;
-				result = candidate;
-			}
-		}
-	}
-	return result;
-};
-m3.helper.ArrayHelper.contains = function(array,value) {
-	if(array == null) return false;
-	var contains = Lambda.indexOf(array,value);
-	return contains > -1;
-};
-m3.helper.ArrayHelper.containsAny = function(array,valueArray) {
-	if(array == null || valueArray == null) return false;
-	var contains = -1;
-	var _g1 = 0;
-	var _g = valueArray.length;
-	while(_g1 < _g) {
-		var v_ = _g1++;
-		contains = Lambda.indexOf(array,valueArray[v_]);
-		if(contains > -1) break;
-	}
-	return contains > -1;
-};
-m3.helper.ArrayHelper.containsAll = function(array,valueArray) {
-	if(array == null || valueArray == null) return false;
-	var anyFailures = false;
-	var _g1 = 0;
-	var _g = valueArray.length;
-	while(_g1 < _g) {
-		var v_ = _g1++;
-		var index = Lambda.indexOf(array,valueArray[v_]);
-		if(index < 0) {
-			anyFailures = true;
-			break;
-		}
-	}
-	return !anyFailures;
-};
-m3.helper.ArrayHelper.containsComplex = function(array,value,propOrFcn,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(array == null) return false;
-	var contains = m3.helper.ArrayHelper.indexOfComplex(array,value,propOrFcn,startingIndex);
-	return contains > -1;
-};
-m3.helper.ArrayHelper.containsComplexInSubArray = function(array,value,subArrayProp,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(array == null) return false;
-	var contains = m3.helper.ArrayHelper.indexOfComplexInSubArray(array,value,subArrayProp,startingIndex);
-	return contains > -1;
-};
-m3.helper.ArrayHelper.containsArrayComparison = function(array,comparison,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(array == null) return false;
-	var contains = m3.helper.ArrayHelper.indexOfArrayComparison(array,comparison,startingIndex);
-	return contains > -1;
-};
-m3.helper.ArrayHelper.hasValues = function(array) {
-	return array != null && array.length > 0;
-};
-m3.helper.ArrayHelper.joinX = function(array,sep) {
-	if(array == null) return null;
-	var s = "";
-	var _g1 = 0;
-	var _g = array.length;
-	while(_g1 < _g) {
-		var str_ = _g1++;
-		var tmp = array[str_];
-		if(m3.helper.StringHelper.isNotBlank(tmp)) tmp = StringTools.trim(tmp);
-		if(m3.helper.StringHelper.isNotBlank(tmp) && str_ > 0 && s.length > 0) s += sep;
-		s += array[str_];
-	}
-	return s;
-};
-m3.serialization = {};
-m3.serialization.Serializer = function(defaultToStrict) {
-	if(defaultToStrict == null) defaultToStrict = true;
-	this._defaultToStrict = defaultToStrict;
-	this._handlersMap = new haxe.ds.StringMap();
-	this.addHandlerViaName("Array<Dynamic>",new m3.serialization.DynamicArrayHandler());
-};
-$hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
-m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
-m3.serialization.Serializer.get_instance = function() {
-	if(m3.serialization.Serializer.instance == null) m3.serialization.Serializer.instance = new m3.serialization.Serializer();
-	return m3.serialization.Serializer.instance;
-};
-m3.serialization.Serializer.prototype = {
-	addHandler: function(clazz,handler) {
-		var typename = Type.getClassName(clazz);
-		this._handlersMap.set(typename,handler);
-	}
-	,addHandlerViaName: function(typename,handler) {
-		this._handlersMap.set(typename,handler);
-	}
-	,load: function(fromJson,instance,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,Type.getClass(instance),instance);
-		return reader;
-	}
-	,fromJsonX: function(fromJson,clazz,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,clazz);
-		return reader.instance;
-	}
-	,fromJson: function(fromJson,clazz,strict) {
-		if(strict == null) strict = this._defaultToStrict;
-		var reader = this.createReader(strict);
-		reader.read(fromJson,clazz);
-		return reader;
-	}
-	,toJson: function(value) {
-		return this.createWriter().write(value);
-	}
-	,toJsonString: function(value) {
-		return JSON.stringify(this.toJson(value));
-	}
-	,createReader: function(strict) {
-		if(strict == null) strict = true;
-		return new m3.serialization.JsonReader(this,strict);
-	}
-	,createWriter: function() {
-		return new m3.serialization.JsonWriter(this);
-	}
-	,getHandlerViaClass: function(clazz) {
-		var typename = m3.serialization.TypeTools.classname(clazz);
-		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
-	}
-	,getHandler: function(type) {
-		var typename = m3.serialization.CTypeTools.typename(type);
-		var handler = this._handlersMap.get(typename);
-		if(handler == null) {
-			handler = this.createHandler(type);
-			this._handlersMap.set(typename,handler);
-		}
-		return handler;
-	}
-	,createHandler: function(type) {
-		switch(type[1]) {
-		case 1:
-			var parms = type[3];
-			var path = type[2];
-			if(path == "Bool") return new m3.serialization.BoolHandler(); else return new m3.serialization.EnumHandler(path,parms);
-			break;
-		case 2:
-			var parms1 = type[3];
-			var path1 = type[2];
-			switch(path1) {
-			case "Bool":
-				return new m3.serialization.BoolHandler();
-			case "Float":
-				return new m3.serialization.FloatHandler();
-			case "String":
-				return new m3.serialization.StringHandler();
-			case "Int":
-				return new m3.serialization.IntHandler();
-			case "Array":
-				return new m3.serialization.ArrayHandler(parms1,this);
-			case "Date":
-				return new m3.serialization.DateHandler();
-			default:
-				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
-			}
-			break;
-		case 7:
-			var parms1 = type[3];
-			var path1 = type[2];
-			switch(path1) {
-			case "Bool":
-				return new m3.serialization.BoolHandler();
-			case "Float":
-				return new m3.serialization.FloatHandler();
-			case "String":
-				return new m3.serialization.StringHandler();
-			case "Int":
-				return new m3.serialization.IntHandler();
-			case "Array":
-				return new m3.serialization.ArrayHandler(parms1,this);
-			case "Date":
-				return new m3.serialization.DateHandler();
-			default:
-				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
-			}
-			break;
-		case 6:
-			return new m3.serialization.DynamicHandler();
-		case 4:
-			var ret = type[3];
-			var args = type[2];
-			return new m3.serialization.FunctionHandler();
-		default:
-			throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
-		}
-	}
-	,__class__: m3.serialization.Serializer
-};
-m3.serialization.TypeHandler = function() { };
-$hxClasses["m3.serialization.TypeHandler"] = m3.serialization.TypeHandler;
-m3.serialization.TypeHandler.__name__ = ["m3","serialization","TypeHandler"];
-m3.serialization.TypeHandler.prototype = {
-	__class__: m3.serialization.TypeHandler
-};
-m3.serialization.DynamicArrayHandler = function() {
-};
-$hxClasses["m3.serialization.DynamicArrayHandler"] = m3.serialization.DynamicArrayHandler;
-m3.serialization.DynamicArrayHandler.__name__ = ["m3","serialization","DynamicArrayHandler"];
-m3.serialization.DynamicArrayHandler.__interfaces__ = [m3.serialization.TypeHandler];
-m3.serialization.DynamicArrayHandler.prototype = {
-	read: function(fromJson,reader,instance) {
-		var classname = m3.serialization.ValueTypeTools.getClassname(Type["typeof"](fromJson));
-		if(classname == "Array") return fromJson; else return reader.error("expected an array got a " + classname);
-	}
-	,write: function(value,writer) {
-		return value;
-	}
-	,__class__: m3.serialization.DynamicArrayHandler
-};
-qoid.model.Content = function(contentType,type) {
-	qoid.model.ModelObjWithIid.call(this);
-	this.contentType = contentType;
-	if(qoid.Qoid.get_currentAlias() == null) this.aliasIid = null; else this.aliasIid = qoid.Qoid.get_currentAlias().iid;
-	this.data = { };
-	this.type = type;
-	this.props = Type.createInstance(type,[]);
-	this.metaData = new qoid.model.ContentMetaData();
-};
-$hxClasses["qoid.model.Content"] = qoid.model.Content;
-qoid.model.Content.__name__ = ["qoid","model","Content"];
-qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	setData: function(data) {
-		this.data = data;
-	}
-	,readResolve: function() {
-		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
-	}
-	,writeResolve: function() {
-		this.data = m3.serialization.Serializer.get_instance().toJson(this.props);
-	}
-	,getTimestamp: function() {
-		return DateTools.format(this.created,"%Y-%m-%d %T");
-	}
-	,objectType: function() {
-		return "content";
-	}
-	,__class__: qoid.model.Content
+	,__class__: m3.log.RemoteLogga
 });
-m3.helper.OSetHelper = function() { };
-$hxClasses["m3.helper.OSetHelper"] = m3.helper.OSetHelper;
-m3.helper.OSetHelper.__name__ = ["m3","helper","OSetHelper"];
-m3.helper.OSetHelper.getElement = function(oset,value,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	return m3.helper.OSetHelper.getElementComplex(oset,value,null,startingIndex);
+m3.util.UidGenerator = function() { };
+$hxClasses["m3.util.UidGenerator"] = m3.util.UidGenerator;
+m3.util.UidGenerator.__name__ = ["m3","util","UidGenerator"];
+m3.util.UidGenerator.get_chars = function() {
+	return "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 };
-m3.helper.OSetHelper.getElementComplex = function(oset,value,propOrFcn,startingIndex) {
-	if(startingIndex == null) startingIndex = 0;
-	if(oset == null) return null;
-	if(propOrFcn == null) propOrFcn = oset.identifier();
-	var result = null;
-	var index_ = -1;
-	var iter = oset.iterator();
-	while(iter.hasNext()) if(startingIndex > ++index_) continue; else {
-		var comparisonT = iter.next();
-		var comparisonValue;
-		if(typeof(propOrFcn) == "string") comparisonValue = Reflect.field(comparisonT,propOrFcn); else comparisonValue = propOrFcn(comparisonT);
-		if(value == comparisonValue) {
-			result = comparisonT;
-			break;
-		}
+m3.util.UidGenerator.get_nums = function() {
+	return "0123456789";
+};
+m3.util.UidGenerator.create = function(length) {
+	if(length == null) length = 20;
+	var str = new Array();
+	var charsLength = m3.util.UidGenerator.get_chars().length;
+	while(str.length == 0) {
+		var ch = m3.util.UidGenerator.randomChar();
+		if(m3.util.UidGenerator.isLetter(ch)) str.push(ch);
 	}
-	return result;
-};
-m3.helper.OSetHelper.getElementComplex2 = function(oset,criteriaFunc) {
-	if(oset == null) return null;
-	if(criteriaFunc == null) return null;
-	var result = null;
-	var iter = oset.iterator();
-	while(iter.hasNext()) {
-		var comparisonT = iter.next();
-		if(criteriaFunc(comparisonT)) {
-			result = comparisonT;
-			break;
-		}
+	while(str.length < length) {
+		var ch1 = m3.util.UidGenerator.randomChar();
+		str.push(ch1);
 	}
-	return result;
+	return str.join("");
 };
-m3.helper.OSetHelper.hasValues = function(oset) {
-	return oset != null && oset.iterator().hasNext();
-};
-m3.helper.OSetHelper.joinX = function(oset,sep,getString) {
-	if(getString == null) getString = oset.identifier();
-	var s = "";
-	var iter = oset.iterator();
-	var index = 0;
-	while(iter.hasNext()) {
-		var t = iter.next();
-		var tmp = getString(t);
-		if(m3.helper.StringHelper.isNotBlank(tmp)) tmp = StringTools.trim(tmp);
-		if(m3.helper.StringHelper.isNotBlank(tmp) && index > 0 && s.length > 0) s += sep;
-		s += getString(t);
-		index++;
+m3.util.UidGenerator.isLetter = function($char) {
+	var _g1 = 0;
+	var _g = m3.util.UidGenerator.get_chars().length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(m3.util.UidGenerator.get_chars().charAt(i) == $char) return true;
 	}
-	return s;
+	return false;
 };
-m3.helper.OSetHelper.strIdentifier = function(str) {
-	return str;
+m3.util.UidGenerator.randomNum = function() {
+	var max = m3.util.UidGenerator.get_chars().length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
 };
-qoid.model.NotificationKind = function() { };
-$hxClasses["qoid.model.NotificationKind"] = qoid.model.NotificationKind;
-qoid.model.NotificationKind.__name__ = ["qoid","model","NotificationKind"];
+m3.util.UidGenerator.randomIndex = function(str) {
+	var max = str.length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
+};
+m3.util.UidGenerator.randomChar = function() {
+	var i = 0;
+	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_chars())) >= m3.util.UidGenerator.get_chars().length) continue;
+	return m3.util.UidGenerator.get_chars().charAt(i);
+};
+m3.util.UidGenerator.randomNumChar = function() {
+	var i = 0;
+	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
+	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
+};
 qoid.QoidAPI = $hx_exports.qoid.QoidAPI = function() { };
 $hxClasses["qoid.QoidAPI"] = qoid.QoidAPI;
 qoid.QoidAPI.__name__ = ["qoid","QoidAPI"];
@@ -1946,246 +1737,6 @@ m3.comm.ChannelRequestMessage.__name__ = ["m3","comm","ChannelRequestMessage"];
 m3.comm.ChannelRequestMessage.prototype = {
 	__class__: m3.comm.ChannelRequestMessage
 };
-m3.log = {};
-m3.log.Logga = function(logLevel) {
-	this.initialized = false;
-	this.loggerLevel = logLevel;
-};
-$hxClasses["m3.log.Logga"] = m3.log.Logga;
-m3.log.Logga.__name__ = ["m3","log","Logga"];
-m3.log.Logga.get_DEFAULT = function() {
-	if(m3.log.Logga.DEFAULT == null) m3.log.Logga.DEFAULT = new m3.log.RemoteLogga(m3.log.LogLevel.DEBUG,m3.log.LogLevel.DEBUG);
-	return m3.log.Logga.DEFAULT;
-};
-m3.log.Logga.getExceptionInst = function(err) {
-	if(js.Boot.__instanceof(err,m3.exception.Exception)) return err; else return new m3.exception.Exception(err);
-};
-m3.log.Logga.prototype = {
-	doOverrides: function() {
-		this.overrideConsoleError();
-		this.overrideConsoleTrace();
-		this.overrideConsoleLog();
-		window.onerror = function(message,url,lineNumber) {
-			LOGGER.error("WindowError | " + url + " (" + lineNumber + ") | " + message);
-			return false;
-		};
-	}
-	,_getLogger: function() {
-		this.console = window.console;
-		this.initialized = true;
-	}
-	,overrideConsoleError: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.preservedConsoleError = ($_=this.console,$bind($_,$_.error));
-			this.console.error = function() {
-				_g.error(arguments[0]);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.error");
-		}
-	}
-	,overrideConsoleTrace: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.preservedConsoleTrace = ($_=this.console,$bind($_,$_.trace));
-			this.console.trace = function() {
-				_g.preservedConsoleTrace.apply(_g.console);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.trace");
-		}
-	}
-	,overrideConsoleLog: function() {
-		var _g = this;
-		if(!this.initialized) this._getLogger();
-		if(this.console != null) try {
-			this.console.log("prime console.log");
-			this.preservedConsoleLog = ($_=this.console,$bind($_,$_.log));
-			this.console.log = function() {
-				_g.warn(arguments[0]);
-			};
-		} catch( err ) {
-			this.warn("Could not override console.log");
-		}
-	}
-	,setStatementPrefix: function(prefix) {
-		this.statementPrefix = prefix;
-	}
-	,log: function(statement,level,exception) {
-		if(!this.initialized) this._getLogger();
-		if(level == null) level = m3.log.LogLevel.INFO;
-		try {
-			if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
-		} catch( err ) {
-			this.log("Could not get stackTrace",m3.log.LogLevel.ERROR);
-		}
-		if(m3.helper.StringHelper.isBlank(statement)) {
-			this.console.error("empty log statement");
-			this.console.trace();
-		}
-		if(m3.helper.StringHelper.isNotBlank(this.statementPrefix)) statement = this.statementPrefix + " || " + statement;
-		if(this.logsAtLevel(level) && this.console != null) try {
-			if((Type.enumEq(level,m3.log.LogLevel.TRACE) || Type.enumEq(level,m3.log.LogLevel.DEBUG)) && ($_=this.console,$bind($_,$_.debug)) != null) this.console.debug(statement); else if(Type.enumEq(level,m3.log.LogLevel.INFO) && ($_=this.console,$bind($_,$_.info)) != null) this.console.info(statement); else if(Type.enumEq(level,m3.log.LogLevel.WARN) && ($_=this.console,$bind($_,$_.warn)) != null) this.console.warn(statement); else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && this.preservedConsoleError != null) {
-				this.preservedConsoleError.apply(this.console,[statement]);
-				this.console.trace();
-			} else if(Type.enumEq(level,m3.log.LogLevel.ERROR) && ($_=this.console,$bind($_,$_.error)) != null) {
-				this.console.error(statement);
-				this.console.trace();
-			} else if(this.preservedConsoleLog != null) this.preservedConsoleLog.apply(this.console,[statement]); else this.console.log(statement);
-		} catch( err1 ) {
-			if(this.console != null && Object.prototype.hasOwnProperty.call(this.console,"error")) this.console.error(err1);
-		}
-	}
-	,logsAtLevel: function(level) {
-		return this.loggerLevel[1] <= level[1];
-	}
-	,setLogLevel: function(logLevel) {
-		this.loggerLevel = logLevel;
-	}
-	,trace: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.TRACE,exception);
-	}
-	,debug: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.DEBUG,exception);
-	}
-	,info: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.INFO,exception);
-	}
-	,warn: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.WARN,exception);
-	}
-	,error: function(statement,exception) {
-		this.log(statement,m3.log.LogLevel.ERROR,exception);
-	}
-	,__class__: m3.log.Logga
-};
-m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
-m3.log.LogLevel.TRACE = ["TRACE",0];
-m3.log.LogLevel.TRACE.toString = $estr;
-m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.DEBUG = ["DEBUG",1];
-m3.log.LogLevel.DEBUG.toString = $estr;
-m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.INFO = ["INFO",2];
-m3.log.LogLevel.INFO.toString = $estr;
-m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.WARN = ["WARN",3];
-m3.log.LogLevel.WARN.toString = $estr;
-m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.ERROR = ["ERROR",4];
-m3.log.LogLevel.ERROR.toString = $estr;
-m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
-m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
-	m3.log.Logga.call(this,consoleLevel);
-	this.remoteLogLevel = remoteLevel;
-	this.logs = [];
-	this.sessionUid = m3.util.UidGenerator.create(32);
-	this.log("SessionUid: " + this.sessionUid);
-};
-$hxClasses["m3.log.RemoteLogga"] = m3.log.RemoteLogga;
-m3.log.RemoteLogga.__name__ = ["m3","log","RemoteLogga"];
-m3.log.RemoteLogga.pauseRemoteLogging = function() {
-	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
-		var rl = m3.log.Logga.get_DEFAULT();
-		rl.pause();
-	}
-};
-m3.log.RemoteLogga.unpauseRemoteLogging = function() {
-	if(Std["is"](m3.log.Logga.get_DEFAULT(),m3.log.RemoteLogga)) {
-		var rl = m3.log.Logga.get_DEFAULT();
-		rl.unpause();
-	}
-};
-m3.log.RemoteLogga.__super__ = m3.log.Logga;
-m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
-	log: function(statement,level,exception) {
-		if(level == null) level = m3.log.LogLevel.INFO;
-		m3.log.Logga.prototype.log.call(this,statement,level,exception);
-		if(this.timer != null && this.remoteLogsAtLevel(level)) {
-			try {
-				if(exception != null && $bind(exception,exception.stackTrace) != null && Reflect.isFunction($bind(exception,exception.stackTrace))) statement += "\n" + exception.stackTrace();
-			} catch( err ) {
-			}
-			this.logs.push({ sessionUid : this.sessionUid, at : DateTools.format(new Date(),"%Y-%m-%d %T"), message : statement, severity : level[0], category : "ui"});
-			if(this.logs.length > 50) this.timer.run();
-		}
-	}
-	,remoteLogsAtLevel: function(level) {
-		return this.remoteLogLevel[1] <= level[1];
-	}
-	,setRemoteLoggingFcn: function(remoteLogFcn) {
-		var _g = this;
-		if(this.timer != null) this.timer.stop();
-		if(remoteLogFcn != null) this.timer = new m3.log._RemoteLogga.RemoteLoggingTimer(remoteLogFcn,function() {
-			var saved = _g.logs;
-			_g.logs = [];
-			return saved;
-		});
-	}
-	,pause: function() {
-		if(this.timer != null) this.timer.pause();
-	}
-	,unpause: function() {
-		if(this.timer != null) this.timer.unpause();
-	}
-	,__class__: m3.log.RemoteLogga
-});
-m3.util.UidGenerator = function() { };
-$hxClasses["m3.util.UidGenerator"] = m3.util.UidGenerator;
-m3.util.UidGenerator.__name__ = ["m3","util","UidGenerator"];
-m3.util.UidGenerator.get_chars = function() {
-	return "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
-};
-m3.util.UidGenerator.get_nums = function() {
-	return "0123456789";
-};
-m3.util.UidGenerator.create = function(length) {
-	if(length == null) length = 20;
-	var str = new Array();
-	var charsLength = m3.util.UidGenerator.get_chars().length;
-	while(str.length == 0) {
-		var ch = m3.util.UidGenerator.randomChar();
-		if(m3.util.UidGenerator.isLetter(ch)) str.push(ch);
-	}
-	while(str.length < length) {
-		var ch1 = m3.util.UidGenerator.randomChar();
-		str.push(ch1);
-	}
-	return str.join("");
-};
-m3.util.UidGenerator.isLetter = function($char) {
-	var _g1 = 0;
-	var _g = m3.util.UidGenerator.get_chars().length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(m3.util.UidGenerator.get_chars().charAt(i) == $char) return true;
-	}
-	return false;
-};
-m3.util.UidGenerator.randomNum = function() {
-	var max = m3.util.UidGenerator.get_chars().length - 1;
-	var min = 0;
-	return min + Math.round(Math.random() * (max - min) + 1);
-};
-m3.util.UidGenerator.randomIndex = function(str) {
-	var max = str.length - 1;
-	var min = 0;
-	return min + Math.round(Math.random() * (max - min) + 1);
-};
-m3.util.UidGenerator.randomChar = function() {
-	var i = 0;
-	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_chars())) >= m3.util.UidGenerator.get_chars().length) continue;
-	return m3.util.UidGenerator.get_chars().charAt(i);
-};
-m3.util.UidGenerator.randomNumChar = function() {
-	var i = 0;
-	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
-	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
-};
 m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
 	this.requestData = requestData;
 	this._url = url;
@@ -2276,6 +1827,151 @@ m3.comm.ChannelRequestMessageBundle.prototype = {
 	}
 	,__class__: m3.comm.ChannelRequestMessageBundle
 };
+m3.serialization = {};
+m3.serialization.Serializer = function(defaultToStrict) {
+	if(defaultToStrict == null) defaultToStrict = true;
+	this._defaultToStrict = defaultToStrict;
+	this._handlersMap = new haxe.ds.StringMap();
+	this.addHandlerViaName("Array<Dynamic>",new m3.serialization.DynamicArrayHandler());
+};
+$hxClasses["m3.serialization.Serializer"] = m3.serialization.Serializer;
+m3.serialization.Serializer.__name__ = ["m3","serialization","Serializer"];
+m3.serialization.Serializer.get_instance = function() {
+	if(m3.serialization.Serializer.instance == null) m3.serialization.Serializer.instance = new m3.serialization.Serializer();
+	return m3.serialization.Serializer.instance;
+};
+m3.serialization.Serializer.prototype = {
+	addHandler: function(clazz,handler) {
+		var typename = Type.getClassName(clazz);
+		this._handlersMap.set(typename,handler);
+	}
+	,addHandlerViaName: function(typename,handler) {
+		this._handlersMap.set(typename,handler);
+	}
+	,load: function(fromJson,instance,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,Type.getClass(instance),instance);
+		return reader;
+	}
+	,fromJsonX: function(fromJson,clazz,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,clazz);
+		return reader.instance;
+	}
+	,fromJson: function(fromJson,clazz,strict) {
+		if(strict == null) strict = this._defaultToStrict;
+		var reader = this.createReader(strict);
+		reader.read(fromJson,clazz);
+		return reader;
+	}
+	,toJson: function(value) {
+		return this.createWriter().write(value);
+	}
+	,toJsonString: function(value) {
+		return JSON.stringify(this.toJson(value));
+	}
+	,createReader: function(strict) {
+		if(strict == null) strict = true;
+		return new m3.serialization.JsonReader(this,strict);
+	}
+	,createWriter: function() {
+		return new m3.serialization.JsonWriter(this);
+	}
+	,getHandlerViaClass: function(clazz) {
+		var typename = m3.serialization.TypeTools.classname(clazz);
+		return this.getHandler(haxe.rtti.CType.CClass(typename,new List()));
+	}
+	,getHandler: function(type) {
+		var typename = m3.serialization.CTypeTools.typename(type);
+		var handler = this._handlersMap.get(typename);
+		if(handler == null) {
+			handler = this.createHandler(type);
+			this._handlersMap.set(typename,handler);
+		}
+		return handler;
+	}
+	,createHandler: function(type) {
+		switch(type[1]) {
+		case 1:
+			var parms = type[3];
+			var path = type[2];
+			if(path == "Bool") return new m3.serialization.BoolHandler(); else return new m3.serialization.EnumHandler(path,parms);
+			break;
+		case 2:
+			var parms1 = type[3];
+			var path1 = type[2];
+			switch(path1) {
+			case "Bool":
+				return new m3.serialization.BoolHandler();
+			case "Float":
+				return new m3.serialization.FloatHandler();
+			case "String":
+				return new m3.serialization.StringHandler();
+			case "Int":
+				return new m3.serialization.IntHandler();
+			case "Array":
+				return new m3.serialization.ArrayHandler(parms1,this);
+			case "Date":
+				return new m3.serialization.DateHandler();
+			default:
+				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
+			}
+			break;
+		case 7:
+			var parms1 = type[3];
+			var path1 = type[2];
+			switch(path1) {
+			case "Bool":
+				return new m3.serialization.BoolHandler();
+			case "Float":
+				return new m3.serialization.FloatHandler();
+			case "String":
+				return new m3.serialization.StringHandler();
+			case "Int":
+				return new m3.serialization.IntHandler();
+			case "Array":
+				return new m3.serialization.ArrayHandler(parms1,this);
+			case "Date":
+				return new m3.serialization.DateHandler();
+			default:
+				return new m3.serialization.ClassHandler(Type.resolveClass(m3.serialization.CTypeTools.classname(type)),m3.serialization.CTypeTools.typename(type),this);
+			}
+			break;
+		case 6:
+			return new m3.serialization.DynamicHandler();
+		case 4:
+			var ret = type[3];
+			var args = type[2];
+			return new m3.serialization.FunctionHandler();
+		default:
+			throw new m3.serialization.JsonException("don't know how to handle " + Std.string(type));
+		}
+	}
+	,__class__: m3.serialization.Serializer
+};
+m3.serialization.TypeHandler = function() { };
+$hxClasses["m3.serialization.TypeHandler"] = m3.serialization.TypeHandler;
+m3.serialization.TypeHandler.__name__ = ["m3","serialization","TypeHandler"];
+m3.serialization.TypeHandler.prototype = {
+	__class__: m3.serialization.TypeHandler
+};
+m3.serialization.DynamicArrayHandler = function() {
+};
+$hxClasses["m3.serialization.DynamicArrayHandler"] = m3.serialization.DynamicArrayHandler;
+m3.serialization.DynamicArrayHandler.__name__ = ["m3","serialization","DynamicArrayHandler"];
+m3.serialization.DynamicArrayHandler.__interfaces__ = [m3.serialization.TypeHandler];
+m3.serialization.DynamicArrayHandler.prototype = {
+	read: function(fromJson,reader,instance) {
+		var classname = m3.serialization.ValueTypeTools.getClassname(Type["typeof"](fromJson));
+		if(classname == "Array") return fromJson; else return reader.error("expected an array got a " + classname);
+	}
+	,write: function(value,writer) {
+		return value;
+	}
+	,__class__: m3.serialization.DynamicArrayHandler
+};
 qoid.RequestContext = function(context,handle,resultType) {
 	this.context = context;
 	this.handle = handle;
@@ -2285,6 +1981,310 @@ qoid.RequestContext.__name__ = ["qoid","RequestContext"];
 qoid.RequestContext.prototype = {
 	__class__: qoid.RequestContext
 };
+m3.helper = {};
+m3.helper.ArrayHelper = $hx_exports.m3.helper.ArrayHelper = function() { };
+$hxClasses["m3.helper.ArrayHelper"] = m3.helper.ArrayHelper;
+m3.helper.ArrayHelper.__name__ = ["m3","helper","ArrayHelper"];
+m3.helper.ArrayHelper.indexOf = function(array,t) {
+	if(array == null) return -1;
+	var index = -1;
+	var _g1 = 0;
+	var _g = array.length;
+	while(_g1 < _g) {
+		var i_ = _g1++;
+		if(array[i_] == t) {
+			index = i_;
+			break;
+		}
+	}
+	return index;
+};
+m3.helper.ArrayHelper.indexOfComplex = function(array,value,propOrFcn,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(array == null) return -1;
+	var result = -1;
+	if(array != null && array.length > 0) {
+		var _g1 = startingIndex;
+		var _g = array.length;
+		while(_g1 < _g) {
+			var idx_ = _g1++;
+			var comparisonValue;
+			if(typeof(propOrFcn) == "string") comparisonValue = Reflect.field(array[idx_],propOrFcn); else comparisonValue = propOrFcn(array[idx_]);
+			if(value == comparisonValue) {
+				result = idx_;
+				break;
+			}
+		}
+	}
+	return result;
+};
+m3.helper.ArrayHelper.indexOfComplexInSubArray = function(array,value,subArrayProp,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(array == null) return -1;
+	var result = -1;
+	var _g1 = startingIndex;
+	var _g = array.length;
+	while(_g1 < _g) {
+		var idx_ = _g1++;
+		var subArray = Reflect.field(array[idx_],subArrayProp);
+		if(m3.helper.ArrayHelper.contains(subArray,value)) {
+			result = idx_;
+			break;
+		}
+	}
+	return result;
+};
+m3.helper.ArrayHelper.indexOfArrayComparison = function(array,comparison,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	var result = -1;
+	if(array != null) {
+		if(m3.helper.ArrayHelper.hasValues(comparison)) {
+			var base = comparison[0];
+			var baseIndex = m3.helper.ArrayHelper.indexOfComplex(array,base.value,base.propOrFcn,startingIndex);
+			while(baseIndex > -1 && result < 0) {
+				var candidate = array[baseIndex];
+				var breakOut = false;
+				var _g1 = 1;
+				var _g = comparison.length;
+				while(_g1 < _g) {
+					var c_ = _g1++;
+					var comparisonValue;
+					if(typeof(comparison[c_].propOrFcn) == "string") comparisonValue = Reflect.field(candidate,comparison[c_].propOrFcn); else comparisonValue = comparison[c_].propOrFcn(candidate);
+					if(comparison[c_].value == comparisonValue) continue; else {
+						baseIndex = m3.helper.ArrayHelper.indexOfComplex(array,base.value,base.propOrFcn,baseIndex + 1);
+						breakOut = true;
+						break;
+					}
+				}
+				if(breakOut) continue;
+				result = baseIndex;
+			}
+		}
+	}
+	return result;
+};
+m3.helper.ArrayHelper.getElementComplex = function(array,value,propOrFcn,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(array == null) return null;
+	var result = null;
+	var _g1 = startingIndex;
+	var _g = array.length;
+	while(_g1 < _g) {
+		var idx_ = _g1++;
+		var comparisonValue;
+		if(typeof(propOrFcn) == "string") comparisonValue = Reflect.field(array[idx_],propOrFcn); else comparisonValue = propOrFcn(array[idx_]);
+		if(value == comparisonValue) {
+			result = array[idx_];
+			break;
+		}
+	}
+	return result;
+};
+m3.helper.ArrayHelper.getElementComplexInSubArray = function(array,value,subArrayProp,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(array == null) return null;
+	var result = null;
+	var _g1 = startingIndex;
+	var _g = array.length;
+	while(_g1 < _g) {
+		var idx_ = _g1++;
+		var subArray = Reflect.field(array[idx_],subArrayProp);
+		if(m3.helper.ArrayHelper.contains(subArray,value)) {
+			result = array[idx_];
+			break;
+		}
+	}
+	return result;
+};
+m3.helper.ArrayHelper.getElementArrayComparison = function(array,comparison,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	var result = null;
+	if(array != null) {
+		if(m3.helper.ArrayHelper.hasValues(comparison)) {
+			var base = comparison[0];
+			var baseIndex = m3.helper.ArrayHelper.indexOfComplex(array,base.value,base.propOrFcn,startingIndex);
+			while(baseIndex > -1 && result == null) {
+				var candidate = array[baseIndex];
+				var breakOut = false;
+				var _g1 = 1;
+				var _g = comparison.length;
+				while(_g1 < _g) {
+					var c_ = _g1++;
+					var comparisonValue;
+					if(typeof(comparison[c_].propOrFcn) == "string") comparisonValue = Reflect.field(candidate,comparison[c_].propOrFcn); else comparisonValue = comparison[c_].propOrFcn(candidate);
+					if(comparison[c_].value == comparisonValue) continue; else {
+						baseIndex = m3.helper.ArrayHelper.indexOfComplex(array,base.value,base.propOrFcn,baseIndex + 1);
+						breakOut = true;
+						break;
+					}
+				}
+				if(breakOut) continue;
+				result = candidate;
+			}
+		}
+	}
+	return result;
+};
+m3.helper.ArrayHelper.contains = function(array,value) {
+	if(array == null) return false;
+	var contains = Lambda.indexOf(array,value);
+	return contains > -1;
+};
+m3.helper.ArrayHelper.containsAny = function(array,valueArray) {
+	if(array == null || valueArray == null) return false;
+	var contains = -1;
+	var _g1 = 0;
+	var _g = valueArray.length;
+	while(_g1 < _g) {
+		var v_ = _g1++;
+		contains = Lambda.indexOf(array,valueArray[v_]);
+		if(contains > -1) break;
+	}
+	return contains > -1;
+};
+m3.helper.ArrayHelper.containsAll = function(array,valueArray) {
+	if(array == null || valueArray == null) return false;
+	var anyFailures = false;
+	var _g1 = 0;
+	var _g = valueArray.length;
+	while(_g1 < _g) {
+		var v_ = _g1++;
+		var index = Lambda.indexOf(array,valueArray[v_]);
+		if(index < 0) {
+			anyFailures = true;
+			break;
+		}
+	}
+	return !anyFailures;
+};
+m3.helper.ArrayHelper.containsComplex = function(array,value,propOrFcn,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(array == null) return false;
+	var contains = m3.helper.ArrayHelper.indexOfComplex(array,value,propOrFcn,startingIndex);
+	return contains > -1;
+};
+m3.helper.ArrayHelper.containsComplexInSubArray = function(array,value,subArrayProp,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(array == null) return false;
+	var contains = m3.helper.ArrayHelper.indexOfComplexInSubArray(array,value,subArrayProp,startingIndex);
+	return contains > -1;
+};
+m3.helper.ArrayHelper.containsArrayComparison = function(array,comparison,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(array == null) return false;
+	var contains = m3.helper.ArrayHelper.indexOfArrayComparison(array,comparison,startingIndex);
+	return contains > -1;
+};
+m3.helper.ArrayHelper.hasValues = function(array) {
+	return array != null && array.length > 0;
+};
+m3.helper.ArrayHelper.joinX = function(array,sep) {
+	if(array == null) return null;
+	var s = "";
+	var _g1 = 0;
+	var _g = array.length;
+	while(_g1 < _g) {
+		var str_ = _g1++;
+		var tmp = array[str_];
+		if(m3.helper.StringHelper.isNotBlank(tmp)) tmp = StringTools.trim(tmp);
+		if(m3.helper.StringHelper.isNotBlank(tmp) && str_ > 0 && s.length > 0) s += sep;
+		s += array[str_];
+	}
+	return s;
+};
+qoid.model.Content = function(contentType,type) {
+	qoid.model.ModelObjWithIid.call(this);
+	this.contentType = contentType;
+	if(qoid.Qoid.get_currentAlias() == null) this.aliasIid = null; else this.aliasIid = qoid.Qoid.get_currentAlias().iid;
+	this.data = { };
+	this.type = type;
+	this.props = Type.createInstance(type,[]);
+	this.metaData = new qoid.model.ContentMetaData();
+};
+$hxClasses["qoid.model.Content"] = qoid.model.Content;
+qoid.model.Content.__name__ = ["qoid","model","Content"];
+qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	setData: function(data) {
+		this.data = data;
+	}
+	,readResolve: function() {
+		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
+	}
+	,writeResolve: function() {
+		this.data = m3.serialization.Serializer.get_instance().toJson(this.props);
+	}
+	,getTimestamp: function() {
+		return DateTools.format(this.created,"%Y-%m-%d %T");
+	}
+	,objectType: function() {
+		return "content";
+	}
+	,__class__: qoid.model.Content
+});
+m3.helper.OSetHelper = function() { };
+$hxClasses["m3.helper.OSetHelper"] = m3.helper.OSetHelper;
+m3.helper.OSetHelper.__name__ = ["m3","helper","OSetHelper"];
+m3.helper.OSetHelper.getElement = function(oset,value,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	return m3.helper.OSetHelper.getElementComplex(oset,value,null,startingIndex);
+};
+m3.helper.OSetHelper.getElementComplex = function(oset,value,propOrFcn,startingIndex) {
+	if(startingIndex == null) startingIndex = 0;
+	if(oset == null) return null;
+	if(propOrFcn == null) propOrFcn = oset.identifier();
+	var result = null;
+	var index_ = -1;
+	var iter = oset.iterator();
+	while(iter.hasNext()) if(startingIndex > ++index_) continue; else {
+		var comparisonT = iter.next();
+		var comparisonValue;
+		if(typeof(propOrFcn) == "string") comparisonValue = Reflect.field(comparisonT,propOrFcn); else comparisonValue = propOrFcn(comparisonT);
+		if(value == comparisonValue) {
+			result = comparisonT;
+			break;
+		}
+	}
+	return result;
+};
+m3.helper.OSetHelper.getElementComplex2 = function(oset,criteriaFunc) {
+	if(oset == null) return null;
+	if(criteriaFunc == null) return null;
+	var result = null;
+	var iter = oset.iterator();
+	while(iter.hasNext()) {
+		var comparisonT = iter.next();
+		if(criteriaFunc(comparisonT)) {
+			result = comparisonT;
+			break;
+		}
+	}
+	return result;
+};
+m3.helper.OSetHelper.hasValues = function(oset) {
+	return oset != null && oset.iterator().hasNext();
+};
+m3.helper.OSetHelper.joinX = function(oset,sep,getString) {
+	if(getString == null) getString = oset.identifier();
+	var s = "";
+	var iter = oset.iterator();
+	var index = 0;
+	while(iter.hasNext()) {
+		var t = iter.next();
+		var tmp = getString(t);
+		if(m3.helper.StringHelper.isNotBlank(tmp)) tmp = StringTools.trim(tmp);
+		if(m3.helper.StringHelper.isNotBlank(tmp) && index > 0 && s.length > 0) s += sep;
+		s += getString(t);
+		index++;
+	}
+	return s;
+};
+m3.helper.OSetHelper.strIdentifier = function(str) {
+	return str;
+};
+qoid.model.NotificationKind = function() { };
+$hxClasses["qoid.model.NotificationKind"] = qoid.model.NotificationKind;
+qoid.model.NotificationKind.__name__ = ["qoid","model","NotificationKind"];
 qoid.model.Label = function(name) {
 	qoid.model.ModelObjWithIid.call(this);
 	this.name = name;
@@ -2638,6 +2638,13 @@ agentui.model.ContentSource.addListener = function(ml,obsc,wc) {
 	agentui.model.ContentSource.listeners.push(l);
 	return l.id;
 };
+agentui.model.ContentSource.removeListener = function(id) {
+	var i = m3.helper.ArrayHelper.indexOfComplex(agentui.model.ContentSource.listeners,id,"id");
+	if(i > -1) {
+		agentui.model.ContentSource.listeners[i].destroy();
+		agentui.model.ContentSource.listeners.splice(i,1);
+	}
+};
 agentui.model.ContentSource.addContent = function(results,connectionIid) {
 	var iids = new Array();
 	var connectionIids = new Array();
@@ -2668,17 +2675,19 @@ agentui.model.ContentSource.addContent = function(results,connectionIid) {
 	qoid.QoidAPI.getVerificationContent(connectionIids,iids);
 };
 agentui.model.ContentSource.onLoadFilteredContent = function(data) {
-	if(data.result.standing || agentui.model.ContentSource.handle == data.context.handle) agentui.model.ContentSource.addContent(data.result.results,data.connectionIid); else {
+	if(data.result.standing || agentui.model.ContentSource.context != null && agentui.model.ContentSource.context.handle == data.context.handle) agentui.model.ContentSource.addContent(data.result.results,data.result.route[0]); else {
 		agentui.model.ContentSource.clearQuery();
-		data.context.handle;
+		if(typeof(data.context) == "string") agentui.model.ContentSource.context = m3.serialization.Serializer.get_instance().fromJsonX(JSON.parse(data.context),qoid.RequestContext); else agentui.model.ContentSource.context = m3.serialization.Serializer.get_instance().fromJsonX(data.context,qoid.RequestContext);
 		agentui.model.ContentSource.beforeSetContent();
-		agentui.model.ContentSource.addContent(data.result.results,data.connectionIid);
+		agentui.model.ContentSource.addContent(data.result.results,data.result.route[0]);
 	}
 };
 agentui.model.ContentSource.clearQuery = function() {
-	if(agentui.model.ContentSource.handle != null) {
+	if(agentui.model.ContentSource.context != null) {
+		m3.log.Logga.get_DEFAULT().warn("deregisterSqueries");
+		qoid.QoidAPI.cancelQuery(new qoid.RequestContext(agentui.model.ContentSource.context.context,agentui.model.ContentSource.context.handle));
 		agentui.model.ContentSource.filteredContent.clear();
-		agentui.model.ContentSource.handle = null;
+		agentui.model.ContentSource.context = null;
 	}
 };
 agentui.model.ContentSource.onAliasLoaded = function(alias) {
@@ -6420,10 +6429,10 @@ Xml.DocType = "doctype";
 Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
 agentui.model.EM.delegate = m3.event.EventManager.get_instance();
-if(!Array.indexOf){Array.prototype.indexOf = function(obj){for(var i=0; i<this.length; i++){if(this[i]==obj){return i;}}return -1;}}
 qoid.QoidAPI.channels = new Array();
 qoid.QoidAPI.set_activeChannel(null);
 qoid.QoidAPI.longPolls = new haxe.ds.StringMap();
+if(!Array.indexOf){Array.prototype.indexOf = function(obj){for(var i=0; i<this.length; i++){if(this[i]==obj){return i;}}return -1;}}
 qoid.Qoid.introductions = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 qoid.Qoid.notifications = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 qoid.Qoid.notifications.listen(function(n,evt) {
@@ -7674,7 +7683,7 @@ var defineWidget = function() {
 			connections = this1.get(a.iid);
 			if(connections == null) connections = qoid.Qoid.groupedConnections.addEmptyGroup(a.iid);
 			self._setConnections(connections);
-		});
+		},"ConnectionsList-onAliasLoaded");
 	}, _setConnections : function(connections1) {
 		var self1 = this;
 		var selfElement1 = this.element;
@@ -8288,6 +8297,7 @@ var defineWidget = function() {
 			var jq = new $(ele);
 			jq.remove();
 		});
+		agentui.model.ContentSource.clearQuery();
 	}, fireFilter : function() {
 		var self1 = this;
 		var selfElement2 = this.element;
@@ -8296,7 +8306,9 @@ var defineWidget = function() {
 		var root = (selfElement2.children(".rootToggle").data("getNode"))();
 		root.type = "ROOT";
 		var filterables1 = selfElement2.children(".filterable");
-		if(filterables1.length == 0) agentui.model.EM.change(qoid.QE.onAliasLoaded,qoid.Qoid.get_currentAlias()); else {
+		if(filterables1.length == 0) {
+			if(agentui.widget.LiveBuildToggleHelper.isLive(liveToggle1)) agentui.model.ContentSource.clearQuery();
+		} else {
 			filterables1.each(function(idx1,el) {
 				var jqEle = new $(el);
 				if(!jqEle["is"](".connectionAvatar")) {
@@ -9335,10 +9347,6 @@ qoid.QE.onConnectionProfile = "onConnectionProfile";
 qoid.QE.onInitialDataload = "onInitialDataload";
 qoid.QE.onInitiateIntroduction = "onInitiateIntroduction";
 qoid.QE.onUserLogin = "onUserLogin";
-qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<semanticId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</semanticId>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"337\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"341\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"349\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"353\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"326\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.NotificationKind.IntroductionRequest = "IntroductionRequest";
-qoid.model.NotificationKind.VerificationRequest = "VerificationRequest";
-qoid.model.NotificationKind.VerificationResponse = "VerificationResponse";
 qoid.QoidAPI.AGENT_CREATE = "/api/v1/agent/create";
 qoid.QoidAPI.LOGIN = "/api/v1/login";
 qoid.QoidAPI.LOGOUT = "/api/v1/logout";
@@ -9373,6 +9381,10 @@ qoid.QoidAPI.QUERY_CANCEL = "/api/v1/query/cancel";
 m3.comm.ChannelRequestMessage.__rtti = "<class path=\"m3.comm.ChannelRequestMessage\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<path><c path=\"String\"/></path>\n\t<context><d/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.comm.ChannelRequestMessageBundle.__rtti = "<class path=\"m3.comm.ChannelRequestMessageBundle\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c></requests>\n\t<add public=\"1\" set=\"method\" line=\"29\"><f a=\"request\">\n\t<c path=\"m3.comm.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<createAndAdd public=\"1\" set=\"method\" line=\"33\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></createAndAdd>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"channel:requests\">\n\t<c path=\"String\"/>\n\t<c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.RequestContext.__rtti = "<class path=\"qoid.RequestContext\" params=\"\" module=\"qoid.QoidAPI\">\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<handle public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</handle>\n\t<resultType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</resultType>\n\t<new public=\"1\" set=\"method\" line=\"26\"><f a=\"?context:?handle:?resultType\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<semanticId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</semanticId>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"337\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"341\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"349\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"353\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"326\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.NotificationKind.IntroductionRequest = "IntroductionRequest";
+qoid.model.NotificationKind.VerificationRequest = "VerificationRequest";
+qoid.model.NotificationKind.VerificationResponse = "VerificationResponse";
 qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"126\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"120\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"174\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"183\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"178\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<_groupingKeys><c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c></_groupingKeys>\n\t<delete set=\"method\" line=\"439\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"463\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"482\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"492\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"496\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"511\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<keys public=\"1\" set=\"method\" line=\"515\"><f a=\"\"><c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c></f></keys>\n\t<keyListen public=\"1\" set=\"method\" line=\"519\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"String\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></keyListen>\n\t<removeKeyListen public=\"1\" set=\"method\" line=\"523\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"String\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></removeKeyListen>\n\t<new public=\"1\" set=\"method\" line=\"418\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
