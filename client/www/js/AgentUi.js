@@ -732,7 +732,7 @@ agentui.AgentUi.main = function() {
 	agentui.api.EventDelegate.init();
 	agentui.model.EM.addListener(qoid.QE.onAliasLoaded,function(a) {
 		window.document.title = a.profile.name + " | Qoid-Bennu";
-	});
+	},"AgentUi-onAliasLoaded");
 	agentui.model.EM.addListener("FitWindow",function(n) {
 		fitWindow();
 	});
@@ -2585,8 +2585,10 @@ qoid.Qoid.processProfile = function(rec) {
 	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,connectionIid);
 	var profile = m3.serialization.Serializer.get_instance().fromJsonX(rec.result.results[0],qoid.model.Profile);
 	profile.connectionIid = connectionIid;
-	connection.data = profile;
-	qoid.Qoid.connections.addOrUpdate(connection);
+	if(connection != null) {
+		connection.data = profile;
+		qoid.Qoid.connections.addOrUpdate(connection);
+	} else m3.log.Logga.get_DEFAULT().warn("We have a profile with no connection | profile --> iid: " + profile.iid + " - name: " + profile.name);
 	qoid.Qoid.profiles.addOrUpdate(profile);
 };
 qoid.Qoid.getLabelDescendents = function(iid) {
@@ -6478,7 +6480,7 @@ qoid.Qoid.profiles.listen(function(p1,evt3) {
 qoid.Qoid.verificationContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 m3.serialization.Serializer.get_instance().addHandler(qoid.model.Content,new qoid.model.ContentHandler());
 m3.serialization.Serializer.get_instance().addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
-m3.event.EventManager.get_instance().on("onConnectionProfile",qoid.Qoid.processProfile);
+m3.event.EventManager.get_instance().on("onConnectionProfile",qoid.Qoid.processProfile,"EventManager-onConnectionProfile");
 agentui.model.ContentSource.filteredContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 agentui.model.ContentSource.listeners = new Array();
 agentui.model.EM.addListener(qoid.QE.onAliasLoaded,agentui.model.ContentSource.onAliasLoaded,"ContentSource-AliasLoaded");

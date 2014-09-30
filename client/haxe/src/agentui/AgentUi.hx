@@ -28,7 +28,7 @@ class AgentUi {
 
         EM.addListener(QE.onAliasLoaded, function(a:Alias){
             js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
-        });
+        }, "AgentUi-onAliasLoaded");
 
         EM.addListener(EMEvent.FitWindow, function(n: {}) {
             untyped __js__("fitWindow()");

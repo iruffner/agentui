@@ -135,7 +135,8 @@ extern class FilterComp extends JQ {
 		        	var filterables: JQ = selfElement.children(".filterable");
 
 		        	if (filterables.length == 0) {
-						EM.change(QE.onAliasLoaded, Qoid.currentAlias);
+						EM.change(QE.onAliasLoaded, Qoid.currentAlias); //why does it do this?
+						
 		        	} else {
 			        	filterables.each(function (idx: Int, el: Element): Void {
 			        		var jqEle = new JQ(el);
