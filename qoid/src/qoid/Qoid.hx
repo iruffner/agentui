@@ -147,8 +147,12 @@ class Qoid {
         var connection = Qoid.connections.getElement(connectionIid);
         var profile = Serializer.instance.fromJsonX(rec.result.results[0], Profile);
         profile.connectionIid = connectionIid;
-        connection.data = profile;
-        Qoid.connections.addOrUpdate(connection);
+        if(connection != null) {
+            connection.data = profile;
+            Qoid.connections.addOrUpdate(connection);
+        } else {
+            Logga.DEFAULT.warn("We have a profile with no connection | profile --> iid: " + profile.iid + " - name: " + profile.name);   
+        }
         Qoid.profiles.addOrUpdate(profile);
     }
 
