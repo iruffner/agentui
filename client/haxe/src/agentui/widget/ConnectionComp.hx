@@ -33,6 +33,7 @@ typedef ConnectionCompWidgetDef = {
 
 	@:optional var filteredSetConnection:FilteredSet<Connection>;
 	@:optional var _onUpdateConnection: Connection->EventType->Void;
+	@:optional var notificationsListener: Notification<Dynamic>->EventType->Void;
 }
 
 class ConnectionCompHelper {
@@ -156,13 +157,15 @@ extern class ConnectionComp extends JQ {
 			    	self.notifications = new FilteredSet<Notification<Dynamic>>(Qoid.notifications, function(n:Notification<Dynamic>):Bool {
                 		return (n.connectionIid == self.options.connection.iid);
                 	});
-                	self.notifications.listen(function(i:Notification<Dynamic>, evt:EventType):Void{
+
+                	self.notificationsListener = function(i:Notification<Dynamic>, evt:EventType):Void{
                 		if (evt.isAdd()) {
                 			self.addNotification();
                 		} else if (evt.isDelete()) {
                 			self.deleteNotification();
-            		}
-                	});
+            			}
+                	};
+                	self.notifications.listen(self.notificationsListener);
 		        },
 
 		        update: function(conn: Connection): Void {
@@ -199,6 +202,9 @@ extern class ConnectionComp extends JQ {
 		            untyped JQ.Widget.prototype.destroy.call(JQ.curNoWrap);
 		        	if (self.filteredSetConnection != null) {
 			        	self.filteredSetConnection.removeListener(self._onUpdateConnection);
+		        	}
+		        	if(self.notifications != null) {
+		        		self.notifications.removeListener(self.notificationsListener);
 		        	}
 		        }
 		    };

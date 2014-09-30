@@ -12,6 +12,8 @@ import qoid.model.ModelObj.Alias;
 import qoid.Qoid;
 import qoid.Synchronizer;
 
+using m3.helper.OSetHelper;
+
 class AuthenticationResponse {
     public var channelId:String;
     public var alias:Dynamic;
@@ -380,18 +382,6 @@ class QoidAPI {
         submitRequest(json, CONTENT_UPDATE, new RequestContext("updateContent"));
     }
 
-    // public static function deleteContent(contentIid:String, ?route: Array<String>):Void {
-    //     var json:Dynamic = {
-    //         contentIid: contentIid
-    //     };
-    //     if (route != null) {
-    //         json.route = route;
-    //     }
-
-    //     submitRequest(json, CONTENT_DELETE, new RequestContext("deleteContent"));
-    // }
-
-
     public static function addContentLabel(contentIid:String, labelIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
             contentIid: contentIid,
@@ -541,6 +531,13 @@ class QoidAPI {
         }
 
         submitRequest(json, NOTIFICATION_CONSUME, new RequestContext("consumeNotification"));
+
+        //since our standing query is for unconsumed notifications, we will not receive this updated notification, we must remove it ourselves from the list
+        try {
+            Qoid.notifications.delete(Qoid.notifications.getElement(notificationIid));
+        } catch (err: Dynamic) {
+            Logga.DEFAULT.error("Could not remove notification | " + err);   
+        }
     }
 
     public static function deleteNotification(notificationIid:String, ?route: Array<String>):Void {
@@ -580,6 +577,13 @@ class QoidAPI {
         }
 
         submitRequest(json, INTRODUCTION_ACCEPT, new RequestContext("acceptIntroduction"));
+
+        //since our standing query is for unconsumed notifications, we will not receive this updated notification, we must remove it ourselves from the list
+        try {
+            Qoid.notifications.delete(Qoid.notifications.getElement(notificationIid));
+        } catch (err: Dynamic) {
+            Logga.DEFAULT.error("Could not remove notification | " + err);   
+        }
     }
 
     private static function submitRequest(json:Dynamic, path:String, context: RequestContext):Void {
