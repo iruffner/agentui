@@ -41,7 +41,7 @@ extern class ContentFeed extends JQ {
 		        		throw new Exception("Root of ContentFeed must be a div element");
 		        	}
 
-		        	selfElement.addClass("container " + Widgets.getWidgetClasses()).css("padding", "10px");
+		        	selfElement.addClass("_contentFeed container " + Widgets.getWidgetClasses()).css("padding", "10px");
 		        	selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
 
 		        	var mapListener = function(content: Content<Dynamic>, contentComp:ContentComp, evt: EventType): Void {
@@ -73,6 +73,8 @@ extern class ContentFeed extends JQ {
 	            			contentComp.update(content);
 	            		} else if (evt.isDelete()) {
 	            			contentComp.remove();
+	            		} else if (evt.isClear()) {
+	            			new JQ(".contentComp").remove();
 	            		}
 	            	};
 

@@ -8059,9 +8059,9 @@ var defineWidget = function() {
 			self2.toggleActive();
 		});
 		self2._createWidgets(selfElement2,self2);
-		agentui.model.EM.addListener("EditContentClosed",function(content1) {
+		self2.contentClosedListenerId = agentui.model.EM.addListener("EditContentClosed",function(content1) {
 			if(content1.iid == self2.options.content.iid) selfElement2.show();
-		});
+		},"ContentComp-EditContentClosed");
 	}, _createContentMenu : function() {
 		var self3 = this;
 		var selfElement3 = this.element;
@@ -8115,6 +8115,7 @@ var defineWidget = function() {
 	}, destroy : function() {
 		var self6 = this;
 		self6.mappedLabels.removeListener(self6.onchangeLabelChildren);
+		agentui.model.EM.removeListener("EditContentClosed",self6.contentClosedListenerId);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -8124,7 +8125,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ContentFeed must be a div element");
-		selfElement.addClass("container " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
+		selfElement.addClass("_contentFeed container " + m3.widget.Widgets.getWidgetClasses()).css("padding","10px");
 		selfElement.append("<div id='middleContainerSpacer' class='spacer'></div>");
 		var mapListener = function(content,contentComp,evt) {
 			if(evt.isAdd()) {
@@ -8144,7 +8145,7 @@ var defineWidget = function() {
 					if(!inserted) comps.last().after(contentComp);
 				}
 				agentui.model.EM.change("FitWindow");
-			} else if(evt.isUpdate()) agentui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove();
+			} else if(evt.isUpdate()) agentui.widget.ContentCompHelper.update(contentComp,content); else if(evt.isDelete()) contentComp.remove(); else if(evt.isClear()) new $(".contentComp").remove();
 		};
 		var beforeSetContent = function() {
 			selfElement.find(".contentComp").remove();

@@ -7242,8 +7242,8 @@ var defineWidget = function() {
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this2.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
+			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this11.get(ap.APhotoContext.get_ROOT_ALBUM().iid);
 			return $r;
 		}(this)),function(labelChild) {
 			return new $("<div></div>").albumComp({ album : m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,labelChild.childIid)});
@@ -7434,27 +7434,24 @@ var defineWidget = function() {
 			ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.CONTENT_SCREEN);
 		});
 		self._createWidgets(selfElement,self);
-		ap.model.EM.addListener("EditContentClosed",function(content) {
-			if(content.iid == self.options.content.iid) selfElement.show();
-		});
 	}, _createWidgets : function(selfElement1,self1) {
 		selfElement1.empty();
-		var content1 = self1.options.content;
-		var _g = content1.contentType;
+		var content = self1.options.content;
+		var _g = content.contentType;
 		switch(_g) {
 		case qoid.model.ContentTypes.IMAGE:
 			var img;
-			img = js.Boot.__cast(content1 , qoid.model.ImageContent);
+			img = js.Boot.__cast(content , qoid.model.ImageContent);
 			selfElement1.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
 			break;
 		default:
 			m3.log.Logga.get_DEFAULT().debug("Only image content should be displayed");
 		}
-	}, update : function(content2) {
+	}, update : function(content1) {
 		var self2 = this;
 		var selfElement2 = this.element;
 		var showButtonBlock = self2.buttonBlock.isVisible();
-		self2.options.content = content2;
+		self2.options.content = content1;
 		self2._createWidgets(selfElement2,self2);
 		if(showButtonBlock) self2.buttonBlock.show();
 		selfElement2.show();
