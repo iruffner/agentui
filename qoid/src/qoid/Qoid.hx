@@ -135,7 +135,7 @@ class Qoid {
         Serializer.instance.addHandler(Content, new ContentHandler());
         Serializer.instance.addHandler(Notification, new NotificationHandler());
 
-        EventManager.instance.on("onConnectionProfile", processProfile);
+        EventManager.instance.on("onConnectionProfile", processProfile, "EventManager-onConnectionProfile");
     }
 
     public static function onInitialDataLoadComplete(alias: Alias) {
