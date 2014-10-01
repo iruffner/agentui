@@ -68,7 +68,7 @@ class Qoid {
             if (evt.isAddOrUpdate()) {
                 if (n.kind == NotificationKind.IntroductionRequest) {
                     var introRequest:IntroductionRequestNotification = cast(n);
-                    QoidAPI.getProfile([introRequest.props.connectionIid]);
+                    QoidAPI.getProfile([introRequest.connectionIid, introRequest.props.connectionIid]);
                 }
             }
         });

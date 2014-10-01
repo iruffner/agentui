@@ -5498,7 +5498,7 @@ qoid.Qoid.notifications.listen(function(n,evt) {
 	if(evt.isAddOrUpdate()) {
 		if(n.kind == qoid.model.NotificationKind.IntroductionRequest) {
 			var introRequest = n;
-			qoid.QoidAPI.getProfile([introRequest.props.connectionIid]);
+			qoid.QoidAPI.getProfile([introRequest.get_connectionIid(),introRequest.props.connectionIid]);
 		}
 	}
 });
