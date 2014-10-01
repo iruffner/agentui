@@ -82,7 +82,11 @@ extern class IntroductionNotificationDialog extends JQ {
 		        	// 	}
 		        	// }
 		        	// Qoid.profiles.listen(listener);
-		        	var profile: Profile = Qoid.profiles.getElement(self.options.notification.props.connectionIid);
+		        	var profile: Profile = Qoid.profiles.getElementComplex(
+		        			self.options.notification.props.connectionIid,
+		        			function(p: Profile): String {
+		        					return p.connectionIid;
+		        				});
 		        	if(profile != null) {
 		        		nameDiv.html(profile.name);
 	        			var imgSrc: String = "media/default_avatar.jpg";
