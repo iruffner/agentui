@@ -4919,7 +4919,7 @@ qoid.Synchronizer.prototype = {
 			var datum = data[_g];
 			++_g;
 			var profile = m3.serialization.Serializer.get_instance().fromJsonX(datum,qoid.model.Profile);
-			if(m3.helper.ArrayHelper.hasValues(result.route)) profile.connectionIid = result.route[0];
+			if(m3.helper.ArrayHelper.hasValues(result.route)) profile.connectionIid = result.route[result.route.length - 1];
 			list.push(profile);
 		}
 	}
