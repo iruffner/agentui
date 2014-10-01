@@ -143,9 +143,9 @@ class Qoid {
     }
 
     public static function processProfile(rec:{result:{route: Array<String>, results: Array<Dynamic>}}) {
-        var connectionIid = rec.result.route[rec.result.route.length - 1];
-        var connection = Qoid.connections.getElement(connectionIid);
-        var profile = Serializer.instance.fromJsonX(rec.result.results[0], Profile);
+        var connectionIid: String = rec.result.route[rec.result.route.length - 1];
+        var connection: Connection = Qoid.connections.getElement(connectionIid);
+        var profile: Profile = Serializer.instance.fromJsonX(rec.result.results[0], Profile);
         profile.connectionIid = connectionIid;
         if(connection != null) {
             connection.data = profile;

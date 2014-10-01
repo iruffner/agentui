@@ -156,7 +156,7 @@ class QoidAPI {
         _startPolling(data.channelId);
 
         var context = "initialDataLoad";
-        var sychoronizer = new qoid.Synchronizer(context, 8, onInitialDataload);
+        var sychoronizer = new qoid.Synchronizer(context, 9, onInitialDataload);
         var requests = [
             new ChannelRequestMessage(QUERY, new RequestContext(context, "alias"), createQueryJson("alias", "iid <> '" + QoidAPI.activeAlias.iid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "introduction"), createQueryJson("introduction")),
@@ -166,7 +166,7 @@ class QoidAPI {
             new ChannelRequestMessage(QUERY, new RequestContext(context, "labelAcl"), createQueryJson("labelAcl")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "labeledContent"), createQueryJson("labeledContent")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "labelChild"), createQueryJson("labelChild"))
-            // ,new ChannelRequestMessage(QUERY, new RequestContext(context, "profile"), createQueryJson("profile", "aliasIid = '" + QoidAPI.activeAlias.iid + "'"))
+            ,new ChannelRequestMessage(QUERY, new RequestContext(context, "profile"), createQueryJson("profile", "aliasIid = '" + QoidAPI.activeAlias.iid + "'"))
         ];
         new SubmitRequest(activeChannel, requests, onSuccess, onError).requestHeaders(headers).start();
 

@@ -76,7 +76,7 @@ class Synchronizer {
         for (datum in data) {
             var profile: Profile = Serializer.instance.fromJsonX(datum, Profile);
             if(result.route.hasValues()) 
-                profile.connectionIid = result.route[result.route.length - 1];
+                profile.connectionIid = result.route[0];
             list.push(profile);
         }
     }
