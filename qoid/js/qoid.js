@@ -4741,7 +4741,7 @@ qoid.Qoid.onInitialDataLoadComplete = function(alias) {
 	qoid.Qoid.set_currentAlias(alias);
 };
 qoid.Qoid.processProfile = function(rec) {
-	var connectionIid = rec.result.route[0];
+	var connectionIid = rec.result.route[rec.result.route.length - 1];
 	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,connectionIid);
 	var profile = m3.serialization.Serializer.get_instance().fromJsonX(rec.result.results[0],qoid.model.Profile);
 	profile.connectionIid = connectionIid;
