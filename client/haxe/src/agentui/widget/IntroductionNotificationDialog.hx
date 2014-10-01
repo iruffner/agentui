@@ -1,5 +1,6 @@
 package agentui.widget;
 
+import m3.helper.StringFormatHelper;
 import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.jq.PlaceHolderUtil;
@@ -65,7 +66,7 @@ extern class IntroductionNotificationDialog extends JQ {
 		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		        	var title = new JQ("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
 		        	var from  =	new JQ("<div><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		        	var date  =	new JQ("<div><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
+		        	var date  =	new JQ("<div><b>Date:</b> " + StringFormatHelper.dateLongPretty(self.options.notification.modified) + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
 
 		        	var nameDiv: JQ = new JQ("<div></div>");
