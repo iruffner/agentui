@@ -4,6 +4,7 @@ import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.jq.PlaceHolderUtil;
 import m3.observable.OSet.EventType;
+import m3.util.M;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import agentui.model.EM;
@@ -70,17 +71,26 @@ extern class IntroductionNotificationDialog extends JQ {
 		        	var nameDiv: JQ = new JQ("<div></div>");
 		        	var imgDiv: JQ = new JQ("<div></div>");
 
-		        	var listener = function(p: Profile, evt: EventType) {
-		        		if(evt.isAddOrUpdate()) {
-		        			nameDiv.html(p.name);
-		        			var imgSrc: String = "media/default_avatar.jpg";
-				        	if(m3.util.M.getX(p.imgSrc, "").isNotBlank() ) {
-				        		imgSrc = p.imgSrc;
-				        	}
-		        			imgDiv.empty().append(new JQ("<img class='intro-profile-img container' src='" + imgSrc + "'/>"));
-		        		}
+		        	// var listener = function(p: Profile, evt: EventType) {
+		        	// 	if(evt.isAddOrUpdate()) {
+		        	// 		nameDiv.html(p.name);
+		        	// 		var imgSrc: String = "media/default_avatar.jpg";
+				       //  	if(m3.util.M.getX(p.imgSrc, "").isNotBlank() ) {
+				       //  		imgSrc = p.imgSrc;
+				       //  	}
+		        	// 		imgDiv.empty().append(new JQ("<img class='intro-profile-img container' src='" + imgSrc + "'/>"));
+		        	// 	}
+		        	// }
+		        	// Qoid.profiles.listen(listener);
+		        	var profile: Profile = Qoid.profiles.getElement(self.options.notification.props.connectionIid);
+		        	if(profile != null) {
+		        		nameDiv.html(profile.name);
+	        			var imgSrc: String = "media/default_avatar.jpg";
+			        	if(M.getX(profile.imgSrc, "").isNotBlank() ) {
+			        		imgSrc = profile.imgSrc;
+			        	}
+	        			imgDiv.empty().append(new JQ("<img class='intro-profile-img container' src='" + imgSrc + "'/>"));
 		        	}
-		        	Qoid.profiles.listen(listener);
 					intro_table.find("td:nth-child(3)").append(nameDiv).append( imgDiv );
 		        },
 
