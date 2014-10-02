@@ -396,6 +396,7 @@ body {
 
 			.__boardScreen .contentComp .imgDiv img {
 				max-height: 210px;
+				max-width: 98%;
 			}
 		.__boardScreen .contentComp .caption {
 			height:28px;
