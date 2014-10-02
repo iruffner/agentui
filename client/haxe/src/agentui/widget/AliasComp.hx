@@ -64,7 +64,7 @@ extern class AliasComp extends JQ {
 		        		throw new Exception("Root of AliasComp must be a div element");
 		        	}
 
-		        	selfElement.addClass("ocontainer shadow ");
+		        	selfElement.addClass("ocontainer shadow _aliasComp");
 		        	self.container = new JQ("<div class='container'></div>");
 		        	selfElement.append(self.container);
 
@@ -185,7 +185,7 @@ extern class AliasComp extends JQ {
 					};
 					menuOptions.push(menuOption);
 
-        			menu.m3menu({menuOptions:menuOptions}).hide();
+        			menu.m3menu({menuOptions:menuOptions, wrapLabelInAtag: true}).hide();
 
 					return menu;
 		       	},

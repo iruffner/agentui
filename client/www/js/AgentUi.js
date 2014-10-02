@@ -7006,7 +7006,9 @@ var defineWidget = function() {
 			++_g;
 			var icon;
 			if(m3.helper.StringHelper.isNotBlank(menuOption[0].icon)) icon = "<span class='ui-icon " + menuOption[0].icon + "'></span>"; else icon = "";
-			var li = new $("<li>" + icon + menuOption[0].label + "</li>").appendTo(selfElement).click((function(menuOption) {
+			var label;
+			if(self.options.wrapLabelInAtag) label = "<a>" + menuOption[0].label + "</a"; else label = menuOption[0].label;
+			var li = new $("<li>" + icon + label + "</li>").appendTo(selfElement).click((function(menuOption) {
 				return function(evt) {
 					menuOption[0].action(evt,selfElement);
 				};
@@ -7027,7 +7029,7 @@ var defineWidget = function() {
 		var self = this;
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AliasComp must be a div element");
-		selfElement.addClass("ocontainer shadow ");
+		selfElement.addClass("ocontainer shadow _aliasComp");
 		self.container = new $("<div class='container'></div>");
 		selfElement.append(self.container);
 		self.avatar = new $("<div></div>").appendTo(self.container);
@@ -7105,7 +7107,7 @@ var defineWidget = function() {
 			agentui.widget.DialogManager.showAliasManager();
 		}};
 		menuOptions.push(menuOption);
-		menu.m3menu({ menuOptions : menuOptions}).hide();
+		menu.m3menu({ menuOptions : menuOptions, wrapLabelInAtag : true}).hide();
 		return menu;
 	}, _updateAliasWidgets : function(alias5) {
 		var self2 = this;
@@ -7913,8 +7915,8 @@ var defineWidget = function() {
 		};
 		self2.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this2.get(self2.options.content.iid);
+			var this11 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this11.get(self2.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
@@ -8154,8 +8156,8 @@ var defineWidget = function() {
 			return $r;
 		}(this)) != null) aliasIid = self1.options.content.aliasIid; else if((function($this) {
 			var $r;
-			var this2 = qoid.Qoid.connections.delegate();
-			$r = this2.get(self1.options.content.connectionIid);
+			var this11 = qoid.Qoid.connections.delegate();
+			$r = this11.get(self1.options.content.connectionIid);
 			return $r;
 		}(this)) != null) connectionIid = self1.options.content.connectionIid;
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, aliasIid : aliasIid, connectionIid : connectionIid}).appendTo(postCreator);
@@ -8163,8 +8165,8 @@ var defineWidget = function() {
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		if((function($this) {
 			var $r;
-			var this3 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this3.get(self1.options.content.iid);
+			var this12 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this12.get(self1.options.content.iid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabeledContent.addEmptyGroup(self1.options.content.iid);
 		self1.onchangeLabelChildren = function(ele,evt2) {
@@ -8174,8 +8176,8 @@ var defineWidget = function() {
 		};
 		self1.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this4 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this4.get(self1.options.content.iid);
+			var this13 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this13.get(self1.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
@@ -8726,8 +8728,8 @@ var defineWidget = function() {
 			$r = this1.get(self.options.labelIid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(self.options.labelIid);
-		var this2 = qoid.Qoid.groupedLabelChildren.delegate();
-		self.children = this2.get(self.options.labelIid);
+		var this11 = qoid.Qoid.groupedLabelChildren.delegate();
+		self.children = this11.get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
@@ -8773,8 +8775,8 @@ var defineWidget = function() {
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this2.get(self.options.parentIid);
+			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this11.get(self.options.parentIid);
 			return $r;
 		}(this)),function(labelChild) {
 			var labelPath = self.options.labelPath.slice();
