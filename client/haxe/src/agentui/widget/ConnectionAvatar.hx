@@ -25,6 +25,7 @@ typedef ConnectionAvatarOptions = {
 	>FilterableCompOptions,
 	@:optional var connectionIid: String;
 	@:optional var aliasIid: String;
+	@:optional var onProfileUpdate: Profile->Void;
 }
 
 typedef ConnectionAvatarWidgetDef = {
@@ -245,6 +246,9 @@ extern class ConnectionAvatar extends FilterableComponent {
 
 		        	selfElement.children("img").attr("src", imgSrc);
 		            selfElement.attr("title", M.getX(profile.name,""));
+		            if(self.options.onProfileUpdate != null) {
+		            	self.options.onProfileUpdate(profile);
+		            }
 	        	},
 
 		        destroy: function() {

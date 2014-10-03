@@ -1,13 +1,13 @@
 package pagent.widget;
 
 import m3.log.Logga;
-import pagent.widget.DialogManager;
 import m3.util.M;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
 import m3.jq.JQDraggable;
 import m3.jq.JQTooltip;
 import m3.observable.OSet;
+import pagent.widget.DialogManager;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import agentui.model.Node;

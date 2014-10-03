@@ -6551,6 +6551,7 @@ var defineWidget = function() {
 			}
 			return $r;
 		}(this)));
+		if(self3.options.onProfileUpdate != null) self3.options.onProfileUpdate(profile);
 	}, destroy : function() {
 		var self4 = this;
 		if(self4.filteredSetConnection != null) self4.filteredSetConnection.removeListener(self4._onUpdateConnection); else if(self4.filteredSetAlias != null) self4.filteredSetAlias.removeListener(self4._onUpdateAlias);
@@ -7769,9 +7770,10 @@ var defineWidget = function() {
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
 		var aliasIid = null;
 		var connectionIid = null;
-		if(m3.helper.OSetHelper.getElementComplex(qoid.Qoid.aliases,self1.options.content.connectionIid,function(a) {
+		var alias;
+		if((alias = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.aliases,self1.options.content.connectionIid,function(a) {
 			return a.connectionIid;
-		}) != null) connectionIid = self1.options.content.connectionIid; else if((function($this) {
+		})) != null) aliasIid = alias.iid; else if((function($this) {
 			var $r;
 			var this1 = qoid.Qoid.connections.delegate();
 			$r = this1.get(self1.options.content.connectionIid);

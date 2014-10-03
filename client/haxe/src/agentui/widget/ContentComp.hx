@@ -178,8 +178,9 @@ extern class ContentComp extends JQ {
 
 		        	var aliasIid = null;
 		        	var connectionIid = null;
-		        	if (Qoid.aliases.getElementComplex(self.options.content.connectionIid, function(a: Alias) { return a.connectionIid; }) != null) {
-		        		connectionIid = self.options.content.connectionIid;
+		        	var alias: Alias;
+		        	if ( (alias = Qoid.aliases.getElementComplex(self.options.content.connectionIid, function(a: Alias) { return a.connectionIid; })) != null) {
+		        		aliasIid = alias.iid;
 		        	} else {
 		        		if (Qoid.connections.delegate().get(self.options.content.connectionIid) != null) {
 		        			connectionIid = self.options.content.connectionIid;
