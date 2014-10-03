@@ -83,7 +83,7 @@ class ContentSource {
 				var c = Serializer.instance.fromJsonX(result, Content);
 				if(c != null) { //occurs when there is an unknown content type
 					if (connectionIid != null) {
-						c.aliasIid = null;
+						// c.aliasIid = null;
 						c.connectionIid = connectionIid;
 					}
 					filteredContent.addOrUpdate(c);

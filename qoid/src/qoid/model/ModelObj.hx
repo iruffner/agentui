@@ -313,7 +313,7 @@ class ContentMetaData {
 
 class Content<T:(ContentData)> extends ModelObjWithIid {
 	public var contentType: String;
-	@:optional public var aliasIid: String;
+	// @:optional public var aliasIid: String;
 	@:optional public var connectionIid: String;
 	@:optional public var metaData:ContentMetaData;
 	@:optional public var semanticId:String;
@@ -326,7 +326,7 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	public function new (contentType:ContentType, type: Class<T>) {
 		super();
 		this.contentType = contentType;
-		this.aliasIid = (Qoid.currentAlias == null) ? null : Qoid.currentAlias.iid;
+		// this.aliasIid = (Qoid.currentAlias == null) ? null : Qoid.currentAlias.iid;
 		this.data = {};
 		this.type = type;
 		this.props = Type.createInstance(type, []);

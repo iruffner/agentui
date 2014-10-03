@@ -8,7 +8,7 @@ import m3.log.LogLevel;
 import m3.serialization.Serialization;
 import qoid.QE;
 import agentui.widget.*;
-import agentui.widget.score.ScoreComp;
+// import agentui.widget.score.ScoreComp;
 import agentui.api.EventDelegate;
 import agentui.model.EM;
 import qoid.model.ModelObj;
@@ -83,7 +83,7 @@ class AgentUi {
 
         new InviteComp("#sideRight #sideRightInvite").inviteComp();
 
-        new ScoreComp("#score-div").scoreComp();
+        // new ScoreComp("#score-div").scoreComp();
         
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();

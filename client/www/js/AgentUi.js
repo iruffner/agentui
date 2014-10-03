@@ -770,7 +770,6 @@ agentui.AgentUi.start = function() {
 	new $("#userId").AliasComp();
 	new $("#postInput").postComp();
 	new $("#sideRight #sideRightInvite").inviteComp();
-	new $("#score-div").scoreComp();
 	new $("body").click(function(evt4) {
 		new $(".nonmodalPopup").hide();
 	});
@@ -2208,7 +2207,6 @@ m3.helper.ArrayHelper.joinX = function(array,sep) {
 qoid.model.Content = function(contentType,type) {
 	qoid.model.ModelObjWithIid.call(this);
 	this.contentType = contentType;
-	if(qoid.Qoid.get_currentAlias() == null) this.aliasIid = null; else this.aliasIid = qoid.Qoid.get_currentAlias().iid;
 	this.data = { };
 	this.type = type;
 	this.props = Type.createInstance(type,[]);
@@ -2668,10 +2666,7 @@ agentui.model.ContentSource.addContent = function(results,connectionIid) {
 			++_g;
 			var c = m3.serialization.Serializer.get_instance().fromJsonX(result,qoid.model.Content);
 			if(c != null) {
-				if(connectionIid != null) {
-					c.aliasIid = null;
-					c.connectionIid = connectionIid;
-				}
+				if(connectionIid != null) c.connectionIid = connectionIid;
 				agentui.model.ContentSource.filteredContent.addOrUpdate(c);
 				var _g1 = 0;
 				var _g2 = c.metaData.verifications;
@@ -4460,376 +4455,6 @@ qoid.model.VerificationRequest.__name__ = ["qoid","model","VerificationRequest"]
 qoid.model.VerificationRequest.prototype = {
 	__class__: qoid.model.VerificationRequest
 };
-agentui.widget.score = {};
-agentui.widget.score.ContentTimeLine = function(paper,profile,startTime,endTime,initialWidth) {
-	try {
-		this.paper = paper;
-		this.profile = profile;
-		this.startTime = startTime;
-		this.endTime = endTime;
-		this.initialWidth = initialWidth;
-		this.contents = new Array();
-		this.contentElements = new Array();
-		if(agentui.widget.score.ContentTimeLine.next_y_pos > agentui.widget.score.ContentTimeLine.initial_y_pos) agentui.widget.score.ContentTimeLine.next_y_pos += agentui.widget.score.ContentTimeLine.height + 20;
-		agentui.widget.score.ContentTimeLine.next_y_pos += 10;
-		this.time_line_x = agentui.widget.score.ContentTimeLine.next_x_pos;
-		this.time_line_y = agentui.widget.score.ContentTimeLine.next_y_pos;
-		this.connectionElement = this.createConnectionElement();
-		var e123_0 = this.connectionElement;
-		var me123 = paper;
-		this.timeLineElement = me123.group.apply(me123, e123);
-	} catch( err ) {
-		m3.log.Logga.get_DEFAULT().error("there was an error in the ContentTimeLine constructor | " + Std.string(err));
-	}
-};
-$hxClasses["agentui.widget.score.ContentTimeLine"] = agentui.widget.score.ContentTimeLine;
-agentui.widget.score.ContentTimeLine.__name__ = ["agentui","widget","score","ContentTimeLine"];
-agentui.widget.score.ContentTimeLine.resetPositions = function() {
-	agentui.widget.score.ContentTimeLine.next_y_pos = agentui.widget.score.ContentTimeLine.initial_y_pos;
-	agentui.widget.score.ContentTimeLine.next_x_pos = 10;
-};
-agentui.widget.score.ContentTimeLine.prototype = {
-	reposition: function(startTime,endTime) {
-		if(this.startTime == startTime && this.endTime == endTime) return;
-		this.startTime = startTime;
-		this.endTime = endTime;
-		var _g1 = 0;
-		var _g = this.contentElements.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var ele = this.contentElements[i];
-			var content = this.contents[i];
-			var x_start = ele.attr("x");
-			var x_end = (endTime - content.created.getTime()) / (endTime - startTime) * this.initialWidth + this.time_line_x + agentui.widget.score.ContentTimeLine.width;
-		}
-	}
-	,removeElements: function() {
-		this.connectionElement.remove();
-		var iter = HxOverrides.iter(this.contentElements);
-		while(iter.hasNext()) iter.next().remove();
-	}
-	,createConnectionElement: function() {
-		var line = this.paper.line(this.time_line_x,this.time_line_y + agentui.widget.score.ContentTimeLine.height / 2,this.initialWidth,this.time_line_y + agentui.widget.score.ContentTimeLine.height / 2).attr({ 'class' : "contentLine"});
-		var ellipse = this.paper.ellipse(this.time_line_x + agentui.widget.score.ContentTimeLine.width / 2,this.time_line_y + agentui.widget.score.ContentTimeLine.height / 2,agentui.widget.score.ContentTimeLine.width / 2,agentui.widget.score.ContentTimeLine.height / 2);
-		ellipse.attr({ fill : "#fff", stroke : "#000", strokeWidth : "1px"});
-		var imgSrc;
-		try {
-			imgSrc = this.profile.imgSrc;
-		} catch( __e ) {
-			imgSrc = "media/default_avatar.jpg";
-		}
-		var img = this.paper.image(imgSrc,this.time_line_x,this.time_line_y,agentui.widget.score.ContentTimeLine.width,agentui.widget.score.ContentTimeLine.height);
-		img.attr({ mask : ellipse});
-		var border_ellipse = this.paper.ellipse(this.time_line_x + agentui.widget.score.ContentTimeLine.width / 2,this.time_line_y + agentui.widget.score.ContentTimeLine.height / 2,agentui.widget.score.ContentTimeLine.width / 2,agentui.widget.score.ContentTimeLine.height / 2);
-		var filter = this.paper.filter((function($this) {
-			var $r;
-			var dx1 = 4;
-			var dy1 = 4;
-			var blur1 = 4;
-			var color1 = "#000000";
-			$r = Snap.filter.shadow(dx1, dy1, blur1, color1);
-			return $r;
-		}(this)));
-		border_ellipse.attr({ fill : "none", stroke : "#5c9ccc", strokeWidth : "1px", filter : filter});
-		var e123_0 = line;
-		var e123_1 = img;
-		var e123_2 = border_ellipse;
-		var me123 = this.paper;
-		return me123.group.apply(me123, e123);
-	}
-	,addContent: function(content) {
-		try {
-			this.contents.push(content);
-			this.createContentElement(content);
-		} catch( err ) {
-			m3.log.Logga.get_DEFAULT().error("there was an error in ContentTimeLine.addContent | " + Std.string(err));
-		}
-	}
-	,createContentElement: function(content) {
-		var radius = 10;
-		var gap = 10;
-		var x = (this.endTime - content.created.getTime()) / (this.endTime - this.startTime) * this.initialWidth + this.time_line_x + agentui.widget.score.ContentTimeLine.width;
-		var y = this.time_line_y + agentui.widget.score.ContentTimeLine.height / 2;
-		var ele;
-		if(content.contentType == "TEXT") this.addContentElement(content,this.createTextElement(js.Boot.__cast(content , qoid.model.MessageContent),x,y,40,40)); else if(content.contentType == "IMAGE") this.addContentElement(content,this.createImageElement(js.Boot.__cast(content , qoid.model.ImageContent),x,y,40,40)); else if(content.contentType == "URL") this.addContentElement(content,this.createLinkElement(js.Boot.__cast(content , qoid.model.UrlContent),x,y,20)); else if(content.contentType == "AUDIO") this.addContentElement(content,this.createAudioElement(js.Boot.__cast(content , qoid.model.AudioContent),x,y,20,20));
-	}
-	,cloneElement: function(ele) {
-		var clone = ele.clone();
-		clone.attr({ contentType : ele.attr("contentType")});
-		clone.id = ele.id + "-clone";
-		clone.attr({ id : clone.id});
-		return clone;
-	}
-	,addContentElement: function(content,ele) {
-		var _g = this;
-		ele = ele.click(function(evt) {
-			var clone = _g.cloneElement(ele);
-			var after_anim = function() {
-				var bbox = clone.getBBox();
-				var cx = bbox.x + bbox.width / 2;
-				var cy = bbox.y + bbox.height / 2;
-				var g_id = clone.attr("id");
-				var g_type = clone.attr("contentType");
-				clone.remove();
-				var ele1 = null;
-				switch(g_type) {
-				case "AUDIO":
-					ele1 = _g.paper.ellipse(cx,cy,bbox.width / 2,bbox.height / 2).attr({ 'class' : "audioEllipse"});
-					break;
-				case "IMAGE":
-					ele1 = _g.paper.image((js.Boot.__cast(content , qoid.model.ImageContent)).props.imgSrc,bbox.x,bbox.y,bbox.width,bbox.height);
-					break;
-				case "URL":
-					ele1 = agentui.widget.score.Shapes.createHexagon(_g.paper,cx,cy,bbox.width / 2).attr({ 'class' : "urlContent"});
-					break;
-				case "TEXT":
-					ele1 = _g.paper.rect(bbox.x,bbox.y,bbox.width,bbox.height,5,5).attr({ 'class' : "messageContentLarge"});
-					break;
-				default:
-					m3.log.Logga.get_DEFAULT().warn("Unknown Content Type: " + g_type);
-				}
-				var g;
-				var e123_0 = ele1;
-				var me123 = _g.paper;
-				g = me123.group.apply(me123, e123);
-				g.attr({ contentType : g_type});
-				g.attr({ id : g_id});
-				g.id = g_id;
-				g.click(function(evt1) {
-					g.remove();
-				});
-				switch(g_type) {
-				case "AUDIO":
-					agentui.widget.score.ForeignObject.appendAudioContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.AudioContent)).props);
-					break;
-				case "URL":
-					agentui.widget.score.ForeignObject.appendUrlContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.UrlContent)).props);
-					break;
-				case "TEXT":
-					agentui.widget.score.ForeignObject.appendMessageContent(g_id,bbox,(js.Boot.__cast(content , qoid.model.MessageContent)).props);
-					break;
-				}
-			};
-			clone.animate({ transform : "t10,10 s5"},200,"",function() {
-				clone.animate({ transform : "t10,10 s4"},100,"",after_anim);
-			});
-		});
-		this.contentElements.push(ele);
-		this.timeLineElement.append(ele);
-	}
-	,splitText: function(text,max_chars,max_lines) {
-		if(max_lines == null) max_lines = 0;
-		var words = text.split(" ");
-		var lines = new Array();
-		var line_no = 0;
-		lines[line_no] = "";
-		var _g1 = 0;
-		var _g = words.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			if(lines[line_no].length + words[i].length > max_chars) {
-				line_no += 1;
-				if(line_no == max_lines) break;
-				lines[line_no] = "";
-			} else lines[line_no] += " ";
-			lines[line_no] += words[i];
-		}
-		return lines;
-	}
-	,createTextElement: function(content,x,y,ele_width,ele_height) {
-		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "messageContent"});
-		var bbox = { cx : x, cy : y, width : ele_height, height : ele_height};
-		var icon = agentui.widget.score.Icons.messageIcon(bbox);
-		var g;
-		var e123_0 = rect;
-		var e123_1 = icon;
-		var me123 = this.paper;
-		g = me123.group.apply(me123, e123);
-		g.attr("contentType","TEXT");
-		return g;
-	}
-	,createImageElement: function(content,x,y,ele_width,ele_height) {
-		var rect = this.paper.rect(x - ele_width / 2,y - ele_height / 2,ele_width,ele_height,3,3).attr({ 'class' : "imageContent"});
-		var bbox = { cx : x, cy : y, width : ele_height, height : ele_height};
-		var icon = agentui.widget.score.Icons.imageIcon(bbox);
-		var g;
-		var e123_0 = rect;
-		var e123_1 = icon;
-		var me123 = this.paper;
-		g = me123.group.apply(me123, e123);
-		g.attr("contentType","IMAGE");
-		return g;
-	}
-	,createLinkElement: function(content,x,y,radius) {
-		var hex = agentui.widget.score.Shapes.createHexagon(this.paper,x,y,radius).attr({ 'class' : "urlContent"});
-		var icon = agentui.widget.score.Icons.linkIcon(hex.getBBox());
-		var g;
-		var e123_0 = hex;
-		var e123_1 = icon;
-		var me123 = this.paper;
-		g = me123.group.apply(me123, e123);
-		g.attr("contentType","URL");
-		return g;
-	}
-	,createAudioElement: function(content,x,y,rx,ry) {
-		var ellipse = this.paper.ellipse(x,y,rx,ry).attr({ 'class' : "audioEllipse"});
-		var icon = agentui.widget.score.Icons.audioIcon(ellipse.getBBox());
-		var g;
-		var e123_0 = ellipse;
-		var e123_1 = icon;
-		var me123 = this.paper;
-		g = me123.group.apply(me123, e123);
-		g.attr("contentType","AUDIO");
-		return g;
-	}
-	,__class__: agentui.widget.score.ContentTimeLine
-};
-agentui.widget.score.ForeignObject = function() { };
-$hxClasses["agentui.widget.score.ForeignObject"] = agentui.widget.score.ForeignObject;
-agentui.widget.score.ForeignObject.__name__ = ["agentui","widget","score","ForeignObject"];
-agentui.widget.score.ForeignObject.createForeignObject = function(ele_id,bbox) {
-	var klone = d3.select("#" + ele_id);
-	var fo = klone.append("foreignObject").attr("width",Std.string(bbox.width - 21)).attr("height",bbox.height).attr("x",Std.string(bbox.x)).attr("y",Std.string(bbox.y)).append("xhtml:body");
-	return fo;
-};
-agentui.widget.score.ForeignObject.appendMessageContent = function(ele_id,bbox,content) {
-	var fo = agentui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
-	fo.append("div").attr("class","messageContent-large-text").style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height) + "px").html(content.text);
-};
-agentui.widget.score.ForeignObject.appendUrlContent = function(ele_id,bbox,content) {
-	bbox.y = bbox.y + bbox.height / 2 - 12;
-	bbox.x += 12;
-	var fo = agentui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
-	var div = fo.append("div").style("width",Std.string(bbox.width - 49) + "px").style("font-size","12px");
-	div.append("a").attr("href",content.url).attr("target","_blank").html(content.text).on("click",function() {
-		d3.event.stopPropagation();
-	});
-};
-agentui.widget.score.ForeignObject.appendImageContent = function(ele_id,bbox,content) {
-	bbox.y = bbox.y + bbox.height / 2;
-	var fo = agentui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
-	var div = fo.append("div");
-	div.append("div").attr("class","imageCaption").html(content.caption);
-	div.append("img").attr("src",content.imgSrc).style("width",Std.string(bbox.width - 49) + "px").style("height",Std.string(bbox.height) + "px");
-};
-agentui.widget.score.ForeignObject.appendAudioContent = function(ele_id,bbox,content) {
-	bbox.y = bbox.y + bbox.height / 2 - 12;
-	bbox.x = bbox.x + bbox.width / 3;
-	var fo = agentui.widget.score.ForeignObject.createForeignObject(ele_id,bbox);
-	var div = fo.append("div");
-	div.append("div").attr("class","audioTitle").style("width",Std.string(bbox.width - 49) + "px").style("font-size","12px").html(content.title);
-	var audioDiv = div.append("div").style("width",Std.string(bbox.width - 49) + "px");
-	audioDiv.append("audio").attr("src",content.audioSrc).attr("controls","controls").style("width","230px").style("height","50px").on("click",function() {
-		d3.event.stopPropagation();
-	});
-};
-agentui.widget.score.Icons = function() { };
-$hxClasses["agentui.widget.score.Icons"] = agentui.widget.score.Icons;
-agentui.widget.score.Icons.__name__ = ["agentui","widget","score","Icons"];
-agentui.widget.score.Icons.createIcon = function(iconPath,className,bbox) {
-	var paper = new Snap("#score-comp-svg");
-	var ret = paper.path(iconPath);
-	ret.attr("class",className);
-	if(bbox != null) {
-		var bbox_p = ret.getBBox();
-		ret.transform("t" + Std.string(bbox.cx - bbox_p.width / 2 - bbox_p.x) + " " + Std.string(bbox.cy - bbox_p.height / 2 - bbox_p.y));
-	}
-	return ret;
-};
-agentui.widget.score.Icons.audioIcon = function(bbox) {
-	var audioPath = "M4.998,12.127v7.896h4.495l6.729,5.526l0.004-18.948l-6.73,5.526H4.998z M18.806,11.219c-0.393-0.389-1.024-0.389-1.415,0.002c-0.39,0.391-0.39,1.024,0.002,1.416v-0.002c0.863,0.864,1.395,2.049,1.395,3.366c0,1.316-0.531,2.497-1.393,3.361c-0.394,0.389-0.394,1.022-0.002,1.415c0.195,0.195,0.451,0.293,0.707,0.293c0.257,0,0.513-0.098,0.708-0.293c1.222-1.22,1.98-2.915,1.979-4.776C20.788,14.136,20.027,12.439,18.806,11.219z M21.101,8.925c-0.393-0.391-1.024-0.391-1.413,0c-0.392,0.391-0.392,1.025,0,1.414c1.45,1.451,2.344,3.447,2.344,5.661c0,2.212-0.894,4.207-2.342,5.659c-0.392,0.39-0.392,1.023,0,1.414c0.195,0.195,0.451,0.293,0.708,0.293c0.256,0,0.512-0.098,0.707-0.293c1.808-1.809,2.929-4.315,2.927-7.073C24.033,13.24,22.912,10.732,21.101,8.925z M23.28,6.746c-0.393-0.391-1.025-0.389-1.414,0.002c-0.391,0.389-0.391,1.023,0.002,1.413h-0.002c2.009,2.009,3.248,4.773,3.248,7.839c0,3.063-1.239,5.828-3.246,7.838c-0.391,0.39-0.391,1.023,0.002,1.415c0.194,0.194,0.45,0.291,0.706,0.291s0.513-0.098,0.708-0.293c2.363-2.366,3.831-5.643,3.829-9.251C27.115,12.389,25.647,9.111,23.28,6.746z";
-	return agentui.widget.score.Icons.createIcon(audioPath,"audioIcon",bbox);
-};
-agentui.widget.score.Icons.messageIcon = function(bbox) {
-	var messagePath = "M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z";
-	return agentui.widget.score.Icons.createIcon(messagePath,"messageIcon",bbox);
-};
-agentui.widget.score.Icons.linkIcon = function(bbox) {
-	var linkPath = "M16.45,18.085l-2.47,2.471c0.054,1.023-0.297,2.062-1.078,2.846c-1.465,1.459-3.837,1.459-5.302-0.002c-1.461-1.465-1.46-3.836-0.001-5.301c0.783-0.781,1.824-1.131,2.847-1.078l2.469-2.469c-2.463-1.057-5.425-0.586-7.438,1.426c-2.634,2.637-2.636,6.907,0,9.545c2.638,2.637,6.909,2.635,9.545,0l0.001,0.002C17.033,23.511,17.506,20.548,16.45,18.085zM14.552,12.915l2.467-2.469c-0.053-1.023,0.297-2.062,1.078-2.848C19.564,6.139,21.934,6.137,23.4,7.6c1.462,1.465,1.462,3.837,0,5.301c-0.783,0.783-1.822,1.132-2.846,1.079l-2.469,2.468c2.463,1.057,5.424,0.584,7.438-1.424c2.634-2.639,2.633-6.91,0-9.546c-2.639-2.636-6.91-2.637-9.545-0.001C13.967,7.489,13.495,10.451,14.552,12.915zM18.152,10.727l-7.424,7.426c-0.585,0.584-0.587,1.535,0,2.121c0.585,0.584,1.536,0.584,2.121-0.002l7.425-7.424c0.584-0.586,0.584-1.535,0-2.121C19.687,10.141,18.736,10.142,18.152,10.727z";
-	return agentui.widget.score.Icons.createIcon(linkPath,"linkIcon",bbox);
-};
-agentui.widget.score.Icons.imageIcon = function(bbox) {
-	var imagePath = "M2.5,4.833v22.334h27V4.833H2.5zM25.25,25.25H6.75V6.75h18.5V25.25zM11.25,14c1.426,0,2.583-1.157,2.583-2.583c0-1.427-1.157-2.583-2.583-2.583c-1.427,0-2.583,1.157-2.583,2.583C8.667,12.843,9.823,14,11.25,14zM24.251,16.25l-4.917-4.917l-6.917,6.917L10.5,16.333l-2.752,2.752v5.165h16.503V16.25z";
-	return agentui.widget.score.Icons.createIcon(imagePath,"imageIcon",bbox);
-};
-agentui.widget.score.TimeMarker = function(uberGroup,paper,width,start,end) {
-	this.paper = paper;
-	this.width = width;
-	this.group = ((function($this) {
-		var $r;
-		var e123 = [];
-		var me123 = paper;
-		$r = me123.group.apply(me123, e123);
-		return $r;
-	}(this))).attr("id","time-marker");
-	uberGroup.append(this.group);
-	this.start = start.getTime();
-	this.end = end.getTime();
-	this.drawTimeLine();
-};
-$hxClasses["agentui.widget.score.TimeMarker"] = agentui.widget.score.TimeMarker;
-agentui.widget.score.TimeMarker.__name__ = ["agentui","widget","score","TimeMarker"];
-agentui.widget.score.TimeMarker.prototype = {
-	setStart: function(date) {
-		this.start = date.getTime();
-		this.drawTimeLine();
-	}
-	,setEnd: function(date) {
-		this.end = date.getTime();
-		this.drawTimeLine();
-	}
-	,drawTimeLine: function() {
-		var margin = 7;
-		var y = 3 * margin;
-		var attrs = { strokeOpacity : 0.6, stroke : "#cccccc", strokeWidth : 1};
-		var eles = this.group.selectAll("*");
-		eles.forEach(function(ele) {
-			ele.remove();
-		},{ });
-		this.line = this.paper.line(margin,y,this.width - margin,y).attr(attrs);
-		this.group.append(this.line);
-		var interval = this.end - this.start;
-		var interval1 = (this.width - 2 * margin) / 24;
-		var x = margin;
-		var _g = 0;
-		while(_g < 25) {
-			var i = _g++;
-			switch(i) {
-			case 0:case 12:case 24:
-				this.group.append(this.paper.line(x,y - margin,x,y + margin).attr(attrs));
-				x += interval1;
-				break;
-			case 3:case 15:
-				this.group.append(this.paper.line(x,y,x,y + margin + 2).attr(attrs));
-				x += interval1;
-				break;
-			case 6:case 18:
-				this.group.append(this.paper.line(x,y,x,y + margin + 2).attr(attrs));
-				x += interval1;
-				break;
-			case 9:case 21:
-				this.group.append(this.paper.line(x,y,x,y + margin + 2).attr(attrs));
-				x += interval1;
-				break;
-			default:
-				this.group.append(this.paper.line(x,y,x,y + margin).attr(attrs));
-				x += interval1;
-			}
-		}
-	}
-	,__class__: agentui.widget.score.TimeMarker
-};
-agentui.widget.score.Shapes = function() { };
-$hxClasses["agentui.widget.score.Shapes"] = agentui.widget.score.Shapes;
-agentui.widget.score.Shapes.__name__ = ["agentui","widget","score","Shapes"];
-agentui.widget.score.Shapes.createHexagon = function(paper,cx,cy,r) {
-	var theta = 0.523598775;
-	var hexagon = paper.polygon([cx - r * Math.sin(theta),cy - r * Math.cos(theta),cx - r,cy,cx - r * Math.sin(theta),cy + r * Math.cos(theta),cx + r * Math.sin(theta),cy + r * Math.cos(theta),cx + r,cy,cx + r * Math.sin(theta),cy - r * Math.cos(theta)]);
-	hexagon.attr("cx",cx);
-	hexagon.attr("cy",cy);
-	hexagon.attr("r",r);
-	return hexagon;
-};
 haxe.macro = {};
 haxe.macro.Constant = $hxClasses["haxe.macro.Constant"] = { __ename__ : ["haxe","macro","Constant"], __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp"] };
 haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
@@ -5684,11 +5309,6 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 	}
 	throw "Unexpected end";
 };
-js.d3 = {};
-js.d3._D3 = {};
-js.d3._D3.InitPriority = function() { };
-$hxClasses["js.d3._D3.InitPriority"] = js.d3._D3.InitPriority;
-js.d3._D3.InitPriority.__name__ = ["js","d3","_D3","InitPriority"];
 m3.CrossMojo = function() { };
 $hxClasses["m3.CrossMojo"] = m3.CrossMojo;
 m3.CrossMojo.__name__ = ["m3","CrossMojo"];
@@ -7915,8 +7535,8 @@ var defineWidget = function() {
 		};
 		self2.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this11.get(self2.options.content.iid);
+			var this2 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this2.get(self2.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
@@ -8149,15 +7769,12 @@ var defineWidget = function() {
 		var postCreator = new $("<aside class='postCreator'></aside>").appendTo(postWr);
 		var aliasIid = null;
 		var connectionIid = null;
-		if((function($this) {
+		if(m3.helper.OSetHelper.getElementComplex(qoid.Qoid.aliases,self1.options.content.connectionIid,function(a) {
+			return a.connectionIid;
+		}) != null) connectionIid = self1.options.content.connectionIid; else if((function($this) {
 			var $r;
-			var this1 = qoid.Qoid.aliases.delegate();
-			$r = this1.get(self1.options.content.aliasIid);
-			return $r;
-		}(this)) != null) aliasIid = self1.options.content.aliasIid; else if((function($this) {
-			var $r;
-			var this11 = qoid.Qoid.connections.delegate();
-			$r = this11.get(self1.options.content.connectionIid);
+			var this1 = qoid.Qoid.connections.delegate();
+			$r = this1.get(self1.options.content.connectionIid);
 			return $r;
 		}(this)) != null) connectionIid = self1.options.content.connectionIid;
 		new $("<div></div>").connectionAvatar({ dndEnabled : false, aliasIid : aliasIid, connectionIid : connectionIid}).appendTo(postCreator);
@@ -8165,8 +7782,8 @@ var defineWidget = function() {
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		if((function($this) {
 			var $r;
-			var this12 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this12.get(self1.options.content.iid);
+			var this2 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this2.get(self1.options.content.iid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabeledContent.addEmptyGroup(self1.options.content.iid);
 		self1.onchangeLabelChildren = function(ele,evt2) {
@@ -8176,8 +7793,8 @@ var defineWidget = function() {
 		};
 		self1.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this13 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this13.get(self1.options.content.iid);
+			var this3 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this3.get(self1.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
@@ -8728,8 +8345,8 @@ var defineWidget = function() {
 			$r = this1.get(self.options.labelIid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(self.options.labelIid);
-		var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-		self.children = this11.get(self.options.labelIid);
+		var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+		self.children = this2.get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
@@ -8775,8 +8392,8 @@ var defineWidget = function() {
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this11.get(self.options.parentIid);
+			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this2.get(self.options.parentIid);
 			return $r;
 		}(this)),function(labelChild) {
 			var labelPath = self.options.labelPath.slice();
@@ -9368,104 +8985,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.verificationRequestDialog",defineWidget());
-var defineWidget = function() {
-	return { _updateTimeLines : function() {
-		var self = this;
-		var $it4 = self.contentTimeLines.iterator();
-		while( $it4.hasNext() ) {
-			var timeline = $it4.next();
-			timeline.reposition(self.startTime.getTime(),self.endTime.getTime());
-		}
-	}, _getProfile : function(content) {
-		var alias = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,content.aliasIid);
-		if(alias != null) return alias.profile;
-		var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,content.connectionIid);
-		if(connection != null) return connection.data;
-		return new qoid.model.Profile();
-	}, _addContent : function(content1) {
-		try {
-			var self1 = this;
-			var updateTimelines = false;
-			if(self1.startTime.getTime() > content1.created.getTime()) {
-				self1.startTime = content1.created;
-				updateTimelines = true;
-			}
-			if(self1.endTime.getTime() < content1.created.getTime()) {
-				self1.endTime = content1.created;
-				updateTimelines = true;
-			}
-			if(updateTimelines) self1._updateTimeLines();
-			if(self1.contentTimeLines.get(content1.aliasIid) == null) {
-				var timeLine = new agentui.widget.score.ContentTimeLine(self1.paper,self1._getProfile(content1),self1.startTime.getTime(),self1.endTime.getTime(),self1.viewBoxWidth);
-				self1.contentTimeLines.set(content1.aliasIid,timeLine);
-			}
-			self1.contentTimeLines.get(content1.aliasIid).addContent(content1);
-			self1.uberGroup.append(self1.contentTimeLines.get(content1.aliasIid).timeLineElement);
-		} catch( e ) {
-			m3.log.Logga.get_DEFAULT().error("error calling _addContent",e);
-		}
-	}, _deleteContent : function(content2) {
-		var self2 = this;
-		var ctl = self2.contentTimeLines.get(content2.aliasIid);
-		if(ctl != null) {
-			ctl.removeElements();
-			self2.contentTimeLines.remove(content2.aliasIid);
-			if(!self2.contentTimeLines.iterator().hasNext()) agentui.widget.score.ContentTimeLine.resetPositions();
-		}
-	}, _updateContent : function(content3) {
-	}, _create : function() {
-		var self3 = this;
-		var selfElement = this.element;
-		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of ScoreComp must be a div element");
-		selfElement.addClass("container shadow scoreComp");
-		var mapListener = function(content4,ele,evt) {
-			if(evt.isAdd()) self3._addContent(content4); else if(evt.isUpdate()) self3._updateContent(content4); else if(evt.isDelete()) self3._deleteContent(content4);
-		};
-		var beforeSetContent = function() {
-			new $("#score-comp-svg").empty();
-			self3.contentTimeLines = new haxe.ds.StringMap();
-			self3.viewBoxWidth = 1000;
-			self3.paper = new Snap("#score-comp-svg");
-			self3.uberGroup = ((function($this) {
-				var $r;
-				var e123 = [];
-				var me123 = self3.paper;
-				$r = me123.group.apply(me123, e123);
-				return $r;
-			}(this))).attr("id","uber-group").attr("transform","matrix(1 0 0 1 0 0)");
-			self3.startTime = null;
-			self3.endTime = null;
-			if(self3.startTime == null) {
-				var t = new Date().getTime() - 7200000.;
-				var d = new Date();
-				d.setTime(t);
-				self3.startTime = d;
-				var t1 = self3.startTime.getTime() + 7200000.;
-				var d1 = new Date();
-				d1.setTime(t1);
-				self3.endTime = d1;
-			} else {
-				var t2 = self3.startTime.getTime() - 7200000.;
-				var d2 = new Date();
-				d2.setTime(t2);
-				self3.startTime = d2;
-				var t3 = self3.endTime.getTime() + 7200000.;
-				var d3 = new Date();
-				d3.setTime(t3);
-				self3.endTime = d3;
-			}
-			self3.timeMarker = new agentui.widget.score.TimeMarker(self3.uberGroup,self3.paper,self3.viewBoxWidth,self3.startTime,self3.endTime);
-		};
-		var widgetCreator = function(content5) {
-			return null;
-		};
-		agentui.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
-	}, destroy : function() {
-		var self4 = this;
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.scoreComp",defineWidget());
 var q = window.jQuery;
 js.JQuery = q;
 agentui.api.VerificationRequestMessage.__rtti = "<class path=\"agentui.api.VerificationRequestMessage\" params=\"\" module=\"agentui.api.CrudMessage\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"vr\">\n\t<c path=\"qoid.model.VerificationRequest\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
@@ -9520,7 +9039,7 @@ qoid.QoidAPI.QUERY_CANCEL = "/api/v1/query/cancel";
 m3.comm.ChannelRequestMessage.__rtti = "<class path=\"m3.comm.ChannelRequestMessage\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<path><c path=\"String\"/></path>\n\t<context><d/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.comm.ChannelRequestMessageBundle.__rtti = "<class path=\"m3.comm.ChannelRequestMessageBundle\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c></requests>\n\t<add public=\"1\" set=\"method\" line=\"29\"><f a=\"request\">\n\t<c path=\"m3.comm.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<createAndAdd public=\"1\" set=\"method\" line=\"33\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></createAndAdd>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"channel:requests\">\n\t<c path=\"String\"/>\n\t<c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.RequestContext.__rtti = "<class path=\"qoid.RequestContext\" params=\"\" module=\"qoid.QoidAPI\">\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<handle public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</handle>\n\t<resultType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</resultType>\n\t<new public=\"1\" set=\"method\" line=\"28\"><f a=\"?context:?handle:?resultType\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<semanticId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</semanticId>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"337\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"341\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"349\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"353\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"326\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<semanticId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</semanticId>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"337\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"341\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"349\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"353\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"326\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.NotificationKind.IntroductionRequest = "IntroductionRequest";
 qoid.model.NotificationKind.VerificationRequest = "VerificationRequest";
 qoid.model.NotificationKind.VerificationResponse = "VerificationResponse";
@@ -9608,11 +9127,6 @@ qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" pa
 qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"428\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"422\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"518\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-agentui.widget.score.ContentTimeLine.initial_y_pos = 60;
-agentui.widget.score.ContentTimeLine.next_y_pos = agentui.widget.score.ContentTimeLine.initial_y_pos;
-agentui.widget.score.ContentTimeLine.next_x_pos = 10;
-agentui.widget.score.ContentTimeLine.width = 60;
-agentui.widget.score.ContentTimeLine.height = 70;
 haxe.xml.Parser.escapes = (function($this) {
 	var $r;
 	var h = new haxe.ds.StringMap();
@@ -9625,7 +9139,6 @@ haxe.xml.Parser.escapes = (function($this) {
 	$r = h;
 	return $r;
 }(this));
-js.d3._D3.InitPriority.important = "important";
 m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false,false);
 m3.observable.EventType.Update = new m3.observable.EventType("Update",false,true,false);
 m3.observable.EventType.Delete = new m3.observable.EventType("Delete",false,false,false);
