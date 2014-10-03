@@ -366,11 +366,9 @@ extern class BoardDetails extends JQ {
                                             var connectionDiv: JQ = new JQ("<div class='connectionDiv ui-corner-all ui-state-active'></div>")
                                                 .appendTo(connectionsContainer)
                                                 .click(function(evt:JQEvent) {
-                                                        var parms = {
-                                                            connectionIid: c.iid,
-                                                            labelIid: self.options.label.iid,
-                                                        }
-                                                        EM.change(EMEvent.GrantAccess, parms);
+                                                        var acl: LabelAcl = new LabelAcl(c.iid, self.options.label.iid);
+                                                        acl.maxDegreesOfVisibility = Std.parseInt(self.dotButton.text().split(" ")[0]);
+                                                        EM.change(EMEvent.GrantAccess, acl);
                                                     });
                                             var connAvatar: ConnectionAvatar = new ConnectionAvatar("<div></div>");
                                             connAvatar.appendTo(connectionDiv);
