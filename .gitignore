@@ -13,3 +13,4 @@ proxy/src/main/webapp/client
 /agentui-proxy-1.0.0.jar
 Thumbs.db
 *.sublime-project
+build_all.bat
