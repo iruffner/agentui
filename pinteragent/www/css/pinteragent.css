@@ -437,6 +437,10 @@ body {
 		margin-top: 15px;
 		padding: 10px;
 	}
+
+	#contentScreen ._mediaComp img {
+		max-width: 98%;
+	}
 	
 	#contentScreen .msgDiv,
 	#contentScreen .imgDiv {
