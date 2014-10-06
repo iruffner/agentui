@@ -6310,7 +6310,6 @@ pagent.pages.BoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
 	}
 	,pageHideFcn: function(screen) {
 		this.labelSet.removeListener(this.labelSetListener);
-		this.labelSet = null;
 		new $(".content",screen).empty();
 	}
 	,__class__: pagent.pages.BoardScreen
@@ -6439,15 +6438,18 @@ pagent.pages.MyBoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 	pageBeforeShowFcn: function(screen) {
 		var _g = this;
 		screen.addClass("__boardScreen");
-		var content = new $(".content",screen).empty();
-		content.addClass("center");
-		this.labelSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(l) {
-			return l.iid == pagent.PinterContext.CURRENT_BOARD;
-		});
-		this.labelSetListener = function(label,evt) {
-			if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
-			if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
-		};
+		if(this.board != pagent.PinterContext.CURRENT_BOARD) {
+			this.board = pagent.PinterContext.CURRENT_BOARD;
+			var content = new $(".content",screen).empty();
+			content.addClass("center");
+			this.labelSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(l) {
+				return l.iid == pagent.PinterContext.CURRENT_BOARD;
+			});
+			this.labelSetListener = function(label,evt) {
+				if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
+				if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
+			};
+		}
 		this.labelSet.listen(this.labelSetListener,true);
 	}
 	,_applyAlbumToScreen: function(screen,label) {
@@ -6478,7 +6480,6 @@ pagent.pages.MyBoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 	}
 	,pageHideFcn: function(screen) {
 		this.labelSet.removeListener(this.labelSetListener);
-		this.labelSet = null;
 		new $(".content",screen).empty();
 	}
 	,__class__: pagent.pages.MyBoardScreen
