@@ -6284,10 +6284,10 @@ pagent.pages.BoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
 	,_applyAlbumToScreen: function(screen,label) {
 		var content = new $(".content",screen).empty();
 		content.addClass("center");
+		pagent.model.ContentSource.clearQuery();
 		var boardDetails = new $("<div></div>");
 		boardDetails.appendTo(content);
 		boardDetails.boardDetails({ label : label, parentIid : pagent.PinterContext.get_ROOT_BOARD().iid, showOptionBar : true});
-		pagent.model.ContentSource.clearQuery();
 		var root = new agentui.model.Or();
 		root.type = "ROOT";
 		var path = new Array();
@@ -6451,10 +6451,10 @@ pagent.pages.MyBoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 	,_applyAlbumToScreen: function(screen,label) {
 		var content = new $(".content",screen).empty();
 		content.addClass("center");
+		pagent.model.ContentSource.clearQuery();
 		var boardDetails = new $("<div></div>");
 		boardDetails.appendTo(content);
 		boardDetails.boardDetails({ label : label, parentIid : pagent.PinterContext.get_ROOT_BOARD().iid, showOptionBar : true});
-		pagent.model.ContentSource.clearQuery();
 		var root = new agentui.model.Or();
 		root.type = "ROOT";
 		var path = new Array();

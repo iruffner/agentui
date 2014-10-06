@@ -60,6 +60,8 @@ class BoardScreen extends PinterPage {
 	private function _applyAlbumToScreen(screen: JQ, label: Label) {
 		var content: JQ = new JQ(".content", screen).empty();
 		content.addClass("center");
+		
+		ContentSource.clearQuery();
 
 		var boardDetails: BoardDetails = new BoardDetails("<div></div>");
 		boardDetails.appendTo(content);
@@ -68,8 +70,6 @@ class BoardScreen extends PinterPage {
 			parentIid: PinterContext.ROOT_BOARD.iid,
 			showOptionBar: true
 		});
-
-		ContentSource.clearQuery();
 
 		var root: Node = new Or();
 		root.type = "ROOT";
