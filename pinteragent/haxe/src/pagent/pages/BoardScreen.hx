@@ -101,5 +101,7 @@ class BoardScreen extends PinterPage {
 	
 	private function pageHideFcn(screen: JQ): Void {
 		labelSet.removeListener(this.labelSetListener);
+		labelSet = null;
+		new JQ(".content", screen).empty();
 	}
 }

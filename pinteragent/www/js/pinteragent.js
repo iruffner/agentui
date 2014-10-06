@@ -6310,6 +6310,8 @@ pagent.pages.BoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype,{
 	}
 	,pageHideFcn: function(screen) {
 		this.labelSet.removeListener(this.labelSetListener);
+		this.labelSet = null;
+		new $(".content",screen).empty();
 	}
 	,__class__: pagent.pages.BoardScreen
 });
@@ -6477,6 +6479,7 @@ pagent.pages.MyBoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 	,pageHideFcn: function(screen) {
 		this.labelSet.removeListener(this.labelSetListener);
 		this.labelSet = null;
+		new $(".content",screen).empty();
 	}
 	,__class__: pagent.pages.MyBoardScreen
 });

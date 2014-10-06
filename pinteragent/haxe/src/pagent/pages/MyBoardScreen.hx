@@ -57,7 +57,7 @@ class MyBoardScreen extends PinterPage {
 		content.addClass("center");
 
 		ContentSource.clearQuery();
-		
+
 		var boardDetails: BoardDetails = new BoardDetails("<div></div>");
 		boardDetails.appendTo(content);
 		boardDetails.boardDetails({
@@ -94,5 +94,6 @@ class MyBoardScreen extends PinterPage {
 	private function pageHideFcn(screen: JQ): Void {
 		labelSet.removeListener(this.labelSetListener);
 		labelSet = null;
+		new JQ(".content", screen).empty();
 	}
 }
