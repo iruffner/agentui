@@ -4404,6 +4404,9 @@ m3.CrossMojo.jq = function(selector,arg2) {
 m3.CrossMojo.windowConsole = function() {
 	return window.console;
 };
+m3.CrossMojo.confirm = function() {
+	return confirm;
+};
 m3.CrossMojo.pushState = function(data,title,url) {
 	History.pushState(data, title, url);
 };
@@ -7193,28 +7196,33 @@ var defineWidget = function() {
 		},function(evt4) {
 			$(this).removeClass("ui-state-hover");
 		});
-	}, restore : function() {
+	}, _allowInteraction : function(event) {
 		var self1 = this;
-		var selfElement1 = this.element;
-		selfElement1.m3dialog("option","height",self1.originalSize.height);
-		selfElement1.m3dialog("option","width",self1.originalSize.width);
-		selfElement1.parent().position({ my : "middle", at : "middle", of : window});
-		self1.restoreIconWrapper.hide();
-		self1.maxIconWrapper.show();
-		self1.options.onMaxToggle();
-	}, maximize : function() {
+		var r = false;
+		if(self1.options.allowInteraction != null) r = !(!self1.options.allowInteraction(event));
+		return r || self1._super(event);
+	}, restore : function() {
 		var self2 = this;
+		var selfElement1 = this.element;
+		selfElement1.m3dialog("option","height",self2.originalSize.height);
+		selfElement1.m3dialog("option","width",self2.originalSize.width);
+		selfElement1.parent().position({ my : "middle", at : "middle", of : window});
+		self2.restoreIconWrapper.hide();
+		self2.maxIconWrapper.show();
+		self2.options.onMaxToggle();
+	}, maximize : function() {
+		var self3 = this;
 		var selfElement2 = this.element;
-		self2.originalSize = { height : selfElement2.parent().height(), width : selfElement2.parent().width()};
+		self3.originalSize = { height : selfElement2.parent().height(), width : selfElement2.parent().width()};
 		var $window = new $(window);
 		var windowDimensions_height = $window.height();
 		var windowDimensions_width = $window.width();
 		selfElement2.m3dialog("option","height",windowDimensions_height * .85);
 		selfElement2.m3dialog("option","width",windowDimensions_width * .85);
 		selfElement2.parent().position({ my : "middle", at : "middle", of : $window});
-		self2.maxIconWrapper.hide();
-		self2.restoreIconWrapper.show();
-		self2.options.onMaxToggle();
+		self3.maxIconWrapper.hide();
+		self3.restoreIconWrapper.show();
+		self3.options.onMaxToggle();
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -7960,7 +7968,7 @@ var defineWidget = function() {
 				var creatorDiv = new $("<div class='creatorDiv'></div>").insertBefore(captionDiv);
 				self1._onBoardCreatorProfile = function(p,evt1) {
 					if(evt1.isAddOrUpdate()) {
-						if(p.connectionIid == self1.options.content.connectionIid) creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
+						if(p.connectionIid == content1.connectionIid) creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
 					}
 				};
 				qoid.Qoid.profiles.listen(self1._onBoardCreatorProfile);

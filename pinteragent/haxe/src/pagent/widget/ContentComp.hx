@@ -108,7 +108,7 @@ extern class ContentComp extends JQ {
 
 				        	self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {
 								if(evt.isAddOrUpdate()) {
-									if(p.connectionIid == self.options.content.connectionIid) {
+									if(p.connectionIid == content.connectionIid) {
 										creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
 									}
 
