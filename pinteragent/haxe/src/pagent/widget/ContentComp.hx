@@ -140,6 +140,7 @@ extern class ContentComp extends JQ {
 										var reqCtx: RequestContext = Serializer.instance.fromJsonX(response.context, RequestContext);
 										if(reqCtx.handle == "_contentComp" && response.result.results.hasValues()) {
 											var c: Content<Dynamic> = Serializer.instance.fromJsonX(response.result.results[0], Content);
+											c.connectionIid = link.props.route[0];
 											fcn(c);
 											
 										}
