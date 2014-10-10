@@ -8098,7 +8098,7 @@ var defineWidget = function() {
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of MediaOptionsComp must be a div element");
 		selfElement.addClass("_mediaOptionsComp " + m3.widget.Widgets.getWidgetClasses());
 		var content = self.options.content;
-		if(content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) {
+		if(self.options.linkedContent || content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) {
 			if(content.contentType == qoid.model.ContentTypes.IMAGE) {
 				var setDefaultBtn = new $("<button class='setDefaultBtn'>Use as Cover Picture</button>").click(function(evt) {
 					var config = null;
@@ -8236,6 +8236,7 @@ var defineWidget = function() {
 		var c = self1.options.content;
 		var div = null;
 		var fcn = null;
+		var originalWasLink = false;
 		fcn = function(content) {
 			var currentAliasIsOwner = content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid;
 			var addCreatorDiv = function() {
@@ -8251,7 +8252,7 @@ var defineWidget = function() {
 			switch(_g) {
 			case qoid.model.ContentTypes.IMAGE:
 				var imgDiv = div = new $("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement1);
-				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content}).appendTo(selfElement1);
+				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content, linkedContent : originalWasLink}).appendTo(selfElement1);
 				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").commentsComp({ content : content}).appendTo(selfElement1);
 				var img;
 				img = js.Boot.__cast(content , qoid.model.ImageContent);
@@ -8272,7 +8273,7 @@ var defineWidget = function() {
 				break;
 			case qoid.model.ContentTypes.TEXT:
 				var msgDiv = div = new $("<div class='ui-widget-content ui-state-active ui-corner-all msgDiv'></div>").appendTo(selfElement1);
-				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content}).appendTo(selfElement1);
+				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content, linkedContent : originalWasLink}).appendTo(selfElement1);
 				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").commentsComp({ content : content}).appendTo(selfElement1);
 				var msg;
 				msg = js.Boot.__cast(content , qoid.model.MessageContent);
@@ -8280,6 +8281,7 @@ var defineWidget = function() {
 				addCreatorDiv();
 				break;
 			case qoid.model.ContentTypes.LINK:
+				originalWasLink = true;
 				var link;
 				link = js.Boot.__cast(content , qoid.model.LinkContent);
 				qoid.QoidAPI.query(new qoid.RequestContext("contentLink_" + link.props.contentIid,"_mediaComp"),"content","iid = '" + link.props.contentIid + "'",true,true,link.props.route);

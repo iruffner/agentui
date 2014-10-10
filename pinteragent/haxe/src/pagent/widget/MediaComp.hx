@@ -92,6 +92,7 @@ extern class MediaComp extends ContentComp {
 
 					var div: JQ = null;
 					var fcn: Content<Dynamic>->Void = null;
+					var originalWasLink: Bool = false;
 					fcn = function(content: Content<Dynamic>) {
 						var currentAliasIsOwner = content.connectionIid == Qoid.currentAlias.connectionIid;
 						
@@ -112,7 +113,8 @@ extern class MediaComp extends ContentComp {
 			        			var imgDiv: JQ = div = new JQ("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement);
 			        			new MediaOptionsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
 			        				.mediaOptionsComp({
-			        						content: content
+			        						content: content,
+			        						linkedContent: originalWasLink
 			        					})
 			        				.appendTo(selfElement);
 			        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
@@ -157,7 +159,8 @@ extern class MediaComp extends ContentComp {
 								var msgDiv: JQ = div = new JQ("<div class='ui-widget-content ui-state-active ui-corner-all msgDiv'></div>").appendTo(selfElement);
 			        			new MediaOptionsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
 			        				.mediaOptionsComp({
-			        						content: content
+			        						content: content,
+			        						linkedContent: originalWasLink
 			        					})
 			        				.appendTo(selfElement);
 			        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
@@ -169,6 +172,7 @@ extern class MediaComp extends ContentComp {
 			        			msgDiv.append("<div>" + msg.props.text + "</div>");
 			        			addCreatorDiv();
 			        		case ContentTypes.LINK:
+			        			originalWasLink = true;
 			        			var link: LinkContent = cast(content, LinkContent);
 								QoidAPI.query(new RequestContext("contentLink_" + link.props.contentIid, "_mediaComp"), "content", "iid = '" + link.props.contentIid + "'" , true, true, link.props.route);
 								self.linkListener = EM.addListener(

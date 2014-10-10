@@ -24,7 +24,8 @@ using m3.helper.StringHelper;
 using Lambda;
 
 typedef MediaOptionsCompOptions = {
-	var content: Content<Dynamic>;
+    var content: Content<Dynamic>;
+	var linkedContent: Bool;
 }
 
 typedef MediaOptionsCompWidgetDef = {
@@ -75,7 +76,7 @@ extern class MediaOptionsComp extends ContentComp {
 
 					var content: Content<Dynamic> = self.options.content;
 
-                    if(content.connectionIid == Qoid.currentAlias.connectionIid) {
+                    if(self.options.linkedContent || content.connectionIid == Qoid.currentAlias.connectionIid) {
                         if(content.contentType == ContentTypes.IMAGE) {
                             var setDefaultBtn: JQ = new JQ("<button class='setDefaultBtn'>Use as Cover Picture</button>")
                                 .click(function(evt: JQEvent) {
