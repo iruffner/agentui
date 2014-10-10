@@ -98,7 +98,7 @@ extern class MediaComp extends ContentComp {
 							self.creatorDiv = new JQ("<div class='creatorDiv' style='margin-top: 10px;'></div>").appendTo(div);
 				        	self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {
 								if(evt.isAddOrUpdate()) {
-									if(p.connectionIid == self.options.content.connectionIid) {
+									if(p.connectionIid == content.connectionIid) {
 										self.creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
 									}
 								}

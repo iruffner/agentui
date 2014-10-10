@@ -8242,7 +8242,7 @@ var defineWidget = function() {
 				self1.creatorDiv = new $("<div class='creatorDiv' style='margin-top: 10px;'></div>").appendTo(div);
 				self1._onBoardCreatorProfile = function(p,evt) {
 					if(evt.isAddOrUpdate()) {
-						if(p.connectionIid == self1.options.content.connectionIid) self1.creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
+						if(p.connectionIid == content.connectionIid) self1.creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
 					}
 				};
 				qoid.Qoid.profiles.listen(self1._onBoardCreatorProfile);
