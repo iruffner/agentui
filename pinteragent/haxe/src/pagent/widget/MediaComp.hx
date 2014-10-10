@@ -114,7 +114,8 @@ extern class MediaComp extends ContentComp {
 			        			new MediaOptionsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
 			        				.mediaOptionsComp({
 			        						content: content,
-			        						linkedContent: originalWasLink
+			        						linkedContent: originalWasLink,
+			        						originalContent: c
 			        					})
 			        				.appendTo(selfElement);
 			        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
@@ -160,7 +161,8 @@ extern class MediaComp extends ContentComp {
 			        			new MediaOptionsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
 			        				.mediaOptionsComp({
 			        						content: content,
-			        						linkedContent: originalWasLink
+			        						linkedContent: originalWasLink,
+			        						originalContent: c
 			        					})
 			        				.appendTo(selfElement);
 			        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")

@@ -25,19 +25,19 @@ using Lambda;
 
 typedef MediaOptionsCompOptions = {
     var content: Content<Dynamic>;
-	var linkedContent: Bool;
+    var linkedContent: Bool;
+    @:optional var originalContent: Content<Dynamic>;
 }
 
 typedef MediaOptionsCompWidgetDef = {
 	@:optional var options: MediaOptionsCompOptions;
 	var _create: Void->Void;
-	var _addComment: String->Void;
-	var update: ImageContent->Void;
+	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
 	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
 	@:optional var onchangeLabelChildren:JQ->EventType->Void;
-	var _showEditCaptionPopup: ImageContent->JQ->Void;
-	var _showEditAlbumsPopup: ImageContent->JQ->Void;
+	var _showEditCaptionPopup: Content<Dynamic>->JQ->Void;
+	var _showEditAlbumsPopup: Content<Dynamic>->JQ->Void;
 	@:optional var labelListener: LabeledContent->EventType->Void;
 }
 
@@ -109,32 +109,32 @@ extern class MediaOptionsComp extends ContentComp {
 					   
                     var pinBtn: JQ = new JQ("<button class='pinBtn'>Pin It</button>")
                             .click(function(evt: JQEvent) {
-                                    self._showEditAlbumsPopup(cast self.options.content, JQ.cur);
+                                    var c = content;
+                                    if(self.options.linkedContent)
+                                        c = self.options.originalContent;
+                                    self._showEditAlbumsPopup(c, JQ.cur);
                                     evt.stopPropagation();
                                 })
                             .button()
                             .appendTo(selfElement);                
 
-                    if(content.connectionIid == Qoid.currentAlias.connectionIid) {
+                    if(self.options.linkedContent || content.connectionIid == Qoid.currentAlias.connectionIid) {
                         var unpinBtn: JQ = new JQ("<button class='unpinBtn'>Unpin It</button>")
                             .click(function(evt: JQEvent) {
                                     EM.listenOnce(EMEvent.OnRemoveContentLabel, function(n: {}) {
                                             PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.BOARD_SCREEN;
                                         });
-                                    QoidAPI.removeContentLabel( content.iid, PinterContext.CURRENT_BOARD);
+                                    var c = content;
+                                    if(self.options.linkedContent)
+                                        c = self.options.originalContent;
+                                    QoidAPI.removeContentLabel( c.iid, PinterContext.CURRENT_BOARD);
                                 })
                             .button()
                             .appendTo(selfElement);
                     }
 				},
 
-				_addComment: function(str: String) {
-					var self: MediaOptionsCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-				},
-
-				_showEditCaptionPopup: function(c: ImageContent, reference: JQ): Void {
+				_showEditCaptionPopup: function(c: Content<Dynamic>, reference: JQ): Void {
 					var self: MediaOptionsCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -178,7 +178,7 @@ extern class MediaOptionsComp extends ContentComp {
 
 					},
 
-				_showEditAlbumsPopup: function(c: ImageContent, reference: JQ): Void {
+				_showEditAlbumsPopup: function(c: Content<Dynamic>, reference: JQ): Void {
 					var self: MediaOptionsCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -237,7 +237,7 @@ extern class MediaOptionsComp extends ContentComp {
 
 					},
 
-		        update: function(content:ImageContent) : Void {
+		        update: function(content:Content<Dynamic>) : Void {
 		        	
 		        },
 

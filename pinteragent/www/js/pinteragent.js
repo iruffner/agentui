@@ -8122,25 +8122,26 @@ var defineWidget = function() {
 			}
 		}
 		var pinBtn = new $("<button class='pinBtn'>Pin It</button>").click(function(evt1) {
-			self._showEditAlbumsPopup(self.options.content,$(this));
+			var c1 = content;
+			if(self.options.linkedContent) c1 = self.options.originalContent;
+			self._showEditAlbumsPopup(c1,$(this));
 			evt1.stopPropagation();
 		}).button().appendTo(selfElement);
-		if(content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) {
+		if(self.options.linkedContent || content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) {
 			var unpinBtn = new $("<button class='unpinBtn'>Unpin It</button>").click(function(evt2) {
 				pagent.model.EM.listenOnce("onRemoveContentLabel",function(n) {
 					pagent.PinterContext.PAGE_MGR.set_CURRENT_PAGE(pagent.pages.PinterPageMgr.BOARD_SCREEN);
 				});
-				qoid.QoidAPI.removeContentLabel(content.iid,pagent.PinterContext.CURRENT_BOARD);
+				var c2 = content;
+				if(self.options.linkedContent) c2 = self.options.originalContent;
+				qoid.QoidAPI.removeContentLabel(c2.iid,pagent.PinterContext.CURRENT_BOARD);
 			}).button().appendTo(selfElement);
 		}
-	}, _addComment : function(str) {
+	}, _showEditCaptionPopup : function(c3,reference) {
 		var self1 = this;
 		var selfElement1 = this.element;
-	}, _showEditCaptionPopup : function(c1,reference) {
-		var self2 = this;
-		var selfElement2 = this.element;
 		var popup = new $("<div class='updateCaptionPopup' style='position: absolute;width:600px;'></div>");
-		popup.appendTo(selfElement2);
+		popup.appendTo(selfElement1);
 		popup = popup.popup({ createFcn : function(el) {
 			var updateCaption = null;
 			var stopFcn = function(evt3) {
@@ -8153,27 +8154,27 @@ var defineWidget = function() {
 			var input = new $("<textarea id='caption' class='ui-corner-all ui-widget-content' style='font-size: 20px;'></textarea>").appendTo(container);
 			input.focus();
 			var buttonText = "Update Caption";
-			input.val(c1.props.caption);
+			input.val(c3.props.caption);
 			container.append("<br/>");
 			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt4) {
 				updateCaption();
 			});
 			updateCaption = function() {
 				if(input.val().length == 0) return;
-				m3.log.Logga.get_DEFAULT().info("Update content | " + c1.iid);
-				c1.props.caption = input.val();
-				var eventData = new qoid.model.EditContentData(c1,Lambda.array(Lambda.map(m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,c1.iid),function(laco) {
+				m3.log.Logga.get_DEFAULT().info("Update content | " + c3.iid);
+				c3.props.caption = input.val();
+				var eventData = new qoid.model.EditContentData(c3,Lambda.array(Lambda.map(m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,c3.iid),function(laco) {
 					return laco.labelIid;
 				})));
 				pagent.model.EM.change("UpdateContent",eventData);
 				new $("body").click();
 			};
 		}, positionalElement : reference});
-	}, _showEditAlbumsPopup : function(c2,reference1) {
-		var self3 = this;
-		var selfElement3 = this.element;
+	}, _showEditAlbumsPopup : function(c4,reference1) {
+		var self2 = this;
+		var selfElement2 = this.element;
 		var popup1 = new $("<div class='updateAlbumPopup' style='position: absolute;width:400px;'></div>");
-		popup1.appendTo(selfElement3);
+		popup1.appendTo(selfElement2);
 		popup1 = popup1.popup({ createFcn : function(el1) {
 			var updateLabels = null;
 			var stopFcn1 = function(evt5) {
@@ -8202,14 +8203,14 @@ var defineWidget = function() {
 				updateLabels();
 			});
 			updateLabels = function() {
-				if(c2.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) {
-					m3.log.Logga.get_DEFAULT().info("Add content label | " + c2.iid);
-					qoid.QoidAPI.addContentLabel(c2.iid,select.val());
+				if(c4.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) {
+					m3.log.Logga.get_DEFAULT().info("Add content label | " + c4.iid);
+					qoid.QoidAPI.addContentLabel(c4.iid,select.val());
 				} else {
-					m3.log.Logga.get_DEFAULT().info("Add content link | " + c2.iid);
+					m3.log.Logga.get_DEFAULT().info("Add content link | " + c4.iid);
 					var link = new qoid.model.LinkContent();
-					link.props.contentIid = c2.iid;
-					link.props.route = [c2.connectionIid];
+					link.props.contentIid = c4.iid;
+					link.props.route = [c4.connectionIid];
 					var edc = new qoid.model.EditContentData(link,[select.val()]);
 					pagent.model.EM.change("CreateContent",edc);
 				}
@@ -8218,8 +8219,8 @@ var defineWidget = function() {
 		}, positionalElement : reference1});
 	}, update : function(content1) {
 	}, destroy : function() {
-		var self4 = this;
-		m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,self4.options.content.iid).removeListener(self4.labelListener);
+		var self3 = this;
+		m3.helper.OSetHelper.getElement(qoid.Qoid.groupedLabeledContent,self3.options.content.iid).removeListener(self3.labelListener);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
@@ -8252,7 +8253,7 @@ var defineWidget = function() {
 			switch(_g) {
 			case qoid.model.ContentTypes.IMAGE:
 				var imgDiv = div = new $("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement1);
-				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content, linkedContent : originalWasLink}).appendTo(selfElement1);
+				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content, linkedContent : originalWasLink, originalContent : c}).appendTo(selfElement1);
 				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").commentsComp({ content : content}).appendTo(selfElement1);
 				var img;
 				img = js.Boot.__cast(content , qoid.model.ImageContent);
@@ -8273,7 +8274,7 @@ var defineWidget = function() {
 				break;
 			case qoid.model.ContentTypes.TEXT:
 				var msgDiv = div = new $("<div class='ui-widget-content ui-state-active ui-corner-all msgDiv'></div>").appendTo(selfElement1);
-				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content, linkedContent : originalWasLink}).appendTo(selfElement1);
+				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").mediaOptionsComp({ content : content, linkedContent : originalWasLink, originalContent : c}).appendTo(selfElement1);
 				new $("<div class='ui-widget-content ui-state-active ui-corner-all'></div>").commentsComp({ content : content}).appendTo(selfElement1);
 				var msg;
 				msg = js.Boot.__cast(content , qoid.model.MessageContent);
