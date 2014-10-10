@@ -6364,6 +6364,7 @@ pagent.pages.ContentScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 	,_noLabel: function(screen) {
 	}
 	,pageHideFcn: function(screen) {
+		var content = new $(".content",screen).empty();
 		if(this._onDestroy != null) this._onDestroy();
 	}
 	,__class__: pagent.pages.ContentScreen
@@ -6487,7 +6488,7 @@ pagent.pages.MyBoardScreen.prototype = $extend(pagent.pages.PinterPage.prototype
 	,__class__: pagent.pages.MyBoardScreen
 });
 pagent.pages.SocialScreen = function() {
-	pagent.pages.PinterPage.call(this,{ id : "#socialScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), reqUser : true, showBackButton : false});
+	pagent.pages.PinterPage.call(this,{ id : "#socialScreen", pageBeforeShowFcn : $bind(this,this.pageBeforeShowFcn), pageHideFcn : $bind(this,this.pageHideFcn), reqUser : true, showBackButton : false});
 };
 $hxClasses["pagent.pages.SocialScreen"] = pagent.pages.SocialScreen;
 pagent.pages.SocialScreen.__name__ = ["pagent","pages","SocialScreen"];
@@ -6499,6 +6500,9 @@ pagent.pages.SocialScreen.prototype = $extend(pagent.pages.PinterPage.prototype,
 		var boardListing = new $("<div></div>");
 		boardListing.appendTo(content);
 		boardListing.boardList({ boardList : pagent.PinterContext.sharedBoards});
+	}
+	,pageHideFcn: function(screen) {
+		new $(".content",screen).empty();
 	}
 	,__class__: pagent.pages.SocialScreen
 });

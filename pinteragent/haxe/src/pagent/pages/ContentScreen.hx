@@ -109,6 +109,7 @@ class ContentScreen extends PinterPage {
 	}
 	
 	private function pageHideFcn(screen: JQ): Void {
+		var content: JQ = new JQ(".content", screen).empty();
 		if(this._onDestroy != null) this._onDestroy();
 	}
 }

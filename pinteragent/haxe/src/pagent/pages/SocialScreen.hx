@@ -15,6 +15,7 @@ class SocialScreen extends PinterPage {
 		super({
 			id: "#socialScreen",
 			pageBeforeShowFcn: pageBeforeShowFcn, 
+			pageHideFcn: pageHideFcn, 
 			reqUser: true,
 			showBackButton: false
 		});
@@ -29,6 +30,10 @@ class SocialScreen extends PinterPage {
 		boardListing.boardList({
 				boardList: PinterContext.sharedBoards
 			});
+	}
+
+	private function pageHideFcn(screen: JQ): Void {
+		new JQ(".content", screen).empty();
 	}
 	
 }
