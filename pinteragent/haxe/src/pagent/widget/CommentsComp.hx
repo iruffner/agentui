@@ -29,6 +29,7 @@ typedef CommentsCompWidgetDef = {
 	var destroy: Void->Void;
 
     @:optional var header: JQ;
+    @:optional var commentsListenerId: String;
 }
 
 
@@ -93,7 +94,7 @@ extern class CommentsComp extends ContentComp {
                     );
                     selfElement.append("<div class='clear'></div>");
 
-                    EM.addListener(EMEvent.OnContentComments, function(data: Response) {
+                    self.commentsListenerId = EM.addListener(EMEvent.OnContentComments, function(data: Response) {
                             if(data.result.results.hasValues())
                                 for (result in data.result.results) {
                                     var c: MessageContent = Serializer.instance.fromJsonX(result, MessageContent);
@@ -154,7 +155,7 @@ extern class CommentsComp extends ContentComp {
                     Qoid.connections.iter(function(c: Connection) {
                             QoidAPI.cancelQuery( new RequestContext(EMEvent.ContentComments, self.options.content.semanticId+"_"+c.iid));
                         });
-		        	
+		        	EM.removeListener(EMEvent.ContentComments, self.commentsListenerId);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

@@ -8021,7 +8021,7 @@ var defineWidget = function() {
 			pagent.model.EM.change("CreateContent",ccd);
 		}));
 		selfElement.append("<div class='clear'></div>");
-		pagent.model.EM.addListener("onContentComments",function(data) {
+		self.commentsListenerId = pagent.model.EM.addListener("onContentComments",function(data) {
 			if(m3.helper.ArrayHelper.hasValues(data.result.results)) {
 				var _g = 0;
 				var _g1 = data.result.results;
@@ -8064,6 +8064,7 @@ var defineWidget = function() {
 		Lambda.iter(qoid.Qoid.connections,function(c2) {
 			qoid.QoidAPI.cancelQuery(new qoid.RequestContext("ContentComments",self2.options.content.semanticId + "_" + c2.iid));
 		});
+		pagent.model.EM.removeListener("ContentComments",self2.commentsListenerId);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
