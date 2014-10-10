@@ -155,7 +155,7 @@ extern class CommentsComp extends ContentComp {
                     Qoid.connections.iter(function(c: Connection) {
                             QoidAPI.cancelQuery( new RequestContext(EMEvent.ContentComments, self.options.content.semanticId+"_"+c.iid));
                         });
-		        	EM.removeListener(EMEvent.ContentComments, self.commentsListenerId);
+		        	EM.removeListener(EMEvent.OnContentComments, self.commentsListenerId);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

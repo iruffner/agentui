@@ -8064,7 +8064,7 @@ var defineWidget = function() {
 		Lambda.iter(qoid.Qoid.connections,function(c2) {
 			qoid.QoidAPI.cancelQuery(new qoid.RequestContext("ContentComments",self2.options.content.semanticId + "_" + c2.iid));
 		});
-		pagent.model.EM.removeListener("ContentComments",self2.commentsListenerId);
+		pagent.model.EM.removeListener("onContentComments",self2.commentsListenerId);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
