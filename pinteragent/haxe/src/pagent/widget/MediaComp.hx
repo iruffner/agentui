@@ -90,10 +90,11 @@ extern class MediaComp extends ContentComp {
 
 					var c: Content<Dynamic> = self.options.content;
 
-					var currentAliasIsOwner = self.options.content.connectionIid == Qoid.currentAlias.connectionIid;
 					var div: JQ = null;
 					var fcn: Content<Dynamic>->Void = null;
 					fcn = function(content: Content<Dynamic>) {
+						var currentAliasIsOwner = content.connectionIid == Qoid.currentAlias.connectionIid;
+						
 						var addCreatorDiv = function() {
 							self.creatorDiv = new JQ("<div class='creatorDiv' style='margin-top: 10px;'></div>").appendTo(div);
 				        	self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {

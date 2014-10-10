@@ -7914,9 +7914,9 @@ var defineWidget = function() {
 		});
 		self._createWidgets(selfElement,self);
 	}, _createWidgets : function(selfElement1,self1) {
-		var content = self1.options.content;
+		var c = self1.options.content;
 		var fcn = null;
-		fcn = function(content1) {
+		fcn = function(content) {
 			selfElement1.empty();
 			var captionDiv = new $("<div class='caption ui-corner-bottom'></div>");
 			var addCptDiv = function() {
@@ -7924,16 +7924,16 @@ var defineWidget = function() {
 				var creatorDiv = new $("<div class='creatorDiv'></div>").insertBefore(captionDiv);
 				self1._onBoardCreatorProfile = function(p,evt1) {
 					if(evt1.isAddOrUpdate()) {
-						if(p.connectionIid == content1.connectionIid) creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
+						if(p.connectionIid == content.connectionIid) creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
 					}
 				};
 				qoid.Qoid.profiles.listen(self1._onBoardCreatorProfile);
 			};
-			var _g = content1.contentType;
+			var _g = content.contentType;
 			switch(_g) {
 			case qoid.model.ContentTypes.IMAGE:
 				var img;
-				img = js.Boot.__cast(content1 , qoid.model.ImageContent);
+				img = js.Boot.__cast(content , qoid.model.ImageContent);
 				selfElement1.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
 				if(m3.helper.StringHelper.isNotBlank(img.props.caption)) captionDiv.append(img.props.caption); else {
 				}
@@ -7941,20 +7941,20 @@ var defineWidget = function() {
 				break;
 			case qoid.model.ContentTypes.TEXT:
 				var text;
-				text = js.Boot.__cast(content1 , qoid.model.MessageContent);
+				text = js.Boot.__cast(content , qoid.model.MessageContent);
 				selfElement1.append("<div class='msgDiv'>" + text.props.text + "</div>");
 				addCptDiv();
 				break;
 			case qoid.model.ContentTypes.LINK:
 				var link;
-				link = js.Boot.__cast(content1 , qoid.model.LinkContent);
+				link = js.Boot.__cast(content , qoid.model.LinkContent);
 				qoid.QoidAPI.query(new qoid.RequestContext("contentLink_" + link.props.contentIid,"_contentComp"),"content","iid = '" + link.props.contentIid + "'",true,true,link.props.route);
 				self1.linkListener = pagent.model.EM.addListener("onContentLink_" + link.props.contentIid,function(response) {
 					var reqCtx = m3.serialization.Serializer.get_instance().fromJsonX(response.context,qoid.RequestContext);
 					if(reqCtx.handle == "_contentComp" && m3.helper.ArrayHelper.hasValues(response.result.results)) {
-						var c = m3.serialization.Serializer.get_instance().fromJsonX(response.result.results[0],qoid.model.Content);
-						c.connectionIid = link.props.route[0];
-						fcn(c);
+						var c1 = m3.serialization.Serializer.get_instance().fromJsonX(response.result.results[0],qoid.model.Content);
+						c1.connectionIid = link.props.route[0];
+						fcn(c1);
 					}
 				},"ContentComp-Link-" + link.props.contentIid);
 				self1.removeLinkListener = function() {
@@ -7965,11 +7965,11 @@ var defineWidget = function() {
 				m3.log.Logga.get_DEFAULT().warn("Unsupported content type");
 			}
 		};
-		fcn(content);
-	}, update : function(content2) {
+		fcn(c);
+	}, update : function(content1) {
 		var self2 = this;
 		var selfElement2 = this.element;
-		self2.options.content = content2;
+		self2.options.content = content1;
 		self2._createWidgets(selfElement2,self2);
 		selfElement2.show();
 	}, destroy : function() {
@@ -8234,10 +8234,10 @@ var defineWidget = function() {
 	}, _createWidgets : function(selfElement1,self1) {
 		selfElement1.empty();
 		var c = self1.options.content;
-		var currentAliasIsOwner = self1.options.content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid;
 		var div = null;
 		var fcn = null;
 		fcn = function(content) {
+			var currentAliasIsOwner = content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid;
 			var addCreatorDiv = function() {
 				self1.creatorDiv = new $("<div class='creatorDiv' style='margin-top: 10px;'></div>").appendTo(div);
 				self1._onBoardCreatorProfile = function(p,evt) {

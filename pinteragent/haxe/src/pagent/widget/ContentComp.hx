@@ -96,7 +96,7 @@ extern class ContentComp extends JQ {
 				_createWidgets: function(selfElement: JQ, self: ContentCompWidgetDef): Void {
 
 
-					var content:Content<Dynamic> = self.options.content;
+					var c: Content<Dynamic> = self.options.content;
 
 					var fcn: Content<Dynamic>->Void = null;
 					fcn = function(content: Content<Dynamic>) {
@@ -155,7 +155,7 @@ extern class ContentComp extends JQ {
 			        	}
 					}
 
-		        	fcn(content);
+		        	fcn(c);
 				},
 		        
 		        update: function(content:Content<Dynamic>) : Void {
