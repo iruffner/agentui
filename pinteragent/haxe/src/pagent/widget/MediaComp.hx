@@ -178,6 +178,7 @@ extern class MediaComp extends ContentComp {
 											var reqCtx: RequestContext = Serializer.instance.fromJsonX(response.context, RequestContext);
 											if(reqCtx.handle == "_mediaComp" && response.result.results.hasValues()) {
 												var c: Content<Dynamic> = Serializer.instance.fromJsonX(response.result.results[0], Content);
+												c.connectionIid = link.props.route[0];
 												fcn(c);
 											}
 											

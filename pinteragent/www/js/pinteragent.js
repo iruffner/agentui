@@ -8288,6 +8288,7 @@ var defineWidget = function() {
 						var reqCtx = m3.serialization.Serializer.get_instance().fromJsonX(response.context,qoid.RequestContext);
 						if(reqCtx.handle == "_mediaComp" && m3.helper.ArrayHelper.hasValues(response.result.results)) {
 							var c1 = m3.serialization.Serializer.get_instance().fromJsonX(response.result.results[0],qoid.model.Content);
+							c1.connectionIid = link.props.route[0];
 							fcn(c1);
 						}
 					}
