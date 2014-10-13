@@ -48,13 +48,13 @@ class Filter {
 class FilterData {
 	public var type:String;
 	public var filter:Filter;
-	// public var connectionIids:Array<String>;
+	public var connectionIids:Array<String>;
 	public var aliasIid:String;
 
 	public function new(type:String) {
 		this.type = type;
 		this.aliasIid = null;
-		// this.connectionIids = new Array<String>();
+		this.connectionIids = new Array<String>();
 	}
 }
 

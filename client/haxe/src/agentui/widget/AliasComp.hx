@@ -161,14 +161,19 @@ extern class AliasComp extends JQ {
 					});
 
 					for (alias in aliases) {
+						var icon: String = "ui-icon-person";
+						// if(alias.iid == Qoid.currentAlias.iid) {
+						// 	icon = "ui-icon-check";
+						// }
 						menuOption = {
 							label: alias.profile.name,
-							icon: "ui-icon-person",
+							icon: icon,
 							action: function(evt: JQEvent, m: M3Menu): Void {
 								if (Alias.identifier(Qoid.currentAlias) == Alias.identifier(alias)) {
 									menu.hide();
 								} else {
     								Qoid.currentAlias = alias;
+    								EM.change(EMEvent.UseAlias, alias);
     								EM.change(QE.onAliasLoaded, alias);
     							}
 							}

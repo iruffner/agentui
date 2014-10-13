@@ -4,6 +4,7 @@ import ap.APhotoContext;
 import ap.model.APhotoModel.APhotoContentTypes;
 import ap.model.APhotoModel.ConfigContent;
 import ap.model.ContentSource;
+import ap.pages.APhotoPageMgr;
 import haxe.Json;
 import m3.jq.JQ;
 
@@ -17,6 +18,7 @@ import agentui.model.Filter;
 import qoid.model.ModelObj;
 import agentui.model.Node;
 import qoid.Qoid;
+import qoid.QoidAPI;
 
 using m3.helper.OSetHelper;
 using ap.widget.MediaComp;
@@ -74,9 +76,12 @@ class ContentScreen extends APhotoPage {
 
     	var beforeSetContent = JQ.noop;
     	var widgetCreator = function(content:Content<Dynamic>): MediaComp {
-    		return new MediaComp("<div></div>").mediaComp({
-				content: content
-			});
+    		if(content != null && content.iid == contentId)
+	    		return new MediaComp("<div></div>").mediaComp({
+					content: content
+				});
+			else
+				return null;
     	}
     	var id: String = ContentSource.addListener(mapListener, beforeSetContent, widgetCreator);
     	this._onDestroy = function() {
@@ -112,16 +117,27 @@ class ContentScreen extends APhotoPage {
 							if(match != null) config = c;
 						});
 					if(config == null) {
-						config = cast ContentFactory.create(APhotoContentTypes.CONFIG, _content.props.imgSrc);
+						config = new ConfigContent();
 						event = EMEvent.CreateContent;
 					} else {
 						config.props.defaultImg = _content.props.imgSrc;
 						event = EMEvent.UpdateContent;
 					}
+					config.props.defaultImg = _content.props.imgSrc;
 					
 					var ccd = new EditContentData(config);
 					ccd.labelIids.push(APhotoContext.CURRENT_ALBUM);
 					EM.change(event, ccd);
+				})
+			.button()
+			.appendTo(leftSideOfPage);
+
+		var removeBtn: JQ = new JQ("<button class='removeBtn'>Remove From This Album</button>")
+			.click(function(evt: JQEvent) {
+					EM.listenOnce(EMEvent.OnRemoveContentLabel, function(n: {}) {
+                            APhotoContext.PAGE_MGR.CURRENT_PAGE = APhotoPageMgr.ALBUM_SCREEN;
+                        });
+                    QoidAPI.removeContentLabel( APhotoContext.CURRENT_MEDIA, APhotoContext.CURRENT_ALBUM);
 				})
 			.button()
 			.appendTo(leftSideOfPage);
@@ -132,6 +148,7 @@ class ContentScreen extends APhotoPage {
 	}
 	
 	private function pageHideFcn(screen: JQ): Void {
+		var content: JQ = new JQ(".content", screen).empty();
 		if(this._onDestroy != null) this._onDestroy();
 	}
 }

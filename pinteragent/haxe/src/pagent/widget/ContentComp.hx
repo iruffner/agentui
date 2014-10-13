@@ -104,7 +104,7 @@ extern class ContentComp extends JQ {
 						var captionDiv: JQ = new JQ("<div class='caption ui-corner-bottom'></div>");
 						var addCptDiv = function() {
 							captionDiv.appendTo(selfElement);
-				        	var creatorDiv: JQ = new JQ("<div class='creatorDiv'></div>").insertBefore(captionDiv);
+				        	var creatorDiv: JQ = new JQ("<div class='creatorDiv' style='min-height: 17px;'></div>").insertBefore(captionDiv);
 
 				        	self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {
 								if(evt.isAddOrUpdate()) {
@@ -133,7 +133,14 @@ extern class ContentComp extends JQ {
 								addCptDiv();
 							case ContentTypes.LINK:
 								var link: LinkContent = cast(content, LinkContent);
-								QoidAPI.query(new RequestContext("contentLink_" + link.props.contentIid, "_contentComp"), "content", "iid = '" + link.props.contentIid + "'" , true, true, link.props.route);
+								var route: Array<String> = [content.connectionIid].concat(link.props.route);
+								QoidAPI.query(
+									new RequestContext("contentLink_" + link.props.contentIid, "_contentComp"), 
+									"content", 
+									"iid = '" + link.props.contentIid + "'" ,
+									true, true, 
+									route
+								);
 								self.linkListener = EM.addListener(
 									"onContentLink_" + link.props.contentIid, 
 									function(response: Response){

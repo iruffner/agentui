@@ -1,11 +1,11 @@
 package pagent.model;
 
 import agentui.model.Filter;
+import pagent.model.EM;
 import m3.log.Logga;
 import m3.observable.OSet;
 import m3.serialization.Serialization;
 import m3.util.UidGenerator;
-import pagent.model.EM;
 import qoid.model.ModelObj;
 import qoid.QE;
 import qoid.QoidAPI;
@@ -76,7 +76,7 @@ class ContentSource {
 	private static function addContent(results:Array<Dynamic>, connectionIid:String) {
 		var iids = new Array<String>();
 		var connectionIids = new Array<String>();
-		if(results.hasValues())
+		if(results.hasValues()) {
 			for (result in results) {
 				var c = Serializer.instance.fromJsonX(result, Content);
 				if(c != null) { //occurs when there is an unknown content type
@@ -87,7 +87,7 @@ class ContentSource {
 					filteredContent.addOrUpdate(c);
 				}
 			}
-
+		}
 	}
 
 	private static function onLoadFilteredContent(data: Response): Void {

@@ -18,6 +18,7 @@ import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import agentui.widget.Popup;
 import qoid.Qoid;
+import qoid.QoidAPI;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
@@ -65,19 +66,41 @@ extern class CommentComp extends ContentComp {
 
 		        	selfElement.addClass("_commentComp ui-state-highlight " + Widgets.getWidgetClasses());
                     var props: ConnectionCompOptions;
-		        	if(self.options.comment.connectionIid == Qoid.currentAlias.connectionIid) 
+                    var isMine: Bool = false;
+		        	if(self.options.comment.connectionIid == Qoid.currentAlias.connectionIid)  {
                         props = { aliasIid: Qoid.currentAlias.iid };
-                    else
+                        isMine = true;
+		        	} else
                         props = { connectionIid: self.options.comment.connectionIid };
                     new ConnectionComp("<div></div>")
                         .connectionComp(props)
                         .appendTo(selfElement);
                     new JQ("<div>" + self.options.comment.props.text + "</div>").appendTo(selfElement);
-                    new JQ("<div class='created'>" + StringFormatHelper.dateTimePretty(self.options.comment.created) + "</div>").appendTo(selfElement);
+                    var createdDiv: JQ = new JQ("<div class='created'>" + StringFormatHelper.dateTimePretty(self.options.comment.created) + "</div>").appendTo(selfElement);
+                    if(isMine) {
+                    	createdDiv.append("&nbsp;&nbsp;");
+                    	var deleteBtn: JQ = new JQ("<button>Delete</button>").button({
+						      icons: {
+						        primary: "ui-icon-close"
+						      },
+						      text: false
+						    })
+                    		.appendTo(createdDiv)
+                    		.click(function() {
+                    				JqueryUtil.confirm(
+                    					"Confirm Delete",
+                    					"Are you sure you want to delete this comment?", 
+                    					function() {
+                    						EM.listenOnce(EMEvent.OnRemoveContentLabel, function(n: {}) {
+		                                            selfElement.remove();
+		                                        });
+		                                    QoidAPI.removeContentLabel( self.options.comment.iid, PinterContext.COMMENTS.iid );
+                    					});
+                    			});
+                    }
 				},
 
 		        destroy: function() {
-		        	var self: CommentCompWidgetDef = Widgets.getSelf();
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

@@ -43,10 +43,10 @@ typedef MediaCompWidgetDef = {
 	@:optional var onchangeLabelChildren:JQ->EventType->Void;
 	var _showEditCaptionPopup: ImageContent->JQ->Void;
 	@:optional var _onBoardCreatorProfile: Profile->EventType->Void;
-	@:optional var labelListener: LabeledContent->EventType->Void;
 
 	@:optional var linkListener: String;
 	@:optional var removeLinkListener: Void->Void;
+	@:optional var linkContext: RequestContext;
 }
 
 
@@ -176,7 +176,9 @@ extern class MediaComp extends ContentComp {
 			        		case ContentTypes.LINK:
 			        			originalWasLink = true;
 			        			var link: LinkContent = cast(content, LinkContent);
-								QoidAPI.query(new RequestContext("contentLink_" + link.props.contentIid, "_mediaComp"), "content", "iid = '" + link.props.contentIid + "'" , true, true, link.props.route);
+			        			self.linkContext = new RequestContext("contentLink_" + link.props.contentIid, "_mediaComp");
+			        			var route: Array<String> = [content.connectionIid].concat(link.props.route);
+								QoidAPI.query(self.linkContext, "content", "iid = '" + link.props.contentIid + "'" , true, true, route);
 								self.linkListener = EM.addListener(
 									"onContentLink_" + link.props.contentIid, 
 									function(response: Response){
@@ -274,10 +276,12 @@ extern class MediaComp extends ContentComp {
 
 		        destroy: function() {
 		        	var self: MediaCompWidgetDef = Widgets.getSelf();
-		        	Qoid.groupedLabeledContent.getElement(self.options.content.iid).removeListener(self.labelListener);
 		        	Qoid.profiles.removeListener(self._onBoardCreatorProfile);
 		        	if(self.linkListener.isNotBlank()) {
 		        		self.removeLinkListener();
+		        	}
+		        	if(self.linkContext != null) {
+		        		QoidAPI.cancelQuery(self.linkContext);
 		        	}
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }

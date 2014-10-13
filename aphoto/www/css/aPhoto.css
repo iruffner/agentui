@@ -518,6 +518,10 @@ body {
 		width: 100%;
 	}
 
+	#contentScreen .removeBtn {
+		width: 100%;
+	}
+
 	#contentScreen ._mediaComp {
 		width: 800px;
 		display: inline-block;

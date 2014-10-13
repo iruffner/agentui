@@ -4,10 +4,12 @@ import agentui.model.Filter;
 import ap.model.EM;
 import m3.log.Logga;
 import m3.observable.OSet;
-import m3.serialization.Serialization.Serializer;
+import m3.serialization.Serialization;
 import m3.util.UidGenerator;
 import qoid.model.ModelObj;
 import qoid.QE;
+import qoid.QoidAPI;
+import qoid.ResponseProcessor.Response;
 
 using m3.helper.OSetHelper;
 using m3.helper.ArrayHelper;
@@ -40,7 +42,7 @@ class ContentSourceListener<T> {
 
 class ContentSource {
 	private static var filteredContent: ObservableSet<Content<Dynamic>>;
-	private static var handle:String;
+	private static var context: RequestContext;
 	private static var listeners: Array<ContentSourceListener<Dynamic>>;
 
 	public static function __init__() {
@@ -77,7 +79,7 @@ class ContentSource {
 		if(results.hasValues()) {
 			for (result in results) {
 				var c = Serializer.instance.fromJsonX(result, Content);
-				if(c != null) {//occurs when there is an unknown content type
+				if(c != null) { //occurs when there is an unknown content type
 					if (connectionIid != null) {
 						// c.aliasIid = null;
 						c.connectionIid = connectionIid;
@@ -86,26 +88,31 @@ class ContentSource {
 				}
 			}
 		}
-
 	}
 
-	private static function onLoadFilteredContent(data:{context: {context: String, handle: String}, result: {standing: Bool, results: Array<Dynamic>}, connectionIid: String}): Void {
-		if (data.result.standing || handle == data.context.handle) {
-			addContent(data.result.results, data.connectionIid);
+	private static function onLoadFilteredContent(data: Response): Void {
+		if (data.result.standing || (context != null && context.handle == data.context.handle)) {
+			addContent(data.result.results, data.result.route[0]);
 		} else {
 			clearQuery();
-			handle = data.context.handle;
+			context = {
+				if(Std.is(data.context, String)) {
+					Serializer.instance.fromJsonX(haxe.Json.parse(cast data.context), RequestContext);
+				} else {
+					Serializer.instance.fromJsonX(data.context, RequestContext);
+				}
+			};
 			beforeSetContent();
-			addContent(data.result.results, data.connectionIid);
+			addContent(data.result.results, data.result.route[0]);
 		}
     }
 
     public static function clearQuery() {
-		if (handle != null) {
+		if (context != null) {
 			Logga.DEFAULT.warn("deregisterSqueries");
-			// AgentUi.PROTOCOL.deregisterSqueries([handle]);
+			QoidAPI.cancelQuery(new RequestContext(context.context, context.handle));
 			filteredContent.clear();
-			handle = null;
+			context = null;
 		}
     }
 

@@ -8,6 +8,7 @@ import m3.log.Logga;
 import m3.event.EventManager;
 import m3.exception.Exception;
 import m3.serialization.Serialization;
+import m3.util.JqueryUtil;
 import qoid.model.ModelObj.Alias;
 import qoid.Qoid;
 import qoid.Synchronizer;
@@ -139,8 +140,20 @@ class QoidAPI {
         new JsonRequest(json, LOGIN, onLogin, onLoginError).start();
     }
 
+    public static function useAlias(alias: Alias): Void {
+        QoidAPI.activeAlias = alias;
+        var context = "initialDataLoad";
+        var requests = [
+            new ChannelRequestMessage(QUERY_CANCEL, new RequestContext(context, "connection"), {}),
+            // new ChannelRequestMessage(QUERY_CANCEL, new RequestContext(context, "profile"), {}),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "' and iid <> '" + QoidAPI.activeAlias.connectionIid + "'"))
+            // new ChannelRequestMessage(QUERY, new RequestContext(context, "profile"), createQueryJson("profile", "aliasIid = '" + QoidAPI.activeAlias.iid + "'"))
+        ];
+        new SubmitRequest(activeChannel, requests, onSuccess, onError).requestHeaders(headers).start();
+    }
+
     private static function onLoginError(exc:AjaxException) {
-        js.Lib.alert(exc);
+        JqueryUtil.alert( exc.message, "Login Error");
     }
 
     private static function onLogin(data: AuthenticationResponse) {
@@ -160,6 +173,7 @@ class QoidAPI {
         var requests = [
             new ChannelRequestMessage(QUERY, new RequestContext(context, "alias"), createQueryJson("alias", "iid <> '" + QoidAPI.activeAlias.iid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "introduction"), createQueryJson("introduction")),
+            // new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "' and iid <> '" + QoidAPI.activeAlias.connectionIid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "notification"), createQueryJson("notification", "consumed='0'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "label"), createQueryJson("label")),

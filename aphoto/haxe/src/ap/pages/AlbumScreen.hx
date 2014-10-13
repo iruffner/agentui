@@ -1,8 +1,8 @@
 package ap.pages;
 
 import ap.APhotoContext;
+import ap.model.ContentSource;
 import m3.jq.JQ;
-
 
 import ap.widget.AlbumDetails;
 import ap.widget.ContentFeed;
@@ -25,6 +25,8 @@ class AlbumScreen extends APhotoPage {
 	var labelSetListener: Label->EventType->Void;
 	var labelSet: FilteredSet<Label>;
 
+	var album: String;
+
 	public function new(): Void {
 		super({
 			id: "#albumScreen",
@@ -36,26 +38,30 @@ class AlbumScreen extends APhotoPage {
 	}
 
 	private function pageBeforeShowFcn(screen: JQ): Void {
-		var content: JQ = new JQ(".content", screen).empty();
-		content.addClass("center");
+		if(album !=  APhotoContext.CURRENT_ALBUM) {
+			album = APhotoContext.CURRENT_ALBUM;
+			var content: JQ = new JQ(".content", screen).empty();
+			content.addClass("center");
 
-		labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
-				return l.iid == APhotoContext.CURRENT_ALBUM;
-			});
-		
-		this.labelSetListener = function(label: Label, evt: EventType) {
-			if(evt.isAddOrUpdate())
-				_applyAlbumToScreen(screen, label);
-			if(evt.isClear() || evt.isDelete())
-				_noLabel(screen);
+			labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
+					return l.iid == APhotoContext.CURRENT_ALBUM;
+				});
+			
+			this.labelSetListener = function(label: Label, evt: EventType) {
+				if(evt.isAddOrUpdate())
+					_applyAlbumToScreen(screen, label);
+				if(evt.isClear() || evt.isDelete())
+					_noLabel(screen);
+			}
 		}
-
 		labelSet.listen(this.labelSetListener, true);
 	}
 
 	private function _applyAlbumToScreen(screen: JQ, label: Label) {
 		var content: JQ = new JQ(".content", screen).empty();
 		content.addClass("center");
+
+		ContentSource.clearQuery();
 
 		var leftDiv: JQ = new JQ("<div class='leftDiv'></div>").appendTo(content);
 
@@ -128,6 +134,7 @@ class AlbumScreen extends APhotoPage {
 	
 	private function pageHideFcn(screen: JQ): Void {
 		labelSet.removeListener(this.labelSetListener);
-		labelSet = null;
+		// labelSet = null;
+		new JQ(".content", screen).empty();
 	}
 }
