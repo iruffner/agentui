@@ -7954,7 +7954,8 @@ var defineWidget = function() {
 			case qoid.model.ContentTypes.LINK:
 				var link;
 				link = js.Boot.__cast(content , qoid.model.LinkContent);
-				var route = [content.connectionIid].concat(link.props.route);
+				var route;
+				if(content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) route = link.props.route; else route = [content.connectionIid].concat(link.props.route);
 				qoid.QoidAPI.query(new qoid.RequestContext("contentLink_" + link.props.contentIid,"_contentComp"),"content","iid = '" + link.props.contentIid + "'",true,true,route);
 				self1.linkListener = pagent.model.EM.addListener("onContentLink_" + link.props.contentIid,function(response) {
 					var reqCtx = m3.serialization.Serializer.get_instance().fromJsonX(response.context,qoid.RequestContext);
@@ -8307,7 +8308,8 @@ var defineWidget = function() {
 				var link;
 				link = js.Boot.__cast(content , qoid.model.LinkContent);
 				self1.linkContext = new qoid.RequestContext("contentLink_" + link.props.contentIid,"_mediaComp");
-				var route = [content.connectionIid].concat(link.props.route);
+				var route;
+				if(content.connectionIid == qoid.Qoid.get_currentAlias().connectionIid) route = link.props.route; else route = [content.connectionIid].concat(link.props.route);
 				qoid.QoidAPI.query(self1.linkContext,"content","iid = '" + link.props.contentIid + "'",true,true,route);
 				self1.linkListener = pagent.model.EM.addListener("onContentLink_" + link.props.contentIid,function(response) {
 					if(m3.helper.ArrayHelper.hasValues(response.result.results)) {

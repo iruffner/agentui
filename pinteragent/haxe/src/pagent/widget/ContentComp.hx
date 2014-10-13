@@ -133,7 +133,12 @@ extern class ContentComp extends JQ {
 								addCptDiv();
 							case ContentTypes.LINK:
 								var link: LinkContent = cast(content, LinkContent);
-								var route: Array<String> = [content.connectionIid].concat(link.props.route);
+								var route: Array<String> = {
+									if(content.connectionIid == Qoid.currentAlias.connectionIid)
+										link.props.route;
+									else 
+										[content.connectionIid].concat(link.props.route);
+								}
 								QoidAPI.query(
 									new RequestContext("contentLink_" + link.props.contentIid, "_contentComp"), 
 									"content", 

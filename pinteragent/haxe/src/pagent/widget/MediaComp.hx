@@ -177,7 +177,12 @@ extern class MediaComp extends ContentComp {
 			        			originalWasLink = true;
 			        			var link: LinkContent = cast(content, LinkContent);
 			        			self.linkContext = new RequestContext("contentLink_" + link.props.contentIid, "_mediaComp");
-			        			var route: Array<String> = [content.connectionIid].concat(link.props.route);
+			        			var route: Array<String> = {
+									if(content.connectionIid == Qoid.currentAlias.connectionIid)
+										link.props.route;
+									else 
+										[content.connectionIid].concat(link.props.route);
+								}
 								QoidAPI.query(self.linkContext, "content", "iid = '" + link.props.contentIid + "'" , true, true, route);
 								self.linkListener = EM.addListener(
 									"onContentLink_" + link.props.contentIid, 
