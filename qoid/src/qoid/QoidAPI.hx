@@ -8,7 +8,7 @@ import m3.log.Logga;
 import m3.event.EventManager;
 import m3.exception.Exception;
 import m3.serialization.Serialization;
-import qoid.model.ModelObj.Alias;
+import qoid.model.ModelObj;
 import qoid.Synchronizer;
 
 class AuthenticationResponse {
@@ -20,9 +20,8 @@ class AuthenticationResponse {
 class RequestContext {
     public var context: String;
     @:optional public var handle: String;
-    @:optional public var resultType: String;
 
-    public function new(?context: String, ?handle: String, ?resultType: String) {
+    public function new(?context: String, ?handle: String) {
         this.context = context;
         this.handle = handle;
     }
@@ -85,7 +84,7 @@ class QoidAPI {
 
     private static var CONTENT_CREATE = "/api/v1/content/create";
     private static var CONTENT_UPDATE = "/api/v1/content/update";
-    // private static var CONTENT_DELETE = "/api/v1/content/delete";
+    private static var CONTENT_DELETE = "/api/v1/content/delete";
     private static var CONTENT_LABEL_ADD    = "/api/v1/content/label/add";
     private static var CONTENT_LABEL_REMOVE = "/api/v1/content/label/remove";
 
@@ -160,7 +159,7 @@ class QoidAPI {
             new ChannelRequestMessage(QUERY, new RequestContext(context, "labelAcl"), createQueryJson("labelAcl")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "labeledContent"), createQueryJson("labeledContent")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "labelChild"), createQueryJson("labelChild")),
-            new ChannelRequestMessage(QUERY, new RequestContext(context, "profile"), createQueryJson("profile", "aliasIid = '" + QoidAPI.activeAlias.iid + "'"))
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "profile"), createQueryJson("profile"))
         ];
         new SubmitRequest(activeChannel, requests, onSuccess, onError).requestHeaders(headers).start();
 
@@ -206,9 +205,11 @@ class QoidAPI {
         QoidAPI.longPolls.set(channelId, lpr);
     }
 
+    // TODO:
     public static function query(context: RequestContext, type: String, query: String, historical: Bool, standing: Bool, ?route: Array<String>):Void {
         var q = createQueryJson(type, query, historical, standing, route);
         submitRequest( q , QUERY, context);
+
     }
 
     private static function createQueryJson(type: String, query: String="1=1", historical:Bool=true, standing:Bool=true, ?route: Array<String>):Dynamic {
@@ -348,7 +349,7 @@ class QoidAPI {
     }
 
     // CONTENT
-    public static function createContent(contentType: String, data: Dynamic, labelIids: Array<String>, ?route: Array<String>, ?semanticId: String):Void {
+    public static function createContent(contentType: String, data: Dynamic, labelIids: Array<String>, ?context:String, ?route: Array<String>):Void {
         var json:Dynamic = {
             contentType: contentType,
             data: data,
@@ -357,11 +358,9 @@ class QoidAPI {
         if (route != null) {
             json.route = route;
         }
-        if (semanticId != null) {
-            json.semanticId = semanticId;
-        }
+        var context = (context == null) ? "createContent" : context;
 
-        submitRequest(json, CONTENT_CREATE, new RequestContext("createContent"));
+        submitRequest(json, CONTENT_CREATE, new RequestContext(context));
     }
 
     public static function updateContent(contentIid:String, data: Dynamic, ?route: Array<String>):Void {
@@ -376,16 +375,16 @@ class QoidAPI {
         submitRequest(json, CONTENT_UPDATE, new RequestContext("updateContent"));
     }
 
-    // public static function deleteContent(contentIid:String, ?route: Array<String>):Void {
-    //     var json:Dynamic = {
-    //         contentIid: contentIid
-    //     };
-    //     if (route != null) {
-    //         json.route = route;
-    //     }
+    public static function deleteContent(contentIid:String, ?route: Array<String>):Void {
+        var json:Dynamic = {
+            contentIid: contentIid
+        };
+        if (route != null) {
+            json.route = route;
+        }
 
-    //     submitRequest(json, CONTENT_DELETE, new RequestContext("deleteContent"));
-    // }
+        submitRequest(json, CONTENT_DELETE, new RequestContext("deleteContent"));
+    }
 
 
     public static function addContentLabel(contentIid:String, labelIid:String, ?route: Array<String>):Void {
@@ -516,7 +515,7 @@ class QoidAPI {
 
 	// Notifications
 
-    public static function createNotification(kind:String, ?data:String, ?route: Array<String>):Void {
+    public static function createNotification(kind:String, ?data:String, ?context:String, ?route: Array<String>):Void {
         var json:Dynamic = {
             kind: kind,
             data: data
@@ -524,19 +523,21 @@ class QoidAPI {
         if (route != null) {
             json.route = route;
         }
+        var context = (context == null) ? "createNotification" : context;
 
-        submitRequest(json, NOTIFICATION_CREATE, new RequestContext("createNotification"));
+        submitRequest(json, NOTIFICATION_CREATE, new RequestContext("context"));
     }
 
-    public static function consumeNotification(notificationIid:String, ?route: Array<String>):Void {
+    public static function consumeNotification(notificationIid:String, ?context:String, ?route: Array<String>):Void {
         var json:Dynamic = {
             notificationIid: notificationIid
         };
         if (route != null) {
             json.route = route;
         }
+        var context = (context == null) ? "consumeNotification" : context;
 
-        submitRequest(json, NOTIFICATION_CONSUME, new RequestContext("consumeNotification"));
+        submitRequest(json, NOTIFICATION_CONSUME, new RequestContext(context));
     }
 
     public static function deleteNotification(notificationIid:String, ?route: Array<String>):Void {
@@ -576,6 +577,35 @@ class QoidAPI {
         }
 
         submitRequest(json, INTRODUCTION_ACCEPT, new RequestContext("acceptIntroduction"));
+    }
+
+    // VERIFICATION
+    public function rejectVerificationRequest(notificationIid:String) {
+        consumeNotification(notificationIid, "verificationRequestRejected");
+    }
+
+    public function rejectVerificationResponse(notificationIid:String) {
+        consumeNotification(notificationIid, "verificationResponseRejected");
+    }
+
+    public function verificationRequest(vr:VerificationRequestNotification) {
+        createNotification(vr.kind, vr.rawData, "verificationRequest");
+    }
+
+    public function respondToVerificationRequest(vr:VerificationResponse) {
+        var vc = new VerificationContent(vr.verificationContent);
+        createContent(vc.contentType, vc.props, labelIids : Array<String> , ?route : Array<String> )
+
+        // get the label from Meta/Verifications
+        
+        // TODO:  Send a request to create verification content, with a json content
+        // When the response is received, use the context to create the notification
+        var data:Dynamic = vr;
+        createNotification(NotificationKind.VerificationResponse, data, "respondToVerificationRequest");
+    }
+
+    public function acceptVerification(notificationIid:String) {
+        createNotification("VerificationRequestAccept", null, "respondToVerificationRequest");
     }
 
     private static function submitRequest(json:Dynamic, path:String, context: RequestContext):Void {

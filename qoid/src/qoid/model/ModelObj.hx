@@ -32,8 +32,6 @@ class ModelObjWithIid extends ModelObj {
 	public var iid: String;
 	public var created:Date;
 	public var modified:Date;
-	// public var createdByConnectionIid:String;
-	// public var modifiedByConnectionIid:String;
 
 	public function new() {
 		super();
@@ -264,10 +262,6 @@ class LabeledContent extends ModelObjWithIid {
 
 @:rtti
 class ContentData {
-	// public var iid: String;
-	// public var created:Date;
-	// public var modified:Date;
-	
 	public function new() {
 	}
 }
@@ -351,7 +345,7 @@ class ImageContentData extends ContentData {
 
 class ImageContent extends Content<ImageContentData> {
 	public function new () {
-		super("IMAGE", ImageContentData);
+		super(ContentTypes.IMAGE, ImageContentData);
 	}
 }
 
@@ -367,7 +361,7 @@ class AudioContentData extends ContentData {
 
 class AudioContent extends Content<AudioContentData> {
 	public function new () {
-		super("AUDIO", AudioContentData);
+		super(ContentTypes.AUDIO, AudioContentData);
 	}
 }
 
@@ -381,7 +375,7 @@ class MessageContentData extends ContentData {
 
 class MessageContent extends Content<MessageContentData> {
 	public function new () {
-		super("TEXT", MessageContentData);
+		super(ContentTypes.TEXT, MessageContentData);
 	}
 }
 
@@ -391,27 +385,26 @@ class UrlContentData extends ContentData {
 
 	public function new () {
 		super();
-	}	
+	}
 }
 
 class UrlContent extends Content<UrlContentData> {
 	public function new () {
-		super("URL", UrlContentData);
+		super(ContentTypes.URL, UrlContentData);
 	}
 }
 
 class VerificationContentData extends ContentData {
 	public var text: String;
-	public var created: Date;
-	public var modified: Date;
 	public function new () {
 		super();
 	}	
 }
 
 class VerificationContent extends Content<VerificationContentData> {
-	public function new () {
-		super("VERIFICATION", VerificationContentData);
+	public function new (?text:String) {
+		super(ContentTypes.VERIFICATION, VerificationContentData);
+		this.data.text = text;
 	}
 }
 
@@ -462,6 +455,11 @@ class Notification<T> extends ModelObjWithIid {
 
 	override public function objectType():String {
 		return "notification";
+	}
+	
+	@:isVar public var rawData(get,null): Dynamic;
+	public function get_rawData():Dynamic {
+		return data;
 	}
 
 	public function new (kind:String, type: Class<T>) {
@@ -543,6 +541,18 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
     	}
 	}
 
+class VerificationRequest {
+    public var contentIid:String;
+    public var connectionIids:Array<String>;
+    public var message:String;
+
+    public function new(contentIid:String, connectionIids:Array<String>, message:String) {
+    	this.message        = message; 
+    	this.contentIid     = contentIid;
+    	this.connectionIids = connectionIids;
+    }
+}
+
 class VerificationResponseNotification extends Notification<VerificationResponseData> {
 	public function new () {
 		super(NotificationKind.VerificationResponse, VerificationResponseData);
@@ -556,6 +566,15 @@ class VerificationResponseNotification extends Notification<VerificationResponse
     	public var verificationContentData:Dynamic;
     	public var verifierId:String;
 	}
+
+class VerificationResponse {
+	public var notificationIid:String;
+    public var verificationContent:String;
+    public function new(notificationIid:String, verificationContent:String) {
+    	this.notificationIid    = notificationIid; 
+    	this.verificationContent = verificationContent;
+    }
+}
 
 //-------------------------------------------------------------------
 // Classes used to copy data around
@@ -605,29 +624,6 @@ class EditContentData {
 	}
 }
 
-class VerificationRequest {
-    public var contentIid:String;
-    public var connectionIids:Array<String>;
-    public var message:String;
-
-    public function new(contentIid:String, connectionIids:Array<String>, message:String) {
-    	this.message        = message; 
-    	this.contentIid     = contentIid;
-    	this.connectionIids = connectionIids;
-    }
-}
-
-class VerificationResponse {
-	public var notificationIid:String;
-    public var verificationContent:String;
-    public function new(notificationIid:String, verificationContent:String) {
-    	this.notificationIid     = notificationIid; 
-    	this.verificationContent = verificationContent;
-    }
-}
-
-
-
 class Verification {
 	public var connectionIid:String;
     public var contentIid:String;
@@ -638,4 +634,15 @@ class Verification {
 typedef QueryContext = {
 	var context: String;
 	var handle: String;
+}
+
+@:rtti
+class IntroResponseMessage  {
+	public var notificationIid: String;
+	public var accepted: Bool;
+
+	public function new(notificationIid: String, accepted: Bool) {
+		this.notificationIid = notificationIid;
+		this.accepted = accepted;
+	}
 }
