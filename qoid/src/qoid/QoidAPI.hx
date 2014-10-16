@@ -10,6 +10,7 @@ import m3.exception.Exception;
 import m3.serialization.Serialization;
 import qoid.model.ModelObj;
 import qoid.Synchronizer;
+import m3.util.JqueryUtil;
 
 using m3.helper.OSetHelper;
 
@@ -617,14 +618,14 @@ class QoidAPI {
 
     public function respondToVerificationRequest(vr:VerificationResponse) {
         var vc = new VerificationContent(vr.verificationContent);
-        createContent(vc.contentType, vc.props, labelIids : Array<String> , ?route : Array<String> )
+        //createContent(vc.contentType, vc.props, labelIids : Array<String> , ?route : Array<String> )
 
         // get the label from Meta/Verifications
         
         // TODO:  Send a request to create verification content, with a json content
         // When the response is received, use the context to create the notification
-        var data:Dynamic = vr;
-        createNotification(NotificationKind.VerificationResponse, data, "respondToVerificationRequest");
+        //var data:Dynamic = vr;
+        //createNotification(NotificationKind.VerificationResponse, data, "respondToVerificationRequest");
     }
 
     public function acceptVerification(notificationIid:String) {

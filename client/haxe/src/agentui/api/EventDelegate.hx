@@ -1,6 +1,5 @@
 package agentui.api;
 
-import agentui.api.CrudMessage.IntroResponseMessage;
 import m3.jq.JQ;
 
 import m3.serialization.Serialization.Serializer;
