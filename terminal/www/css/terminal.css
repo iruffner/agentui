@@ -142,6 +142,43 @@ body {
 				border-top-right-radius: 9px;
 			}
 
+	/* Audit Log Entry
+	-----------------------------------------------------------------------------*/
+	._auditLogEntry {
+		padding: 5px;
+		margin: 0 0 5px 0;
+		border: solid;
+		white-space: nowrap;
+		overflow-x: auto;
+		text-align: left;
+	}
+
+		._auditLogEntry>div {
+			display: inline-block;
+			vertical-align: top;
+		}
+
+		._auditLogEntry .profile {
+			width: 70px;
+			text-align: center;
+		}
+
+			._auditLogEntry .profile .profileImage img {
+				width: 50px;
+				height: 50px;
+			}
+
+		._auditLogEntry .details {
+			width: 250px;
+		}
+
+			._auditLogEntry .details .kind {
+				font-size: 1.4em;
+				font-weight: bold;
+			}
+
+		._auditLogEntry .data {
+		}
 /* *************************************************
 	                  DIALOGS
    ************************************************ */

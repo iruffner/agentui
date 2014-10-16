@@ -68,7 +68,7 @@ class Qoid {
             if (evt.isAddOrUpdate()) {
                 if (n.kind == NotificationKind.IntroductionRequest) {
                     var introRequest:IntroductionRequestNotification = cast(n);
-                    QoidAPI.getProfile([introRequest.props.connectionIid]);
+                    QoidAPI.getProfile([introRequest.connectionIid, introRequest.props.connectionIid]);
                 }
             }
         });
@@ -76,8 +76,10 @@ class Qoid {
         aliases = new ObservableSet<Alias>(ModelObjWithIid.identifier);
         aliases.listen(function(a:Alias, evt:EventType):Void {
             if (evt.isAddOrUpdate()) {
+                Logga.DEFAULT.debug(evt.name() + " | alias " + a.iid + "(" + a.objectId + ")");
                 var p = profiles.getElementComplex(a.iid, "aliasIid");
                 if (p != null) {
+                    Logga.DEFAULT.debug("Assigning profile '" + p.name + "'(" + p.objectId + ") to alias " + a.iid + "(" + a.objectId + ")");
                     a.profile = p;
                 }
                 if (evt.isAdd()) {
@@ -120,6 +122,7 @@ class Qoid {
             if (evt.isAddOrUpdate()) {
                 var alias = aliases.getElement(p.aliasIid);
                 if (alias != null) {
+                    Logga.DEFAULT.debug("Assigning profile '" + p.name + "'(" + p.objectId + ") to alias " + alias.iid + "(" + alias.objectId + ")");
                     alias.profile = p;
                     aliases.addOrUpdate(alias);
                 }
@@ -132,7 +135,7 @@ class Qoid {
         Serializer.instance.addHandler(Content, new ContentHandler());
         Serializer.instance.addHandler(Notification, new NotificationHandler());
 
-        EventManager.instance.on("onConnectionProfile", processProfile);
+        EventManager.instance.on("onConnectionProfile", processProfile, "EventManager-onConnectionProfile");
     }
 
     public static function onInitialDataLoadComplete(alias: Alias) {
@@ -140,12 +143,16 @@ class Qoid {
     }
 
     public static function processProfile(rec:{result:{route: Array<String>, results: Array<Dynamic>}}) {
-        var connectionIid = rec.result.route[0];
-        var connection = Qoid.connections.getElement(connectionIid);
-        var profile = Serializer.instance.fromJsonX(rec.result.results[0], Profile);
+        var connectionIid: String = rec.result.route[rec.result.route.length - 1];
+        var connection: Connection = Qoid.connections.getElement(connectionIid);
+        var profile: Profile = Serializer.instance.fromJsonX(rec.result.results[0], Profile);
         profile.connectionIid = connectionIid;
-        connection.data = profile;
-        Qoid.connections.addOrUpdate(connection);
+        if(connection != null) {
+            connection.data = profile;
+            Qoid.connections.addOrUpdate(connection);
+        } else {
+            Logga.DEFAULT.warn("We have a profile with no connection | profile --> iid: " + profile.iid + " - name: " + profile.name);   
+        }
         Qoid.profiles.addOrUpdate(profile);
     }
 
@@ -174,6 +181,8 @@ class Qoid {
                 labelDescendents.add(label);
             }
         }
+        //edit by isaiah --> remove the parent iid
+        iid_list.remove(iid);
         return labelDescendents;
     }
 

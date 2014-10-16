@@ -1,29 +1,21 @@
 package pagent.widget;
 
+import js.html.Element;
 import m3.log.Logga;
-import m3.serialization.Serialization.Serializer;
-import pagent.model.PinterModel.PinterContentTypes;
-import pagent.PinterContext;
-import pagent.pages.PinterPage;
-import pagent.pages.PinterPageMgr;
+import m3.serialization.Serialization;
+import pagent.model.PinterModel;
 import pagent.model.EM;
-import js.Browser;
 import m3.jq.JQ;
-import m3.jq.JQDroppable;
-import m3.jq.M3Menu;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
-import m3.observable.OSet;
 import m3.exception.Exception;
-import m3.util.JqueryUtil;
-import agentui.widget.Popup;
 import qoid.Qoid;
 import qoid.QoidAPI;
 import qoid.ResponseProcessor.Response;
 
 using m3.helper.ArrayHelper;
-using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
+using pagent.widget.CommentComp;
 using Lambda;
 
 typedef CommentsCompOptions = {
@@ -37,6 +29,7 @@ typedef CommentsCompWidgetDef = {
 	var destroy: Void->Void;
 
     @:optional var header: JQ;
+    @:optional var commentsListenerId: String;
 }
 
 
@@ -101,7 +94,7 @@ extern class CommentsComp extends ContentComp {
                     );
                     selfElement.append("<div class='clear'></div>");
 
-                    EM.addListener(EMEvent.OnContentComments, function(data: Response) {
+                    self.commentsListenerId = EM.addListener(EMEvent.OnContentComments, function(data: Response) {
                             if(data.result.results.hasValues())
                                 for (result in data.result.results) {
                                     var c: MessageContent = Serializer.instance.fromJsonX(result, MessageContent);
@@ -134,7 +127,26 @@ extern class CommentsComp extends ContentComp {
 					var self: CommentsCompWidgetDef = Widgets.getSelf();
 
                     var commentComp: CommentComp = new CommentComp("<div></div>").commentComp({ comment: comment });
-                    commentComp.insertAfter(self.header);
+                    var comps = new JQ("._commentComp");
+                    var inserted = false;
+                    comps.each(function(i: Int, dom: Element):Dynamic{
+                        var cc = new CommentComp(dom);
+                        var cmp = StringHelper.compare(commentComp.comment().getTimestamp(), cc.comment().getTimestamp());
+                        if (cmp < 0) {
+                            cc.before(commentComp);
+                            inserted = true;
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    });
+
+                    if (!inserted) {
+                        if(comps.length > 0)
+                            comps.last().after(commentComp);
+                        else
+                            commentComp.insertAfter(self.header);
+                    }
 				},
 
 		        destroy: function() {
@@ -143,7 +155,7 @@ extern class CommentsComp extends ContentComp {
                     Qoid.connections.iter(function(c: Connection) {
                             QoidAPI.cancelQuery( new RequestContext(EMEvent.ContentComments, self.options.content.semanticId+"_"+c.iid));
                         });
-		        	
+		        	EM.removeListener(EMEvent.OnContentComments, self.commentsListenerId);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

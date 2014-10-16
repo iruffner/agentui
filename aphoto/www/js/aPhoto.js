@@ -1,7 +1,7 @@
 (function ($hx_exports) { "use strict";
 $hx_exports.m3 = $hx_exports.m3 || {};
-$hx_exports.m3.helper = $hx_exports.m3.helper || {};
-;$hx_exports.m3.util = $hx_exports.m3.util || {};
+$hx_exports.m3.util = $hx_exports.m3.util || {};
+;$hx_exports.m3.helper = $hx_exports.m3.helper || {};
 $hx_exports.qoid = $hx_exports.qoid || {};
 $hx_exports.ap = $hx_exports.ap || {};
 $hx_exports.ap.widget = $hx_exports.ap.widget || {};
@@ -1170,7 +1170,10 @@ qoid.model.ModelObj = function() {
 $hxClasses["qoid.model.ModelObj"] = qoid.model.ModelObj;
 qoid.model.ModelObj.__name__ = ["qoid","model","ModelObj"];
 qoid.model.ModelObj.prototype = {
-	objectType: function() {
+	get_objectId: function() {
+		if(this._objectId != null) return this._objectId; else return "";
+	}
+	,objectType: function() {
 		var className = m3.serialization.TypeTools.classname(m3.serialization.TypeTools.clazz(this)).toLowerCase();
 		var parts = className.split(".");
 		return parts[parts.length - 1];
@@ -1377,6 +1380,7 @@ qoid.QoidAPI.get_activeChannel = function() {
 	return qoid.QoidAPI.activeChannel;
 };
 qoid.QoidAPI.set_activeAlias = function(a) {
+	qoid.Qoid.aliases.add(a);
 	qoid.QoidAPI.activeAlias = a;
 	return qoid.QoidAPI.get_activeAlias();
 };
@@ -1412,11 +1416,13 @@ qoid.QoidAPI.onLoginError = function(exc) {
 qoid.QoidAPI.onLogin = function(data) {
 	qoid.QoidAPI.addChannel(data.channelId);
 	qoid.QoidAPI.set_activeChannel(data.channelId);
-	qoid.QoidAPI.set_activeAlias(m3.serialization.Serializer.get_instance().fromJsonX(data.alias,qoid.model.Alias));
+	var alias = m3.serialization.Serializer.get_instance().fromJsonX(data.alias,qoid.model.Alias);
+	qoid.Qoid.aliases.add(alias);
+	qoid.QoidAPI.set_activeAlias(alias);
 	qoid.QoidAPI._startPolling(data.channelId);
 	var context = "initialDataLoad";
 	var sychoronizer = new qoid.Synchronizer(context,9,qoid.QoidAPI.onInitialDataload);
-	var requests = [new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"alias"),qoid.QoidAPI.createQueryJson("alias")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"introduction"),qoid.QoidAPI.createQueryJson("introduction")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"connection"),qoid.QoidAPI.createQueryJson("connection","aliasIid = '" + qoid.QoidAPI.get_activeAlias().iid + "' and iid <> '" + qoid.QoidAPI.get_activeAlias().connectionIid + "'")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"notification"),qoid.QoidAPI.createQueryJson("notification","consumed='0'")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"label"),qoid.QoidAPI.createQueryJson("label")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labelAcl"),qoid.QoidAPI.createQueryJson("labelAcl")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labeledContent"),qoid.QoidAPI.createQueryJson("labeledContent")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labelChild"),qoid.QoidAPI.createQueryJson("labelChild")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"profile"),qoid.QoidAPI.createQueryJson("profile"))];
+	var requests = [new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"alias"),qoid.QoidAPI.createQueryJson("alias","iid <> '" + qoid.QoidAPI.get_activeAlias().iid + "'")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"introduction"),qoid.QoidAPI.createQueryJson("introduction")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"connection"),qoid.QoidAPI.createQueryJson("connection","aliasIid = '" + qoid.QoidAPI.get_activeAlias().iid + "' and iid <> '" + qoid.QoidAPI.get_activeAlias().connectionIid + "'")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"notification"),qoid.QoidAPI.createQueryJson("notification","consumed='0'")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"label"),qoid.QoidAPI.createQueryJson("label")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labelAcl"),qoid.QoidAPI.createQueryJson("labelAcl")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labeledContent"),qoid.QoidAPI.createQueryJson("labeledContent")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"labelChild"),qoid.QoidAPI.createQueryJson("labelChild")),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"profile"),qoid.QoidAPI.createQueryJson("profile","aliasIid = '" + qoid.QoidAPI.get_activeAlias().iid + "'"))];
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
 	m3.event.EventManager.get_instance().change(qoid.QE.onUserLogin);
 };
@@ -1595,6 +1601,11 @@ qoid.QoidAPI.consumeNotification = function(notificationIid,route) {
 	var json = { notificationIid : notificationIid};
 	if(route != null) json.route = route;
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_CONSUME,new qoid.RequestContext("consumeNotification"));
+	try {
+		qoid.Qoid.notifications["delete"](m3.helper.OSetHelper.getElement(qoid.Qoid.notifications,notificationIid));
+	} catch( err ) {
+		m3.log.Logga.get_DEFAULT().error("Could not remove notification | " + Std.string(err));
+	}
 };
 qoid.QoidAPI.deleteNotification = function(notificationIid,route) {
 	var json = { notificationIid : notificationIid};
@@ -1610,6 +1621,11 @@ qoid.QoidAPI.acceptIntroduction = function(notificationIid,route) {
 	var json = { notificationIid : notificationIid};
 	if(route != null) json.route = route;
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.INTRODUCTION_ACCEPT,new qoid.RequestContext("acceptIntroduction"));
+	try {
+		qoid.Qoid.notifications["delete"](m3.helper.OSetHelper.getElement(qoid.Qoid.notifications,notificationIid));
+	} catch( err ) {
+		m3.log.Logga.get_DEFAULT().error("Could not remove notification | " + Std.string(err));
+	}
 };
 qoid.QoidAPI.submitRequest = function(json,path,context) {
 	var msg = new m3.comm.ChannelRequestMessage(path,context,json);
@@ -1800,289 +1816,180 @@ qoid.model.Alias.__super__ = qoid.model.ModelObjWithIid;
 qoid.model.Alias.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	__class__: qoid.model.Alias
 });
-qoid.ResponseProcessor = function() { };
-$hxClasses["qoid.ResponseProcessor"] = qoid.ResponseProcessor;
-qoid.ResponseProcessor.__name__ = ["qoid","ResponseProcessor"];
-qoid.ResponseProcessor.processResponse = function(dataArr) {
-	Lambda.iter(dataArr,function(data) {
-		if(!data.success) {
-			m3.util.JqueryUtil.alert("ERROR:  " + Std.string(data.error.message) + "     Context: " + data.context);
-			m3.log.Logga.get_DEFAULT().error(data.error.stacktrace);
-		} else {
-			var context = m3.serialization.Serializer.get_instance().fromJsonX(data.context,qoid.RequestContext);
-			var result = data.result;
-			if(context.context == "initialDataLoad") {
-				if(result != null) {
-					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else qoid.Synchronizer.processResponse(context,data);
-				}
-			} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result.type,result.action,result.results); else if(!qoid.Synchronizer.processResponse(context,data)) {
-				if(result != null) {
-					var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
-					m3.event.EventManager.get_instance().fire(eventId,data);
-				}
+m3.observable = {};
+m3.observable.OSet = function() { };
+$hxClasses["m3.observable.OSet"] = m3.observable.OSet;
+m3.observable.OSet.__name__ = ["m3","observable","OSet"];
+m3.observable.OSet.prototype = {
+	__class__: m3.observable.OSet
+};
+m3.observable.AbstractSet = function() {
+	this._eventManager = new m3.observable.EventManager(this);
+};
+$hxClasses["m3.observable.AbstractSet"] = m3.observable.AbstractSet;
+m3.observable.AbstractSet.__name__ = ["m3","observable","AbstractSet"];
+m3.observable.AbstractSet.__interfaces__ = [m3.observable.OSet];
+m3.observable.AbstractSet.prototype = {
+	listen: function(l,autoFire) {
+		if(autoFire == null) autoFire = true;
+		this._eventManager.add(l,autoFire);
+	}
+	,removeListener: function(l) {
+		this._eventManager.remove(l);
+	}
+	,filter: function(f) {
+		return new m3.observable.FilteredSet(this,f);
+	}
+	,map: function(f) {
+		return new m3.observable.MappedSet(this,f);
+	}
+	,fire: function(t,type) {
+		this._eventManager.fire(t,type);
+	}
+	,getVisualId: function() {
+		return this.visualId;
+	}
+	,identifier: function() {
+		throw new m3.exception.Exception("implement me");
+	}
+	,iterator: function() {
+		throw new m3.exception.Exception("implement me");
+	}
+	,delegate: function() {
+		throw new m3.exception.Exception("implement me");
+	}
+	,__class__: m3.observable.AbstractSet
+};
+m3.observable.ObservableSet = function(identifier,tArr) {
+	m3.observable.AbstractSet.call(this);
+	this._identifier = identifier;
+	this._delegate = new m3.util.SizedMap();
+	if(tArr != null) this.addAll(tArr);
+};
+$hxClasses["m3.observable.ObservableSet"] = m3.observable.ObservableSet;
+m3.observable.ObservableSet.__name__ = ["m3","observable","ObservableSet"];
+m3.observable.ObservableSet.__super__ = m3.observable.AbstractSet;
+m3.observable.ObservableSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
+	add: function(t) {
+		this.addOrUpdate(t);
+	}
+	,addAll: function(tArr) {
+		if(tArr != null && tArr.length > 0) {
+			var _g1 = 0;
+			var _g = tArr.length;
+			while(_g1 < _g) {
+				var t_ = _g1++;
+				this.addOrUpdate(tArr[t_]);
 			}
 		}
-	});
-};
-qoid.ResponseProcessor.processModelObject = function(set,type,action,data) {
-	var _g = 0;
-	var _g1;
-	_g1 = js.Boot.__cast(data , Array);
-	while(_g < _g1.length) {
-		var datum = _g1[_g];
-		++_g;
-		var obj = m3.serialization.Serializer.get_instance().fromJsonX(datum,type);
-		if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
 	}
-};
-qoid.ResponseProcessor.updateModelObject = function(type,action,data) {
-	var type1 = type.toLowerCase();
-	switch(type1) {
-	case "alias":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.aliases,qoid.model.Alias,action,data);
-		break;
-	case "connection":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.connections,qoid.model.Connection,action,data);
-		break;
-	case "content":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.verificationContent,qoid.model.Content,action,data);
-		break;
-	case "introduction":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.introductions,qoid.model.Introduction,action,data);
-		break;
-	case "label":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labels,qoid.model.Label,action,data);
-		break;
-	case "labelacl":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelAcls,qoid.model.LabelAcl,action,data);
-		break;
-	case "labelchild":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelChildren,qoid.model.LabelChild,action,data);
-		break;
-	case "labeledcontent":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labeledContent,qoid.model.LabeledContent,action,data);
-		break;
-	case "notification":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.notifications,qoid.model.Notification,action,data);
-		break;
-	case "profile":
-		qoid.ResponseProcessor.processModelObject(qoid.Qoid.profiles,qoid.model.Profile,action,data);
-		break;
-	default:
-		m3.log.Logga.get_DEFAULT().error("Unknown type: " + type1);
+	,iterator: function() {
+		return this._delegate.iterator();
 	}
-};
+	,isEmpty: function() {
+		return Lambda.empty(this._delegate);
+	}
+	,addOrUpdate: function(t) {
+		var key = (this.identifier())(t);
+		var type;
+		if(this._delegate.exists(key)) type = m3.observable.EventType.Update; else type = m3.observable.EventType.Add;
+		this._delegate.set(key,t);
+		this.fire(t,type);
+	}
+	,delegate: function() {
+		return this._delegate;
+	}
+	,update: function(t) {
+		this.addOrUpdate(t);
+	}
+	,'delete': function(t) {
+		var key = (this.identifier())(t);
+		if(this._delegate.exists(key)) {
+			this._delegate.remove(key);
+			this.fire(t,m3.observable.EventType.Delete);
+		}
+	}
+	,identifier: function() {
+		return this._identifier;
+	}
+	,clear: function() {
+		this._delegate = new m3.util.SizedMap();
+		this.fire(null,m3.observable.EventType.Clear);
+	}
+	,size: function() {
+		return this._delegate.size;
+	}
+	,asArray: function() {
+		var a = new Array();
+		var iter = this.iterator();
+		while(iter.hasNext()) a.push(iter.next());
+		return a;
+	}
+	,__class__: m3.observable.ObservableSet
+});
 m3.util = {};
-m3.util.JqueryUtil = $hx_exports.m3.util.JqueryUtil = function() { };
-$hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
-m3.util.JqueryUtil.__name__ = ["m3","util","JqueryUtil"];
-m3.util.JqueryUtil.isAttached = function(elem) {
-	return elem.parents("body").length > 0;
+m3.util.SizedMap = function() {
+	haxe.ds.StringMap.call(this);
+	this.size = 0;
 };
-m3.util.JqueryUtil.labelSelect = function(elem,str) {
-	try {
-		m3.CrossMojo.jq("option",elem).filter(function() {
-			return $(this).text() == str;
-		})[0].selected = true;
-	} catch( err ) {
+$hxClasses["m3.util.SizedMap"] = m3.util.SizedMap;
+m3.util.SizedMap.__name__ = ["m3","util","SizedMap"];
+m3.util.SizedMap.__super__ = haxe.ds.StringMap;
+m3.util.SizedMap.prototype = $extend(haxe.ds.StringMap.prototype,{
+	set: function(key,val) {
+		if(!this.exists(key)) this.size++;
+		haxe.ds.StringMap.prototype.set.call(this,key,val);
 	}
+	,remove: function(key) {
+		if(this.exists(key)) this.size--;
+		return haxe.ds.StringMap.prototype.remove.call(this,key);
+	}
+	,__class__: m3.util.SizedMap
+});
+m3.observable.EventManager = function(set) {
+	this._set = set;
+	this._listeners = [];
 };
-m3.util.JqueryUtil.getOrCreateDialog = function(selector,dlgOptions,createdFcn) {
-	if(m3.helper.StringHelper.isBlank(selector)) selector = "dlg" + m3.util.UidGenerator.create(10);
-	var dialog = new $(selector);
-	if(dlgOptions == null) dlgOptions = { autoOpen : false, height : 380, width : 320, modal : true};
-	if(!dialog.exists()) {
-		dialog = new $("<div id=" + HxOverrides.substr(selector,1,null) + " style='display:none;'></div>");
-		if(Reflect.isFunction(createdFcn)) createdFcn(dialog);
-		new $("body").append(dialog);
-		dialog.m3dialog(dlgOptions);
-	} else if(!dialog["is"](":data(dialog)")) dialog.m3dialog(dlgOptions);
-	return dialog;
-};
-m3.util.JqueryUtil.deleteEffects = function(dragstopEvt,width,duration,src) {
-	if(src == null) src = "media/cloud.gif";
-	if(duration == null) duration = 800;
-	if(width == null) width = "70px";
-	var img = new $("<img/>");
-	img.appendTo("body");
-	img.css("width",width);
-	img.position({ my : "center", at : "center", of : dragstopEvt, collision : "fit"});
-	img.attr("src",src);
-	haxe.Timer.delay(function() {
-		img.remove();
-	},duration);
-};
-m3.util.JqueryUtil.confirm = function(title,question,action) {
-	var dlg = new $("<div id=\"confirm-dialog\"></div>");
-	var content = new $("<div style=\"width: 500px;text-align:left;\">" + question + "</div>");
-	dlg.append(content);
-	dlg.appendTo("body");
-	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, width : "auto", resizable : false, buttons : { Yes : function() {
-		action();
-		$(this).dialog("close");
-	}, No : function() {
-		$(this).dialog("close");
-	}}, close : function(event,ui) {
-		$(this).remove();
-	}};
-	dlg.dialog(dlgOptions);
-};
-m3.util.JqueryUtil.alert = function(statement,title,action) {
-	if(title == null) title = "Alert";
-	var dlg = new $("<div id=\"alert-dialog\"></div>");
-	var content = new $("<div style=\"width: 500px;text-align:left;\">" + statement + "</div>");
-	dlg.append(content);
-	dlg.appendTo("body");
-	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, width : "auto", resizable : false, buttons : { OK : function() {
-		$(this).dialog("close");
-	}}, close : function(event,ui) {
-		if(action != null) action();
-		$(this).remove();
-	}};
-	dlg.dialog(dlgOptions);
-};
-m3.util.JqueryUtil.getWindowWidth = function() {
-	return new $(window).width();
-};
-m3.util.JqueryUtil.getWindowHeight = function() {
-	return new $(window).height();
-};
-m3.util.JqueryUtil.getDocumentWidth = function() {
-	return new $(window.document).width();
-};
-m3.util.JqueryUtil.getDocumentHeight = function() {
-	return new $(window.document).height();
-};
-m3.util.JqueryUtil.getEmptyDiv = function() {
-	return new $("<div></div>");
-};
-m3.util.JqueryUtil.getEmptyTable = function() {
-	return new $("<table style='margin:auto; text-align: center; width: 100%;'></table>");
-};
-m3.util.JqueryUtil.getEmptyRow = function() {
-	return new $("<tr></tr>");
-};
-m3.util.JqueryUtil.getEmptyCell = function() {
-	return new $("<td></td>");
-};
-var js = {};
-js.Boot = function() { };
-$hxClasses["js.Boot"] = js.Boot;
-js.Boot.__name__ = ["js","Boot"];
-js.Boot.getClass = function(o) {
-	if((o instanceof Array) && o.__enum__ == null) return Array; else return o.__class__;
-};
-js.Boot.__string_rec = function(o,s) {
-	if(o == null) return "null";
-	if(s.length >= 5) return "<...>";
-	var t = typeof(o);
-	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
-	switch(t) {
-	case "object":
-		if(o instanceof Array) {
-			if(o.__enum__) {
-				if(o.length == 2) return o[0];
-				var str = o[0] + "(";
-				s += "\t";
-				var _g1 = 2;
-				var _g = o.length;
-				while(_g1 < _g) {
-					var i = _g1++;
-					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
-				}
-				return str + ")";
+$hxClasses["m3.observable.EventManager"] = m3.observable.EventManager;
+m3.observable.EventManager.__name__ = ["m3","observable","EventManager"];
+m3.observable.EventManager.prototype = {
+	add: function(l,autoFire) {
+		if(autoFire) Lambda.iter(this._set,function(it) {
+			return l(it,m3.observable.EventType.Add);
+		});
+		this._listeners.push(l);
+	}
+	,remove: function(l) {
+		HxOverrides.remove(this._listeners,l);
+	}
+	,fire: function(t,type) {
+		var _g = this;
+		Lambda.iter(this._listeners,function(l) {
+			try {
+				l(t,type);
+			} catch( err ) {
+				m3.log.Logga.get_DEFAULT().error("Error processing listener on " + _g._set.getVisualId(),m3.log.Logga.getExceptionInst(err));
 			}
-			var l = o.length;
-			var i1;
-			var str1 = "[";
-			s += "\t";
-			var _g2 = 0;
-			while(_g2 < l) {
-				var i2 = _g2++;
-				str1 += (i2 > 0?",":"") + js.Boot.__string_rec(o[i2],s);
-			}
-			str1 += "]";
-			return str1;
-		}
-		var tostr;
-		try {
-			tostr = o.toString;
-		} catch( e ) {
-			return "???";
-		}
-		if(tostr != null && tostr != Object.toString) {
-			var s2 = o.toString();
-			if(s2 != "[object Object]") return s2;
-		}
-		var k = null;
-		var str2 = "{\n";
-		s += "\t";
-		var hasp = o.hasOwnProperty != null;
-		for( var k in o ) {
-		if(hasp && !o.hasOwnProperty(k)) {
-			continue;
-		}
-		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
-			continue;
-		}
-		if(str2.length != 2) str2 += ", \n";
-		str2 += s + k + " : " + js.Boot.__string_rec(o[k],s);
-		}
-		s = s.substring(1);
-		str2 += "\n" + s + "}";
-		return str2;
-	case "function":
-		return "<function>";
-	case "string":
-		return o;
-	default:
-		return String(o);
+		});
 	}
-};
-js.Boot.__interfLoop = function(cc,cl) {
-	if(cc == null) return false;
-	if(cc == cl) return true;
-	var intf = cc.__interfaces__;
-	if(intf != null) {
-		var _g1 = 0;
-		var _g = intf.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var i1 = intf[i];
-			if(i1 == cl || js.Boot.__interfLoop(i1,cl)) return true;
-		}
+	,listenerCount: function() {
+		return this._listeners.length;
 	}
-	return js.Boot.__interfLoop(cc.__super__,cl);
+	,__class__: m3.observable.EventManager
 };
-js.Boot.__instanceof = function(o,cl) {
-	if(cl == null) return false;
-	switch(cl) {
-	case Int:
-		return (o|0) === o;
-	case Float:
-		return typeof(o) == "number";
-	case Bool:
-		return typeof(o) == "boolean";
-	case String:
-		return typeof(o) == "string";
-	case Array:
-		return (o instanceof Array) && o.__enum__ == null;
-	case Dynamic:
-		return true;
-	default:
-		if(o != null) {
-			if(typeof(cl) == "function") {
-				if(o instanceof cl) return true;
-				if(js.Boot.__interfLoop(js.Boot.getClass(o),cl)) return true;
-			}
-		} else return false;
-		if(cl == Class && o.__name__ != null) return true;
-		if(cl == Enum && o.__ename__ != null) return true;
-		return o.__enum__ == cl;
-	}
+qoid.model.NotificationKind = function() { };
+$hxClasses["qoid.model.NotificationKind"] = qoid.model.NotificationKind;
+qoid.model.NotificationKind.__name__ = ["qoid","model","NotificationKind"];
+m3.comm = {};
+m3.comm.ChannelRequestMessage = function(path,context,parms) {
+	this.path = path;
+	this.context = context;
+	this.parms = parms;
 };
-js.Boot.__cast = function(o,t) {
-	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
+$hxClasses["m3.comm.ChannelRequestMessage"] = m3.comm.ChannelRequestMessage;
+m3.comm.ChannelRequestMessage.__name__ = ["m3","comm","ChannelRequestMessage"];
+m3.comm.ChannelRequestMessage.prototype = {
+	__class__: m3.comm.ChannelRequestMessage
 };
 m3.log = {};
 m3.log.Logga = function(logLevel) {
@@ -2319,189 +2226,6 @@ m3.util.UidGenerator.randomNumChar = function() {
 	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
 	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
 };
-qoid.RequestContext = function(context,handle) {
-	this.context = context;
-	this.handle = handle;
-};
-$hxClasses["qoid.RequestContext"] = qoid.RequestContext;
-qoid.RequestContext.__name__ = ["qoid","RequestContext"];
-qoid.RequestContext.prototype = {
-	__class__: qoid.RequestContext
-};
-m3.observable = {};
-m3.observable.OSet = function() { };
-$hxClasses["m3.observable.OSet"] = m3.observable.OSet;
-m3.observable.OSet.__name__ = ["m3","observable","OSet"];
-m3.observable.OSet.prototype = {
-	__class__: m3.observable.OSet
-};
-m3.observable.AbstractSet = function() {
-	this._eventManager = new m3.observable.EventManager(this);
-};
-$hxClasses["m3.observable.AbstractSet"] = m3.observable.AbstractSet;
-m3.observable.AbstractSet.__name__ = ["m3","observable","AbstractSet"];
-m3.observable.AbstractSet.__interfaces__ = [m3.observable.OSet];
-m3.observable.AbstractSet.prototype = {
-	listen: function(l,autoFire) {
-		if(autoFire == null) autoFire = true;
-		this._eventManager.add(l,autoFire);
-	}
-	,removeListener: function(l) {
-		this._eventManager.remove(l);
-	}
-	,filter: function(f) {
-		return new m3.observable.FilteredSet(this,f);
-	}
-	,map: function(f) {
-		return new m3.observable.MappedSet(this,f);
-	}
-	,fire: function(t,type) {
-		this._eventManager.fire(t,type);
-	}
-	,getVisualId: function() {
-		return this.visualId;
-	}
-	,identifier: function() {
-		throw new m3.exception.Exception("implement me");
-	}
-	,iterator: function() {
-		throw new m3.exception.Exception("implement me");
-	}
-	,delegate: function() {
-		throw new m3.exception.Exception("implement me");
-	}
-	,__class__: m3.observable.AbstractSet
-};
-m3.observable.ObservableSet = function(identifier,tArr) {
-	m3.observable.AbstractSet.call(this);
-	this._identifier = identifier;
-	this._delegate = new m3.util.SizedMap();
-	if(tArr != null) this.addAll(tArr);
-};
-$hxClasses["m3.observable.ObservableSet"] = m3.observable.ObservableSet;
-m3.observable.ObservableSet.__name__ = ["m3","observable","ObservableSet"];
-m3.observable.ObservableSet.__super__ = m3.observable.AbstractSet;
-m3.observable.ObservableSet.prototype = $extend(m3.observable.AbstractSet.prototype,{
-	add: function(t) {
-		this.addOrUpdate(t);
-	}
-	,addAll: function(tArr) {
-		if(tArr != null && tArr.length > 0) {
-			var _g1 = 0;
-			var _g = tArr.length;
-			while(_g1 < _g) {
-				var t_ = _g1++;
-				this.addOrUpdate(tArr[t_]);
-			}
-		}
-	}
-	,iterator: function() {
-		return this._delegate.iterator();
-	}
-	,isEmpty: function() {
-		return Lambda.empty(this._delegate);
-	}
-	,addOrUpdate: function(t) {
-		var key = (this.identifier())(t);
-		var type;
-		if(this._delegate.exists(key)) type = m3.observable.EventType.Update; else type = m3.observable.EventType.Add;
-		this._delegate.set(key,t);
-		this.fire(t,type);
-	}
-	,delegate: function() {
-		return this._delegate;
-	}
-	,update: function(t) {
-		this.addOrUpdate(t);
-	}
-	,'delete': function(t) {
-		var key = (this.identifier())(t);
-		if(this._delegate.exists(key)) {
-			this._delegate.remove(key);
-			this.fire(t,m3.observable.EventType.Delete);
-		}
-	}
-	,identifier: function() {
-		return this._identifier;
-	}
-	,clear: function() {
-		this._delegate = new m3.util.SizedMap();
-		this.fire(null,m3.observable.EventType.Clear);
-	}
-	,size: function() {
-		return this._delegate.size;
-	}
-	,asArray: function() {
-		var a = new Array();
-		var iter = this.iterator();
-		while(iter.hasNext()) a.push(iter.next());
-		return a;
-	}
-	,__class__: m3.observable.ObservableSet
-});
-m3.util.SizedMap = function() {
-	haxe.ds.StringMap.call(this);
-	this.size = 0;
-};
-$hxClasses["m3.util.SizedMap"] = m3.util.SizedMap;
-m3.util.SizedMap.__name__ = ["m3","util","SizedMap"];
-m3.util.SizedMap.__super__ = haxe.ds.StringMap;
-m3.util.SizedMap.prototype = $extend(haxe.ds.StringMap.prototype,{
-	set: function(key,val) {
-		if(!this.exists(key)) this.size++;
-		haxe.ds.StringMap.prototype.set.call(this,key,val);
-	}
-	,remove: function(key) {
-		if(this.exists(key)) this.size--;
-		return haxe.ds.StringMap.prototype.remove.call(this,key);
-	}
-	,__class__: m3.util.SizedMap
-});
-m3.observable.EventManager = function(set) {
-	this._set = set;
-	this._listeners = [];
-};
-$hxClasses["m3.observable.EventManager"] = m3.observable.EventManager;
-m3.observable.EventManager.__name__ = ["m3","observable","EventManager"];
-m3.observable.EventManager.prototype = {
-	add: function(l,autoFire) {
-		if(autoFire) Lambda.iter(this._set,function(it) {
-			return l(it,m3.observable.EventType.Add);
-		});
-		this._listeners.push(l);
-	}
-	,remove: function(l) {
-		HxOverrides.remove(this._listeners,l);
-	}
-	,fire: function(t,type) {
-		var _g = this;
-		Lambda.iter(this._listeners,function(l) {
-			try {
-				l(t,type);
-			} catch( err ) {
-				m3.log.Logga.get_DEFAULT().error("Error processing listener on " + _g._set.getVisualId(),m3.log.Logga.getExceptionInst(err));
-			}
-		});
-	}
-	,listenerCount: function() {
-		return this._listeners.length;
-	}
-	,__class__: m3.observable.EventManager
-};
-qoid.model.NotificationKind = function() { };
-$hxClasses["qoid.model.NotificationKind"] = qoid.model.NotificationKind;
-qoid.model.NotificationKind.__name__ = ["qoid","model","NotificationKind"];
-m3.comm = {};
-m3.comm.ChannelRequestMessage = function(path,context,parms) {
-	this.path = path;
-	this.context = context;
-	this.parms = parms;
-};
-$hxClasses["m3.comm.ChannelRequestMessage"] = m3.comm.ChannelRequestMessage;
-m3.comm.ChannelRequestMessage.__name__ = ["m3","comm","ChannelRequestMessage"];
-m3.comm.ChannelRequestMessage.prototype = {
-	__class__: m3.comm.ChannelRequestMessage
-};
 m3.comm.BaseRequest = function(requestData,url,successFcn,errorFcn,accessDeniedFcn) {
 	this.requestData = requestData;
 	this._url = url;
@@ -2591,6 +2315,15 @@ m3.comm.ChannelRequestMessageBundle.prototype = {
 		this.add(request);
 	}
 	,__class__: m3.comm.ChannelRequestMessageBundle
+};
+qoid.RequestContext = function(context,handle,resultType) {
+	this.context = context;
+	this.handle = handle;
+};
+$hxClasses["qoid.RequestContext"] = qoid.RequestContext;
+qoid.RequestContext.__name__ = ["qoid","RequestContext"];
+qoid.RequestContext.prototype = {
+	__class__: qoid.RequestContext
 };
 m3.helper.OSetHelper = function() { };
 $hxClasses["m3.helper.OSetHelper"] = m3.helper.OSetHelper;
@@ -2688,6 +2421,9 @@ m3.observable.GroupedSet = function(source,groupingFn) {
 	this._source = source;
 	this._groupingFn = groupingFn;
 	this._groupedSets = new haxe.ds.StringMap();
+	this._groupingKeys = new m3.observable.ObservableSet(function(s) {
+		return s;
+	});
 	this._identityToGrouping = new haxe.ds.StringMap();
 	source.listen(function(t,type) {
 		var groupingKey = groupingFn(t);
@@ -2715,6 +2451,7 @@ m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype
 				groupedSet["delete"](t);
 				if(groupedSet.isEmpty() && deleteEmptySet) {
 					this._groupedSets.remove(key);
+					this._groupingKeys["delete"](key);
 					this.fire(groupedSet,m3.observable.EventType.Delete);
 				} else this.fire(groupedSet,m3.observable.EventType.Update);
 			} else {
@@ -2743,6 +2480,7 @@ m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype
 			var groupedSet = new m3.observable.ObservableSet(this._source.identifier());
 			groupedSet.visualId = key;
 			this._groupedSets.set(key,groupedSet);
+			this._groupingKeys.add(key);
 		}
 		return this._groupedSets.get(key);
 	}
@@ -2762,6 +2500,17 @@ m3.observable.GroupedSet.prototype = $extend(m3.observable.AbstractSet.prototype
 	}
 	,delegate: function() {
 		return this._groupedSets;
+	}
+	,keys: function() {
+		return this._groupingKeys;
+	}
+	,keyListen: function(l,autoFire) {
+		if(autoFire == null) autoFire = true;
+		this._groupingKeys.listen(l,autoFire);
+	}
+	,removeKeyListen: function(l,autoFire) {
+		if(autoFire == null) autoFire = true;
+		this._groupingKeys.removeListener(l);
 	}
 	,__class__: m3.observable.GroupedSet
 });
@@ -2826,7 +2575,6 @@ qoid.model.Profile.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 qoid.model.Content = function(contentType,type) {
 	qoid.model.ModelObjWithIid.call(this);
 	this.contentType = contentType;
-	if(qoid.Qoid.get_currentAlias() == null) this.aliasIid = null; else this.aliasIid = qoid.Qoid.get_currentAlias().iid;
 	this.data = { };
 	this.type = type;
 	this.props = Type.createInstance(type,[]);
@@ -2878,6 +2626,9 @@ qoid.model.ContentHandler.prototype = {
 		case qoid.model.ContentTypes.VERIFICATION:
 			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.VerificationContent);
 			break;
+		case qoid.model.ContentTypes.LINK:
+			obj = m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.LinkContent);
+			break;
 		}
 		return obj;
 	}
@@ -2900,6 +2651,9 @@ qoid.model.Notification.__super__ = qoid.model.ModelObjWithIid;
 qoid.model.Notification.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
 	objectType: function() {
 		return "notification";
+	}
+	,get_connectionIid: function() {
+		return this.route[0];
 	}
 	,readResolve: function() {
 		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
@@ -2942,21 +2696,28 @@ qoid.Qoid.__name__ = ["qoid","Qoid"];
 qoid.Qoid.set_currentAlias = function(a) {
 	qoid.Qoid.currentAlias = a;
 	m3.event.EventManager.get_instance().change(qoid.QE.onAliasLoaded,qoid.Qoid.get_currentAlias());
+	qoid.Qoid.labels.removeListener(qoid.Qoid.setConnectionIidOnLabel);
+	qoid.Qoid.labels.listen(qoid.Qoid.setConnectionIidOnLabel);
 	return qoid.Qoid.get_currentAlias();
 };
 qoid.Qoid.get_currentAlias = function() {
 	return qoid.Qoid.currentAlias;
 };
+qoid.Qoid.setConnectionIidOnLabel = function(l,evt) {
+	if(evt.isAdd()) l.connectionIid = qoid.Qoid.get_currentAlias().connectionIid;
+};
 qoid.Qoid.onInitialDataLoadComplete = function(alias) {
 	qoid.Qoid.set_currentAlias(alias);
 };
 qoid.Qoid.processProfile = function(rec) {
-	var connectionIid = rec.result.route[0];
+	var connectionIid = rec.result.route[rec.result.route.length - 1];
 	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,connectionIid);
 	var profile = m3.serialization.Serializer.get_instance().fromJsonX(rec.result.results[0],qoid.model.Profile);
 	profile.connectionIid = connectionIid;
-	connection.data = profile;
-	qoid.Qoid.connections.addOrUpdate(connection);
+	if(connection != null) {
+		connection.data = profile;
+		qoid.Qoid.connections.addOrUpdate(connection);
+	} else m3.log.Logga.get_DEFAULT().warn("We have a profile with no connection | profile --> iid: " + profile.iid + " - name: " + profile.name);
 	qoid.Qoid.profiles.addOrUpdate(profile);
 };
 qoid.Qoid.getLabelDescendents = function(iid) {
@@ -2983,6 +2744,7 @@ qoid.Qoid.getLabelDescendents = function(iid) {
 		var label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,iid_);
 		if(label == null) m3.log.Logga.get_DEFAULT().error("LabelChild references missing label: " + iid_); else labelDescendents.add(label);
 	}
+	HxOverrides.remove(iid_list,iid);
 	return labelDescendents;
 };
 qoid.Qoid.connectionFromMetaLabel = function(labelIid) {
@@ -2997,214 +2759,77 @@ qoid.Qoid.connectionFromMetaLabel = function(labelIid) {
 	}
 	return ret;
 };
-qoid.model.Introduction = function() {
-	qoid.model.ModelObjWithIid.call(this);
-};
-$hxClasses["qoid.model.Introduction"] = qoid.model.Introduction;
-qoid.model.Introduction.__name__ = ["qoid","model","Introduction"];
-qoid.model.Introduction.__super__ = qoid.model.ModelObjWithIid;
-qoid.model.Introduction.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	__class__: qoid.model.Introduction
-});
-qoid.Synchronizer = function(context,numResponsesExpected,oncomplete) {
-	this.context = context;
-	this.numResponsesExpected = numResponsesExpected;
-	this.oncomplete = oncomplete;
-	this.parms = new qoid.SynchronizationParms();
-	qoid.Synchronizer.synchronizers.set(context,this);
-};
-$hxClasses["qoid.Synchronizer"] = qoid.Synchronizer;
-qoid.Synchronizer.__name__ = ["qoid","Synchronizer"];
-qoid.Synchronizer.processResponse = function(context,data) {
-	var context1 = context.context;
-	var synchronizer = qoid.Synchronizer.synchronizers.get(context1);
-	if(synchronizer != null) synchronizer.dataReceived(context1,data.result);
-	return synchronizer != null;
-};
-qoid.Synchronizer.remove = function(iid) {
-	qoid.Synchronizer.synchronizers.remove(iid);
-};
-qoid.Synchronizer.prototype = {
-	processDataReceived: function(list,type,data) {
-		var _g = 0;
-		var _g1;
-		_g1 = js.Boot.__cast(data , Array);
-		while(_g < _g1.length) {
-			var datum = _g1[_g];
-			++_g;
-			list.push(m3.serialization.Serializer.get_instance().fromJsonX(datum,type));
-		}
-	}
-	,dataReceived: function(c,dataObj) {
-		var data = dataObj.results;
-		var type = dataObj.type.toLowerCase();
-		if(data != null) switch(type) {
-		case "alias":
-			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
-			break;
-		case "connection":
-			this.processDataReceived(this.parms.connections,qoid.model.Connection,data);
-			break;
-		case "introduction":
-			this.processDataReceived(this.parms.introductions,qoid.model.Introduction,data);
-			break;
-		case "label":
-			this.processDataReceived(this.parms.labels,qoid.model.Label,data);
-			break;
-		case "labelacl":
-			this.processDataReceived(this.parms.labelAcls,qoid.model.LabelAcl,data);
-			break;
-		case "labelchild":
-			this.processDataReceived(this.parms.labelChildren,qoid.model.LabelChild,data);
-			break;
-		case "labeledcontent":
-			this.processDataReceived(this.parms.labeledContent,qoid.model.LabeledContent,data);
-			break;
-		case "notification":
-			this.processDataReceived(this.parms.notifications,qoid.model.Notification,data);
-			break;
-		case "profile":
-			this.processDataReceived(this.parms.profiles,qoid.model.Profile,data);
-			break;
-		default:
-			m3.log.Logga.get_DEFAULT().error("Unknown data type: " + Std.string(dataObj.type));
-		}
-		this.numResponsesExpected -= 1;
-		if(this.numResponsesExpected == 0) {
-			this.oncomplete(this.parms);
-			qoid.Synchronizer.remove(this.context);
-		}
-	}
-	,__class__: qoid.Synchronizer
-};
-m3.comm.LongPollingRequest = function(channel,successFcn,errorFcn,ajaxOpts,baseUrl) {
-	this.timeout = 30000;
-	this.delayNextPoll = false;
-	this.running = true;
-	var _g = this;
-	this.channel = channel;
-	if(baseUrl == null) this.baseUrl = "/api/channel/poll?channel=" + channel; else this.baseUrl = baseUrl;
-	this.baseOpts = { complete : function(jqXHR,textStatus) {
-		_g.poll();
-	}};
-	if(ajaxOpts != null) $.extend(this.baseOpts,ajaxOpts);
-	var onSuccess = function(data) {
-		if(_g.running) try {
-			successFcn(data);
-		} catch( e ) {
-			if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
-				m3.log.Logga.get_DEFAULT().error("Error while polling",e);
-			} else throw(e);
-		}
-	};
-	var onError = function(exc) {
-		_g.delayNextPoll = true;
-		m3.log.Logga.get_DEFAULT().error("Error executing ajax call | Response Code: " + Std.string(_g.jqXHR.status) + " | " + Std.string(_g.jqXHR.message));
-		if(errorFcn != null) errorFcn(exc);
-	};
-	m3.comm.BaseRequest.call(this,"",this.getUrl(),onSuccess,onError);
-};
-$hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
-m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
-m3.comm.LongPollingRequest.__super__ = m3.comm.BaseRequest;
-m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
-	pause: function() {
-		this.running = false;
-		this.poll();
-	}
-	,resume: function() {
-		this.running = false;
-		this.poll();
-	}
-	,toggle: function() {
-		this.running = !this.running;
-		m3.log.Logga.get_DEFAULT().debug("Long Polling is running? " + Std.string(this.running));
-		this.poll();
-	}
-	,getChannelId: function() {
-		return this.channel;
-	}
-	,start: function(opts) {
-		this.poll();
-		return this.jqXHR;
-	}
-	,abort: function() {
-		this.running = false;
-		if(this.jqXHR != null) try {
-			this.jqXHR.abort();
-			this.jqXHR = null;
-		} catch( err ) {
-			m3.log.Logga.get_DEFAULT().error("error on poll abort | " + Std.string(err));
-		}
-	}
-	,getUrl: function() {
-		return this.baseUrl + "?timeoutMillis=" + Std.string(this.timeout);
-	}
-	,poll: function() {
-		if(this.running) {
-			if(this.delayNextPoll == true) {
-				this.delayNextPoll = false;
-				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
-			} else {
-				this.baseOpts.url = this.getUrl();
-				this.baseOpts.timeout = this.timeout + 1000;
-				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
+qoid.ResponseProcessor = function() { };
+$hxClasses["qoid.ResponseProcessor"] = qoid.ResponseProcessor;
+qoid.ResponseProcessor.__name__ = ["qoid","ResponseProcessor"];
+qoid.ResponseProcessor.processResponse = function(dataArr) {
+	Lambda.iter(dataArr,function(data) {
+		if(!data.success) m3.log.Logga.get_DEFAULT().error(data.error.stacktrace); else {
+			var context = m3.serialization.Serializer.get_instance().fromJsonX(data.context,qoid.RequestContext);
+			var result = data.result;
+			if(context.context == "initialDataLoad") {
+				if(result != null) {
+					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result); else qoid.Synchronizer.processResponse(context,data);
+				}
+			} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result); else if(!qoid.Synchronizer.processResponse(context,data)) {
+				if(result != null) {
+					var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
+					m3.event.EventManager.get_instance().fire(eventId,data);
+				}
 			}
 		}
+	});
+};
+qoid.ResponseProcessor.processModelObject = function(set,type,action,data) {
+	if(m3.helper.ArrayHelper.hasValues(data)) {
+		var _g = 0;
+		while(_g < data.length) {
+			var datum = data[_g];
+			++_g;
+			var obj = m3.serialization.Serializer.get_instance().fromJsonX(datum,type);
+			if(action == "delete") set["delete"](obj); else set.addOrUpdate(obj);
+		}
 	}
-	,__class__: m3.comm.LongPollingRequest
-});
-qoid.SynchronizationParms = function() {
-	this.aliases = new Array();
-	this.connections = new Array();
-	this.introductions = new Array();
-	this.labels = new Array();
-	this.labelAcls = new Array();
-	this.labelChildren = new Array();
-	this.labeledContent = new Array();
-	this.notifications = new Array();
-	this.profiles = new Array();
 };
-$hxClasses["qoid.SynchronizationParms"] = qoid.SynchronizationParms;
-qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
-qoid.SynchronizationParms.prototype = {
-	__class__: qoid.SynchronizationParms
+qoid.ResponseProcessor.updateModelObject = function(result) {
+	var type = result.type.toLowerCase();
+	var action = result.action;
+	var data = result.results;
+	switch(type) {
+	case "alias":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.aliases,qoid.model.Alias,action,data);
+		break;
+	case "connection":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.connections,qoid.model.Connection,action,data);
+		break;
+	case "content":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.verificationContent,qoid.model.Content,action,data);
+		break;
+	case "introduction":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.introductions,qoid.model.Introduction,action,data);
+		break;
+	case "label":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labels,qoid.model.Label,action,data);
+		break;
+	case "labelacl":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelAcls,qoid.model.LabelAcl,action,data);
+		break;
+	case "labelchild":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labelChildren,qoid.model.LabelChild,action,data);
+		break;
+	case "labeledcontent":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.labeledContent,qoid.model.LabeledContent,action,data);
+		break;
+	case "notification":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.notifications,qoid.model.Notification,action,data);
+		break;
+	case "profile":
+		qoid.ResponseProcessor.processModelObject(qoid.Qoid.profiles,qoid.model.Profile,action,data);
+		break;
+	default:
+		m3.log.Logga.get_DEFAULT().error("Unknown type: " + type);
+	}
 };
-js.Lib = function() { };
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
-};
-agentui.widget = {};
-agentui.widget.UploadCompHelper = function() { };
-$hxClasses["agentui.widget.UploadCompHelper"] = agentui.widget.UploadCompHelper;
-agentui.widget.UploadCompHelper.__name__ = ["agentui","widget","UploadCompHelper"];
-agentui.widget.UploadCompHelper.value = function(m) {
-	return m.uploadComp("value");
-};
-agentui.widget.UploadCompHelper.clear = function(m) {
-	m.uploadComp("clear");
-};
-agentui.widget.UploadCompHelper.setPreviewImage = function(m,src) {
-	m.uploadComp("setPreviewImage",src);
-};
-m3.widget = {};
-m3.widget.Widgets = function() { };
-$hxClasses["m3.widget.Widgets"] = m3.widget.Widgets;
-m3.widget.Widgets.__name__ = ["m3","widget","Widgets"];
-m3.widget.Widgets.getSelf = function() {
-	return this;
-};
-m3.widget.Widgets.getSelfElement = function() {
-	return this.element;
-};
-m3.widget.Widgets.getWidgetClasses = function() {
-	return " ui-widget";
-};
-qoid.model.ContentTypes = function() { };
-$hxClasses["qoid.model.ContentTypes"] = qoid.model.ContentTypes;
-qoid.model.ContentTypes.__name__ = ["qoid","model","ContentTypes"];
 m3.helper.ArrayHelper = $hx_exports.m3.helper.ArrayHelper = function() { };
 $hxClasses["m3.helper.ArrayHelper"] = m3.helper.ArrayHelper;
 m3.helper.ArrayHelper.__name__ = ["m3","helper","ArrayHelper"];
@@ -3415,6 +3040,463 @@ m3.helper.ArrayHelper.joinX = function(array,sep) {
 	}
 	return s;
 };
+qoid.model.Introduction = function() {
+	qoid.model.ModelObjWithIid.call(this);
+};
+$hxClasses["qoid.model.Introduction"] = qoid.model.Introduction;
+qoid.model.Introduction.__name__ = ["qoid","model","Introduction"];
+qoid.model.Introduction.__super__ = qoid.model.ModelObjWithIid;
+qoid.model.Introduction.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
+	__class__: qoid.model.Introduction
+});
+qoid.Synchronizer = function(context,numResponsesExpected,oncomplete) {
+	this.context = context;
+	this.numResponsesExpected = numResponsesExpected;
+	this.oncomplete = oncomplete;
+	this.parms = new qoid.SynchronizationParms();
+	qoid.Synchronizer.synchronizers.set(context,this);
+};
+$hxClasses["qoid.Synchronizer"] = qoid.Synchronizer;
+qoid.Synchronizer.__name__ = ["qoid","Synchronizer"];
+qoid.Synchronizer.processResponse = function(context,data) {
+	var synchronizer = qoid.Synchronizer.synchronizers.get(context.context);
+	if(synchronizer != null) synchronizer.dataReceived(context,data);
+	return synchronizer != null;
+};
+qoid.Synchronizer.remove = function(iid) {
+	qoid.Synchronizer.synchronizers.remove(iid);
+};
+qoid.Synchronizer.prototype = {
+	processDataReceived: function(list,type,result) {
+		var data = result.results;
+		if(m3.helper.ArrayHelper.hasValues(data)) {
+			var _g = 0;
+			while(_g < data.length) {
+				var datum = data[_g];
+				++_g;
+				list.push(m3.serialization.Serializer.get_instance().fromJsonX(datum,type));
+			}
+		}
+	}
+	,processProfileReceived: function(list,result) {
+		var data = result.results;
+		var _g = 0;
+		while(_g < data.length) {
+			var datum = data[_g];
+			++_g;
+			var profile = m3.serialization.Serializer.get_instance().fromJsonX(datum,qoid.model.Profile);
+			if(m3.helper.ArrayHelper.hasValues(result.route)) profile.connectionIid = result.route[0];
+			list.push(profile);
+		}
+	}
+	,processNotificationReceived: function(list,result) {
+		var data = result.results;
+		if(m3.helper.ArrayHelper.hasValues(data)) {
+			var _g = 0;
+			while(_g < data.length) {
+				var datum = data[_g];
+				++_g;
+				var notification = m3.serialization.Serializer.get_instance().fromJsonX(datum,qoid.model.Notification);
+				list.push(notification);
+			}
+		}
+	}
+	,dataReceived: function(c,dataObj) {
+		var data = dataObj.result;
+		var type = dataObj.result.type.toLowerCase();
+		if(data != null) switch(type) {
+		case "alias":
+			this.processDataReceived(this.parms.aliases,qoid.model.Alias,data);
+			break;
+		case "connection":
+			this.processDataReceived(this.parms.connections,qoid.model.Connection,data);
+			break;
+		case "introduction":
+			this.processDataReceived(this.parms.introductions,qoid.model.Introduction,data);
+			break;
+		case "label":
+			this.processDataReceived(this.parms.labels,qoid.model.Label,data);
+			break;
+		case "labelacl":
+			this.processDataReceived(this.parms.labelAcls,qoid.model.LabelAcl,data);
+			break;
+		case "labelchild":
+			this.processDataReceived(this.parms.labelChildren,qoid.model.LabelChild,data);
+			break;
+		case "labeledcontent":
+			this.processDataReceived(this.parms.labeledContent,qoid.model.LabeledContent,data);
+			break;
+		case "notification":
+			this.processNotificationReceived(this.parms.notifications,data);
+			break;
+		case "profile":
+			this.processProfileReceived(this.parms.profiles,data);
+			break;
+		default:
+			m3.log.Logga.get_DEFAULT().error("Unknown data type: " + data.type);
+		}
+		this.numResponsesExpected -= 1;
+		if(this.numResponsesExpected == 0) {
+			this.oncomplete(this.parms);
+			qoid.Synchronizer.remove(this.context);
+		}
+	}
+	,__class__: qoid.Synchronizer
+};
+m3.comm.LongPollingRequest = function(channel,successFcn,errorFcn,ajaxOpts,baseUrl) {
+	this.timeout = 30000;
+	this.delayNextPoll = false;
+	this.running = true;
+	var _g = this;
+	this.channel = channel;
+	if(baseUrl == null) this.baseUrl = "/api/channel/poll?channel=" + channel; else this.baseUrl = baseUrl;
+	this.baseOpts = { complete : function(jqXHR,textStatus) {
+		_g.poll();
+	}};
+	if(ajaxOpts != null) $.extend(this.baseOpts,ajaxOpts);
+	var onSuccess = function(data) {
+		if(_g.running) try {
+			successFcn(data);
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
+				m3.log.Logga.get_DEFAULT().error("Error while polling",e);
+			} else throw(e);
+		}
+	};
+	var onError = function(exc) {
+		_g.delayNextPoll = true;
+		m3.log.Logga.get_DEFAULT().error("Error executing ajax call | Response Code: " + Std.string(_g.jqXHR.status) + " | " + Std.string(_g.jqXHR.message));
+		if(errorFcn != null) errorFcn(exc);
+	};
+	m3.comm.BaseRequest.call(this,"",this.getUrl(),onSuccess,onError);
+};
+$hxClasses["m3.comm.LongPollingRequest"] = m3.comm.LongPollingRequest;
+m3.comm.LongPollingRequest.__name__ = ["m3","comm","LongPollingRequest"];
+m3.comm.LongPollingRequest.__super__ = m3.comm.BaseRequest;
+m3.comm.LongPollingRequest.prototype = $extend(m3.comm.BaseRequest.prototype,{
+	pause: function() {
+		this.running = false;
+		this.poll();
+	}
+	,resume: function() {
+		this.running = false;
+		this.poll();
+	}
+	,toggle: function() {
+		this.running = !this.running;
+		m3.log.Logga.get_DEFAULT().debug("Long Polling is running? " + Std.string(this.running));
+		this.poll();
+	}
+	,getChannelId: function() {
+		return this.channel;
+	}
+	,start: function(opts) {
+		this.poll();
+		return this.jqXHR;
+	}
+	,abort: function() {
+		this.running = false;
+		if(this.jqXHR != null) try {
+			this.jqXHR.abort();
+			this.jqXHR = null;
+		} catch( err ) {
+			m3.log.Logga.get_DEFAULT().error("error on poll abort | " + Std.string(err));
+		}
+	}
+	,getUrl: function() {
+		return this.baseUrl + "?timeoutMillis=" + Std.string(this.timeout);
+	}
+	,poll: function() {
+		if(this.running) {
+			if(this.delayNextPoll == true) {
+				this.delayNextPoll = false;
+				haxe.Timer.delay($bind(this,this.poll),this.timeout / 2 | 0);
+			} else {
+				this.baseOpts.url = this.getUrl();
+				this.baseOpts.timeout = this.timeout + 1000;
+				this.jqXHR = m3.comm.BaseRequest.prototype.start.call(this);
+			}
+		}
+	}
+	,__class__: m3.comm.LongPollingRequest
+});
+var js = {};
+js.Boot = function() { };
+$hxClasses["js.Boot"] = js.Boot;
+js.Boot.__name__ = ["js","Boot"];
+js.Boot.getClass = function(o) {
+	if((o instanceof Array) && o.__enum__ == null) return Array; else return o.__class__;
+};
+js.Boot.__string_rec = function(o,s) {
+	if(o == null) return "null";
+	if(s.length >= 5) return "<...>";
+	var t = typeof(o);
+	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
+	switch(t) {
+	case "object":
+		if(o instanceof Array) {
+			if(o.__enum__) {
+				if(o.length == 2) return o[0];
+				var str = o[0] + "(";
+				s += "\t";
+				var _g1 = 2;
+				var _g = o.length;
+				while(_g1 < _g) {
+					var i = _g1++;
+					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
+				}
+				return str + ")";
+			}
+			var l = o.length;
+			var i1;
+			var str1 = "[";
+			s += "\t";
+			var _g2 = 0;
+			while(_g2 < l) {
+				var i2 = _g2++;
+				str1 += (i2 > 0?",":"") + js.Boot.__string_rec(o[i2],s);
+			}
+			str1 += "]";
+			return str1;
+		}
+		var tostr;
+		try {
+			tostr = o.toString;
+		} catch( e ) {
+			return "???";
+		}
+		if(tostr != null && tostr != Object.toString) {
+			var s2 = o.toString();
+			if(s2 != "[object Object]") return s2;
+		}
+		var k = null;
+		var str2 = "{\n";
+		s += "\t";
+		var hasp = o.hasOwnProperty != null;
+		for( var k in o ) {
+		if(hasp && !o.hasOwnProperty(k)) {
+			continue;
+		}
+		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
+			continue;
+		}
+		if(str2.length != 2) str2 += ", \n";
+		str2 += s + k + " : " + js.Boot.__string_rec(o[k],s);
+		}
+		s = s.substring(1);
+		str2 += "\n" + s + "}";
+		return str2;
+	case "function":
+		return "<function>";
+	case "string":
+		return o;
+	default:
+		return String(o);
+	}
+};
+js.Boot.__interfLoop = function(cc,cl) {
+	if(cc == null) return false;
+	if(cc == cl) return true;
+	var intf = cc.__interfaces__;
+	if(intf != null) {
+		var _g1 = 0;
+		var _g = intf.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var i1 = intf[i];
+			if(i1 == cl || js.Boot.__interfLoop(i1,cl)) return true;
+		}
+	}
+	return js.Boot.__interfLoop(cc.__super__,cl);
+};
+js.Boot.__instanceof = function(o,cl) {
+	if(cl == null) return false;
+	switch(cl) {
+	case Int:
+		return (o|0) === o;
+	case Float:
+		return typeof(o) == "number";
+	case Bool:
+		return typeof(o) == "boolean";
+	case String:
+		return typeof(o) == "string";
+	case Array:
+		return (o instanceof Array) && o.__enum__ == null;
+	case Dynamic:
+		return true;
+	default:
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(o instanceof cl) return true;
+				if(js.Boot.__interfLoop(js.Boot.getClass(o),cl)) return true;
+			}
+		} else return false;
+		if(cl == Class && o.__name__ != null) return true;
+		if(cl == Enum && o.__ename__ != null) return true;
+		return o.__enum__ == cl;
+	}
+};
+js.Boot.__cast = function(o,t) {
+	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
+};
+qoid.SynchronizationParms = function() {
+	this.aliases = new Array();
+	this.connections = new Array();
+	this.introductions = new Array();
+	this.labels = new Array();
+	this.labelAcls = new Array();
+	this.labelChildren = new Array();
+	this.labeledContent = new Array();
+	this.notifications = new Array();
+	this.profiles = new Array();
+};
+$hxClasses["qoid.SynchronizationParms"] = qoid.SynchronizationParms;
+qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
+qoid.SynchronizationParms.prototype = {
+	__class__: qoid.SynchronizationParms
+};
+js.Lib = function() { };
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
+};
+m3.util.JqueryUtil = $hx_exports.m3.util.JqueryUtil = function() { };
+$hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
+m3.util.JqueryUtil.__name__ = ["m3","util","JqueryUtil"];
+m3.util.JqueryUtil.isAttached = function(elem) {
+	return elem.parents("body").length > 0;
+};
+m3.util.JqueryUtil.labelSelect = function(elem,str) {
+	try {
+		m3.CrossMojo.jq("option",elem).filter(function() {
+			return $(this).text() == str;
+		})[0].selected = true;
+	} catch( err ) {
+	}
+};
+m3.util.JqueryUtil.getOrCreateDialog = function(selector,dlgOptions,createdFcn) {
+	if(m3.helper.StringHelper.isBlank(selector)) selector = "dlg" + m3.util.UidGenerator.create(10);
+	var dialog = new $(selector);
+	if(dlgOptions == null) dlgOptions = { autoOpen : false, height : 380, width : 320, modal : true};
+	if(!dialog.exists()) {
+		dialog = new $("<div id=" + HxOverrides.substr(selector,1,null) + " style='display:none;'></div>");
+		if(Reflect.isFunction(createdFcn)) createdFcn(dialog);
+		new $("body").append(dialog);
+		dialog.m3dialog(dlgOptions);
+	} else if(!dialog["is"](":data(dialog)")) dialog.m3dialog(dlgOptions);
+	if(dialog.exists()) dialog.parents(".ui-dialog").addClass("dialog");
+	return dialog;
+};
+m3.util.JqueryUtil.deleteEffects = function(dragstopEvt,width,duration,src) {
+	if(src == null) src = "media/cloud.gif";
+	if(duration == null) duration = 800;
+	if(width == null) width = "70px";
+	var img = new $("<img/>");
+	img.appendTo("body");
+	img.css("width",width);
+	img.position({ my : "center", at : "center", of : dragstopEvt, collision : "fit"});
+	img.attr("src",src);
+	haxe.Timer.delay(function() {
+		img.remove();
+	},duration);
+};
+m3.util.JqueryUtil.confirm = function(title,question,action,width,height) {
+	if(height == null) height = 150;
+	if(width == null) width = "auto";
+	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, resizable : false, width : width, height : height, buttons : { Yes : function() {
+		action();
+		m3.jq.M3DialogHelper.close($(this));
+	}, No : function() {
+		m3.jq.M3DialogHelper.close($(this));
+	}}, close : function() {
+		$(this).remove();
+	}};
+	var dlg = m3.util.JqueryUtil.getOrCreateDialog("#confirm-dialog",dlgOptions);
+	var content = new $("<div style=\"text-align:left;\">" + question + "</div>");
+	dlg.append(content);
+	if(!m3.jq.M3DialogHelper.isOpen(dlg)) m3.jq.M3DialogHelper.open(dlg);
+};
+m3.util.JqueryUtil.alert = function(statement,title,action,width,height) {
+	if(height == null) height = 175;
+	if(width == null) width = "auto";
+	if(title == null) title = "Alert";
+	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, resizable : false, width : width, height : height, buttons : { OK : function() {
+		m3.jq.M3DialogHelper.close($(this));
+	}}, close : function() {
+		if(action != null) action();
+		$(this).remove();
+	}};
+	var dlg = m3.util.JqueryUtil.getOrCreateDialog("#alert-dialog",dlgOptions);
+	var content = new $("<div style=\"text-align:left;\">" + statement + "</div>");
+	dlg.append(content);
+	if(!m3.jq.M3DialogHelper.isOpen(dlg)) m3.jq.M3DialogHelper.open(dlg);
+};
+m3.util.JqueryUtil.getWindowWidth = function() {
+	return new $(window).width();
+};
+m3.util.JqueryUtil.getWindowHeight = function() {
+	return new $(window).height();
+};
+m3.util.JqueryUtil.getDocumentWidth = function() {
+	return new $(window.document).width();
+};
+m3.util.JqueryUtil.getDocumentHeight = function() {
+	return new $(window.document).height();
+};
+m3.util.JqueryUtil.getEmptyDiv = function() {
+	return new $("<div></div>");
+};
+m3.util.JqueryUtil.getEmptyTable = function() {
+	return new $("<table style='margin:auto; text-align: center; width: 100%;'></table>");
+};
+m3.util.JqueryUtil.getEmptyRow = function() {
+	return new $("<tr></tr>");
+};
+m3.util.JqueryUtil.getEmptyCell = function() {
+	return new $("<td></td>");
+};
+m3.jq.M3DialogHelper = function() { };
+$hxClasses["m3.jq.M3DialogHelper"] = m3.jq.M3DialogHelper;
+m3.jq.M3DialogHelper.__name__ = ["m3","jq","M3DialogHelper"];
+m3.jq.M3DialogHelper.close = function(dlg) {
+	dlg.m3dialog("close");
+};
+m3.jq.M3DialogHelper.open = function(dlg) {
+	dlg.m3dialog("open");
+};
+m3.jq.M3DialogHelper.isOpen = function(dlg) {
+	return dlg.m3dialog("isOpen");
+};
+agentui.widget = {};
+agentui.widget.UploadCompHelper = function() { };
+$hxClasses["agentui.widget.UploadCompHelper"] = agentui.widget.UploadCompHelper;
+agentui.widget.UploadCompHelper.__name__ = ["agentui","widget","UploadCompHelper"];
+agentui.widget.UploadCompHelper.value = function(m) {
+	return m.uploadComp("value");
+};
+agentui.widget.UploadCompHelper.clear = function(m) {
+	m.uploadComp("clear");
+};
+agentui.widget.UploadCompHelper.setPreviewImage = function(m,src) {
+	m.uploadComp("setPreviewImage",src);
+};
+m3.widget = {};
+m3.widget.Widgets = function() { };
+$hxClasses["m3.widget.Widgets"] = m3.widget.Widgets;
+m3.widget.Widgets.__name__ = ["m3","widget","Widgets"];
+m3.widget.Widgets.getSelf = function() {
+	return this;
+};
+m3.widget.Widgets.getSelfElement = function() {
+	return this.element;
+};
+m3.widget.Widgets.getWidgetClasses = function() {
+	return " ui-widget";
+};
+qoid.model.ContentTypes = function() { };
+$hxClasses["qoid.model.ContentTypes"] = qoid.model.ContentTypes;
+qoid.model.ContentTypes.__name__ = ["qoid","model","ContentTypes"];
 ap.APhoto = $hx_exports.ap.APhoto = function() { };
 $hxClasses["ap.APhoto"] = ap.APhoto;
 ap.APhoto.__name__ = ["ap","APhoto"];
@@ -3692,28 +3774,26 @@ ap.model.ContentSource.addContent = function(results,connectionIid) {
 			++_g;
 			var c = m3.serialization.Serializer.get_instance().fromJsonX(result,qoid.model.Content);
 			if(c != null) {
-				if(connectionIid != null) {
-					c.aliasIid = null;
-					c.connectionIid = connectionIid;
-				}
+				if(connectionIid != null) c.connectionIid = connectionIid;
 				ap.model.ContentSource.filteredContent.addOrUpdate(c);
 			}
 		}
 	}
 };
 ap.model.ContentSource.onLoadFilteredContent = function(data) {
-	if(data.result.standing || ap.model.ContentSource.handle == data.context.handle) ap.model.ContentSource.addContent(data.result.results,data.connectionIid); else {
+	if(data.result.standing || ap.model.ContentSource.context != null && ap.model.ContentSource.context.handle == data.context.handle) ap.model.ContentSource.addContent(data.result.results,data.result.route[0]); else {
 		ap.model.ContentSource.clearQuery();
-		ap.model.ContentSource.handle = data.context.handle;
+		if(typeof(data.context) == "string") ap.model.ContentSource.context = m3.serialization.Serializer.get_instance().fromJsonX(JSON.parse(data.context),qoid.RequestContext); else ap.model.ContentSource.context = m3.serialization.Serializer.get_instance().fromJsonX(data.context,qoid.RequestContext);
 		ap.model.ContentSource.beforeSetContent();
-		ap.model.ContentSource.addContent(data.result.results,data.connectionIid);
+		ap.model.ContentSource.addContent(data.result.results,data.result.route[0]);
 	}
 };
 ap.model.ContentSource.clearQuery = function() {
-	if(ap.model.ContentSource.handle != null) {
+	if(ap.model.ContentSource.context != null) {
 		m3.log.Logga.get_DEFAULT().warn("deregisterSqueries");
+		qoid.QoidAPI.cancelQuery(new qoid.RequestContext(ap.model.ContentSource.context.context,ap.model.ContentSource.context.handle));
 		ap.model.ContentSource.filteredContent.clear();
-		ap.model.ContentSource.handle = null;
+		ap.model.ContentSource.context = null;
 	}
 };
 ap.model.ContentSource.onAliasLoaded = function(alias) {
@@ -3899,7 +3979,6 @@ m3.jq.pages.SinglePageManager.prototype = {
 		if(!Lambda.empty(this.history)) {
 			var page = this.history.pop();
 			this.changePage(page,true);
-			window.history.back();
 		}
 		if(this.backBtn != null) {
 		}
@@ -3985,20 +4064,24 @@ ap.pages.AlbumScreen.__super__ = ap.pages.APhotoPage;
 ap.pages.AlbumScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
 	pageBeforeShowFcn: function(screen) {
 		var _g = this;
-		var content = new $(".content",screen).empty();
-		content.addClass("center");
-		this.labelSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(l) {
-			return l.iid == ap.APhotoContext.CURRENT_ALBUM;
-		});
-		this.labelSetListener = function(label,evt) {
-			if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
-			if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
-		};
+		if(this.album != ap.APhotoContext.CURRENT_ALBUM) {
+			this.album = ap.APhotoContext.CURRENT_ALBUM;
+			var content = new $(".content",screen).empty();
+			content.addClass("center");
+			this.labelSet = new m3.observable.FilteredSet(qoid.Qoid.labels,function(l) {
+				return l.iid == ap.APhotoContext.CURRENT_ALBUM;
+			});
+			this.labelSetListener = function(label,evt) {
+				if(evt.isAddOrUpdate()) _g._applyAlbumToScreen(screen,label);
+				if(evt.isClear() || evt.isDelete()) _g._noLabel(screen);
+			};
+		}
 		this.labelSet.listen(this.labelSetListener,true);
 	}
 	,_applyAlbumToScreen: function(screen,label) {
 		var content = new $(".content",screen).empty();
 		content.addClass("center");
+		ap.model.ContentSource.clearQuery();
 		var leftDiv = new $("<div class='leftDiv'></div>").appendTo(content);
 		var albumDetails = new $("<div></div>");
 		albumDetails.appendTo(leftDiv);
@@ -4039,7 +4122,7 @@ ap.pages.AlbumScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
 	}
 	,pageHideFcn: function(screen) {
 		this.labelSet.removeListener(this.labelSetListener);
-		this.labelSet = null;
+		new $(".content",screen).empty();
 	}
 	,__class__: ap.pages.AlbumScreen
 });
@@ -4071,7 +4154,7 @@ ap.pages.ContentScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
 		};
 		var beforeSetContent = $.noop;
 		var widgetCreator = function(content1) {
-			return new $("<div></div>").mediaComp({ content : content1});
+			if(content1 != null && content1.iid == contentId) return new $("<div></div>").mediaComp({ content : content1}); else return null;
 		};
 		var id = ap.model.ContentSource.addListener(mapListener,beforeSetContent,widgetCreator);
 		this._onDestroy = function() {
@@ -4098,20 +4181,28 @@ ap.pages.ContentScreen.prototype = $extend(ap.pages.APhotoPage.prototype,{
 				if(match != null) config = c;
 			});
 			if(config == null) {
-				config = qoid.model.ContentFactory.create(ap.model.APhotoContentTypes.CONFIG,_g._content.props.imgSrc);
+				config = new ap.model.ConfigContent();
 				event = "CreateContent";
 			} else {
 				config.props.defaultImg = _g._content.props.imgSrc;
 				event = "UpdateContent";
 			}
+			config.props.defaultImg = _g._content.props.imgSrc;
 			var ccd = new qoid.model.EditContentData(config);
 			ccd.labelIids.push(ap.APhotoContext.CURRENT_ALBUM);
 			ap.model.EM.change(event,ccd);
+		}).button().appendTo(leftSideOfPage);
+		var removeBtn = new $("<button class='removeBtn'>Remove From This Album</button>").click(function(evt1) {
+			ap.model.EM.listenOnce("onRemoveContentLabel",function(n) {
+				ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.ALBUM_SCREEN);
+			});
+			qoid.QoidAPI.removeContentLabel(ap.APhotoContext.CURRENT_MEDIA,ap.APhotoContext.CURRENT_ALBUM);
 		}).button().appendTo(leftSideOfPage);
 	}
 	,_noLabel: function(screen) {
 	}
 	,pageHideFcn: function(screen) {
+		var content = new $(".content",screen).empty();
 		if(this._onDestroy != null) this._onDestroy();
 	}
 	,__class__: ap.pages.ContentScreen
@@ -5356,18 +5447,6 @@ m3.jq.JQMenuHelper.collapseAll = function(m) {
 m3.jq.JQMenuHelper.refresh = function(m) {
 	m.menu("refresh");
 };
-m3.jq.M3DialogHelper = function() { };
-$hxClasses["m3.jq.M3DialogHelper"] = m3.jq.M3DialogHelper;
-m3.jq.M3DialogHelper.__name__ = ["m3","jq","M3DialogHelper"];
-m3.jq.M3DialogHelper.close = function(dlg) {
-	dlg.m3dialog("close");
-};
-m3.jq.M3DialogHelper.open = function(dlg) {
-	dlg.m3dialog("open");
-};
-m3.jq.M3DialogHelper.isOpen = function(dlg) {
-	return dlg.m3dialog("isOpen");
-};
 m3.jqm = {};
 m3.jqm.pages = {};
 m3.jqm.pages.Page = function(opts) {
@@ -6251,27 +6330,27 @@ qoid.model.ContentFactory.__name__ = ["qoid","model","ContentFactory"];
 qoid.model.ContentFactory.create = function(contentType,data) {
 	var ret = null;
 	switch(contentType) {
-	case "AUDIO":
+	case qoid.model.ContentTypes.AUDIO:
 		var ac = new qoid.model.AudioContent();
 		ac.props.audioSrc = js.Boot.__cast(data , String);
 		ret = ac;
 		break;
-	case "IMAGE":
+	case qoid.model.ContentTypes.IMAGE:
 		var ic = new qoid.model.ImageContent();
 		ic.props.imgSrc = js.Boot.__cast(data , String);
 		ret = ic;
 		break;
-	case "TEXT":
+	case qoid.model.ContentTypes.TEXT:
 		var mc = new qoid.model.MessageContent();
 		mc.props.text = js.Boot.__cast(data , String);
 		ret = mc;
 		break;
-	case "URL":
+	case qoid.model.ContentTypes.URL:
 		var uc = new qoid.model.UrlContent();
 		uc.props.url = js.Boot.__cast(data , String);
 		ret = uc;
 		break;
-	case "VERIFICATION":
+	case qoid.model.ContentTypes.VERIFICATION:
 		var uc1 = new qoid.model.VerificationContent();
 		uc1.props.text = js.Boot.__cast(data , String);
 		ret = uc1;
@@ -6388,6 +6467,24 @@ qoid.model.VerificationContent.__name__ = ["qoid","model","VerificationContent"]
 qoid.model.VerificationContent.__super__ = qoid.model.Content;
 qoid.model.VerificationContent.prototype = $extend(qoid.model.Content.prototype,{
 	__class__: qoid.model.VerificationContent
+});
+qoid.model.LinkContentData = function() {
+	qoid.model.ContentData.call(this);
+};
+$hxClasses["qoid.model.LinkContentData"] = qoid.model.LinkContentData;
+qoid.model.LinkContentData.__name__ = ["qoid","model","LinkContentData"];
+qoid.model.LinkContentData.__super__ = qoid.model.ContentData;
+qoid.model.LinkContentData.prototype = $extend(qoid.model.ContentData.prototype,{
+	__class__: qoid.model.LinkContentData
+});
+qoid.model.LinkContent = function() {
+	qoid.model.Content.call(this,"LINK",qoid.model.LinkContentData);
+};
+$hxClasses["qoid.model.LinkContent"] = qoid.model.LinkContent;
+qoid.model.LinkContent.__name__ = ["qoid","model","LinkContent"];
+qoid.model.LinkContent.__super__ = qoid.model.Content;
+qoid.model.LinkContent.prototype = $extend(qoid.model.Content.prototype,{
+	__class__: qoid.model.LinkContent
 });
 qoid.model.IntroductionRequest = function() {
 	qoid.model.ModelObjWithIid.call(this);
@@ -6639,15 +6736,19 @@ qoid.Qoid.notifications.listen(function(n,evt) {
 	if(evt.isAddOrUpdate()) {
 		if(n.kind == qoid.model.NotificationKind.IntroductionRequest) {
 			var introRequest = n;
-			qoid.QoidAPI.getProfile([introRequest.props.connectionIid]);
+			qoid.QoidAPI.getProfile([introRequest.get_connectionIid(),introRequest.props.connectionIid]);
 		}
 	}
 });
 qoid.Qoid.aliases = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 qoid.Qoid.aliases.listen(function(a,evt1) {
 	if(evt1.isAddOrUpdate()) {
+		m3.log.Logga.get_DEFAULT().debug(evt1.name() + " | alias " + a.iid + "(" + a.get_objectId() + ")");
 		var p = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.profiles,a.iid,"aliasIid");
-		if(p != null) a.profile = p;
+		if(p != null) {
+			m3.log.Logga.get_DEFAULT().debug("Assigning profile '" + p.name + "'(" + p.get_objectId() + ") to alias " + a.iid + "(" + a.get_objectId() + ")");
+			a.profile = p;
+		}
 		if(evt1.isAdd()) m3.event.EventManager.get_instance().change(qoid.QE.onAliasCreated,a); else m3.event.EventManager.get_instance().change(qoid.QE.onAliasUpdated,a);
 	}
 });
@@ -6676,6 +6777,7 @@ qoid.Qoid.profiles.listen(function(p1,evt3) {
 	if(evt3.isAddOrUpdate()) {
 		var alias = m3.helper.OSetHelper.getElement(qoid.Qoid.aliases,p1.aliasIid);
 		if(alias != null) {
+			m3.log.Logga.get_DEFAULT().debug("Assigning profile '" + p1.name + "'(" + p1.get_objectId() + ") to alias " + alias.iid + "(" + alias.get_objectId() + ")");
 			alias.profile = p1;
 			qoid.Qoid.aliases.addOrUpdate(alias);
 		}
@@ -6684,7 +6786,82 @@ qoid.Qoid.profiles.listen(function(p1,evt3) {
 qoid.Qoid.verificationContent = new m3.observable.ObservableSet(qoid.model.ModelObjWithIid.identifier);
 m3.serialization.Serializer.get_instance().addHandler(qoid.model.Content,new qoid.model.ContentHandler());
 m3.serialization.Serializer.get_instance().addHandler(qoid.model.Notification,new qoid.model.NotificationHandler());
-m3.event.EventManager.get_instance().on("onConnectionProfile",qoid.Qoid.processProfile);
+m3.event.EventManager.get_instance().on("onConnectionProfile",qoid.Qoid.processProfile,"EventManager-onConnectionProfile");
+if(!Array.indexOf){Array.prototype.indexOf = function(obj){for(var i=0; i<this.length; i++){if(this[i]==obj){return i;}}return -1;}}
+var defineWidget = function() {
+	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false, onMaxToggle : $.noop}, originalSize : { width : 10, height : 10}, _create : function() {
+		this._super("create");
+		var self = this;
+		var selfElement = this.element;
+		var closeBtn = selfElement.prev().find(".ui-dialog-titlebar-close");
+		var hovers = new $("blah");
+		if(self.options.showHelp && false) {
+			if(!Reflect.isFunction(self.options.buildHelp)) m3.log.Logga.get_DEFAULT().error("Supposed to show help but buildHelp is not a function"); else {
+				var helpIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
+				var helpIcon = new $("<span class='ui-icon ui-icon-help'>help</span>");
+				hovers = hovers.add(helpIconWrapper);
+				helpIconWrapper.append(helpIcon);
+				closeBtn.before(helpIconWrapper);
+				helpIconWrapper.click(function(evt) {
+					self.options.buildHelp();
+				});
+			}
+		}
+		if(self.options.showMaximizer) {
+			self.maxIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
+			var maxIcon = new $("<span class='ui-icon ui-icon-extlink'>maximize</span>");
+			hovers = hovers.add(self.maxIconWrapper);
+			self.maxIconWrapper.append(maxIcon);
+			closeBtn.before(self.maxIconWrapper);
+			self.maxIconWrapper.click(function(evt1) {
+				self.maximize();
+			});
+		}
+		self.restoreIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px; display: none;' role='button'>");
+		var restoreIcon = new $("<span class='ui-icon ui-icon-newwin'>restore</span>");
+		hovers = hovers.add(self.restoreIconWrapper);
+		self.restoreIconWrapper.append(restoreIcon);
+		closeBtn.before(self.restoreIconWrapper);
+		self.restoreIconWrapper.click(function(evt2) {
+			self.restore();
+		});
+		hovers.hover(function(evt3) {
+			$(this).addClass("ui-state-hover");
+		},function(evt4) {
+			$(this).removeClass("ui-state-hover");
+		});
+	}, _allowInteraction : function(event) {
+		var self1 = this;
+		var r = false;
+		if(self1.options.allowInteraction != null) r = !(!self1.options.allowInteraction(event));
+		return r || self1._super(event);
+	}, restore : function() {
+		var self2 = this;
+		var selfElement1 = this.element;
+		selfElement1.m3dialog("option","height",self2.originalSize.height);
+		selfElement1.m3dialog("option","width",self2.originalSize.width);
+		selfElement1.parent().position({ my : "middle", at : "middle", of : window});
+		self2.restoreIconWrapper.hide();
+		self2.maxIconWrapper.show();
+		self2.options.onMaxToggle();
+	}, maximize : function() {
+		var self3 = this;
+		var selfElement2 = this.element;
+		self3.originalSize = { height : selfElement2.parent().height(), width : selfElement2.parent().width()};
+		var $window = new $(window);
+		var windowDimensions_height = $window.height();
+		var windowDimensions_width = $window.width();
+		selfElement2.m3dialog("option","height",windowDimensions_height * .85);
+		selfElement2.m3dialog("option","width",windowDimensions_width * .85);
+		selfElement2.parent().position({ my : "middle", at : "middle", of : $window});
+		self3.maxIconWrapper.hide();
+		self3.restoreIconWrapper.show();
+		self3.options.onMaxToggle();
+	}, destroy : function() {
+		$.Widget.prototype.destroy.call(this);
+	}};
+};
+$.widget("ui.m3dialog",$.ui.dialog,defineWidget());
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -6774,7 +6951,6 @@ var defineWidget = function() {
 	}};
 };
 $.widget("ui.popup",defineWidget());
-if(!Array.indexOf){Array.prototype.indexOf = function(obj){for(var i=0; i<this.length; i++){if(this[i]==obj){return i;}}return -1;}}
 var defineWidget = function() {
 	return { _create : function() {
 		var self = this;
@@ -6831,7 +7007,7 @@ var defineWidget = function() {
 			m3.util.JqueryUtil.alert("Please select an audio file.");
 			return;
 		}
-		m3.log.Logga.get_DEFAULT().debug("upload " + Std.string(file.name));
+		m3.log.Logga.get_DEFAULT().debug("upload " + file.name);
 		var reader = new FileReader();
 		reader.onload = function(evt5) {
 			self2.setPreviewImage(evt5.target.result);
@@ -7236,27 +7412,24 @@ var defineWidget = function() {
 			ap.APhotoContext.PAGE_MGR.set_CURRENT_PAGE(ap.pages.APhotoPageMgr.CONTENT_SCREEN);
 		});
 		self._createWidgets(selfElement,self);
-		ap.model.EM.addListener("EditContentClosed",function(content) {
-			if(content.iid == self.options.content.iid) selfElement.show();
-		});
 	}, _createWidgets : function(selfElement1,self1) {
 		selfElement1.empty();
-		var content1 = self1.options.content;
-		var _g = content1.contentType;
+		var content = self1.options.content;
+		var _g = content.contentType;
 		switch(_g) {
 		case qoid.model.ContentTypes.IMAGE:
 			var img;
-			img = js.Boot.__cast(content1 , qoid.model.ImageContent);
+			img = js.Boot.__cast(content , qoid.model.ImageContent);
 			selfElement1.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
 			break;
 		default:
 			m3.log.Logga.get_DEFAULT().debug("Only image content should be displayed");
 		}
-	}, update : function(content2) {
+	}, update : function(content1) {
 		var self2 = this;
 		var selfElement2 = this.element;
 		var showButtonBlock = self2.buttonBlock.isVisible();
-		self2.options.content = content2;
+		self2.options.content = content1;
 		self2._createWidgets(selfElement2,self2);
 		if(showButtonBlock) self2.buttonBlock.show();
 		selfElement2.show();
@@ -7548,75 +7721,6 @@ $.widget("ui.mediaComp",defineWidget());
 var q = window.jQuery;
 js.JQuery = q;
 var defineWidget = function() {
-	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false, onMaxToggle : $.noop}, originalSize : { width : 10, height : 10}, _create : function() {
-		this._super("create");
-		var self = this;
-		var selfElement = this.element;
-		var closeBtn = selfElement.prev().find(".ui-dialog-titlebar-close");
-		var hovers = new $("blah");
-		if(self.options.showHelp && false) {
-			if(!Reflect.isFunction(self.options.buildHelp)) m3.log.Logga.get_DEFAULT().error("Supposed to show help but buildHelp is not a function"); else {
-				var helpIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
-				var helpIcon = new $("<span class='ui-icon ui-icon-help'>help</span>");
-				hovers = hovers.add(helpIconWrapper);
-				helpIconWrapper.append(helpIcon);
-				closeBtn.before(helpIconWrapper);
-				helpIconWrapper.click(function(evt) {
-					self.options.buildHelp();
-				});
-			}
-		}
-		if(self.options.showMaximizer) {
-			self.maxIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
-			var maxIcon = new $("<span class='ui-icon ui-icon-extlink'>maximize</span>");
-			hovers = hovers.add(self.maxIconWrapper);
-			self.maxIconWrapper.append(maxIcon);
-			closeBtn.before(self.maxIconWrapper);
-			self.maxIconWrapper.click(function(evt1) {
-				self.maximize();
-			});
-		}
-		self.restoreIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px; display: none;' role='button'>");
-		var restoreIcon = new $("<span class='ui-icon ui-icon-newwin'>restore</span>");
-		hovers = hovers.add(self.restoreIconWrapper);
-		self.restoreIconWrapper.append(restoreIcon);
-		closeBtn.before(self.restoreIconWrapper);
-		self.restoreIconWrapper.click(function(evt2) {
-			self.restore();
-		});
-		hovers.hover(function(evt3) {
-			$(this).addClass("ui-state-hover");
-		},function(evt4) {
-			$(this).removeClass("ui-state-hover");
-		});
-	}, restore : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		selfElement1.m3dialog("option","height",self1.originalSize.height);
-		selfElement1.m3dialog("option","width",self1.originalSize.width);
-		selfElement1.parent().position({ my : "middle", at : "middle", of : window});
-		self1.restoreIconWrapper.hide();
-		self1.maxIconWrapper.show();
-		self1.options.onMaxToggle();
-	}, maximize : function() {
-		var self2 = this;
-		var selfElement2 = this.element;
-		self2.originalSize = { height : selfElement2.parent().height(), width : selfElement2.parent().width()};
-		var $window = new $(window);
-		var windowDimensions_height = $window.height();
-		var windowDimensions_width = $window.width();
-		selfElement2.m3dialog("option","height",windowDimensions_height * .85);
-		selfElement2.m3dialog("option","width",windowDimensions_width * .85);
-		selfElement2.parent().position({ my : "middle", at : "middle", of : $window});
-		self2.maxIconWrapper.hide();
-		self2.restoreIconWrapper.show();
-		self2.options.onMaxToggle();
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.m3dialog",$.ui.dialog,defineWidget());
-var defineWidget = function() {
 	return { options : { menuOptions : null, width : 200, classes : ""}, _create : function() {
 		var self = this;
 		var selfElement = this.element;
@@ -7632,25 +7736,26 @@ var defineWidget = function() {
 			++_g;
 			var icon;
 			if(m3.helper.StringHelper.isNotBlank(menuOption[0].icon)) icon = "<span class='ui-icon " + menuOption[0].icon + "'></span>"; else icon = "";
-			new $("<li><a href='#'>" + icon + menuOption[0].label + "</a></li>").appendTo(selfElement).click((function(menuOption) {
+			var label;
+			if(self.options.wrapLabelInAtag) label = "<a>" + menuOption[0].label + "</a"; else label = menuOption[0].label;
+			var li = new $("<li>" + icon + label + "</li>").appendTo(selfElement).click((function(menuOption) {
 				return function(evt) {
 					menuOption[0].action(evt,selfElement);
 				};
 			})(menuOption));
+			if(menuOption[0].iconJq != null) li.prepend(menuOption[0].iconJq);
 		}
 		selfElement.on("contextmenu",function(evt1) {
 			return false;
 		});
-		this._super("create");
-	}, _closeOnDocumentClick : function(evt2) {
-		return true;
+		self._super();
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
 $.widget("ui.m3menu",$.ui.menu,defineWidget());
-qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectType public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"21\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"574\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectId public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</objectId>\n\t<_objectId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</_objectId>\n\t<get_objectId set=\"method\" line=\"28\"><f a=\"\"><c path=\"String\"/></f></get_objectId>\n\t<objectType public=\"1\" set=\"method\" line=\"36\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"610\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.QE.onAliasCreated = "onAliasCreated";
 qoid.QE.onAliasLoaded = "onAliasLoaded";
 qoid.QE.onAliasUpdated = "onAliasUpdated";
@@ -7659,7 +7764,7 @@ qoid.QE.onConnectionProfile = "onConnectionProfile";
 qoid.QE.onInitialDataload = "onInitialDataload";
 qoid.QE.onInitiateIntroduction = "onInitiateIntroduction";
 qoid.QE.onUserLogin = "onUserLogin";
-qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"561\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"597\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.QoidAPI.AGENT_CREATE = "/api/v1/agent/create";
 qoid.QoidAPI.LOGIN = "/api/v1/login";
 qoid.QoidAPI.LOGOUT = "/api/v1/logout";
@@ -7691,9 +7796,8 @@ qoid.QoidAPI.INTRODUCTION_INITIATE = "/api/v1/introduction/initiate";
 qoid.QoidAPI.INTRODUCTION_ACCEPT = "/api/v1/introduction/accept";
 qoid.QoidAPI.QUERY = "/api/v1/query";
 qoid.QoidAPI.QUERY_CANCEL = "/api/v1/query/cancel";
-qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"45\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<createdByConnectionIid public=\"1\"><c path=\"String\"/></createdByConnectionIid>\n\t<modifiedByConnectionIid public=\"1\"><c path=\"String\"/></modifiedByConnectionIid>\n\t<new public=\"1\" set=\"method\" line=\"38\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"88\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"82\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.RequestContext.__rtti = "<class path=\"qoid.RequestContext\" params=\"\" module=\"qoid.QoidAPI\">\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<handle public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</handle>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"?context:?handle\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ModelObjWithIid.__rtti = "<class path=\"qoid.model.ModelObjWithIid\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"57\" static=\"1\"><f a=\"t\">\n\t<c path=\"qoid.model.ModelObjWithIid\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<iid public=\"1\"><c path=\"String\"/></iid>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"50\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"100\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"94\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.observable.OSet.__rtti = "<class path=\"m3.observable.OSet\" params=\"T\" interface=\"1\">\n\t<identifier public=\"1\" set=\"method\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<listen public=\"1\" set=\"method\"><f a=\"l:?autoFire\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.OSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<iterator public=\"1\" set=\"method\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet.T\"/>\n</x></f></delegate>\n\t<getVisualId public=\"1\" set=\"method\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.AbstractSet.__rtti = "<class path=\"m3.observable.AbstractSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<implements path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></implements>\n\t<_eventManager public=\"1\"><c path=\"m3.observable.EventManager\"><c path=\"m3.observable.AbstractSet.T\"/></c></_eventManager>\n\t<visualId public=\"1\"><c path=\"String\"/></visualId>\n\t<listen public=\"1\" set=\"method\" line=\"129\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></listen>\n\t<removeListener public=\"1\" set=\"method\" line=\"133\"><f a=\"l\">\n\t<f a=\":\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListener>\n\t<filter public=\"1\" set=\"method\" line=\"137\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.AbstractSet.T\"/></c>\n</f></filter>\n\t<map public=\"1\" params=\"U\" set=\"method\" line=\"141\"><f a=\"f\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t\t<c path=\"map.U\"/>\n\t</f>\n\t<c path=\"m3.observable.OSet\"><c path=\"map.U\"/></c>\n</f></map>\n\t<fire set=\"method\" line=\"145\"><f a=\"t:type\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></fire>\n\t<getVisualId public=\"1\" set=\"method\" line=\"149\"><f a=\"\"><c path=\"String\"/></f></getVisualId>\n\t<identifier public=\"1\" set=\"method\" line=\"153\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"157\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.AbstractSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"161\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.AbstractSet.T\"/>\n</x></f></delegate>\n\t<new set=\"method\" line=\"125\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.observable.ObservableSet.__rtti = "<class path=\"m3.observable.ObservableSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.ObservableSet.T\"/></extends>\n\t<_delegate><c path=\"m3.util.SizedMap\"><c path=\"m3.observable.ObservableSet.T\"/></c></_delegate>\n\t<_identifier><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></_identifier>\n\t<add public=\"1\" set=\"method\" line=\"181\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addAll public=\"1\" set=\"method\" line=\"185\"><f a=\"tArr\">\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></addAll>\n\t<iterator public=\"1\" set=\"method\" line=\"193\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.ObservableSet.T\"/></t></f></iterator>\n\t<isEmpty public=\"1\" set=\"method\" line=\"197\"><f a=\"\"><x path=\"Bool\"/></f></isEmpty>\n\t<addOrUpdate public=\"1\" set=\"method\" line=\"201\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></addOrUpdate>\n\t<delegate public=\"1\" set=\"method\" line=\"213\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n</x></f></delegate>\n\t<update public=\"1\" set=\"method\" line=\"217\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></update>\n\t<delete public=\"1\" set=\"method\" line=\"221\"><f a=\"t\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<identifier public=\"1\" set=\"method\" line=\"229\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<clear public=\"1\" set=\"method\" line=\"233\"><f a=\"\"><x path=\"Void\"/></f></clear>\n\t<size public=\"1\" set=\"method\" line=\"238\"><f a=\"\"><x path=\"Int\"/></f></size>\n\t<asArray public=\"1\" set=\"method\" line=\"242\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"172\"><f a=\"identifier:?tArr\" v=\":null\">\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.ObservableSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<c path=\"Array\"><c path=\"m3.observable.ObservableSet.T\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
@@ -7703,26 +7807,28 @@ qoid.model.NotificationKind.VerificationRequest = "VerificationRequest";
 qoid.model.NotificationKind.VerificationResponse = "VerificationResponse";
 m3.comm.ChannelRequestMessage.__rtti = "<class path=\"m3.comm.ChannelRequestMessage\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<path><c path=\"String\"/></path>\n\t<context><d/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.comm.ChannelRequestMessageBundle.__rtti = "<class path=\"m3.comm.ChannelRequestMessageBundle\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c></requests>\n\t<add public=\"1\" set=\"method\" line=\"29\"><f a=\"request\">\n\t<c path=\"m3.comm.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<createAndAdd public=\"1\" set=\"method\" line=\"33\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></createAndAdd>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"channel:requests\">\n\t<c path=\"String\"/>\n\t<c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"112\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<new public=\"1\" set=\"method\" line=\"106\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"160\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"169\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"164\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<delete set=\"method\" line=\"437\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"460\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"479\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"488\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"492\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"503\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"417\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"148\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<role public=\"1\"><c path=\"String\"/></role>\n\t<maxDegreesOfVisibility public=\"1\"><x path=\"Int\"/></maxDegreesOfVisibility>\n\t<new public=\"1\" set=\"method\" line=\"142\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"131\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"122\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"252\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"256\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"63\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"57\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<aliasIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</aliasIid>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<semanticId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</semanticId>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"320\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"324\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"328\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"332\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"336\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"309\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<kind public=\"1\"><c path=\"String\"/></kind>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"460\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<readResolve set=\"method\" line=\"473\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"477\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"464\"><f a=\"kind:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aAccepted public=\"1\"><x path=\"Bool\"/></aAccepted>\n\t<bAccepted public=\"1\"><x path=\"Bool\"/></bAccepted>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"489\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.RequestContext.__rtti = "<class path=\"qoid.RequestContext\" params=\"\" module=\"qoid.QoidAPI\">\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<handle public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</handle>\n\t<resultType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</resultType>\n\t<new public=\"1\" set=\"method\" line=\"28\"><f a=\"?context:?handle:?resultType\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"126\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"120\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"174\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"183\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"178\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<_groupingKeys><c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c></_groupingKeys>\n\t<delete set=\"method\" line=\"439\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"463\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"482\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"492\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"496\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"511\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<keys public=\"1\" set=\"method\" line=\"515\"><f a=\"\"><c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c></f></keys>\n\t<keyListen public=\"1\" set=\"method\" line=\"519\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"String\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></keyListen>\n\t<removeKeyListen public=\"1\" set=\"method\" line=\"523\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"String\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></removeKeyListen>\n\t<new public=\"1\" set=\"method\" line=\"418\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"162\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelAcl\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<role public=\"1\"><c path=\"String\"/></role>\n\t<maxDegreesOfVisibility public=\"1\"><x path=\"Int\"/></maxDegreesOfVisibility>\n\t<new public=\"1\" set=\"method\" line=\"156\"><f a=\"?connectionIid:?labelIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"145\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"136\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"269\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"273\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"75\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"69\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<semanticId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</semanticId>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"337\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"341\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"349\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"353\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"326\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<kind public=\"1\"><c path=\"String\"/></kind>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<data><d/></data>\n\t<connectionIid public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"492\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<get_connectionIid set=\"method\" line=\"505\"><f a=\"\"><c path=\"String\"/></f></get_connectionIid>\n\t<readResolve set=\"method\" line=\"509\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"513\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"496\"><f a=\"kind:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aAccepted public=\"1\"><x path=\"Bool\"/></aAccepted>\n\t<bAccepted public=\"1\"><x path=\"Bool\"/></bAccepted>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"525\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.Synchronizer.synchronizers = new haxe.ds.StringMap();
 qoid.model.ContentTypes.AUDIO = "AUDIO";
 qoid.model.ContentTypes.IMAGE = "IMAGE";
 qoid.model.ContentTypes.TEXT = "TEXT";
 qoid.model.ContentTypes.URL = "URL";
 qoid.model.ContentTypes.VERIFICATION = "VERIFICATION";
+qoid.model.ContentTypes.LINK = "LINK";
 ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS = "com.qoid.apps";
 ap.APhotoContext.APP_ROOT_LABEL_NAME = ap.APhotoContext.ROOT_LABEL_NAME_OF_ALL_APPS + ".aphoto";
 ap.model.APhotoContentTypes.CONFIG = ap.APhotoContext.APP_ROOT_LABEL_NAME + ".config";
-qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"269\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"286\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ap.model.ConfigContentData.__rtti = "<class path=\"ap.model.ConfigContentData\" params=\"\" module=\"ap.model.APhotoModel\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<defaultImg public=\"1\"><c path=\"String\"/></defaultImg>\n\t<new public=\"1\" set=\"method\" line=\"16\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ap.model.ConfigContent.__rtti = "<class path=\"ap.model.ConfigContent\" params=\"\" module=\"ap.model.APhotoModel\">\n\t<extends path=\"qoid.model.Content\"><c path=\"ap.model.ConfigContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"22\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 ap.model.EMEvent.APP_INITIALIZED = "APP_INITIALIZED";
@@ -7743,8 +7849,12 @@ ap.model.EMEvent.UpdateLabel = "UpdateLabel";
 ap.model.EMEvent.MoveLabel = "MoveLabel";
 ap.model.EMEvent.CopyLabel = "CopyLabel";
 ap.model.EMEvent.DeleteLabel = "DeleteLabel";
+ap.model.EMEvent.OnRemoveContentLabel = "onRemoveContentLabel";
+ap.model.EMEvent.OnAddContentLabel = "onAddContentLabel";
 ap.model.EMEvent.GrantAccess = "GrantAccess";
+ap.model.EMEvent.AccessGranted = "AccessGranted";
 ap.model.EMEvent.RevokeAccess = "RevokeAccess";
+ap.model.EMEvent.UpdateAccess = "UpdateAccess";
 ap.model.EMEvent.DeleteConnection = "DeleteConnection";
 ap.model.EMEvent.INTRODUCTION_REQUEST = "INTRODUCTION_REQUEST";
 ap.model.EMEvent.RespondToIntroduction = "RespondToIntroduction";
@@ -7761,9 +7871,9 @@ ap.pages.APhotoPageMgr.ALBUM_SCREEN = new ap.pages.AlbumScreen();
 ap.pages.APhotoPageMgr.CONTENT_SCREEN = new ap.pages.ContentScreen();
 m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<delegate public=\"1\" set=\"method\" line=\"366\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"370\"><f a=\"t\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"387\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"391\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"395\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.FilteredSet.T\"/></t></f></iterator>\n\t<asArray public=\"1\" set=\"method\" line=\"399\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.FilteredSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"342\"><f a=\"source:filter\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.MappedSet.__rtti = "<class path=\"m3.observable.MappedSet\" params=\"T:U\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<_remapOnUpdate><x path=\"Bool\"/></_remapOnUpdate>\n\t<_mapListeners><c path=\"Array\"><f a=\"::\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_mapListeners>\n\t<_sourceListener set=\"method\" line=\"270\"><f a=\"t:type\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></_sourceListener>\n\t<identifier public=\"1\" set=\"method\" line=\"296\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"300\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"304\"><f a=\"u\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"315\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.MappedSet.U\"/></t></f></iterator>\n\t<mapListen public=\"1\" set=\"method\" line=\"319\"><f a=\"f\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></mapListen>\n\t<removeListeners public=\"1\" set=\"method\" line=\"330\"><f a=\"mapListener\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListeners>\n\t<new public=\"1\" set=\"method\" line=\"260\"><f a=\"source:mapper:?remapOnUpdate\" v=\"::false\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"95\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"107\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
-qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"70\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"82\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 haxe.xml.Parser.escapes = (function($this) {
 	var $r;
 	var h = new haxe.ds.StringMap();
@@ -7781,26 +7891,28 @@ m3.observable.EventType.Add = new m3.observable.EventType("Add",true,false,false
 m3.observable.EventType.Update = new m3.observable.EventType("Update",false,true,false);
 m3.observable.EventType.Delete = new m3.observable.EventType("Delete",false,false,false);
 m3.observable.EventType.Clear = new m3.observable.EventType("Clear",false,false,true);
-m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"562\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"570\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"575\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"593\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"597\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"603\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"607\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"611\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"520\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"578\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"586\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"591\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"609\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"613\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"619\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"623\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"627\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"536\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.ContentVerification.__rtti = "<class path=\"qoid.model.ContentVerification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.VerifiedContentMetaData.__rtti = "<class path=\"qoid.model.VerifiedContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ContentMetaData.__rtti = "<class path=\"qoid.model.ContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"qoid.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"qoid.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"292\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"345\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"351\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"361\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"367\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"375\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"381\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"390\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"396\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"405\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"411\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"482\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"499\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ContentMetaData.__rtti = "<class path=\"qoid.model.ContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"qoid.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"qoid.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"309\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"362\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"368\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"378\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"384\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"392\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"398\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"407\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"413\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"422\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"428\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LinkContentData.__rtti = "<class path=\"qoid.model.LinkContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<new public=\"1\" set=\"method\" line=\"437\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LinkContent.__rtti = "<class path=\"qoid.model.LinkContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.LinkContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"443\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"518\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"535\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"512\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"524\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"544\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"548\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"560\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"580\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.VerificationResponseData.__rtti = "<class path=\"qoid.model.VerificationResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 ap.APhoto.main();
 })(typeof window != "undefined" ? window : exports);

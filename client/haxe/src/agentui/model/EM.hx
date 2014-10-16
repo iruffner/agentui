@@ -41,6 +41,7 @@ class EMEvent {
 
 	public static inline var UpdateAlias = "UpdateAlias";
 	public static inline var DeleteAlias = "DeleteAlias";
+	public static inline var UseAlias = "UseAlias";
 
 	public static inline var CreateContent = "CreateContent";
 	public static inline var UpdateContent = "UpdateContent";

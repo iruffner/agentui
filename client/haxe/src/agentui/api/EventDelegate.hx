@@ -18,7 +18,11 @@ class EventDelegate {
 	public static function init() {
 
 		EM.addListener(EMEvent.FILTER_RUN, function(filterData:FilterData): Void {
-        	QoidAPI.query(new RequestContext("filteredContent", UidGenerator.create(12)), "content", filterData.filter.q, true, true);
+        	QoidAPI.query(new RequestContext("filteredContent", UidGenerator.create(12)), "content", filterData.filter.q, true, true, filterData.connectionIids);
+        });
+
+        EM.addListener(EMEvent.UseAlias, function(alias: Alias): Void {
+            QoidAPI.useAlias(alias);
         });
 
         EM.addListener(EMEvent.DeleteAlias, function(alias: Alias): Void {

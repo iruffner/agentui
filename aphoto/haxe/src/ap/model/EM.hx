@@ -18,7 +18,6 @@ class EMEvent {
 
 	public static inline var CreateAgent: String = "CreateAgent";
 
-	// FitWindow;
 	public static inline var UserLogout: String = "UserLogout";
 
 	public static inline var CreateAlias: String = "CreateAlias";
@@ -34,9 +33,13 @@ class EMEvent {
 	public static inline var CopyLabel: String = "CopyLabel";
 	public static inline var DeleteLabel: String = "DeleteLabel";
 
+	public static inline var OnRemoveContentLabel: String = "onRemoveContentLabel";	
+	public static inline var OnAddContentLabel: String = "onAddContentLabel";	
+
 	public static inline var GrantAccess: String = "GrantAccess";
-	// AccessGranted;
+	public static inline var AccessGranted: String = "AccessGranted";
 	public static inline var RevokeAccess: String = "RevokeAccess";
+	public static inline var UpdateAccess: String = "UpdateAccess";
 
 	public static inline var DeleteConnection: String = "DeleteConnection";
 

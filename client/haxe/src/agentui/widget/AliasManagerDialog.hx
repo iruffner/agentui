@@ -240,7 +240,7 @@ extern class AliasManagerDialog extends JQ {
 					        				EM.listenOnce(QE.onAliasUpdated, function(alias:Alias) {
 						        				self._showAliasDetail(alias);
 					        				});
-		        							EM.change(EMEvent.UpdateAlias, alias);
+					        				QoidAPI.updateAliasProfile(alias.iid, name, profilePic);
 		        						};
 		        					}
 		        				}

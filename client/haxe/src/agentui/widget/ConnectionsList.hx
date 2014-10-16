@@ -126,13 +126,13 @@ extern class ConnectionsList extends JQ {
 						EM.change(EMEvent.FitWindow);
 	            	};
 
-	            	EM.addListener(QE.onAliasLoaded,function(a:Alias){
+	            	EM.addListener(QE.onAliasLoaded, function(a:Alias){
 			        	var connections = Qoid.groupedConnections.delegate().get(a.iid);
 	        			if (connections == null) {
 	        				connections = Qoid.groupedConnections.addEmptyGroup(a.iid);
 	        			}
 			            self._setConnections(connections);
-	            	});
+	            	}, "ConnectionsList-onAliasLoaded");
 		        },
 
 		        _setConnections: function(connections: OSet<Connection>): Void {

@@ -1,6 +1,7 @@
 package pagent.widget;
 
 import m3.log.Logga;
+import m3.serialization.Serialization.Serializer;
 import pagent.PinterContext;
 import pagent.pages.PinterPage;
 import pagent.pages.PinterPageMgr;
@@ -17,9 +18,12 @@ import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import agentui.widget.Popup;
 import qoid.Qoid;
+import qoid.QoidAPI;
+import qoid.ResponseProcessor.Response;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
+using m3.helper.ArrayHelper;
 using Lambda;
 
 typedef MediaCompOptions = {
@@ -32,10 +36,17 @@ typedef MediaCompWidgetDef = {
 	var _createWidgets:JQ->MediaCompWidgetDef->Void;
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
+
+	@:optional var creatorDiv: JQ;
+	
 	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
 	@:optional var onchangeLabelChildren:JQ->EventType->Void;
 	var _showEditCaptionPopup: ImageContent->JQ->Void;
-	@:optional var labelListener: LabeledContent->EventType->Void;
+	@:optional var _onBoardCreatorProfile: Profile->EventType->Void;
+
+	@:optional var linkListener: String;
+	@:optional var removeLinkListener: Void->Void;
+	@:optional var linkContext: RequestContext;
 }
 
 
@@ -77,58 +88,128 @@ extern class MediaComp extends ContentComp {
 
 					selfElement.empty();
 
-					var content: Content<Dynamic> = self.options.content;
+					var c: Content<Dynamic> = self.options.content;
 
-					var currentAliasIsOwner = self.options.content.connectionIid == Qoid.currentAlias.connectionIid;
-
-		        	switch(content.contentType) {
-		        		case ContentTypes.IMAGE:
-		        			var imgDiv: JQ = new JQ("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement);
-		        			new MediaOptionsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
-		        				.mediaOptionsComp({
-		        						content: content
-		        					})
-		        				.appendTo(selfElement);
-		        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
-		        				.commentsComp({
-		        						content: cast content
-		        					})
-		        				.appendTo(selfElement);
-		        			var img: ImageContent = cast(content, ImageContent);
-		        			imgDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
-		        			var captionDiv: JQ = new JQ("<div class='captionDiv'></div>").appendTo(imgDiv);
-		        			var caption: JQ = new JQ("<div class='caption'></div>").appendTo(captionDiv);
-							if(img.props.caption.isNotBlank()) {
-								caption.append(img.props.caption);
-							} else if(currentAliasIsOwner){
-								caption.append("<i>Add caption</i>");
+					var div: JQ = null;
+					var fcn: Content<Dynamic>->Void = null;
+					var originalWasLink: Bool = false;
+					fcn = function(content: Content<Dynamic>) {
+						var currentAliasIsOwner = content.connectionIid == Qoid.currentAlias.connectionIid;
+						
+						var addCreatorDiv = function() {
+							self.creatorDiv = new JQ("<div class='creatorDiv' style='margin-top: 10px;'></div>").appendTo(div);
+				        	self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {
+								if(evt.isAddOrUpdate()) {
+									if(p.connectionIid == content.connectionIid) {
+										self.creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
+									}
+								}
 							}
-		        			
-		        			if(currentAliasIsOwner) {
-			        			var editCaption: JQ = new JQ("<div class='editCaption'></div>").appendTo(captionDiv);
+							Qoid.profiles.listen(self._onBoardCreatorProfile);
 
-								new JQ("<button class='editButton'>Edit</button")
-					        		.button({
-					        			{
-						                    icons: {
-						                        primary: "ui-icon-pencil"
-						                      },
-					                      	text: false
-						                }
-					        		})
-					        		.appendTo(editCaption)
-					        		.click(function(evt: JQEvent) {
-					        				self._showEditCaptionPopup(cast self.options.content, JQ.cur);
-					        				evt.stopPropagation();
-					        			});
+						}
+			        	switch(content.contentType) {
+			        		case ContentTypes.IMAGE:
+			        			var imgDiv: JQ = div = new JQ("<div class='ui-widget-content ui-state-active ui-corner-all imgDiv'></div>").appendTo(selfElement);
+			        			new MediaOptionsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
+			        				.mediaOptionsComp({
+			        						content: content,
+			        						linkedContent: originalWasLink,
+			        						originalContent: c
+			        					})
+			        				.appendTo(selfElement);
+			        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
+			        				.commentsComp({
+			        						content: cast content
+			        					})
+			        				.appendTo(selfElement);
+			        			var img: ImageContent = cast(content, ImageContent);
+			        			imgDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");
+			        			var captionDiv: JQ = new JQ("<div class='captionDiv'></div>").appendTo(imgDiv);
+			        			var caption: JQ = new JQ("<div class='caption'></div>").appendTo(captionDiv);
+								if(img.props.caption.isNotBlank()) {
+									caption.append(img.props.caption);
+								} else if(currentAliasIsOwner){
+									caption.append("<i>Add caption</i>");
+								}
+			        			
+			        			if(currentAliasIsOwner) {
+				        			var editCaption: JQ = new JQ("<div class='editCaption'></div>").appendTo(captionDiv);
 
-					        	imgDiv.append("<br/>");
-					        	imgDiv.append("<br/>");
-					        	
-							}			
-		        		case _:
-		        			// throw new Exception("Only image content should be displayed"); 
-		        	}
+									new JQ("<button class='editButton'>Edit</button")
+						        		.button({
+						        			{
+							                    icons: {
+							                        primary: "ui-icon-pencil"
+							                      },
+						                      	text: false
+							                }
+						        		})
+						        		.appendTo(editCaption)
+						        		.click(function(evt: JQEvent) {
+						        				self._showEditCaptionPopup(cast self.options.content, JQ.cur);
+						        				evt.stopPropagation();
+						        			});
+
+						        	imgDiv.append("<br/>");
+						        	imgDiv.append("<br/>");
+						        	
+								}
+								addCreatorDiv();	
+							case ContentTypes.TEXT:
+								var msgDiv: JQ = div = new JQ("<div class='ui-widget-content ui-state-active ui-corner-all msgDiv'></div>").appendTo(selfElement);
+			        			new MediaOptionsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
+			        				.mediaOptionsComp({
+			        						content: content,
+			        						linkedContent: originalWasLink,
+			        						originalContent: c
+			        					})
+			        				.appendTo(selfElement);
+			        			new CommentsComp("<div class='ui-widget-content ui-state-active ui-corner-all'></div>")
+			        				.commentsComp({
+			        						content: cast content
+			        					})
+			        				.appendTo(selfElement);
+			        			var msg: MessageContent = cast(content, MessageContent);
+			        			msgDiv.append("<div>" + msg.props.text + "</div>");
+			        			addCreatorDiv();
+			        		case ContentTypes.LINK:
+			        			originalWasLink = true;
+			        			var link: LinkContent = cast(content, LinkContent);
+			        			self.linkContext = new RequestContext("contentLink_" + link.props.contentIid, "_mediaComp");
+			        			var route: Array<String> = {
+									if(content.connectionIid == Qoid.currentAlias.connectionIid)
+										link.props.route;
+									else 
+										[content.connectionIid].concat(link.props.route);
+								}
+								QoidAPI.query(self.linkContext, "content", "iid = '" + link.props.contentIid + "'" , true, true, route);
+								self.linkListener = EM.addListener(
+									"onContentLink_" + link.props.contentIid, 
+									function(response: Response){
+										if(response.result.results.hasValues()) {
+											var reqCtx: RequestContext = Serializer.instance.fromJsonX(response.context, RequestContext);
+											if(reqCtx.handle == "_mediaComp" && response.result.results.hasValues()) {
+												var c: Content<Dynamic> = Serializer.instance.fromJsonX(response.result.results[0], Content);
+												c.connectionIid = link.props.route[0];
+												fcn(c);
+											}
+											
+										}
+									}, 
+									"ContentComp-Link-" + link.props.contentIid	 
+								);
+								self.removeLinkListener = function() {
+									EM.removeListener("onContentLink_" + link.props.contentIid, self.linkListener);
+								}
+			        		case _:
+			        			// throw new Exception("Only image content should be displayed"); 
+			        	}
+			        }
+
+			        fcn(c);
+
+		        	
 				},
 
 				_showEditCaptionPopup: function(c: ImageContent, reference: JQ): Void {
@@ -200,7 +281,13 @@ extern class MediaComp extends ContentComp {
 
 		        destroy: function() {
 		        	var self: MediaCompWidgetDef = Widgets.getSelf();
-		        	Qoid.groupedLabeledContent.getElement(self.options.content.iid).removeListener(self.labelListener);
+		        	Qoid.profiles.removeListener(self._onBoardCreatorProfile);
+		        	if(self.linkListener.isNotBlank()) {
+		        		self.removeLinkListener();
+		        	}
+		        	if(self.linkContext != null) {
+		        		QoidAPI.cancelQuery(self.linkContext);
+		        	}
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

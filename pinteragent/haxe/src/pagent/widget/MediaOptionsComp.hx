@@ -24,19 +24,20 @@ using m3.helper.StringHelper;
 using Lambda;
 
 typedef MediaOptionsCompOptions = {
-	var content: Content<Dynamic>;
+    var content: Content<Dynamic>;
+    var linkedContent: Bool;
+    @:optional var originalContent: Content<Dynamic>;
 }
 
 typedef MediaOptionsCompWidgetDef = {
 	@:optional var options: MediaOptionsCompOptions;
 	var _create: Void->Void;
-	var _addComment: String->Void;
-	var update: ImageContent->Void;
+	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
 	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
 	@:optional var onchangeLabelChildren:JQ->EventType->Void;
-	var _showEditCaptionPopup: ImageContent->JQ->Void;
-	var _showEditAlbumsPopup: ImageContent->JQ->Void;
+	var _showEditCaptionPopup: Content<Dynamic>->JQ->Void;
+	var _showEditAlbumsPopup: Content<Dynamic>->JQ->Void;
 	@:optional var labelListener: LabeledContent->EventType->Void;
 }
 
@@ -75,63 +76,65 @@ extern class MediaOptionsComp extends ContentComp {
 
 					var content: Content<Dynamic> = self.options.content;
 
-                    if(content.connectionIid == Qoid.currentAlias.connectionIid) {
-                        var setDefaultBtn: JQ = new JQ("<button class='setDefaultBtn'>Use as Cover Picture</button>")
-                            .click(function(evt: JQEvent) {
-                                    //find this config
-                                    var config: ConfigContent = null;
-                                    var event: String = null;
-                                    PinterContext.boardConfigs.iter(function(c: ConfigContent) {
-                                            var match: LabeledContent = Qoid.labeledContent.getElementComplex(c.iid+"_"+PinterContext.CURRENT_BOARD, function(lc: LabeledContent): String {
-                                                        return lc.contentIid+"_"+lc.labelIid;
-                                                    });
-                                            if(match != null) config = c;
-                                        });
-                                    if(config == null) {
-                                        config = new ConfigContent();
-                                        event = EMEvent.CreateContent;
-                                    } else {
-                                        event = EMEvent.UpdateContent;
-                                    }
-                                    config.props.defaultImg = self.options.content.props.imgSrc;
-                                    config.props.boardIid = PinterContext.CURRENT_BOARD;
-                                    
-                                    var ccd = new EditContentData(config);
-                                    ccd.labelIids.push(PinterContext.CURRENT_BOARD);
-                                    EM.change(event, ccd);
-                                })
-                            .button()
-                            .appendTo(selfElement);
+                    if(self.options.linkedContent || content.connectionIid == Qoid.currentAlias.connectionIid) {
+                        if(content.contentType == ContentTypes.IMAGE) {
+                            var setDefaultBtn: JQ = new JQ("<button class='setDefaultBtn'>Use as Cover Picture</button>")
+                                .click(function(evt: JQEvent) {
+                                        //find this config
+                                        var config: ConfigContent = null;
+                                        var event: String = null;
+                                        PinterContext.boardConfigs.iter(function(c: ConfigContent) {
+                                                var match: LabeledContent = Qoid.labeledContent.getElementComplex(c.iid+"_"+PinterContext.CURRENT_BOARD, function(lc: LabeledContent): String {
+                                                            return lc.contentIid+"_"+lc.labelIid;
+                                                        });
+                                                if(match != null) config = c;
+                                            });
+                                        if(config == null) {
+                                            config = new ConfigContent();
+                                            event = EMEvent.CreateContent;
+                                        } else {
+                                            event = EMEvent.UpdateContent;
+                                        }
+                                        config.props.defaultImg = self.options.content.props.imgSrc;
+                                        config.props.boardIid = PinterContext.CURRENT_BOARD;
+                                        
+                                        var ccd = new EditContentData(config);
+                                        ccd.labelIids.push(PinterContext.CURRENT_BOARD);
+                                        EM.change(event, ccd);
+                                    })
+                                .button()
+                                .appendTo(selfElement);
+                        }
                     }
 					   
                     var pinBtn: JQ = new JQ("<button class='pinBtn'>Pin It</button>")
                             .click(function(evt: JQEvent) {
-                                    self._showEditAlbumsPopup(cast self.options.content, JQ.cur);
+                                    var c = content;
+                                    if(self.options.linkedContent)
+                                        c = self.options.originalContent;
+                                    self._showEditAlbumsPopup(c, JQ.cur);
                                     evt.stopPropagation();
                                 })
                             .button()
                             .appendTo(selfElement);                
 
-                    if(content.connectionIid == Qoid.currentAlias.connectionIid) {
+                    if(self.options.linkedContent || content.connectionIid == Qoid.currentAlias.connectionIid) {
                         var unpinBtn: JQ = new JQ("<button class='unpinBtn'>Unpin It</button>")
                             .click(function(evt: JQEvent) {
                                     EM.listenOnce(EMEvent.OnRemoveContentLabel, function(n: {}) {
                                             PinterContext.PAGE_MGR.CURRENT_PAGE = PinterPageMgr.BOARD_SCREEN;
                                         });
-                                    QoidAPI.removeContentLabel( content.iid, PinterContext.CURRENT_BOARD);
+                                    var c = content;
+                                    if(self.options.linkedContent)
+                                        c = self.options.originalContent;
+                                    QoidAPI.removeContentLabel( c.iid, PinterContext.CURRENT_BOARD);
                                 })
                             .button()
                             .appendTo(selfElement);
                     }
 				},
 
-				_addComment: function(str: String) {
-					var self: MediaOptionsCompWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-
-				},
-
-				_showEditCaptionPopup: function(c: ImageContent, reference: JQ): Void {
+				_showEditCaptionPopup: function(c: Content<Dynamic>, reference: JQ): Void {
 					var self: MediaOptionsCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -175,7 +178,7 @@ extern class MediaOptionsComp extends ContentComp {
 
 					},
 
-				_showEditAlbumsPopup: function(c: ImageContent, reference: JQ): Void {
+				_showEditAlbumsPopup: function(c: Content<Dynamic>, reference: JQ): Void {
 					var self: MediaOptionsCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -200,13 +203,12 @@ extern class MediaOptionsComp extends ContentComp {
         						var iter: Iterator<Label> = aliasLabels.iterator();
         						while(iter.hasNext()) {
         							var label: Label = iter.next();
-        							if (label.iid != PinterContext.CURRENT_BOARD ) {
+        							if (label.iid != PinterContext.CURRENT_BOARD && label.iid != PinterContext.COMMENTS.iid) {
 	        							var option = "<option value='" + label.iid + "'>" + label.name + "</option>";
 	        							select.append(option);
 	        						}
         						}
         						var buttonText = "Pin It";
-    							// input.val(c.props.caption);
         						container.append("<br/>");
         						new JQ("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>")
         							.button()
@@ -216,8 +218,17 @@ extern class MediaOptionsComp extends ContentComp {
         							});
 
         						updateLabels = function(): Void {
-									Logga.DEFAULT.info("Add content label | " + c.iid);
-                                    QoidAPI.addContentLabel( c.iid, select.val());
+                                    if(c.connectionIid == Qoid.currentAlias.connectionIid) {
+    									Logga.DEFAULT.info("Add content label | " + c.iid);
+                                        QoidAPI.addContentLabel( c.iid, select.val());
+                                    } else {
+                                        Logga.DEFAULT.info("Add content link | " + c.iid);
+                                        var link: LinkContent = new LinkContent();
+                                        link.props.contentIid = c.iid;
+                                        link.props.route = [c.connectionIid];
+                                        var edc: EditContentData = new EditContentData(link, [select.val()]);
+                                        EM.change(EMEvent.CreateContent, edc);
+                                    }
 									new JQ("body").click();
         						};
         					},
@@ -226,7 +237,7 @@ extern class MediaOptionsComp extends ContentComp {
 
 					},
 
-		        update: function(content:ImageContent) : Void {
+		        update: function(content:Content<Dynamic>) : Void {
 		        	
 		        },
 

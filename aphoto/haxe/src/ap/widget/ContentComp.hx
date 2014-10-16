@@ -79,11 +79,11 @@ extern class ContentComp extends JQ {
 
 		        	self._createWidgets(selfElement, self);
 
-		        	EM.addListener(EMEvent.EditContentClosed, function(content: Content<Dynamic>): Void {
-		        		if (content.iid == self.options.content.iid) {
-		        			selfElement.show();
-		        		}
-		        	});
+		        	// EM.addListener(EMEvent.EditContentClosed, function(content: Content<Dynamic>): Void {
+		        	// 	if (content.iid == self.options.content.iid) {
+		        	// 		selfElement.show();
+		        	// 	}
+		        	// });
 		        },
 
 				_createWidgets: function(selfElement: JQ, self: ContentCompWidgetDef): Void {

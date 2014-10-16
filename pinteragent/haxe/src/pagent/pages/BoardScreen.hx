@@ -2,6 +2,7 @@ package pagent.pages;
 
 import m3.jq.JQ;
 
+import pagent.model.ContentSource;
 import pagent.PinterContext;
 import pagent.widget.PinFeed;
 import pagent.model.EM;
@@ -59,13 +60,15 @@ class BoardScreen extends PinterPage {
 	private function _applyAlbumToScreen(screen: JQ, label: Label) {
 		var content: JQ = new JQ(".content", screen).empty();
 		content.addClass("center");
+		
+		ContentSource.clearQuery();
 
 		var boardDetails: BoardDetails = new BoardDetails("<div></div>");
 		boardDetails.appendTo(content);
 		boardDetails.boardDetails({
 			label: label,
 			parentIid: PinterContext.ROOT_BOARD.iid,
-			showOptionBar: false
+			showOptionBar: true
 		});
 
 		var root: Node = new Or();
@@ -89,7 +92,7 @@ class BoardScreen extends PinterPage {
 
 		var contentFeed: PinFeed = new PinFeed("<div></div>");
 		contentFeed.appendTo(content);
-		contentFeed.pinFeed();
+		contentFeed.pinFeed({ isMyBoard: false });
 	}
 
 	private function _noLabel(screen: JQ) {
@@ -98,5 +101,7 @@ class BoardScreen extends PinterPage {
 	
 	private function pageHideFcn(screen: JQ): Void {
 		labelSet.removeListener(this.labelSetListener);
+		// labelSet = null;
+		new JQ(".content", screen).empty();
 	}
 }

@@ -11,6 +11,8 @@ import m3.serialization.Serialization;
 import qoid.model.ModelObj;
 import qoid.Synchronizer;
 
+using m3.helper.OSetHelper;
+
 class AuthenticationResponse {
     public var channelId:String;
     public var alias:Dynamic;
@@ -20,8 +22,9 @@ class AuthenticationResponse {
 class RequestContext {
     public var context: String;
     @:optional public var handle: String;
+    @:optional public var resultType: String;
 
-    public function new(?context: String, ?handle: String) {
+    public function new(?context: String, ?handle: String, ?resultType: String) {
         this.context = context;
         this.handle = handle;
     }
@@ -49,6 +52,7 @@ class QoidAPI {
 
     @:isVar public static var activeAlias(get,set): Alias;
     public static function set_activeAlias(a:Alias):Alias {
+        Qoid.aliases.add(a);
         activeAlias = a;
         return activeAlias;
     }
@@ -134,8 +138,20 @@ class QoidAPI {
         new JsonRequest(json, LOGIN, onLogin, onLoginError).start();
     }
 
+    public static function useAlias(alias: Alias): Void {
+        QoidAPI.activeAlias = alias;
+        var context = "initialDataLoad";
+        var requests = [
+            new ChannelRequestMessage(QUERY_CANCEL, new RequestContext(context, "connection"), {}),
+            // new ChannelRequestMessage(QUERY_CANCEL, new RequestContext(context, "profile"), {}),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "' and iid <> '" + QoidAPI.activeAlias.connectionIid + "'"))
+            // new ChannelRequestMessage(QUERY, new RequestContext(context, "profile"), createQueryJson("profile", "aliasIid = '" + QoidAPI.activeAlias.iid + "'"))
+        ];
+        new SubmitRequest(activeChannel, requests, onSuccess, onError).requestHeaders(headers).start();
+    }
+
     private static function onLoginError(exc:AjaxException) {
-        js.Lib.alert(exc);
+        JqueryUtil.alert( exc.message, "Login Error");
     }
 
     private static function onLogin(data: AuthenticationResponse) {
@@ -143,7 +159,9 @@ class QoidAPI {
 
         QoidAPI.addChannel(data.channelId);
         QoidAPI.activeChannel = data.channelId;
-        QoidAPI.activeAlias = Serializer.instance.fromJsonX(data.alias, Alias);
+        var alias: Alias = Serializer.instance.fromJsonX(data.alias, Alias);
+        Qoid.aliases.add(alias);
+        QoidAPI.activeAlias = alias;
 
         // Kick off a long poll and immediately request the model data
         _startPolling(data.channelId);
@@ -151,8 +169,9 @@ class QoidAPI {
         var context = "initialDataLoad";
         var sychoronizer = new qoid.Synchronizer(context, 9, onInitialDataload);
         var requests = [
-            new ChannelRequestMessage(QUERY, new RequestContext(context, "alias"), createQueryJson("alias")),
+            new ChannelRequestMessage(QUERY, new RequestContext(context, "alias"), createQueryJson("alias", "iid <> '" + QoidAPI.activeAlias.iid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "introduction"), createQueryJson("introduction")),
+            // new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "' and iid <> '" + QoidAPI.activeAlias.connectionIid + "'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "notification"), createQueryJson("notification", "consumed='0'")),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "label"), createQueryJson("label")),
@@ -205,11 +224,9 @@ class QoidAPI {
         QoidAPI.longPolls.set(channelId, lpr);
     }
 
-    // TODO:
     public static function query(context: RequestContext, type: String, query: String, historical: Bool, standing: Bool, ?route: Array<String>):Void {
         var q = createQueryJson(type, query, historical, standing, route);
         submitRequest( q , QUERY, context);
-
     }
 
     private static function createQueryJson(type: String, query: String="1=1", historical:Bool=true, standing:Bool=true, ?route: Array<String>):Dynamic {
@@ -349,7 +366,7 @@ class QoidAPI {
     }
 
     // CONTENT
-    public static function createContent(contentType: String, data: Dynamic, labelIids: Array<String>, ?context:String, ?route: Array<String>):Void {
+    public static function createContent(contentType: String, data: Dynamic, labelIids: Array<String>, ?context:String, ?route: Array<String>, ?semanticId: String):Void {
         var json:Dynamic = {
             contentType: contentType,
             data: data,
@@ -358,6 +375,10 @@ class QoidAPI {
         if (route != null) {
             json.route = route;
         }
+        if (semanticId != null) {
+            json.semanticId = semanticId;
+        }
+        
         var context = (context == null) ? "createContent" : context;
 
         submitRequest(json, CONTENT_CREATE, new RequestContext(context));
@@ -374,18 +395,6 @@ class QoidAPI {
 
         submitRequest(json, CONTENT_UPDATE, new RequestContext("updateContent"));
     }
-
-    public static function deleteContent(contentIid:String, ?route: Array<String>):Void {
-        var json:Dynamic = {
-            contentIid: contentIid
-        };
-        if (route != null) {
-            json.route = route;
-        }
-
-        submitRequest(json, CONTENT_DELETE, new RequestContext("deleteContent"));
-    }
-
 
     public static function addContentLabel(contentIid:String, labelIid:String, ?route: Array<String>):Void {
         var json:Dynamic = {
@@ -538,6 +547,13 @@ class QoidAPI {
         var context = (context == null) ? "consumeNotification" : context;
 
         submitRequest(json, NOTIFICATION_CONSUME, new RequestContext(context));
+
+        //since our standing query is for unconsumed notifications, we will not receive this updated notification, we must remove it ourselves from the list
+        try {
+            Qoid.notifications.delete(Qoid.notifications.getElement(notificationIid));
+        } catch (err: Dynamic) {
+            Logga.DEFAULT.error("Could not remove notification | " + err);   
+        }
     }
 
     public static function deleteNotification(notificationIid:String, ?route: Array<String>):Void {
@@ -577,6 +593,13 @@ class QoidAPI {
         }
 
         submitRequest(json, INTRODUCTION_ACCEPT, new RequestContext("acceptIntroduction"));
+
+        //since our standing query is for unconsumed notifications, we will not receive this updated notification, we must remove it ourselves from the list
+        try {
+            Qoid.notifications.delete(Qoid.notifications.getElement(notificationIid));
+        } catch (err: Dynamic) {
+            Logga.DEFAULT.error("Could not remove notification | " + err);   
+        }
     }
 
     // VERIFICATION

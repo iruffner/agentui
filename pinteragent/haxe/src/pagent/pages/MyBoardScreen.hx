@@ -2,6 +2,7 @@ package pagent.pages;
 
 import m3.jq.JQ;
 
+import pagent.model.ContentSource;
 import pagent.PinterContext;
 import pagent.widget.PinFeed;
 import pagent.model.EM;
@@ -23,6 +24,9 @@ class MyBoardScreen extends PinterPage {
 	var labelSetListener: Label->EventType->Void;
 	var labelSet: FilteredSet<Label>;
 
+	var board: String;
+
+
 	public function new(): Void {
 		super({
 			id: "#myBoardScreen",
@@ -34,26 +38,30 @@ class MyBoardScreen extends PinterPage {
 
 	private function pageBeforeShowFcn(screen: JQ): Void {
 		screen.addClass("__boardScreen");
-		var content: JQ = new JQ(".content", screen).empty();
-		content.addClass("center");
+		if(board != PinterContext.CURRENT_BOARD) {
+			board = PinterContext.CURRENT_BOARD;
+			var content: JQ = new JQ(".content", screen).empty();
+			content.addClass("center");
 
-		labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
-				return l.iid == PinterContext.CURRENT_BOARD;
-			});
-		
-		this.labelSetListener = function(label: Label, evt: EventType) {
-			if(evt.isAddOrUpdate())
-				_applyAlbumToScreen(screen, label);
-			if(evt.isClear() || evt.isDelete())
-				_noLabel(screen);
+			labelSet = new FilteredSet(Qoid.labels, function(l: Label) {
+					return l.iid == PinterContext.CURRENT_BOARD;
+				});
+			
+			this.labelSetListener = function(label: Label, evt: EventType) {
+				if(evt.isAddOrUpdate())
+					_applyAlbumToScreen(screen, label);
+				if(evt.isClear() || evt.isDelete())
+					_noLabel(screen);
+			}
 		}
-
 		labelSet.listen(this.labelSetListener, true);
 	}
 
 	private function _applyAlbumToScreen(screen: JQ, label: Label) {
 		var content: JQ = new JQ(".content", screen).empty();
 		content.addClass("center");
+
+		ContentSource.clearQuery();
 
 		var boardDetails: BoardDetails = new BoardDetails("<div></div>");
 		boardDetails.appendTo(content);
@@ -81,7 +89,7 @@ class MyBoardScreen extends PinterPage {
 
 		var contentFeed: PinFeed = new PinFeed("<div></div>");
 		contentFeed.appendTo(content);
-		contentFeed.pinFeed();
+		contentFeed.pinFeed({ isMyBoard: true });
 	}
 
 	private function _noLabel(screen: JQ) {
@@ -90,6 +98,7 @@ class MyBoardScreen extends PinterPage {
 	
 	private function pageHideFcn(screen: JQ): Void {
 		labelSet.removeListener(this.labelSetListener);
-		labelSet = null;
+		// labelSet = null;
+		new JQ(".content", screen).empty();
 	}
 }

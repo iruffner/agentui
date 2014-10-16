@@ -5,6 +5,7 @@ proxy/src/main/webapp/client/*
 .DS_Store
 *.sublime-workspace
 client/haxe_src/m3
+client/haxe_src/qoid
 target
 proxy/src/main/webapp/client
 *.tmproj
@@ -12,3 +13,4 @@ proxy/src/main/webapp/client
 /agentui-proxy-1.0.0.jar
 Thumbs.db
 *.sublime-project
+build_all.bat

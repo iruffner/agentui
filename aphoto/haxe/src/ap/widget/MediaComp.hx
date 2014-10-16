@@ -34,6 +34,7 @@ typedef MediaCompWidgetDef = {
 	var _createWidgets:JQ->MediaCompWidgetDef->Void;
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
+	
 	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
 	@:optional var onchangeLabelChildren:JQ->EventType->Void;
 	var _showEditCaptionPopup: ImageContent->JQ->Void;
@@ -74,12 +75,6 @@ extern class MediaComp extends ContentComp {
 		        	selfElement.addClass("_mediaComp " + Widgets.getWidgetClasses());
 		        	
 		        	self._createWidgets(selfElement, self);
-
-		        	// EM.addListener(EMEvent.EditContentClosed, function(content: Content<Dynamic>): Void {
-		        	// 	if (content.iid == self.options.content.iid) {
-		        	// 		selfElement.show();
-		        	// 	}
-		        	// });
 		        },
 
 		        _createWidgets: function(selfElement: JQ, self:MediaCompWidgetDef): Void {

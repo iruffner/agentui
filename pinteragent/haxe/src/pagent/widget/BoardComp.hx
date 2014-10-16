@@ -101,13 +101,8 @@ extern class BoardComp extends JQ {
 					self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {
 						if(evt.isAddOrUpdate()) {
 							if(p.connectionIid == self.options.board.connectionIid) {
-								// if(self.options.board.createdByConnectionIid != Qoid.currentAlias.iid) {
-
-								// }
-								self.creatorDiv.empty().append("<i>created by</i> " + p.name);
-
+								self.creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
 							}
-
 						}
 					}
 					Qoid.profiles.listen(self._onBoardCreatorProfile);

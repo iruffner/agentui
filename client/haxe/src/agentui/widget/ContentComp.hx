@@ -32,6 +32,7 @@ typedef ContentCompWidgetDef = {
 	var toggleActive:Void->Void;
 	@:optional var mappedLabels:MappedSet<LabeledContent, JQ>;
 	@:optional var onchangeLabelChildren:JQ->EventType->Void;
+	@:optional var contentClosedListenerId: String;
 }
 
 typedef VerifierData = {
@@ -177,8 +178,9 @@ extern class ContentComp extends JQ {
 
 		        	var aliasIid = null;
 		        	var connectionIid = null;
-		        	if (Qoid.aliases.delegate().get(self.options.content.aliasIid) != null) {
-		        		aliasIid = self.options.content.aliasIid;
+		        	var alias: Alias;
+		        	if ( (alias = Qoid.aliases.getElementComplex(self.options.content.connectionIid, function(a: Alias) { return a.connectionIid; })) != null) {
+		        		aliasIid = alias.iid;
 		        	} else {
 		        		if (Qoid.connections.delegate().get(self.options.content.connectionIid) != null) {
 		        			connectionIid = self.options.content.connectionIid;
@@ -248,11 +250,11 @@ extern class ContentComp extends JQ {
 
 		        	self._createWidgets(selfElement, self);
 
-		        	EM.addListener(EMEvent.EditContentClosed, function(content: Content<Dynamic>): Void {
+		        	self.contentClosedListenerId = EM.addListener(EMEvent.EditContentClosed, function(content: Content<Dynamic>): Void {
 		        		if (content.iid == self.options.content.iid) {
 		        			selfElement.show();
 		        		}
-		        	});
+		        	}, "ContentComp-EditContentClosed");
 		        },
 
 		       	_createContentMenu: function() : M3Menu {
@@ -345,6 +347,7 @@ extern class ContentComp extends JQ {
 		        destroy: function() {
 		        	var self: ContentCompWidgetDef = Widgets.getSelf();
 		        	self.mappedLabels.removeListener(self.onchangeLabelChildren);
+		        	EM.removeListener(EMEvent.EditContentClosed, self.contentClosedListenerId);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };

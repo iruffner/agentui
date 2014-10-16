@@ -1,9 +1,11 @@
 package agentui.widget;
 
+import m3.helper.StringFormatHelper;
 import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.jq.PlaceHolderUtil;
 import m3.observable.OSet.EventType;
+import m3.util.M;
 import m3.widget.Widgets;
 import qoid.model.ModelObj;
 import agentui.model.EM;
@@ -63,23 +65,36 @@ extern class IntroductionNotificationDialog extends JQ {
 		        	var invitationText = new JQ("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		        	var title = new JQ("<div class='intro-title'>Introduction Request</div>").appendTo(invitationText);
 		        	var from  =	new JQ("<div><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
-		        	var date  =	new JQ("<div><b>Date:</b> " + Date.now() + "</div>").appendTo(invitationText);
+		        	var date  =	new JQ("<div><b>Date:</b> " + StringFormatHelper.dateLongPretty(self.options.notification.modified) + "</div>").appendTo(invitationText);
 		        	var message = new JQ("<div class='invitation-message'>" + self.options.notification.props.message + "</div>").appendTo(invitationText);
 
 		        	var nameDiv: JQ = new JQ("<div></div>");
 		        	var imgDiv: JQ = new JQ("<div></div>");
 
-		        	var listener = function(p: Profile, evt: EventType) {
-		        		if(evt.isAddOrUpdate()) {
-		        			nameDiv.html(p.name);
-		        			var imgSrc: String = "media/default_avatar.jpg";
-				        	if(m3.util.M.getX(p.imgSrc, "").isNotBlank() ) {
-				        		imgSrc = p.imgSrc;
-				        	}
-		        			imgDiv.empty().append(new JQ("<img class='intro-profile-img container' src='" + imgSrc + "'/>"));
-		        		}
+		        	// var listener = function(p: Profile, evt: EventType) {
+		        	// 	if(evt.isAddOrUpdate()) {
+		        	// 		nameDiv.html(p.name);
+		        	// 		var imgSrc: String = "media/default_avatar.jpg";
+				       //  	if(m3.util.M.getX(p.imgSrc, "").isNotBlank() ) {
+				       //  		imgSrc = p.imgSrc;
+				       //  	}
+		        	// 		imgDiv.empty().append(new JQ("<img class='intro-profile-img container' src='" + imgSrc + "'/>"));
+		        	// 	}
+		        	// }
+		        	// Qoid.profiles.listen(listener);
+		        	var profile: Profile = Qoid.profiles.getElementComplex(
+		        			self.options.notification.props.connectionIid,
+		        			function(p: Profile): String {
+		        					return p.connectionIid;
+		        				});
+		        	if(profile != null) {
+		        		nameDiv.html(profile.name);
+	        			var imgSrc: String = "media/default_avatar.jpg";
+			        	if(M.getX(profile.imgSrc, "").isNotBlank() ) {
+			        		imgSrc = profile.imgSrc;
+			        	}
+	        			imgDiv.empty().append(new JQ("<img class='intro-profile-img container' src='" + imgSrc + "'/>"));
 		        	}
-		        	Qoid.profiles.listen(listener);
 					intro_table.find("td:nth-child(3)").append(nameDiv).append( imgDiv );
 		        },
 

@@ -64,7 +64,7 @@ extern class AliasComp extends JQ {
 		        		throw new Exception("Root of AliasComp must be a div element");
 		        	}
 
-		        	selfElement.addClass("ocontainer shadow ");
+		        	selfElement.addClass("ocontainer shadow _aliasComp");
 		        	self.container = new JQ("<div class='container'></div>");
 		        	selfElement.append(self.container);
 
@@ -161,14 +161,19 @@ extern class AliasComp extends JQ {
 					});
 
 					for (alias in aliases) {
+						var icon: String = "ui-icon-person";
+						// if(alias.iid == Qoid.currentAlias.iid) {
+						// 	icon = "ui-icon-check";
+						// }
 						menuOption = {
 							label: alias.profile.name,
-							icon: "ui-icon-person",
+							icon: icon,
 							action: function(evt: JQEvent, m: M3Menu): Void {
 								if (Alias.identifier(Qoid.currentAlias) == Alias.identifier(alias)) {
 									menu.hide();
 								} else {
     								Qoid.currentAlias = alias;
+    								EM.change(EMEvent.UseAlias, alias);
     								EM.change(QE.onAliasLoaded, alias);
     							}
 							}
@@ -185,7 +190,7 @@ extern class AliasComp extends JQ {
 					};
 					menuOptions.push(menuOption);
 
-        			menu.m3menu({menuOptions:menuOptions}).hide();
+        			menu.m3menu({menuOptions:menuOptions, wrapLabelInAtag: true}).hide();
 
 					return menu;
 		       	},

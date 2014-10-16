@@ -25,7 +25,7 @@ class TerminalContext {
     }
 
     static function _onInitialDataLoadComplete(n: {}) {
-        EM.change(EMEvent.QueryAuditLogs, "contentType = '" + TerminalContentTypes.AUDIT_LOG + "'");
+        EM.change(EMEvent.QueryAuditLogs);
     }
 
     static function _onAuditLog(data: {result: {standing: Bool, results: Array<Dynamic>}}): Void {

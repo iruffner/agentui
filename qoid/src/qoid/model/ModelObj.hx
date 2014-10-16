@@ -18,7 +18,19 @@ using Lambda;
 @:rtti
 class ModelObj {
 
+	@:transient public var objectId(get,null): String;
+	@:transient public var _objectId: String;
+
 	public function new() {
+		// objectId = UidGenerator.create(12);
+	}
+
+	function get_objectId(): String {
+		if(_objectId != null) {
+			return _objectId;
+		} else {
+			return "";
+		}
 	}
 
 	public function objectType():String {
@@ -183,6 +195,7 @@ class ContentTypes {
 	public static var TEXT: ContentType = "TEXT";
 	public static var URL: ContentType = "URL";
 	public static var VERIFICATION: ContentType = "VERIFICATION";
+	public static var LINK: ContentType = "LINK";
 }
 
 class ContentHandler implements TypeHandler {
@@ -204,6 +217,8 @@ class ContentHandler implements TypeHandler {
         		obj = Serializer.instance.fromJsonX(fromJson, UrlContent);
         	case ContentTypes.VERIFICATION:
         		obj = Serializer.instance.fromJsonX(fromJson, VerificationContent);
+        	case ContentTypes.LINK:
+        		obj = Serializer.instance.fromJsonX(fromJson, LinkContent);
         }
 
         return obj;
@@ -292,7 +307,7 @@ class ContentMetaData {
 
 class Content<T:(ContentData)> extends ModelObjWithIid {
 	public var contentType: String;
-	@:optional public var aliasIid: String;
+	// @:optional public var aliasIid: String;
 	@:optional public var connectionIid: String;
 	@:optional public var metaData:ContentMetaData;
 	@:optional public var semanticId:String;
@@ -305,7 +320,7 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 	public function new (contentType:ContentType, type: Class<T>) {
 		super();
 		this.contentType = contentType;
-		this.aliasIid = (Qoid.currentAlias == null) ? null : Qoid.currentAlias.iid;
+		// this.aliasIid = (Qoid.currentAlias == null) ? null : Qoid.currentAlias.iid;
 		this.data = {};
 		this.type = type;
 		this.props = Type.createInstance(type, []);
@@ -396,6 +411,8 @@ class UrlContent extends Content<UrlContentData> {
 
 class VerificationContentData extends ContentData {
 	public var text: String;
+	public var created: Date;
+	public var modified: Date;
 	public function new () {
 		super();
 	}	
@@ -408,6 +425,20 @@ class VerificationContent extends Content<VerificationContentData> {
 	}
 }
 
+class LinkContentData extends ContentData {
+	public var contentIid: String;
+	public var route: Array<String>;
+
+	public function new () {
+		super();
+	}
+}
+
+class LinkContent extends Content<LinkContentData> {
+	public function new () {
+		super("LINK", LinkContentData);
+	}
+}
 //----------------------------------------------------------------
 // Notifications
 //----------------------------------------------------------------
@@ -448,7 +479,7 @@ class Notification<T> extends ModelObjWithIid {
 	public var kind: String;
 	public var route:Array<String>;
 	private var data:Dynamic;
-	@:transient public var connectionIid:String;
+	@:transient public var connectionIid(get,null):String;
 	@:transient public var props: T;
 
 	@:transient var type: Class<T>;
@@ -469,6 +500,10 @@ class Notification<T> extends ModelObjWithIid {
 		this.type = type;
 		this.route = new Array<String>();
 		this.props = Type.createInstance(type, []);
+	}
+
+	function get_connectionIid(): String {
+		return route[0];
 	}
 
 	private function readResolve(): Void {

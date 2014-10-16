@@ -1,5 +1,6 @@
 package pagent;
 
+import m3.log.Logga;
 import m3.observable.OSet;
 
 import m3.serialization.Serialization.Serializer;
@@ -26,15 +27,15 @@ class PinterContext {
     public static var sharedBoardsByConnection: GroupedSet<Label>;
     public static var sharedBoardConfigs: ObservableSet<ConfigContent>;
 
-    public static var CURRENT_BOARD: String;
-    public static var CURRENT_MEDIA: String;
+    @:isVar public static var CURRENT_BOARD(default,set): String;
+    @:isVar public static var CURRENT_MEDIA(default,set): String;
 
     public static var ROOT_LABEL_NAME_OF_ALL_APPS: String = "com.qoid.apps";
     public static var APP_ROOT_LABEL_NAME: String = ROOT_LABEL_NAME_OF_ALL_APPS + ".pinteragent";
     public static var APP_COMMENTS_LABEL_NAME: String = APP_ROOT_LABEL_NAME + ".comments";
 
     //this is a child of the current alias' root label
-    @:isVar public static var ROOT_LABEL_OF_ALL_APPS(get,set): Label;
+    @:isVar public static var ROOT_LABEL_OF_ALL_APPS: Label;
     
     //this is a child of the root label of all apps
     @:isVar public static var ROOT_BOARD(get,set): Label;
@@ -102,19 +103,23 @@ class PinterContext {
                 var parms = {
                     connectionIid: c.iid,
                     labelIid: COMMENTS.iid,
+                    maxDegreesOfVisibility: 1
                 }
                 EM.change(EMEvent.GrantAccess, parms);
             });
         return l;    
     }
 
-    static function get_ROOT_LABEL_OF_ALL_APPS(): Label {
-        return ROOT_LABEL_OF_ALL_APPS;
+    static function set_CURRENT_BOARD(iid: String): String {
+        CURRENT_BOARD = iid;
+        Logga.DEFAULT.debug("CURRENT_BOARD | " + iid);
+        return iid;    
     }
 
-    static function set_ROOT_LABEL_OF_ALL_APPS(l: Label): Label {
-        ROOT_LABEL_OF_ALL_APPS = l;
-        return l;
+    static function set_CURRENT_MEDIA(iid: String): String {
+        CURRENT_MEDIA = iid;
+        Logga.DEFAULT.debug("CURRENT_MEDIA | " + iid);
+        return iid;    
     }
 
     static function registerListeners(): Void {

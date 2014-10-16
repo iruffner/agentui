@@ -1,5 +1,7 @@
 package agentui.widget;
 
+import js.html.File;
+import js.html.FileReader;
 import m3.jq.JQ;
 import m3.log.Logga;
 import m3.util.JqueryUtil;
@@ -8,6 +10,7 @@ import m3.exception.Exception;
 import qoid.model.ModelObj;
 
 using m3.helper.ArrayHelper;
+using m3.helper.StringHelper;
 
 typedef UploadCompOptions = {
 	 @:optional var contentType: String;
@@ -23,8 +26,8 @@ typedef UploadCompWidgetDef = {
 	var value: Void->String;
 	var clear: Void->Void;
 
-	var _uploadFile: Dynamic->Void;
-	var _traverseFiles: Dynamic->Void;
+	var _uploadFile: File->Void;
+	var _traverseFiles: Array<File>->Void;
 	var setPreviewImage:String->Void;
 
 	var _createFileUploadComponent: Void->Void;
@@ -122,7 +125,7 @@ extern class UploadComp extends JQ {
 					});
 		        },
 
-		        _uploadFile: function(file: Dynamic) {
+		        _uploadFile: function(file: File) {
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
@@ -133,11 +136,13 @@ extern class UploadComp extends JQ {
 
 		        	if (self.options.contentType == ContentTypes.IMAGE && !(~/image/i).match(file.type)) {
 		        		JqueryUtil.alert("Please select an image file.");
+		        		self.clear();
 		        		return;
 		        	}
 
 		        	if (self.options.contentType == ContentTypes.AUDIO && !(~/audio/i).match(file.type)) {
 		        		JqueryUtil.alert("Please select an audio file.");
+		        		self.clear();
 		        		return;
 		        	}
 
@@ -150,7 +155,7 @@ extern class UploadComp extends JQ {
 	        		// audioControls.append("<source src='" + audio.audioSrc + "' type='" + audio.audioType + "'>Your browser does not support the audio element.");
 
 					// present a preview in the file list
-					var reader = untyped __js__("new FileReader()");
+					var reader = new FileReader();
 					reader.onload = function (evt) {
 						self.setPreviewImage(evt.target.result);
 						if (self.options.onload != null) {
@@ -169,7 +174,7 @@ extern class UploadComp extends JQ {
 					self.previewImg.attr("src", src);
 				},
 
-				_traverseFiles: function(files: Array<Dynamic>) {
+				_traverseFiles: function(files: Array<File>) {
 					Logga.DEFAULT.debug("traverse the files");
 		        	var self: UploadCompWidgetDef = Widgets.getSelf();
 

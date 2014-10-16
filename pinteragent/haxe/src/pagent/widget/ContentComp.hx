@@ -1,6 +1,7 @@
 package pagent.widget;
 
 import m3.log.Logga;
+import m3.serialization.Serialization.Serializer;
 import pagent.PinterContext;
 import pagent.pages.PinterPage;
 import pagent.pages.PinterPageMgr;
@@ -16,9 +17,13 @@ import pagent.model.EM;
 import m3.exception.Exception;
 import m3.util.JqueryUtil;
 import pagent.widget.DialogManager;
+import qoid.Qoid;
+import qoid.QoidAPI;
+import qoid.ResponseProcessor.Response;
 
 using m3.helper.OSetHelper;
 using m3.helper.StringHelper;
+using m3.helper.ArrayHelper;
 
 typedef ContentCompOptions = {
 	var content: Content<Dynamic>;
@@ -27,10 +32,15 @@ typedef ContentCompOptions = {
 typedef ContentCompWidgetDef = {
 	@:optional var options: ContentCompOptions;
 	@:optional var menu:M3Menu;
+	
 	var _create: Void->Void;
 	var _createWidgets:JQ->ContentCompWidgetDef->Void;
 	var update: Content<Dynamic>->Void;
 	var destroy: Void->Void;
+	
+	@:optional var _onBoardCreatorProfile: Profile->EventType->Void;
+	@:optional var linkListener: String;
+	@:optional var removeLinkListener: Void->Void;
 }
 
 class ContentCompHelper {
@@ -76,32 +86,88 @@ extern class ContentComp extends JQ {
 
 		        	self._createWidgets(selfElement, self);
 
-		        	EM.addListener(EMEvent.EditContentClosed, function(content: Content<Dynamic>): Void {
-		        		if (content.iid == self.options.content.iid) {
-		        			selfElement.show();
-		        		}
-		        	});
+		        	// EM.addListener(EMEvent.EditContentClosed, function(content: Content<Dynamic>): Void {
+		        	// 	if (content.iid == self.options.content.iid) {
+		        	// 		selfElement.show();
+		        	// 	}
+		        	// });
 		        },
 
 				_createWidgets: function(selfElement: JQ, self: ContentCompWidgetDef): Void {
 
-					selfElement.empty();
 
-					var content:Content<Dynamic> = self.options.content;
+					var c: Content<Dynamic> = self.options.content;
 
-		        	switch(content.contentType) {
-		        		case ContentTypes.IMAGE:
-		        			var img: ImageContent = cast(content, ImageContent);
-		        			selfElement.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
-							var captionDiv: JQ = new JQ("<div class='caption ui-corner-bottom'></div>").appendTo(selfElement);
-							if(img.props.caption.isNotBlank()) {
-								captionDiv.append(img.props.caption);
-							} else {
-								// captionDiv.append( html : String )
+					var fcn: Content<Dynamic>->Void = null;
+					fcn = function(content: Content<Dynamic>) {
+						selfElement.empty();
+						var captionDiv: JQ = new JQ("<div class='caption ui-corner-bottom'></div>");
+						var addCptDiv = function() {
+							captionDiv.appendTo(selfElement);
+				        	var creatorDiv: JQ = new JQ("<div class='creatorDiv' style='min-height: 17px;'></div>").insertBefore(captionDiv);
+
+				        	self._onBoardCreatorProfile = function(p: Profile, evt: EventType) {
+								if(evt.isAddOrUpdate()) {
+									if(p.connectionIid == content.connectionIid) {
+										creatorDiv.empty().append("<i>created by</i> <b>" + p.name + "</b>");
+									}
+
+								}
 							}
-		        		case _:
-		        			Logga.DEFAULT.debug("Only image content should be displayed"); 
-		        	}
+							Qoid.profiles.listen(self._onBoardCreatorProfile);
+						}
+
+						switch(content.contentType) {
+			        		case ContentTypes.IMAGE:
+			        			var img: ImageContent = cast(content, ImageContent);
+			        			selfElement.append("<div class='imgDiv ui-corner-top'><img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/></div>");
+								if(img.props.caption.isNotBlank()) {
+									captionDiv.append(img.props.caption);
+								} else {
+									// captionDiv.append( html : String )
+								}
+								addCptDiv();
+							case ContentTypes.TEXT:
+								var text: MessageContent = cast(content, MessageContent);
+								selfElement.append("<div class='msgDiv'>" + text.props.text + "</div>");
+								addCptDiv();
+							case ContentTypes.LINK:
+								var link: LinkContent = cast(content, LinkContent);
+								var route: Array<String> = {
+									if(content.connectionIid == Qoid.currentAlias.connectionIid)
+										link.props.route;
+									else 
+										[content.connectionIid].concat(link.props.route);
+								}
+								QoidAPI.query(
+									new RequestContext("contentLink_" + link.props.contentIid, "_contentComp"), 
+									"content", 
+									"iid = '" + link.props.contentIid + "'" ,
+									true, true, 
+									route
+								);
+								self.linkListener = EM.addListener(
+									"onContentLink_" + link.props.contentIid, 
+									function(response: Response){
+										var reqCtx: RequestContext = Serializer.instance.fromJsonX(response.context, RequestContext);
+										if(reqCtx.handle == "_contentComp" && response.result.results.hasValues()) {
+											var c: Content<Dynamic> = Serializer.instance.fromJsonX(response.result.results[0], Content);
+											c.connectionIid = link.props.route[0];
+											fcn(c);
+											
+										}
+									}, 
+									"ContentComp-Link-" + link.props.contentIid	 
+								);
+	 							self.removeLinkListener = function() {
+	 								EM.removeListener("onContentLink_" + link.props.contentIid, self.linkListener);
+	 							}
+			        		case _:
+			        			Logga.DEFAULT.warn("Unsupported content type"); 
+			        	}
+					}
+
+		        	fcn(c);
 				},
 		        
 		        update: function(content:Content<Dynamic>) : Void {
@@ -114,6 +180,11 @@ extern class ContentComp extends JQ {
 		        },
 
 		        destroy: function() {
+		        	var self: ContentCompWidgetDef = Widgets.getSelf();
+		        	Qoid.profiles.removeListener(self._onBoardCreatorProfile);
+		        	if(self.linkListener.isNotBlank()) {
+		        		self.removeLinkListener();
+		        	}
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };
