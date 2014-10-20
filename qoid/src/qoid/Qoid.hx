@@ -14,6 +14,7 @@ import qoid.model.ModelObj;
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
 using m3.helper.OSetHelper;
+using m3.serialization.TypeTools;
 
 class Qoid {
     public static var aliases:ObservableSet<Alias>;
@@ -59,11 +60,28 @@ class Qoid {
 
     public static var verificationContent: ObservableSet<Content<Dynamic>>;
 
+    private static function fireChangeEvent<T>(obj:T, evt:EventType): Void {
+        var eventId = "on";
+
+        if (evt.isAdd()) {
+            eventId += "Add";
+        } else if (evt.isClear()) {
+            eventId += "Clear";
+        } else if (evt.isDelete()) {
+            eventId += "Delete";
+        } else {
+            eventId += "Update";
+        }
+        eventId += obj.clazz().shortClassName();
+
+        EventManager.instance.fire(eventId, obj);
+    }
+
     private static function __init__(): Void {
         introductions = new ObservableSet<Introduction>(ModelObjWithIid.identifier);
+        introductions.listen(fireChangeEvent);
 
         notifications = new ObservableSet<Notification<Dynamic>>(ModelObjWithIid.identifier);
-
         notifications.listen(function(n:Notification<Dynamic>, evt:EventType) {
             if (evt.isAddOrUpdate()) {
                 if (n.kind == NotificationKind.IntroductionRequest) {
@@ -71,6 +89,7 @@ class Qoid {
                     QoidAPI.getProfile([introRequest.connectionIid, introRequest.props.connectionIid]);
                 }
             }
+            fireChangeEvent(n, evt);
         });
 
         aliases = new ObservableSet<Alias>(ModelObjWithIid.identifier);
@@ -82,37 +101,39 @@ class Qoid {
                     Logga.DEFAULT.debug("Assigning profile '" + p.name + "'(" + p.objectId + ") to alias " + a.iid + "(" + a.objectId + ")");
                     a.profile = p;
                 }
-                if (evt.isAdd()) {
-                    EventManager.instance.change(QE.onAliasCreated, a);
-                } else {
-                    EventManager.instance.change(QE.onAliasUpdated, a);
-                }
             }
+
+            fireChangeEvent(a, evt);
         });
 
         labels = new ObservableSet<Label>(Label.identifier);
+        labels.listen(fireChangeEvent);
 
         connections = new ObservableSet<Connection>(Connection.identifier);
         connections.listen(function(c:Connection, evt:EventType): Void {
             if (evt.isAdd()) {
                 QoidAPI.getProfile([c.iid]);
             }
+            fireChangeEvent(c, evt);
         });
         groupedConnections = new GroupedSet<Connection>(connections, function(c:Connection):String {
             return c.aliasIid;
         });
 
         labelAcls = new ObservableSet<LabelAcl>(LabelAcl.identifier);
+        labelAcls.listen(fireChangeEvent);
         groupedLabelAcls = new GroupedSet<LabelAcl>(labelAcls, function(l:LabelAcl):String {
             return l.connectionIid;
         });
 
         labelChildren = new ObservableSet<LabelChild>(LabelChild.identifier);
+        labelChildren.listen(fireChangeEvent);
         groupedLabelChildren = new GroupedSet<LabelChild>(labelChildren, function(lc:LabelChild):String {
             return lc.parentIid;
         });
 
         labeledContent = new ObservableSet<LabeledContent>(LabeledContent.identifier);
+        labeledContent.listen(fireChangeEvent);
         groupedLabeledContent = new GroupedSet<LabeledContent>(labeledContent, function(lc:LabeledContent):String {
             return lc.contentIid;
         });
@@ -127,9 +148,11 @@ class Qoid {
                     aliases.addOrUpdate(alias);
                 }
             }
+            fireChangeEvent(p, evt);
         });
 
         verificationContent = new ObservableSet<Content<Dynamic>>(ModelObjWithIid.identifier);
+        verificationContent.listen(fireChangeEvent);
 
         // Add Handlers to the Serializer instance
         Serializer.instance.addHandler(Content, new ContentHandler());
