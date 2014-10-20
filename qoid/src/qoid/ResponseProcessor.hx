@@ -52,6 +52,10 @@ class ResponseProcessor {
                             Synchronizer.processResponse(context, data);
                         }
                     }
+                } else if ( context.context == "dataReload" ) {
+                    if(result != null) {
+                        updateModelObject(result);
+                    }
                 } else if (context.context == "verificationContent" && result != null) {
                     updateModelObject(result);
                 } else if (!Synchronizer.processResponse(context, data)){
