@@ -1475,7 +1475,7 @@ qoid.QoidAPI.login = function(authenticationId,password) {
 };
 qoid.QoidAPI.useAlias = function(alias) {
 	qoid.QoidAPI.set_activeAlias(alias);
-	var context = "initialDataLoad";
+	var context = "dataReload";
 	var requests = [new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY_CANCEL,new qoid.RequestContext(context,"connection"),{ }),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"connection"),qoid.QoidAPI.createQueryJson("connection","aliasIid = '" + qoid.QoidAPI.get_activeAlias().iid + "' and iid <> '" + qoid.QoidAPI.get_activeAlias().connectionIid + "'"))];
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
 };
@@ -4060,6 +4060,8 @@ qoid.ResponseProcessor.processResponse = function(dataArr) {
 				if(result != null) {
 					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result); else qoid.Synchronizer.processResponse(context,data);
 				}
+			} else if(context.context == "dataReload") {
+				if(result != null) qoid.ResponseProcessor.updateModelObject(result);
 			} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result); else if(!qoid.Synchronizer.processResponse(context,data)) {
 				if(result != null) {
 					var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
@@ -6242,7 +6244,10 @@ qoid.Qoid.labels = new m3.observable.ObservableSet(qoid.model.Label.identifier);
 qoid.Qoid.labels.listen(qoid.Qoid.fireChangeEvent);
 qoid.Qoid.connections = new m3.observable.ObservableSet(qoid.model.Connection.identifier);
 qoid.Qoid.connections.listen(function(c,evt2) {
-	if(evt2.isAdd()) qoid.QoidAPI.getProfile([c.iid]);
+	if(evt2.isAdd()) qoid.QoidAPI.getProfile([c.iid]); else {
+		var profile = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.profiles,c.iid,"connectionIid");
+		if(profile != null) c.data = profile; else qoid.QoidAPI.getProfile([c.iid]);
+	}
 	qoid.Qoid.fireChangeEvent(c,evt2);
 });
 qoid.Qoid.groupedConnections = new m3.observable.GroupedSet(qoid.Qoid.connections,function(c1) {

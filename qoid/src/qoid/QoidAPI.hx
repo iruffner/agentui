@@ -141,7 +141,7 @@ class QoidAPI {
 
     public static function useAlias(alias: Alias): Void {
         QoidAPI.activeAlias = alias;
-        var context = "initialDataLoad";
+        var context = "dataReload";
         var requests = [
             new ChannelRequestMessage(QUERY_CANCEL, new RequestContext(context, "connection"), {}),
             // new ChannelRequestMessage(QUERY_CANCEL, new RequestContext(context, "profile"), {}),

@@ -132,6 +132,7 @@ extern class ContentComp extends JQ {
 								selfElement.append("<div class='msgDiv'>" + text.props.text + "</div>");
 								addCptDiv();
 							case ContentTypes.LINK:
+								selfElement.hide();
 								var link: LinkContent = cast(content, LinkContent);
 								var route: Array<String> = {
 									if(content.connectionIid == Qoid.currentAlias.connectionIid)
@@ -153,6 +154,7 @@ extern class ContentComp extends JQ {
 										if(reqCtx.handle == "_contentComp" && response.result.results.hasValues()) {
 											var c: Content<Dynamic> = Serializer.instance.fromJsonX(response.result.results[0], Content);
 											c.connectionIid = link.props.route[0];
+											selfElement.show();
 											fcn(c);
 											
 										}

@@ -10,6 +10,7 @@ import m3.serialization.Serialization;
 import m3.event.EventManager;
 
 import qoid.model.ModelObj;
+import qoid.ResponseProcessor.Response;
 
 using m3.helper.ArrayHelper;
 using m3.helper.StringHelper;
@@ -113,6 +114,13 @@ class Qoid {
         connections.listen(function(c:Connection, evt:EventType): Void {
             if (evt.isAdd()) {
                 QoidAPI.getProfile([c.iid]);
+            } else {
+                var profile: Profile = Qoid.profiles.getElementComplex(c.iid, "connectionIid");
+                if(profile != null) {
+                    c.data = profile;
+                } else {
+                    qoid.QoidAPI.getProfile([c.iid]);
+                }
             }
             fireChangeEvent(c, evt);
         });
@@ -165,7 +173,7 @@ class Qoid {
         currentAlias = alias;
     }
 
-    public static function processProfile(rec:{result:{route: Array<String>, results: Array<Dynamic>}}) {
+    public static function processProfile(rec: Response) {
         var connectionIid: String = rec.result.route[rec.result.route.length - 1];
         var connection: Connection = Qoid.connections.getElement(connectionIid);
         var profile: Profile = Serializer.instance.fromJsonX(rec.result.results[0], Profile);
