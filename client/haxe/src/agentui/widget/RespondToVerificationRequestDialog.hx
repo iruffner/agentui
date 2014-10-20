@@ -7,7 +7,6 @@ import m3.jq.JQ;
 import m3.jq.JQDialog;
 import m3.widget.Widgets;
 
-import agentui.api.CrudMessage;
 import qoid.model.ModelObj;
 import agentui.model.EM;
 import qoid.Qoid;
