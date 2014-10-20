@@ -1415,7 +1415,7 @@ qoid.QoidAPI.login = function(authenticationId,password) {
 };
 qoid.QoidAPI.useAlias = function(alias) {
 	qoid.QoidAPI.set_activeAlias(alias);
-	var context = "initialDataLoad";
+	var context = "dataReload";
 	var requests = [new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY_CANCEL,new qoid.RequestContext(context,"connection"),{ }),new m3.comm.ChannelRequestMessage(qoid.QoidAPI.QUERY,new qoid.RequestContext(context,"connection"),qoid.QoidAPI.createQueryJson("connection","aliasIid = '" + qoid.QoidAPI.get_activeAlias().iid + "' and iid <> '" + qoid.QoidAPI.get_activeAlias().connectionIid + "'"))];
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
 };
@@ -2780,6 +2780,8 @@ qoid.ResponseProcessor.processResponse = function(dataArr) {
 				if(result != null) {
 					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result); else qoid.Synchronizer.processResponse(context,data);
 				}
+			} else if(context.context == "dataReload") {
+				if(result != null) qoid.ResponseProcessor.updateModelObject(result);
 			} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result); else if(!qoid.Synchronizer.processResponse(context,data)) {
 				if(result != null) {
 					var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
@@ -7083,7 +7085,10 @@ qoid.Qoid.aliases.listen(function(a,evt1) {
 qoid.Qoid.labels = new m3.observable.ObservableSet(qoid.model.Label.identifier);
 qoid.Qoid.connections = new m3.observable.ObservableSet(qoid.model.Connection.identifier);
 qoid.Qoid.connections.listen(function(c,evt2) {
-	if(evt2.isAdd()) qoid.QoidAPI.getProfile([c.iid]);
+	if(evt2.isAdd()) qoid.QoidAPI.getProfile([c.iid]); else {
+		var profile = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.profiles,c.iid,"connectionIid");
+		if(profile != null) c.data = profile; else qoid.QoidAPI.getProfile([c.iid]);
+	}
 });
 qoid.Qoid.groupedConnections = new m3.observable.GroupedSet(qoid.Qoid.connections,function(c1) {
 	return c1.aliasIid;
@@ -7952,6 +7957,7 @@ var defineWidget = function() {
 				addCptDiv();
 				break;
 			case qoid.model.ContentTypes.LINK:
+				selfElement1.hide();
 				var link;
 				link = js.Boot.__cast(content , qoid.model.LinkContent);
 				var route;
@@ -7962,6 +7968,7 @@ var defineWidget = function() {
 					if(reqCtx.handle == "_contentComp" && m3.helper.ArrayHelper.hasValues(response.result.results)) {
 						var c1 = m3.serialization.Serializer.get_instance().fromJsonX(response.result.results[0],qoid.model.Content);
 						c1.connectionIid = link.props.route[0];
+						selfElement1.show();
 						fcn(c1);
 					}
 				},"ContentComp-Link-" + link.props.contentIid);
