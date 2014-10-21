@@ -775,7 +775,9 @@ agentui.AgentUi.start = function() {
 	});
 	r.appendTo(new $(window.document.body));
 	r.restoreWidget();
-	agentui.widget.DialogManager.showLogin();
+	haxe.Timer.delay(function() {
+		agentui.widget.DialogManager.showLogin();
+	},100);
 };
 agentui.api = {};
 agentui.api.EventDelegate = function() { };
@@ -5363,6 +5365,9 @@ m3.CrossMojo.jq = function(selector,arg2) {
 };
 m3.CrossMojo.windowConsole = function() {
 	return window.console;
+};
+m3.CrossMojo.confirm = function() {
+	return confirm;
 };
 m3.CrossMojo.pushState = function(data,title,url) {
 	History.pushState(data, title, url);

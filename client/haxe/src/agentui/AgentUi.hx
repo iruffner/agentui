@@ -1,5 +1,6 @@
 package agentui;
 
+import haxe.Timer;
 import js.JQuery;
 
 import m3.jq.JQ;
@@ -92,7 +93,9 @@ class AgentUi {
         r.appendTo(new JQ(js.Browser.document.body));
         r.restoreWidget();
 
-        DialogManager.showLogin();
+        Timer.delay(function() {
+                 DialogManager.showLogin();
+            }, 100);
     }
 
 

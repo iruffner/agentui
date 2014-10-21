@@ -1,5 +1,6 @@
 package terminal;
 
+import haxe.Timer;
 import m3.jq.JQ;
 import terminal.api.EventDelegate;
 import terminal.widget.AuditLog;
@@ -17,11 +18,13 @@ class Terminal {
             new JQ(".nonmodalPopup").hide();
         });
 
-        DialogManager.showLogin();
-
         var content: JQ = new JQ(".content");
         var contentAuditLog: AuditLog = new AuditLog("<div></div>");
         contentAuditLog.appendTo(content);
         contentAuditLog.auditLog();
+        
+        Timer.delay(function() {
+                 DialogManager.showLogin();
+            }, 100);
     }
 }
