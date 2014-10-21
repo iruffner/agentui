@@ -90,6 +90,10 @@ body {
 	white-space: nowrap;
 }
 
+	#homeScreen ._albumList {
+		white-space: auto;
+	}
+
 	#homeScreen ._albumList,
 	#homeScreen .connectionsDiv,
 	#homeScreen .notificationsDiv {
