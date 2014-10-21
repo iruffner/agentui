@@ -226,7 +226,7 @@ extern class AliasManagerDialog extends JQ {
 				        				alias.profile.imgSrc = profilePic;
 				        				alias.labelIid = Qoid.currentAlias.labelIid;
 		        						function() {
-					        				EM.listenOnce(QE.onAliasCreated, function(alias:Alias) {
+					        				EM.listenOnce("onAddAlias", function(alias:Alias) {
 						        				Timer.delay(function() {
 							        				self._showAliasDetail(alias);
 							        			}, 100); 
@@ -237,7 +237,7 @@ extern class AliasManagerDialog extends JQ {
 				        				alias.profile.name   = name;
 				        				alias.profile.imgSrc = profilePic;
 		        						function() {
-					        				EM.listenOnce(QE.onAliasUpdated, function(alias:Alias) {
+					        				EM.listenOnce("onUpdateAlias", function(alias:Alias) {
 						        				self._showAliasDetail(alias);
 					        				});
 					        				QoidAPI.updateAliasProfile(alias.iid, name, profilePic);
