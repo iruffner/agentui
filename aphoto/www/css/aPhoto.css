@@ -90,10 +90,6 @@ body {
 	white-space: nowrap;
 }
 
-	#homeScreen ._albumList {
-		white-space: auto;
-	}
-
 	#homeScreen ._albumList,
 	#homeScreen .connectionsDiv,
 	#homeScreen .notificationsDiv {
@@ -102,6 +98,9 @@ body {
 		min-width: 300px;
 	}
 
+	#homeScreen ._albumList {
+		white-space: auto !important;
+	}
 /* Widgets
 -----------------------------------------------------------------------------*/
 
