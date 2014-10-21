@@ -80,7 +80,7 @@ class PinterAgent {
 
         Timer.delay(function() {
                  DialogManager.showLogin();
-            }, 250);
+            }, 1000);
     }
 }
 
