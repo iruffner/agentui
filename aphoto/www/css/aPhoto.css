@@ -85,22 +85,6 @@ body {
 		padding: 4px;
 	}
 
-
-#homeScreen {
-	white-space: nowrap;
-}
-
-	#homeScreen ._albumList,
-	#homeScreen .connectionsDiv,
-	#homeScreen .notificationsDiv {
-		display: inline-block;
-		vertical-align: top;
-		min-width: 300px;
-	}
-
-	#homeScreen ._albumList {
-		white-space: normal !important;
-	}
 /* Widgets
 -----------------------------------------------------------------------------*/
 
@@ -459,6 +443,23 @@ body {
 	text-align: left;
 }
 
+#homeScreen,
+#contentScreen {
+	white-space: nowrap;
+}
+
+	#homeScreen ._albumList,
+	#homeScreen .connectionsDiv,
+	#homeScreen .notificationsDiv {
+		display: inline-block;
+		vertical-align: top;
+		min-width: 300px;
+	}
+
+	#homeScreen ._albumList {
+		white-space: normal !important;
+	}
+
 	#homeScreen ._albumList h2 {
 		display: inline-block;
 		font-size: 28px;
@@ -511,9 +512,11 @@ body {
 
 
 
+
 	#contentScreen .leftWrap {
 		display: inline-block;
 		vertical-align: top;
+		white-space: normal;
 	}
 
 	#contentScreen .setDefaultBtn {
