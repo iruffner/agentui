@@ -7213,6 +7213,19 @@ var defineWidget = function() {
 			}
 		};
 		ap.APhotoContext.ALBUM_CONFIGS.listen(self1._onAlbumConfig);
+		self1._onLabeledContent = function(lc1,evt3) {
+			if(evt3.isAdd()) {
+				if(lc1.labelIid == self1.options.label.iid) {
+					var match1 = m3.helper.OSetHelper.getElement(ap.APhotoContext.ALBUM_CONFIGS,lc1.contentIid);
+					if(match1 != null) try {
+						self1.img.attr("src",match1.props.defaultImg);
+					} catch( err1 ) {
+						m3.log.Logga.get_DEFAULT().error("problem using the default img");
+					}
+				}
+			}
+		};
+		qoid.Qoid.labeledContent.listen(self1._onLabeledContent);
 	}, _showNewLabelPopup : function() {
 		var self2 = this;
 		var selfElement2 = this.element;
@@ -7220,25 +7233,25 @@ var defineWidget = function() {
 		popup.appendTo(selfElement2);
 		popup = popup.popup({ createFcn : function(el) {
 			var updateLabel = null;
-			var stopFcn = function(evt3) {
-				evt3.stopPropagation();
+			var stopFcn = function(evt4) {
+				evt4.stopPropagation();
 			};
-			var enterFcn = function(evt4) {
-				if(evt4.keyCode == 13) updateLabel();
+			var enterFcn = function(evt5) {
+				if(evt5.keyCode == 13) updateLabel();
 			};
 			var container = new $("<div class='icontainer'></div>").appendTo(el);
 			container.click(stopFcn).keypress(enterFcn);
 			var parent = null;
 			container.append("<label for='labelName'>Name: </label> ");
 			var input = new $("<input id='labelName' class='ui-corner-all ui-widget-content' style='font-size: 20px;' value='New Label'/>").appendTo(container);
-			input.keypress(enterFcn).click(function(evt5) {
-				evt5.stopPropagation();
+			input.keypress(enterFcn).click(function(evt6) {
+				evt6.stopPropagation();
 				if($(this).val() == "New Label") $(this).val("");
 			}).focus();
 			var buttonText = "Update Label";
 			input.val(self2.options.label.name);
 			container.append("<br/>");
-			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt6) {
+			new $("<button class='fright ui-helper-clearfix' style='font-size: .8em;'>" + buttonText + "</button>").button().appendTo(container).click(function(evt7) {
 				updateLabel();
 			});
 			updateLabel = function() {
@@ -7254,6 +7267,7 @@ var defineWidget = function() {
 	}, destroy : function() {
 		var self3 = this;
 		ap.APhotoContext.ALBUM_CONFIGS.removeListener(self3._onAlbumConfig);
+		qoid.Qoid.labeledContent.removeListener(self3._onLabeledContent);
 		$.Widget.prototype.destroy.call(this);
 	}};
 };
