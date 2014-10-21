@@ -1,5 +1,6 @@
 package pagent;
 
+import haxe.Timer;
 import m3.jq.JQ;
 import m3.log.Logga;
 import m3.log.LogLevel;
@@ -77,7 +78,9 @@ class PinterAgent {
 
         new UserBar("#userBar").userBar();
 
-        DialogManager.showLogin();
+        Timer.delay(function() {
+                 DialogManager.showLogin();
+            }, 50);
     }
 }
 
