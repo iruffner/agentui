@@ -2,7 +2,6 @@ package pagent.widget;
 
 import qoid.model.ModelObj;
 import m3.jq.JQ;
-// import qoid.widget.AliasManagerDialog;
 import agentui.widget.LoginDialog;
 import agentui.widget.CreateAgentDialog;
 
@@ -37,9 +36,5 @@ class DialogManager {
 
     public static function showCreateAgent(): Void {
         showDialog("createAgentDialog");
-    }
-
-    public static function showAliasManager(): Void {
-        showDialog("aliasManagerDialog");
     }
 }

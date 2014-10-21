@@ -1358,9 +1358,6 @@ pagent.widget.DialogManager.showLogin = function() {
 pagent.widget.DialogManager.showCreateAgent = function() {
 	pagent.widget.DialogManager.showDialog("createAgentDialog");
 };
-pagent.widget.DialogManager.showAliasManager = function() {
-	pagent.widget.DialogManager.showDialog("aliasManagerDialog");
-};
 qoid.model.Login = function() {
 	qoid.model.ModelObj.call(this);
 };
@@ -5888,7 +5885,7 @@ pagent.PinterAgent.start = function() {
 	new $("#userBar").userBar();
 	haxe.Timer.delay(function() {
 		pagent.widget.DialogManager.showLogin();
-	},1000);
+	},100);
 };
 pagent.PinterContentHandler = function() {
 };
