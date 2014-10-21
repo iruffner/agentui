@@ -7225,7 +7225,7 @@ var defineWidget = function() {
 				}
 			}
 		};
-		qoid.Qoid.labeledContent.listen(self1._onLabeledContent);
+		qoid.Qoid.labeledContent.listen(self1._onLabeledContent,false);
 	}, _showNewLabelPopup : function() {
 		var self2 = this;
 		var selfElement2 = this.element;

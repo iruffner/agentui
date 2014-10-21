@@ -154,7 +154,7 @@ extern class AlbumDetails extends JQ {
 							}
 						}
 					}
-					Qoid.labeledContent.listen(self._onLabeledContent);
+					Qoid.labeledContent.listen(self._onLabeledContent, false);
 		        },
 
 		        _showNewLabelPopup: function(): Void {
