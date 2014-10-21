@@ -99,7 +99,7 @@ body {
 	}
 
 	#homeScreen ._albumList {
-		white-space: auto !important;
+		white-space: normal !important;
 	}
 /* Widgets
 -----------------------------------------------------------------------------*/
