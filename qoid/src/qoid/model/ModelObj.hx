@@ -488,7 +488,7 @@ class Notification<T> extends ModelObjWithIid {
 		return "notification";
 	}
 	
-	@:isVar public var rawData(get,null): Dynamic;
+	@:transient @:isVar public var rawData(get,null): Dynamic;
 	public function get_rawData():Dynamic {
 		return data;
 	}
