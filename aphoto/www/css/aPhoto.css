@@ -444,7 +444,8 @@ body {
 }
 
 #homeScreen,
-#contentScreen {
+#contentScreen,
+#albumScreen {
 	white-space: nowrap;
 }
 
@@ -488,6 +489,7 @@ body {
 	#albumScreen .leftDiv {
 		display: inline-block;
 		vertical-align: top;
+		white-space: normal;
 	}
 
 	#albumScreen .contentComp {
