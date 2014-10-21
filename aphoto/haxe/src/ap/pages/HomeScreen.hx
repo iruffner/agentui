@@ -14,6 +14,7 @@ class HomeScreen extends APhotoPage {
 		super({
 			id: "#homeScreen",
 			pageBeforeShowFcn: pageBeforeShowFcn, 
+			pageHideFcn: pageHideFcn,
 			reqUser: true,
 			showBackButton: false
 		});
@@ -38,4 +39,7 @@ class HomeScreen extends APhotoPage {
 			});
 	}
 	
+	private function pageHideFcn(screen: JQ): Void {
+		new JQ(".content", screen).empty();
+	}
 }

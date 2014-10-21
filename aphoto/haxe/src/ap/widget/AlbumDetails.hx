@@ -120,6 +120,7 @@ extern class AlbumDetails extends JQ {
 					// self.filteredSet.listen(self._onupdate);
 
 					self._onAlbumConfig = function(mc: ConfigContent, evt: EventType) {
+						
 						var match: LabeledContent = Qoid.labeledContent.getElementComplex(mc.iid+"_"+self.options.label.iid, function(lc: LabeledContent): String {
 								return lc.contentIid+"_"+lc.labelIid;
 							});
