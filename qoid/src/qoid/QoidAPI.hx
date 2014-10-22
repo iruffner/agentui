@@ -525,7 +525,7 @@ class QoidAPI {
 
 	// Notifications
 
-    public static function createNotification(kind:String, ?data:String, ?context:String, ?route: Array<String>):Void {
+    public static function createNotification(kind:String, ?data:Dynamic, ?context:String, ?route: Array<String>):Void {
         var json:Dynamic = {
             kind: kind,
             data: data
@@ -535,7 +535,7 @@ class QoidAPI {
         }
         var context = (context == null) ? "createNotification" : context;
 
-        submitRequest(json, NOTIFICATION_CREATE, new RequestContext("context"));
+        submitRequest(json, NOTIFICATION_CREATE, new RequestContext(context));
     }
 
     public static function consumeNotification(notificationIid:String, ?context:String, ?route: Array<String>):Void {
@@ -604,31 +604,32 @@ class QoidAPI {
     }
 
     // VERIFICATION
-    public function rejectVerificationRequest(notificationIid:String) {
+    public static function rejectVerificationRequest(notificationIid:String) {
         consumeNotification(notificationIid, "verificationRequestRejected");
     }
 
-    public function rejectVerificationResponse(notificationIid:String) {
+    public static function rejectVerificationResponse(notificationIid:String) {
         consumeNotification(notificationIid, "verificationResponseRejected");
     }
 
-    public function verificationRequest(vr:VerificationRequestNotification) {
-        createNotification(vr.kind, vr.rawData, "verificationRequest");
+    public static function verificationRequest(vr:VerificationRequest) {
+        createNotification(NotificationKind.VerificationRequest, Serializer.instance.toJson(vr), "verificationRequest", vr.connectionIids);
     }
 
-    public function respondToVerificationRequest(vr:VerificationResponse) {
+    public static function respondToVerificationRequest(vr:VerificationResponse) {
+        // get the label from Meta/Verifications        
+        var verificationsLabel = Qoid.labels.getElementComplex("Verifications","name");
+
         var vc = new VerificationContent(vr.verificationContent);
-        //createContent(vc.contentType, vc.props, labelIids : Array<String> , ?route : Array<String> )
 
-        // get the label from Meta/Verifications
-        
-        // TODO:  Send a request to create verification content, with a json content
-        // When the response is received, use the context to create the notification
-        //var data:Dynamic = vr;
-        //createNotification(NotificationKind.VerificationResponse, data, "respondToVerificationRequest");
+        createContent(vc.contentType, vc.props, [verificationsLabel.iid], "respondToVerificationRequest2");
     }
 
-    public function acceptVerification(notificationIid:String) {
+    public static function respondToVerificationRequest2(response:Dynamic) {
+
+    }
+
+    public static function acceptVerification(notificationIid:String) {
         createNotification("VerificationRequestAccept", null, "respondToVerificationRequest");
     }
 

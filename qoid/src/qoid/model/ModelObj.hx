@@ -556,7 +556,6 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
     	public var contentData:Dynamic;
     	public var message:String;
 
-
     	@:transient public function getContent():Content<Dynamic> {
     		try {
 	    		var fromJson:Dynamic = {
@@ -564,9 +563,7 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
 	    			contentType: Std.string(this.contentType),
 	    			data:this.contentData,
 	    			created:Date.now().toString(),
-					modified:Date.now().toString(),
-					createdByAliasIid:"Chewbaca",
-					modifiedByAliasIid:"PizzaTheHut"
+					modified:Date.now().toString()
 	    		};
 	    		return Serializer.instance.fromJsonX(fromJson, Content);
 	    	} catch (e:Dynamic) {
@@ -576,14 +573,19 @@ class VerificationRequestNotification extends Notification<VerificationRequestDa
     	}
 	}
 
+@:rtti
 class VerificationRequest {
     public var contentIid:String;
+	public var contentType:String;
+	public var contentData:Dynamic;
     public var connectionIids:Array<String>;
     public var message:String;
 
-    public function new(contentIid:String, connectionIids:Array<String>, message:String) {
+    public function new(content:Content<Dynamic>, connectionIids:Array<String>, message:String) {
     	this.message        = message; 
-    	this.contentIid     = contentIid;
+    	this.contentIid     = content.iid;
+    	this.contentType    = content.contentType;
+    	this.contentData    = content.props;
     	this.connectionIids = connectionIids;
     }
 }

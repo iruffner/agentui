@@ -4501,6 +4501,25 @@ qoid.QoidAPI.acceptIntroduction = function(notificationIid,route) {
 		m3.log.Logga.get_DEFAULT().error("Could not remove notification | " + Std.string(err));
 	}
 };
+qoid.QoidAPI.rejectVerificationRequest = function(notificationIid) {
+	qoid.QoidAPI.consumeNotification(notificationIid,"verificationRequestRejected");
+};
+qoid.QoidAPI.rejectVerificationResponse = function(notificationIid) {
+	qoid.QoidAPI.consumeNotification(notificationIid,"verificationResponseRejected");
+};
+qoid.QoidAPI.verificationRequest = function(vr) {
+	qoid.QoidAPI.createNotification(qoid.model.NotificationKind.VerificationRequest,m3.serialization.Serializer.get_instance().toJson(vr),"verificationRequest",vr.connectionIids);
+};
+qoid.QoidAPI.respondToVerificationRequest = function(vr) {
+	var verificationsLabel = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,"Verifications","name");
+	var vc = new qoid.model.VerificationContent(vr.verificationContent);
+	qoid.QoidAPI.createContent(vc.contentType,vc.props,[verificationsLabel.iid],"respondToVerificationRequest2");
+};
+qoid.QoidAPI.respondToVerificationRequest2 = function(response) {
+};
+qoid.QoidAPI.acceptVerification = function(notificationIid) {
+	qoid.QoidAPI.createNotification("VerificationRequestAccept",null,"respondToVerificationRequest");
+};
 qoid.QoidAPI.submitRequest = function(json,path,context) {
 	var msg = new m3.comm.ChannelRequestMessage(path,context,json);
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),[msg],qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
@@ -4515,24 +4534,6 @@ qoid.QoidAPI.onSuccess = function(data) {
 };
 qoid.QoidAPI.onError = function(ae) {
 	m3.log.Logga.get_DEFAULT().error("QoidAPI Error",ae);
-};
-qoid.QoidAPI.prototype = {
-	rejectVerificationRequest: function(notificationIid) {
-		qoid.QoidAPI.consumeNotification(notificationIid,"verificationRequestRejected");
-	}
-	,rejectVerificationResponse: function(notificationIid) {
-		qoid.QoidAPI.consumeNotification(notificationIid,"verificationResponseRejected");
-	}
-	,verificationRequest: function(vr) {
-		qoid.QoidAPI.createNotification(vr.kind,vr.get_rawData(),"verificationRequest");
-	}
-	,respondToVerificationRequest: function(vr) {
-		var vc = new qoid.model.VerificationContent(vr.verificationContent);
-	}
-	,acceptVerification: function(notificationIid) {
-		qoid.QoidAPI.createNotification("VerificationRequestAccept",null,"respondToVerificationRequest");
-	}
-	,__class__: qoid.QoidAPI
 };
 qoid.SubmitRequest = function(channel,msgs,successFcn,errorFcn) {
 	this.baseOpts = { dataType : "text"};
@@ -4859,10 +4860,13 @@ qoid.ResponseProcessor.processResponse = function(dataArr) {
 				}
 			} else if(context.context == "dataReload") {
 				if(result != null) qoid.ResponseProcessor.updateModelObject(result);
-			} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result); else if(!qoid.Synchronizer.processResponse(context,data)) {
+			} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result); else if(context.context == "verificationRequest") {
+				var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
+				m3.event.EventManager.get_instance().fire(eventId,{ });
+			} else if(context.context == "respondToVerificationRequest2" && result != null) qoid.QoidAPI.respondToVerificationRequest2(result); else if(!qoid.Synchronizer.processResponse(context,data)) {
 				if(result != null) {
-					var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
-					m3.event.EventManager.get_instance().fire(eventId,data);
+					var eventId1 = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
+					m3.event.EventManager.get_instance().fire(eventId1,data);
 				}
 			}
 		}
@@ -5293,7 +5297,7 @@ qoid.model.VerificationRequestData.prototype = {
 				var _this1 = new Date();
 				$r = HxOverrides.dateStr(_this1);
 				return $r;
-			}(this)), createdByAliasIid : "Chewbaca", modifiedByAliasIid : "PizzaTheHut"};
+			}(this))};
 			return m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.Content);
 		} catch( e ) {
 			m3.log.Logga.get_DEFAULT().error(e);
@@ -5302,9 +5306,11 @@ qoid.model.VerificationRequestData.prototype = {
 	}
 	,__class__: qoid.model.VerificationRequestData
 };
-qoid.model.VerificationRequest = function(contentIid,connectionIids,message) {
+qoid.model.VerificationRequest = function(content,connectionIids,message) {
 	this.message = message;
-	this.contentIid = contentIid;
+	this.contentIid = content.iid;
+	this.contentType = content.contentType;
+	this.contentData = content.props;
 	this.connectionIids = connectionIids;
 };
 $hxClasses["qoid.model.VerificationRequest"] = qoid.model.VerificationRequest;
@@ -5737,11 +5743,12 @@ qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params
 qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"535\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"548\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"560\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"592\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"559\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationRequest.__rtti = "<class path=\"qoid.model.VerificationRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<connectionIids public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></connectionIids>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<new public=\"1\" set=\"method\" line=\"584\"><f a=\"content:connectionIids:message\">\n\t<c path=\"qoid.model.Content\"><d/></c>\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"594\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.VerificationResponseData.__rtti = "<class path=\"qoid.model.VerificationResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"618\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"631\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroResponseMessage.__rtti = "<class path=\"qoid.model.IntroResponseMessage\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"679\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"620\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"633\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroResponseMessage.__rtti = "<class path=\"qoid.model.IntroResponseMessage\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"681\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.QoidAPI.main();
 })(typeof window != "undefined" ? window : exports);

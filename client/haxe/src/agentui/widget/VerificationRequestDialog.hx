@@ -94,11 +94,9 @@ extern class VerificationRequestDialog extends JQ {
 						}
 					});
 
+					var vr = new VerificationRequest(self.options.content, connectionIids, new JQ("#vr_message").val());
 
-					var vr = new VerificationRequest(self.options.content.iid, 
-						connectionIids, new JQ("#vr_message").val());
-
-					EM.listenOnce(EMEvent.VerificationRequest_RESPONSE, function(n:{}):Void{
+					EM.listenOnce("onVerificationRequest", function(n:{}):Void{
 						selfElement.dialog("close");
 					});
 
