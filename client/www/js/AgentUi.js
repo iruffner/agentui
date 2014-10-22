@@ -1544,7 +1544,7 @@ qoid.QoidAPI.createQueryJson = function(type,query,historical,standing,route) {
 	return ret;
 };
 qoid.QoidAPI.getProfile = function(connectionIids) {
-	var json = qoid.QoidAPI.createQueryJson("profile",null,true,false,connectionIids);
+	var json = qoid.QoidAPI.createQueryJson("profile",null,true,true,connectionIids);
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,new qoid.RequestContext("connectionProfile"));
 };
 qoid.QoidAPI.getVerificationContent = function(connectionIids,iids) {
@@ -7590,8 +7590,8 @@ var defineWidget = function() {
 		};
 		self2.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this11.get(self2.options.content.iid);
+			var this2 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this2.get(self2.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
@@ -7838,8 +7838,8 @@ var defineWidget = function() {
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		if((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this11.get(self1.options.content.iid);
+			var this2 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this2.get(self1.options.content.iid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabeledContent.addEmptyGroup(self1.options.content.iid);
 		self1.onchangeLabelChildren = function(ele,evt2) {
@@ -7849,8 +7849,8 @@ var defineWidget = function() {
 		};
 		self1.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this12 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this12.get(self1.options.content.iid);
+			var this3 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this3.get(self1.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
@@ -8401,8 +8401,8 @@ var defineWidget = function() {
 			$r = this1.get(self.options.labelIid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(self.options.labelIid);
-		var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-		self.children = this11.get(self.options.labelIid);
+		var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+		self.children = this2.get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
@@ -8448,8 +8448,8 @@ var defineWidget = function() {
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this11.get(self.options.parentIid);
+			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this2.get(self.options.parentIid);
 			return $r;
 		}(this)),function(labelChild) {
 			var labelPath = self.options.labelPath.slice();

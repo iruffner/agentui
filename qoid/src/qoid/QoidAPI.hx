@@ -244,7 +244,7 @@ class QoidAPI {
     }
 
     public static function getProfile(connectionIids:Array<String>) {
-        var json = createQueryJson("profile", true, false, connectionIids);
+        var json = createQueryJson("profile", true, true, connectionIids);
         submitRequest(json, QUERY, new RequestContext("connectionProfile"));
     }
 

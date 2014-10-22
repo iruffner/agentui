@@ -1305,7 +1305,7 @@ qoid.QoidAPI.createQueryJson = function(type,query,historical,standing,route) {
 	return ret;
 };
 qoid.QoidAPI.getProfile = function(connectionIids) {
-	var json = qoid.QoidAPI.createQueryJson("profile",null,true,false,connectionIids);
+	var json = qoid.QoidAPI.createQueryJson("profile",null,true,true,connectionIids);
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,new qoid.RequestContext("connectionProfile"));
 };
 qoid.QoidAPI.getVerificationContent = function(connectionIids,iids) {
@@ -6053,8 +6053,8 @@ var defineWidget = function() {
 			return $r;
 		}(this))).profile; else {
 			var connection1;
-			var this11 = qoid.Qoid.connections.delegate();
-			connection1 = this11.get(connectionIid);
+			var this2 = qoid.Qoid.connections.delegate();
+			connection1 = this2.get(connectionIid);
 			if(connection1 == null) return new qoid.model.Profile("-->*<--",""); else return connection1.data;
 		}
 	}, getProfileImageHtml : function() {
