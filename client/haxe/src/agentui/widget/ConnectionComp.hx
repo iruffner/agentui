@@ -134,13 +134,14 @@ extern class ConnectionComp extends JQ {
 				      		if (!dropper.equals(droppee)) {
 				      			var intro:Introduction = null;
 				      			// Check to see if there is already an introduction in progress
-				      			for (i in Qoid.introductions) {
-				      				if ((i.aConnectionIid == dropper.iid && i.bConnectionIid == droppee.iid) ||
-				      					(i.bConnectionIid == dropper.iid && i.aConnectionIid == droppee.iid)) {
-				      					intro = i;
-				      					break;
-				      				}
-				      			}
+				      			/* TODO: needs to account for deleted connections */
+				      			// for (i in Qoid.introductions) {
+				      			// 	if ((i.aConnectionIid == dropper.iid && i.bConnectionIid == droppee.iid) ||
+				      			// 		(i.bConnectionIid == dropper.iid && i.aConnectionIid == droppee.iid)) {
+				      			// 		intro = i;
+				      			// 		break;
+				      			// 	}
+				      			// }
 				      			if (intro != null) {
 									if (intro.bAccepted  && intro.aAccepted) {
 					      				m3.util.JqueryUtil.alert("These two aliases are already connected");
