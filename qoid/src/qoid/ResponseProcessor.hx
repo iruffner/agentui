@@ -58,8 +58,10 @@ class ResponseProcessor {
                     }
                 } else if (context.context == "verificationContent" && result != null) {
                     updateModelObject(result);
-                } else if (context.context == "respondToVerificationRequest2" && result != null) {
-                    QoidAPI.respondToVerificationRequest2(result);
+                } else if (context.context.startsWith("acceptVerificationRequest2") && result != null) {
+                    QoidAPI.acceptVerificationRequest2(context.context, result);
+                } else if (context.context.startsWith("acceptVerification2") && result != null) {
+                    QoidAPI.acceptVerification2(context.context, result);
                 } else if (!Synchronizer.processResponse(context, data)){
                     if (result != null) {
                         var eventId = "on" + context.context.capitalizeFirstLetter();

@@ -95,11 +95,11 @@ class EventDelegate {
         });
 
         EM.addListener(EMEvent.RespondToVerification, function(vr:VerificationResponse){
-            QoidAPI.respondToVerificationRequest(vr);
+            QoidAPI.acceptVerificationRequest(vr);
         });
         
-        EM.addListener(EMEvent.AcceptVerification, function(notificationIid:String){
-            QoidAPI.acceptVerification(notificationIid);
+        EM.addListener(EMEvent.AcceptVerification, function(v:VerificationResponseNotification){
+            QoidAPI.acceptVerification(v);
         });
 
         EM.addListener(EMEvent.RejectVerificationRequest, function(notificationIid:String){

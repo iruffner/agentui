@@ -128,27 +128,27 @@ extern class ContentComp extends JQ {
 		        		contentInfo.append(verified);
 		        	}
 		        	switch(content.contentType) {
-		        		case "AUDIO":
+		        		case ContentTypes.AUDIO:
 			        		var audio: AudioContent = cast(content, AudioContent);
 			        		postContent.append(audio.props.title + "<br/>");
 			        		var audioControls: JQ = new JQ("<audio controls></audio>");
 			        		postContent.append(audioControls);
 			        		audioControls.append("<source src='" + audio.props.audioSrc + "' type='" + audio.props.audioType + "'>Your browser does not support the audio element.");
 
-		        		case "IMAGE":
+		        		case ContentTypes.IMAGE:
 		        			var img: ImageContent = cast(content, ImageContent);
 		        			postContent.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");// + img.caption);
 
-						case "URL":
+						case ContentTypes.URL:
 							var urlContent: UrlContent = cast(content, UrlContent);
 							postContent.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
 							// postContent.append("<img alt='preview' src='http://api.thumbalizr.com/?api_key=2e63db21c89b06a54fd2eac5fd96e488&url=" + urlContent.url + "'/>");
 
-	        			case "TEXT":
+	        			case ContentTypes.TEXT:
 	        				var textContent: MessageContent = cast(content, MessageContent);
 	        				postContent.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>"); 
 		        		
-		        		case "VERIFICATION":
+		        		case ContentTypes.VERIFICATION:
 		        			throw new Exception("VerificationContent should not be displayed"); 
 		        	}
 
@@ -315,7 +315,7 @@ extern class ContentComp extends JQ {
 						};
 						menuOptions.push(menuOption);
 
-	        			menu.m3menu({menuOptions:menuOptions}).hide();
+	        			menu.m3menu({menuOptions:menuOptions, wrapLabelInAtag: true}).hide();
 
 	        			self.menu = menu;
 					}

@@ -83,7 +83,7 @@ extern class AcceptVerificationResponseDialog extends JQ {
 	        			selfElement.remove();
 		        	});
 
-		        	EM.change(EMEvent.AcceptVerification, self.options.notification.iid);
+		        	EM.change(EMEvent.AcceptVerification, self.options.notification);
 		        },
 
 		        rejectVerification: function():Void {

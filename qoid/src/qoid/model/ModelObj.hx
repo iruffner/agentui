@@ -287,6 +287,13 @@ class ContentVerification {
     public var verificationIid:String;
     public var hash:Dynamic;
     public var hashAlgorithm:String;
+
+    public function new(verifierId:String, verificationIid:String) {
+		this.verifierId = verifierId;
+	    this.verificationIid = verificationIid;
+	    this.hash = {};
+	    this.hashAlgorithm = "";
+    }
 }
 
 @:rtti
@@ -298,7 +305,6 @@ class VerifiedContentMetaData {
 @:rtti
 class ContentMetaData {
 	@:optional public var verifications: Array<ContentVerification>;
-	@:optional public var verifiedContent: VerifiedContentMetaData;
 
 	public function new() {
 		this.verifications = new Array<ContentVerification>();
@@ -307,7 +313,6 @@ class ContentMetaData {
 
 class Content<T:(ContentData)> extends ModelObjWithIid {
 	public var contentType: String;
-	// @:optional public var aliasIid: String;
 	@:optional public var connectionIid: String;
 	@:optional public var metaData:ContentMetaData;
 	@:optional public var semanticId:String;
@@ -327,9 +332,9 @@ class Content<T:(ContentData)> extends ModelObjWithIid {
 		this.metaData = new ContentMetaData();
 	}
 
-	// For testing only	
-	public function setData(data:Dynamic) {
-		this.data = data;
+	@:transient @:isVar public var rawData(get,null): Dynamic;
+	public function get_rawData():Dynamic {
+		return data;
 	}
 
 	private function readResolve(): Void {
@@ -578,8 +583,8 @@ class VerificationRequest {
     public var contentIid:String;
 	public var contentType:String;
 	public var contentData:Dynamic;
-    public var connectionIids:Array<String>;
     public var message:String;
+    @:transient public var connectionIids:Array<String>;
 
     public function new(content:Content<Dynamic>, connectionIids:Array<String>, message:String) {
     	this.message        = message; 
@@ -604,12 +609,17 @@ class VerificationResponseNotification extends Notification<VerificationResponse
     	public var verifierId:String;
 	}
 
+@:rtti
 class VerificationResponse {
 	public var notificationIid:String;
     public var verificationContent:String;
-    public function new(notificationIid:String, verificationContent:String) {
-    	this.notificationIid    = notificationIid; 
+    public var connectionIid:String;
+    public var contentIid:String;
+    public function new(vr:VerificationRequestNotification, verificationContent:String) {
+    	this.notificationIid     = vr.iid;
+    	this.connectionIid       = vr.connectionIid;
     	this.verificationContent = verificationContent;
+    	this.contentIid = vr.props.contentIid;
     }
 }
 

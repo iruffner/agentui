@@ -24,10 +24,12 @@ class RequestContext {
     public var context: String;
     @:optional public var handle: String;
     @:optional public var resultType: String;
+    @:optional public var data: Dynamic;
 
     public function new(?context: String, ?handle: String, ?resultType: String) {
         this.context = context;
         this.handle = handle;
+        this.resultType = resultType;
     }
 }
 
@@ -385,16 +387,22 @@ class QoidAPI {
         submitRequest(json, CONTENT_CREATE, new RequestContext(context));
     }
 
-    public static function updateContent(contentIid:String, data: Dynamic, ?route: Array<String>):Void {
+    public static function updateContent(contentIid:String, data: Dynamic, ?metaData:Dynamic, ?context:String, ?route: Array<String>):Void {
         var json:Dynamic = {
-            contentIid: contentIid,
-            data: data
+            contentIid: contentIid
         };
+        if (data != null) {
+            json.data = data;
+        }
+        if (metaData != null) {
+            json.metaData = metaData;
+        }
         if (route != null) {
             json.route = route;
         }
 
-        submitRequest(json, CONTENT_UPDATE, new RequestContext("updateContent"));
+        var context = (context == null) ? "updateContent" : context;
+        submitRequest(json, CONTENT_UPDATE, new RequestContext(context));
     }
 
     public static function addContentLabel(contentIid:String, labelIid:String, ?route: Array<String>):Void {
@@ -604,33 +612,62 @@ class QoidAPI {
     }
 
     // VERIFICATION
+
+    public static function verificationRequest(vr:VerificationRequest) {
+        createNotification(NotificationKind.VerificationRequest, Serializer.instance.toJson(vr), "verificationRequest", vr.connectionIids);
+    }
+
     public static function rejectVerificationRequest(notificationIid:String) {
         consumeNotification(notificationIid, "verificationRequestRejected");
+    }
+
+    public static function acceptVerificationRequest(vr:VerificationResponse) {
+        // consume this notification
+        consumeNotification(vr.notificationIid, "verificationRequestAccepted");
+
+        // get the label from Meta/Verifications        
+        var verificationsLabel = Qoid.labels.getElementComplex("Verifications","name");
+
+        var vc = new VerificationContent(vr.verificationContent);
+
+        var context = "acceptVerificationRequest2|";
+        context += haxe.Json.stringify(Serializer.instance.toJson(vr));
+
+        createContent(vc.contentType, vc.rawData, [verificationsLabel.iid], context);
+    }
+
+    public static function acceptVerificationRequest2(context:String, verificationContent:Dynamic) {
+        var vr:VerificationResponse = haxe.Json.parse(context.split("|")[1]);
+
+        var notification = {
+            contentIid: vr.contentIid,
+            verificationContentIid:verificationContent.iid,
+            verificationContentData:verificationContent.data,
+            verifierId:vr.connectionIid
+        };
+
+        createNotification(NotificationKind.VerificationResponse, notification, "verificationResponseAccepted", [vr.connectionIid]);
     }
 
     public static function rejectVerificationResponse(notificationIid:String) {
         consumeNotification(notificationIid, "verificationResponseRejected");
     }
 
-    public static function verificationRequest(vr:VerificationRequest) {
-        createNotification(NotificationKind.VerificationRequest, Serializer.instance.toJson(vr), "verificationRequest", vr.connectionIids);
+    public static function acceptVerification(v:VerificationResponseNotification) {
+        // Retrieve the content that is being verified
+        var context = "acceptVerification2|";
+        context += haxe.Json.stringify(Serializer.instance.toJson(v));
+
+        query(new RequestContext(context), "content", "iid='" + v.props.contentIid + "'", true, false);
     }
 
-    public static function respondToVerificationRequest(vr:VerificationResponse) {
-        // get the label from Meta/Verifications        
-        var verificationsLabel = Qoid.labels.getElementComplex("Verifications","name");
+    public static function acceptVerification2(context:String, data:Dynamic) {
+        var vr = haxe.Json.parse(context.split("|")[1]);
+        var content = Serializer.instance.fromJsonX(data.results[0], Content);
+        var verification = new ContentVerification(vr.data.verifierId, vr.data.contentIid);
+        content.metaData.verifications.push(verification);
 
-        var vc = new VerificationContent(vr.verificationContent);
-
-        createContent(vc.contentType, vc.props, [verificationsLabel.iid], "respondToVerificationRequest2");
-    }
-
-    public static function respondToVerificationRequest2(response:Dynamic) {
-
-    }
-
-    public static function acceptVerification(notificationIid:String) {
-        createNotification("VerificationRequestAccept", null, "respondToVerificationRequest");
+        updateContent(content.iid, null, content.metaData);
     }
 
     private static function submitRequest(json:Dynamic, path:String, context: RequestContext):Void {

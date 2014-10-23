@@ -60,6 +60,7 @@ extern class ConnectionsList extends JQ {
 		        	var menu: M3Menu = new M3Menu("<ul id='label-action-menu'></ul>");
 		        	menu.appendTo(selfElement);
         			menu.m3menu({
+        				wrapLabelInAtag: true,
         				classes: "container shadow",
     					menuOptions: [
     						{ 
