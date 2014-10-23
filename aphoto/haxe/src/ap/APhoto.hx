@@ -4,6 +4,7 @@ import ap.api.EventDelegate;
 import ap.model.APhotoModel.APhotoContentTypes;
 import ap.model.APhotoModel.ConfigContent;
 import ap.pages.APhotoPage;
+import haxe.Timer;
 import m3.jq.JQ;
 import m3.log.Logga;
 import m3.log.LogLevel;
@@ -65,7 +66,9 @@ class APhoto {
             new JQ(".nonmodalPopup").hide();
         });
 
-        DialogManager.showLogin();
+        Timer.delay(function() {
+                 DialogManager.showLogin();
+            }, 100);
     }
 }
 

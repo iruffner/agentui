@@ -1,6 +1,7 @@
 package ap.widget;
 
 
+import ap.APhotoContext;
 import ap.model.APhotoModel.ConfigContent;
 import ap.model.EM;
 import m3.jq.JQ;
@@ -34,6 +35,7 @@ typedef AlbumDetailsWidgetDef = {
 	var _registerListeners: Void->Void;
 
 	@:optional var _onAlbumConfig: ConfigContent->EventType->Void;
+	@:optional var _onLabeledContent: LabeledContent->EventType->Void;
 
 	
 	var _showNewLabelPopup: Void->Void;
@@ -119,6 +121,10 @@ extern class AlbumDetails extends JQ {
 		   //      	});
 					// self.filteredSet.listen(self._onupdate);
 
+					/* 
+						this catches an updated ConfigContent, but no a new one since we don't have 
+						the new LabeledContent record yet
+					*/
 					self._onAlbumConfig = function(mc: ConfigContent, evt: EventType) {
 						var match: LabeledContent = Qoid.labeledContent.getElementComplex(mc.iid+"_"+self.options.label.iid, function(lc: LabeledContent): String {
 								return lc.contentIid+"_"+lc.labelIid;
@@ -132,6 +138,23 @@ extern class AlbumDetails extends JQ {
 						}
 					}
 					APhotoContext.ALBUM_CONFIGS.listen(self._onAlbumConfig);
+
+					self._onLabeledContent = function(lc: LabeledContent, evt: EventType) {
+						if(evt.isAdd()) {
+							if(lc.labelIid == self.options.label.iid) {
+								var match: ConfigContent = APhotoContext.ALBUM_CONFIGS.getElement(lc.contentIid);
+
+								if(match != null) {
+									try {
+										self.img.attr("src", match.props.defaultImg);
+									} catch (err: Dynamic) {
+										Logga.DEFAULT.error("problem using the default img");
+									}
+								}
+							}
+						}
+					}
+					Qoid.labeledContent.listen(self._onLabeledContent, false);
 		        },
 
 		        _showNewLabelPopup: function(): Void {
@@ -189,6 +212,7 @@ extern class AlbumDetails extends JQ {
 		        destroy: function() {
 		        	var self: AlbumDetailsWidgetDef = Widgets.getSelf();
 		        	APhotoContext.ALBUM_CONFIGS.removeListener(self._onAlbumConfig);
+		        	Qoid.labeledContent.removeListener(self._onLabeledContent);
 		            untyped JQ.Widget.prototype.destroy.call( JQ.curNoWrap );
 		        }
 		    };
