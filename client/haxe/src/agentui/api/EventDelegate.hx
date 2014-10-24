@@ -91,23 +91,23 @@ class EventDelegate {
         });
 
         EM.addListener(EMEvent.VerificationRequest, function(vr:VerificationRequest){
-            // TODO:  protocolHandler.verificationRequest(vr);
+            QoidAPI.verificationRequest(vr);
         });
 
-        EM.addListener(EMEvent.RespondToVerification, function(vr:VerificationResponse){
-            // TODO:  protocolHandler.respondToVerificationRequest(vr);
+        EM.addListener(EMEvent.AcceptVerificationRequest, function(vr:VerificationResponse){
+            QoidAPI.acceptVerificationRequest(vr);
         });
         
-        EM.addListener(EMEvent.AcceptVerification, function(notificationIid:String){
-            // TODO:  protocolHandler.acceptVerification(notificationIid);
+        EM.addListener(EMEvent.AcceptVerification, function(v:VerificationResponseNotification){
+            QoidAPI.acceptVerification(v);
         });
 
         EM.addListener(EMEvent.RejectVerificationRequest, function(notificationIid:String){
-            // TODO:  protocolHandler.rejectVerificationRequest(notificationIid);
+            QoidAPI.rejectVerificationRequest(notificationIid);
         });
 
         EM.addListener(EMEvent.RejectVerification, function(notificationIid:String){
-            // TODO:  protocolHandler.rejectVerificationResponse(notificationIid);
+            QoidAPI.rejectVerificationResponse(notificationIid);
         });
 	}
 }

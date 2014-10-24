@@ -9,7 +9,6 @@ import m3.log.LogLevel;
 import m3.serialization.Serialization;
 import qoid.QE;
 import agentui.widget.*;
-// import agentui.widget.score.ScoreComp;
 import agentui.api.EventDelegate;
 import agentui.model.EM;
 import qoid.model.ModelObj;
@@ -37,14 +36,6 @@ class AgentUi {
     }
 
     public static function start(): Void {
-        var r: RestoreWidget = new RestoreWidget("<div></div>");
-        
-        HOT_KEY_ACTIONS.push(function(evt: JQEvent): Void {
-            if(evt.altKey && evt.shiftKey && evt.keyCode == 82 /* ALT+SHIFT+R */) {
-                Logga.DEFAULT.debug("ALT + SHIFT + R");
-                r.restoreWidget("open");
-            }
-        });
 
         new JQ("body").keyup(function(evt: JQEvent) {
             if(HOT_KEY_ACTIONS.hasValues()) {
@@ -84,19 +75,12 @@ class AgentUi {
 
         new InviteComp("#sideRight #sideRightInvite").inviteComp();
 
-        // new ScoreComp("#score-div").scoreComp();
-        
         new JQ("body").click(function(evt: JqEvent): Void {
             new JQ(".nonmodalPopup").hide();
         });
-
-        r.appendTo(new JQ(js.Browser.document.body));
-        r.restoreWidget();
 
         Timer.delay(function() {
                  DialogManager.showLogin();
             }, 100);
     }
-
-
 }

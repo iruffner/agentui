@@ -24,6 +24,7 @@ typedef AcceptVerificationResponseDialogWidgetDef = {
 	var initialized: Bool;
 
 	var _create: Void->Void;
+	var _populateDialog: Void->Void;
 	var destroy: Void->Void;
 
 	var _buildDialog: Void->Void;
@@ -50,11 +51,18 @@ extern class AcceptVerificationResponseDialog extends JQ {
 
 		        _create: function(): Void {
 		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of AcceptVerificationResponseDialog must be a div element");
 		        	}
 		        	selfElement.addClass("acceptVerificationResponseDialog notification-ui container boxsizingBorder");
+		        },
+
+		        _populateDialog: function():Void {
+
+		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
+					var selfElement: JQDialog = Widgets.getSelfElement();
+					selfElement.empty();
 
 		        	var conn: Connection = Qoid.connections.getElement(self.options.notification.connectionIid);
 
@@ -76,22 +84,20 @@ extern class AcceptVerificationResponseDialog extends JQ {
 
 		        acceptVerification: function():Void {
 		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
-		        	EM.listenOnce(EMEvent.AcceptVerification_RESPONSE, function(e:Dynamic) {
-	        			self.destroy();
-	        			selfElement.remove();
+		        	EM.listenOnce("onAcceptVerification", function(e:Dynamic) {
+						selfElement.dialog("close");
 		        	});
 
-		        	EM.change(EMEvent.AcceptVerification, self.options.notification.iid);
+		        	EM.change(EMEvent.AcceptVerification, self.options.notification);
 		        },
 
 		        rejectVerification: function():Void {
 		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
-		        	EM.listenOnce(EMEvent.RejectVerification_RESPONSE, function(e:Dynamic) {
-	        			self.destroy();
-	        			selfElement.remove();
+					var selfElement: JQDialog = Widgets.getSelfElement();
+		        	EM.listenOnce("onRejectVerification", function(e:Dynamic) {
+						selfElement.dialog("close");
 		        	});
 
 		        	EM.change(EMEvent.RejectVerification, self.options.notification.iid);
@@ -131,6 +137,7 @@ extern class AcceptVerificationResponseDialog extends JQ {
 		        	if(!self.initialized) {
 		        		self._buildDialog();
 		        	}
+		        	self._populateDialog();
 	        		selfElement.dialog("open");
         		},
 

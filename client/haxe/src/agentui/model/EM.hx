@@ -30,7 +30,6 @@ class EMEvent {
 	public static inline var FILTER_RUN = "FILTER_RUN";
 	public static inline var FILTER_CHANGE = "FILTER_CHANGE";
 	public static inline var OnFilteredContent: String = "onFilteredContent";
-	public static inline var AppendFilteredContent = "AppendFilteredContent";
 
 	public static inline var EditContentClosed = "EditContentClosed";
 
@@ -58,7 +57,6 @@ class EMEvent {
 
 	public static inline var DeleteConnection = "DeleteConnection";
 
-	public static inline var INTRODUCTION_RESPONSE = "INTRODUCTION_RESPONSE";
 	public static inline var RespondToIntroduction = "RespondToIntroduction";
 
 	public static inline var OnConsumeNotification = "onConsumeNotification";
@@ -67,22 +65,10 @@ class EMEvent {
 	public static inline var TargetChange = "TargetChange";
 
 	public static inline var VerificationRequest = "VerificationRequest";
-	public static inline var VerificationRequest_RESPONSE = "VerificationRequest_RESPONSE";
 
-	public static inline var RespondToVerification = "RespondToVerification";
-	public static inline var RespondToVerification_RESPONSE = "RespondToVerification_RESPONSE";
-
+	public static inline var AcceptVerificationRequest = "AcceptVerificationRequest";
 	public static inline var RejectVerificationRequest = "RejectVerificationRequest";
-	public static inline var RejectVerificationRequest_RESPONSE = "RejectVerificationRequest_RESPONSE";
 	
 	public static inline var AcceptVerification = "AcceptVerification";
-	public static inline var AcceptVerification_RESPONSE = "AcceptVerification_RESPONSE";
-
 	public static inline var RejectVerification = "RejectVerification";
-	public static inline var RejectVerification_RESPONSE = "RejectVerification_RESPONSE";
-
-	public static inline var BACKUP  = "BACKUP";
-	public static inline var RESTORE = "RESTORE";
-	public static inline var RESTORES_REQUEST  = "RESTORES_REQUEST";
-	public static inline var AVAILABLE_BACKUPS = "AVAILABLE_BACKUPS";
 }

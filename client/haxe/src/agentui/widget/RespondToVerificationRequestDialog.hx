@@ -29,6 +29,7 @@ typedef RespondToVerificationRequestDialogWidgetDef = {
 	var destroy: Void->Void;
 
 	var _buildDialog: Void->Void;
+	var _populateDialog: Void->Void;
 	var open: Void->Void;
 
 	var acceptVerification: Void->Void;
@@ -52,11 +53,18 @@ extern class RespondToVerificationRequestDialog extends JQ {
 
 		        _create: function(): Void {
 		        	var self: RespondToVerificationRequestDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 		        	if(!selfElement.is("div")) {
 		        		throw new Exception("Root of RespondToVerificationRequestDialog must be a div element");
 		        	}
 		        	selfElement.addClass("respondToVerificationRequestDialog notification-ui container boxsizingBorder");
+				},
+
+				_populateDialog: function():Void {
+		        	var self: RespondToVerificationRequestDialogWidgetDef = Widgets.getSelf();
+					var selfElement: JQDialog = Widgets.getSelfElement();
+
+					selfElement.empty();
 
 		        	var conn: Connection = Qoid.connections.getElement(self.options.notification.connectionIid);
 
@@ -79,26 +87,26 @@ extern class RespondToVerificationRequestDialog extends JQ {
 
 		        	var contentDiv = new JQ("<div class='container content-div'></div>").appendTo(invitationText);
 		        	switch(content.contentType) {
-		        		case "AUDIO":
+		        		case ContentTypes.AUDIO:
 			        		var audio: AudioContent = cast(content, AudioContent);
 			        		contentDiv.append(audio.props.title + "<br/>");
 			        		var audioControls: JQ = new JQ("<audio controls></audio>");
 			        		contentDiv.append(audioControls);
 			        		audioControls.append("<source src='" + audio.props.audioSrc + "' type='" + audio.props.audioType + "'>Your browser does not support the audio element.");
 
-		        		case "IMAGE":
+		        		case ContentTypes.IMAGE:
 		        			var img: ImageContent = cast(content, ImageContent);
 		        			contentDiv.append("<img alt='" + img.props.caption + "' src='" + img.props.imgSrc + "'/>");// + img.caption);
 
-						case "URL":
+						case ContentTypes.URL:
 							var urlContent: UrlContent = cast(content, UrlContent);
 							contentDiv.append("<img src='http://picoshot.com/t.php?picurl=" + urlContent.props.url + "'>");
 
-	        			case "TEXT":
+	        			case ContentTypes.TEXT:
 	        				var textContent: MessageContent = cast(content, MessageContent);
 	        				contentDiv.append("<div class='content-text'><pre class='text-content'>" + textContent.props.text + "</pre></div>"); 
 	        			
-		        		case "VERIFICATION":
+		        		case ContentTypes.VERIFICATION:
 		        			throw new Exception("VerificationContent should not be displayed"); 
 		        	}
 
@@ -108,26 +116,24 @@ extern class RespondToVerificationRequestDialog extends JQ {
 
 		        acceptVerification: function():Void {
 		        	var self: RespondToVerificationRequestDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
 					var text:String = new JQ("#responseText").val();
 					if (text.isBlank()) {text = "The claim is true";}
-		        	var msg = new VerificationResponse(self.options.notification.iid, text);
-		        	EM.listenOnce(EMEvent.RespondToVerification_RESPONSE, function(e:Dynamic) {
-	        			self.destroy();
-	        			selfElement.remove();
+		        	var msg = new VerificationResponse(self.options.notification, text);
+		        	EM.listenOnce("onVerificationRequestAccepted", function(e:Dynamic) {
+						selfElement.dialog("close");
 		        	});
 
-		        	EM.change(EMEvent.RespondToVerification,msg);
+		        	EM.change(EMEvent.AcceptVerificationRequest,msg);
 		        },
 
 		        rejectVerification: function():Void {
 		        	var self: RespondToVerificationRequestDialogWidgetDef = Widgets.getSelf();
-					var selfElement: JQ = Widgets.getSelfElement();
+					var selfElement: JQDialog = Widgets.getSelfElement();
 
-		        	EM.listenOnce(EMEvent.RejectVerificationRequest_RESPONSE, function(e:Dynamic) {
-	        			self.destroy();
-	        			selfElement.remove();
+		        	EM.listenOnce("onVerificationRequestRejected", function(e:Dynamic) {
+						selfElement.dialog("close");
 		        	});
 
 		        	EM.change(EMEvent.RejectVerificationRequest, self.options.notification.iid);
@@ -167,6 +173,9 @@ extern class RespondToVerificationRequestDialog extends JQ {
 		        	if(!self.initialized) {
 		        		self._buildDialog();
 		        	}
+
+		        	self._populateDialog();
+
 	        		selfElement.dialog("open");
         		},
 
