@@ -6648,47 +6648,50 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of AcceptVerificationResponseDialog must be a div element");
 		selfElement.addClass("acceptVerificationResponseDialog notification-ui container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self.options.notification.get_connectionIid());
-		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
+	}, _populateDialog : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		selfElement1.empty();
+		var conn = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self1.options.notification.get_connectionIid());
+		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement1);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Verification Response</div>").appendTo(invitationText);
 		var from = new $("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
 		var date = new $("<div class='notification-line'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var message = new $("<div class='notification-line'><b>Comments:</b> " + Std.string(self.options.notification.props.verificationContentData.text) + "</div>").appendTo(invitationText);
+		var message = new $("<div class='notification-line'><b>Comments:</b> " + Std.string(self1.options.notification.props.verificationContentData.text) + "</div>").appendTo(invitationText);
 	}, acceptVerification : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
-		agentui.model.EM.listenOnce("onAcceptVerification",function(e) {
-			self1.destroy();
-			selfElement1.remove();
-		});
-		agentui.model.EM.change("AcceptVerification",self1.options.notification);
-	}, rejectVerification : function() {
 		var self2 = this;
 		var selfElement2 = this.element;
-		agentui.model.EM.listenOnce("onRejectVerification",function(e1) {
-			self2.destroy();
-			selfElement2.remove();
+		agentui.model.EM.listenOnce("onAcceptVerification",function(e) {
+			selfElement2.dialog("close");
 		});
-		agentui.model.EM.change("RejectVerification",self2.options.notification.iid);
-	}, _buildDialog : function() {
+		agentui.model.EM.change("AcceptVerification",self2.options.notification);
+	}, rejectVerification : function() {
 		var self3 = this;
 		var selfElement3 = this.element;
-		self3.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Accept Verification Response", height : 400, width : 600, modal : true, buttons : { Accept : function() {
-			self3.acceptVerification();
-		}, Reject : function() {
-			self3.rejectVerification();
-		}}, close : function(evt,ui) {
-			selfElement3.find(".placeholder").removeClass("ui-state-error");
-		}};
-		selfElement3.dialog(dlgOptions);
-	}, open : function() {
+		agentui.model.EM.listenOnce("onRejectVerification",function(e1) {
+			selfElement3.dialog("close");
+		});
+		agentui.model.EM.change("RejectVerification",self3.options.notification.iid);
+	}, _buildDialog : function() {
 		var self4 = this;
 		var selfElement4 = this.element;
-		if(!self4.initialized) self4._buildDialog();
-		selfElement4.dialog("open");
+		self4.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Accept Verification Response", height : 400, width : 600, modal : true, buttons : { Accept : function() {
+			self4.acceptVerification();
+		}, Reject : function() {
+			self4.rejectVerification();
+		}}, close : function(evt,ui) {
+			selfElement4.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement4.dialog(dlgOptions);
+	}, open : function() {
+		var self5 = this;
+		var selfElement5 = this.element;
+		if(!self5.initialized) self5._buildDialog();
+		self5._populateDialog();
+		selfElement5.dialog("open");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};
@@ -8828,16 +8831,20 @@ var defineWidget = function() {
 		var selfElement = this.element;
 		if(!selfElement["is"]("div")) throw new m3.exception.Exception("Root of RespondToVerificationRequestDialog must be a div element");
 		selfElement.addClass("respondToVerificationRequestDialog notification-ui container boxsizingBorder");
-		var conn = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self.options.notification.get_connectionIid());
-		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement);
+	}, _populateDialog : function() {
+		var self1 = this;
+		var selfElement1 = this.element;
+		selfElement1.empty();
+		var conn = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,self1.options.notification.get_connectionIid());
+		var intro_table = new $("<table id='intro-table'><tr><td></td><td></td><td></td></tr></table>").appendTo(selfElement1);
 		var avatar = new $("<div class='avatar introduction-avatar'></div>").connectionAvatar({ connectionIid : conn.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(intro_table.find("td:nth-child(1)"));
 		var invitationText = new $("<div class='invitationText'></div>").appendTo(intro_table.find("td:nth-child(2)"));
 		var title = new $("<div class='intro-title'>Verification Request</div>").appendTo(invitationText);
 		var from = new $("<div class='notification-line'><b>From:</b> " + conn.data.name + "</div>").appendTo(invitationText);
 		var date = new $("<div class='notification-line'><b>Date:</b> " + Std.string(new Date()) + "</div>").appendTo(invitationText);
-		var message = new $("<div class='notification-line'><b>Message:</b> " + self.options.notification.props.message + "</div>").appendTo(invitationText);
+		var message = new $("<div class='notification-line'><b>Message:</b> " + self1.options.notification.props.message + "</div>").appendTo(invitationText);
 		new $("<div class='notification-line' style='margin-top:7px;'><b>Content:</b></div>").appendTo(invitationText);
-		var content = self.options.notification.props.getContent();
+		var content = self1.options.notification.props.getContent();
 		var contentDiv = new $("<div class='container content-div'></div>").appendTo(invitationText);
 		var _g = content.contentType;
 		switch(_g) {
@@ -8870,39 +8877,40 @@ var defineWidget = function() {
 		}
 		new $("<div class='notification-line'><b>Comments:</b> <input type='text' id='responseText'/></div>").appendTo(invitationText);
 	}, acceptVerification : function() {
-		var self1 = this;
-		var selfElement1 = this.element;
+		var self2 = this;
+		var selfElement2 = this.element;
 		var text = new $("#responseText").val();
 		if(m3.helper.StringHelper.isBlank(text)) text = "The claim is true";
-		var msg = new qoid.model.VerificationResponse(self1.options.notification,text);
+		var msg = new qoid.model.VerificationResponse(self2.options.notification,text);
 		agentui.model.EM.listenOnce("onVerificationRequestAccepted",function(e) {
-			selfElement1.dialog("close");
+			selfElement2.dialog("close");
 		});
 		agentui.model.EM.change("RespondToVerification",msg);
 	}, rejectVerification : function() {
-		var self2 = this;
-		var selfElement2 = this.element;
-		agentui.model.EM.listenOnce("onVerificationRequestRejected",function(e1) {
-			selfElement2.dialog("close");
-		});
-		agentui.model.EM.change("RejectVerificationRequest",self2.options.notification.iid);
-	}, _buildDialog : function() {
 		var self3 = this;
 		var selfElement3 = this.element;
-		self3.initialized = true;
-		var dlgOptions = { autoOpen : false, title : "Respond To Verification Request", height : 400, width : 600, modal : true, buttons : { Accept : function() {
-			self3.acceptVerification();
-		}, Reject : function() {
-			self3.rejectVerification();
-		}}, close : function(evt,ui) {
-			selfElement3.find(".placeholder").removeClass("ui-state-error");
-		}};
-		selfElement3.dialog(dlgOptions);
-	}, open : function() {
+		agentui.model.EM.listenOnce("onVerificationRequestRejected",function(e1) {
+			selfElement3.dialog("close");
+		});
+		agentui.model.EM.change("RejectVerificationRequest",self3.options.notification.iid);
+	}, _buildDialog : function() {
 		var self4 = this;
 		var selfElement4 = this.element;
-		if(!self4.initialized) self4._buildDialog();
-		selfElement4.dialog("open");
+		self4.initialized = true;
+		var dlgOptions = { autoOpen : false, title : "Respond To Verification Request", height : 400, width : 600, modal : true, buttons : { Accept : function() {
+			self4.acceptVerification();
+		}, Reject : function() {
+			self4.rejectVerification();
+		}}, close : function(evt,ui) {
+			selfElement4.find(".placeholder").removeClass("ui-state-error");
+		}};
+		selfElement4.dialog(dlgOptions);
+	}, open : function() {
+		var self5 = this;
+		var selfElement5 = this.element;
+		if(!self5.initialized) self5._buildDialog();
+		self5._populateDialog();
+		selfElement5.dialog("open");
 	}, destroy : function() {
 		$.Widget.prototype.destroy.call(this);
 	}};

@@ -29,6 +29,7 @@ typedef RespondToVerificationRequestDialogWidgetDef = {
 	var destroy: Void->Void;
 
 	var _buildDialog: Void->Void;
+	var _populateDialog: Void->Void;
 	var open: Void->Void;
 
 	var acceptVerification: Void->Void;
@@ -57,6 +58,13 @@ extern class RespondToVerificationRequestDialog extends JQ {
 		        		throw new Exception("Root of RespondToVerificationRequestDialog must be a div element");
 		        	}
 		        	selfElement.addClass("respondToVerificationRequestDialog notification-ui container boxsizingBorder");
+				},
+
+				_populateDialog: function():Void {
+		        	var self: RespondToVerificationRequestDialogWidgetDef = Widgets.getSelf();
+					var selfElement: JQDialog = Widgets.getSelfElement();
+
+					selfElement.empty();
 
 		        	var conn: Connection = Qoid.connections.getElement(self.options.notification.connectionIid);
 
@@ -166,7 +174,7 @@ extern class RespondToVerificationRequestDialog extends JQ {
 		        		self._buildDialog();
 		        	}
 
-		        	// TODO:  else Clear out invitation text and re-add all elements.trace
+		        	self._populateDialog();
 
 	        		selfElement.dialog("open");
         		},
