@@ -94,7 +94,7 @@ class EventDelegate {
             QoidAPI.verificationRequest(vr);
         });
 
-        EM.addListener(EMEvent.RespondToVerification, function(vr:VerificationResponse){
+        EM.addListener(EMEvent.AcceptVerificationRequest, function(vr:VerificationResponse){
             QoidAPI.acceptVerificationRequest(vr);
         });
         

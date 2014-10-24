@@ -125,7 +125,7 @@ extern class RespondToVerificationRequestDialog extends JQ {
 						selfElement.dialog("close");
 		        	});
 
-		        	EM.change(EMEvent.RespondToVerification,msg);
+		        	EM.change(EMEvent.AcceptVerificationRequest,msg);
 		        },
 
 		        rejectVerification: function():Void {
