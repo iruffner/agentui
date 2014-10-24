@@ -3,7 +3,7 @@ $hx_exports.qoid = $hx_exports.qoid || {};
 $hx_exports.m3 = $hx_exports.m3 || {};
 $hx_exports.m3.util = $hx_exports.m3.util || {};
 ;$hx_exports.m3.helper = $hx_exports.m3.helper || {};
-var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
+var $hxClasses = {};
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -363,27 +363,20 @@ StringTools.fastCodeAt = function(s,index) {
 };
 var ValueType = $hxClasses["ValueType"] = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
 ValueType.TNull = ["TNull",0];
-ValueType.TNull.toString = $estr;
 ValueType.TNull.__enum__ = ValueType;
 ValueType.TInt = ["TInt",1];
-ValueType.TInt.toString = $estr;
 ValueType.TInt.__enum__ = ValueType;
 ValueType.TFloat = ["TFloat",2];
-ValueType.TFloat.toString = $estr;
 ValueType.TFloat.__enum__ = ValueType;
 ValueType.TBool = ["TBool",3];
-ValueType.TBool.toString = $estr;
 ValueType.TBool.__enum__ = ValueType;
 ValueType.TObject = ["TObject",4];
-ValueType.TObject.toString = $estr;
 ValueType.TObject.__enum__ = ValueType;
 ValueType.TFunction = ["TFunction",5];
-ValueType.TFunction.toString = $estr;
 ValueType.TFunction.__enum__ = ValueType;
-ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
-ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
+ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; return $x; };
+ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; return $x; };
 ValueType.TUnknown = ["TUnknown",8];
-ValueType.TUnknown.toString = $estr;
 ValueType.TUnknown.__enum__ = ValueType;
 ValueType.__empty_constructs__ = [ValueType.TNull,ValueType.TInt,ValueType.TFloat,ValueType.TBool,ValueType.TObject,ValueType.TFunction,ValueType.TUnknown];
 var Type = function() { };
@@ -702,12 +695,11 @@ Xml.prototype = {
 var haxe = {};
 haxe.StackItem = $hxClasses["haxe.StackItem"] = { __ename__ : ["haxe","StackItem"], __constructs__ : ["CFunction","Module","FilePos","Method","LocalFunction"] };
 haxe.StackItem.CFunction = ["CFunction",0];
-haxe.StackItem.CFunction.toString = $estr;
 haxe.StackItem.CFunction.__enum__ = haxe.StackItem;
-haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.LocalFunction = function(v) { var $x = ["LocalFunction",4,v]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
+haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.LocalFunction = function(v) { var $x = ["LocalFunction",4,v]; $x.__enum__ = haxe.StackItem; return $x; };
 haxe.StackItem.__empty_constructs__ = [haxe.StackItem.CFunction];
 haxe.CallStack = function() { };
 $hxClasses["haxe.CallStack"] = haxe.CallStack;
@@ -820,183 +812,148 @@ haxe.ds.StringMap.prototype = {
 };
 haxe.macro = {};
 haxe.macro.Constant = $hxClasses["haxe.macro.Constant"] = { __ename__ : ["haxe","macro","Constant"], __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp"] };
-haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
-haxe.macro.Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
-haxe.macro.Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
-haxe.macro.Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
-haxe.macro.Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
+haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe.macro.Constant; return $x; };
 haxe.macro.Constant.__empty_constructs__ = [];
 haxe.macro.Binop = $hxClasses["haxe.macro.Binop"] = { __ename__ : ["haxe","macro","Binop"], __constructs__ : ["OpAdd","OpMult","OpDiv","OpSub","OpAssign","OpEq","OpNotEq","OpGt","OpGte","OpLt","OpLte","OpAnd","OpOr","OpXor","OpBoolAnd","OpBoolOr","OpShl","OpShr","OpUShr","OpMod","OpAssignOp","OpInterval","OpArrow"] };
 haxe.macro.Binop.OpAdd = ["OpAdd",0];
-haxe.macro.Binop.OpAdd.toString = $estr;
 haxe.macro.Binop.OpAdd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpMult = ["OpMult",1];
-haxe.macro.Binop.OpMult.toString = $estr;
 haxe.macro.Binop.OpMult.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpDiv = ["OpDiv",2];
-haxe.macro.Binop.OpDiv.toString = $estr;
 haxe.macro.Binop.OpDiv.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpSub = ["OpSub",3];
-haxe.macro.Binop.OpSub.toString = $estr;
 haxe.macro.Binop.OpSub.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpAssign = ["OpAssign",4];
-haxe.macro.Binop.OpAssign.toString = $estr;
 haxe.macro.Binop.OpAssign.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpEq = ["OpEq",5];
-haxe.macro.Binop.OpEq.toString = $estr;
 haxe.macro.Binop.OpEq.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpNotEq = ["OpNotEq",6];
-haxe.macro.Binop.OpNotEq.toString = $estr;
 haxe.macro.Binop.OpNotEq.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpGt = ["OpGt",7];
-haxe.macro.Binop.OpGt.toString = $estr;
 haxe.macro.Binop.OpGt.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpGte = ["OpGte",8];
-haxe.macro.Binop.OpGte.toString = $estr;
 haxe.macro.Binop.OpGte.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpLt = ["OpLt",9];
-haxe.macro.Binop.OpLt.toString = $estr;
 haxe.macro.Binop.OpLt.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpLte = ["OpLte",10];
-haxe.macro.Binop.OpLte.toString = $estr;
 haxe.macro.Binop.OpLte.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpAnd = ["OpAnd",11];
-haxe.macro.Binop.OpAnd.toString = $estr;
 haxe.macro.Binop.OpAnd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpOr = ["OpOr",12];
-haxe.macro.Binop.OpOr.toString = $estr;
 haxe.macro.Binop.OpOr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpXor = ["OpXor",13];
-haxe.macro.Binop.OpXor.toString = $estr;
 haxe.macro.Binop.OpXor.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpBoolAnd = ["OpBoolAnd",14];
-haxe.macro.Binop.OpBoolAnd.toString = $estr;
 haxe.macro.Binop.OpBoolAnd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpBoolOr = ["OpBoolOr",15];
-haxe.macro.Binop.OpBoolOr.toString = $estr;
 haxe.macro.Binop.OpBoolOr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpShl = ["OpShl",16];
-haxe.macro.Binop.OpShl.toString = $estr;
 haxe.macro.Binop.OpShl.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpShr = ["OpShr",17];
-haxe.macro.Binop.OpShr.toString = $estr;
 haxe.macro.Binop.OpShr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpUShr = ["OpUShr",18];
-haxe.macro.Binop.OpUShr.toString = $estr;
 haxe.macro.Binop.OpUShr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpMod = ["OpMod",19];
-haxe.macro.Binop.OpMod.toString = $estr;
 haxe.macro.Binop.OpMod.__enum__ = haxe.macro.Binop;
-haxe.macro.Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe.macro.Binop; $x.toString = $estr; return $x; };
+haxe.macro.Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe.macro.Binop; return $x; };
 haxe.macro.Binop.OpInterval = ["OpInterval",21];
-haxe.macro.Binop.OpInterval.toString = $estr;
 haxe.macro.Binop.OpInterval.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpArrow = ["OpArrow",22];
-haxe.macro.Binop.OpArrow.toString = $estr;
 haxe.macro.Binop.OpArrow.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.__empty_constructs__ = [haxe.macro.Binop.OpAdd,haxe.macro.Binop.OpMult,haxe.macro.Binop.OpDiv,haxe.macro.Binop.OpSub,haxe.macro.Binop.OpAssign,haxe.macro.Binop.OpEq,haxe.macro.Binop.OpNotEq,haxe.macro.Binop.OpGt,haxe.macro.Binop.OpGte,haxe.macro.Binop.OpLt,haxe.macro.Binop.OpLte,haxe.macro.Binop.OpAnd,haxe.macro.Binop.OpOr,haxe.macro.Binop.OpXor,haxe.macro.Binop.OpBoolAnd,haxe.macro.Binop.OpBoolOr,haxe.macro.Binop.OpShl,haxe.macro.Binop.OpShr,haxe.macro.Binop.OpUShr,haxe.macro.Binop.OpMod,haxe.macro.Binop.OpInterval,haxe.macro.Binop.OpArrow];
 haxe.macro.Unop = $hxClasses["haxe.macro.Unop"] = { __ename__ : ["haxe","macro","Unop"], __constructs__ : ["OpIncrement","OpDecrement","OpNot","OpNeg","OpNegBits"] };
 haxe.macro.Unop.OpIncrement = ["OpIncrement",0];
-haxe.macro.Unop.OpIncrement.toString = $estr;
 haxe.macro.Unop.OpIncrement.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpDecrement = ["OpDecrement",1];
-haxe.macro.Unop.OpDecrement.toString = $estr;
 haxe.macro.Unop.OpDecrement.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNot = ["OpNot",2];
-haxe.macro.Unop.OpNot.toString = $estr;
 haxe.macro.Unop.OpNot.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNeg = ["OpNeg",3];
-haxe.macro.Unop.OpNeg.toString = $estr;
 haxe.macro.Unop.OpNeg.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNegBits = ["OpNegBits",4];
-haxe.macro.Unop.OpNegBits.toString = $estr;
 haxe.macro.Unop.OpNegBits.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.__empty_constructs__ = [haxe.macro.Unop.OpIncrement,haxe.macro.Unop.OpDecrement,haxe.macro.Unop.OpNot,haxe.macro.Unop.OpNeg,haxe.macro.Unop.OpNegBits];
 haxe.macro.ExprDef = $hxClasses["haxe.macro.ExprDef"] = { __ename__ : ["haxe","macro","ExprDef"], __constructs__ : ["EConst","EArray","EBinop","EField","EParenthesis","EObjectDecl","EArrayDecl","ECall","ENew","EUnop","EVars","EFunction","EBlock","EFor","EIn","EIf","EWhile","ESwitch","ETry","EReturn","EBreak","EContinue","EUntyped","EThrow","ECast","EDisplay","EDisplayNew","ETernary","ECheckType","EMeta"] };
-haxe.macro.ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
 haxe.macro.ExprDef.EBreak = ["EBreak",20];
-haxe.macro.ExprDef.EBreak.toString = $estr;
 haxe.macro.ExprDef.EBreak.__enum__ = haxe.macro.ExprDef;
 haxe.macro.ExprDef.EContinue = ["EContinue",21];
-haxe.macro.ExprDef.EContinue.toString = $estr;
 haxe.macro.ExprDef.EContinue.__enum__ = haxe.macro.ExprDef;
-haxe.macro.ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
-haxe.macro.ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
 haxe.macro.ExprDef.__empty_constructs__ = [haxe.macro.ExprDef.EBreak,haxe.macro.ExprDef.EContinue];
 haxe.macro.ComplexType = $hxClasses["haxe.macro.ComplexType"] = { __ename__ : ["haxe","macro","ComplexType"], __constructs__ : ["TPath","TFunction","TAnonymous","TParent","TExtend","TOptional"] };
-haxe.macro.ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
-haxe.macro.ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
+haxe.macro.ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
 haxe.macro.ComplexType.__empty_constructs__ = [];
 haxe.macro.TypeParam = $hxClasses["haxe.macro.TypeParam"] = { __ename__ : ["haxe","macro","TypeParam"], __constructs__ : ["TPType","TPExpr"] };
-haxe.macro.TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe.macro.TypeParam; $x.toString = $estr; return $x; };
-haxe.macro.TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe.macro.TypeParam; $x.toString = $estr; return $x; };
+haxe.macro.TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe.macro.TypeParam; return $x; };
+haxe.macro.TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe.macro.TypeParam; return $x; };
 haxe.macro.TypeParam.__empty_constructs__ = [];
 haxe.rtti = {};
 haxe.rtti.CType = $hxClasses["haxe.rtti.CType"] = { __ename__ : ["haxe","rtti","CType"], __constructs__ : ["CUnknown","CEnum","CClass","CTypedef","CFunction","CAnonymous","CDynamic","CAbstract"] };
 haxe.rtti.CType.CUnknown = ["CUnknown",0];
-haxe.rtti.CType.CUnknown.toString = $estr;
 haxe.rtti.CType.CUnknown.__enum__ = haxe.rtti.CType;
-haxe.rtti.CType.CEnum = function(name,params) { var $x = ["CEnum",1,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CClass = function(name,params) { var $x = ["CClass",2,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CTypedef = function(name,params) { var $x = ["CTypedef",3,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CFunction = function(args,ret) { var $x = ["CFunction",4,args,ret]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CAnonymous = function(fields) { var $x = ["CAnonymous",5,fields]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CDynamic = function(t) { var $x = ["CDynamic",6,t]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
-haxe.rtti.CType.CAbstract = function(name,params) { var $x = ["CAbstract",7,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
+haxe.rtti.CType.CEnum = function(name,params) { var $x = ["CEnum",1,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CClass = function(name,params) { var $x = ["CClass",2,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CTypedef = function(name,params) { var $x = ["CTypedef",3,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CFunction = function(args,ret) { var $x = ["CFunction",4,args,ret]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CAnonymous = function(fields) { var $x = ["CAnonymous",5,fields]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CDynamic = function(t) { var $x = ["CDynamic",6,t]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CAbstract = function(name,params) { var $x = ["CAbstract",7,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
 haxe.rtti.CType.__empty_constructs__ = [haxe.rtti.CType.CUnknown];
 haxe.rtti.Rights = $hxClasses["haxe.rtti.Rights"] = { __ename__ : ["haxe","rtti","Rights"], __constructs__ : ["RNormal","RNo","RCall","RMethod","RDynamic","RInline"] };
 haxe.rtti.Rights.RNormal = ["RNormal",0];
-haxe.rtti.Rights.RNormal.toString = $estr;
 haxe.rtti.Rights.RNormal.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RNo = ["RNo",1];
-haxe.rtti.Rights.RNo.toString = $estr;
 haxe.rtti.Rights.RNo.__enum__ = haxe.rtti.Rights;
-haxe.rtti.Rights.RCall = function(m) { var $x = ["RCall",2,m]; $x.__enum__ = haxe.rtti.Rights; $x.toString = $estr; return $x; };
+haxe.rtti.Rights.RCall = function(m) { var $x = ["RCall",2,m]; $x.__enum__ = haxe.rtti.Rights; return $x; };
 haxe.rtti.Rights.RMethod = ["RMethod",3];
-haxe.rtti.Rights.RMethod.toString = $estr;
 haxe.rtti.Rights.RMethod.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RDynamic = ["RDynamic",4];
-haxe.rtti.Rights.RDynamic.toString = $estr;
 haxe.rtti.Rights.RDynamic.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RInline = ["RInline",5];
-haxe.rtti.Rights.RInline.toString = $estr;
 haxe.rtti.Rights.RInline.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.__empty_constructs__ = [haxe.rtti.Rights.RNormal,haxe.rtti.Rights.RNo,haxe.rtti.Rights.RMethod,haxe.rtti.Rights.RDynamic,haxe.rtti.Rights.RInline];
 haxe.rtti.TypeTree = $hxClasses["haxe.rtti.TypeTree"] = { __ename__ : ["haxe","rtti","TypeTree"], __constructs__ : ["TPackage","TClassdecl","TEnumdecl","TTypedecl","TAbstractdecl"] };
-haxe.rtti.TypeTree.TPackage = function(name,full,subs) { var $x = ["TPackage",0,name,full,subs]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
-haxe.rtti.TypeTree.TClassdecl = function(c) { var $x = ["TClassdecl",1,c]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
-haxe.rtti.TypeTree.TEnumdecl = function(e) { var $x = ["TEnumdecl",2,e]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
-haxe.rtti.TypeTree.TTypedecl = function(t) { var $x = ["TTypedecl",3,t]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
-haxe.rtti.TypeTree.TAbstractdecl = function(a) { var $x = ["TAbstractdecl",4,a]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
+haxe.rtti.TypeTree.TPackage = function(name,full,subs) { var $x = ["TPackage",0,name,full,subs]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TClassdecl = function(c) { var $x = ["TClassdecl",1,c]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TEnumdecl = function(e) { var $x = ["TEnumdecl",2,e]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TTypedecl = function(t) { var $x = ["TTypedecl",3,t]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TAbstractdecl = function(a) { var $x = ["TAbstractdecl",4,a]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
 haxe.rtti.TypeTree.__empty_constructs__ = [];
 haxe.rtti.XmlParser = function() {
 	this.root = new Array();
@@ -2609,20 +2566,19 @@ m3.helper.StringHelper.toBool = function(str) {
 	if(str == null) return false;
 	return str.toLowerCase() == "true";
 };
-m3.jq = {};
-m3.jq.M3DialogHelper = function() { };
-$hxClasses["m3.jq.M3DialogHelper"] = m3.jq.M3DialogHelper;
-m3.jq.M3DialogHelper.__name__ = ["m3","jq","M3DialogHelper"];
-m3.jq.M3DialogHelper.close = function(dlg) {
-	dlg.m3dialog("close");
-};
-m3.jq.M3DialogHelper.open = function(dlg) {
-	dlg.m3dialog("open");
-};
-m3.jq.M3DialogHelper.isOpen = function(dlg) {
-	return dlg.m3dialog("isOpen");
-};
 m3.log = {};
+m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
+m3.log.LogLevel.TRACE = ["TRACE",0];
+m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.DEBUG = ["DEBUG",1];
+m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.INFO = ["INFO",2];
+m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.WARN = ["WARN",3];
+m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.ERROR = ["ERROR",4];
+m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
+m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
 m3.log.Logga = function(logLevel) {
 	this.initialized = false;
 	this.loggerLevel = logLevel;
@@ -2738,23 +2694,6 @@ m3.log.Logga.prototype = {
 	}
 	,__class__: m3.log.Logga
 };
-m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
-m3.log.LogLevel.TRACE = ["TRACE",0];
-m3.log.LogLevel.TRACE.toString = $estr;
-m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.DEBUG = ["DEBUG",1];
-m3.log.LogLevel.DEBUG.toString = $estr;
-m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.INFO = ["INFO",2];
-m3.log.LogLevel.INFO.toString = $estr;
-m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.WARN = ["WARN",3];
-m3.log.LogLevel.WARN.toString = $estr;
-m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.ERROR = ["ERROR",4];
-m3.log.LogLevel.ERROR.toString = $estr;
-m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
-m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
 m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
 	m3.log.Logga.call(this,consoleLevel);
 	this.remoteLogLevel = remoteLevel;
@@ -2810,59 +2749,6 @@ m3.log.RemoteLogga.prototype = $extend(m3.log.Logga.prototype,{
 	}
 	,__class__: m3.log.RemoteLogga
 });
-m3.util = {};
-m3.util.UidGenerator = function() { };
-$hxClasses["m3.util.UidGenerator"] = m3.util.UidGenerator;
-m3.util.UidGenerator.__name__ = ["m3","util","UidGenerator"];
-m3.util.UidGenerator.get_chars = function() {
-	return "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
-};
-m3.util.UidGenerator.get_nums = function() {
-	return "0123456789";
-};
-m3.util.UidGenerator.create = function(length) {
-	if(length == null) length = 20;
-	var str = new Array();
-	var charsLength = m3.util.UidGenerator.get_chars().length;
-	while(str.length == 0) {
-		var ch = m3.util.UidGenerator.randomChar();
-		if(m3.util.UidGenerator.isLetter(ch)) str.push(ch);
-	}
-	while(str.length < length) {
-		var ch1 = m3.util.UidGenerator.randomChar();
-		str.push(ch1);
-	}
-	return str.join("");
-};
-m3.util.UidGenerator.isLetter = function($char) {
-	var _g1 = 0;
-	var _g = m3.util.UidGenerator.get_chars().length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(m3.util.UidGenerator.get_chars().charAt(i) == $char) return true;
-	}
-	return false;
-};
-m3.util.UidGenerator.randomNum = function() {
-	var max = m3.util.UidGenerator.get_chars().length - 1;
-	var min = 0;
-	return min + Math.round(Math.random() * (max - min) + 1);
-};
-m3.util.UidGenerator.randomIndex = function(str) {
-	var max = str.length - 1;
-	var min = 0;
-	return min + Math.round(Math.random() * (max - min) + 1);
-};
-m3.util.UidGenerator.randomChar = function() {
-	var i = 0;
-	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_chars())) >= m3.util.UidGenerator.get_chars().length) continue;
-	return m3.util.UidGenerator.get_chars().charAt(i);
-};
-m3.util.UidGenerator.randomNumChar = function() {
-	var i = 0;
-	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
-	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
-};
 m3.log._RemoteLogga = {};
 m3.log._RemoteLogga.RemoteLoggingTimer = function(remoteLogFcn,getMsgs) {
 	this.paused = false;
@@ -4064,6 +3950,7 @@ m3.serialization.ValueTypeTools.getName = function(type) {
 		return "TClass";
 	}
 };
+m3.util = {};
 m3.util.FixedSizeArray = function(maxSize) {
 	this._maxSize = maxSize;
 	this._delegate = new Array();
@@ -4107,19 +3994,6 @@ m3.util.JqueryUtil.labelSelect = function(elem,str) {
 	} catch( err ) {
 	}
 };
-m3.util.JqueryUtil.getOrCreateDialog = function(selector,dlgOptions,createdFcn) {
-	if(m3.helper.StringHelper.isBlank(selector)) selector = "dlg" + m3.util.UidGenerator.create(10);
-	var dialog = new $(selector);
-	if(dlgOptions == null) dlgOptions = { autoOpen : false, height : 380, width : 320, modal : true};
-	if(!dialog.exists()) {
-		dialog = new $("<div id=" + HxOverrides.substr(selector,1,null) + " style='display:none;'></div>");
-		if(Reflect.isFunction(createdFcn)) createdFcn(dialog);
-		new $("body").append(dialog);
-		dialog.m3dialog(dlgOptions);
-	} else if(!dialog["is"](":data(dialog)")) dialog.m3dialog(dlgOptions);
-	if(dialog.exists()) dialog.parents(".ui-dialog").addClass("dialog");
-	return dialog;
-};
 m3.util.JqueryUtil.deleteEffects = function(dragstopEvt,width,duration,src) {
 	if(src == null) src = "media/cloud.gif";
 	if(duration == null) duration = 800;
@@ -4132,37 +4006,6 @@ m3.util.JqueryUtil.deleteEffects = function(dragstopEvt,width,duration,src) {
 	haxe.Timer.delay(function() {
 		img.remove();
 	},duration);
-};
-m3.util.JqueryUtil.confirm = function(title,question,action,width,height) {
-	if(height == null) height = 150;
-	if(width == null) width = "auto";
-	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, resizable : false, width : width, height : height, buttons : { Yes : function() {
-		action();
-		m3.jq.M3DialogHelper.close($(this));
-	}, No : function() {
-		m3.jq.M3DialogHelper.close($(this));
-	}}, close : function() {
-		$(this).remove();
-	}};
-	var dlg = m3.util.JqueryUtil.getOrCreateDialog("#confirm-dialog",dlgOptions);
-	var content = new $("<div style=\"text-align:left;\">" + question + "</div>");
-	dlg.append(content);
-	if(!m3.jq.M3DialogHelper.isOpen(dlg)) m3.jq.M3DialogHelper.open(dlg);
-};
-m3.util.JqueryUtil.alert = function(statement,title,action,width,height) {
-	if(height == null) height = 175;
-	if(width == null) width = "auto";
-	if(title == null) title = "Alert";
-	var dlgOptions = { modal : true, title : title, zIndex : 10000, autoOpen : true, resizable : false, width : width, height : height, buttons : { OK : function() {
-		m3.jq.M3DialogHelper.close($(this));
-	}}, close : function() {
-		if(action != null) action();
-		$(this).remove();
-	}};
-	var dlg = m3.util.JqueryUtil.getOrCreateDialog("#alert-dialog",dlgOptions);
-	var content = new $("<div style=\"text-align:left;\">" + statement + "</div>");
-	dlg.append(content);
-	if(!m3.jq.M3DialogHelper.isOpen(dlg)) m3.jq.M3DialogHelper.open(dlg);
 };
 m3.util.JqueryUtil.getWindowWidth = function() {
 	return new $(window).width();
@@ -4229,18 +4072,57 @@ m3.util.SizedMap.prototype = $extend(haxe.ds.StringMap.prototype,{
 	}
 	,__class__: m3.util.SizedMap
 });
-m3.widget = {};
-m3.widget.Widgets = function() { };
-$hxClasses["m3.widget.Widgets"] = m3.widget.Widgets;
-m3.widget.Widgets.__name__ = ["m3","widget","Widgets"];
-m3.widget.Widgets.getSelf = function() {
-	return this;
+m3.util.UidGenerator = function() { };
+$hxClasses["m3.util.UidGenerator"] = m3.util.UidGenerator;
+m3.util.UidGenerator.__name__ = ["m3","util","UidGenerator"];
+m3.util.UidGenerator.get_chars = function() {
+	return "ABCDEFGHIJKLMNOPQRSTUVWXYZabsdefghijklmnopqrstuvwxyz0123456789";
 };
-m3.widget.Widgets.getSelfElement = function() {
-	return this.element;
+m3.util.UidGenerator.get_nums = function() {
+	return "0123456789";
 };
-m3.widget.Widgets.getWidgetClasses = function() {
-	return " ui-widget";
+m3.util.UidGenerator.create = function(length) {
+	if(length == null) length = 20;
+	var str = new Array();
+	var charsLength = m3.util.UidGenerator.get_chars().length;
+	while(str.length == 0) {
+		var ch = m3.util.UidGenerator.randomChar();
+		if(m3.util.UidGenerator.isLetter(ch)) str.push(ch);
+	}
+	while(str.length < length) {
+		var ch1 = m3.util.UidGenerator.randomChar();
+		str.push(ch1);
+	}
+	return str.join("");
+};
+m3.util.UidGenerator.isLetter = function($char) {
+	var _g1 = 0;
+	var _g = m3.util.UidGenerator.get_chars().length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(m3.util.UidGenerator.get_chars().charAt(i) == $char) return true;
+	}
+	return false;
+};
+m3.util.UidGenerator.randomNum = function() {
+	var max = m3.util.UidGenerator.get_chars().length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
+};
+m3.util.UidGenerator.randomIndex = function(str) {
+	var max = str.length - 1;
+	var min = 0;
+	return min + Math.round(Math.random() * (max - min) + 1);
+};
+m3.util.UidGenerator.randomChar = function() {
+	var i = 0;
+	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_chars())) >= m3.util.UidGenerator.get_chars().length) continue;
+	return m3.util.UidGenerator.get_chars().charAt(i);
+};
+m3.util.UidGenerator.randomNumChar = function() {
+	var i = 0;
+	while((i = m3.util.UidGenerator.randomIndex(m3.util.UidGenerator.get_nums())) >= m3.util.UidGenerator.get_nums().length) continue;
+	return Std.parseInt(m3.util.UidGenerator.get_nums().charAt(i));
 };
 var qoid = {};
 qoid.QE = function() { };
@@ -4330,7 +4212,7 @@ qoid.QoidAPI.useAlias = function(alias) {
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
 };
 qoid.QoidAPI.onLoginError = function(exc) {
-	m3.util.JqueryUtil.alert(exc.message,"Login Error");
+	js.Lib.alert("Login error:\n" + exc.message);
 };
 qoid.QoidAPI.onLogin = function(data) {
 	qoid.QoidAPI.addChannel(data.channelId);
@@ -5514,80 +5396,6 @@ $.fn.intersects = function(el) {
 	if(t_x_0 < i_x_1 && t_x_1 > i_x_0 && t_y_0 < i_y_1 && t_y_1 > i_y_0) intersects = true;
 	return intersects;
 };
-var defineWidget = function() {
-	return { options : { autoOpen : true, height : 320, width : 320, modal : true, buttons : { }, showHelp : false, onMaxToggle : $.noop}, originalSize : { width : 10, height : 10}, _create : function() {
-		this._super("create");
-		var self = this;
-		var selfElement = this.element;
-		var closeBtn = selfElement.prev().find(".ui-dialog-titlebar-close");
-		var hovers = new $("blah");
-		if(self.options.showHelp && false) {
-			if(!Reflect.isFunction(self.options.buildHelp)) m3.log.Logga.get_DEFAULT().error("Supposed to show help but buildHelp is not a function"); else {
-				var helpIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
-				var helpIcon = new $("<span class='ui-icon ui-icon-help'>help</span>");
-				hovers = hovers.add(helpIconWrapper);
-				helpIconWrapper.append(helpIcon);
-				closeBtn.before(helpIconWrapper);
-				helpIconWrapper.click(function(evt) {
-					self.options.buildHelp();
-				});
-			}
-		}
-		if(self.options.showMaximizer) {
-			self.maxIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px;' role='button'>");
-			var maxIcon = new $("<span class='ui-icon ui-icon-extlink'>maximize</span>");
-			hovers = hovers.add(self.maxIconWrapper);
-			self.maxIconWrapper.append(maxIcon);
-			closeBtn.before(self.maxIconWrapper);
-			self.maxIconWrapper.click(function(evt1) {
-				self.maximize();
-			});
-		}
-		self.restoreIconWrapper = new $("<a href='#' class='ui-dialog-titlebar-close ui-corner-all' style='margin-right: 18px; display: none;' role='button'>");
-		var restoreIcon = new $("<span class='ui-icon ui-icon-newwin'>restore</span>");
-		hovers = hovers.add(self.restoreIconWrapper);
-		self.restoreIconWrapper.append(restoreIcon);
-		closeBtn.before(self.restoreIconWrapper);
-		self.restoreIconWrapper.click(function(evt2) {
-			self.restore();
-		});
-		hovers.hover(function(evt3) {
-			$(this).addClass("ui-state-hover");
-		},function(evt4) {
-			$(this).removeClass("ui-state-hover");
-		});
-	}, _allowInteraction : function(event) {
-		var self1 = this;
-		var r = false;
-		if(self1.options.allowInteraction != null) r = !(!self1.options.allowInteraction(event));
-		return r || self1._super(event);
-	}, restore : function() {
-		var self2 = this;
-		var selfElement1 = this.element;
-		selfElement1.m3dialog("option","height",self2.originalSize.height);
-		selfElement1.m3dialog("option","width",self2.originalSize.width);
-		selfElement1.parent().position({ my : "middle", at : "middle", of : window});
-		self2.restoreIconWrapper.hide();
-		self2.maxIconWrapper.show();
-		self2.options.onMaxToggle();
-	}, maximize : function() {
-		var self3 = this;
-		var selfElement2 = this.element;
-		self3.originalSize = { height : selfElement2.parent().height(), width : selfElement2.parent().width()};
-		var $window = new $(window);
-		var windowDimensions_height = $window.height();
-		var windowDimensions_width = $window.width();
-		selfElement2.m3dialog("option","height",windowDimensions_height * .85);
-		selfElement2.m3dialog("option","width",windowDimensions_width * .85);
-		selfElement2.parent().position({ my : "middle", at : "middle", of : $window});
-		self3.maxIconWrapper.hide();
-		self3.restoreIconWrapper.show();
-		self3.options.onMaxToggle();
-	}, destroy : function() {
-		$.Widget.prototype.destroy.call(this);
-	}};
-};
-$.widget("ui.m3dialog",$.ui.dialog,defineWidget());
 m3.util.ColorProvider._COLORS = new Array();
 m3.util.ColorProvider._COLORS.push("#5C9BCC");
 m3.util.ColorProvider._COLORS.push("#CC5C64");
