@@ -163,10 +163,10 @@ class LabelAcl extends ModelObjWithIid {
 }
 
 class Connection extends ModelObjWithIid {
-	public var aliasIid:String;
-	public var labelIid:String;
-	public var localPeerId: String;
-  	public var remotePeerId: String;
+    public var aliasIid:String;
+    public var labelIid:String;
+    public var localPeerId: String;
+    public var remotePeerId: String;
 	@:optional public var data:Profile;
 
 	public static function identifier(c: Connection): String {

@@ -638,22 +638,26 @@ class QoidAPI {
 
     public static function acceptVerificationRequest2(context:String, verificationContent:Dynamic) {
         var vr:VerificationResponse = haxe.Json.parse(context.split("|")[1]);
+        var connection = Qoid.connections.getElement(vr.connectionIid);
 
         var notification = {
             contentIid: vr.contentIid,
             verificationContentIid:verificationContent.iid,
             verificationContentData:verificationContent.data,
-            verifierId:vr.connectionIid
+            verifierId:connection.data.sharedId
         };
 
         createNotification(NotificationKind.VerificationResponse, notification, "verificationResponseAccepted", [vr.connectionIid]);
     }
 
     public static function rejectVerificationResponse(notificationIid:String) {
-        consumeNotification(notificationIid, "verificationResponseRejected");
+        consumeNotification(notificationIid, "rejectVerification");
     }
 
     public static function acceptVerification(v:VerificationResponseNotification) {
+        // consume this notification
+        consumeNotification(v.iid, "acceptVerification");
+
         // Retrieve the content that is being verified
         var context = "acceptVerification2|";
         context += haxe.Json.stringify(Serializer.instance.toJson(v));

@@ -68,15 +68,12 @@ class EMEvent {
 	public static inline var VerificationRequest = "VerificationRequest";
 
 	public static inline var RespondToVerification = "RespondToVerification";
-	public static inline var RespondToVerification_RESPONSE = "RespondToVerification_RESPONSE";
 
 	public static inline var RejectVerificationRequest = "RejectVerificationRequest";
 	
 	public static inline var AcceptVerification = "AcceptVerification";
-	public static inline var AcceptVerification_RESPONSE = "AcceptVerification_RESPONSE";
 
 	public static inline var RejectVerification = "RejectVerification";
-	public static inline var RejectVerification_RESPONSE = "RejectVerification_RESPONSE";
 
 	public static inline var BACKUP  = "BACKUP";
 	public static inline var RESTORE = "RESTORE";

@@ -78,7 +78,7 @@ extern class AcceptVerificationResponseDialog extends JQ {
 		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
 
-		        	EM.listenOnce(EMEvent.AcceptVerification_RESPONSE, function(e:Dynamic) {
+		        	EM.listenOnce("onAcceptVerification", function(e:Dynamic) {
 	        			self.destroy();
 	        			selfElement.remove();
 		        	});
@@ -89,7 +89,7 @@ extern class AcceptVerificationResponseDialog extends JQ {
 		        rejectVerification: function():Void {
 		        	var self: AcceptVerificationResponseDialogWidgetDef = Widgets.getSelf();
 					var selfElement: JQ = Widgets.getSelfElement();
-		        	EM.listenOnce(EMEvent.RejectVerification_RESPONSE, function(e:Dynamic) {
+		        	EM.listenOnce("onRejectVerification", function(e:Dynamic) {
 	        			self.destroy();
 	        			selfElement.remove();
 		        	});
