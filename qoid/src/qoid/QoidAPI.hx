@@ -639,13 +639,12 @@ class QoidAPI {
 
     public static function acceptVerificationRequest2(context:String, verificationContent:Dynamic) {
         var vr:VerificationResponse = haxe.Json.parse(context.split("|")[1]);
-        var connection = Qoid.connections.getElement(vr.connectionIid);
 
         var notification = {
             contentIid: vr.contentIid,
             verificationContentIid:verificationContent.iid,
             verificationContentData:verificationContent.data,
-            verifierId:connection.data.sharedId
+            verifierId:Qoid.currentAlias.profile.sharedId
         };
 
         createNotification(NotificationKind.VerificationResponse, notification, "verificationResponseAccepted", [vr.connectionIid]);
