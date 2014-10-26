@@ -10,6 +10,9 @@ import m3.log.Logga;
 import m3.log.LogLevel;
 import m3.serialization.Serialization;
 import m3.util.HotKeyManager;
+import qoid.QE;
+import qoid.Qoid;
+
 
 import ap.APhotoContext;
 import ap.pages.APhotoPageMgr;
@@ -28,6 +31,13 @@ class APhoto {
 	public static function main() {
         EventDelegate.init();
         APhotoContext.init();
+
+        EM.addListener(qoid.QE.onAliasLoaded, function(a:Alias) {
+            Logga.DEFAULT.debug("loaded alias " + a.iid + "(" + a.objectId + ") | currentAlias " + (Qoid.currentAlias != null? Qoid.currentAlias.iid:null));
+            if(Qoid.currentAlias != null && Qoid.currentAlias.iid == a.iid) {
+                js.Browser.document.title = a.profile.name + " | aPhoto"; 
+            }
+        },"APhoto-AliasLoaded");
 
         HOT_KEY_ACTIONS = HotKeyManager.get;
     }
