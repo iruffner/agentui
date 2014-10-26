@@ -33,7 +33,7 @@ class PinterAgent {
         EM.addListener(QE.onAliasLoaded, function(a:Alias) {
             Logga.DEFAULT.debug("loaded alias " + a.iid + "(" + a.objectId + ") | currentAlias " + (Qoid.currentAlias != null? Qoid.currentAlias.iid:null));
             if(Qoid.currentAlias != null && Qoid.currentAlias.iid == a.iid) {
-                js.Browser.document.title = a.profile.name + " | Qoid-Bennu"; 
+                js.Browser.document.title = a.profile.name + " | PinterQoid"; 
             }
         },"PinterAgent-AliasLoaded");
 
