@@ -3,7 +3,6 @@ package qoid;
 import haxe.Json;
 import m3.serialization.Serialization.Serializer;
 import qoid.Qoid;
-import m3.util.JqueryUtil;
 import m3.observable.OSet;
 import m3.event.EventManager;
 import m3.log.Logga;

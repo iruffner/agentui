@@ -23,7 +23,7 @@ typedef VerificationRequestDialogWidgetDef = {
 	var _buildDialog: Void->Void;
 	var _sendRequest: Void->Void;
 	var open: Void->Void;
-	var _appendConnectionAvatar: Connection->JQ->Void;
+	var _createConnectionSelection: Connection->JQ->Void;
 
 	var _create: Void->Void;
 	var destroy: Void->Void;
@@ -56,25 +56,40 @@ extern class VerificationRequestDialog extends JQ {
 		        	uberDiv.append(connectionContainer);
 
 		        	for (conn in Qoid.groupedConnections.delegate().get(Qoid.currentAlias.iid)) {
-		        		var div = new JQ("<div></div>");
-		        		div.append("<input type='checkbox' class='conn_cb' id='cb_" + conn.iid + "'/>");
-						self._appendConnectionAvatar(conn, div);
-						connectionContainer.append(div);
+						self._createConnectionSelection(conn, connectionContainer);
 					}
 
 		        	uberDiv.append("<h3>Message:</h3>");
 		        	uberDiv.append("<textarea id='vr_message' style='width:450px;'></textarea>");
 		        },
 
-		        _appendConnectionAvatar: function(connection:Connection, parent:JQ): Void {
+		        _createConnectionSelection: function(connection:Connection, connectionContainer:JQ): Void {
+	        		var connComp = new JQ("<div class='connection-selection' connection_name='" + connection.data.name + "'></div>");
+	        		connComp.append("<input type='checkbox' class='conn_cb' id='cb_" + connection.iid + "'/>");
 		        	var avatar = new ConnectionAvatar("<div class='avatar'></div>").connectionAvatar({
 		        		connectionIid: connection.iid,
 		        		dndEnabled: false,
 		        		isDragByHelper: true,
 		        		containment: false
-	        		}).appendTo(parent).css("display", "inline");
+	        		}).appendTo(connComp).css("display", "inline");
 
-		        	parent.append("<div class='labelDiv' style='display:inline'>" + connection.data.name + "</div>");
+		        	connComp.append("<div class='labelDiv' style='display:inline'>" + connection.data.name + "</div>");
+
+    				var found:Bool = false;
+        			var concomps = connectionContainer.find(".connection-selection");
+        			concomps.each(function(i: Int, dom: Element): Void {
+        				if (!found) {
+            				var comp:JQ = new JQ(dom);
+            				if (comp.attr("connection_name") > connection.data.name) {
+            					connComp.insertBefore(comp);
+            					found = true;
+            				}
+            			}
+        			});
+        			if (!found){
+            			connectionContainer.append(connComp);
+        			}
+
 		        },
 
 		        initialized: false,

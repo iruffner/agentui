@@ -2,6 +2,7 @@ package qoid;
 
 import haxe.ds.StringMap;
 import m3.comm.*;
+import js.Lib;
 import m3.comm.ChannelRequest;
 import m3.jq.JQ;
 import m3.log.Logga;
@@ -10,7 +11,6 @@ import m3.exception.Exception;
 import m3.serialization.Serialization;
 import qoid.model.ModelObj;
 import qoid.Synchronizer;
-import m3.util.JqueryUtil;
 
 using m3.helper.OSetHelper;
 
@@ -154,7 +154,8 @@ class QoidAPI {
     }
 
     private static function onLoginError(exc:AjaxException) {
-        JqueryUtil.alert( exc.message, "Login Error");
+        // JqueryUtil.alert( exc.message, "Login Error");
+        Lib.alert("Login error:\n" + exc.message);
     }
 
     private static function onLogin(data: AuthenticationResponse) {
@@ -638,13 +639,12 @@ class QoidAPI {
 
     public static function acceptVerificationRequest2(context:String, verificationContent:Dynamic) {
         var vr:VerificationResponse = haxe.Json.parse(context.split("|")[1]);
-        var connection = Qoid.connections.getElement(vr.connectionIid);
 
         var notification = {
             contentIid: vr.contentIid,
             verificationContentIid:verificationContent.iid,
             verificationContentData:verificationContent.data,
-            verifierId:connection.data.sharedId
+            verifierId:Qoid.currentAlias.profile.sharedId
         };
 
         createNotification(NotificationKind.VerificationResponse, notification, "verificationResponseAccepted", [vr.connectionIid]);

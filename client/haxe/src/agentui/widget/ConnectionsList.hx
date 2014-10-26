@@ -1,5 +1,7 @@
 package agentui.widget;
 
+import js.html.Element;
+
 import m3.exception.Exception;
 import m3.jq.JQ;
 import m3.jq.JQDroppable;
@@ -118,7 +120,20 @@ extern class ConnectionsList extends JQ {
 
 			        self._mapListener = function(conn: Connection, connComp: ConnectionComp, evt: EventType): Void {
 	            		if(evt.isAdd()) {
-	            			spacer.before(connComp);
+            				var found:Bool = false;
+	            			var concomps = selfElement.find(".connection");
+	            			concomps.each(function(i: Int, dom: Element): Void {
+	            				if (!found) {
+		            				var comp:ConnectionComp = new ConnectionComp(dom);
+		            				if (comp.connection().data.name > conn.data.name) {
+		            					connComp.insertBefore(comp);
+		            					found = true;
+		            				}
+		            			}
+	            			});
+	            			if (!found){
+		            			spacer.before(connComp);
+	            			}
 	            		} else if (evt.isUpdate()) {
 	            			connComp.update(conn);
 	            		} else if (evt.isDelete()) {

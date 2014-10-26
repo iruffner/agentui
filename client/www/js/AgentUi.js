@@ -5,7 +5,7 @@ $hx_exports.m3.util = $hx_exports.m3.util || {};
 $hx_exports.qoid = $hx_exports.qoid || {};
 $hx_exports.agentui = $hx_exports.agentui || {};
 $hx_exports.agentui.widget = $hx_exports.agentui.widget || {};
-var $hxClasses = {};
+var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -393,20 +393,27 @@ StringTools.fastCodeAt = function(s,index) {
 };
 var ValueType = $hxClasses["ValueType"] = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
 ValueType.TNull = ["TNull",0];
+ValueType.TNull.toString = $estr;
 ValueType.TNull.__enum__ = ValueType;
 ValueType.TInt = ["TInt",1];
+ValueType.TInt.toString = $estr;
 ValueType.TInt.__enum__ = ValueType;
 ValueType.TFloat = ["TFloat",2];
+ValueType.TFloat.toString = $estr;
 ValueType.TFloat.__enum__ = ValueType;
 ValueType.TBool = ["TBool",3];
+ValueType.TBool.toString = $estr;
 ValueType.TBool.__enum__ = ValueType;
 ValueType.TObject = ["TObject",4];
+ValueType.TObject.toString = $estr;
 ValueType.TObject.__enum__ = ValueType;
 ValueType.TFunction = ["TFunction",5];
+ValueType.TFunction.toString = $estr;
 ValueType.TFunction.__enum__ = ValueType;
-ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; return $x; };
-ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; return $x; };
+ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
+ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
 ValueType.TUnknown = ["TUnknown",8];
+ValueType.TUnknown.toString = $estr;
 ValueType.TUnknown.__enum__ = ValueType;
 ValueType.__empty_constructs__ = [ValueType.TNull,ValueType.TInt,ValueType.TFloat,ValueType.TBool,ValueType.TObject,ValueType.TFunction,ValueType.TUnknown];
 var Type = function() { };
@@ -1302,14 +1309,19 @@ m3.log.Logga.prototype = {
 };
 m3.log.LogLevel = $hxClasses["m3.log.LogLevel"] = { __ename__ : ["m3","log","LogLevel"], __constructs__ : ["TRACE","DEBUG","INFO","WARN","ERROR"] };
 m3.log.LogLevel.TRACE = ["TRACE",0];
+m3.log.LogLevel.TRACE.toString = $estr;
 m3.log.LogLevel.TRACE.__enum__ = m3.log.LogLevel;
 m3.log.LogLevel.DEBUG = ["DEBUG",1];
+m3.log.LogLevel.DEBUG.toString = $estr;
 m3.log.LogLevel.DEBUG.__enum__ = m3.log.LogLevel;
 m3.log.LogLevel.INFO = ["INFO",2];
+m3.log.LogLevel.INFO.toString = $estr;
 m3.log.LogLevel.INFO.__enum__ = m3.log.LogLevel;
 m3.log.LogLevel.WARN = ["WARN",3];
+m3.log.LogLevel.WARN.toString = $estr;
 m3.log.LogLevel.WARN.__enum__ = m3.log.LogLevel;
 m3.log.LogLevel.ERROR = ["ERROR",4];
+m3.log.LogLevel.ERROR.toString = $estr;
 m3.log.LogLevel.ERROR.__enum__ = m3.log.LogLevel;
 m3.log.LogLevel.__empty_constructs__ = [m3.log.LogLevel.TRACE,m3.log.LogLevel.DEBUG,m3.log.LogLevel.INFO,m3.log.LogLevel.WARN,m3.log.LogLevel.ERROR];
 m3.log.RemoteLogga = function(consoleLevel,remoteLevel) {
@@ -1469,7 +1481,7 @@ qoid.QoidAPI.useAlias = function(alias) {
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
 };
 qoid.QoidAPI.onLoginError = function(exc) {
-	m3.util.JqueryUtil.alert(exc.message,"Login Error");
+	js.Lib.alert("Login error:\n" + exc.message);
 };
 qoid.QoidAPI.onLogin = function(data) {
 	qoid.QoidAPI.addChannel(data.channelId);
@@ -1711,8 +1723,7 @@ qoid.QoidAPI.acceptVerificationRequest = function(vr) {
 };
 qoid.QoidAPI.acceptVerificationRequest2 = function(context,verificationContent) {
 	var vr = JSON.parse(context.split("|")[1]);
-	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,vr.connectionIid);
-	var notification = { contentIid : vr.contentIid, verificationContentIid : verificationContent.iid, verificationContentData : verificationContent.data, verifierId : connection.data.sharedId};
+	var notification = { contentIid : vr.contentIid, verificationContentIid : verificationContent.iid, verificationContentData : verificationContent.data, verifierId : qoid.Qoid.get_currentAlias().profile.sharedId};
 	qoid.QoidAPI.createNotification(qoid.model.NotificationKind.VerificationResponse,notification,"verificationResponseAccepted",[vr.connectionIid]);
 };
 qoid.QoidAPI.rejectVerificationResponse = function(notificationIid) {
@@ -2546,11 +2557,12 @@ haxe.CallStack.makeStack = function(s) {
 };
 haxe.StackItem = $hxClasses["haxe.StackItem"] = { __ename__ : ["haxe","StackItem"], __constructs__ : ["CFunction","Module","FilePos","Method","LocalFunction"] };
 haxe.StackItem.CFunction = ["CFunction",0];
+haxe.StackItem.CFunction.toString = $estr;
 haxe.StackItem.CFunction.__enum__ = haxe.StackItem;
-haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; return $x; };
-haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; return $x; };
-haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; return $x; };
-haxe.StackItem.LocalFunction = function(v) { var $x = ["LocalFunction",4,v]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
+haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
+haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
+haxe.StackItem.LocalFunction = function(v) { var $x = ["LocalFunction",4,v]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
 haxe.StackItem.__empty_constructs__ = [haxe.StackItem.CFunction];
 qoid.model.NotificationKind = function() { };
 $hxClasses["qoid.model.NotificationKind"] = qoid.model.NotificationKind;
@@ -3814,8 +3826,10 @@ qoid.model.EditLabelData.prototype = {
 };
 agentui.widget.ChatOrientation = $hxClasses["agentui.widget.ChatOrientation"] = { __ename__ : ["agentui","widget","ChatOrientation"], __constructs__ : ["chatRight","chatLeft"] };
 agentui.widget.ChatOrientation.chatRight = ["chatRight",0];
+agentui.widget.ChatOrientation.chatRight.toString = $estr;
 agentui.widget.ChatOrientation.chatRight.__enum__ = agentui.widget.ChatOrientation;
 agentui.widget.ChatOrientation.chatLeft = ["chatLeft",1];
+agentui.widget.ChatOrientation.chatLeft.toString = $estr;
 agentui.widget.ChatOrientation.chatLeft.__enum__ = agentui.widget.ChatOrientation;
 agentui.widget.ChatOrientation.__empty_constructs__ = [agentui.widget.ChatOrientation.chatRight,agentui.widget.ChatOrientation.chatLeft];
 agentui.widget.ConnectionCompHelper = function() { };
@@ -4342,6 +4356,12 @@ qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
 qoid.SynchronizationParms.prototype = {
 	__class__: qoid.SynchronizationParms
 };
+js.Lib = function() { };
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
+};
 qoid.model.ContentFactory = function() { };
 $hxClasses["qoid.model.ContentFactory"] = qoid.model.ContentFactory;
 qoid.model.ContentFactory.__name__ = ["qoid","model","ContentFactory"];
@@ -4519,148 +4539,183 @@ qoid.model.VerificationRequest.prototype = {
 };
 haxe.macro = {};
 haxe.macro.Constant = $hxClasses["haxe.macro.Constant"] = { __ename__ : ["haxe","macro","Constant"], __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp"] };
-haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; return $x; };
-haxe.macro.Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe.macro.Constant; return $x; };
-haxe.macro.Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe.macro.Constant; return $x; };
-haxe.macro.Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe.macro.Constant; return $x; };
-haxe.macro.Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe.macro.Constant; return $x; };
+haxe.macro.Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
+haxe.macro.Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
+haxe.macro.Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
+haxe.macro.Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
+haxe.macro.Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe.macro.Constant; $x.toString = $estr; return $x; };
 haxe.macro.Constant.__empty_constructs__ = [];
 haxe.macro.Binop = $hxClasses["haxe.macro.Binop"] = { __ename__ : ["haxe","macro","Binop"], __constructs__ : ["OpAdd","OpMult","OpDiv","OpSub","OpAssign","OpEq","OpNotEq","OpGt","OpGte","OpLt","OpLte","OpAnd","OpOr","OpXor","OpBoolAnd","OpBoolOr","OpShl","OpShr","OpUShr","OpMod","OpAssignOp","OpInterval","OpArrow"] };
 haxe.macro.Binop.OpAdd = ["OpAdd",0];
+haxe.macro.Binop.OpAdd.toString = $estr;
 haxe.macro.Binop.OpAdd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpMult = ["OpMult",1];
+haxe.macro.Binop.OpMult.toString = $estr;
 haxe.macro.Binop.OpMult.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpDiv = ["OpDiv",2];
+haxe.macro.Binop.OpDiv.toString = $estr;
 haxe.macro.Binop.OpDiv.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpSub = ["OpSub",3];
+haxe.macro.Binop.OpSub.toString = $estr;
 haxe.macro.Binop.OpSub.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpAssign = ["OpAssign",4];
+haxe.macro.Binop.OpAssign.toString = $estr;
 haxe.macro.Binop.OpAssign.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpEq = ["OpEq",5];
+haxe.macro.Binop.OpEq.toString = $estr;
 haxe.macro.Binop.OpEq.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpNotEq = ["OpNotEq",6];
+haxe.macro.Binop.OpNotEq.toString = $estr;
 haxe.macro.Binop.OpNotEq.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpGt = ["OpGt",7];
+haxe.macro.Binop.OpGt.toString = $estr;
 haxe.macro.Binop.OpGt.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpGte = ["OpGte",8];
+haxe.macro.Binop.OpGte.toString = $estr;
 haxe.macro.Binop.OpGte.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpLt = ["OpLt",9];
+haxe.macro.Binop.OpLt.toString = $estr;
 haxe.macro.Binop.OpLt.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpLte = ["OpLte",10];
+haxe.macro.Binop.OpLte.toString = $estr;
 haxe.macro.Binop.OpLte.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpAnd = ["OpAnd",11];
+haxe.macro.Binop.OpAnd.toString = $estr;
 haxe.macro.Binop.OpAnd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpOr = ["OpOr",12];
+haxe.macro.Binop.OpOr.toString = $estr;
 haxe.macro.Binop.OpOr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpXor = ["OpXor",13];
+haxe.macro.Binop.OpXor.toString = $estr;
 haxe.macro.Binop.OpXor.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpBoolAnd = ["OpBoolAnd",14];
+haxe.macro.Binop.OpBoolAnd.toString = $estr;
 haxe.macro.Binop.OpBoolAnd.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpBoolOr = ["OpBoolOr",15];
+haxe.macro.Binop.OpBoolOr.toString = $estr;
 haxe.macro.Binop.OpBoolOr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpShl = ["OpShl",16];
+haxe.macro.Binop.OpShl.toString = $estr;
 haxe.macro.Binop.OpShl.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpShr = ["OpShr",17];
+haxe.macro.Binop.OpShr.toString = $estr;
 haxe.macro.Binop.OpShr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpUShr = ["OpUShr",18];
+haxe.macro.Binop.OpUShr.toString = $estr;
 haxe.macro.Binop.OpUShr.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpMod = ["OpMod",19];
+haxe.macro.Binop.OpMod.toString = $estr;
 haxe.macro.Binop.OpMod.__enum__ = haxe.macro.Binop;
-haxe.macro.Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe.macro.Binop; return $x; };
+haxe.macro.Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe.macro.Binop; $x.toString = $estr; return $x; };
 haxe.macro.Binop.OpInterval = ["OpInterval",21];
+haxe.macro.Binop.OpInterval.toString = $estr;
 haxe.macro.Binop.OpInterval.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.OpArrow = ["OpArrow",22];
+haxe.macro.Binop.OpArrow.toString = $estr;
 haxe.macro.Binop.OpArrow.__enum__ = haxe.macro.Binop;
 haxe.macro.Binop.__empty_constructs__ = [haxe.macro.Binop.OpAdd,haxe.macro.Binop.OpMult,haxe.macro.Binop.OpDiv,haxe.macro.Binop.OpSub,haxe.macro.Binop.OpAssign,haxe.macro.Binop.OpEq,haxe.macro.Binop.OpNotEq,haxe.macro.Binop.OpGt,haxe.macro.Binop.OpGte,haxe.macro.Binop.OpLt,haxe.macro.Binop.OpLte,haxe.macro.Binop.OpAnd,haxe.macro.Binop.OpOr,haxe.macro.Binop.OpXor,haxe.macro.Binop.OpBoolAnd,haxe.macro.Binop.OpBoolOr,haxe.macro.Binop.OpShl,haxe.macro.Binop.OpShr,haxe.macro.Binop.OpUShr,haxe.macro.Binop.OpMod,haxe.macro.Binop.OpInterval,haxe.macro.Binop.OpArrow];
 haxe.macro.Unop = $hxClasses["haxe.macro.Unop"] = { __ename__ : ["haxe","macro","Unop"], __constructs__ : ["OpIncrement","OpDecrement","OpNot","OpNeg","OpNegBits"] };
 haxe.macro.Unop.OpIncrement = ["OpIncrement",0];
+haxe.macro.Unop.OpIncrement.toString = $estr;
 haxe.macro.Unop.OpIncrement.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpDecrement = ["OpDecrement",1];
+haxe.macro.Unop.OpDecrement.toString = $estr;
 haxe.macro.Unop.OpDecrement.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNot = ["OpNot",2];
+haxe.macro.Unop.OpNot.toString = $estr;
 haxe.macro.Unop.OpNot.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNeg = ["OpNeg",3];
+haxe.macro.Unop.OpNeg.toString = $estr;
 haxe.macro.Unop.OpNeg.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.OpNegBits = ["OpNegBits",4];
+haxe.macro.Unop.OpNegBits.toString = $estr;
 haxe.macro.Unop.OpNegBits.__enum__ = haxe.macro.Unop;
 haxe.macro.Unop.__empty_constructs__ = [haxe.macro.Unop.OpIncrement,haxe.macro.Unop.OpDecrement,haxe.macro.Unop.OpNot,haxe.macro.Unop.OpNeg,haxe.macro.Unop.OpNegBits];
 haxe.macro.ExprDef = $hxClasses["haxe.macro.ExprDef"] = { __ename__ : ["haxe","macro","ExprDef"], __constructs__ : ["EConst","EArray","EBinop","EField","EParenthesis","EObjectDecl","EArrayDecl","ECall","ENew","EUnop","EVars","EFunction","EBlock","EFor","EIn","EIf","EWhile","ESwitch","ETry","EReturn","EBreak","EContinue","EUntyped","EThrow","ECast","EDisplay","EDisplayNew","ETernary","ECheckType","EMeta"] };
-haxe.macro.ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
 haxe.macro.ExprDef.EBreak = ["EBreak",20];
+haxe.macro.ExprDef.EBreak.toString = $estr;
 haxe.macro.ExprDef.EBreak.__enum__ = haxe.macro.ExprDef;
 haxe.macro.ExprDef.EContinue = ["EContinue",21];
+haxe.macro.ExprDef.EContinue.toString = $estr;
 haxe.macro.ExprDef.EContinue.__enum__ = haxe.macro.ExprDef;
-haxe.macro.ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
-haxe.macro.ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe.macro.ExprDef; return $x; };
+haxe.macro.ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
+haxe.macro.ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe.macro.ExprDef; $x.toString = $estr; return $x; };
 haxe.macro.ExprDef.__empty_constructs__ = [haxe.macro.ExprDef.EBreak,haxe.macro.ExprDef.EContinue];
 haxe.macro.ComplexType = $hxClasses["haxe.macro.ComplexType"] = { __ename__ : ["haxe","macro","ComplexType"], __constructs__ : ["TPath","TFunction","TAnonymous","TParent","TExtend","TOptional"] };
-haxe.macro.ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
-haxe.macro.ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
-haxe.macro.ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
-haxe.macro.ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
-haxe.macro.ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
-haxe.macro.ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe.macro.ComplexType; return $x; };
+haxe.macro.ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
+haxe.macro.ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
+haxe.macro.ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
+haxe.macro.ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
+haxe.macro.ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
+haxe.macro.ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe.macro.ComplexType; $x.toString = $estr; return $x; };
 haxe.macro.ComplexType.__empty_constructs__ = [];
 haxe.macro.TypeParam = $hxClasses["haxe.macro.TypeParam"] = { __ename__ : ["haxe","macro","TypeParam"], __constructs__ : ["TPType","TPExpr"] };
-haxe.macro.TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe.macro.TypeParam; return $x; };
-haxe.macro.TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe.macro.TypeParam; return $x; };
+haxe.macro.TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe.macro.TypeParam; $x.toString = $estr; return $x; };
+haxe.macro.TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe.macro.TypeParam; $x.toString = $estr; return $x; };
 haxe.macro.TypeParam.__empty_constructs__ = [];
 haxe.rtti = {};
 haxe.rtti.CType = $hxClasses["haxe.rtti.CType"] = { __ename__ : ["haxe","rtti","CType"], __constructs__ : ["CUnknown","CEnum","CClass","CTypedef","CFunction","CAnonymous","CDynamic","CAbstract"] };
 haxe.rtti.CType.CUnknown = ["CUnknown",0];
+haxe.rtti.CType.CUnknown.toString = $estr;
 haxe.rtti.CType.CUnknown.__enum__ = haxe.rtti.CType;
-haxe.rtti.CType.CEnum = function(name,params) { var $x = ["CEnum",1,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
-haxe.rtti.CType.CClass = function(name,params) { var $x = ["CClass",2,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
-haxe.rtti.CType.CTypedef = function(name,params) { var $x = ["CTypedef",3,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
-haxe.rtti.CType.CFunction = function(args,ret) { var $x = ["CFunction",4,args,ret]; $x.__enum__ = haxe.rtti.CType; return $x; };
-haxe.rtti.CType.CAnonymous = function(fields) { var $x = ["CAnonymous",5,fields]; $x.__enum__ = haxe.rtti.CType; return $x; };
-haxe.rtti.CType.CDynamic = function(t) { var $x = ["CDynamic",6,t]; $x.__enum__ = haxe.rtti.CType; return $x; };
-haxe.rtti.CType.CAbstract = function(name,params) { var $x = ["CAbstract",7,name,params]; $x.__enum__ = haxe.rtti.CType; return $x; };
+haxe.rtti.CType.CEnum = function(name,params) { var $x = ["CEnum",1,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
+haxe.rtti.CType.CClass = function(name,params) { var $x = ["CClass",2,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
+haxe.rtti.CType.CTypedef = function(name,params) { var $x = ["CTypedef",3,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
+haxe.rtti.CType.CFunction = function(args,ret) { var $x = ["CFunction",4,args,ret]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
+haxe.rtti.CType.CAnonymous = function(fields) { var $x = ["CAnonymous",5,fields]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
+haxe.rtti.CType.CDynamic = function(t) { var $x = ["CDynamic",6,t]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
+haxe.rtti.CType.CAbstract = function(name,params) { var $x = ["CAbstract",7,name,params]; $x.__enum__ = haxe.rtti.CType; $x.toString = $estr; return $x; };
 haxe.rtti.CType.__empty_constructs__ = [haxe.rtti.CType.CUnknown];
 haxe.rtti.Rights = $hxClasses["haxe.rtti.Rights"] = { __ename__ : ["haxe","rtti","Rights"], __constructs__ : ["RNormal","RNo","RCall","RMethod","RDynamic","RInline"] };
 haxe.rtti.Rights.RNormal = ["RNormal",0];
+haxe.rtti.Rights.RNormal.toString = $estr;
 haxe.rtti.Rights.RNormal.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RNo = ["RNo",1];
+haxe.rtti.Rights.RNo.toString = $estr;
 haxe.rtti.Rights.RNo.__enum__ = haxe.rtti.Rights;
-haxe.rtti.Rights.RCall = function(m) { var $x = ["RCall",2,m]; $x.__enum__ = haxe.rtti.Rights; return $x; };
+haxe.rtti.Rights.RCall = function(m) { var $x = ["RCall",2,m]; $x.__enum__ = haxe.rtti.Rights; $x.toString = $estr; return $x; };
 haxe.rtti.Rights.RMethod = ["RMethod",3];
+haxe.rtti.Rights.RMethod.toString = $estr;
 haxe.rtti.Rights.RMethod.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RDynamic = ["RDynamic",4];
+haxe.rtti.Rights.RDynamic.toString = $estr;
 haxe.rtti.Rights.RDynamic.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.RInline = ["RInline",5];
+haxe.rtti.Rights.RInline.toString = $estr;
 haxe.rtti.Rights.RInline.__enum__ = haxe.rtti.Rights;
 haxe.rtti.Rights.__empty_constructs__ = [haxe.rtti.Rights.RNormal,haxe.rtti.Rights.RNo,haxe.rtti.Rights.RMethod,haxe.rtti.Rights.RDynamic,haxe.rtti.Rights.RInline];
 haxe.rtti.TypeTree = $hxClasses["haxe.rtti.TypeTree"] = { __ename__ : ["haxe","rtti","TypeTree"], __constructs__ : ["TPackage","TClassdecl","TEnumdecl","TTypedecl","TAbstractdecl"] };
-haxe.rtti.TypeTree.TPackage = function(name,full,subs) { var $x = ["TPackage",0,name,full,subs]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
-haxe.rtti.TypeTree.TClassdecl = function(c) { var $x = ["TClassdecl",1,c]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
-haxe.rtti.TypeTree.TEnumdecl = function(e) { var $x = ["TEnumdecl",2,e]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
-haxe.rtti.TypeTree.TTypedecl = function(t) { var $x = ["TTypedecl",3,t]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
-haxe.rtti.TypeTree.TAbstractdecl = function(a) { var $x = ["TAbstractdecl",4,a]; $x.__enum__ = haxe.rtti.TypeTree; return $x; };
+haxe.rtti.TypeTree.TPackage = function(name,full,subs) { var $x = ["TPackage",0,name,full,subs]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
+haxe.rtti.TypeTree.TClassdecl = function(c) { var $x = ["TClassdecl",1,c]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
+haxe.rtti.TypeTree.TEnumdecl = function(e) { var $x = ["TEnumdecl",2,e]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
+haxe.rtti.TypeTree.TTypedecl = function(t) { var $x = ["TTypedecl",3,t]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
+haxe.rtti.TypeTree.TAbstractdecl = function(a) { var $x = ["TAbstractdecl",4,a]; $x.__enum__ = haxe.rtti.TypeTree; $x.toString = $estr; return $x; };
 haxe.rtti.TypeTree.__empty_constructs__ = [];
 haxe.rtti.XmlParser = function() {
 	this.root = new Array();
@@ -5335,12 +5390,6 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 		return p;
 	}
 	throw "Unexpected end";
-};
-js.Lib = function() { };
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
 };
 m3.CrossMojo = function() { };
 $hxClasses["m3.CrossMojo"] = m3.CrossMojo;
@@ -7460,7 +7509,20 @@ var defineWidget = function() {
 			return false;
 		});
 		self._mapListener = function(conn,connComp,evt3) {
-			if(evt3.isAdd()) spacer.before(connComp); else if(evt3.isUpdate()) agentui.widget.ConnectionCompHelper.update(connComp,conn); else if(evt3.isDelete()) connComp.remove();
+			if(evt3.isAdd()) {
+				var found = false;
+				var concomps = selfElement.find(".connection");
+				concomps.each(function(i,dom) {
+					if(!found) {
+						var comp = new $(dom);
+						if(agentui.widget.ConnectionCompHelper.connection(comp).data.name > conn.data.name) {
+							connComp.insertBefore(comp);
+							found = true;
+						}
+					}
+				});
+				if(!found) spacer.before(connComp);
+			} else if(evt3.isUpdate()) agentui.widget.ConnectionCompHelper.update(connComp,conn); else if(evt3.isDelete()) connComp.remove();
 			agentui.model.EM.change("FitWindow");
 		};
 		agentui.model.EM.addListener(qoid.QE.onAliasLoaded,function(a) {
@@ -7563,8 +7625,8 @@ var defineWidget = function() {
 		};
 		self2.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this11.get(self2.options.content.iid);
+			var this2 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this2.get(self2.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
@@ -7811,8 +7873,8 @@ var defineWidget = function() {
 		var postConnections = new $("<aside class='postConnections'></aside>").appendTo(postWr);
 		if((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this11.get(self1.options.content.iid);
+			var this2 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this2.get(self1.options.content.iid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabeledContent.addEmptyGroup(self1.options.content.iid);
 		self1.onchangeLabelChildren = function(ele,evt2) {
@@ -7822,8 +7884,8 @@ var defineWidget = function() {
 		};
 		self1.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this12 = qoid.Qoid.groupedLabeledContent.delegate();
-			$r = this12.get(self1.options.content.iid);
+			var this3 = qoid.Qoid.groupedLabeledContent.delegate();
+			$r = this3.get(self1.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
 			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
@@ -8374,8 +8436,8 @@ var defineWidget = function() {
 			$r = this1.get(self.options.labelIid);
 			return $r;
 		}(this)) == null) qoid.Qoid.groupedLabelChildren.addEmptyGroup(self.options.labelIid);
-		var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-		self.children = this11.get(self.options.labelIid);
+		var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+		self.children = this2.get(self.options.labelIid);
 		var labelChildren = new $("<div class='labelChildren' style='display: none;'></div>");
 		labelChildren.labelTree({ parentIid : self.options.labelIid, labelPath : self.options.labelPath});
 		self.children.listen(function(lc,evt) {
@@ -8421,8 +8483,8 @@ var defineWidget = function() {
 		};
 		self.mappedLabels = new m3.observable.MappedSet((function($this) {
 			var $r;
-			var this11 = qoid.Qoid.groupedLabelChildren.delegate();
-			$r = this11.get(self.options.parentIid);
+			var this2 = qoid.Qoid.groupedLabelChildren.delegate();
+			$r = this2.get(self.options.parentIid);
 			return $r;
 		}(this)),function(labelChild) {
 			var labelPath = self.options.labelPath.slice();
@@ -8931,22 +8993,33 @@ var defineWidget = function() {
 		}(this))).iterator();
 		while( $it2.hasNext() ) {
 			var conn = $it2.next();
-			var div = new $("<div></div>");
-			div.append("<input type='checkbox' class='conn_cb' id='cb_" + conn.iid + "'/>");
-			self._appendConnectionAvatar(conn,div);
-			connectionContainer.append(div);
+			self._createConnectionSelection(conn,connectionContainer);
 		}
 		uberDiv.append("<h3>Message:</h3>");
 		uberDiv.append("<textarea id='vr_message' style='width:450px;'></textarea>");
-	}, _appendConnectionAvatar : function(connection,parent) {
-		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connectionIid : connection.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(parent).css("display","inline");
-		parent.append("<div class='labelDiv' style='display:inline'>" + connection.data.name + "</div>");
+	}, _createConnectionSelection : function(connection,connectionContainer1) {
+		var connComp = new $("<div class='connection-selection' connection_name='" + connection.data.name + "'></div>");
+		connComp.append("<input type='checkbox' class='conn_cb' id='cb_" + connection.iid + "'/>");
+		var avatar = new $("<div class='avatar'></div>").connectionAvatar({ connectionIid : connection.iid, dndEnabled : false, isDragByHelper : true, containment : false}).appendTo(connComp).css("display","inline");
+		connComp.append("<div class='labelDiv' style='display:inline'>" + connection.data.name + "</div>");
+		var found = false;
+		var concomps = connectionContainer1.find(".connection-selection");
+		concomps.each(function(i,dom) {
+			if(!found) {
+				var comp = new $(dom);
+				if(comp.attr("connection_name") > connection.data.name) {
+					connComp.insertBefore(comp);
+					found = true;
+				}
+			}
+		});
+		if(!found) connectionContainer1.append(connComp);
 	}, initialized : false, _sendRequest : function() {
 		var self1 = this;
 		var selfElement1 = this.element;
 		var connectionIids = new Array();
-		new $(".conn_cb").each(function(i,dom) {
-			var cb = new $(dom);
+		new $(".conn_cb").each(function(i1,dom1) {
+			var cb = new $(dom1);
 			if(cb.prop("checked")) connectionIids.push(cb.attr("id").split("_")[1]);
 		});
 		var vr = new qoid.model.VerificationRequest(self1.options.content,connectionIids,new $("#vr_message").val());
@@ -9075,7 +9148,7 @@ agentui.model.EMEvent.RejectVerification = "RejectVerification";
 m3.observable.FilteredSet.__rtti = "<class path=\"m3.observable.FilteredSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.FilteredSet.T\"/></extends>\n\t<_filteredSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></_filteredSet>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c></_source>\n\t<_filter><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Bool\"/>\n</f></_filter>\n\t<delegate public=\"1\" set=\"method\" line=\"366\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n</x></f></delegate>\n\t<apply set=\"method\" line=\"370\"><f a=\"t\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<x path=\"Void\"/>\n</f></apply>\n\t<refilter public=\"1\" set=\"method\" line=\"387\"><f a=\"\"><x path=\"Void\"/></f></refilter>\n\t<identifier public=\"1\" set=\"method\" line=\"391\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"395\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.FilteredSet.T\"/></t></f></iterator>\n\t<asArray public=\"1\" set=\"method\" line=\"399\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.FilteredSet.T\"/></c></f></asArray>\n\t<new public=\"1\" set=\"method\" line=\"342\"><f a=\"source:filter\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.FilteredSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.FilteredSet.T\"/>\n\t\t<x path=\"Bool\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.Alias.__rtti = "<class path=\"qoid.model.Alias\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"98\" static=\"1\"><f a=\"alias\">\n\t<c path=\"qoid.model.Alias\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<profile public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</profile>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.AliasData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"92\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.AliasData.__rtti = "<class path=\"qoid.model.AliasData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<isDefault public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</isDefault>\n\t<new public=\"1\" set=\"method\" line=\"80\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"578\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"586\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"591\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"609\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"613\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"619\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"623\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"627\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"536\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+m3.observable.SortedSet.__rtti = "<class path=\"m3.observable.SortedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.SortedSet.T\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c></_source>\n\t<_sortByFn><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_sortByFn>\n\t<_sorted><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></_sorted>\n\t<_dirty><x path=\"Bool\"/></_dirty>\n\t<_comparisonFn><f a=\":\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></_comparisonFn>\n\t<sorted public=\"1\" set=\"method\" line=\"576\"><f a=\"\"><c path=\"Array\"><c path=\"m3.observable.SortedSet.T\"/></c></f></sorted>\n\t<indexOf set=\"method\" line=\"584\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Int\"/>\n</f></indexOf>\n\t<binarySearch set=\"method\" line=\"589\"><f a=\"value:sortBy:startIndex:endIndex\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n\t<x path=\"Int\"/>\n</f></binarySearch>\n\t<delete set=\"method\" line=\"607\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"611\"><f a=\"t\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<identifier public=\"1\" set=\"method\" line=\"617\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.SortedSet.T\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<iterator public=\"1\" set=\"method\" line=\"621\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.SortedSet.T\"/></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"625\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.SortedSet.T\"/>\n</x></f></delegate>\n\t<new public=\"1\" set=\"method\" line=\"536\"><f a=\"source:?sortByFn\" v=\":null\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.SortedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.SortedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 m3.observable.MappedSet.__rtti = "<class path=\"m3.observable.MappedSet\" params=\"T:U\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.MappedSet.U\"/></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c></_source>\n\t<_mapper><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</f></_mapper>\n\t<_mappedSet><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></_mappedSet>\n\t<_remapOnUpdate><x path=\"Bool\"/></_remapOnUpdate>\n\t<_mapListeners><c path=\"Array\"><f a=\"::\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></c></_mapListeners>\n\t<_sourceListener set=\"method\" line=\"270\"><f a=\"t:type\">\n\t<c path=\"m3.observable.MappedSet.T\"/>\n\t<c path=\"m3.observable.EventType\"/>\n\t<x path=\"Void\"/>\n</f></_sourceListener>\n\t<identifier public=\"1\" set=\"method\" line=\"296\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<delegate public=\"1\" set=\"method\" line=\"300\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.MappedSet.U\"/>\n</x></f></delegate>\n\t<identify set=\"method\" line=\"304\"><f a=\"u\">\n\t<c path=\"m3.observable.MappedSet.U\"/>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"315\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.MappedSet.U\"/></t></f></iterator>\n\t<mapListen public=\"1\" set=\"method\" line=\"319\"><f a=\"f\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></mapListen>\n\t<removeListeners public=\"1\" set=\"method\" line=\"330\"><f a=\"mapListener\">\n\t<f a=\"::\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></removeListeners>\n\t<new public=\"1\" set=\"method\" line=\"260\"><f a=\"source:mapper:?remapOnUpdate\" v=\"::false\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.MappedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.MappedSet.T\"/>\n\t\t<c path=\"m3.observable.MappedSet.U\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.LabelData.__rtti = "<class path=\"qoid.model.LabelData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<color public=\"1\"><c path=\"String\"/></color>\n\t<new public=\"1\" set=\"method\" line=\"105\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.util.ColorProvider._INDEX = 0;
