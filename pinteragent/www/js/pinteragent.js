@@ -1428,7 +1428,7 @@ qoid.QoidAPI.useAlias = function(alias) {
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
 };
 qoid.QoidAPI.onLoginError = function(exc) {
-	m3.util.JqueryUtil.alert(exc.message,"Login Error");
+	js.Lib.alert("Login error:\n" + exc.message);
 };
 qoid.QoidAPI.onLogin = function(data) {
 	qoid.QoidAPI.addChannel(data.channelId);
@@ -1670,8 +1670,7 @@ qoid.QoidAPI.acceptVerificationRequest = function(vr) {
 };
 qoid.QoidAPI.acceptVerificationRequest2 = function(context,verificationContent) {
 	var vr = JSON.parse(context.split("|")[1]);
-	var connection = m3.helper.OSetHelper.getElement(qoid.Qoid.connections,vr.connectionIid);
-	var notification = { contentIid : vr.contentIid, verificationContentIid : verificationContent.iid, verificationContentData : verificationContent.data, verifierId : connection.data.sharedId};
+	var notification = { contentIid : vr.contentIid, verificationContentIid : verificationContent.iid, verificationContentData : verificationContent.data, verifierId : qoid.Qoid.get_currentAlias().profile.sharedId};
 	qoid.QoidAPI.createNotification(qoid.model.NotificationKind.VerificationResponse,notification,"verificationResponseAccepted",[vr.connectionIid]);
 };
 qoid.QoidAPI.rejectVerificationResponse = function(notificationIid) {
@@ -3472,6 +3471,12 @@ qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
 qoid.SynchronizationParms.prototype = {
 	__class__: qoid.SynchronizationParms
 };
+js.Lib = function() { };
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
+};
 m3.util.JqueryUtil = $hx_exports.m3.util.JqueryUtil = function() { };
 $hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
 m3.util.JqueryUtil.__name__ = ["m3","util","JqueryUtil"];
@@ -4487,12 +4492,6 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 		return p;
 	}
 	throw "Unexpected end";
-};
-js.Lib = function() { };
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
 };
 m3.CrossMojo = function() { };
 $hxClasses["m3.CrossMojo"] = m3.CrossMojo;
