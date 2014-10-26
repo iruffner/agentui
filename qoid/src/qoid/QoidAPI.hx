@@ -668,7 +668,7 @@ class QoidAPI {
     public static function acceptVerification2(context:String, data:Dynamic) {
         var vr = haxe.Json.parse(context.split("|")[1]);
         var content = Serializer.instance.fromJsonX(data.results[0], Content);
-        var verification = new ContentVerification(vr.data.verifierId, vr.data.contentIid);
+        var verification = new ContentVerification(vr.data.verifierId, vr.data.verificationContentIid);
         content.metaData.verifications.push(verification);
 
         updateContent(content.iid, null, content.metaData);
