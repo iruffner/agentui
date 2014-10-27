@@ -9,6 +9,7 @@ import m3.log.Logga;
 import m3.event.EventManager;
 import m3.exception.Exception;
 import m3.serialization.Serialization;
+import m3.util.UidGenerator;
 import qoid.model.ModelObj;
 import qoid.Synchronizer;
 
@@ -379,10 +380,11 @@ class QoidAPI {
         if (route != null) {
             json.route = route;
         }
-        if (semanticId != null) {
-            json.semanticId = semanticId;
+        if (semanticId == null || semanticId == "") {
+            semanticId = UidGenerator.create();
         }
-        
+        json.semanticId = semanticId;
+
         var context = (context == null) ? "createContent" : context;
 
         submitRequest(json, CONTENT_CREATE, new RequestContext(context));

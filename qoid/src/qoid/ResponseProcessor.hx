@@ -39,7 +39,7 @@ class ResponseProcessor {
 		dataArr.iter(function(data: Response): Void {
 			if (!data.success) {
 				// JqueryUtil.alert("ERROR:  " + data.error.message + "     Context: " + data.context);
-	            Logga.DEFAULT.error(data.error.stacktrace);
+	            Logga.DEFAULT.error(data.error.message + " | " + data.error.stacktrace);
             } else {
                 var context:RequestContext = Serializer.instance.fromJsonX(data.context, RequestContext);
                 var result:ResponseResult = data.result;
