@@ -7,6 +7,7 @@ import m3.observable.OSet;
 import m3.event.EventManager;
 import m3.log.Logga;
 import m3.serialization.Serialization;
+import m3.exception.Exception;
 import qoid.QoidAPI.RequestContext;
 import qoid.Synchronizer;
 import qoid.model.ModelObj;
@@ -35,41 +36,47 @@ typedef ResponseResult = {
 class ResponseProcessor {
 
 	public static function processResponse(dataArr: Array<Response>):Void {
+        try {
+            dataArr.iter(function(data: Response): Void {
+                handleResponse(data);
+            });
+        } catch (e:Exception) {
+            Logga.DEFAULT.error("Error Procesing Response", e);
+        }
+	}
 
-		dataArr.iter(function(data: Response): Void {
-			if (!data.success) {
-				// JqueryUtil.alert("ERROR:  " + data.error.message + "     Context: " + data.context);
-	            Logga.DEFAULT.error(data.error.stacktrace);
-            } else {
-                var context:RequestContext = Serializer.instance.fromJsonX(data.context, RequestContext);
-                var result:ResponseResult = data.result;
-                if (context.context == "initialDataLoad") {
-                    if (result != null) {
-                        if (result.standing == true) {
-                            updateModelObject(result);//result.type, result.action, result.results);
-                        } else {
-                            Synchronizer.processResponse(context, data);
-                        }
-                    }
-                } else if (context.context == "dataReload") {
-                    if(result != null) {
-                        updateModelObject(result);
-                    }
-                } else if (context.context == "verificationContent" && result != null) {
-                    updateModelObject(result);
-                } else if (context.context.startsWith("acceptVerificationRequest2") && result != null) {
-                    QoidAPI.acceptVerificationRequest2(context.context, result);
-                } else if (context.context.startsWith("acceptVerification2") && result != null) {
-                    QoidAPI.acceptVerification2(context.context, result);
-                } else if (!Synchronizer.processResponse(context, data)){
-                    if (result != null) {
-                        var eventId = "on" + context.context.capitalizeFirstLetter();
-                        EventManager.instance.fire(eventId, data);
+    private static function handleResponse (data: Response): Void {
+        if (!data.success) {
+            Logga.DEFAULT.error(data.error);
+        } else {
+            var context:RequestContext = Serializer.instance.fromJsonX(data.context, RequestContext);
+            var result:ResponseResult = data.result;
+            if (context.context == "initialDataLoad") {
+                if (result != null) {
+                    if (result.standing == true) {
+                        updateModelObject(result);//result.type, result.action, result.results);
+                    } else {
+                        Synchronizer.processResponse(context, data);
                     }
                 }
-			}
-		});
-	}
+            } else if (context.context == "dataReload") {
+                if(result != null) {
+                    updateModelObject(result);
+                }
+            } else if (context.context == "verificationContent" && result != null) {
+                updateModelObject(result);
+            } else if (context.context.startsWith("acceptVerificationRequest2") && result != null) {
+                QoidAPI.acceptVerificationRequest2(context.context, result);
+            } else if (context.context.startsWith("acceptVerification2") && result != null) {
+                QoidAPI.acceptVerification2(context.context, result);
+            } else if (!Synchronizer.processResponse(context, data)){
+                if (result != null) {
+                    var eventId = "on" + context.context.capitalizeFirstLetter();
+                    EventManager.instance.fire(eventId, data);
+                }
+            }
+        }
+    }
 
     private static function processModelObject<T>(set:ObservableSet<T>, type: Class<T>, action:String, data:Array<Dynamic>):Void {
         if(data.hasValues())
