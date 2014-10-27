@@ -1547,7 +1547,7 @@ qoid.QoidAPI.getProfile = function(connectionIids) {
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,new qoid.RequestContext("connectionProfile"));
 };
 qoid.QoidAPI.getVerificationContent = function(connectionIids,iids) {
-	var json = qoid.QoidAPI.createQueryJson("content","iid in (" + iids.join(",") + ")",true,false);
+	var json = qoid.QoidAPI.createQueryJson("content","iid in (" + iids.join(",") + ")",true,false,connectionIids);
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,new qoid.RequestContext("verificationContent"));
 };
 qoid.QoidAPI.cancelQuery = function(context) {
