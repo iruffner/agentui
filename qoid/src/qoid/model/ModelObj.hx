@@ -416,8 +416,6 @@ class UrlContent extends Content<UrlContentData> {
 
 class VerificationContentData extends ContentData {
 	public var text: String;
-	public var created: Date;
-	public var modified: Date;
 	public function new () {
 		super();
 	}	

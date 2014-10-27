@@ -147,9 +147,7 @@ class QoidAPI {
         var context = "dataReload";
         var requests = [
             new ChannelRequestMessage(QUERY_CANCEL, new RequestContext(context, "connection"), {}),
-            // new ChannelRequestMessage(QUERY_CANCEL, new RequestContext(context, "profile"), {}),
             new ChannelRequestMessage(QUERY, new RequestContext(context, "connection"), createQueryJson("connection", "aliasIid = '" + QoidAPI.activeAlias.iid + "' and iid <> '" + QoidAPI.activeAlias.connectionIid + "'"))
-            // new ChannelRequestMessage(QUERY, new RequestContext(context, "profile"), createQueryJson("profile", "aliasIid = '" + QoidAPI.activeAlias.iid + "'"))
         ];
         new SubmitRequest(activeChannel, requests, onSuccess, onError).requestHeaders(headers).start();
     }
@@ -253,7 +251,7 @@ class QoidAPI {
     }
 
     public static function getVerificationContent(connectionIids:Array<String>, iids:Array<String>) {
-        var json = createQueryJson("content", "iid in (" + iids.join(",") + ")", true, false);
+        var json = createQueryJson("content", "iid in (" + iids.join(",") + ")", true, false, connectionIids);
         submitRequest(json, QUERY, new RequestContext("verificationContent"));
     }
 
@@ -628,7 +626,8 @@ class QoidAPI {
         // consume this notification
         consumeNotification(vr.notificationIid, "verificationRequestAccepted");
 
-        // get the label from Meta/Verifications        
+        // get the label from Meta/Verifications
+        // TODO:  Start with current alias root
         var verificationsLabel = Qoid.labels.getElementComplex("Verifications","name");
 
         var vc = new VerificationContent(vr.verificationContent);

@@ -71,7 +71,7 @@ extern class ContentComp extends JQ {
 					var vs = self.options.content.metaData.verifications;
 					for (v in vs) {
 						var p = Qoid.profiles.getElementComplex(v.verifierId, "sharedId");
-						var msg:MessageContent = cast(Qoid.verificationContent.getElement(v.verificationIid));
+						var msg:VerificationContent = cast(Qoid.verificationContent.getElement(v.verificationIid));
 						var text = msg == null ? "Unable to retrieve verification content." : msg.props.text;
 						vdata.push({profile:p, message:text});
 					}
