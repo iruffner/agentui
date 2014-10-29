@@ -331,6 +331,9 @@ StringTools.htmlEscape = function(s,quotes) {
 	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
 	if(quotes) return s.split("\"").join("&quot;").split("'").join("&#039;"); else return s;
 };
+StringTools.startsWith = function(s,start) {
+	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
+};
 StringTools.endsWith = function(s,end) {
 	var elen = end.length;
 	var slen = s.length;
@@ -1243,7 +1246,7 @@ qoid.QoidAPI.useAlias = function(alias) {
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),requests,qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
 };
 qoid.QoidAPI.onLoginError = function(exc) {
-	m3.util.JqueryUtil.alert(exc.message,"Login Error");
+	js.Lib.alert("Login error:\n" + exc.message);
 };
 qoid.QoidAPI.onLogin = function(data) {
 	qoid.QoidAPI.addChannel(data.channelId);
@@ -1309,7 +1312,7 @@ qoid.QoidAPI.getProfile = function(connectionIids) {
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,new qoid.RequestContext("connectionProfile"));
 };
 qoid.QoidAPI.getVerificationContent = function(connectionIids,iids) {
-	var json = qoid.QoidAPI.createQueryJson("content","iid in (" + iids.join(",") + ")",true,false);
+	var json = qoid.QoidAPI.createQueryJson("content","iid in (" + iids.join(",") + ")",true,false,connectionIids);
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.QUERY,new qoid.RequestContext("verificationContent"));
 };
 qoid.QoidAPI.cancelQuery = function(context) {
@@ -1366,15 +1369,20 @@ qoid.QoidAPI.deleteConnection = function(connectionIid,route) {
 qoid.QoidAPI.createContent = function(contentType,data,labelIids,context,route,semanticId) {
 	var json = { contentType : contentType, data : data, labelIids : labelIids};
 	if(route != null) json.route = route;
-	if(semanticId != null) json.semanticId = semanticId;
+	if(semanticId == null || semanticId == "") semanticId = m3.util.UidGenerator.create();
+	json.semanticId = semanticId;
 	var context1;
 	if(context == null) context1 = "createContent"; else context1 = context;
 	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_CREATE,new qoid.RequestContext(context1));
 };
-qoid.QoidAPI.updateContent = function(contentIid,data,route) {
-	var json = { contentIid : contentIid, data : data};
+qoid.QoidAPI.updateContent = function(contentIid,data,metaData,context,route) {
+	var json = { contentIid : contentIid};
+	if(data != null) json.data = data;
+	if(metaData != null) json.metaData = metaData;
 	if(route != null) json.route = route;
-	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_UPDATE,new qoid.RequestContext("updateContent"));
+	var context1;
+	if(context == null) context1 = "updateContent"; else context1 = context;
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.CONTENT_UPDATE,new qoid.RequestContext(context1));
 };
 qoid.QoidAPI.addContentLabel = function(contentIid,labelIid,route) {
 	var json = { contentIid : contentIid, labelIid : labelIid};
@@ -1431,7 +1439,7 @@ qoid.QoidAPI.createNotification = function(kind,data,context,route) {
 	if(route != null) json.route = route;
 	var context1;
 	if(context == null) context1 = "createNotification"; else context1 = context;
-	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_CREATE,new qoid.RequestContext("context"));
+	qoid.QoidAPI.submitRequest(json,qoid.QoidAPI.NOTIFICATION_CREATE,new qoid.RequestContext(context1));
 };
 qoid.QoidAPI.consumeNotification = function(notificationIid,context,route) {
 	var json = { notificationIid : notificationIid};
@@ -1465,6 +1473,41 @@ qoid.QoidAPI.acceptIntroduction = function(notificationIid,route) {
 		m3.log.Logga.get_DEFAULT().error("Could not remove notification | " + Std.string(err));
 	}
 };
+qoid.QoidAPI.verificationRequest = function(vr) {
+	qoid.QoidAPI.createNotification(qoid.model.NotificationKind.VerificationRequest,m3.serialization.Serializer.get_instance().toJson(vr),"verificationRequest",vr.connectionIids);
+};
+qoid.QoidAPI.rejectVerificationRequest = function(notificationIid) {
+	qoid.QoidAPI.consumeNotification(notificationIid,"verificationRequestRejected");
+};
+qoid.QoidAPI.acceptVerificationRequest = function(vr) {
+	qoid.QoidAPI.consumeNotification(vr.notificationIid,"verificationRequestAccepted");
+	var verificationsLabel = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,"Verifications","name");
+	var vc = new qoid.model.VerificationContent(vr.verificationContent);
+	var context = "acceptVerificationRequest2|";
+	context += JSON.stringify(m3.serialization.Serializer.get_instance().toJson(vr));
+	qoid.QoidAPI.createContent(vc.contentType,vc.get_rawData(),[verificationsLabel.iid],context);
+};
+qoid.QoidAPI.acceptVerificationRequest2 = function(context,verificationContent) {
+	var vr = JSON.parse(context.split("|")[1]);
+	var notification = { contentIid : vr.contentIid, verificationContentIid : verificationContent.iid, verificationContentData : verificationContent.data, verifierId : qoid.Qoid.get_currentAlias().profile.sharedId};
+	qoid.QoidAPI.createNotification(qoid.model.NotificationKind.VerificationResponse,notification,"verificationResponseAccepted",[vr.connectionIid]);
+};
+qoid.QoidAPI.rejectVerificationResponse = function(notificationIid) {
+	qoid.QoidAPI.consumeNotification(notificationIid,"rejectVerification");
+};
+qoid.QoidAPI.acceptVerification = function(v) {
+	qoid.QoidAPI.consumeNotification(v.iid,"acceptVerification");
+	var context = "acceptVerification2|";
+	context += JSON.stringify(m3.serialization.Serializer.get_instance().toJson(v));
+	qoid.QoidAPI.query(new qoid.RequestContext(context),"content","iid='" + v.props.contentIid + "'",true,false);
+};
+qoid.QoidAPI.acceptVerification2 = function(context,data) {
+	var vr = JSON.parse(context.split("|")[1]);
+	var content = m3.serialization.Serializer.get_instance().fromJsonX(data.results[0],qoid.model.Content);
+	var verification = new qoid.model.ContentVerification(vr.data.verifierId,vr.data.verificationContentIid);
+	content.metaData.verifications.push(verification);
+	qoid.QoidAPI.updateContent(content.iid,null,content.metaData);
+};
 qoid.QoidAPI.submitRequest = function(json,path,context) {
 	var msg = new m3.comm.ChannelRequestMessage(path,context,json);
 	new qoid.SubmitRequest(qoid.QoidAPI.get_activeChannel(),[msg],qoid.QoidAPI.onSuccess,qoid.QoidAPI.onError).requestHeaders(qoid.QoidAPI.get_headers()).start();
@@ -1479,24 +1522,6 @@ qoid.QoidAPI.onSuccess = function(data) {
 };
 qoid.QoidAPI.onError = function(ae) {
 	m3.log.Logga.get_DEFAULT().error("QoidAPI Error",ae);
-};
-qoid.QoidAPI.prototype = {
-	rejectVerificationRequest: function(notificationIid) {
-		qoid.QoidAPI.consumeNotification(notificationIid,"verificationRequestRejected");
-	}
-	,rejectVerificationResponse: function(notificationIid) {
-		qoid.QoidAPI.consumeNotification(notificationIid,"verificationResponseRejected");
-	}
-	,verificationRequest: function(vr) {
-		qoid.QoidAPI.createNotification(vr.kind,vr.get_rawData(),"verificationRequest");
-	}
-	,respondToVerificationRequest: function(vr) {
-		var vc = new qoid.model.VerificationContent(vr.verificationContent);
-	}
-	,acceptVerification: function(notificationIid) {
-		qoid.QoidAPI.createNotification("VerificationRequestAccept",null,"respondToVerificationRequest");
-	}
-	,__class__: qoid.QoidAPI
 };
 m3.serialization = {};
 m3.serialization.Serializer = function(defaultToStrict) {
@@ -2323,6 +2348,7 @@ m3.comm.ChannelRequestMessageBundle.prototype = {
 qoid.RequestContext = function(context,handle,resultType) {
 	this.context = context;
 	this.handle = handle;
+	this.resultType = resultType;
 };
 $hxClasses["qoid.RequestContext"] = qoid.RequestContext;
 qoid.RequestContext.__name__ = ["qoid","RequestContext"];
@@ -2588,8 +2614,8 @@ $hxClasses["qoid.model.Content"] = qoid.model.Content;
 qoid.model.Content.__name__ = ["qoid","model","Content"];
 qoid.model.Content.__super__ = qoid.model.ModelObjWithIid;
 qoid.model.Content.prototype = $extend(qoid.model.ModelObjWithIid.prototype,{
-	setData: function(data) {
-		this.data = data;
+	get_rawData: function() {
+		return this.data;
 	}
 	,readResolve: function() {
 		this.props = m3.serialization.Serializer.get_instance().fromJsonX(this.data,this.type);
@@ -2776,24 +2802,33 @@ qoid.ResponseProcessor = function() { };
 $hxClasses["qoid.ResponseProcessor"] = qoid.ResponseProcessor;
 qoid.ResponseProcessor.__name__ = ["qoid","ResponseProcessor"];
 qoid.ResponseProcessor.processResponse = function(dataArr) {
-	Lambda.iter(dataArr,function(data) {
-		if(!data.success) m3.log.Logga.get_DEFAULT().error(data.error.stacktrace); else {
-			var context = m3.serialization.Serializer.get_instance().fromJsonX(data.context,qoid.RequestContext);
-			var result = data.result;
-			if(context.context == "initialDataLoad") {
-				if(result != null) {
-					if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result); else qoid.Synchronizer.processResponse(context,data);
-				}
-			} else if(context.context == "dataReload") {
-				if(result != null) qoid.ResponseProcessor.updateModelObject(result);
-			} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result); else if(!qoid.Synchronizer.processResponse(context,data)) {
-				if(result != null) {
-					var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
-					m3.event.EventManager.get_instance().fire(eventId,data);
-				}
+	try {
+		Lambda.iter(dataArr,function(data) {
+			qoid.ResponseProcessor.handleResponse(data);
+		});
+	} catch( e ) {
+		if( js.Boot.__instanceof(e,m3.exception.Exception) ) {
+			m3.log.Logga.get_DEFAULT().error("Error Procesing Response",e);
+		} else throw(e);
+	}
+};
+qoid.ResponseProcessor.handleResponse = function(data) {
+	if(!data.success) m3.log.Logga.get_DEFAULT().error(data.error); else {
+		var context = m3.serialization.Serializer.get_instance().fromJsonX(data.context,qoid.RequestContext);
+		var result = data.result;
+		if(context.context == "initialDataLoad") {
+			if(result != null) {
+				if(result.standing == true) qoid.ResponseProcessor.updateModelObject(result); else qoid.Synchronizer.processResponse(context,data);
+			}
+		} else if(context.context == "dataReload") {
+			if(result != null) qoid.ResponseProcessor.updateModelObject(result);
+		} else if(context.context == "verificationContent" && result != null) qoid.ResponseProcessor.updateModelObject(result); else if(StringTools.startsWith(context.context,"acceptVerificationRequest2") && result != null) qoid.QoidAPI.acceptVerificationRequest2(context.context,result); else if(StringTools.startsWith(context.context,"acceptVerification2") && result != null) qoid.QoidAPI.acceptVerification2(context.context,result); else if(!qoid.Synchronizer.processResponse(context,data)) {
+			if(result != null) {
+				var eventId = "on" + m3.helper.StringHelper.capitalizeFirstLetter(context.context);
+				m3.event.EventManager.get_instance().fire(eventId,data);
 			}
 		}
-	});
+	}
 };
 qoid.ResponseProcessor.processModelObject = function(set,type,action,data) {
 	if(m3.helper.ArrayHelper.hasValues(data)) {
@@ -3158,6 +3193,17 @@ qoid.Synchronizer.prototype = {
 	}
 	,__class__: qoid.Synchronizer
 };
+qoid.model.ContentVerification = function(verifierId,verificationIid) {
+	this.verifierId = verifierId;
+	this.verificationIid = verificationIid;
+	this.hash = { };
+	this.hashAlgorithm = "";
+};
+$hxClasses["qoid.model.ContentVerification"] = qoid.model.ContentVerification;
+qoid.model.ContentVerification.__name__ = ["qoid","model","ContentVerification"];
+qoid.model.ContentVerification.prototype = {
+	__class__: qoid.model.ContentVerification
+};
 m3.comm.LongPollingRequest = function(channel,successFcn,errorFcn,ajaxOpts,baseUrl) {
 	this.timeout = 30000;
 	this.delayNextPoll = false;
@@ -3252,6 +3298,12 @@ $hxClasses["qoid.SynchronizationParms"] = qoid.SynchronizationParms;
 qoid.SynchronizationParms.__name__ = ["qoid","SynchronizationParms"];
 qoid.SynchronizationParms.prototype = {
 	__class__: qoid.SynchronizationParms
+};
+js.Lib = function() { };
+$hxClasses["js.Lib"] = js.Lib;
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.alert = function(v) {
+	alert(js.Boot.__string_rec(v,""));
 };
 m3.util.JqueryUtil = $hx_exports.m3.util.JqueryUtil = function() { };
 $hxClasses["m3.util.JqueryUtil"] = m3.util.JqueryUtil;
@@ -4240,12 +4292,6 @@ haxe.xml.Parser.doParse = function(str,p,parent) {
 	}
 	throw "Unexpected end";
 };
-js.Lib = function() { };
-$hxClasses["js.Lib"] = js.Lib;
-js.Lib.__name__ = ["js","Lib"];
-js.Lib.alert = function(v) {
-	alert(js.Boot.__string_rec(v,""));
-};
 m3.CrossMojo = function() { };
 $hxClasses["m3.CrossMojo"] = m3.CrossMojo;
 m3.CrossMojo.__name__ = ["m3","CrossMojo"];
@@ -4256,9 +4302,6 @@ m3.CrossMojo.jq = function(selector,arg2) {
 };
 m3.CrossMojo.windowConsole = function() {
 	return window.console;
-};
-m3.CrossMojo.confirm = function() {
-	return confirm;
 };
 m3.CrossMojo.pushState = function(data,title,url) {
 	History.pushState(data, title, url);
@@ -5262,12 +5305,6 @@ qoid.model.ContentData.__name__ = ["qoid","model","ContentData"];
 qoid.model.ContentData.prototype = {
 	__class__: qoid.model.ContentData
 };
-qoid.model.ContentVerification = function() { };
-$hxClasses["qoid.model.ContentVerification"] = qoid.model.ContentVerification;
-qoid.model.ContentVerification.__name__ = ["qoid","model","ContentVerification"];
-qoid.model.ContentVerification.prototype = {
-	__class__: qoid.model.ContentVerification
-};
 qoid.model.VerifiedContentMetaData = function() { };
 $hxClasses["qoid.model.VerifiedContentMetaData"] = qoid.model.VerifiedContentMetaData;
 qoid.model.VerifiedContentMetaData.__name__ = ["qoid","model","VerifiedContentMetaData"];
@@ -5440,7 +5477,7 @@ qoid.model.VerificationRequestData.prototype = {
 				var _this1 = new Date();
 				$r = HxOverrides.dateStr(_this1);
 				return $r;
-			}(this)), createdByAliasIid : "Chewbaca", modifiedByAliasIid : "PizzaTheHut"};
+			}(this))};
 			return m3.serialization.Serializer.get_instance().fromJsonX(fromJson,qoid.model.Content);
 		} catch( e ) {
 			m3.log.Logga.get_DEFAULT().error(e);
@@ -5449,9 +5486,11 @@ qoid.model.VerificationRequestData.prototype = {
 	}
 	,__class__: qoid.model.VerificationRequestData
 };
-qoid.model.VerificationRequest = function(contentIid,connectionIids,message) {
+qoid.model.VerificationRequest = function(content,connectionIids,message) {
 	this.message = message;
-	this.contentIid = contentIid;
+	this.contentIid = content.iid;
+	this.contentType = content.contentType;
+	this.contentData = content.props;
 	this.connectionIids = connectionIids;
 };
 $hxClasses["qoid.model.VerificationRequest"] = qoid.model.VerificationRequest;
@@ -5474,9 +5513,11 @@ qoid.model.VerificationResponseData.__name__ = ["qoid","model","VerificationResp
 qoid.model.VerificationResponseData.prototype = {
 	__class__: qoid.model.VerificationResponseData
 };
-qoid.model.VerificationResponse = function(notificationIid,verificationContent) {
-	this.notificationIid = notificationIid;
+qoid.model.VerificationResponse = function(vr,verificationContent) {
+	this.notificationIid = vr.iid;
+	this.connectionIid = vr.get_connectionIid();
 	this.verificationContent = verificationContent;
+	this.contentIid = vr.props.contentIid;
 };
 $hxClasses["qoid.model.VerificationResponse"] = qoid.model.VerificationResponse;
 qoid.model.VerificationResponse.__name__ = ["qoid","model","VerificationResponse"];
@@ -6170,14 +6211,14 @@ var defineWidget = function() {
 };
 $.widget("ui.auditLog",defineWidget());
 qoid.model.ModelObj.__rtti = "<class path=\"qoid.model.ModelObj\" params=\"\">\n\t<objectId public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</objectId>\n\t<_objectId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</_objectId>\n\t<get_objectId set=\"method\" line=\"28\"><f a=\"\"><c path=\"String\"/></f></get_objectId>\n\t<objectType public=\"1\" set=\"method\" line=\"36\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"631\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.NewUser.__rtti = "<class path=\"qoid.model.NewUser\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<userName public=\"1\"><c path=\"String\"/></userName>\n\t<email public=\"1\"><c path=\"String\"/></email>\n\t<pwd public=\"1\"><c path=\"String\"/></pwd>\n\t<new public=\"1\" set=\"method\" line=\"641\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.QE.onAliasLoaded = "onAliasLoaded";
 qoid.QE.onAgentCreated = "onAgentCreated";
 qoid.QE.onConnectionProfile = "onConnectionProfile";
 qoid.QE.onInitialDataload = "onInitialDataload";
 qoid.QE.onInitiateIntroduction = "onInitiateIntroduction";
 qoid.QE.onUserLogin = "onUserLogin";
-qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"618\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Login.__rtti = "<class path=\"qoid.model.Login\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObj\"/>\n\t<agentId public=\"1\"><c path=\"String\"/></agentId>\n\t<password public=\"1\"><c path=\"String\"/></password>\n\t<new public=\"1\" set=\"method\" line=\"628\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.QoidAPI.AGENT_CREATE = "/api/v1/agent/create";
 qoid.QoidAPI.LOGIN = "/api/v1/login";
 qoid.QoidAPI.LOGOUT = "/api/v1/logout";
@@ -6221,7 +6262,7 @@ qoid.model.NotificationKind.VerificationRequest = "VerificationRequest";
 qoid.model.NotificationKind.VerificationResponse = "VerificationResponse";
 m3.comm.ChannelRequestMessage.__rtti = "<class path=\"m3.comm.ChannelRequestMessage\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<path><c path=\"String\"/></path>\n\t<context><d/></context>\n\t<parms><d/></parms>\n\t<new public=\"1\" set=\"method\" line=\"11\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 m3.comm.ChannelRequestMessageBundle.__rtti = "<class path=\"m3.comm.ChannelRequestMessageBundle\" params=\"\" module=\"m3.comm.ChannelRequest\">\n\t<channel><c path=\"String\"/></channel>\n\t<requests><c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c></requests>\n\t<add public=\"1\" set=\"method\" line=\"29\"><f a=\"request\">\n\t<c path=\"m3.comm.ChannelRequestMessage\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<createAndAdd public=\"1\" set=\"method\" line=\"33\"><f a=\"path:context:parms\">\n\t<c path=\"String\"/>\n\t<a>\n\t\t<handle><c path=\"String\"/></handle>\n\t\t<context><c path=\"String\"/></context>\n\t</a>\n\t<d/>\n\t<x path=\"Void\"/>\n</f></createAndAdd>\n\t<new public=\"1\" set=\"method\" line=\"24\"><f a=\"channel:requests\">\n\t<c path=\"String\"/>\n\t<c path=\"Array\"><c path=\"m3.comm.ChannelRequestMessage\"/></c>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.RequestContext.__rtti = "<class path=\"qoid.RequestContext\" params=\"\" module=\"qoid.QoidAPI\">\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<handle public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</handle>\n\t<resultType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</resultType>\n\t<new public=\"1\" set=\"method\" line=\"28\"><f a=\"?context:?handle:?resultType\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.RequestContext.__rtti = "<class path=\"qoid.RequestContext\" params=\"\" module=\"qoid.QoidAPI\">\n\t<context public=\"1\"><c path=\"String\"/></context>\n\t<handle public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</handle>\n\t<resultType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</resultType>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"30\"><f a=\"?context:?handle:?resultType\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.Label.__rtti = "<class path=\"qoid.model.Label\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"124\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.Label\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.LabelData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<labelChildren public=\"1\">\n\t\t<c path=\"m3.observable.OSet\"><c path=\"qoid.model.LabelChild\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</labelChildren>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"118\"><f a=\"?name\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.Connection.__rtti = "<class path=\"qoid.model.Connection\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"172\" static=\"1\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<localPeerId public=\"1\"><c path=\"String\"/></localPeerId>\n\t<remotePeerId public=\"1\"><c path=\"String\"/></remotePeerId>\n\t<data public=\"1\">\n\t\t<c path=\"qoid.model.Profile\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<equals public=\"1\" set=\"method\" line=\"181\"><f a=\"c\">\n\t<c path=\"qoid.model.Connection\"/>\n\t<x path=\"Bool\"/>\n</f></equals>\n\t<new public=\"1\" set=\"method\" line=\"176\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 m3.observable.GroupedSet.__rtti = "<class path=\"m3.observable.GroupedSet\" params=\"T\" module=\"m3.observable.OSet\">\n\t<extends path=\"m3.observable.AbstractSet\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></extends>\n\t<_source><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></_source>\n\t<_groupingFn><f a=\"\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<c path=\"String\"/>\n</f></_groupingFn>\n\t<_groupedSets><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></_groupedSets>\n\t<_identityToGrouping><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n</x></_identityToGrouping>\n\t<_groupingKeys><c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c></_groupingKeys>\n\t<delete set=\"method\" line=\"439\"><f a=\"t:?deleteEmptySet\" v=\":true\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></delete>\n\t<add set=\"method\" line=\"463\"><f a=\"t\">\n\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t<x path=\"Void\"/>\n</f></add>\n\t<addEmptyGroup public=\"1\" set=\"method\" line=\"482\"><f a=\"key\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.ObservableSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</f></addEmptyGroup>\n\t<identifier public=\"1\" set=\"method\" line=\"492\" override=\"1\"><f a=\"\"><f a=\"\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></f></identifier>\n\t<identify set=\"method\" line=\"496\"><f a=\"set\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<c path=\"String\"/>\n</f></identify>\n\t<iterator public=\"1\" set=\"method\" line=\"507\" override=\"1\"><f a=\"\"><t path=\"Iterator\"><c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c></t></f></iterator>\n\t<delegate public=\"1\" set=\"method\" line=\"511\" override=\"1\"><f a=\"\"><x path=\"Map\">\n\t<c path=\"String\"/>\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n</x></f></delegate>\n\t<keys public=\"1\" set=\"method\" line=\"515\"><f a=\"\"><c path=\"m3.observable.ObservableSet\"><c path=\"String\"/></c></f></keys>\n\t<keyListen public=\"1\" set=\"method\" line=\"519\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"String\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></keyListen>\n\t<removeKeyListen public=\"1\" set=\"method\" line=\"523\"><f a=\"l:?autoFire\" v=\":true\">\n\t<f a=\":\">\n\t\t<c path=\"String\"/>\n\t\t<c path=\"m3.observable.EventType\"/>\n\t\t<x path=\"Void\"/>\n\t</f>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></removeKeyListen>\n\t<new public=\"1\" set=\"method\" line=\"418\"><f a=\"source:groupingFn\">\n\t<c path=\"m3.observable.OSet\"><c path=\"m3.observable.GroupedSet.T\"/></c>\n\t<f a=\"\">\n\t\t<c path=\"m3.observable.GroupedSet.T\"/>\n\t\t<c path=\"String\"/>\n\t</f>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
@@ -6229,10 +6270,11 @@ qoid.model.LabelAcl.__rtti = "<class path=\"qoid.model.LabelAcl\" params=\"\" mo
 qoid.model.LabelChild.__rtti = "<class path=\"qoid.model.LabelChild\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"143\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabelChild\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<parentIid public=\"1\"><c path=\"String\"/></parentIid>\n\t<childIid public=\"1\"><c path=\"String\"/></childIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"134\"><f a=\"?parentIid:?childIid\" v=\"null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.LabeledContent.__rtti = "<class path=\"qoid.model.LabeledContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"267\" static=\"1\"><f a=\"l\">\n\t<c path=\"qoid.model.LabeledContent\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<labelIid public=\"1\"><c path=\"String\"/></labelIid>\n\t<data public=\"1\">\n\t\t<d/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</data>\n\t<new public=\"1\" set=\"method\" line=\"271\"><f a=\"contentIid:labelIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
 qoid.model.Profile.__rtti = "<class path=\"qoid.model.Profile\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<identifier public=\"1\" set=\"method\" line=\"73\" static=\"1\"><f a=\"profile\">\n\t<c path=\"qoid.model.Profile\"/>\n\t<c path=\"String\"/>\n</f></identifier>\n\t<sharedId public=\"1\"><c path=\"String\"/></sharedId>\n\t<aliasIid public=\"1\"><c path=\"String\"/></aliasIid>\n\t<name public=\"1\"><c path=\"String\"/></name>\n\t<imgSrc public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</imgSrc>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<new public=\"1\" set=\"method\" line=\"67\"><f a=\"?name:?imgSrc:?aliasIid\" v=\"null:null:null\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<semanticId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</semanticId>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<setData public=\"1\" set=\"method\" line=\"331\"><f a=\"data\">\n\t<d/>\n\t<x path=\"Void\"/>\n</f></setData>\n\t<readResolve set=\"method\" line=\"335\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"339\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"343\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"347\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"320\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<kind public=\"1\"><c path=\"String\"/></kind>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<data><d/></data>\n\t<connectionIid public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"487\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<rawData public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<d/>\n\t\t<meta>\n\t\t\t<m n=\":transient\"/>\n\t\t\t<m n=\":isVar\"/>\n\t\t</meta>\n\t</rawData>\n\t<get_rawData public=\"1\" set=\"method\" line=\"492\"><f a=\"\"><d/></f></get_rawData>\n\t<get_connectionIid set=\"method\" line=\"505\"><f a=\"\"><c path=\"String\"/></f></get_connectionIid>\n\t<readResolve set=\"method\" line=\"509\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"513\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"496\"><f a=\"kind:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aAccepted public=\"1\"><x path=\"Bool\"/></aAccepted>\n\t<bAccepted public=\"1\"><x path=\"Bool\"/></bAccepted>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"525\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.Content.__rtti = "<class path=\"qoid.model.Content\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<connectionIid public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</connectionIid>\n\t<metaData public=\"1\">\n\t\t<c path=\"qoid.model.ContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</metaData>\n\t<semanticId public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</semanticId>\n\t<data><d/></data>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Content.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<rawData public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<d/>\n\t\t<meta>\n\t\t\t<m n=\":transient\"/>\n\t\t\t<m n=\":isVar\"/>\n\t\t</meta>\n\t</rawData>\n\t<get_rawData public=\"1\" set=\"method\" line=\"336\"><f a=\"\"><d/></f></get_rawData>\n\t<readResolve set=\"method\" line=\"340\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"344\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<getTimestamp public=\"1\" set=\"method\" line=\"348\"><f a=\"\"><c path=\"String\"/></f></getTimestamp>\n\t<objectType public=\"1\" set=\"method\" line=\"352\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<new public=\"1\" set=\"method\" line=\"325\"><f a=\"contentType:type\">\n\t<t path=\"qoid.model.ContentType\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Content.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Notification.__rtti = "<class path=\"qoid.model.Notification\" params=\"T\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<consumed public=\"1\"><x path=\"Bool\"/></consumed>\n\t<kind public=\"1\"><c path=\"String\"/></kind>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<data><d/></data>\n\t<connectionIid public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIid>\n\t<props public=\"1\">\n\t\t<c path=\"qoid.model.Notification.T\"/>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</props>\n\t<type>\n\t\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</type>\n\t<objectType public=\"1\" set=\"method\" line=\"490\" override=\"1\"><f a=\"\"><c path=\"String\"/></f></objectType>\n\t<rawData public=\"1\" get=\"accessor\" set=\"null\">\n\t\t<d/>\n\t\t<meta>\n\t\t\t<m n=\":transient\"/>\n\t\t\t<m n=\":isVar\"/>\n\t\t</meta>\n\t</rawData>\n\t<get_rawData public=\"1\" set=\"method\" line=\"495\"><f a=\"\"><d/></f></get_rawData>\n\t<get_connectionIid set=\"method\" line=\"508\"><f a=\"\"><c path=\"String\"/></f></get_connectionIid>\n\t<readResolve set=\"method\" line=\"512\"><f a=\"\"><x path=\"Void\"/></f></readResolve>\n\t<writeResolve set=\"method\" line=\"516\"><f a=\"\"><x path=\"Void\"/></f></writeResolve>\n\t<new public=\"1\" set=\"method\" line=\"499\"><f a=\"kind:type\">\n\t<c path=\"String\"/>\n\t<x path=\"Class\"><c path=\"qoid.model.Notification.T\"/></x>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.Introduction.__rtti = "<class path=\"qoid.model.Introduction\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aAccepted public=\"1\"><x path=\"Bool\"/></aAccepted>\n\t<bAccepted public=\"1\"><x path=\"Bool\"/></bAccepted>\n\t<recordVersion public=\"1\"><x path=\"Int\"/></recordVersion>\n\t<new public=\"1\" set=\"method\" line=\"528\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.Synchronizer.synchronizers = new haxe.ds.StringMap();
+qoid.model.ContentVerification.__rtti = "<class path=\"qoid.model.ContentVerification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<new public=\"1\" set=\"method\" line=\"291\"><f a=\"verifierId:verificationIid\">\n\t<c path=\"String\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 haxe.xml.Parser.escapes = (function($this) {
 	var $r;
 	var h = new haxe.ds.StringMap();
@@ -6262,29 +6304,30 @@ qoid.model.ContentTypes.URL = "URL";
 qoid.model.ContentTypes.VERIFICATION = "VERIFICATION";
 qoid.model.ContentTypes.LINK = "LINK";
 qoid.model.ContentData.__rtti = "<class path=\"qoid.model.ContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<new public=\"1\" set=\"method\" line=\"280\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ContentVerification.__rtti = "<class path=\"qoid.model.ContentVerification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<verificationIid public=\"1\"><c path=\"String\"/></verificationIid>\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 qoid.model.VerifiedContentMetaData.__rtti = "<class path=\"qoid.model.VerifiedContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<hash public=\"1\"><d/></hash>\n\t<hashAlgorithm public=\"1\"><c path=\"String\"/></hashAlgorithm>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ContentMetaData.__rtti = "<class path=\"qoid.model.ContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"qoid.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<verifiedContent public=\"1\">\n\t\t<c path=\"qoid.model.VerifiedContentMetaData\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifiedContent>\n\t<new public=\"1\" set=\"method\" line=\"303\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"356\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"362\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"372\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"378\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"386\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"392\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"401\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"407\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<created public=\"1\"><c path=\"Date\"/></created>\n\t<modified public=\"1\"><c path=\"Date\"/></modified>\n\t<new public=\"1\" set=\"method\" line=\"416\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"422\"><f a=\"?text\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
-qoid.model.LinkContentData.__rtti = "<class path=\"qoid.model.LinkContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<new public=\"1\" set=\"method\" line=\"432\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.LinkContent.__rtti = "<class path=\"qoid.model.LinkContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.LinkContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"438\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"518\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"535\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ContentMetaData.__rtti = "<class path=\"qoid.model.ContentMetaData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<verifications public=\"1\">\n\t\t<c path=\"Array\"><c path=\"qoid.model.ContentVerification\"/></c>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</verifications>\n\t<new public=\"1\" set=\"method\" line=\"309\"><f a=\"\"><x path=\"Void\"/></f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.ImageContentData.__rtti = "<class path=\"qoid.model.ImageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<imgSrc public=\"1\"><c path=\"String\"/></imgSrc>\n\t<caption public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</caption>\n\t<new public=\"1\" set=\"method\" line=\"361\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.ImageContent.__rtti = "<class path=\"qoid.model.ImageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.ImageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"367\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContentData.__rtti = "<class path=\"qoid.model.AudioContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<audioSrc public=\"1\"><c path=\"String\"/></audioSrc>\n\t<audioType public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</audioType>\n\t<title public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</title>\n\t<new public=\"1\" set=\"method\" line=\"377\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.AudioContent.__rtti = "<class path=\"qoid.model.AudioContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.AudioContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"383\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContentData.__rtti = "<class path=\"qoid.model.MessageContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"391\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.MessageContent.__rtti = "<class path=\"qoid.model.MessageContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.MessageContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"397\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContentData.__rtti = "<class path=\"qoid.model.UrlContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<url public=\"1\"><c path=\"String\"/></url>\n\t<text public=\"1\">\n\t\t<c path=\"String\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</text>\n\t<new public=\"1\" set=\"method\" line=\"406\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.UrlContent.__rtti = "<class path=\"qoid.model.UrlContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.UrlContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"412\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContentData.__rtti = "<class path=\"qoid.model.VerificationContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<text public=\"1\"><c path=\"String\"/></text>\n\t<new public=\"1\" set=\"method\" line=\"419\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationContent.__rtti = "<class path=\"qoid.model.VerificationContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.VerificationContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"425\"><f a=\"?text\" v=\"null\">\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n</class>";
+qoid.model.LinkContentData.__rtti = "<class path=\"qoid.model.LinkContentData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ContentData\"/>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<route public=\"1\"><c path=\"Array\"><c path=\"String\"/></c></route>\n\t<new public=\"1\" set=\"method\" line=\"435\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.LinkContent.__rtti = "<class path=\"qoid.model.LinkContent\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Content\"><c path=\"qoid.model.LinkContentData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"441\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequest.__rtti = "<class path=\"qoid.model.IntroductionRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.ModelObjWithIid\"/>\n\t<aConnectionIid public=\"1\"><c path=\"String\"/></aConnectionIid>\n\t<bConnectionIid public=\"1\"><c path=\"String\"/></bConnectionIid>\n\t<aMessage public=\"1\"><c path=\"String\"/></aMessage>\n\t<bMessage public=\"1\"><c path=\"String\"/></bMessage>\n\t<new public=\"1\" set=\"method\" line=\"521\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.IntroductionRequestNotification.__rtti = "<class path=\"qoid.model.IntroductionRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.IntroductionRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"538\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.IntroductionRequestData.__rtti = "<class path=\"qoid.model.IntroductionRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<introductionIid public=\"1\"><c path=\"String\"/></introductionIid>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<accepted public=\"1\">\n\t\t<x path=\"Bool\"/>\n\t\t<meta><m n=\":optional\"/></meta>\n\t</accepted>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"548\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
-qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"560\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"592\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestNotification.__rtti = "<class path=\"qoid.model.VerificationRequestNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationRequestData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"551\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
+qoid.model.VerificationRequestData.__rtti = "<class path=\"qoid.model.VerificationRequestData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<getContent public=\"1\" set=\"method\" line=\"562\">\n\t\t<f a=\"\"><c path=\"qoid.model.Content\"><d/></c></f>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</getContent>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationRequest.__rtti = "<class path=\"qoid.model.VerificationRequest\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<contentType public=\"1\"><c path=\"String\"/></contentType>\n\t<contentData public=\"1\"><d/></contentData>\n\t<message public=\"1\"><c path=\"String\"/></message>\n\t<connectionIids public=\"1\">\n\t\t<c path=\"Array\"><c path=\"String\"/></c>\n\t\t<meta><m n=\":transient\"/></meta>\n\t</connectionIids>\n\t<new public=\"1\" set=\"method\" line=\"587\"><f a=\"content:connectionIids:message\">\n\t<c path=\"qoid.model.Content\"><d/></c>\n\t<c path=\"Array\"><c path=\"String\"/></c>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationResponseNotification.__rtti = "<class path=\"qoid.model.VerificationResponseNotification\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<extends path=\"qoid.model.Notification\"><c path=\"qoid.model.VerificationResponseData\"/></extends>\n\t<new public=\"1\" set=\"method\" line=\"597\"><f a=\"\"><x path=\"Void\"/></f></new>\n</class>";
 qoid.model.VerificationResponseData.__rtti = "<class path=\"qoid.model.VerificationResponseData\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<verificationContentIid public=\"1\"><c path=\"String\"/></verificationContentIid>\n\t<verificationContentData public=\"1\"><d/></verificationContentData>\n\t<verifierId public=\"1\"><c path=\"String\"/></verifierId>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
-qoid.model.IntroResponseMessage.__rtti = "<class path=\"qoid.model.IntroResponseMessage\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"679\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.VerificationResponse.__rtti = "<class path=\"qoid.model.VerificationResponse\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<verificationContent public=\"1\"><c path=\"String\"/></verificationContent>\n\t<connectionIid public=\"1\"><c path=\"String\"/></connectionIid>\n\t<contentIid public=\"1\"><c path=\"String\"/></contentIid>\n\t<new public=\"1\" set=\"method\" line=\"616\"><f a=\"vr:verificationContent\">\n\t<c path=\"qoid.model.VerificationRequestNotification\"/>\n\t<c path=\"String\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
+qoid.model.IntroResponseMessage.__rtti = "<class path=\"qoid.model.IntroResponseMessage\" params=\"\" module=\"qoid.model.ModelObj\">\n\t<notificationIid public=\"1\"><c path=\"String\"/></notificationIid>\n\t<accepted public=\"1\"><x path=\"Bool\"/></accepted>\n\t<new public=\"1\" set=\"method\" line=\"689\"><f a=\"notificationIid:accepted\">\n\t<c path=\"String\"/>\n\t<x path=\"Bool\"/>\n\t<x path=\"Void\"/>\n</f></new>\n\t<meta><m n=\":rtti\"/></meta>\n</class>";
 terminal.model.EMEvent.QueryAuditLogs = "QueryAuditLogs";
 terminal.model.EMEvent.OnAuditLog = "onAuditLog";
 terminal.model.EMEvent.CreateAgent = "CreateAgent";
