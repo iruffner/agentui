@@ -112,7 +112,7 @@ extern class EditPostComp extends JQ {
 
             		self.mappedLabels = new MappedSet<LabeledContent, JQ>(Qoid.groupedLabeledContent.delegate().get(self.options.content.iid), 
 		        		function(lc: LabeledContent): JQ {
-		        			var connection = Qoid.connectionFromMetaLabel(lc.labelIid);
+		        			var connection = Qoid.connectionFromLabel(lc.labelIid);
 		        			if (connection != null) {
 				        		var ca = new ConnectionAvatar("<div></div>").connectionAvatar({
 				        				connectionIid: connection.iid,

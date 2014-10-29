@@ -1715,7 +1715,7 @@ qoid.QoidAPI.rejectVerificationRequest = function(notificationIid) {
 };
 qoid.QoidAPI.acceptVerificationRequest = function(vr) {
 	qoid.QoidAPI.consumeNotification(vr.notificationIid,"verificationRequestAccepted");
-	var verificationsLabel = m3.helper.OSetHelper.getElementComplex(qoid.Qoid.labels,"Verifications","name");
+	var verificationsLabel = qoid.Qoid.labelFromPath(["Meta","Verifications"]);
 	var vc = new qoid.model.VerificationContent(vr.verificationContent);
 	var context = "acceptVerificationRequest2|";
 	context += JSON.stringify(m3.serialization.Serializer.get_instance().toJson(vr));
@@ -2909,7 +2909,7 @@ qoid.Qoid.getLabelDescendents = function(iid) {
 	HxOverrides.remove(iid_list,iid);
 	return labelDescendents;
 };
-qoid.Qoid.connectionFromMetaLabel = function(labelIid) {
+qoid.Qoid.connectionFromLabel = function(labelIid) {
 	var ret = null;
 	var $it0 = qoid.Qoid.connections.iterator();
 	while( $it0.hasNext() ) {
@@ -2919,6 +2919,33 @@ qoid.Qoid.connectionFromMetaLabel = function(labelIid) {
 			break;
 		}
 	}
+	return ret;
+};
+qoid.Qoid.labelFromPath = function(path) {
+	var ret = null;
+	var parentIid = qoid.Qoid.get_currentAlias().labelIid;
+	var labels = new Array();
+	var _g = 0;
+	while(_g < path.length) {
+		var labelName = path[_g];
+		++_g;
+		var acls = new m3.observable.FilteredSet(qoid.Qoid.labelChildren,function(l) {
+			return l.parentIid == parentIid;
+		});
+		var _g1 = 0;
+		var _g2 = acls.asArray();
+		while(_g1 < _g2.length) {
+			var acl = _g2[_g1];
+			++_g1;
+			var label = m3.helper.OSetHelper.getElement(qoid.Qoid.labels,acl.childIid);
+			if(label != null && label.name == labelName) {
+				labels.push(label);
+				parentIid = label.iid;
+				break;
+			}
+		}
+	}
+	if(labels.length == path.length) ret = labels[labels.length - 1];
 	return ret;
 };
 agentui.model.ContentSource = function() { };
@@ -7638,7 +7665,7 @@ var defineWidget = function() {
 			$r = this2.get(self2.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
-			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
+			var connection = qoid.Qoid.connectionFromLabel(lc.labelIid);
 			if(connection != null) {
 				var ca = new $("<div></div>").connectionAvatar({ connectionIid : connection.iid, dndEnabled : true, isDragByHelper : false, containment : false, dragstop : self2._getDragStop()}).appendTo(edit_post_comps_tags).css("position","absolute");
 				ca.position({ my : "left", at : "right", of : of, collision : "flipfit", within : self2.tags});
@@ -7897,7 +7924,7 @@ var defineWidget = function() {
 			$r = this3.get(self1.options.content.iid);
 			return $r;
 		}(this)),function(lc) {
-			var connection = qoid.Qoid.connectionFromMetaLabel(lc.labelIid);
+			var connection = qoid.Qoid.connectionFromLabel(lc.labelIid);
 			if(connection != null) return new $("<div></div>").connectionAvatar({ dndEnabled : false, connectionIid : connection.iid}); else return new $("<div class='small'></div>").labelComp({ dndEnabled : false, labelIid : lc.labelIid});
 		});
 		self1.mappedLabels.listen(self1.onchangeLabelChildren);

@@ -624,9 +624,7 @@ class QoidAPI {
         // consume this notification
         consumeNotification(vr.notificationIid, "verificationRequestAccepted");
 
-        // get the label from Meta/Verifications
-        // TODO:  Start with current alias root
-        var verificationsLabel = Qoid.labels.getElementComplex("Verifications","name");
+        var verificationsLabel = Qoid.labelFromPath(["Meta", "Verifications"]);
 
         var vc = new VerificationContent(vr.verificationContent);
 

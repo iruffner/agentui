@@ -17,6 +17,8 @@ using m3.helper.StringHelper;
 using m3.helper.OSetHelper;
 using m3.serialization.TypeTools;
 
+using Lambda;
+
 class Qoid {
     public static var aliases:ObservableSet<Alias>;
 
@@ -217,8 +219,7 @@ class Qoid {
         return labelDescendents;
     }
 
-    // TODO:  Change name 
-    public static function connectionFromMetaLabel(labelIid:String):Connection {
+    public static function connectionFromLabel(labelIid:String):Connection {
         var ret:Connection = null;
         for (connection in connections) {
             if (connection.labelIid == labelIid) {
@@ -226,6 +227,30 @@ class Qoid {
                 break;
             }
         }
+        return ret;
+    }
+
+    public static function labelFromPath(path:Array<String>):Label {
+        var ret:Label = null;
+
+        var parentIid = Qoid.currentAlias.labelIid;
+        var labels:Array<Label> = new Array<Label>();
+        for (labelName in path) {
+            var acls = new FilteredSet<LabelChild>(Qoid.labelChildren, function(l:LabelChild):Bool{return l.parentIid == parentIid;});
+            for (acl in acls.asArray()) {
+                var label = Qoid.labels.getElement(acl.childIid);
+                if (label != null && label.name == labelName) {
+                    labels.push(label);
+                    parentIid = label.iid;
+                    break;
+                }
+            }
+        }
+
+        if (labels.length == path.length) {
+            ret = labels[labels.length - 1];
+        }
+
         return ret;
     }
 }
