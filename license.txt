@@ -1,0 +1,57 @@
+ATI LICENSE
+
+Agent Technologies, Inc. (“ATI”) hereby grants you a license, under ATI’s intellectual property
+rights (including U.S. patent application 12/853,506 and its foreign equivalents) to make, import,
+offer for sale, sell and use any product or service which utilizes Agent Standard Messaging or ATI
+code so long as you comply with the following:
+
+A. License Fees
+1. Hosting License Fee
+	a. Individuals, non-G20 governments, and not for profit corporations (501(c)(3) or
+	their international equivalent) are not required to provide payment of any kind.
+	b. G20 governments shall be required to pay an annual fee of $1 for each agent
+	hosted at the end of their fiscal year.
+	c. For profit business entities shall pay an annual fee of $1 for each agent hosted
+	at the end of their fiscal year.
+2. Connections License Fee
+	a. For profit business entities and governments of G20 countries shall also pay an
+	annual fee $1 for each agent that uses any of the Agent Standard Messages
+	for communication with any application owned by the business or government
+	during their fiscal year.
+3. Payment. All payments due hereunder shall be sent to the following address no later
+than forty-five (45) after the end of each fiscal year:
+
+Agent Technologies, Inc.
+17837 1st Ave South, No. 556
+Normandy Park WA 98148
+
+All license fees stated above are subject to change for new users; provided the fees for an
+existing user will be grandfathered on the date such user makes its first payment for use of the
+Agent Standard Messaging or ATI code.
+
+B. Defensive Suspension
+The license granted to you under this Agreement shall automatically terminate and be
+deemed null and void, ab initio, if you or any of your affiliates first asserts or threatens to first
+assert any Blocking Patent or Improvement Patent against ATI or its affiliates or any licensee of
+the Agent Standard Messaging or ATI code. For the avoidance of doubt, to first assert or to
+threaten to first assert does not include an action for declaratory judgment or an action,
+counterclaim, affirmative defense or other responsive action following any assertion or threatened
+assertion by ATI, its affiliates or a licensee of the Agent Standard Messaging or ATI code against
+you or your affiliates. As used herein, a “Blocking Patent” shall mean any patent which claims an
+invention which is necessary or useful for an efficient implementation of the Agent Standard
+Messaging or ATI Code. As used herein, an “Improvement Patent” shall mean any patent which
+claims an invention that improves upon, advances or otherwise adds to the Agent Standard
+Messaging technology or ATI code.
+
+C. Disclaimer
+THE AGENT STANDARD MESSAGING AND ATI CODE IS PROVIDED BY ATI AND ITS
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ATI, ITS AFFILIATES OR ITS CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE AGENT STANDARD
+MESSAGING, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+| NSD\185180.9||
